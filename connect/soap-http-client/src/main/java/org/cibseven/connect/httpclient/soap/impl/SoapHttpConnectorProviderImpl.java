@@ -17,9 +17,9 @@
 package org.cibseven.connect.httpclient.soap.impl;
 
 import org.cibseven.connect.httpclient.soap.SoapHttpConnector;
-import org.cibseven.connect.spi.ConnectorProvider;
+import org.cibseven.connect.httpclient.soap.SoapHttpConnectorProvider;
 
-public class SoapHttpConnectorProviderImpl implements ConnectorProvider {
+public class SoapHttpConnectorProviderImpl implements SoapHttpConnectorProvider {
 
   public String getConnectorId() {
     return SoapHttpConnector.ID;

@@ -14,13 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.connect.soap.httpclient;
+package org.cibseven.connect.httpclient.soap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.connect.Connectors;
-import org.cibseven.connect.httpclient.soap.SoapHttpConnector;
-import org.cibseven.connect.httpclient.soap.SoapHttpRequest;
+
 import org.junit.Before;
 import org.junit.Test;
 
