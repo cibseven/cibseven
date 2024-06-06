@@ -14,16 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.connect.soap.httpclient;
+package org.cibseven.connect.httpclient.soap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.apache.http.client.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.cibseven.connect.Connectors;
-import org.cibseven.connect.httpclient.soap.SoapHttpConnector;
 import org.cibseven.connect.httpclient.soap.impl.SoapHttpConnectorImpl;
 import org.cibseven.connect.impl.DebugRequestInterceptor;
 import org.cibseven.connect.spi.Connector;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,7 +46,7 @@ public class SoapHttpConnectorTest {
   public void shouldCreateHttpPostRequestByDefault() {
     DebugRequestInterceptor interceptor = new DebugRequestInterceptor(false);
     connector.addRequestInterceptor(interceptor);
-    connector.createRequest().url("http://camunda.org").payload("test").soapAction("as").execute();
+    connector.createRequest().url("http://cibseven.org").payload("test").soapAction("as").execute();
 
     Object target = interceptor.getTarget();
     assertThat(target).isInstanceOf(HttpPost.class);
