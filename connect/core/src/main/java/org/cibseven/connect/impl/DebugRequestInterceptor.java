@@ -60,8 +60,7 @@ public class DebugRequestInterceptor implements ConnectorRequestInterceptor {
     target = invocation.getTarget();
     if (proceed) {
       return invocation.proceed();
-    }
-    else {
+    } else {
       return response;
     }
   }
