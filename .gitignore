@@ -4,6 +4,7 @@ target
 .project
 .settings
 .editorconfig
+.factorypath
 build.properties
 bin
 .metadata
