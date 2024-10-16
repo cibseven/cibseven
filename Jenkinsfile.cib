@@ -15,5 +15,6 @@ standardMavenPipeline(
         'CREATE_DOCKER_IMAGE': false,
         'DEPLOY_HELM_CHARTS_TO_HARBOR': false
     ],
-    helmChartPaths: [],
+    helmChartPaths: [
+	],
 )
