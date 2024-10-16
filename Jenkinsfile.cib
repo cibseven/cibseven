@@ -4,41 +4,16 @@
 
 import de.cib.pipeline.library.Constants
 
-/*
- * Custom stage which will build only the Docker image with a different maven profile 'deploy-k8s'.
- * The rest of the pipeline (see below) will use the 'deploy' profile so the produced artifacts in
- * Nexus can be used with the old VM-environments for dev, test, etc., where some jackson libraries
- * are already provided and thus not packaged
- */
-def customCreateDockerImage = {
-    if (env.BRANCH_NAME == 'master' || params.DEPLOY_ANY_BRANCH_TO_REPOSITORY) {
-        withMaven() {
-            // Note that we *must* use goal 'package' here - 'compile' is not enough as the jib
-            // plugin will then simply take the artifacts built beforehand with profile 'deploy'
-            sh '''
-                mvn clean deploy \
-                    -Dmaven.test.skip=true \
-                    -DskipTests \
-                    -Dlicense.skipDownloadLicenses=true \
-                    -Dnexus.snapshot.repository.id=mvn-cib-seven-snapshot \
-                    -Dnexus.snapshot.repository=https://nexus.cib.de/repository/mvn-cib-seven-snapshot \
-                    -U
-            '''
-        }
-    } else {
-        echo '[INFO] Skipping custom stage for building docker image...'
-    }
-}
-
 standardMavenPipeline(
 	mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
-    mvnParams: '-Pdeploy -U',
+    mvnParams: '-Dnexus.snapshot.repository.id=mvn-cib-seven-snapshot -Dnexus.snapshot.repository=https://nexus.cib.de/repository/mvn-cib-seven-snapshot',
     uiParamPresets: [
-		'MVN_VERSION_CHECKS': true, 
+		'MVN_VERSION_CHECKS': true,
+		'UNIT_TESTS': false,
+		'INTEGRATION_TESTS': false,
         // The Docker image is created in the custom stage with its own Maven profile
         'CREATE_DOCKER_IMAGE': false,
-        'DEPLOY_HELM_CHARTS_TO_HARBOR': true
+        'DEPLOY_HELM_CHARTS_TO_HARBOR': false
     ],
     helmChartPaths: [],
-    customStageBody: customCreateDockerImage
 )
