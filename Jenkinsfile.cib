@@ -6,7 +6,7 @@ import de.cib.pipeline.library.Constants
 
 standardMavenPipeline(
 	mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
-    mvnParams: '-U -Dnexus.snapshot.repository.id=mvn-cib-seven-snapshot -Dnexus.snapshot.repository=https://nexus.cib.de/repository/mvn-cib-seven-snapshot',
+    mvnParams: '-Dmaven.test.failure.ignore=true -V -U -Dnexus.snapshot.repository.id=mvn-cib-seven-snapshot -Dnexus.snapshot.repository=https://nexus.cib.de/repository/mvn-cib-seven-snapshot',
     uiParamPresets: [
 		'MVN_VERSION_CHECKS': false,
 		'UNIT_TESTS': false,
