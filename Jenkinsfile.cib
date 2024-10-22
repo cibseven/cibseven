@@ -3,18 +3,237 @@
 @Library('cib-pipeline-library') _
 
 import de.cib.pipeline.library.Constants
+import de.cib.pipeline.library.kubernetes.BuildPodCreator
+import de.cib.pipeline.library.logging.Logger
+import de.cib.pipeline.library.ConstantsInternal
+import de.cib.pipeline.library.MavenProjectInformation
+import groovy.transform.Field
 
-standardMavenPipeline(
-	mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
-    mvnParams: '-Dmaven.test.failure.ignore=true -V -U -Dnexus.snapshot.repository.id=mvn-cib-seven-snapshot -Dnexus.snapshot.repository=https://nexus.cib.de/repository/mvn-cib-seven-snapshot',
-    uiParamPresets: [
-		'MVN_VERSION_CHECKS': false,
-		'UNIT_TESTS': false,
-		'INTEGRATION_TESTS': false,
-        // The Docker image is created in the custom stage with its own Maven profile
-        'CREATE_DOCKER_IMAGE': false,
-        'DEPLOY_HELM_CHARTS_TO_HARBOR': false
-    ],
-    helmChartPaths: [
-	],
-)
+@Field Logger log = new Logger(this)
+@Field MavenProjectInformation mavenProjectInformation = null
+@Field List<String> helmChartPaths = []
+@Field Map pipelineParams = [
+    pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
+    mvnContainerName: Constants.MAVEN_JDK_11_CONTAINER,
+    uiParamPresets: [:],
+    testMode: false
+]
+
+pipeline {
+    agent {
+        kubernetes {
+            yaml BuildPodCreator.cibStandardPod()
+                    .withContainerFromName(pipelineParams.mvnContainerName)
+                    .withHelm3Container()
+                    .withKanikoContainer()
+                    .withSyftContainer()
+                    .asYaml()
+            defaultContainer pipelineParams.mvnContainerName
+        }
+    }
+
+    // Trigger
+    triggers {
+        // Triggers only for master and when not in test mode
+        cron(env.BRANCH_NAME.equals('master') && !pipelineParams.testMode ? 'H H * * 1-5' : '')
+    }
+
+    // Parameter that can be changed in the Jenkins UI
+    parameters {
+        choice(
+            name: 'UNIT_TESTS',
+            choices: ['Auto', 'Run', 'Disable'],
+            description: 'Execute Unit Tests'
+        )
+        choice(
+            name: 'INTEGRATION_TESTS',
+            choices: ['Auto', 'Run', 'Disable'],
+            description: 'Execute Integration Unit Tests'
+        )
+        choice(
+            name: 'DEPLOY',
+            choices: ['Auto', 'Run', 'Disable'],
+            description: 'Deploy snapshot artefacts'
+        )
+        booleanParam(
+            name: 'RELEASE',
+            defaultValue: false,
+            description: 'Deploy release artefacts'
+        )
+    }
+
+    options {
+        buildDiscarder(
+            logRotator(
+                // number of build logs to keep
+                numToKeepStr:'5',
+                // history to keep in days
+                daysToKeepStr: '15',
+                // artifacts are kept for days
+                artifactDaysToKeepStr: '15',
+                // number of builds have their artifacts kept
+                artifactNumToKeepStr: '5'
+            )
+        )
+        // Stop build after 120 minutes
+        timeout(time: 120, unit: 'MINUTES')
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('Print Settings & Checkout') {
+            steps {
+                script {
+                    printSettings()
+
+                    def pom = readMavenPom file: pipelineParams.pom
+
+                    // for overlays often no groupId is set as the parent groupId is used
+                    def groupId = pom.groupId
+                    if (groupId == null) {
+                        groupId = pom.parent.groupId
+                        log.info "parent groupId is used"
+                    }
+
+                    mavenProjectInformation = new MavenProjectInformation(groupId, pom.artifactId, pom.version, pom.name, pom.description)
+
+                    log.info "Build Project: ${mavenProjectInformation.groupId}:${mavenProjectInformation.artifactId}, ${mavenProjectInformation.name} with version ${mavenProjectInformation.version}"
+
+                    // Avoid Git "dubious ownership" error in checked out repository. Needed in
+                    // build containers with newer Git versions. Originates from Jenkins running
+                    // pipeline as root but repository being owned by user 1000. For more, see
+                    // https://stackoverflow.com/questions/72978485/git-submodule-update-failed-with-fatal-detected-dubious-ownership-in-repositor
+                    sh "git config --global --add safe.directory \$(pwd)"
+                }
+            }
+        }
+
+        stage('Build without Deploy') {
+            when {
+                not {
+                    branch 'master'
+                }
+            }
+            steps {
+                script {
+                    // withMaven automatically add "--batch-mode"
+                    withMaven(options: [artifactsPublisher(fingerprintFilesDisabled: true, archiveFilesDisabled: true)]) {
+                        sh """
+                            mvn -f ${pipelineParams.pom} \
+                                -V -U \
+                                clean package \
+                                -T4 \
+                                -Dmaven.test.skip \
+                                -DskipTests \
+                                -Dbuild.number=${BUILD_NUMBER}
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Unit and Integration Tests') {
+            when {
+                anyOf {
+                    expression { params.UNIT_TESTS == 'Auto' }
+                    expression { params.UNIT_TESTS == 'Run' }
+                    allOf {
+                        expression { params.INTEGRATION_TESTS == 'Auto' }
+                        branch 'master'
+                    }
+                    expression { params.INTEGRATION_TESTS == 'Run' }
+                }
+            }
+            steps {
+                script {
+                    withMaven(options: [junitPublisher(disabled: false), jacocoPublisher(disabled: false)]) {
+                        sh """
+                            mvn -f ${pipelineParams.pom} \
+                                -V -U \
+                                verify \
+                                -Dmaven.test.failure.ignore=true
+                        """
+                    }
+                    junit allowEmptyResults: true, testResults: ConstantsInternal.MAVEN_TEST_RESULTS
+                }
+            }
+        }
+
+        stage('Deploy snapshot') {
+            when {
+                allOf {
+                    branch 'master'
+                    anyOf {
+                        expression { params.DEPLOY == 'Auto' }
+                        expression { params.DEPLOY == 'Run' }
+                    }
+                }
+            }
+            steps {
+                script {
+                    withMaven(options: [artifactsPublisher(archiveFilesDisabled: false)]) {
+                        sh """
+                            mvn -f ${pipelineParams.pom} \
+                                -V -U \
+                                clean \
+                                org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
+                                deploy \
+                                -Dnexus.snapshot.repository.id=mvn-cib-seven-snapshot \
+                                -Dnexus.snapshot.repository=https://nexus.cib.de/repository/mvn-cib-seven-snapshot
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                log.info 'End of the build'
+            }
+        }
+
+        success {
+            script {
+                log.info '✅ Build successful'
+                if (params.RELEASE_BUILD == true) {
+                    notifyResult(
+                        office365WebhookId: pipelineParams.office365WebhookId,
+                        message: "Application was successfully released with version ${mavenProjectInformation.version}"
+                    )
+                }
+            }
+        }
+
+        unstable {
+            script {
+                log.warning '⚠️ Build unstable'
+            }
+        }
+
+        failure {
+            script {
+                log.warning '❌ Build failed'
+                if (env.BRANCH_NAME == 'master') {
+                    notifyResult(
+                        office365WebhookId: pipelineParams.office365WebhookId,
+                        message: "Access build info at ${env.BUILD_URL}"
+                    )
+                }
+            }
+        }
+
+        fixed {
+            script {
+                log.info '✅ Previous issues fixed'
+                if (env.BRANCH_NAME == 'master') {
+                    notifyResult(
+                        office365WebhookId: pipelineParams.office365WebhookId,
+                        message: "Access build info at ${env.BUILD_URL}"
+                    )
+                }
+            }
+        }
+    }
+}
