@@ -53,12 +53,12 @@ pipeline {
         choice(
             name: 'DEPLOY',
             choices: ['Auto', 'Run', 'Disable'],
-            description: 'Deploy snapshot artefacts'
+            description: 'Deploy snapshot artefacts; Only for master branch'
         )
         booleanParam(
             name: 'RELEASE',
             defaultValue: false,
-            description: 'Deploy release artefacts'
+            description: 'Deploy release artefacts; Only for master branch'
         )
     }
 
@@ -108,7 +108,7 @@ pipeline {
             }
         }
 
-        stage('Build without Deploy') {
+        stage('Build without deploy and tests') {
             when {
                 not {
                     branch 'master'
@@ -163,6 +163,7 @@ pipeline {
             when {
                 allOf {
                     branch 'master'
+                    expression { params.RELEASE == false }
                     anyOf {
                         expression { params.DEPLOY == 'Auto' }
                         expression { params.DEPLOY == 'Run' }
@@ -176,11 +177,36 @@ pipeline {
                             mvn -f ${pipelineParams.pom} \
                                 -V -U \
                                 clean \
-                                -DskipTests=true \
+                                -DskipTests \
                                 org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
                                 deploy \
                                 -Dnexus.snapshot.repository.id=mvn-cib-seven-snapshot \
                                 -Dnexus.snapshot.repository=https://nexus.cib.de/repository/mvn-cib-seven-snapshot
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Release') {
+            when {
+                allOf {
+                    branch 'master'
+                    expression { params.RELEASE == true }
+                }
+            }
+            steps {
+                script {
+                    withMaven(options: [artifactsPublisher(archiveFilesDisabled: false)]) {
+                        sh """
+                            mvn -f ${pipelineParams.pom} \
+                                -V -U \
+                                clean \
+                                -DskipTests \
+                                org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
+                                deploy \
+                                -Dnexus.snapshot.repository.id=mvn-cib-seven-release \
+                                -Dnexus.snapshot.repository=https://nexus.cib.de/repository/mvn-cib-seven-release
                         """
                     }
                 }
