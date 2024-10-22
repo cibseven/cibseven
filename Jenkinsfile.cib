@@ -14,7 +14,7 @@ import groovy.transform.Field
 @Field List<String> helmChartPaths = []
 @Field Map pipelineParams = [
     pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
-    mvnContainerName: Constants.MAVEN_JDK_11_CONTAINER,
+    mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
     uiParamPresets: [:],
     testMode: false
 ]
@@ -176,6 +176,7 @@ pipeline {
                             mvn -f ${pipelineParams.pom} \
                                 -V -U \
                                 clean \
+                                -DskipTests=true \
                                 org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
                                 deploy \
                                 -Dnexus.snapshot.repository.id=mvn-cib-seven-snapshot \
