@@ -4,12 +4,12 @@
   <parent>
     <groupId>org.camunda.bpm.qa.upgrade</groupId>
     <artifactId>camunda-qa-db-instance-migration</artifactId>
-    <version>7.22.0</version>
+    <version>7.22.0-cibseven</version>
   </parent>
 
   <artifactId>camunda-qa-upgrade-test-fixture-722</artifactId>
   <packaging>jar</packaging>
-  <name>camunda BPM - QA - upgrade - instance migration - test fixture - 7.22.0</name>
+  <name>camunda BPM - QA - upgrade - instance migration - test fixture - 7.22.0-cibseven</name>
 
   <properties>
     <!-- delete when 7.22 is released -->
@@ -23,7 +23,7 @@
 <!--       <dependency> -->
 <!--         <groupId>org.camunda.bpm</groupId> -->
 <!--         <artifactId>camunda-bom</artifactId> -->
-<!--         <version>7.22.0</version> -->
+<!--         <version>7.22.0-cibseven</version> -->
 <!--         <scope>import</scope> -->
 <!--         <type>pom</type> -->
 <!--       </dependency> -->
@@ -106,9 +106,9 @@
                     <artifactItem>
                       <groupId>org.camunda.bpm.distro</groupId>
                       <artifactId>camunda-sql-scripts</artifactId>
-                      <!-- Replace after 7.22.0 release -->
+                      <!-- Replace after 7.22.0-cibseven release -->
                       <version>${camunda.version.current}</version>
-                      <!--<version>7.22.0</version>-->
+                      <!--<version>7.22.0-cibseven</version>-->
                       <type>test-jar</type>
                       <outputDirectory>${project.build.directory}/scripts-current</outputDirectory>
                       <overWrite>true</overWrite>
