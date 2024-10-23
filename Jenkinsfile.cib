@@ -176,6 +176,10 @@ pipeline {
             }
             steps {
                 script {
+                    if (!mavenProjectInformation.version.endsWith("-SNAPSHOT")) {
+                        error("Version should contain -SNAPSHOT postfix; actual value: ${mavenProjectInformation.version}")
+                    }
+
                     withMaven(options: [artifactsPublisher(archiveFilesDisabled: false)]) {
                         sh """
                             mvn -f ${pipelineParams.pom} \
@@ -202,6 +206,10 @@ pipeline {
             }
             steps {
                 script {
+                    if (mavenProjectInformation.version.endsWith("-SNAPSHOT")) {
+                        error("Version should not contain -SNAPSHOT postfix; actual value: ${mavenProjectInformation.version}")
+                    }
+
                     withMaven(options: [artifactsPublisher(archiveFilesDisabled: false)]) {
                         sh """
                             mvn -f ${pipelineParams.pom} \
