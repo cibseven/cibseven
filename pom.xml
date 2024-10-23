@@ -2,9 +2,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.camunda</groupId>
-    <artifactId>camunda-bpm-release-parent</artifactId>
-    <version>2.3.0</version>
+    <groupId>de.cib</groupId>
+    <artifactId>cib-seven-release-parent</artifactId>
+    <version>1.0</version>
     <!-- do not remove empty tag - http://jira.codehaus.org/browse/MNG-4687 -->
     <relativePath />
   </parent>
@@ -317,6 +317,7 @@
   </profiles>
 
   <repositories>
+	<!--
     <repository>
       <id>maven-central</id>
       <name>Maven Central</name>
@@ -326,16 +327,17 @@
       </snapshots>
     </repository>
     <repository>
-      <!-- Required for local builds by community users on master branch -->
-      <id>camunda-public-repository</id>
-      <name>Camunda Platform Maven Repository</name>
-      <url>https://artifacts.camunda.com/artifactory/public/</url>
+      <!- - Required for local builds by community users on master branch - ->
+      <id>cib-seven-public-repository</id>
+      <name>CIB seven Maven Repository</name>
+      <url>https://artifacts.cibseven.de/</url>
     </repository>
+	-->
     <repository>
       <!-- Required for local builds by developers on maintainance branches -->
-      <id>camunda-nexus</id>
-      <name>Camunda Nexus</name>
-      <url>https://artifacts.camunda.com/artifactory/internal</url>
+      <id>cib-seven-internal-repository</id>
+      <name>CIB Nexus</name>
+      <url>https://nexus.cib.de/repository/mvn-cib-seven</url>
     </repository>
   </repositories>
 
@@ -347,31 +349,31 @@
   </licenses>
 
   <organization>
-    <name>camunda services GmbH</name>
-    <url>http://www.camunda.com</url>
+    <name>CIB software GmbH</name>
+    <url>https://www.cib.de/</url>
   </organization>
 
-  <url>http://www.camunda.org</url>
+  <url>https://www.cibseven.de/</url>
 
   <developers>
     <developer>
-      <id>camunda.org</id>
-      <name>Camunda Platform Community</name>
-      <organization>camunda.org</organization>
-      <organizationUrl>http://camunda.org</organizationUrl>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>cib.de</organization>
+      <organizationUrl>https://www.cib.de</organizationUrl>
     </developer>
   </developers>
 
   <scm>
-    <url>https://github.com/camunda/camunda-bpm-platform</url>
-    <connection>scm:git:git@github.com:camunda/camunda-bpm-platform.git</connection>
-    <developerConnection>scm:git:git@github.com:camunda/camunda-bpm-platform.git</developerConnection>
+    <url>https://github.com/cibseven/cib-seven</url>
+    <connection>scm:git:git@github.com:cibseven/cib-seven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cib-seven.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
-    <system>Jira</system>
-    <url>https://app.camunda.com/jira/browse/CAM/</url>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cib-seven/issues</url>
   </issueManagement>
 
 </project>
