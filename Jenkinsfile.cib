@@ -150,11 +150,16 @@ pipeline {
             }
             steps {
                 script {
+                    def testMode = "test"
+                    if (params.INTEGRATION_TESTS == 'Run' || (params.INTEGRATION_TESTS == 'Auto' && env.BRANCH_NAME == 'master')) {
+                        testMode = "verify"
+                    }
+
                     withMaven(options: [junitPublisher(disabled: false), jacocoPublisher(disabled: false)]) {
                         sh """
                             mvn -f ${pipelineParams.pom} \
                                 -V -U \
-                                verify \
+                                ${testMode} \
                                 -Dmaven.test.failure.ignore=true
                         """
                     }
