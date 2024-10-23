@@ -50,15 +50,19 @@ pipeline {
             choices: ['Auto', 'Run', 'Disable'],
             description: 'Execute Integration Unit Tests'
         )
-        choice(
-            name: 'DEPLOY',
-            choices: ['Auto', 'Run', 'Disable'],
-            description: 'Deploy snapshot artefacts; Only for master branch'
-        )
         booleanParam(
             name: 'RELEASE',
             defaultValue: false,
-            description: 'Deploy release artefacts; Only for master branch'
+            description: 'Only for master branch; Release or snapshot build'
+        )
+        choice(
+            name: 'DEPLOY',
+            choices: ['Auto', 'Run', 'Disable'],
+            description: """Only for master branch;
+                When
+                - RELEASE=false, DEPLOY=Auto|Run: deploy snapshot artefacts
+                - RELEASE=true, DEPLOY=Run: deploy release artefacts
+            """
         )
     }
 
@@ -188,11 +192,12 @@ pipeline {
             }
         }
 
-        stage('Release') {
+        stage('Deploy release') {
             when {
                 allOf {
                     branch 'master'
                     expression { params.RELEASE == true }
+                    expression { params.DEPLOY == 'Run' }
                 }
             }
             steps {
