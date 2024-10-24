@@ -52,7 +52,6 @@ pipeline {
         choice(
             name: 'INTEGRATION_TESTS',
             choices: ['Auto', 'Run', 'Disable'],
-            description: 'Execute Integration Unit Tests'
             description: """Execute Integration Unit Tests
                 When
                 - Auto: 
