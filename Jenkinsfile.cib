@@ -43,12 +43,24 @@ pipeline {
         choice(
             name: 'UNIT_TESTS',
             choices: ['Auto', 'Run', 'Disable'],
-            description: 'Execute Unit Tests'
+            description: """Execute Unit Tests
+                When
+                - Auto|Run: run unit tests
+                - Disable: disable unit test run
+            """
         )
         choice(
             name: 'INTEGRATION_TESTS',
             choices: ['Auto', 'Run', 'Disable'],
             description: 'Execute Integration Unit Tests'
+            description: """Execute Integration Unit Tests
+                When
+                - Auto: 
+                    - feature branch, pull request: disabled
+                    - master branch: run integration unit tests
+                - Run: run integration unit tests
+                - Disable: disable integration unit test run
+            """
         )
         booleanParam(
             name: 'RELEASE',
