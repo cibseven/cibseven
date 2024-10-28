@@ -40,6 +40,11 @@ pipeline {
 
     // Parameter that can be changed in the Jenkins UI
     parameters {
+        booleanParam(
+            name: 'BUILD_FEATURE_BRANCH',
+            defaultValue: true,
+            description: 'Build feature branch; Only for non master branch'
+        )
         choice(
             name: 'UNIT_TESTS',
             choices: ['Auto', 'Run', 'Disable'],
@@ -134,8 +139,11 @@ pipeline {
 
         stage('Build without deploy and tests') {
             when {
-                not {
-                    branch 'master'
+                allOf {
+                    expression { params.BUILD_FEATURE_BRANCH == true }
+                    not {
+                        branch 'master'
+                    }
                 }
             }
             steps {
