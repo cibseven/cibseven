@@ -75,6 +75,15 @@ pipeline {
                 - RELEASE=true, DEPLOY=Run: deploy release artefacts
             """
         )
+        choice(
+            name: 'OPEN_API',
+            choices: ['Auto', 'Run', 'Disable'],
+            description: """Only for master branch;
+                When
+                - OPEN_API=Auto: creates openAPI index.html only for master branch with RELEASE=true
+                - OPEN_API=Run: creates openAPI index.html
+            """
+        )
     }
 
     options {
@@ -238,6 +247,32 @@ pipeline {
                                 -Dnexus.snapshot.repository=https://nexus.cib.de/repository/mvn-cib-seven-release
                         """
                     }
+                }
+            }
+        }
+
+        stage('Documentation, OpenAPI') {
+            when {
+                anyOf {
+                    expression { params.OPEN_API == 'Run' }
+                    allOf {
+                        branch 'master'
+                        expression { params.RELEASE == true }
+                        expression { params.OPEN_API == 'Auto' }
+                    }
+                }
+            }
+            steps {
+                script {
+                    withMaven {
+                        sh 'mvn -f engine-rest/engine-rest-openapi/pom.xml clean install -Ddependency-check.skip=true'
+                    }
+                    sh """
+                        cp engine-rest/engine-rest-openapi/target/generated-sources/openapi-json/openapi.json engine-rest/docs/target/dependency/openapi.json
+                        cd engine-rest/docs/
+                        npm run build
+                    """
+                    archiveArtifacts artifacts: 'engine-rest/docs/target/index.html', fingerprint: true
                 }
             }
         }
