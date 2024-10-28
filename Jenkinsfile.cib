@@ -276,6 +276,7 @@ pipeline {
                         sh 'mvn -f engine-rest/engine-rest-openapi/pom.xml clean install -Ddependency-check.skip=true'
                     }
                     sh """
+                        mkdir -p engine-rest/docs/target/dependency/
                         cp engine-rest/engine-rest-openapi/target/generated-sources/openapi-json/openapi.json engine-rest/docs/target/dependency/openapi.json
                         cd engine-rest/docs/
                         npm run build
