@@ -275,7 +275,8 @@ pipeline {
                     withMaven {
                         sh 'mvn -f engine-rest/docs/pom.xml clean package'
                     }
-                    archiveArtifacts artifacts: 'engine-rest/docs/target/index.html', fingerprint: true
+                    zip zipFile: 'openAPI-index-html.zip', archive: true, overwrite: true, glob: 'engine-rest/docs/target/index.html'
+                    archiveArtifacts artifacts: 'openAPI-index-html.zip', fingerprint: true
                 }
             }
         }
