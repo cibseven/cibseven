@@ -114,7 +114,7 @@ module.exports = function(config, app) {
       };
 
       this.getAppVendor = function() {
-        return config.app && config.app.vendor ? config.app.vendor : 'Camunda';
+        return config.app && config.app.vendor ? config.app.vendor : 'CIB seven';
       };
 
       this.getAppName = function() {

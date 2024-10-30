@@ -1,3 +1,4 @@
+ui/common/scripts/services/cam-configuration.js
 node_modules/**/*.js
 **/*test*/**/*.js
 target/
