@@ -1,11 +1,11 @@
 <#import "/lib/utils.ftl" as lib>
 
-<#assign docsUrl = "https://docs.camunda.org/manual/${docsVersion}">
+<#assign docsUrl = "https://docs.cibseven.de/manual/${docsVersion}">
 {
   "openapi": "3.0.2",
   "info": {
-    "title": "Camunda Platform REST API",
-    "description": "OpenApi Spec for Camunda Platform REST API.",
+    "title": "CIB seven REST API",
+    "description": "OpenApi Spec for CIB seven REST API.",
     "version": "${cambpmVersion}",
     "license": {
       "name": "Apache License 2.0",
@@ -13,7 +13,7 @@
     }
   },
   "externalDocs": {
-    "description": "Find out more about Camunda Rest API",
+    "description": "Find out more about CIB seven Rest API",
     "url": "${docsUrl}/reference/rest/overview/"
   },
   "servers": [
