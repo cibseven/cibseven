@@ -58,14 +58,14 @@ public class InvoiceDemoDataGenerator {
       user.setFirstName("Demo");
       user.setLastName("Demo");
       user.setPassword("demo");
-      user.setEmail("demo@camunda.org");
+      user.setEmail("demo@cibseven.de");
       engine.getIdentityService().saveUser(user);
 
       User user2 = engine.getIdentityService().newUser("john");
       user2.setFirstName("John");
       user2.setLastName("Doe");
       user2.setPassword("john");
-      user2.setEmail("john@camunda.org");
+      user2.setEmail("john@cibseven.de");
 
       engine.getIdentityService().saveUser(user2);
 
@@ -73,7 +73,7 @@ public class InvoiceDemoDataGenerator {
       user3.setFirstName("Mary");
       user3.setLastName("Anne");
       user3.setPassword("mary");
-      user3.setEmail("mary@camunda.org");
+      user3.setEmail("mary@cibseven.de");
 
       engine.getIdentityService().saveUser(user3);
 
@@ -81,7 +81,7 @@ public class InvoiceDemoDataGenerator {
       user4.setFirstName("Peter");
       user4.setLastName("Meter");
       user4.setPassword("peter");
-      user4.setEmail("peter@camunda.org");
+      user4.setEmail("peter@cibseven.de");
 
       engine.getIdentityService().saveUser(user4);
 
