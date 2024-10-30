@@ -66,7 +66,7 @@ Page.prototype.navigateToWebapp = function(appName) {
     .window()
     .maximize();
 
-  expect(this.navbarBrand().getText()).to.eventually.eql('Camunda ' + appName);
+  expect(this.navbarBrand().getText()).to.eventually.eql('CIB seven ' + appName);
 };
 
 Page.prototype.navbarBrand = function() {
