@@ -3,7 +3,7 @@
 
   <parent>
     <groupId>de.cib</groupId>
-    <artifactId>cib-seven-release-parent</artifactId>
+    <artifactId>cibseven-release-parent</artifactId>
     <version>1.0</version>
     <!-- do not remove empty tag - http://jira.codehaus.org/browse/MNG-4687 -->
     <relativePath />
@@ -320,16 +320,16 @@
     </repository>
     <repository>
       <!- - Required for local builds by community users on master branch - ->
-      <id>cib-seven-public-repository</id>
-      <name>CIB seven Maven Repository</name>
+      <id>mvn-cibseven-public</id>
+      <name>CIB seven Public Repository</name>
       <url>https://artifacts.cibseven.de/</url>
     </repository>
 	-->
     <repository>
       <!-- Required for local builds by developers on maintainance branches -->
-      <id>cib-seven-internal-repository</id>
-      <name>CIB Nexus</name>
-      <url>https://nexus.cib.de/repository/mvn-cib-seven</url>
+      <id>mvn-cibseven</id>
+      <name>CIB seven Private repository</name>
+      <url>https://nexus.cib.de/repository/mvn-cibseven</url>
     </repository>
   </repositories>
 
@@ -357,15 +357,15 @@
   </developers>
 
   <scm>
-    <url>https://github.com/cibseven/cib-seven</url>
-    <connection>scm:git:git@github.com:cibseven/cib-seven.git</connection>
-    <developerConnection>scm:git:git@github.com:cibseven/cib-seven.git</developerConnection>
-    <tag>cib-seven-1.0</tag>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>cibseven-1.0</tag>
   </scm>
 
   <issueManagement>
     <system>GitHub Issues</system>
-    <url>https://github.com/cibseven/cib-seven/issues</url>
+    <url>https://github.com/cibseven/cibseven/issues</url>
   </issueManagement>
 
 </project>
