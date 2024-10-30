@@ -46,28 +46,30 @@ const addMissingLicenseHeaders = (filePath, source) => {
       }
 
       let licenseInfo = null;
-      try {
-        licenseInfo = fs.readFileSync(`${packagePath}/LICENSE`, 'utf8');
-      } catch (e) {
-        try {
-          licenseInfo = fs.readFileSync(`${packagePath}/LICENSE.md`, 'utf8');
-        } catch (e) {
-          try {
-            licenseInfo = fs.readFileSync(
-              `${packagePath}/LICENSE-MIT.txt`,
-              'utf8'
-            );
-          } catch (e) {
-            try {
-              licenseInfo = fs.readFileSync(
-                `${packagePath}/LICENSE.txt`,
-                'utf8'
-              );
-            } catch (e) {
-              console.log(`${pkg} has no license file. 🤷‍`);// eslint-disable-line
-            }
+      for (let fileName of [
+          'LICENSE',
+          'LICENCE',
+          'LICENSE.md',
+          'LICENCE.md',
+          'LICENSE-MIT',
+          'LICENSE-MIT.txt',
+          'LICENSE.txt'
+      ]) {
+          let pathName = `${packagePath}/${fileName}`;
+          if (fs.existsSync(pathName)) {
+              try {
+                  licenseInfo = fs.readFileSync(pathName, 'utf8');
+              } catch (e) {
+                  // do nothing
+              }
+              if (licenseInfo) {
+                  break;
+              }
           }
-        }
+      }
+
+      if (!licenseInfo) {
+          console.log(`${pkg} has no license file. 🤷‍`);// eslint-disable-line
       }
 
       let packageJsonPath = require.resolve(`${packagePath}/package.json`);
