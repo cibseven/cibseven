@@ -49,6 +49,7 @@ const addMissingLicenseHeaders = (filePath, source) => {
       for (let fileName of [
           'LICENSE',
           'LICENCE',
+          'license',
           'LICENSE.md',
           'LICENCE.md',
           'LICENSE-MIT',
