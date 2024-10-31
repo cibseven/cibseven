@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>qa-request-scope</artifactId>
-  <name>Camunda Platform - Spring Boot Starter - QA - Request Scope</name>
+  <name>CIB seven - Spring Boot Starter - QA - Request Scope</name>
 
   <dependencies>
 

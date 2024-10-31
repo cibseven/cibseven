@@ -10,7 +10,7 @@
     <version>7.22.0-cibseven</version>
   </parent>
 
-  <name>Camunda Platform - tomcat Distro</name>
+  <name>CIB seven - tomcat Distro</name>
 
   <dependencies>
 

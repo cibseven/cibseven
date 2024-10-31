@@ -9,7 +9,7 @@
 
   <groupId>org.camunda.bpm.springboot</groupId>
   <artifactId>camunda-bpm-spring-boot-starter-webapp</artifactId>
-  <name>Camunda Platform - Spring Boot Starter - Webapps</name>
+  <name>CIB seven - Spring Boot Starter - Webapps</name>
 
   <dependencies>
     <dependency>

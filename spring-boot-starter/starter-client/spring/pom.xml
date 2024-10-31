@@ -10,7 +10,7 @@
 
   <groupId>org.camunda.bpm</groupId>
   <artifactId>camunda-external-task-client-spring</artifactId>
-  <name>Camunda Platform - Spring Boot Starter - Client - Spring</name>
+  <name>CIB seven - Spring Boot Starter - Client - Spring</name>
 
   <dependencies>
     <dependency>

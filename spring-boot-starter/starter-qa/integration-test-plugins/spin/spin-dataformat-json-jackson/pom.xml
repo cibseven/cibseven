@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>qa-plugins-spin-dataformat-json-jackson</artifactId>
-  <name>Camunda Platform - Spring Boot Starter - QA - Plugins - Spin Json Jackson</name>
+  <name>CIB seven - Spring Boot Starter - QA - Plugins - Spin Json Jackson</name>
 
   <dependencies>
 

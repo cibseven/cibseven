@@ -3,7 +3,7 @@
   <artifactId>camunda-bpm-assert-root</artifactId>
   <packaging>pom</packaging>
 
-  <name>Camunda Platform - Assert - Root</name>
+  <name>CIB seven - Assert - Root</name>
 
   <parent>
     <groupId>org.camunda.bpm</groupId>

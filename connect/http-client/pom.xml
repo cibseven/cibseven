@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>camunda-connect-http-client</artifactId>
-  <name>Camunda Platform - connect - http client</name>
+  <name>CIB seven - connect - http client</name>
 
   <dependencies>
 

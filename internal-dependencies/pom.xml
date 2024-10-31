@@ -11,7 +11,7 @@
 
   <artifactId>camunda-core-internal-dependencies</artifactId>
   <packaging>pom</packaging>
-  <name>Camunda Platform - Core - Internal Dependencies</name>
+  <name>CIB seven - Core - Internal Dependencies</name>
 
   <description>Camunda Platform core internal bill of material for dependencies</description>
 

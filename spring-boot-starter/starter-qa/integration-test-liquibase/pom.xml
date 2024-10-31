@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>qa-liquibase</artifactId>
-  <name>Camunda Platform - Spring Boot Starter - QA - Liquibase</name>
+  <name>CIB seven - Spring Boot Starter - QA - Liquibase</name>
 
   <dependencies>
 

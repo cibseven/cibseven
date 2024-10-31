@@ -4,7 +4,7 @@
   <groupId>org.camunda.bpm.example</groupId>
   <artifactId>camunda-example-root</artifactId>
   <packaging>pom</packaging>
-  <name>Camunda Platform - Example - Root</name>
+  <name>CIB seven - Example - Root</name>
 
   <parent>
     <groupId>org.camunda.bpm</groupId>

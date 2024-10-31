@@ -5,7 +5,7 @@
   <artifactId>camunda-qa-db-instance-migration</artifactId>
 
   <packaging>pom</packaging>
-  <name>Camunda Platform - QA - upgrade - instance migration</name>
+  <name>CIB seven - QA - upgrade - instance migration</name>
 
   <parent>
     <groupId>org.camunda.bpm.qa</groupId>

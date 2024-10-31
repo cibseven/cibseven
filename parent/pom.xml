@@ -9,12 +9,12 @@
   </parent>
 
   <artifactId>camunda-parent</artifactId>
-  <name>Camunda Platform - Parent Pom</name>
+  <name>CIB seven - Parent Pom</name>
   <inceptionYear>2013</inceptionYear>
   <packaging>pom</packaging>
 
   <description>
-    This pom is the parent of all Camunda Platform projects
+    This pom is the parent of all CIB seven projects
   </description>
 
   <properties>
@@ -279,8 +279,8 @@
               <additionalJOption>-Xdoclint:none</additionalJOption>
               <additionalJOption>--ignore-source-errors</additionalJOption>
             </additionalJOptions>
-            <doctitle>Camunda Platform Javadocs ${project.version}</doctitle>
-            <windowtitle>Camunda Platform Javadocs ${project.version}</windowtitle>
+            <doctitle>CIB seven Javadocs ${project.version}</doctitle>
+            <windowtitle>CIB seven Javadocs ${project.version}</windowtitle>
           </configuration>
         </plugin>
 
@@ -352,11 +352,11 @@
   </licenses>
 
   <organization>
-    <name>camunda services GmbH</name>
-    <url>http://www.camunda.com</url>
+    <name>CIB software GmbH</name>
+    <url>https://www.cib.de/</url>
   </organization>
 
-  <url>http://www.camunda.org</url>
+  <url>https://cibseven.de/</url>
 </project>
 
 

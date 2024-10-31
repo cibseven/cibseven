@@ -11,10 +11,10 @@
 
   <artifactId>camunda-bom</artifactId>
   <packaging>pom</packaging>
-  <name>Camunda Platform - Bom</name>
-  <url>http://camunda.org</url>
+  <name>CIB seven - Bom</name>
+  <url>https://cibseven.de</url>
 
-  <description>Camunda Platform bill of material</description>
+  <description>CIB seven bill of material</description>
 
   <licenses>
     <license>
@@ -24,8 +24,8 @@
   </licenses>
 
   <organization>
-    <name>camunda services GmbH</name>
-    <url>http://www.camunda.com</url>
+    <name>CIB software GmbH</name>
+    <url>https://www.cib.de/</url>
   </organization>
 
   <dependencyManagement>

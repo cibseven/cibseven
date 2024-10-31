@@ -11,7 +11,7 @@
 
   <artifactId>camunda-bom-root</artifactId>
   <packaging>pom</packaging>
-  <name>Camunda Platform - Bom Root</name>
+  <name>CIB seven - Bom Root</name>
 
   <modules>
     <module>camunda-only-bom</module>

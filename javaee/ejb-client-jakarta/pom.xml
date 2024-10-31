@@ -3,7 +3,7 @@
 
   <artifactId>camunda-ejb-client-jakarta</artifactId>
   <groupId>org.camunda.bpm.javaee</groupId>
-  <name>Camunda Platform - EJB Client Jakarta</name>
+  <name>CIB seven - EJB Client Jakarta</name>
   <packaging>jar</packaging>
 
   <parent>

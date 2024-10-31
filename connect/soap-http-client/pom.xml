@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>camunda-connect-soap-http-client</artifactId>
-  <name>Camunda Platform - connect - soap http client</name>
+  <name>CIB seven - connect - soap http client</name>
 
   <dependencies>
 

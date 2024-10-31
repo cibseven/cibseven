@@ -5,7 +5,7 @@
   <groupId>org.camunda.bpm.qa</groupId>
 
   <packaging>pom</packaging>
-  <name>Camunda Platform - QA</name>
+  <name>CIB seven - QA</name>
 
   <parent>
     <groupId>org.camunda.bpm</groupId>

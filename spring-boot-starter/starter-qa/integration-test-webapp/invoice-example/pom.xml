@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>qa-webapp-invoice-example</artifactId>
-  <name>Camunda Platform - Spring Boot Starter - QA - Webapps Invoice Example</name>
+  <name>CIB seven - Spring Boot Starter - QA - Webapps Invoice Example</name>
 
   <dependencies>
     <dependency>

@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>camunda-bpm-run-modules-oauth2</artifactId>
-  <name>Camunda Platform - Run - Module Spring Security</name>
+  <name>CIB seven - Run - Module Spring Security</name>
   <packaging>pom</packaging>
   
   <properties>

@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>camunda-connect-connectors-all</artifactId>
-  <name>Camunda Platform - connect - all connectors in one</name>
+  <name>CIB seven - connect - all connectors in one</name>
 
   <properties>
     <!-- We shade artifacts into the jar, so we need to generate 

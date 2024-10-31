@@ -3,7 +3,7 @@
   <artifactId>camunda-bpm-junit5</artifactId>
   <packaging>jar</packaging>
   
-  <name>Camunda Platform - JUnit 5 Extension</name>
+  <name>CIB seven - JUnit 5 Extension</name>
   
   <parent>
     <groupId>org.camunda.bpm</groupId>

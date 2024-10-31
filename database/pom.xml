@@ -11,7 +11,7 @@
 
   <artifactId>camunda-database-settings</artifactId>
   <packaging>pom</packaging>
-  <name>Camunda Platform - database settings</name>
+  <name>CIB seven - database settings</name>
   <description>Provides general dependencies and profiles for database testing</description>
 
   <properties>

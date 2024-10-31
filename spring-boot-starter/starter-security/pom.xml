@@ -10,7 +10,7 @@
 
   <groupId>org.camunda.bpm.springboot</groupId>
   <artifactId>camunda-bpm-spring-boot-starter-security</artifactId>
-  <name>Camunda Platform - Spring Boot Starter - Spring Security</name>
+  <name>CIB seven - Spring Boot Starter - Spring Security</name>
 
   <dependencies>
     <dependency>

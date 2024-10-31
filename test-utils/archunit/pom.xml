@@ -3,7 +3,7 @@
     <artifactId>camunda-bpm-archunit</artifactId>
     <packaging>jar</packaging>
 
-    <name>Camunda Platform - ArchUnit</name>
+    <name>CIB seven - ArchUnit</name>
 
     <parent>
         <groupId>org.camunda.bpm</groupId>

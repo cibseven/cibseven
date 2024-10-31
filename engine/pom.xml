@@ -2,7 +2,7 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <name>Camunda Platform - engine</name>
+  <name>CIB seven - engine</name>
   <artifactId>camunda-engine</artifactId>
 
   <parent>

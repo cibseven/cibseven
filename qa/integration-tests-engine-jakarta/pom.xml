@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>camunda-qa-integration-tests-engine-jakarta</artifactId>
-  <name>Camunda Platform - QA Integration Tests - Engine - Jakarta</name>
+  <name>CIB seven - QA Integration Tests - Engine - Jakarta</name>
 
   <parent>
     <groupId>org.camunda.bpm.qa</groupId>
