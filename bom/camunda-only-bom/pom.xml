@@ -12,7 +12,7 @@
   <artifactId>camunda-only-bom</artifactId>
   <packaging>pom</packaging>
   <name>CIB seven Only - Bom</name>
-  <url>https://www.cibseven.de</url>
+  <url>https://cibseven.de</url>
 
   <description>CIB seven Only bill of material</description>
 
