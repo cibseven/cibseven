@@ -11,7 +11,7 @@
 
   <artifactId>camunda-bom</artifactId>
   <packaging>pom</packaging>
-  <name>Camunda Platform - Bom</name>
+  <name>CIB seven - Bom</name>
   <url>http://camunda.org</url>
 
   <description>Camunda Platform bill of material</description>

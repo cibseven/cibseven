@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>qa-webapp-ce-runtime</artifactId>
-  <name>Camunda Platform - Spring Boot Starter - QA - Webapps Runtime</name>
+  <name>CIB seven - Spring Boot Starter - QA - Webapps Runtime</name>
 
   <properties>
     <version.jersey-json>1.15</version.jersey-json>

@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>camunda-bpm-run-example-plugin</artifactId>
-  <name>Camunda Platform - Run - QA - Example Plugin</name>
+  <name>CIB seven - Run - QA - Example Plugin</name>
   <packaging>jar</packaging>
 
   <dependencies>

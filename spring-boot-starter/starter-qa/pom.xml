@@ -12,7 +12,7 @@
   <packaging>pom</packaging>
 
   <artifactId>camunda-bpm-spring-boot-starter-qa</artifactId>
-  <name>Camunda Platform - Spring Boot Starter - QA - Root Pom</name>
+  <name>CIB seven - Spring Boot Starter - QA - Root Pom</name>
 
   <profiles>  
     <profile>

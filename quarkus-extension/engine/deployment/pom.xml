@@ -11,7 +11,7 @@
 
   <artifactId>camunda-bpm-quarkus-engine-deployment</artifactId>
 
-  <name>Camunda Platform - Quarkus Extension - Engine - Deployment</name>
+  <name>CIB seven - Quarkus Extension - Engine - Deployment</name>
 
   <dependencies>
 

@@ -4,7 +4,7 @@
   <groupId>org.camunda.bpm.identity</groupId>
   <artifactId>camunda-identity-ldap</artifactId>
   <packaging>jar</packaging>
-  <name>Camunda Platform - engine plugins - identity - ldap</name>
+  <name>CIB seven - engine plugins - identity - ldap</name>
 
   <parent>
     <groupId>org.camunda.bpm</groupId>

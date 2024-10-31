@@ -4,7 +4,7 @@
   <artifactId>camunda-qa-tomcat9-runtime</artifactId>
   <packaging>pom</packaging>
 
-  <name>Camunda Platform - QA Tomcat 9 Test Runtime</name>
+  <name>CIB seven - QA Tomcat 9 Test Runtime</name>
 
   <parent>
     <groupId>org.camunda.bpm.qa</groupId>

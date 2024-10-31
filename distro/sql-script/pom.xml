@@ -12,7 +12,7 @@
   <artifactId>camunda-sql-scripts</artifactId>
   <packaging>jar</packaging>
 
-  <name>Camunda Platform - SQL scripts</name>
+  <name>CIB seven - SQL scripts</name>
   
   <properties>
     <!-- exclude tests by default, only run in check-sql profile -->

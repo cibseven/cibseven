@@ -11,7 +11,7 @@
   <artifactId>camunda-spring-compatibility-root</artifactId>
 
   <packaging>pom</packaging>
-  <name>Camunda Platform - engine - Spring - Root</name>
+  <name>CIB seven - engine - Spring - Root</name>
 
   <modules>
     <module>core</module>

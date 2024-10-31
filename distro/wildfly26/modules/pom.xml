@@ -9,7 +9,7 @@
 
   <artifactId>camunda-wildfly26-modules</artifactId>
   <packaging>jar</packaging>
-  <name>Camunda Platform - Wildfly 26 Modules</name>
+  <name>CIB seven - Wildfly 26 Modules</name>
 
   <properties>
     <org.jboss.shrinkwrap.resolver.version>1.0.0-beta-5</org.jboss.shrinkwrap.resolver.version>

@@ -12,7 +12,7 @@
 
   <artifactId>camunda-webapp-jakarta</artifactId>
   <packaging>war</packaging>
-  <name>Camunda Platform - Webapp - Assembly Jakarta</name>
+  <name>CIB seven - Webapp - Assembly Jakarta</name>
 
   <properties>
     <jakarta.webapp>${project.build.directory}/generated-resources/jakarta-webapp</jakarta.webapp>

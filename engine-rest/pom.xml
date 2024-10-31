@@ -11,7 +11,7 @@
   <artifactId>camunda-engine-rest-root</artifactId>
 
   <packaging>pom</packaging>
-  <name>Camunda Platform - engine - REST - Root</name>
+  <name>CIB seven - engine - REST - Root</name>
 
   <properties>
     <version.rest-assured>4.5.0</version.rest-assured>

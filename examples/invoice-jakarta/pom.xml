@@ -3,7 +3,7 @@
 
   <artifactId>camunda-example-invoice-jakarta</artifactId>
   <packaging>war</packaging>
-  <name>Camunda Platform - Example - Invoice Jakarta</name>
+  <name>CIB seven - Example - Invoice Jakarta</name>
 
   <parent>
     <groupId>org.camunda.bpm.example</groupId>

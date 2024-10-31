@@ -12,7 +12,7 @@
   <artifactId>camunda-bpm-quarkus-parent</artifactId>
   <groupId>org.camunda.bpm.quarkus</groupId>
 
-  <name>Camunda Platform - Quarkus Extension - Parent</name>
+  <name>CIB seven - Quarkus Extension - Parent</name>
 
   <packaging>pom</packaging>
 

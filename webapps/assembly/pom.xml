@@ -12,7 +12,7 @@
 
   <artifactId>camunda-webapp</artifactId>
   <packaging>war</packaging>
-  <name>Camunda Platform - Webapp - Assembly</name>
+  <name>CIB seven - Webapp - Assembly</name>
   <inceptionYear>2014</inceptionYear>
 
   <properties>

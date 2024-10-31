@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>camunda-bpm-run-qa-integration-tests</artifactId>
-  <name>Camunda Platform - Run - QA - Integration Tests</name>
+  <name>CIB seven - Run - QA - Integration Tests</name>
   <packaging>jar</packaging>
 
   <dependencies>

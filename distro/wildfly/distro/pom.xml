@@ -10,7 +10,7 @@
   <artifactId>camunda-bpm-wildfly</artifactId>
   <packaging>pom</packaging>
 
-  <name>Camunda Platform - Wildfly Distro</name>
+  <name>CIB seven - Wildfly Distro</name>
 
   <dependencies>
     <dependency>

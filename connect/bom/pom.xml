@@ -13,7 +13,7 @@
   <groupId>org.camunda.connect</groupId>
   <artifactId>camunda-connect-bom</artifactId>
   <version>7.22.0-cibseven</version>
-  <name>Camunda Platform - connect - bom</name>
+  <name>CIB seven - connect - bom</name>
   <packaging>pom</packaging>
 
   <dependencyManagement>

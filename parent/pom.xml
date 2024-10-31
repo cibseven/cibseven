@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>camunda-parent</artifactId>
-  <name>Camunda Platform - Parent Pom</name>
+  <name>CIB seven - Parent Pom</name>
   <inceptionYear>2013</inceptionYear>
   <packaging>pom</packaging>
 

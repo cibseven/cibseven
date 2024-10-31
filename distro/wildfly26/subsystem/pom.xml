@@ -10,7 +10,7 @@
   <artifactId>camunda-wildfly26-subsystem</artifactId>
   <packaging>jar</packaging>
 
-  <name>Camunda Platform - Wildfly 26 Subsystem</name>
+  <name>CIB seven - Wildfly 26 Subsystem</name>
 
   <dependencies>
 

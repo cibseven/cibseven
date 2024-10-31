@@ -11,7 +11,7 @@
 
   <artifactId>camunda-bpm-quarkus-engine-parent</artifactId>
 
-  <name>Camunda Platform - Quarkus Extension - Engine - Parent</name>
+  <name>CIB seven - Quarkus Extension - Engine - Parent</name>
 
   <packaging>pom</packaging>
 

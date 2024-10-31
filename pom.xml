@@ -13,12 +13,12 @@
   <artifactId>camunda-root</artifactId>
   <version>7.22.0-cibseven</version>
   <packaging>pom</packaging>
-  <name>Camunda Platform - Root Pom</name>
+  <name>CIB seven - Root Pom</name>
   <inceptionYear>2013</inceptionYear>
 
   <description>
     This pom defines the modules that make up the build.
-    The parent pom for all Camunda Platform projects can be found in the parent directory relative to this file.
+    The parent pom for all CIB seven projects can be found in the parent directory relative to this file.
   </description>
 
   <properties>
@@ -139,8 +139,8 @@
                 <additionalJOption>-Xdoclint:none</additionalJOption>
                 <additionalJOption>--ignore-source-errors</additionalJOption>
               </additionalJOptions>
-              <doctitle>Camunda Platform Javadocs ${project.version}</doctitle>
-              <windowtitle>Camunda Platform Javadocs ${project.version}</windowtitle>
+              <doctitle>CIB seven Javadocs ${project.version}</doctitle>
+              <windowtitle>CIB seven Javadocs ${project.version}</windowtitle>
             </configuration>
           </plugin>
         </plugins>

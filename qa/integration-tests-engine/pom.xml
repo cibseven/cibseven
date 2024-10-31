@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>camunda-qa-integration-tests-engine</artifactId>
-  <name>Camunda Platform - QA Integration Tests - Engine</name>
+  <name>CIB seven - QA Integration Tests - Engine</name>
 
   <parent>
     <groupId>org.camunda.bpm.qa</groupId>

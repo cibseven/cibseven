@@ -13,7 +13,7 @@
   <artifactId>camunda-webapp-root</artifactId>
   <groupId>org.camunda.bpm.webapp</groupId>
   <packaging>pom</packaging>
-  <name>Camunda Platform - Webapp - Root</name>
+  <name>CIB seven - Webapp - Root</name>
 
   <properties>
     <version.jetty>9.4.31.v20200723</version.jetty>

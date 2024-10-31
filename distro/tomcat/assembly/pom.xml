@@ -19,7 +19,7 @@
     <skip-third-party-bom>false</skip-third-party-bom>
   </properties>
 
-  <name>Camunda Platform - tomcat Assembly</name>
+  <name>CIB seven - tomcat Assembly</name>
 
   <dependencies>
     <dependency>

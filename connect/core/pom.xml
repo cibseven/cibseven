@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>camunda-connect-core</artifactId>
-  <name>Camunda Platform - connect - core</name>
+  <name>CIB seven - connect - core</name>
 
   <dependencies>
 

@@ -4,7 +4,7 @@
   <artifactId>camunda-qa-wildfly-runtime</artifactId>
   <packaging>jar</packaging>
 
-  <name>Camunda Platform - QA Wildfly Test Runtime</name>
+  <name>CIB seven - QA Wildfly Test Runtime</name>
 
   <parent>
     <groupId>org.camunda.bpm.qa</groupId>

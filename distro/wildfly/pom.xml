@@ -12,7 +12,7 @@
   <artifactId>camunda-wildfly</artifactId>
   <packaging>pom</packaging>
 
-  <name>Camunda Platform - Wildfly</name>
+  <name>CIB seven - Wildfly</name>
 
   <dependencyManagement>
     <dependencies>

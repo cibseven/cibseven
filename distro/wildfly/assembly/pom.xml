@@ -10,7 +10,7 @@
   <artifactId>camunda-wildfly-assembly</artifactId>
   <packaging>pom</packaging>
 
-  <name>Camunda Platform - Wildfly Assembly</name>
+  <name>CIB seven - Wildfly Assembly</name>
 
   <description>
     Assembles the Camunda Platform and makes it ready for qa.

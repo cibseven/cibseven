@@ -11,7 +11,7 @@
 
   <groupId>org.camunda.bpm.run</groupId>
   <artifactId>camunda-bpm-run-root</artifactId>
-  <name>Camunda Platform - Run - Root</name>
+  <name>CIB seven - Run - Root</name>
   <description>This is the root of Camunda Platform Run</description>
   <packaging>pom</packaging>
 

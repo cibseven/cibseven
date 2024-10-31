@@ -3,7 +3,7 @@
 
   <artifactId>camunda-example-invoice</artifactId>
   <packaging>war</packaging>
-  <name>Camunda Platform - Example - Invoice</name>
+  <name>CIB seven - Example - Invoice</name>
 
   <parent>
     <groupId>org.camunda.bpm.example</groupId>

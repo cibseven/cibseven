@@ -10,7 +10,7 @@
   <groupId>org.camunda.bpm.qa.upgrade</groupId>
   <artifactId>camunda-qa-upgrade-scenario-util</artifactId>
   <packaging>jar</packaging>
-  <name>Camunda Platform - QA - upgrade - scenario util</name>
+  <name>CIB seven - QA - upgrade - scenario util</name>
 
   <dependencyManagement>
     <dependencies>

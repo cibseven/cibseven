@@ -3,7 +3,7 @@
   <artifactId>camunda-bpm-assert</artifactId>
   <packaging>jar</packaging>
 
-  <name>Camunda Platform - Assert</name>
+  <name>CIB seven - Assert</name>
 
   <parent>
     <groupId>org.camunda.bpm</groupId>

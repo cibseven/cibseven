@@ -12,7 +12,7 @@
   <packaging>pom</packaging>
 
   <artifactId>qa-webapp</artifactId>
-  <name>Camunda Platform - Spring Boot Starter - QA - Webapps</name>
+  <name>CIB seven - Spring Boot Starter - QA - Webapps</name>
 
   <modules>
     <module>invoice-example</module>
