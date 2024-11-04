@@ -216,7 +216,7 @@ public class AbstractCallActivityBuilder<B extends AbstractCallActivityBuilder<B
    * {@link DelegateVariableMapping} interface.
    * Is used to delegate the variable in- and output mapping to the given class.
    *
-   * @param camundaVariableMappingClass                  the class name to set
+   * @param fullQualifiedClassName        the class name to set
    * @return                              the builder object
    */
   public B camundaVariableMappingClass(String fullQualifiedClassName) {

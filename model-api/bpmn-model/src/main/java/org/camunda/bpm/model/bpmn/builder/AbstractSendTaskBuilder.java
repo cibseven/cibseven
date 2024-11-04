@@ -79,7 +79,7 @@ public abstract class AbstractSendTaskBuilder<B extends AbstractSendTaskBuilder<
   /**
    * Sets the camunda class attribute.
    *
-   * @param camundaClass  the class name to set
+   * @param delegateClass  the class name to set
    * @return the builder object
    */
   public B camundaClass(Class delegateClass) {
@@ -89,7 +89,7 @@ public abstract class AbstractSendTaskBuilder<B extends AbstractSendTaskBuilder<
   /**
    * Sets the camunda class attribute.
    *
-   * @param camundaClass  the class name to set
+   * @param fullQualifiedClassName  the class name to set
    * @return the builder object
    */
   public B camundaClass(String fullQualifiedClassName) {

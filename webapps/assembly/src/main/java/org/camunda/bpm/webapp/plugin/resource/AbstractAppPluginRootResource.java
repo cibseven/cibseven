@@ -108,7 +108,6 @@ public class AbstractAppPluginRootResource<T extends AppPlugin> {
 
   /**
    *
-   * @param <T>
    * @param subResource
    * @param engineName
    * @return
@@ -196,7 +195,8 @@ public class AbstractAppPluginRootResource<T extends AppPlugin> {
   /**
    * Returns an input stream for a given resource
    *
-   * @param resourceName
+   * @param plugin
+   * @param fileName
    * @return
    */
   protected InputStream getPluginAssetAsStream(AppPlugin plugin, String fileName) {

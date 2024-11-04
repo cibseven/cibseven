@@ -121,7 +121,7 @@ public abstract class DmnEngineConfiguration {
    * Set the list of pre decision evaluation listeners. They will be notified before
    * the default decision evaluation listeners.
    *
-   * @param decisionTableEvaluationListeners the list of pre decision table evaluation listeners
+   * @param decisionEvaluationListeners the list of pre decision table evaluation listeners
    */
   public abstract void setCustomPreDecisionEvaluationListeners(List<DmnDecisionEvaluationListener> decisionEvaluationListeners);
 

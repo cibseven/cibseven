@@ -139,7 +139,7 @@ public abstract class AbstractUserTaskBuilder<B extends AbstractUserTaskBuilder<
   /**
    * Sets the camunda form handler class attribute.
    *
-   * @param camundaFormHandlerClass  the class name of the form handler
+   * @param fullQualifiedClassName  the class name of the form handler
    * @return the builder object
    */
   public B camundaFormHandlerClass(String fullQualifiedClassName) {
@@ -183,7 +183,7 @@ public abstract class AbstractUserTaskBuilder<B extends AbstractUserTaskBuilder<
   /**
    * Sets the camunda form ref version attribute.
    *
-   * @param camundaFormRef the form ref version to set
+   * @param camundaFormRefVersion the form ref version to set
    * @return the builder object
    */
   public B camundaFormRefVersion(String camundaFormRefVersion) {

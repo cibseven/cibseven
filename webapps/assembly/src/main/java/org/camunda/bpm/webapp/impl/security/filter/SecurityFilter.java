@@ -102,7 +102,8 @@ public class SecurityFilter implements Filter {
    * Iterate over a number of filter rules and match them against
    * the specified request.
    *
-   * @param request
+   * @param requestMethod
+   * @param requestUri
    * @param filterRules
    *
    * @return the joined {@link AuthorizationStatus} for this request matched against all filter rules

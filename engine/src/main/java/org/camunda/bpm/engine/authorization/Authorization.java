@@ -131,7 +131,7 @@ public interface Authorization {
   /**
    * Allows checking whether this authorization grants a specific permission.
    *
-   * @param perm the permission to check for
+   * @param permission the permission to check for
    * @throws IllegalStateException if this {@link Authorization} is of type {@link #AUTH_TYPE_REVOKE}
    */
   public boolean isPermissionGranted(Permission permission);
@@ -139,7 +139,7 @@ public interface Authorization {
   /**
    * Allows checking whether this authorization revokes a specific permission.
    *
-   * @param perm the permission to check for
+   * @param permission the permission to check for
    * @throws IllegalStateException if this {@link Authorization} is of type {@link #AUTH_TYPE_GRANT}
    */
   public boolean isPermissionRevoked(Permission permission);
@@ -171,7 +171,7 @@ public interface Authorization {
    *  <li>For {@link #AUTH_TYPE_REVOKE}: all permissions in the parameter list revoked by this authorization are returned. </li>
    * </ul>
    *
-   * @param an array of permissions to check for.
+   * @param permissions an array of permissions to check for.
    * @return Returns the set of {@link Permission Permissions} provided by this {@link Authorization}.
    *  */
   public Permission[] getPermissions(Permission[] permissions);
@@ -186,7 +186,7 @@ public interface Authorization {
    *  <li>For {@link #AUTH_TYPE_REVOKE}: all provided permissions are revoked.</li>
    * </ul>
    *
-   *  @param a set of permissions.
+   *  @param permissions a set of permissions.
    * */
   public void setPermissions(Permission[] permissions);
 

@@ -57,7 +57,7 @@ public interface AuthenticationProvider {
    * For example, a Http Basic auth implementation may set the WWW-Authenticate header to <code>Basic realm="engine name"</code>.
    * </p>
    *
-   * @param request the response to augment
+   * @param response the response to augment
    * @param engine the process engine the request addressed. May be considered as an authentication realm to create a specific authentication
    * challenge
    */

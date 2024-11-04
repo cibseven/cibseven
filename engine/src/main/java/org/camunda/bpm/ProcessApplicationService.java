@@ -29,7 +29,7 @@ import org.camunda.bpm.application.ProcessApplicationInfo;
 public interface ProcessApplicationService {
   
   /** 
-   * @returns the names of all deployed process applications 
+   * @return the names of all deployed process applications 
    * */
   public Set<String> getProcessApplicationNames();
   

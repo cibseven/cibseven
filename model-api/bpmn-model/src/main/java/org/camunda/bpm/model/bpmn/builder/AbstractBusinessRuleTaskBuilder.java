@@ -55,7 +55,7 @@ public abstract class AbstractBusinessRuleTaskBuilder<B extends AbstractBusiness
   /**
    * Sets the camunda class attribute.
    *
-   * @param camundaClass  the class name to set
+   * @param fullQualifiedClassName  the class name to set
    * @return the builder object
    */
   public B camundaClass(String fullQualifiedClassName) {

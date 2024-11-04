@@ -44,8 +44,7 @@ public class ServiceNames {
   /**
    * Returns the service name for a {@link MscManagedProcessEngine}.
    *
-   * @param the
-   *          name of the process engine
+   * @param processEngineName the name of the process engine
    * @return the composed service name
    */
   public static ServiceName forManagedProcessEngine(String processEngineName) {
@@ -108,8 +107,8 @@ public class ServiceNames {
    * <p>Returns the name for a {@link ProcessApplicationDeploymentService} given
    * the name of the deployment unit and the name of the deployment.</p>
    *
-   * @param processApplicationName
-   * @param deploymentId
+   * @param moduleName
+   * @param deploymentName
    */
   public static ServiceName forProcessApplicationDeploymentService(String moduleName, String deploymentName) {
     return PROCESS_APPLICATION_MODULE.append(moduleName).append("DEPLOY").append(deploymentName);

@@ -233,7 +233,7 @@ public interface DomElement {
   /**
    * Adds a CDATA section to this element.
    *
-   * @param textContent  the CDATA content to set
+   * @param data  the CDATA content to set
    */
   void addCDataSection(String data);
 

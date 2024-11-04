@@ -68,7 +68,7 @@ public interface DmnTransformListener {
    * Notified after a Decision Requirements Graph was transformed
    * 
    * @param definitions
-   * @param dmnDecisionGraph
+   * @param dmnDecisionRequirementsGraph
    */
   void transformDecisionRequirementsGraph(Definitions definitions, DmnDecisionRequirementsGraph dmnDecisionRequirementsGraph);
   

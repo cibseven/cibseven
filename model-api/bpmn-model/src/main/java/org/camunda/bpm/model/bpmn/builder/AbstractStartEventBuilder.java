@@ -109,7 +109,7 @@ public abstract class AbstractStartEventBuilder<B extends AbstractStartEventBuil
   /**
    * Sets the camunda form ref version attribute.
    *
-   * @param camundaFormRef the form ref version to set
+   * @param camundaFormRefVersion the form ref version to set
    * @return the builder object
    */
   public B camundaFormRefVersion(String camundaFormRefVersion) {
