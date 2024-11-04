@@ -316,7 +316,7 @@ pipeline {
                                 -U
                         """
                     }
-                    zip zipFile: 'javaDocs.zip', archive: true, overwrite: true, path: 'target/site/apidocs/'
+                    zip zipFile: 'javaDocs.zip', archive: true, overwrite: true, glob: 'target/site/apidocs/'
                     archiveArtifacts artifacts: 'javaDocs.zip', fingerprint: true
                 }
             }
