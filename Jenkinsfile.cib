@@ -89,6 +89,15 @@ pipeline {
                 - OPEN_API=Run: creates openAPI index.html
             """
         )
+        choice(
+            name: 'JAVA_DOCS',
+            choices: ['Auto', 'Run', 'Disable'],
+            description: """Only for master branch;
+                When
+                - JAVA_DOCS=Auto: creates javaDocs pages only for master branch with RELEASE=true
+                - JAVA_DOCS=Run: creates javaDocs pages
+            """
+        )
     }
 
     options {
@@ -278,6 +287,37 @@ pipeline {
                     }
                     zip zipFile: 'openAPI-index-html.zip', archive: true, overwrite: true, glob: 'engine-rest/docs/target/index.html'
                     archiveArtifacts artifacts: 'openAPI-index-html.zip', fingerprint: true
+                }
+            }
+        }
+
+        stage('Documentation, javaDocs') {
+            when {
+                anyOf {
+                    expression { params.JAVA_DOCS == 'Run' }
+                    allOf {
+                        branch 'master'
+                        expression { params.RELEASE == true }
+                        expression { params.JAVA_DOCS == 'Auto' }
+                    }
+                }
+            }
+            steps {
+                script {
+                    withMaven {
+                        sh """
+                            mvn package \
+                                javadoc:javadoc \
+                                javadoc:aggregate \
+                                -Pdistro,distro-wildfly,distro-webjar,javadocs \
+                                -pl \'!distro/wildfly/modules,!distro/wildfly26/modules,!engine-rest/engine-rest-openapi\' \
+                                -DskipTests=true \
+                                -Dskip.frontend.build=true \
+                                -U
+                        """
+                    }
+                    zip zipFile: 'javaDocs.zip', archive: true, overwrite: true, path: 'target/site/apidocs/'
+                    archiveArtifacts artifacts: 'javaDocs.zip', fingerprint: true
                 }
             }
         }
