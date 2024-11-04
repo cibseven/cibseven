@@ -273,6 +273,7 @@ pipeline {
             steps {
                 script {
                     withMaven {
+                        sh 'mvn -f engine-rest/engine-rest-openapi/pom.xml clean install -U'
                         sh 'mvn -f engine-rest/docs/pom.xml clean package -U'
                     }
                     zip zipFile: 'openAPI-index-html.zip', archive: true, overwrite: true, glob: 'engine-rest/docs/target/index.html'
