@@ -1,6 +1,6 @@
 This is a distribution of
 
-       Camunda Platform v${project.version}
+       CIB seven v${project.version}
 
 visit
        http://docs.camunda.org/
@@ -30,7 +30,7 @@ Contents:
 
   server/
         This directory contains a preconfigured distribution 
-        of Apache Tomcat with Camunda Platform readily 
+        of Apache Tomcat with CIB seven readily 
         installed. 
 
         run the
@@ -49,11 +49,11 @@ Contents:
         The engine create script contain the engine and history tables.
 
         Execute the current upgrade script to make the database compatible
-        with the newest Camunda Platform release.
+        with the newest CIB seven release.
 
 ==================
 
-Camunda Platform version: ${project.version}
+CIB seven version: ${project.version}
 Apache Tomcat Server version: ${version.tomcat}
 
 =================

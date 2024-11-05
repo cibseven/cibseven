@@ -141,23 +141,23 @@
       <outputDirectory></outputDirectory>
     </file>
     <file>
-      <source>src/start-camunda.bat</source>
+      <source>src/start-cibseven.bat</source>
       <filtered>true</filtered>
       <outputDirectory></outputDirectory>
     </file>
     <file>
-      <source>src/start-camunda.sh</source>
+      <source>src/start-cibseven.sh</source>
       <filtered>true</filtered>
       <outputDirectory></outputDirectory>
       <fileMode>0755</fileMode>
     </file>
     <file>
-      <source>src/shutdown-camunda.bat</source>
+      <source>src/shutdown-cibseven.bat</source>
       <filtered>true</filtered>
       <outputDirectory></outputDirectory>
     </file>
     <file>
-      <source>src/shutdown-camunda.sh</source>
+      <source>src/shutdown-cibseven.sh</source>
       <filtered>true</filtered>
       <outputDirectory></outputDirectory>
       <fileMode>0755</fileMode>

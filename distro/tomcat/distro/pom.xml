@@ -1,7 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>camunda-bpm-tomcat</artifactId>
+  
+  <groupId>de.cibseven.tomcat</groupId>
+  <artifactId>cibseven-tomcat</artifactId>
+  <version>1.0</version>
   <packaging>pom</packaging>
 
   <parent>
@@ -11,13 +14,32 @@
   </parent>
 
   <name>CIB seven - tomcat Distro</name>
+  
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.camunda.bpm</groupId>
+        <artifactId>camunda-core-internal-dependencies</artifactId>
+        <version>${project.parent.version}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+      <dependency>
+	    <groupId>org.camunda.bpm</groupId>
+	    <artifactId>camunda-bom</artifactId>
+	    <version>${project.parent.version}</version>
+	    <scope>import</scope>
+        <type>pom</type>
+	  </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
 
     <dependency>
       <groupId>org.camunda.bpm.distro</groupId>
       <artifactId>camunda-sql-scripts</artifactId>
-      <version>${project.version}</version>
+      <version>${project.parent.version}</version>
       <type>jar</type>
     </dependency>
 
@@ -26,21 +48,21 @@
     <dependency>
       <groupId>org.camunda.bpm.tomcat</groupId>
       <artifactId>camunda-tomcat-assembly</artifactId>
-      <version>${project.version}</version>
+      <version>${project.parent.version}</version>
       <type>tar.gz</type>
     </dependency>
 
     <dependency>
       <groupId>org.camunda.bpm.webapp</groupId>
       <artifactId>camunda-webapp-tomcat-jakarta</artifactId>
-      <version>${project.version}</version>
+      <version>${project.parent.version}</version>
       <type>war</type>
     </dependency>
 
     <dependency>
       <groupId>org.camunda.bpm</groupId>
       <artifactId>camunda-engine-rest-jakarta</artifactId>
-      <version>${project.version}</version>
+      <version>${project.parent.version}</version>
       <classifier>tomcat</classifier>
       <type>war</type>
     </dependency>
@@ -48,7 +70,7 @@
     <dependency>
       <groupId>org.camunda.bpm.example</groupId>
       <artifactId>camunda-example-invoice-jakarta</artifactId>
-      <version>${project.version}</version>
+      <version>${project.parent.version}</version>
       <type>war</type>
     </dependency>
 
@@ -70,7 +92,7 @@
               <descriptors>
                 <descriptor>assembly.xml</descriptor>
               </descriptors>
-              <finalName>camunda-bpm-tomcat-${project.version}</finalName>
+              <finalName>cibseven-tomcat-${project.version}</finalName>
               <attach>true</attach>
               <appendAssemblyId>false</appendAssemblyId>
               <outputDirectory>target/</outputDirectory>
