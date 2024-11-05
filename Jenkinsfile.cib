@@ -292,6 +292,7 @@ pipeline {
 
                     // deploy to github pages
                     sh 'mkdir -p engine-rest/docs/target/repo'
+                    sh 'chown 1000:1000 engine-rest/docs/target/repo'
                     checkout changelog: false, poll: false, scm: scmGit(branches: [[name: 'main']], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'engine-rest/docs/target/repo']], userRemoteConfigs: [[credentialsId: 'credential-github-cib-seven-access-token', url: 'https://github.com/cibseven/docs-cibseven-de.git']])
                     sh 'mkdir -p engine-rest/docs/target/repo/rest/cibseven/1.0'
                     sh 'mv -f engine-rest/docs/target/index.html engine-rest/docs/target/repo/rest/cibseven/1.0/index.html'
