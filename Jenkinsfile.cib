@@ -310,6 +310,8 @@ pipeline {
                         if ! git diff-index --quiet HEAD --
                         then
                             echo "index.html was changed -> commit changes"
+                            git config --global user.email \"${ConstantsInternal.JENKINS_GIT_USER_EMAIL}\"
+                            git config --global user.name \"${ConstantsInternal.JENKINS_GIT_USER_NAME}\"
                             git commit -am "Update open API index.html"
 
                             echo "Push to github"
