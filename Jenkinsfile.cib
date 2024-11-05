@@ -285,8 +285,38 @@ pipeline {
                         sh 'mvn -f engine-rest/engine-rest-openapi/pom.xml clean install -U'
                         sh 'mvn -f engine-rest/docs/pom.xml clean package -U'
                     }
+
+                    // put as artifact to jenkins job
                     zip zipFile: 'openAPI-index-html.zip', archive: true, overwrite: true, glob: 'engine-rest/docs/target/index.html'
                     archiveArtifacts artifacts: 'openAPI-index-html.zip', fingerprint: true
+
+                    // deploy to github pages
+                    sh 'git clone https://github.com/cibseven/docs-cibseven-de.git engine-rest/docs/target/repo'
+                    sh 'mkdir -p engine-rest/docs/target/repo/rest/cibseven/1.0'
+                    sh 'mv -f engine-rest/docs/target/index.html engine-rest/docs/target/repo/rest/cibseven/1.0/index.html'
+                    sh """#!/bin/bash
+                        cd engine-rest/docs/target/repo
+                        git status
+                        git add *
+                        if ! git diff-index --quiet HEAD --
+                        then
+                            echo "index.html was changed -> commit changes"
+                            git commit -am "Update open API index.html"
+
+                            echo "Push to github"
+                            # always return true so that the build does not fail if there are no changes
+                            git push origin || true
+                        else
+                            echo "index.html was not changed -> nothing to do more"
+                        fi
+                        cd ../../../..
+                    """
+
+                    // clean up
+                    withMaven {
+                        sh 'mvn -f engine-rest/engine-rest-openapi/pom.xml clean'
+                        sh 'mvn -f engine-rest/docs/pom.xml clean'
+                    }
                 }
             }
         }
