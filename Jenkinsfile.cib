@@ -301,26 +301,28 @@ pipeline {
                     checkout changelog: false, poll: false, scm: scmGit(branches: [[name: 'main']], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'engine-rest/docs/target/repo']], userRemoteConfigs: [[credentialsId: 'credential-github-cib-seven-access-token', url: 'https://github.com/cibseven/docs-cibseven-de.git']])
                     sh 'mkdir -p engine-rest/docs/target/repo/rest/cibseven/1.0'
                     sh 'mv -f engine-rest/docs/target/index.html engine-rest/docs/target/repo/rest/cibseven/1.0/index.html'
-                    sh """#!/bin/bash
-                        chown -R 1000:1000 engine-rest/docs/target/repo
-                        cd engine-rest/docs/target/repo
-                        pwd
-                        git status
-                        git add *
-                        if ! git diff-index --quiet HEAD --
-                        then
-                            echo "index.html was changed -> commit changes"
-                            git config --global user.email \"${ConstantsInternal.JENKINS_GIT_USER_EMAIL}\"
-                            git config --global user.name \"${ConstantsInternal.JENKINS_GIT_USER_NAME}\"
-                            git commit -am "Update open API index.html"
+                    sshagent(credentials: ['credential-github-cib-seven-access-token']) {
+                        sh """#!/bin/bash
+                            chown -R 1000:1000 engine-rest/docs/target/repo
+                            cd engine-rest/docs/target/repo
+                            pwd
+                            git status
+                            git add *
+                            if ! git diff-index --quiet HEAD --
+                            then
+                                echo "index.html was changed -> commit changes"
+                                git config --global user.email \"${ConstantsInternal.JENKINS_GIT_USER_EMAIL}\"
+                                git config --global user.name \"${ConstantsInternal.JENKINS_GIT_USER_NAME}\"
+                                git commit -am "Update open API index.html"
 
-                            echo "Push to github"
-                            # always return true so that the build does not fail if there are no changes
-                            git push origin HEAD:main || true
-                        else
-                            echo "index.html was not changed -> nothing to do more"
-                        fi
-                    """
+                                echo "Push to github"
+                                # always return true so that the build does not fail if there are no changes
+                                git push origin HEAD:main || true
+                            else
+                                echo "index.html was not changed -> nothing to do more"
+                            fi
+                        """
+                    }
 
                     // clean up
                     withMaven {
