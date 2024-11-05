@@ -303,6 +303,7 @@ pipeline {
                     sh 'mv -f engine-rest/docs/target/index.html engine-rest/docs/target/repo/rest/cibseven/1.0/index.html'
                     dir('engine-rest/docs/target/repo') {
                         sh """#!/bin/bash
+                            sh 'chown -R 1000:1000 engine-rest/docs/target/repo'
                             pwd
                             git status
                             git add *
