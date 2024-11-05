@@ -302,8 +302,8 @@ pipeline {
                     sh 'mkdir -p engine-rest/docs/target/repo/rest/cibseven/1.0'
                     sh 'mv -f engine-rest/docs/target/index.html engine-rest/docs/target/repo/rest/cibseven/1.0/index.html'
                     sh """#!/bin/bash
-                        cd engine-rest/docs/target/repo
                         chown -R 1000:1000 engine-rest/docs/target/repo
+                        cd engine-rest/docs/target/repo
                         pwd
                         git status
                         git add *
@@ -314,7 +314,7 @@ pipeline {
 
                             echo "Push to github"
                             # always return true so that the build does not fail if there are no changes
-                            git push origin || true
+                            git push origin HEAD:main || true
                         else
                             echo "index.html was not changed -> nothing to do more"
                         fi
