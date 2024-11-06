@@ -309,7 +309,6 @@
   </profiles>
   
   <repositories>
-	<!--
     <repository>
       <id>maven-central</id>
       <name>Maven Central</name>
@@ -319,12 +318,11 @@
       </snapshots>
     </repository>
     <repository>
-      <!- - Required for local builds by community users on master branch - ->
+      <!-- Required for local builds by community users on master branch -->
       <id>mvn-cibseven-public</id>
       <name>CIB seven Public Repository</name>
       <url>https://artifacts.cibseven.de/repository/public</url>
     </repository>
-	-->
     <repository>
       <!-- Required for local builds by developers on maintainance branches -->
       <id>mvn-cibseven</id>
