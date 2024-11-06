@@ -2,9 +2,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>de.cib</groupId>
-    <artifactId>cibseven-release-parent</artifactId>
-    <version>1.0</version>
+    <groupId>de.cibseven</groupId>
+	  <artifactId>release-parent</artifactId>
+	  <version>1.0</version>
     <!-- do not remove empty tag - http://jira.codehaus.org/browse/MNG-4687 -->
     <relativePath />
   </parent>
@@ -14,7 +14,7 @@
   <version>7.22.0-cibseven</version>
   <packaging>pom</packaging>
   <name>CIB seven - Root Pom</name>
-  <inceptionYear>2013</inceptionYear>
+  <inceptionYear>2024</inceptionYear>
 
   <description>
     This pom defines the modules that make up the build.
