@@ -8,7 +8,7 @@ SET WEBAPPS_PATH=%BASEDIR%webapps
 SET OAUTH2_PATH=%BASEDIR%oauth2
 SET REST_PATH=%BASEDIR%rest
 SET EXAMPLE_PATH=%BASEDIR%example
-SET APPNAME=Camunda Run
+SET APPNAME=CIB seven Run
 
 IF [%~1]==[start] GOTO Startup
 IF [%~1]==[stop] GOTO Stop
@@ -148,8 +148,8 @@ GOTO End
 REM remove argument
 SHIFT
 
-REM shut down Camunda Run
-ECHO Camunda Run is shutting down.
+REM shut down CIB seven Run
+ECHO CIB seven Run is shutting down.
 TASKKILL /FI "WINDOWTITLE eq %APPNAME%"
 
 GOTO End
@@ -163,6 +163,6 @@ ECHO   --oauth2     - Enables the Camunda Platform Spring Security OAuth2 integr
 ECHO   --rest       - Enables the REST API
 ECHO   --example    - Enables the example application
 ECHO   --production - Applies the production.yaml configuration file
-ECHO   --detached   - Starts Camunda Run as a detached process
+ECHO   --detached   - Starts CIB seven Run as a detached process
 
 :End

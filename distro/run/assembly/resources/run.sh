@@ -15,7 +15,7 @@ OPTIONS_HELP="Options:
   --rest       - Enables the REST API
   --example    - Enables the example application
   --production - Applies the production.yaml configuration file
-  --detached   - Starts Camunda Run as a detached process
+  --detached   - Starts CIB seven Run as a detached process
 "
 
 # set environment parameters
@@ -77,7 +77,7 @@ if [ "$1" = "start" ] ; then
                      ;;
       # the background flag shouldn't influence the optional component flags
       --detached )   detachProcess=true
-                     echo Camunda Run will start in the background. Use the shutdown.sh script to stop it
+                     echo CIB seven Run will start in the background. Use the shutdown.sh script to stop it
                      ;;
       --help )       printf "%s" "$OPTIONS_HELP"
                      exit 0
@@ -108,16 +108,16 @@ if [ "$1" = "start" ] ; then
   # start the application
   if [ "$detachProcess" = "true" ]; then
 
-    # check if a Camunda Run instance is already in operation
+    # check if a CIB seven Run instance is already in operation
     if [ -s "$PID_PATH" ]; then
       echo "
-A Camunda Run instance is already in operation (process id $(cat $PID_PATH)).
+A CIB seven Run instance is already in operation (process id $(cat $PID_PATH)).
 
 Please stop it or remove the file $PID_PATH."
       exit 1
     fi
 
-    # start Camunda Run detached
+    # start CIB seven Run detached
     "$JAVA" -Dloader.path="$classPath" -Dcamunda.deploymentDir="$DEPLOYMENT_DIR" $JAVA_OPTS -jar "$BASEDIR/camunda-bpm-run-core.jar" --spring.config.location=file:"$configuration" &
     # store the process id
     echo $! > "$PID_PATH"
@@ -129,15 +129,15 @@ Please stop it or remove the file $PID_PATH."
 elif [ "$1" = "stop" ] ; then
 
   if [ -s "$PID_PATH" ]; then
-    # stop Camunda Run if the process is still running
+    # stop CIB seven Run if the process is still running
     kill $(cat "$PID_PATH")
 
     # remove process ID file
     rm "$PID_PATH"
 
-    echo "Camunda Run is shutting down."
+    echo "CIB seven Run is shutting down."
   else
-    echo "There is no instance of Camunda Run to shut down."
+    echo "There is no instance of CIB seven Run to shut down."
     exit 1
   fi
 

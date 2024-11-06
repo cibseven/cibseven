@@ -33,7 +33,7 @@ camunda.bpm:
     deployment.deploy-changed-only: true
 # https://docs.camunda.org/manual/latest/user-guide/process-engine/identity-service/#configuration-properties-of-the-ldap-plugin
 # https://docs.camunda.org/manual/latest/user-guide/camunda-bpm-run/#ldap-identity-service
-# Uncomment this section to enable LDAP support for Camunda Run
+# Uncomment this section to enable LDAP support for CIB seven Run
 #    ldap:
 #      enabled: true
 #      server-url: ldaps://localhost:4334

@@ -3,5 +3,5 @@
 SET BASEDIR=%~dp0
 SET EXECUTABLE=%BASEDIR%internal\run.bat
 
-REM stop Camunda Run
+REM stop CIB seven Run
 call "%EXECUTABLE%" stop
