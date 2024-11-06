@@ -129,7 +129,7 @@
     "AddUserLink": "Add User Link",
     "Assign": "Assign",
     "BACK": "Back",
-    "BANNER_CE_EOL_TEXT": "This is an old web interface, it will be deprecated and replaced with CIB seven new frontend in the next version.",
+    "BANNER_CE_EOL_TEXT": "This is an old web interface, it will be deprecated and replaced with new <a href=\"https://cibseven.de\">CIB seven</a> frontend in the next version.",
     "BEFORE": "before",
     "BOOLEAN": "Boolean",
     "BUSINESS_KEY": "Business Key",

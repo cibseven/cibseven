@@ -17,7 +17,7 @@
     "AUTH_LOGOUT_SUCCESSFUL": "Sie haben sich erfolgreich abgemeldet",
     "AUTH_LOGOUT_THANKS": "Vielen Dank für die Nutzung von CIB seven. Wir wünschen einen schönen {{dayContext}}!",
     "BACK": "Zurück",
-    "BANNER_CE_EOL_TEXT": "Das ist eine alte Weboberfläche, die in der nächsten Version durch das neue Frontend von CIB seven ersetzt wird.",
+    "BANNER_CE_EOL_TEXT": "Das ist eine alte Weboberfläche, die in der nächsten Version durch das neue Frontend von <a href=\"https://cibseven.de\">CIB seven</a> ersetzt wird.",
     "BOOLEAN": "Boolean",
     "CAM_WIDGET_BPMN_VIEWER_ERROR": "Diagramm konnte nicht gerendert werden:",
     "CAM_WIDGET_BPMN_VIEWER_LOADING": "Diagramm laden",
