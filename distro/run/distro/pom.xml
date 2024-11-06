@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  
+  <groupId>de.cibseven.run</groupId>
+  <artifactId>cibseven-run</artifactId>
+  <version>1.0</version>
+  <packaging>pom</packaging>
 
   <parent>
     <groupId>org.camunda.bpm.run</groupId>
@@ -9,23 +14,33 @@
     <relativePath>..</relativePath>
   </parent>
 
-  <artifactId>camunda-bpm-run</artifactId>
   <name>CIB seven - Run - Distribution</name>
-  <packaging>pom</packaging>
+  
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+	    <groupId>org.camunda.bpm</groupId>
+	    <artifactId>camunda-bom</artifactId>
+	    <version>${project.parent.version}</version>
+	    <scope>import</scope>
+        <type>pom</type>
+	  </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
 
     <dependency>
       <groupId>org.camunda.bpm.run</groupId>
       <artifactId>camunda-bpm-run-assembly</artifactId>
-      <version>${project.version}</version>
+      <version>${project.parent.version}</version>
       <type>tar.gz</type>
     </dependency>
 
     <dependency>
       <groupId>org.camunda.bpm.distro</groupId>
       <artifactId>camunda-sql-scripts</artifactId>
-      <version>${project.version}</version>
+      <version>${project.parent.version}</version>
       <type>jar</type>
     </dependency>
 
@@ -33,7 +48,7 @@
     <dependency>
       <groupId>org.camunda.bpm.run</groupId>
       <artifactId>camunda-bpm-run-modules-webapps</artifactId>
-      <version>${project.version}</version>
+      <version>${project.parent.version}</version>
       <type>pom</type>
       <exclusions>
         <!-- we don't need any transitive dependencies -->

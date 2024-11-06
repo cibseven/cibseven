@@ -1,18 +1,13 @@
 This is a distribution of
 
-       Camunda Platform v${project.version}
+       CIB seven v1.0
 
 visit
-       http://docs.camunda.org/
-
-The Camunda Platform is a dual-license Java-based framework.
-This particular copy of the Camunda Platform is released either
-under the Apache License 2.0 (Community Platform) OR a commercial
-license agreement (Enterprise Platform).
+       https://docs.cibseven.de
 
 License information can be found in the LICENSE file.
  
-The Camunda Platform includes libraries developed by third
+CIB seven includes libraries developed by third
 parties. For license and attribution notices for these libraries,
 please refer to the documentation that accompanies this distribution
 (see the LICENSE_BOOK-${project.version} file).
@@ -34,17 +29,17 @@ Contents:
 
   internal/
         This directory contains the Java application and optional components
-        that Camunda Platform Run consists of.
+        that CIB seven Run consists of.
 
   configuration/
         This directory contains all resources to configure the distro.
         Find a detailed guide on how to use this directory on the following
         documentation pages:
-        https://docs.camunda.org/manual/latest/installation/camunda-bpm-run/
-        https://docs.camunda.org/manual/latest/user-guide/camunda-bpm-run/
+        https://docs.cibseven.de/manual/latest/installation/cibseven-run/
+        https://docs.cibseven.de/manual/latest/user-guide/cibseven-run/
 
 ==================
 
-Camunda Platform version: ${project.version}
+CIB seven version: ${project.version}
 
 =================
