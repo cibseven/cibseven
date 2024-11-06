@@ -79,12 +79,12 @@
       <outputDirectory></outputDirectory>
     </file>
     <file>
-      <source>src/start-camunda.bat</source>
+      <source>src/start-cibseven.bat</source>
       <filtered>true</filtered>
       <outputDirectory></outputDirectory>
     </file>
     <file>
-      <source>src/start-camunda.sh</source>
+      <source>src/start-cibseven.sh</source>
       <filtered>true</filtered>
       <outputDirectory></outputDirectory>
       <fileMode>0755</fileMode>
