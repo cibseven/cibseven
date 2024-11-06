@@ -291,39 +291,10 @@ pipeline {
                     archiveArtifacts artifacts: 'openAPI-index-html.zip', fingerprint: true
 
                     // deploy to github pages
-                    sh 'mkdir -p engine-rest/docs/target/repo'
-                    sh 'chown 1000:1000 engine-rest/docs/target/repo'
-                    // Avoid Git "dubious ownership" error in checked out repository. Needed in
-                    // build containers with newer Git versions. Originates from Jenkins running
-                    // pipeline as root but repository being owned by user 1000. For more, see
-                    // https://stackoverflow.com/questions/72978485/git-submodule-update-failed-with-fatal-detected-dubious-ownership-in-repositor
-                    sh "git config --global --add safe.directory \$(pwd)/engine-rest/docs/target/repo"
-                    checkout changelog: false, poll: false, scm: scmGit(branches: [[name: 'main']], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'engine-rest/docs/target/repo']], userRemoteConfigs: [[credentialsId: 'credential-github-cib-seven-access-token', url: 'https://github.com/cibseven/docs-cibseven-de.git']])
-                    sh 'mkdir -p engine-rest/docs/target/repo/rest/cibseven/1.0'
-                    sh 'mv -f engine-rest/docs/target/index.html engine-rest/docs/target/repo/rest/cibseven/1.0/index.html'
-                    withCredentials([gitUsernamePassword(credentialsId: 'credential-github-cib-seven-access-token', gitToolName: 'Default')]) {
-                    // sshagent(credentials: ['credential-github-cib-seven-access-token']) {
-                        sh """#!/bin/bash
-                            chown -R 1000:1000 engine-rest/docs/target/repo
-                            cd engine-rest/docs/target/repo
-                            pwd
-                            git status
-                            git add *
-                            if ! git diff-index --quiet HEAD --
-                            then
-                                echo "index.html was changed -> commit changes"
-                                git config --global user.email \"${ConstantsInternal.JENKINS_GIT_USER_EMAIL}\"
-                                git config --global user.name \"${ConstantsInternal.JENKINS_GIT_USER_NAME}\"
-                                git commit -am "Update open API index.html"
-
-                                echo "Push to github"
-                                # always return true so that the build does not fail if there are no changes
-                                git push origin HEAD:main || true
-                            else
-                                echo "index.html was not changed -> nothing to do more"
-                            fi
-                        """
-                    }
+                    pushToDocsRepo("Update open API index.html", {
+                        sh 'mkdir -p docs-cibseven-de/rest/cibseven/1.0'
+                        sh 'mv -f engine-rest/docs/target/index.html docs-cibseven-de/rest/cibseven/1.0/index.html'
+                    })
 
                     // clean up
                     withMaven {
@@ -359,8 +330,16 @@ pipeline {
                                 -U
                         """
                     }
+
+                    // put as artifact to jenkins job
                     zip zipFile: 'javaDocs.zip', archive: true, overwrite: true, glob: 'target/site/apidocs/'
                     archiveArtifacts artifacts: 'javaDocs.zip', fingerprint: true
+
+                    // deploy to github pages
+                    pushToDocsRepo("Update javaDocs", {
+                        sh 'mkdir -p docs-cibseven-de/javadoc/cibseven/1.0'
+                        sh 'cp -Rf target/site/apidocs/. docs-cibseven-de/javadoc/cibseven/1.0/'
+                    })
                 }
             }
         }
@@ -414,5 +393,49 @@ pipeline {
                 }
             }
         }
+    }
+}
+
+def pushToDocsRepo(String commmitMessage, Closure updateRepo) {
+    // deploy to github pages
+    sh 'mkdir -p docs-cibseven-de'
+    sh 'chown 1000:1000 docs-cibseven-de'
+
+    // Avoid Git "dubious ownership" error in checked out repository. Needed in
+    // build containers with newer Git versions. Originates from Jenkins running
+    // pipeline as root but repository being owned by user 1000. For more, see
+    // https://stackoverflow.com/questions/72978485/git-submodule-update-failed-with-fatal-detected-dubious-ownership-in-repositor
+    sh "git config --global --add safe.directory \$(pwd)/docs-cibseven-de"
+
+    // checkout repo once
+    def repoDownloaded = fileExists 'docs-cibseven-de/README.md'
+    if (!repoDownloaded) {
+        checkout changelog: false, poll: false, scm: scmGit(branches: [[name: 'main']], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'docs-cibseven-de']], userRemoteConfigs: [[credentialsId: 'credential-github-cib-seven-access-token', url: 'https://github.com/cibseven/docs-cibseven-de.git']])
+    }
+
+    updateRepo()
+
+    // push to repo
+    withCredentials([gitUsernamePassword(credentialsId: 'credential-github-cib-seven-access-token', gitToolName: 'Default')]) {
+        sh """#!/bin/bash
+            chown -R 1000:1000 docs-cibseven-de
+            cd docs-cibseven-de
+            pwd
+            git status
+            git add *
+            if ! git diff-index --quiet HEAD --
+            then
+                echo "Some files were changed -> commit changes"
+                git config --global user.email \"${ConstantsInternal.JENKINS_GIT_USER_EMAIL}\"
+                git config --global user.name \"${ConstantsInternal.JENKINS_GIT_USER_NAME}\"
+                git commit -am "$commmitMessage"
+
+                echo "Push to github"
+                # always return true so that the build does not fail if there are no changes
+                git push origin HEAD:main || true
+            else
+                echo "No changes -> nothing to do more"
+            fi
+        """
     }
 }
