@@ -3,6 +3,24 @@ body.dashboard {
   padding-top: 90px;
 }
 
+.btn-primary {
+    color: #fff;
+    background-color: #e11e19;
+    border-color: #e11e19
+}
+
+.btn-primary:focus,.btn-primary.focus {
+    color: #fff;
+    background-color: #e11e19;
+    border-color: #e11e19
+}
+
+.btn-primary:hover {
+    color: #fff;
+    background-color: #e11e19;
+    border-color: #e11e19
+}
+
 [cam-widget-header] .btn-primary,
 [cam-widget-header] .btn-primary:hover {
   font-size: 14px;
