@@ -33,9 +33,9 @@ import org.junit.Test;
  * @author Thorben Lindhauer
  *
  */
-@ScenarioUnderTest("InterruptingEventSubprocessCompensationScenario")
+@ScenarioUnderTest("InterruptingEventSubProcessCompensationScenario")
 @Origin("7.2.0")
-public class InterruptingEventSubprocessCompensationScenarioTest {
+public class InterruptingEventSubProcessCompensationScenarioTest {
 
   @Rule
   public UpgradeTestRule rule = new UpgradeTestRule();

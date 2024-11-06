@@ -27,7 +27,7 @@ import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.qa.upgrade.scenarios.boundary.NestedNonInterruptingBoundaryEventOnInnerSubprocessScenario;
 import org.camunda.bpm.qa.upgrade.scenarios.boundary.NestedNonInterruptingBoundaryEventOnOuterSubprocessScenario;
 import org.camunda.bpm.qa.upgrade.scenarios.boundary.NonInterruptingBoundaryEventScenario;
-import org.camunda.bpm.qa.upgrade.scenarios.compensation.InterruptingEventSubprocessCompensationScenario;
+import org.camunda.bpm.qa.upgrade.scenarios.compensation.InterruptingEventSubProcessCompensationScenario;
 import org.camunda.bpm.qa.upgrade.scenarios.compensation.SingleActivityCompensationScenario;
 import org.camunda.bpm.qa.upgrade.scenarios.compensation.SubprocessCompensationScenario;
 import org.camunda.bpm.qa.upgrade.scenarios.compensation.SubprocessParallelCreateCompensationScenario;
@@ -116,7 +116,7 @@ public class TestFixture {
     runner.setupScenarios(SingleActivityCompensationScenario.class);
     runner.setupScenarios(SubprocessCompensationScenario.class);
     runner.setupScenarios(TransactionCancelCompensationScenario.class);
-    runner.setupScenarios(InterruptingEventSubprocessCompensationScenario.class);
+    runner.setupScenarios(InterruptingEventSubProcessCompensationScenario.class);
     runner.setupScenarios(SubprocessParallelThrowCompensationScenario.class);
     runner.setupScenarios(SubprocessParallelCreateCompensationScenario.class);
 

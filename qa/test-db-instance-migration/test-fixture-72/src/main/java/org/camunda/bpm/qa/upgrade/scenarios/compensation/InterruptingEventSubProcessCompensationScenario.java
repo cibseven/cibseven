@@ -28,7 +28,7 @@ import org.camunda.bpm.qa.upgrade.Times;
  * @author Thorben Lindhauer
  *
  */
-public class InterruptingEventSubprocessCompensationScenario {
+public class InterruptingEventSubProcessCompensationScenario {
 
   @Deployment
   public static String deployProcess() {
@@ -42,7 +42,7 @@ public class InterruptingEventSubprocessCompensationScenario {
       public void execute(ProcessEngine engine, String scenarioName) {
         engine
           .getRuntimeService()
-          .startProcessInstanceByKey("InterruptingEventSubprocessCompensationScenario", scenarioName);
+          .startProcessInstanceByKey("InterruptingEventSubProcessCompensationScenario", scenarioName);
 
         // enter the event subprocess
         engine.getRuntimeService().correlateMessage("Message", scenarioName);
