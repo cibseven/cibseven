@@ -37,7 +37,7 @@ pipeline {
         booleanParam(
             name: 'DEPLOY',
             defaultValue: false,
-            description: 'Deploy release artefacts to artifacts.cibseven.de'
+            description: 'Deploy release artifacts to artifacts.cibseven.de'
         )
     }
 
@@ -90,7 +90,7 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+        stage('Build and Deploy') {
             steps {
                 script {
                     withMaven(options: [artifactsPublisher(archiveFilesDisabled: false)]) {
@@ -98,15 +98,10 @@ pipeline {
                         sh "mvn -f qa/integration-tests-webapps/integration-tests/pom.xml install -DskipTests"
                         sh "mvn -f qa/integration-tests-webapps/pom.xml install -DskipTests"
 
-                        def COMMAND = "package"
-                        if (params.DEPLOY == true) {
-                            COMMAND = "deploy"
-                        }
-
                         sh """
                             mvn -DskipTests \
                                 org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
-                                ${COMMAND} \
+                                package \
                                 -Dnexus.release.repository.id=public \
                                 -Dnexus.release.repository=https://artifacts.cibseven.de/repository/public
                         """
