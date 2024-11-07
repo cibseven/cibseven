@@ -130,6 +130,7 @@
           <configuration combine.children="append">
             <doclint>none</doclint>
             <detectJavaApiLink>false</detectJavaApiLink>
+            <notimestamp>true</notimestamp>
           </configuration>
         </plugin>
         <plugin>

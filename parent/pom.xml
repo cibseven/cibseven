@@ -281,6 +281,7 @@
             </additionalJOptions>
             <doctitle>CIB seven Javadocs ${project.version}</doctitle>
             <windowtitle>CIB seven Javadocs ${project.version}</windowtitle>
+            <notimestamp>true</notimestamp>
           </configuration>
         </plugin>
 

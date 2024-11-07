@@ -75,6 +75,7 @@
           <dependencySourceIncludes>
             <include>org.camunda.connect:*</include>
           </dependencySourceIncludes>
+          <notimestamp>true</notimestamp>
         </configuration>
       </plugin>
       <plugin>
