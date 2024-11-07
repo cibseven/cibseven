@@ -151,7 +151,11 @@ pipeline {
                 allOf {
                     expression { params.BUILD_FEATURE_BRANCH == true }
                     not {
-                        branch 'master'
+                        anyOf {
+                            branch 'master'
+                            branch 'main'
+                            branch 'cibseven-1.0'
+                        }
                     }
                 }
             }
@@ -180,7 +184,11 @@ pipeline {
                     expression { params.UNIT_TESTS == 'Run' }
                     allOf {
                         expression { params.INTEGRATION_TESTS == 'Auto' }
-                        branch 'master'
+                        anyOf {
+                            branch 'master'
+                            branch 'main'
+                            branch 'cibseven-1.0'
+                        }
                     }
                     expression { params.INTEGRATION_TESTS == 'Run' }
                 }
@@ -208,7 +216,11 @@ pipeline {
         stage('Deploy snapshot') {
             when {
                 allOf {
-                    branch 'master'
+                    anyOf {
+                        branch 'master'
+                        branch 'main'
+                        branch 'cibseven-1.0'
+                    }
                     expression { params.RELEASE == false }
                     anyOf {
                         expression { params.DEPLOY == 'Auto' }
@@ -241,7 +253,11 @@ pipeline {
         stage('Deploy release') {
             when {
                 allOf {
-                    branch 'master'
+                    anyOf {
+                        branch 'master'
+                        branch 'main'
+                        branch 'cibseven-1.0'
+                    }
                     expression { params.RELEASE == true }
                     expression { params.DEPLOY == 'Run' }
                 }
@@ -273,7 +289,11 @@ pipeline {
                 anyOf {
                     expression { params.OPEN_API == 'Run' }
                     allOf {
-                        branch 'master'
+                        anyOf {
+                            branch 'master'
+                            branch 'main'
+                            branch 'cibseven-1.0'
+                        }
                         expression { params.RELEASE == true }
                         expression { params.OPEN_API == 'Auto' }
                     }
@@ -310,7 +330,11 @@ pipeline {
                 anyOf {
                     expression { params.JAVA_DOCS == 'Run' }
                     allOf {
-                        branch 'master'
+                        anyOf {
+                            branch 'master'
+                            branch 'main'
+                            branch 'cibseven-1.0'
+                        }
                         expression { params.RELEASE == true }
                         expression { params.JAVA_DOCS == 'Auto' }
                     }
