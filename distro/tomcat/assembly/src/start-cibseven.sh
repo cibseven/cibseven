@@ -10,7 +10,7 @@ else
 	BROWSERS="xdg-open gnome-www-browser x-www-browser firefox chromium chromium-browser google-chrome"
 fi
 
-echo "starting CIB seven on Tomcat Application Server";
+echo "starting CIB seven 1.0 on Tomcat Application Server";
 
 if [ -z "$BROWSER" ]; then
   for executable in $BROWSERS; do

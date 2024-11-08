@@ -10,8 +10,8 @@ REST_PATH=$BASEDIR/rest/
 EXAMPLE_PATH=$BASEDIR/example
 PID_PATH=$BASEDIR/run.pid
 OPTIONS_HELP="Options:
-  --webapps    - Enables the Camunda Platform Webapps
-  --oauth2     - Enables the Camunda Platform Spring Security OAuth2 integration
+  --webapps    - Enables the CIB seven Webapps
+  --oauth2     - Enables the CIB seven Spring Security OAuth2 integration
   --rest       - Enables the REST API
   --example    - Enables the example application
   --production - Applies the production.yaml configuration file
@@ -44,7 +44,7 @@ if [ "$1" = "start" ] ; then
   JAVA_VERSION=$("$JAVA" -version 2>&1 | head -1 | cut -d'"' -f2 | sed '/^0\./s///' | cut -d'.' -f1)
   echo Java version is $("$JAVA" -version 2>&1 | head -1 | cut -d'"' -f2)
   if [[ "$JAVA_VERSION" -lt "$EXPECTED_JAVA_VERSION" ]]; then
-    echo You must use at least JDK 17 to start Camunda Platform Run.
+    echo You must use at least JDK 17 to start CIB seven Run.
     exit 1
   fi
 
