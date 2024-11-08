@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.camunda.commons</groupId>
     <artifactId>camunda-commons-root</artifactId>
-    <version>7.22.0-cibseven</version>
+    <version>7.22.1-cibseven-SNAPSHOT</version>
   </parent>
 
   <artifactId>camunda-commons-logging</artifactId>
