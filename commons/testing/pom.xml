@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>camunda-commons-testing</artifactId>
-  <name>camunda Commons - Testing</name>
+  <name>CIB seven Commons - Testing</name>
   <packaging>jar</packaging>
 
   <dependencies>

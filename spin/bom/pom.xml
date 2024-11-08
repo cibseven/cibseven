@@ -12,8 +12,7 @@
 
   <groupId>org.camunda.spin</groupId>
   <artifactId>camunda-spin-bom</artifactId>
-  <name>camunda spin - bom</name>
-  <version>7.22.1-cibseven-SNAPSHOT</version>
+  <name>CIB seven spin - bom</name>
   <packaging>pom</packaging>
 
   <dependencyManagement>

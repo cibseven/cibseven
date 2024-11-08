@@ -5,7 +5,7 @@
   <groupId>org.camunda.bpm.model</groupId>
   <artifactId>camunda-model-apis</artifactId>
 
-  <name>camunda Model APIs</name>
+  <name>CIB seven Model APIs</name>
   <packaging>pom</packaging>
 
   <parent>

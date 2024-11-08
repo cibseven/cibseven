@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>camunda-spin-dataformat-all</artifactId>
-  <name>camunda Spin - all dataformats in one</name>
+  <name>CIB seven Spin - all dataformats in one</name>
 
   <properties>
     <!-- We shade artifacts into the jar, so we need to generate 

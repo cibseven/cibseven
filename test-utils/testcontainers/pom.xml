@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>camunda-test-utils-testcontainers</artifactId>
-  <name>Camunda Test Utils - Testcontainers</name>
+  <name>CIB seven Test Utils - Testcontainers</name>
   <packaging>jar</packaging>
 
   <properties>

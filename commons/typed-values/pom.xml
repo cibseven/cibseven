@@ -4,7 +4,7 @@
 
   <groupId>org.camunda.commons</groupId>
   <artifactId>camunda-commons-typed-values</artifactId>
-  <name>camunda Commons - Typed Values</name>
+  <name>CIB seven Commons - Typed Values</name>
 
   <parent>
     <groupId>org.camunda.bpm</groupId>

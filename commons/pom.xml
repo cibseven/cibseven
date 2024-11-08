@@ -10,7 +10,7 @@
 
   <groupId>org.camunda.commons</groupId>
   <artifactId>camunda-commons-root</artifactId>
-  <name>camunda Commons - Root Pom</name>
+  <name>CIB seven Commons - Root Pom</name>
   <inceptionYear>2014</inceptionYear>
   <packaging>pom</packaging>
 

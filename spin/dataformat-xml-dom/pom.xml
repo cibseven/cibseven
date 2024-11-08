@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>camunda-spin-dataformat-xml-dom</artifactId>
-  <name>camunda Spin - DOM XML data format</name>
+  <name>CIB seven Spin - DOM XML data format</name>
 
   <dependencies>
     <dependency>

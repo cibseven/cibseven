@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>camunda-engine-dmn</artifactId>
-  <name>camunda DMN - engine</name>
+  <name>CIB seven DMN - engine</name>
   <properties>
     <camunda.artifact>org.camunda.bpm.dmn.engine</camunda.artifact>
     <camunda.osgi.import.additional>

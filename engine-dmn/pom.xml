@@ -10,7 +10,7 @@
 
   <groupId>org.camunda.bpm.dmn</groupId>
   <artifactId>camunda-engine-dmn-root</artifactId>
-  <name>camunda DMN - engine - root</name>
+  <name>CIB seven DMN - engine - root</name>
   <inceptionYear>2015</inceptionYear>
   <packaging>pom</packaging>
 

@@ -12,7 +12,7 @@
 
   <groupId>org.camunda.commons</groupId>
   <artifactId>camunda-commons-bom</artifactId>
-  <name>camunda Commons - Bom</name>
+  <name>CIB seven Commons - Bom</name>
   <packaging>pom</packaging>
 
   <dependencyManagement>

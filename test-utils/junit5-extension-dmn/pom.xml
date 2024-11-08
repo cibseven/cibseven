@@ -4,7 +4,7 @@
   <artifactId>camunda-dmn-junit5</artifactId>
   <packaging>jar</packaging>
 
-  <name>Camunda DMN - JUnit 5 Extension</name>
+  <name>CIB seven DMN - JUnit 5 Extension</name>
 
   <parent>
     <groupId>org.camunda.bpm</groupId>
