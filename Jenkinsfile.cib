@@ -146,18 +146,11 @@ pipeline {
             }
         }
 
-        stage('Build without deploy') {
+        stage('Build') {
             when {
                 anyOf {
                     allOf {
                         expression { params.BUILD_FEATURE_BRANCH == true }
-                        not {
-                            anyOf {
-                                branch 'master'
-                                branch 'main'
-                                branch 'cibseven-1.0'
-                            }
-                        }
                     }
                     allOf {
                         expression { params.BUILD_FEATURE_BRANCH == false }
