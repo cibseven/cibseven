@@ -146,32 +146,29 @@ pipeline {
             }
         }
 
-        stage('Build without deploy and tests') {
+        stage('Build') {
             when {
-                allOf {
-                    expression { params.BUILD_FEATURE_BRANCH == true }
-                    not {
+                anyOf {
+                    allOf {
+                        expression { params.BUILD_FEATURE_BRANCH == true }
+                    }
+                    allOf {
+                        expression { params.BUILD_FEATURE_BRANCH == false }
                         anyOf {
-                            branch 'master'
-                            branch 'main'
-                            branch 'cibseven-1.0'
+                            expression { params.UNIT_TESTS == 'Run' }
+                            expression { params.INTEGRATION_TESTS == 'Run' }
                         }
                     }
                 }
             }
             steps {
                 script {
-                    // withMaven automatically add "--batch-mode"
                     withMaven(options: [artifactsPublisher(fingerprintFilesDisabled: true, archiveFilesDisabled: true)]) {
-                        sh """
-                            mvn -f ${pipelineParams.pom} \
-                                -V -U \
-                                clean package \
-                                -T4 \
-                                -Dmaven.test.skip \
-                                -DskipTests \
-                                -Dbuild.number=${BUILD_NUMBER}
-                        """
+                        sh "mvn -V -f ${pipelineParams.pom} clean"
+                        sh("mvn -U -Dbuild.number=${BUILD_NUMBER} -pl org.camunda.bpm:camunda-bom,org.camunda.bpm:camunda-only-bom,org.camunda.bpm:camunda-bom-root install -DskipTests") || true
+                        sh "mvn -U -Dbuild.number=${BUILD_NUMBER} -f qa/integration-tests-webapps/integration-tests/pom.xml install -DskipTests"
+                        sh "mvn -U -Dbuild.number=${BUILD_NUMBER} -f qa/integration-tests-webapps/pom.xml install -DskipTests"
+                        sh "mvn -U -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} install -DskipTests"
                     }
                 }
             }
@@ -203,7 +200,8 @@ pipeline {
                     withMaven(options: [junitPublisher(disabled: false), jacocoPublisher(disabled: false)]) {
                         sh """
                             mvn -f ${pipelineParams.pom} \
-                                -V -U \
+                                -U \
+                                -Dbuild.number=${BUILD_NUMBER}
                                 ${testMode} \
                                 -Dmaven.test.failure.ignore=true
                         """
@@ -213,7 +211,7 @@ pipeline {
             }
         }
 
-        stage('Deploy snapshot') {
+        stage('Deploy snapshot to nexus.cib.de') {
             when {
                 allOf {
                     anyOf {
@@ -238,7 +236,6 @@ pipeline {
                         sh """
                             mvn -f ${pipelineParams.pom} \
                                 -V -U \
-                                clean \
                                 -DskipTests \
                                 org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
                                 deploy \
@@ -250,7 +247,7 @@ pipeline {
             }
         }
 
-        stage('Deploy release') {
+        stage('Deploy release to nexus.cib.de') {
             when {
                 allOf {
                     anyOf {
