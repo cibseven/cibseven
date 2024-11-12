@@ -201,7 +201,7 @@ pipeline {
                         sh """
                             mvn -f ${pipelineParams.pom} \
                                 -U \
-                                -Dbuild.number=${BUILD_NUMBER}
+                                -Dbuild.number=${BUILD_NUMBER} \
                                 ${testMode} \
                                 -Dmaven.test.failure.ignore=true
                         """
