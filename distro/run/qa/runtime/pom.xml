@@ -16,7 +16,7 @@
   <properties>
     <run-home>${project.build.directory}/run/camunda-bpm-run-distro</run-home>
     <example-plugin-home>${project.build.directory}/run/example-plugin</example-plugin-home>
-    <cibseven.version>7.22.1-cibseven-SNAPSHOT</cibseven.version>
+    <cibseven.version>1.1-SNAPSHOT</cibseven.version>
   </properties>
 
   <dependencies>
