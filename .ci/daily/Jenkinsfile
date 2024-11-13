@@ -80,7 +80,7 @@ pipeline {
             cambpmConditionalRetry([
               podSpec: [
                 cpu: 4,
-                image: 'alpine:3.20'
+                images: ['alpine:3.20']
               ],
               runSteps   : {
                 sh "apk -U add openjdk17-jdk maven rsync openssh libstdc++ libgcc bash"
@@ -143,7 +143,7 @@ pipeline {
             cambpmConditionalRetry([
               podSpec: [
                 cpu: 32,
-                image: 'maven:3.9.7-eclipse-temurin-17'
+                images: ['maven:3.9.7-eclipse-temurin-17']
               ],
               runSteps: {
                 cambpmRunMaven('.',
@@ -177,7 +177,7 @@ pipeline {
             cambpmConditionalRetry([
               podSpec: [
                 cpu: 32,
-                image: 'maven:3.9.7-eclipse-temurin-17'
+                images: ['maven:3.9.7-eclipse-temurin-17']
               ],
               runSteps: {
                 cambpmRunMaven('.',
