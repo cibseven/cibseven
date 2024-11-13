@@ -19,6 +19,7 @@ package org.cibseven.bpm.engine.test.api.runtime;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.cibseven.bpm.engine.test.util.ExecutableProcessUtil.USER_TASK_PROCESS;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -44,6 +45,7 @@ import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.runtime.VariableInstanceQuery;
+import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.dmn.businessruletask.TestPojo;
@@ -69,11 +71,11 @@ public class SetVariablesBatchTest {
 
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
-  protected BatchRule rule = new BatchRule(engineRule, engineTestRule);
+  protected BatchRule batchRule = new BatchRule(engineRule, engineTestRule);
   protected BatchHelper helper = new BatchHelper(engineRule);
 
   @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule).around(rule);
+  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule).around(batchRule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
@@ -90,7 +92,7 @@ public class SetVariablesBatchTest {
   public void deployProcess() {
     BpmnModelInstance process = Bpmn.createExecutableProcess(PROCESS_KEY)
         .startEvent()
-          .userTask()
+        .userTask()
         .endEvent()
         .done();
     engineTestRule.deploy(process);
@@ -118,18 +120,17 @@ public class SetVariablesBatchTest {
 
     assertThat(query.list())
         .extracting("processInstanceId", "name", "value", "batchId")
-          .containsExactly(tuple(null, "foo", "bar", batch.getId()));
+        .containsExactly(tuple(null, "foo", "bar", batch.getId()));
 
     // when
-    rule.syncExec(batch);
+    batchRule.syncExec(batch);
 
     // then
     assertThat(query.list())
         .extracting("processInstanceId", "name", "value")
         .containsExactlyInAnyOrder(
             tuple(processInstanceIdOne, "foo", "bar"),
-            tuple(processInstanceIdTwo, "foo", "bar")
-        );
+            tuple(processInstanceIdTwo, "foo", "bar"));
   }
 
   @Test
@@ -148,18 +149,17 @@ public class SetVariablesBatchTest {
 
     assertThat(query.list())
         .extracting("processInstanceId", "name", "value", "batchId")
-          .containsExactly(tuple(null, "foo", "bar", batch.getId()));
+        .containsExactly(tuple(null, "foo", "bar", batch.getId()));
 
     // when
-    rule.syncExec(batch);
+    batchRule.syncExec(batch);
 
     // then
     assertThat(query.list())
         .extracting("processInstanceId", "name", "value")
         .containsExactlyInAnyOrder(
             tuple(processInstanceIdOne, "foo", "bar"),
-            tuple(processInstanceIdTwo, "foo", "bar")
-        );
+            tuple(processInstanceIdTwo, "foo", "bar"));
 
   }
 
@@ -181,13 +181,12 @@ public class SetVariablesBatchTest {
 
     assertThat(query.list())
         .extracting("processInstanceId", "name", "value", "batchId")
-          .containsExactlyInAnyOrder(
-              tuple(null, "foo", "bar", batch.getId()),
-              tuple(null, "bar", "foo", batch.getId())
-          );
+        .containsExactlyInAnyOrder(
+            tuple(null, "foo", "bar", batch.getId()),
+            tuple(null, "bar", "foo", batch.getId()));
 
     // when
-    rule.syncExec(batch);
+    batchRule.syncExec(batch);
 
     // then
     assertThat(query.list())
@@ -197,8 +196,7 @@ public class SetVariablesBatchTest {
             tuple(processInstanceIdOne, "bar", "foo"),
 
             tuple(processInstanceIdTwo, "foo", "bar"),
-            tuple(processInstanceIdTwo, "bar", "foo")
-        );
+            tuple(processInstanceIdTwo, "bar", "foo"));
 
   }
 
@@ -222,15 +220,14 @@ public class SetVariablesBatchTest {
         .containsExactly(tuple(null, "foo", pojo, batch.getId()));
 
     // when
-    rule.syncExec(batch);
+    batchRule.syncExec(batch);
 
     // then
     assertThat(query.list())
         .extracting("processInstanceId", "name", "value")
         .containsExactlyInAnyOrder(
             tuple(processInstanceIdOne, "foo", pojo),
-            tuple(processInstanceIdTwo, "foo", pojo)
-        );
+            tuple(processInstanceIdTwo, "foo", pojo));
   }
 
   @Test
@@ -252,14 +249,13 @@ public class SetVariablesBatchTest {
 
     assertThat(query.list())
         .extracting("processInstanceId", "name", "value", "batchId")
-          .containsExactlyInAnyOrder(
-              tuple(null, "variableOne", "string", batch.getId()),
-              tuple(null, "variableTwo", 42, batch.getId()),
-              tuple(null, "variableThree", (short) 3, batch.getId())
-          );
+        .containsExactlyInAnyOrder(
+            tuple(null, "variableOne", "string", batch.getId()),
+            tuple(null, "variableTwo", 42, batch.getId()),
+            tuple(null, "variableThree", (short) 3, batch.getId()));
 
     // when
-    rule.syncExec(batch);
+    batchRule.syncExec(batch);
 
     // then
     assertThat(query.list())
@@ -271,8 +267,7 @@ public class SetVariablesBatchTest {
 
             tuple(processInstanceIdTwo, "variableOne", "string"),
             tuple(processInstanceIdTwo, "variableTwo", 42),
-            tuple(processInstanceIdTwo, "variableThree", (short) 3)
-        );
+            tuple(processInstanceIdTwo, "variableThree", (short) 3));
   }
 
   @Test
@@ -294,13 +289,12 @@ public class SetVariablesBatchTest {
 
     assertThat(query.list())
         .extracting("processInstanceId", "name", "value", "batchId")
-          .containsExactlyInAnyOrder(
-              tuple(null, "foo", "bar", batch.getId()),
-              tuple(null, "bar", "foo", batch.getId())
-          );
+        .containsExactlyInAnyOrder(
+            tuple(null, "foo", "bar", batch.getId()),
+            tuple(null, "bar", "foo", batch.getId()));
 
     // when
-    rule.syncExec(batch);
+    batchRule.syncExec(batch);
 
     // then
     assertThat(query.list())
@@ -310,8 +304,7 @@ public class SetVariablesBatchTest {
             tuple(processInstanceIdOne, "bar", "foo"),
 
             tuple(processInstanceIdTwo, "foo", "bar"),
-            tuple(processInstanceIdTwo, "bar", "foo")
-        );
+            tuple(processInstanceIdTwo, "bar", "foo"));
   }
 
   @Test
@@ -328,18 +321,17 @@ public class SetVariablesBatchTest {
 
     assertThat(query.list())
         .extracting("processInstanceId", "name", "value", "batchId")
-          .containsExactly(tuple(null, "foo", "bar", batch.getId()));
+        .containsExactly(tuple(null, "foo", "bar", batch.getId()));
 
     // when
-    rule.syncExec(batch);
+    batchRule.syncExec(batch);
 
     // then
     assertThat(query.list())
         .extracting("processInstanceId", "name", "value")
         .containsExactlyInAnyOrder(
             tuple(processInstanceIdOne, "foo", "bar"),
-            tuple(processInstanceIdTwo, "foo", "bar")
-        );
+            tuple(processInstanceIdTwo, "foo", "bar"));
   }
 
   @Test
@@ -350,13 +342,11 @@ public class SetVariablesBatchTest {
     String processInstanceIdTwo = runtimeService.startProcessInstanceByKey(PROCESS_KEY).getId();
     String processInstanceIdThree = runtimeService.startProcessInstanceByKey(PROCESS_KEY).getId();
 
-    ProcessInstanceQuery runtimeQuery =
-        runtimeService.createProcessInstanceQuery()
-            .processInstanceId(processInstanceIdTwo);
+    ProcessInstanceQuery runtimeQuery = runtimeService.createProcessInstanceQuery()
+        .processInstanceId(processInstanceIdTwo);
 
-    HistoricProcessInstanceQuery historyQuery =
-        historyService.createHistoricProcessInstanceQuery()
-            .processInstanceId(processInstanceIdThree);
+    HistoricProcessInstanceQuery historyQuery = historyService.createHistoricProcessInstanceQuery()
+        .processInstanceId(processInstanceIdThree);
 
     Batch batch = runtimeService.setVariablesAsync(Collections.singletonList(processInstanceIdOne),
         runtimeQuery,
@@ -368,10 +358,10 @@ public class SetVariablesBatchTest {
 
     assertThat(query.list())
         .extracting("processInstanceId", "name", "value", "batchId")
-          .containsExactly(tuple(null, "foo", "bar", batch.getId()));
+        .containsExactly(tuple(null, "foo", "bar", batch.getId()));
 
     // when
-    rule.syncExec(batch);
+    batchRule.syncExec(batch);
 
     // then
     assertThat(query.list())
@@ -379,8 +369,7 @@ public class SetVariablesBatchTest {
         .containsExactlyInAnyOrder(
             tuple(processInstanceIdOne, "foo", "bar"),
             tuple(processInstanceIdTwo, "foo", "bar"),
-            tuple(processInstanceIdThree, "foo", "bar")
-        );
+            tuple(processInstanceIdThree, "foo", "bar"));
   }
 
   @Test
@@ -398,18 +387,17 @@ public class SetVariablesBatchTest {
 
     assertThat(query.list())
         .extracting("processInstanceId", "name", "value", "batchId")
-          .containsExactly(tuple(null, "foo", "bar", batch.getId()));
+        .containsExactly(tuple(null, "foo", "bar", batch.getId()));
 
     // when
-    rule.syncExec(batch);
+    batchRule.syncExec(batch);
 
     // then
     assertThat(query.list())
         .extracting("processInstanceId", "name", "value")
         .containsExactlyInAnyOrder(
             tuple(processInstanceIdOne, "foo", "bar"),
-            tuple(processInstanceIdTwo, "foo", "bar")
-        );
+            tuple(processInstanceIdTwo, "foo", "bar"));
   }
 
   @Test
@@ -429,17 +417,16 @@ public class SetVariablesBatchTest {
 
     assertThat(query.list())
         .extracting("processInstanceId", "name", "value", "batchId")
-          .containsExactly(tuple(null, "foo", "bar", batch.getId()));
+        .containsExactly(tuple(null, "foo", "bar", batch.getId()));
 
     // when
-    rule.syncExec(batch);
+    batchRule.syncExec(batch);
 
     // then
     assertThat(query.list())
         .extracting("processInstanceId", "name", "value")
         .containsExactlyInAnyOrder(
-            tuple(processInstanceIdTwo, "foo", "bar")
-        );
+            tuple(processInstanceIdTwo, "foo", "bar"));
   }
 
   @Test
@@ -450,9 +437,9 @@ public class SetVariablesBatchTest {
     // when/then
     assertThatThrownBy(() -> runtimeService.setVariablesAsync(Collections.singletonList(processInstanceId),
         Variables.putValue("foo", Variables.stringValue("bar", true))))
-      .isInstanceOf(BadUserRequestException.class)
-      .hasMessageContaining("ENGINE-13044 Setting transient variable 'foo' " +
-          "asynchronously is currently not supported.");
+        .isInstanceOf(BadUserRequestException.class)
+        .hasMessageContaining("ENGINE-13044 Setting transient variable 'foo' " +
+            "asynchronously is currently not supported.");
   }
 
   @Test
@@ -468,9 +455,9 @@ public class SetVariablesBatchTest {
                 .serializedValue("foo")
                 .serializationDataFormat(Variables.SerializationDataFormats.JAVA)
                 .create())))
-      .isInstanceOf(ProcessEngineException.class)
-      .hasMessageContaining("ENGINE-17007 Cannot set variable with name foo. " +
-          "Java serialization format is prohibited");
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("ENGINE-17007 Cannot set variable with name foo. " +
+            "Java serialization format is prohibited");
   }
 
   @Test
@@ -480,8 +467,8 @@ public class SetVariablesBatchTest {
 
     // when/then
     assertThatThrownBy(() -> runtimeService.setVariablesAsync(runtimeQuery, SINGLE_VARIABLE))
-      .isInstanceOf(BadUserRequestException.class)
-      .hasMessageContaining("processInstanceIds is empty");
+        .isInstanceOf(BadUserRequestException.class)
+        .hasMessageContaining("processInstanceIds is empty");
   }
 
   @Test
@@ -491,8 +478,8 @@ public class SetVariablesBatchTest {
         null,
         null,
         SINGLE_VARIABLE))
-      .isInstanceOf(NullValueException.class)
-      .hasMessageContaining("No process instances found.");
+        .isInstanceOf(NullValueException.class)
+        .hasMessageContaining("No process instances found.");
 
   }
 
@@ -503,8 +490,8 @@ public class SetVariablesBatchTest {
 
     // when/then
     assertThatThrownBy(() -> runtimeService.setVariablesAsync(runtimeQuery, null))
-      .isInstanceOf(NullValueException.class)
-      .hasMessageContaining("variables is null");
+        .isInstanceOf(NullValueException.class)
+        .hasMessageContaining("variables is null");
 
   }
 
@@ -515,15 +502,15 @@ public class SetVariablesBatchTest {
 
     // when/then
     assertThatThrownBy(() -> runtimeService.setVariablesAsync(runtimeQuery, Collections.emptyMap()))
-      .isInstanceOf(BadUserRequestException.class)
-      .hasMessageContaining("variables is empty");
+        .isInstanceOf(BadUserRequestException.class)
+        .hasMessageContaining("variables is empty");
   }
 
   @Test
   public void shouldCreateDeploymentAwareBatchJobs_ByIds() {
     // given
     engineRule.getProcessEngineConfiguration()
-      .setInvocationsPerBatchJob(2);
+        .setInvocationsPerBatchJob(2);
 
     String processInstanceIdOne = runtimeService.startProcessInstanceByKey(PROCESS_KEY).getId();
     deployProcess();
@@ -538,10 +525,10 @@ public class SetVariablesBatchTest {
     // when
     Batch batch = runtimeService.setVariablesAsync(processInstanceIds, SINGLE_VARIABLE);
 
-    rule.executeSeedJobs(batch);
+    batchRule.executeSeedJobs(batch);
 
     // then
-    List<Job> executionJobs = rule.getExecutionJobs(batch);
+    List<Job> executionJobs = batchRule.getExecutionJobs(batch);
     assertThat(executionJobs)
         .extracting("deploymentId")
         .containsExactlyInAnyOrder(deploymentIdOne, deploymentIdTwo);
@@ -554,7 +541,7 @@ public class SetVariablesBatchTest {
   public void shouldCreateDeploymentAwareBatchJobs_ByRuntimeQuery() {
     // given
     engineRule.getProcessEngineConfiguration()
-      .setInvocationsPerBatchJob(2);
+        .setInvocationsPerBatchJob(2);
 
     runtimeService.startProcessInstanceByKey(PROCESS_KEY);
     deployProcess();
@@ -569,10 +556,10 @@ public class SetVariablesBatchTest {
     // when
     Batch batch = runtimeService.setVariablesAsync(runtimeQuery, SINGLE_VARIABLE);
 
-    rule.executeSeedJobs(batch);
+    batchRule.executeSeedJobs(batch);
 
     // then
-    List<Job> executionJobs = rule.getExecutionJobs(batch);
+    List<Job> executionJobs = batchRule.getExecutionJobs(batch);
     assertThat(executionJobs)
         .extracting("deploymentId")
         .containsExactlyInAnyOrder(deploymentIdOne, deploymentIdTwo);
@@ -586,7 +573,7 @@ public class SetVariablesBatchTest {
   public void shouldCreateDeploymentAwareBatchJobs_ByHistoryQuery() {
     // given
     engineRule.getProcessEngineConfiguration()
-      .setInvocationsPerBatchJob(2);
+        .setInvocationsPerBatchJob(2);
 
     runtimeService.startProcessInstanceByKey(PROCESS_KEY);
     deployProcess();
@@ -601,10 +588,10 @@ public class SetVariablesBatchTest {
     // when
     Batch batch = runtimeService.setVariablesAsync(historyQuery, SINGLE_VARIABLE);
 
-    rule.executeSeedJobs(batch);
+    batchRule.executeSeedJobs(batch);
 
     // then
-    List<Job> executionJobs = rule.getExecutionJobs(batch);
+    List<Job> executionJobs = batchRule.getExecutionJobs(batch);
     assertThat(executionJobs)
         .extracting("deploymentId")
         .containsExactlyInAnyOrder(deploymentIdOne, deploymentIdTwo);
@@ -637,8 +624,7 @@ public class SetVariablesBatchTest {
         .containsExactlyInAnyOrder(
             tuple("nrOfInstances", null, "1", "SetVariables", "ProcessInstance", "Operator", "demo"),
             tuple("nrOfVariables", null, "1", "SetVariables", "ProcessInstance", "Operator", "demo"),
-            tuple("async", null, "true", "SetVariables", "ProcessInstance", "Operator", "demo")
-        );
+            tuple("async", null, "true", "SetVariables", "ProcessInstance", "Operator", "demo"));
 
     // clear
     managementService.deleteBatch(batch.getId(), true);
@@ -658,7 +644,7 @@ public class SetVariablesBatchTest {
     engineRule.getIdentityService()
         .setAuthenticatedUserId("demo");
 
-    rule.syncExec(batch);
+    batchRule.syncExec(batch);
 
     // then
     List<UserOperationLogEntry> logs = historyService.createUserOperationLogQuery()
@@ -681,10 +667,10 @@ public class SetVariablesBatchTest {
     // when
     Batch batch = runtimeService.setVariablesAsync(processInstanceIds, SINGLE_VARIABLE);
 
-    rule.executeSeedJobs(batch);
+    batchRule.executeSeedJobs(batch);
 
     // then
-    List<Job> executionJobs = rule.getExecutionJobs(batch);
+    List<Job> executionJobs = batchRule.getExecutionJobs(batch);
     assertThat(executionJobs)
         .extracting("processInstanceId")
         .containsExactlyInAnyOrder(processInstanceIdOne, processInstanceIdTwo);
@@ -706,10 +692,10 @@ public class SetVariablesBatchTest {
     // when
     Batch batch = runtimeService.setVariablesAsync(processInstanceIds, SINGLE_VARIABLE);
 
-    rule.executeSeedJobs(batch);
+    batchRule.executeSeedJobs(batch);
 
     // then
-    List<Job> executionJobs = rule.getExecutionJobs(batch);
+    List<Job> executionJobs = batchRule.getExecutionJobs(batch);
     assertThat(executionJobs)
         .extracting("processInstanceId")
         .containsOnlyNulls();
@@ -740,6 +726,78 @@ public class SetVariablesBatchTest {
 
     // clear
     managementService.deleteBatch(batch.getId(), true);
+  }
+
+  @Test
+  public void setVariablesAsyncOnCompletedProcessInstance() {
+    // given set variables on completed process instance
+    engineTestRule.deploy(USER_TASK_PROCESS);
+    String id = runtimeService.startProcessInstanceByKey(PROCESS_KEY).getId();
+    Batch batch = runtimeService.setVariablesAsync(List.of(id), SINGLE_VARIABLE);
+    Task task = engineRule.getTaskService().createTaskQuery().processInstanceId(id).singleResult();
+    engineRule.getTaskService().complete(task.getId());
+
+    // when executing batch then no exception is thrown
+    batchRule.syncExec(batch);
+  }
+
+  @Test
+  public void setVariablesAsyncOnCompletedProcessInstanceWithQuery() {
+    // given set variables on completed process instance
+    engineTestRule.deploy(USER_TASK_PROCESS);
+    String id = runtimeService.startProcessInstanceByKey(PROCESS_KEY).getId();
+    Batch batch = runtimeService.setVariablesAsync(runtimeService.createProcessInstanceQuery().processInstanceId(id),
+        SINGLE_VARIABLE);
+    Task task = engineRule.getTaskService().createTaskQuery().processInstanceId(id).singleResult();
+    engineRule.getTaskService().complete(task.getId());
+
+    // when executing batch then no exception is thrown
+    batchRule.syncExec(batch);
+  }
+
+  @Test
+  public void setVariablesAsyncOnCompletedProcessInstanceWithHistoricQuery() {
+    // given set variables on completed process instance
+    engineTestRule.deploy(USER_TASK_PROCESS);
+    String id = runtimeService.startProcessInstanceByKey(PROCESS_KEY).getId();
+    Batch batch = runtimeService
+        .setVariablesAsync(historyService.createHistoricProcessInstanceQuery().processInstanceId(id), SINGLE_VARIABLE);
+    Task task = engineRule.getTaskService().createTaskQuery().processInstanceId(id).singleResult();
+    engineRule.getTaskService().complete(task.getId());
+
+    // when executing batch then no exception is thrown
+    batchRule.syncExec(batch);
+  }
+
+  @Test
+  public void setVariablesSyncOnCompletedProcessInstance() {
+    // given completed process
+    engineTestRule.deploy(USER_TASK_PROCESS);
+    String id = runtimeService.startProcessInstanceByKey(PROCESS_KEY).getId();
+    Task task = engineRule.getTaskService().createTaskQuery().processInstanceId(id).singleResult();
+    engineRule.getTaskService().complete(task.getId());
+
+    // when setting variables then exception is thrown
+    assertThatThrownBy(() -> runtimeService.setVariables(id, SINGLE_VARIABLE))
+        .isInstanceOf(NullValueException.class);
+  }
+
+  @Test
+  public void setVariablesAsyncOnBatchWithOneCompletedInstance() {
+    // given set variables batch with one completed process instance
+    engineTestRule.deploy(USER_TASK_PROCESS);
+    String id1 = runtimeService.startProcessInstanceByKey(PROCESS_KEY).getId();
+    String id2 = runtimeService.startProcessInstanceByKey(PROCESS_KEY).getId();
+    Batch batch = runtimeService.setVariablesAsync(List.of(id1, id2), SINGLE_VARIABLE);
+    Task task = engineRule.getTaskService().createTaskQuery().processInstanceId(id1).singleResult();
+    engineRule.getTaskService().complete(task.getId());
+
+    // when executing the bacth
+    batchRule.syncExec(batch);
+
+    // then no exception is thrown and the variables are set for the existing
+    // process
+    assertThat(runtimeService.getVariables(id2).equals(SINGLE_VARIABLE));
   }
 
 }
