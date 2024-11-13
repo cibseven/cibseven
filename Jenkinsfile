@@ -38,16 +38,24 @@ pipeline {
         cambpmConditionalRetry([
           podSpec: [
             cpu: 32,
-            image: 'maven:3.9.7-eclipse-temurin-17'
+            images: ['maven:3.9.7-eclipse-temurin-17']
             ],
           suppressErrors: false,
           runSteps: {
             sh(label: 'GIT: Mark current directory as safe', script: "git config --global --add safe.directory \$PWD")
             skipTests = ""
+
             if (env.CHANGE_ID != null && pullRequest.labels.contains('ci:skipTests')) {
                skipTests = "-DskipTests "
             }
-            withVault([vaultSecrets: []]) {
+
+            withVault([vaultSecrets: [
+                [
+                    path        : 'secret/products/cambpm/ci/xlts.dev',
+                    secretValues: [
+                        [envVar: 'XLTS_REGISTRY', vaultKey: 'registry'],
+                        [envVar: 'XLTS_AUTH_TOKEN', vaultKey: 'authToken']]
+                ]]]) {
               cambpmRunMaven('.',
                   'clean source:jar deploy source:test-jar com.mycila:license-maven-plugin:check -Pdistro,distro-wildfly,distro-webjar,h2-in-memory -DaltStagingDirectory=${WORKSPACE}/staging -DskipRemoteStaging=true '+ skipTests,
                   withCatch: false,
