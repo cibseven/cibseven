@@ -17,8 +17,10 @@
 package org.cibseven.bpm.engine.test.api.runtime;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
+import static org.cibseven.bpm.engine.test.util.ExecutableProcessUtil.USER_TASK_PROCESS;
 import static org.cibseven.bpm.engine.variable.Variables.createVariables;
 import static org.cibseven.bpm.engine.variable.Variables.objectValue;
 import static org.junit.Assert.assertEquals;
@@ -107,11 +109,10 @@ import org.junit.rules.RuleChain;
 public class RuntimeServiceTest {
 
   public static final String TESTING_INSTANCE_DELETION = "testing instance deletion";
-  public static final String A_STREAM = "aStream";
 
   @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
-      configuration.setJavaSerializationFormatEnabled(true));
+  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
+      configuration -> configuration.setJavaSerializationFormatEnabled(true));
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
@@ -175,8 +176,8 @@ public class RuntimeServiceTest {
     }
   }
 
-  @Deployment(resources={
-    "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testStartProcessInstanceByIdNullVariables() {
     runtimeService.startProcessInstanceByKey("oneTaskProcess", (Map<String, Object>) null);
@@ -184,8 +185,8 @@ public class RuntimeServiceTest {
   }
 
   @Test
-  @Deployment(resources={
-    "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   public void startProcessInstanceWithBusinessKey() {
     ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().singleResult();
 
@@ -196,7 +197,8 @@ public class RuntimeServiceTest {
     assertEquals(1, runtimeService.createProcessInstanceQuery().processDefinitionKey("oneTaskProcess").count());
 
     // by key with variables
-    processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess", "456", CollectionUtil.singletonMap("var", "value"));
+    processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess", "456",
+        CollectionUtil.singletonMap("var", "value"));
     assertNotNull(processInstance);
     assertEquals(2, runtimeService.createProcessInstanceQuery().processDefinitionKey("oneTaskProcess").count());
     assertEquals("value", runtimeService.getVariable(processInstance.getId(), "var"));
@@ -207,14 +209,15 @@ public class RuntimeServiceTest {
     assertEquals(3, runtimeService.createProcessInstanceQuery().processDefinitionKey("oneTaskProcess").count());
 
     // by id with variables
-    processInstance = runtimeService.startProcessInstanceById(processDefinition.getId(), "101123", CollectionUtil.singletonMap("var", "value2"));
+    processInstance = runtimeService.startProcessInstanceById(processDefinition.getId(), "101123",
+        CollectionUtil.singletonMap("var", "value2"));
     assertNotNull(processInstance);
     assertEquals(4, runtimeService.createProcessInstanceQuery().processDefinitionKey("oneTaskProcess").count());
     assertEquals("value2", runtimeService.getVariable(processInstance.getId(), "var"));
   }
 
-  @Deployment(resources={
-    "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testDeleteProcessInstance() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -223,28 +226,30 @@ public class RuntimeServiceTest {
     runtimeService.deleteProcessInstance(processInstance.getId(), TESTING_INSTANCE_DELETION);
     assertEquals(0, runtimeService.createProcessInstanceQuery().processDefinitionKey("oneTaskProcess").count());
 
-    // test that the delete reason of the process instance shows up as delete reason of the task in history
+    // test that the delete reason of the process instance shows up as delete reason
+    // of the task in history
     // ACT-848
-    if(!ProcessEngineConfiguration.HISTORY_NONE.equals(processEngineConfiguration.getHistory())) {
+    if (!ProcessEngineConfiguration.HISTORY_NONE.equals(processEngineConfiguration.getHistory())) {
 
       HistoricTaskInstance historicTaskInstance = historyService
-              .createHistoricTaskInstanceQuery()
-              .processInstanceId(processInstance.getId())
-              .singleResult();
+          .createHistoricTaskInstanceQuery()
+          .processInstanceId(processInstance.getId())
+          .singleResult();
 
       assertEquals(TESTING_INSTANCE_DELETION, historicTaskInstance.getDeleteReason());
     }
   }
 
-  @Deployment(resources={
-      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testDeleteProcessInstances() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
     ProcessInstance processInstance2 = runtimeService.startProcessInstanceByKey("oneTaskProcess");
 
     // if we skip the custom listeners,
-    runtimeService.deleteProcessInstances(Arrays.asList(processInstance.getId(),processInstance2.getId()), null, false, false);
+    runtimeService.deleteProcessInstances(Arrays.asList(processInstance.getId(), processInstance2.getId()), null, false,
+        false);
 
     assertThat(runtimeService.createProcessInstanceQuery().count()).isEqualTo(0l);
   }
@@ -267,9 +272,9 @@ public class RuntimeServiceTest {
     Set<RecordedEvent> startEvents = new HashSet<>();
     Set<RecordedEvent> endEvents = new HashSet<>();
     for (RecordedEvent event : recordedEvents) {
-      if(event.getEventName().equals(ExecutionListener.EVENTNAME_START)){
+      if (event.getEventName().equals(ExecutionListener.EVENTNAME_START)) {
         startEvents.add(event);
-      } else if(event.getEventName().equals(ExecutionListener.EVENTNAME_END)){
+      } else if (event.getEventName().equals(ExecutionListener.EVENTNAME_END)) {
         endEvents.add(event);
       }
     }
@@ -280,7 +285,7 @@ public class RuntimeServiceTest {
       assertThat(startEvent.getActivityId()).isIn("innerTask1",
           "innerTask2", "outerTask", "subProcess", "theStart");
       for (RecordedEvent endEvent : endEvents) {
-        if(startEvent.getActivityId().equals(endEvent.getActivityId())){
+        if (startEvent.getActivityId().equals(endEvent.getActivityId())) {
           assertThat(startEvent.getActivityInstanceId()).isEqualTo(endEvent.getActivityInstanceId());
           assertThat(startEvent.getExecutionId()).isEqualTo(endEvent.getExecutionId());
         }
@@ -292,8 +297,8 @@ public class RuntimeServiceTest {
     }
   }
 
-  @Deployment(resources={
-  "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testDeleteProcessInstanceSkipCustomListenersEnsureHistoryWritten() {
 
@@ -303,7 +308,7 @@ public class RuntimeServiceTest {
     runtimeService.deleteProcessInstance(processInstance.getId(), null, true);
 
     // buit-in listeners are still invoked and thus history is written
-    if(!ProcessEngineConfiguration.HISTORY_NONE.equals(processEngineConfiguration.getHistory())) {
+    if (!ProcessEngineConfiguration.HISTORY_NONE.equals(processEngineConfiguration.getHistory())) {
       // verify that all historic activity instances are ended
       List<HistoricActivityInstance> hais = historyService.createHistoricActivityInstanceQuery().list();
       for (HistoricActivityInstance hai : hais) {
@@ -381,7 +386,7 @@ public class RuntimeServiceTest {
     assertTrue(RecorderTaskListener.getRecordedEvents().isEmpty());
   }
 
-  @Deployment(resources={
+  @Deployment(resources = {
       "org/cibseven/bpm/engine/test/api/oneTaskProcessWithIoMappings.bpmn20.xml" })
   @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
   @Test
@@ -395,7 +400,8 @@ public class RuntimeServiceTest {
 
     // then
     testRule.assertProcessEnded(instance.getId());
-    assertEquals(1, historyService.createHistoricVariableInstanceQuery().processInstanceId(instance.getId()).list().size());
+    assertEquals(1,
+        historyService.createHistoricVariableInstanceQuery().processInstanceId(instance.getId()).list().size());
     assertEquals(1, historyService.createHistoricVariableInstanceQuery().variableName("inputMappingExecuted").count());
   }
 
@@ -413,12 +419,14 @@ public class RuntimeServiceTest {
 
     // then
     testRule.assertProcessEnded(instance.getId());
-    assertEquals(2, historyService.createHistoricVariableInstanceQuery().processInstanceId(instance.getId()).list().size());
+    assertEquals(2,
+        historyService.createHistoricVariableInstanceQuery().processInstanceId(instance.getId()).list().size());
     assertEquals(1, historyService.createHistoricVariableInstanceQuery().variableName("inputMappingExecuted").count());
     assertEquals(1, historyService.createHistoricVariableInstanceQuery().variableName("outputMappingExecuted").count());
   }
 
-  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testCascadingDeleteSubprocessInstanceSkipIoMappings.Calling.bpmn20.xml",
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testCascadingDeleteSubprocessInstanceSkipIoMappings.Calling.bpmn20.xml",
       "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testCascadingDeleteSubprocessInstanceSkipIoMappings.Called.bpmn20.xml" })
   @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
   @Test
@@ -427,18 +435,21 @@ public class RuntimeServiceTest {
     // given a process instance
     ProcessInstance instance = runtimeService.startProcessInstanceByKey("callingProcess");
 
-    ProcessInstance instance2 = runtimeService.createProcessInstanceQuery().superProcessInstanceId(instance.getId()).singleResult();
+    ProcessInstance instance2 = runtimeService.createProcessInstanceQuery().superProcessInstanceId(instance.getId())
+        .singleResult();
 
     // when the process instance is deleted and we do skip the io mappings
     runtimeService.deleteProcessInstance(instance.getId(), "test_purposes", false, true, true);
 
     // then
     testRule.assertProcessEnded(instance.getId());
-    assertEquals(1, historyService.createHistoricVariableInstanceQuery().processInstanceId(instance2.getId()).list().size());
+    assertEquals(1,
+        historyService.createHistoricVariableInstanceQuery().processInstanceId(instance2.getId()).list().size());
     assertEquals(1, historyService.createHistoricVariableInstanceQuery().variableName("inputMappingExecuted").count());
   }
 
-  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testCascadingDeleteSubprocessInstanceSkipIoMappings.Calling.bpmn20.xml",
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testCascadingDeleteSubprocessInstanceSkipIoMappings.Calling.bpmn20.xml",
       "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testCascadingDeleteSubprocessInstanceSkipIoMappings.Called.bpmn20.xml" })
   @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
   @Test
@@ -447,20 +458,22 @@ public class RuntimeServiceTest {
     // given a process instance
     ProcessInstance instance = runtimeService.startProcessInstanceByKey("callingProcess");
 
-    ProcessInstance instance2 = runtimeService.createProcessInstanceQuery().superProcessInstanceId(instance.getId()).singleResult();
+    ProcessInstance instance2 = runtimeService.createProcessInstanceQuery().superProcessInstanceId(instance.getId())
+        .singleResult();
 
     // when the process instance is deleted and we do not skip the io mappings
     runtimeService.deleteProcessInstance(instance.getId(), "test_purposes", false, true, false);
 
     // then
     testRule.assertProcessEnded(instance.getId());
-    assertEquals(2, historyService.createHistoricVariableInstanceQuery().processInstanceId(instance2.getId()).list().size());
+    assertEquals(2,
+        historyService.createHistoricVariableInstanceQuery().processInstanceId(instance2.getId()).list().size());
     assertEquals(1, historyService.createHistoricVariableInstanceQuery().variableName("inputMappingExecuted").count());
     assertEquals(1, historyService.createHistoricVariableInstanceQuery().variableName("outputMappingExecuted").count());
   }
 
-  @Deployment(resources={
-    "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testDeleteProcessInstanceNullReason() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -477,18 +490,17 @@ public class RuntimeServiceTest {
    */
   @Test
   public void testDeleteProcessInstancesManyParallelSubprocesses() {
-    final BpmnModelInstance multiInstanceWithSubprocess =
-      Bpmn.createExecutableProcess("multiInstanceWithSubprocess")
+    final BpmnModelInstance multiInstanceWithSubprocess = Bpmn.createExecutableProcess("multiInstanceWithSubprocess")
         .startEvent()
-          .subProcess()
-          .embeddedSubProcess()
-          .startEvent()
-            .userTask("userTask")
-          .endEvent()
-          .subProcessDone()
-          .multiInstance().cardinality("300").multiInstanceDone()
+        .subProcess()
+        .embeddedSubProcess()
+        .startEvent()
+        .userTask("userTask")
         .endEvent()
-      .done();
+        .subProcessDone()
+        .multiInstance().cardinality("300").multiInstanceDone()
+        .endEvent()
+        .done();
 
     testRule.deploy(multiInstanceWithSubprocess);
 
@@ -511,32 +523,34 @@ public class RuntimeServiceTest {
 
   @Test
   public void testDeleteProcessInstanceIfExistsWithFake() {
-      runtimeService.deleteProcessInstanceIfExists("aFake", null, false, false, false, false);
-      //don't expect exception
+    runtimeService.deleteProcessInstanceIfExists("aFake", null, false, false, false, false);
+    // don't expect exception
   }
 
-  @Deployment(resources={"org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testDeleteProcessInstancesWithFake() {
     ProcessInstance instance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
 
     try {
-      runtimeService.deleteProcessInstances(Arrays.asList(instance.getId(), "aFake"), "test", false, false, false, false);
+      runtimeService.deleteProcessInstances(Arrays.asList(instance.getId(), "aFake"), "test", false, false, false,
+          false);
       fail("ProcessEngineException expected");
-    }catch (ProcessEngineException e) {
-      //expected
+    } catch (ProcessEngineException e) {
+      // expected
       assertEquals(1, runtimeService.createProcessInstanceQuery().processDefinitionKey("oneTaskProcess").count());
       assertTrue(e instanceof NotFoundException);
     }
   }
 
-  @Deployment(resources={"org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testDeleteProcessInstancesIfExistsWithFake() {
     ProcessInstance instance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
 
-    runtimeService.deleteProcessInstancesIfExists(Arrays.asList(instance.getId(), "aFake"), "test", false, false, false);
-    //dont't expect exception, existing instances are deleted
+    runtimeService.deleteProcessInstancesIfExists(Arrays.asList(instance.getId(), "aFake"), "test", false, false,
+        false);
+    // dont't expect exception, existing instances are deleted
     assertEquals(0, runtimeService.createProcessInstanceQuery().processDefinitionKey("oneTaskProcess").count());
   }
 
@@ -576,7 +590,6 @@ public class RuntimeServiceTest {
     testRule.assertProcessEnded(instance.getId());
   }
 
-
   @Deployment
   @Test
   public void testDeleteProcessInstanceWithVariableOnScopeAndConcurrentExecution() {
@@ -585,8 +598,8 @@ public class RuntimeServiceTest {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
 
     runtimeService.createProcessInstanceModification(processInstance.getId())
-      .startBeforeActivity("task")
-      .execute();
+        .startBeforeActivity("task")
+        .execute();
 
     List<Execution> executions = runtimeService.createExecutionQuery().list();
 
@@ -607,31 +620,34 @@ public class RuntimeServiceTest {
 
     // given
     BpmnModelInstance callingInstance = ProcessModels.newModel("oneTaskProcess")
-      .startEvent()
-      .callActivity()
-      .calledElement("called")
-      .endEvent()
-      .done();
+        .startEvent()
+        .callActivity()
+        .calledElement("called")
+        .endEvent()
+        .done();
 
     BpmnModelInstance calledInstance = ProcessModels.newModel("called")
-      .startEvent()
-      .userTask()
-      .endEvent()
-      .done();
+        .startEvent()
+        .userTask()
+        .endEvent()
+        .done();
 
     testRule.deploy(callingInstance, calledInstance);
     final String processInstanceId = runtimeService.startProcessInstanceByKey("oneTaskProcess").getProcessInstanceId();
 
-    String subprocessId = historyService.createHistoricProcessInstanceQuery().processDefinitionKey("called").singleResult().getId();
+    String subprocessId = historyService.createHistoricProcessInstanceQuery().processDefinitionKey("called")
+        .singleResult().getId();
 
     runtimeService.deleteProcessInstance(subprocessId, TESTING_INSTANCE_DELETION);
 
-    assertEquals(TESTING_INSTANCE_DELETION, historyService.createHistoricProcessInstanceQuery().processInstanceId(subprocessId).singleResult().getDeleteReason());
-    assertEquals(TESTING_INSTANCE_DELETION, historyService.createHistoricProcessInstanceQuery().processInstanceId(processInstanceId).singleResult().getDeleteReason());
+    assertEquals(TESTING_INSTANCE_DELETION, historyService.createHistoricProcessInstanceQuery()
+        .processInstanceId(subprocessId).singleResult().getDeleteReason());
+    assertEquals(TESTING_INSTANCE_DELETION, historyService.createHistoricProcessInstanceQuery()
+        .processInstanceId(processInstanceId).singleResult().getDeleteReason());
   }
 
-  @Deployment(resources={
-    "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testFindActiveActivityIds() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -667,7 +683,8 @@ public class RuntimeServiceTest {
   @Deployment
   @Test
   public void testFindActiveActivityIdProcessWithErrorEventAndSubProcess() {
-    ProcessInstance processInstance = engineRule.getProcessEngine().getRuntimeService().startProcessInstanceByKey("errorEventSubprocess");
+    ProcessInstance processInstance = engineRule.getProcessEngine().getRuntimeService()
+        .startProcessInstanceByKey("errorEventSubprocess");
 
     List<String> activeActivities = runtimeService.getActiveActivityIds(processInstance.getId());
     assertEquals(3, activeActivities.size());
@@ -688,7 +705,8 @@ public class RuntimeServiceTest {
 
     taskService.complete(parallelUserTask.getId());
 
-    Execution execution = runtimeService.createExecutionQuery().processInstanceId(processInstance.getId()).activityId("subprocess1WaitBeforeError").singleResult();
+    Execution execution = runtimeService.createExecutionQuery().processInstanceId(processInstance.getId())
+        .activityId("subprocess1WaitBeforeError").singleResult();
     runtimeService.signal(execution.getId());
 
     activeActivities = runtimeService.getActiveActivityIds(processInstance.getId());
@@ -780,8 +798,8 @@ public class RuntimeServiceTest {
 
   }
 
-  @Deployment(resources={
-    "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testSignalWithProcessVariables.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testSignalWithProcessVariables.bpmn20.xml" })
   @Test
   public void testSignalWithSignalNameAndData() {
 
@@ -797,8 +815,8 @@ public class RuntimeServiceTest {
 
   }
 
-  @Deployment(resources={
-    "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testSignalWithProcessVariables.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testSignalWithProcessVariables.bpmn20.xml" })
   @Test
   public void testSignalWithoutSignalNameAndData() {
 
@@ -819,13 +837,15 @@ public class RuntimeServiceTest {
   public void testSignalInactiveExecution() {
     ProcessInstance instance = runtimeService.startProcessInstanceByKey("testSignalInactiveExecution");
 
-    // there exist two executions: the inactive parent (the process instance) and the child that actually waits in the receive task
+    // there exist two executions: the inactive parent (the process instance) and
+    // the child that actually waits in the receive task
     try {
       runtimeService.signal(instance.getId());
       fail();
-    } catch(ProcessEngineException e) {
+    } catch (ProcessEngineException e) {
       // happy path
-      testRule.assertTextPresent("cannot signal execution " + instance.getId() + ": it has no current activity", e.getMessage());
+      testRule.assertTextPresent("cannot signal execution " + instance.getId() + ": it has no current activity",
+          e.getMessage());
     } catch (Exception e) {
       fail("Signalling an inactive execution that has no activity should result in a ProcessEngineException");
     }
@@ -872,8 +892,8 @@ public class RuntimeServiceTest {
     }
   }
 
-  @Deployment(resources={
-    "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testGetVariableUnexistingVariableName() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -901,8 +921,8 @@ public class RuntimeServiceTest {
     }
   }
 
-  @Deployment(resources={
-    "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testSetVariableNullVariableName() {
     try {
@@ -914,8 +934,8 @@ public class RuntimeServiceTest {
     }
   }
 
-  @Deployment(resources={
-  "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testSetVariables() {
     Map<String, Object> vars = new HashMap<>();
@@ -929,8 +949,8 @@ public class RuntimeServiceTest {
     assertEquals("value2", runtimeService.getVariable(processInstance.getId(), "variable2"));
   }
 
-  @Deployment(resources={
-  "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testGetVariablesTyped() {
     Map<String, Object> vars = new HashMap<>();
@@ -942,16 +962,16 @@ public class RuntimeServiceTest {
     assertEquals(vars, variablesTyped);
   }
 
-  @Deployment(resources={
-  "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testGetVariablesTypedDeserialize() {
 
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess",
         Variables.createVariables()
-          .putValue("broken", Variables.serializedObjectValue("broken")
-              .serializationDataFormat(Variables.SerializationDataFormats.JAVA)
-              .objectTypeName("unexisting").create()));
+            .putValue("broken", Variables.serializedObjectValue("broken")
+                .serializationDataFormat(Variables.SerializationDataFormats.JAVA)
+                .objectTypeName("unexisting").create()));
 
     // this works
     VariableMap variablesTyped = runtimeService.getVariablesTyped(processInstance.getId(), false);
@@ -962,20 +982,20 @@ public class RuntimeServiceTest {
     // this does not
     try {
       runtimeService.getVariablesTyped(processInstance.getId());
-    } catch(ProcessEngineException e) {
+    } catch (ProcessEngineException e) {
       testRule.assertTextPresent("Cannot deserialize object", e.getMessage());
     }
 
     // this does not
     try {
       runtimeService.getVariablesTyped(processInstance.getId(), Arrays.asList("broken"), true);
-    } catch(ProcessEngineException e) {
+    } catch (ProcessEngineException e) {
       testRule.assertTextPresent("Cannot deserialize object", e.getMessage());
     }
   }
 
-  @Deployment(resources={
-  "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testGetVariablesLocalTyped() {
     Map<String, Object> vars = new HashMap<>();
@@ -987,16 +1007,16 @@ public class RuntimeServiceTest {
     assertEquals(vars, variablesTyped);
   }
 
-  @Deployment(resources={
-  "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testGetVariablesLocalTypedDeserialize() {
 
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess",
         Variables.createVariables()
-          .putValue("broken", Variables.serializedObjectValue("broken")
-              .serializationDataFormat(Variables.SerializationDataFormats.JAVA)
-              .objectTypeName("unexisting").create()));
+            .putValue("broken", Variables.serializedObjectValue("broken")
+                .serializationDataFormat(Variables.SerializationDataFormats.JAVA)
+                .objectTypeName("unexisting").create()));
 
     // this works
     VariableMap variablesTyped = runtimeService.getVariablesLocalTyped(processInstance.getId(), false);
@@ -1007,14 +1027,14 @@ public class RuntimeServiceTest {
     // this does not
     try {
       runtimeService.getVariablesLocalTyped(processInstance.getId());
-    } catch(ProcessEngineException e) {
+    } catch (ProcessEngineException e) {
       testRule.assertTextPresent("Cannot deserialize object", e.getMessage());
     }
 
     // this does not
     try {
       runtimeService.getVariablesLocalTyped(processInstance.getId(), Arrays.asList("broken"), true);
-    } catch(ProcessEngineException e) {
+    } catch (ProcessEngineException e) {
       testRule.assertTextPresent("Cannot deserialize object", e.getMessage());
     }
 
@@ -1042,11 +1062,26 @@ public class RuntimeServiceTest {
     }
   }
 
+  @Test
+  public void setVariablesSyncOnCompletedProcessInstance() {
+    // given completed process instance
+    testRule.deploy(USER_TASK_PROCESS);
+    String id = runtimeService.startProcessInstanceByKey("process").getId();
+    Task task = engineRule.getTaskService().createTaskQuery().processInstanceId(id).singleResult();
+    engineRule.getTaskService().complete(task.getId());
+
+    // when setting variables then exception is thrown
+    assertThatThrownBy(() -> runtimeService.setVariables(id, Variables.createVariables().putValue("foo", "bar")))
+        .isInstanceOf(NullValueException.class)
+        .hasMessage("execution " + id + " doesn't exist: execution is null");
+  }
+
   private void checkHistoricVariableUpdateEntity(String variableName, String processInstanceId) {
     if (processEngineConfiguration.getHistoryLevel().equals(HistoryLevel.HISTORY_LEVEL_FULL)) {
       boolean deletedVariableUpdateFound = false;
 
-      List<HistoricDetail> resultSet = historyService.createHistoricDetailQuery().processInstanceId(processInstanceId).list();
+      List<HistoricDetail> resultSet = historyService.createHistoricDetailQuery().processInstanceId(processInstanceId)
+          .list();
       for (HistoricDetail currentHistoricDetail : resultSet) {
         assertTrue(currentHistoricDetail instanceof HistoricDetailVariableInstanceUpdateEntity);
         HistoricDetailVariableInstanceUpdateEntity historicVariableUpdate = (HistoricDetailVariableInstanceUpdateEntity) currentHistoricDetail;
@@ -1066,8 +1101,8 @@ public class RuntimeServiceTest {
     }
   }
 
-  @Deployment(resources={
-  "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testRemoveVariable() {
     Map<String, Object> vars = new HashMap<>();
@@ -1086,8 +1121,8 @@ public class RuntimeServiceTest {
     checkHistoricVariableUpdateEntity("variable1", processInstance.getId());
   }
 
-  @Deployment(resources={
-  "org/cibseven/bpm/engine/test/api/oneSubProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneSubProcess.bpmn20.xml" })
   @Test
   public void testRemoveVariableInParentScope() {
     Map<String, Object> vars = new HashMap<>();
@@ -1105,7 +1140,6 @@ public class RuntimeServiceTest {
     checkHistoricVariableUpdateEntity("variable1", processInstance.getId());
   }
 
-
   @Test
   public void testRemoveVariableNullExecutionId() {
     try {
@@ -1116,8 +1150,8 @@ public class RuntimeServiceTest {
     }
   }
 
-  @Deployment(resources={
-  "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testRemoveVariableLocal() {
     Map<String, Object> vars = new HashMap<>();
@@ -1134,8 +1168,8 @@ public class RuntimeServiceTest {
     checkHistoricVariableUpdateEntity("variable1", processInstance.getId());
   }
 
-  @Deployment(resources={
-  "org/cibseven/bpm/engine/test/api/oneSubProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneSubProcess.bpmn20.xml" })
   @Test
   public void testRemoveVariableLocalWithParentScope() {
     Map<String, Object> vars = new HashMap<>();
@@ -1162,7 +1196,6 @@ public class RuntimeServiceTest {
     checkHistoricVariableUpdateEntity("localVariable", processInstance.getId());
   }
 
-
   @Test
   public void testRemoveLocalVariableNullExecutionId() {
     try {
@@ -1173,8 +1206,8 @@ public class RuntimeServiceTest {
     }
   }
 
-  @Deployment(resources={
-  "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testRemoveVariables() {
     Map<String, Object> vars = new HashMap<>();
@@ -1198,8 +1231,8 @@ public class RuntimeServiceTest {
     checkHistoricVariableUpdateEntity("variable2", processInstance.getId());
   }
 
-  @Deployment(resources={
-  "org/cibseven/bpm/engine/test/api/oneSubProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneSubProcess.bpmn20.xml" })
   @Test
   public void testRemoveVariablesWithParentScope() {
     Map<String, Object> vars = new HashMap<>();
@@ -1241,8 +1274,8 @@ public class RuntimeServiceTest {
     }
   }
 
-  @Deployment(resources={
-  "org/cibseven/bpm/engine/test/api/oneSubProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneSubProcess.bpmn20.xml" })
   @Test
   public void testRemoveVariablesLocalWithParentScope() {
     Map<String, Object> vars = new HashMap<>();
@@ -1299,8 +1332,8 @@ public class RuntimeServiceTest {
     }
   }
 
-  @Deployment(resources={
-  "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testUpdateVariables() {
     Map<String, Object> modifications = new HashMap<>();
@@ -1319,8 +1352,8 @@ public class RuntimeServiceTest {
     assertEquals("value2", runtimeService.getVariable(processInstance.getId(), "variable2"));
   }
 
-  @Deployment(resources={
-  "org/cibseven/bpm/engine/test/api/oneSubProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneSubProcess.bpmn20.xml" })
   @Test
   public void testUpdateVariablesLocal() {
     Map<String, Object> globalVars = new HashMap<>();
@@ -1351,14 +1384,14 @@ public class RuntimeServiceTest {
     assertEquals("value4", runtimeService.getVariable(processInstance.getId(), "variable4"));
   }
 
-  @Deployment(resources={
-          "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.catchAlertSignal.bpmn20.xml",
-          "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.catchPanicSignal.bpmn20.xml"
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.catchAlertSignal.bpmn20.xml",
+      "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.catchPanicSignal.bpmn20.xml"
   })
   @Test
   public void testSignalEventReceived() {
 
-    //////  test  signalEventReceived(String)
+    ////// test signalEventReceived(String)
 
     startSignalCatchProcesses();
     // 12, because the signal catch is a scope
@@ -1368,33 +1401,33 @@ public class RuntimeServiceTest {
     runtimeService.signalEventReceived("panic");
     assertEquals(0, runtimeService.createExecutionQuery().count());
 
-    //////  test  signalEventReceived(String, String)
+    ////// test signalEventReceived(String, String)
     startSignalCatchProcesses();
 
     // signal the executions one at a time:
     for (int executions = 3; executions > 0; executions--) {
       List<Execution> page = runtimeService.createExecutionQuery()
-        .signalEventSubscriptionName("alert")
-        .listPage(0, 1);
+          .signalEventSubscriptionName("alert")
+          .listPage(0, 1);
       runtimeService.signalEventReceived("alert", page.get(0).getId());
 
-      assertEquals(executions-1, runtimeService.createExecutionQuery().signalEventSubscriptionName("alert").count());
+      assertEquals(executions - 1, runtimeService.createExecutionQuery().signalEventSubscriptionName("alert").count());
     }
 
-    for (int executions = 3; executions > 0; executions-- ) {
+    for (int executions = 3; executions > 0; executions--) {
       List<Execution> page = runtimeService.createExecutionQuery()
-        .signalEventSubscriptionName("panic")
-        .listPage(0, 1);
+          .signalEventSubscriptionName("panic")
+          .listPage(0, 1);
       runtimeService.signalEventReceived("panic", page.get(0).getId());
 
-      assertEquals(executions-1, runtimeService.createExecutionQuery().signalEventSubscriptionName("panic").count());
+      assertEquals(executions - 1, runtimeService.createExecutionQuery().signalEventSubscriptionName("panic").count());
     }
 
   }
 
-  @Deployment(resources={
-          "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.catchAlertMessage.bpmn20.xml",
-          "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.catchPanicMessage.bpmn20.xml"
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.catchAlertMessage.bpmn20.xml",
+      "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.catchPanicMessage.bpmn20.xml"
   })
   @Test
   public void testMessageEventReceived() {
@@ -1406,62 +1439,63 @@ public class RuntimeServiceTest {
     // signal the executions one at a time:
     for (int executions = 3; executions > 0; executions--) {
       List<Execution> page = runtimeService.createExecutionQuery()
-        .messageEventSubscriptionName("alert")
-        .listPage(0, 1);
+          .messageEventSubscriptionName("alert")
+          .listPage(0, 1);
       runtimeService.messageEventReceived("alert", page.get(0).getId());
 
-      assertEquals(executions-1, runtimeService.createExecutionQuery().messageEventSubscriptionName("alert").count());
+      assertEquals(executions - 1, runtimeService.createExecutionQuery().messageEventSubscriptionName("alert").count());
     }
 
-    for (int executions = 3; executions > 0; executions-- ) {
+    for (int executions = 3; executions > 0; executions--) {
       List<Execution> page = runtimeService.createExecutionQuery()
-        .messageEventSubscriptionName("panic")
-        .listPage(0, 1);
+          .messageEventSubscriptionName("panic")
+          .listPage(0, 1);
       runtimeService.messageEventReceived("panic", page.get(0).getId());
 
-      assertEquals(executions-1, runtimeService.createExecutionQuery().messageEventSubscriptionName("panic").count());
+      assertEquals(executions - 1, runtimeService.createExecutionQuery().messageEventSubscriptionName("panic").count());
     }
 
   }
 
- @Test
+  @Test
   public void testSignalEventReceivedNonExistingExecution() {
-   try {
-     runtimeService.signalEventReceived("alert", "nonexistingExecution");
-     fail("exeception expected");
-   }catch (ProcessEngineException e) {
-     // this is good
-     assertTrue(e.getMessage().contains("Cannot find execution with id 'nonexistingExecution'"));
-   }
+    try {
+      runtimeService.signalEventReceived("alert", "nonexistingExecution");
+      fail("exeception expected");
+    } catch (ProcessEngineException e) {
+      // this is good
+      assertTrue(e.getMessage().contains("Cannot find execution with id 'nonexistingExecution'"));
+    }
   }
 
- @Test
+  @Test
   public void testMessageEventReceivedNonExistingExecution() {
-   try {
-     runtimeService.messageEventReceived("alert", "nonexistingExecution");
-     fail("exeception expected");
-   }catch (ProcessEngineException e) {
-     // this is good
-     assertTrue(e.getMessage().contains("Execution with id 'nonexistingExecution' does not have a subscription to a message event with name 'alert'"));
-   }
+    try {
+      runtimeService.messageEventReceived("alert", "nonexistingExecution");
+      fail("exeception expected");
+    } catch (ProcessEngineException e) {
+      // this is good
+      assertTrue(e.getMessage().contains(
+          "Execution with id 'nonexistingExecution' does not have a subscription to a message event with name 'alert'"));
+    }
   }
 
- @Deployment(resources={
-         "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.catchAlertSignal.bpmn20.xml"
- })
- @Test
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.catchAlertSignal.bpmn20.xml"
+  })
+  @Test
   public void testExecutionWaitingForDifferentSignal() {
-   runtimeService.startProcessInstanceByKey("catchAlertSignal");
-   Execution execution = runtimeService.createExecutionQuery()
-     .signalEventSubscriptionName("alert")
-     .singleResult();
-   try {
-     runtimeService.signalEventReceived("bogusSignal", execution.getId());
-     fail("exeception expected");
-   }catch (ProcessEngineException e) {
-     // this is good
-     assertTrue(e.getMessage().contains("has not subscribed to a signal event with name 'bogusSignal'"));
-   }
+    runtimeService.startProcessInstanceByKey("catchAlertSignal");
+    Execution execution = runtimeService.createExecutionQuery()
+        .signalEventSubscriptionName("alert")
+        .singleResult();
+    try {
+      runtimeService.signalEventReceived("bogusSignal", execution.getId());
+      fail("exeception expected");
+    } catch (ProcessEngineException e) {
+      // this is good
+      assertTrue(e.getMessage().contains("has not subscribed to a signal event with name 'bogusSignal'"));
+    }
   }
 
   private void startSignalCatchProcesses() {
@@ -1495,8 +1529,8 @@ public class RuntimeServiceTest {
     }
   }
 
-  @Deployment(resources={
-  "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testActivityInstancePopulated() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess", "business-key");
@@ -1536,8 +1570,8 @@ public class RuntimeServiceTest {
     ActivityInstance tree = runtimeService.getActivityInstance(processInstance.getId());
     assertThat(tree).hasStructure(
         describeActivityInstanceTree(processInstance.getProcessDefinitionId())
-          .transition("theTask")
-        .done());
+            .transition("theTask")
+            .done());
 
     TransitionInstance asyncBeforeTransitionInstance = tree.getChildTransitionInstances()[0];
     assertEquals(processInstance.getId(), asyncBeforeTransitionInstance.getExecutionId());
@@ -1551,9 +1585,9 @@ public class RuntimeServiceTest {
     ActivityInstance tree = runtimeService.getActivityInstance(processInstance.getId());
     assertThat(tree).hasStructure(
         describeActivityInstanceTree(processInstance.getProcessDefinitionId())
-          .activity("theTask")
-          .transition("asyncTask")
-        .done());
+            .activity("theTask")
+            .transition("asyncTask")
+            .done());
 
     TransitionInstance asyncBeforeTransitionInstance = tree.getChildTransitionInstances()[0];
     String asyncExecutionId = managementService.createJobQuery().singleResult().getExecutionId();
@@ -1568,8 +1602,8 @@ public class RuntimeServiceTest {
     ActivityInstance tree = runtimeService.getActivityInstance(processInstance.getId());
     assertThat(tree).hasStructure(
         describeActivityInstanceTree(processInstance.getProcessDefinitionId())
-          .transition("theStart")
-        .done());
+            .transition("theStart")
+            .done());
 
     TransitionInstance asyncBeforeTransitionInstance = tree.getChildTransitionInstances()[0];
     assertEquals(processInstance.getId(), asyncBeforeTransitionInstance.getExecutionId());
@@ -1583,12 +1617,11 @@ public class RuntimeServiceTest {
     Task task = taskService.createTaskQuery().singleResult();
     taskService.complete(task.getId());
 
-
     ActivityInstance tree = runtimeService.getActivityInstance(processInstance.getId());
     assertThat(tree).hasStructure(
         describeActivityInstanceTree(processInstance.getProcessDefinitionId())
-          .transition("theTask")
-        .done());
+            .transition("theTask")
+            .done());
 
     TransitionInstance asyncAfterTransitionInstance = tree.getChildTransitionInstances()[0];
     assertEquals(processInstance.getId(), asyncAfterTransitionInstance.getExecutionId());
@@ -1606,9 +1639,9 @@ public class RuntimeServiceTest {
     ActivityInstance tree = runtimeService.getActivityInstance(processInstance.getId());
     assertThat(tree).hasStructure(
         describeActivityInstanceTree(processInstance.getProcessDefinitionId())
-          .activity("theTask")
-          .transition("asyncTask")
-        .done());
+            .activity("theTask")
+            .transition("asyncTask")
+            .done());
 
     TransitionInstance asyncBeforeTransitionInstance = tree.getChildTransitionInstances()[0];
     String asyncExecutionId = managementService.createJobQuery().singleResult().getExecutionId();
@@ -1623,8 +1656,8 @@ public class RuntimeServiceTest {
     ActivityInstance tree = runtimeService.getActivityInstance(processInstance.getId());
     assertThat(tree).hasStructure(
         describeActivityInstanceTree(processInstance.getProcessDefinitionId())
-          .transition("theEnd")
-        .done());
+            .transition("theEnd")
+            .done());
 
     TransitionInstance asyncAfterTransitionInstance = tree.getChildTransitionInstances()[0];
     assertEquals(processInstance.getId(), asyncAfterTransitionInstance.getExecutionId());
@@ -1638,9 +1671,9 @@ public class RuntimeServiceTest {
     ActivityInstance tree = runtimeService.getActivityInstance(processInstance.getId());
     assertThat(tree).hasStructure(
         describeActivityInstanceTree(processInstance.getProcessDefinitionId())
-          .beginScope("subProcess")
+            .beginScope("subProcess")
             .transition("theTask")
-        .done());
+            .done());
 
     TransitionInstance asyncBeforeTransitionInstance = tree.getChildActivityInstances()[0]
         .getChildTransitionInstances()[0];
@@ -1656,9 +1689,9 @@ public class RuntimeServiceTest {
     ActivityInstance tree = runtimeService.getActivityInstance(processInstance.getId());
     assertThat(tree).hasStructure(
         describeActivityInstanceTree(processInstance.getProcessDefinitionId())
-          .beginScope("subProcess")
+            .beginScope("subProcess")
             .transition("theSubProcessStart")
-        .done());
+            .done());
   }
 
   @Deployment
@@ -1669,13 +1702,12 @@ public class RuntimeServiceTest {
     Task task = taskService.createTaskQuery().singleResult();
     taskService.complete(task.getId());
 
-
     ActivityInstance tree = runtimeService.getActivityInstance(processInstance.getId());
     assertThat(tree).hasStructure(
         describeActivityInstanceTree(processInstance.getProcessDefinitionId())
-          .beginScope("subProcess")
+            .beginScope("subProcess")
             .transition("theTask")
-        .done());
+            .done());
 
     TransitionInstance asyncAfterTransitionInstance = tree.getChildActivityInstances()[0]
         .getChildTransitionInstances()[0];
@@ -1691,9 +1723,9 @@ public class RuntimeServiceTest {
     ActivityInstance tree = runtimeService.getActivityInstance(processInstance.getId());
     assertThat(tree).hasStructure(
         describeActivityInstanceTree(processInstance.getProcessDefinitionId())
-          .beginScope("subProcess")
+            .beginScope("subProcess")
             .transition("theSubProcessEnd")
-        .done());
+            .done());
 
     TransitionInstance asyncAfterTransitionInstance = tree.getChildActivityInstances()[0]
         .getChildTransitionInstances()[0];
@@ -1714,10 +1746,10 @@ public class RuntimeServiceTest {
 
     assertThat(tree).hasStructure(
         describeActivityInstanceTree(processInstance.getProcessDefinitionId())
-          .activity("outerTask")
-          .beginScope("subProcess")
+            .activity("outerTask")
+            .beginScope("subProcess")
             .activity("innerTask")
-        .done());
+            .done());
   }
 
   @Deployment
@@ -1736,7 +1768,8 @@ public class RuntimeServiceTest {
     assertEquals(tree.getId(), processActivityInstances[0].getId());
     assertEquals(definition.getId(), processActivityInstances[0].getActivityId());
 
-    assertActivityInstances(tree.getActivityInstances("subProcess#multiInstanceBody"), 1, "subProcess#multiInstanceBody");
+    assertActivityInstances(tree.getActivityInstances("subProcess#multiInstanceBody"), 1,
+        "subProcess#multiInstanceBody");
     assertActivityInstances(tree.getActivityInstances("subProcess"), 3, "subProcess");
     assertActivityInstances(tree.getActivityInstances("innerTask"), 3, "innerTask");
 
@@ -1831,7 +1864,6 @@ public class RuntimeServiceTest {
     assertEquals(0, instances.length);
   }
 
-
   protected void assertActivityInstances(ActivityInstance[] instances, int expectedAmount, String expectedActivityId) {
     assertEquals(expectedAmount, instances.length);
 
@@ -1847,7 +1879,7 @@ public class RuntimeServiceTest {
   }
 
   @Test
-  @Deployment(resources={"org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   public void testActivityInstanceNoIncidents() {
     // given
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -1864,11 +1896,12 @@ public class RuntimeServiceTest {
   }
 
   @Test
-  @Deployment(resources={"org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   public void testActivityInstanceIncidents() {
     // given
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
-    String executionId = runtimeService.createExecutionQuery().processInstanceId(processInstance.getId()).active().singleResult().getId();
+    String executionId = runtimeService.createExecutionQuery().processInstanceId(processInstance.getId()).active()
+        .singleResult().getId();
     Incident incident = runtimeService.createIncident("foo", executionId, "bar");
 
     // when
@@ -1886,7 +1919,7 @@ public class RuntimeServiceTest {
   }
 
   @Test
-  @Deployment(resources={"org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   public void testActivityInstanceNoIncidentIds() {
     // given
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -1901,11 +1934,12 @@ public class RuntimeServiceTest {
   }
 
   @Test
-  @Deployment(resources={"org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   public void testActivityInstanceIncidentIds() {
     // given
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
-    String executionId = runtimeService.createExecutionQuery().processInstanceId(processInstance.getId()).active().singleResult().getId();
+    String executionId = runtimeService.createExecutionQuery().processInstanceId(processInstance.getId()).active()
+        .singleResult().getId();
     Incident incident = runtimeService.createIncident("foo", executionId, "bar");
 
     // when
@@ -1922,7 +1956,8 @@ public class RuntimeServiceTest {
   }
 
   @Test
-  @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testActivityInstanceTreeForConcurrentAsyncAfterTask.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testActivityInstanceTreeForConcurrentAsyncAfterTask.bpmn20.xml" })
   public void testActivityInstanceIncidentConcurrentTasksProcess() {
     // given
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("concurrentTasksProcess");
@@ -1958,7 +1993,8 @@ public class RuntimeServiceTest {
   }
 
   @Test
-  @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testActivityInstanceForConcurrentSubprocess.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testActivityInstanceForConcurrentSubprocess.bpmn20.xml" })
   public void testActivityInstanceIncidentConcurrentSubProcess() {
     // given
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("concurrentSubProcess");
@@ -1986,7 +2022,8 @@ public class RuntimeServiceTest {
   }
 
   @Test
-  @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testGetActivityInstancesForActivity.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testGetActivityInstancesForActivity.bpmn20.xml" })
   public void testActivityInstanceIncidentMultiInstance() {
     // given
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("miSubprocess");
@@ -2004,7 +2041,7 @@ public class RuntimeServiceTest {
     boolean innerTaskMatched = false;
 
     for (ActivityInstance activityInstance : tree.getActivityInstances("innerTask")) {
-      if(activityInstance.getExecutionIds()[0].equals(executionId)) {
+      if (activityInstance.getExecutionIds()[0].equals(executionId)) {
         String[] incidentIds = activityInstance.getIncidentIds();
         assertEquals(1, incidentIds.length);
         assertEquals(incident.getId(), incidentIds[0]);
@@ -2040,21 +2077,20 @@ public class RuntimeServiceTest {
     assertThat(incidents).containsExactly(incident.getId());
   }
 
-
   @Test
   public void testActivityInstanceIncidentFailedJobInSubProcess() {
     // given
     BpmnModelInstance process = ProcessModels.newModel("process")
-      .startEvent()
-      .subProcess("subProcess")
-      .embeddedSubProcess()
-      .startEvent()
-      .userTask("task")
-      .camundaAsyncBefore()
-      .endEvent()
-      .subProcessDone()
-      .endEvent()
-      .done();
+        .startEvent()
+        .subProcess("subProcess")
+        .embeddedSubProcess()
+        .startEvent()
+        .userTask("task")
+        .camundaAsyncBefore()
+        .endEvent()
+        .subProcessDone()
+        .endEvent()
+        .done();
 
     testRule.deploy(process);
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("process");
@@ -2077,7 +2113,8 @@ public class RuntimeServiceTest {
   }
 
   /**
-   * It is debatable if the premise of this test (incident on non-leaf execution) is
+   * It is debatable if the premise of this test (incident on non-leaf execution)
+   * is
    * intended behavior; if we decide that it is not (and enforce it),
    * then it is perfectly fine to change this test or remove it
    */
@@ -2085,17 +2122,17 @@ public class RuntimeServiceTest {
   public void testActivityInstanceIncidentOnNonLeafWithScopeActivity() {
     // given
     BpmnModelInstance process = ProcessModels.newModel("process")
-      .startEvent()
-      .subProcess("subProcess")
-      .camundaExecutionListenerClass(ExecutionListener.EVENTNAME_START, CreateIncidentDelegate.class)
-      .embeddedSubProcess()
-      .startEvent()
-      .userTask("task")
-      .camundaInputParameter("foo", "bar")
-      .endEvent()
-      .subProcessDone()
-      .endEvent()
-      .done();
+        .startEvent()
+        .subProcess("subProcess")
+        .camundaExecutionListenerClass(ExecutionListener.EVENTNAME_START, CreateIncidentDelegate.class)
+        .embeddedSubProcess()
+        .startEvent()
+        .userTask("task")
+        .camundaInputParameter("foo", "bar")
+        .endEvent()
+        .subProcessDone()
+        .endEvent()
+        .done();
 
     testRule.deploy(process);
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("process");
@@ -2118,16 +2155,16 @@ public class RuntimeServiceTest {
   public void testActivityInstanceIncidentOnNonLeafWithNonScopeActivity() {
     // given
     BpmnModelInstance process = ProcessModels.newModel("process")
-      .startEvent()
-      .subProcess("subProcess")
-      .camundaExecutionListenerClass(ExecutionListener.EVENTNAME_START, CreateIncidentDelegate.class)
-      .embeddedSubProcess()
-      .startEvent()
-      .userTask("task")
-      .endEvent()
-      .subProcessDone()
-      .endEvent()
-      .done();
+        .startEvent()
+        .subProcess("subProcess")
+        .camundaExecutionListenerClass(ExecutionListener.EVENTNAME_START, CreateIncidentDelegate.class)
+        .embeddedSubProcess()
+        .startEvent()
+        .userTask("task")
+        .endEvent()
+        .subProcessDone()
+        .endEvent()
+        .done();
 
     testRule.deploy(process);
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("process");
@@ -2164,12 +2201,12 @@ public class RuntimeServiceTest {
     // given
     String processDefinitionKey = "process";
     SubProcessBuilder subprocessBuilder = Bpmn.createExecutableProcess(processDefinitionKey)
-      .startEvent()
-      .subProcess("subprocess")
+        .startEvent()
+        .subProcess("subprocess")
         .multiInstance()
-          .sequential()
-          .camundaAsyncAfter()
-          .cardinality("3")
+        .sequential()
+        .camundaAsyncAfter()
+        .cardinality("3")
         .multiInstanceDone();
 
     BpmnModelInstance process = subprocessBuilder
@@ -2177,8 +2214,8 @@ public class RuntimeServiceTest {
         .startEvent()
         .endEvent()
         .subProcessDone()
-      .endEvent()
-      .done();
+        .endEvent()
+        .done();
 
     testRule.deploy(process);
 
@@ -2189,10 +2226,10 @@ public class RuntimeServiceTest {
 
     // then
     assertThat(activityInstance).hasStructure(
-      describeActivityInstanceTree(processInstance.getProcessDefinitionId())
-        .beginMiBody("subprocess")
-          .transition("subprocess")
-      .done());
+        describeActivityInstanceTree(processInstance.getProcessDefinitionId())
+            .beginMiBody("subprocess")
+            .transition("subprocess")
+            .done());
   }
 
   @Test
@@ -2200,15 +2237,15 @@ public class RuntimeServiceTest {
     // given
     String processDefinitionKey = "process";
     BpmnModelInstance process = Bpmn.createExecutableProcess(processDefinitionKey)
-      .startEvent()
-      .manualTask("task")
+        .startEvent()
+        .manualTask("task")
         .multiInstance()
-          .sequential()
-          .camundaAsyncAfter()
-          .cardinality("3")
+        .sequential()
+        .camundaAsyncAfter()
+        .cardinality("3")
         .multiInstanceDone()
-      .endEvent()
-      .done();
+        .endEvent()
+        .done();
 
     testRule.deploy(process);
 
@@ -2219,10 +2256,10 @@ public class RuntimeServiceTest {
 
     // then
     assertThat(activityInstance).hasStructure(
-      describeActivityInstanceTree(processInstance.getProcessDefinitionId())
-        .beginMiBody("task")
-          .transition("task")
-      .done());
+        describeActivityInstanceTree(processInstance.getProcessDefinitionId())
+            .beginMiBody("task")
+            .transition("task")
+            .done());
   }
 
   @Test
@@ -2230,11 +2267,11 @@ public class RuntimeServiceTest {
     // given
     String processDefinitionKey = "process";
     SubProcessBuilder subprocessBuilder = Bpmn.createExecutableProcess(processDefinitionKey)
-      .startEvent()
-      .subProcess("subprocess")
+        .startEvent()
+        .subProcess("subprocess")
         .multiInstance()
-          .camundaAsyncAfter()
-          .cardinality("3")
+        .camundaAsyncAfter()
+        .cardinality("3")
         .multiInstanceDone();
 
     BpmnModelInstance process = subprocessBuilder
@@ -2242,8 +2279,8 @@ public class RuntimeServiceTest {
         .startEvent()
         .endEvent()
         .subProcessDone()
-      .endEvent()
-      .done();
+        .endEvent()
+        .done();
 
     testRule.deploy(process);
 
@@ -2254,31 +2291,30 @@ public class RuntimeServiceTest {
 
     // then
     assertThat(activityInstance).hasStructure(
-      describeActivityInstanceTree(processInstance.getProcessDefinitionId())
-      .beginMiBody("subprocess")
-        .transition("subprocess")
-        .transition("subprocess")
-        .transition("subprocess")
-      .done());
+        describeActivityInstanceTree(processInstance.getProcessDefinitionId())
+            .beginMiBody("subprocess")
+            .transition("subprocess")
+            .transition("subprocess")
+            .transition("subprocess")
+            .done());
   }
-
 
   @Test
   public void testActivityInstanceOnAsyncAfterScopeActivityWithOutgoingTransition() {
     // given
     String processDefinitionKey = "process";
     BpmnModelInstance process = Bpmn.createExecutableProcess(processDefinitionKey)
-      .startEvent()
-      .subProcess("subprocess")
+        .startEvent()
+        .subProcess("subprocess")
         .embeddedSubProcess()
         .startEvent()
         .manualTask("task")
-          .camundaAsyncAfter()
-          .camundaInputParameter("foo", "bar")
+        .camundaAsyncAfter()
+        .camundaInputParameter("foo", "bar")
         .endEvent()
         .subProcessDone()
-      .endEvent()
-      .done();
+        .endEvent()
+        .done();
 
     testRule.deploy(process);
 
@@ -2289,10 +2325,10 @@ public class RuntimeServiceTest {
 
     // then
     assertThat(activityInstance).hasStructure(
-      describeActivityInstanceTree(processInstance.getProcessDefinitionId())
-      .beginScope("subprocess")
-        .transition("task")
-      .done());
+        describeActivityInstanceTree(processInstance.getProcessDefinitionId())
+            .beginScope("subprocess")
+            .transition("task")
+            .done());
   }
 
   @Test
@@ -2300,16 +2336,16 @@ public class RuntimeServiceTest {
     // given
     String processDefinitionKey = "process";
     BpmnModelInstance process = Bpmn.createExecutableProcess(processDefinitionKey)
-      .startEvent()
-      .subProcess("subprocess")
+        .startEvent()
+        .subProcess("subprocess")
         .embeddedSubProcess()
         .startEvent()
         .manualTask("task")
-          .camundaAsyncAfter()
-          .camundaInputParameter("foo", "bar")
+        .camundaAsyncAfter()
+        .camundaInputParameter("foo", "bar")
         .subProcessDone()
-      .endEvent()
-      .done();
+        .endEvent()
+        .done();
 
     testRule.deploy(process);
 
@@ -2320,10 +2356,10 @@ public class RuntimeServiceTest {
 
     // then
     assertThat(activityInstance).hasStructure(
-      describeActivityInstanceTree(processInstance.getProcessDefinitionId())
-      .beginScope("subprocess")
-        .transition("task")
-      .done());
+        describeActivityInstanceTree(processInstance.getProcessDefinitionId())
+            .beginScope("subprocess")
+            .transition("task")
+            .done());
   }
 
   @Test
@@ -2331,17 +2367,17 @@ public class RuntimeServiceTest {
     // given
     String processDefinitionKey = "process";
     BpmnModelInstance process = Bpmn.createExecutableProcess(processDefinitionKey)
-      .startEvent()
-      .subProcess("subprocess")
+        .startEvent()
+        .subProcess("subprocess")
         .embeddedSubProcess()
         .startEvent()
         .manualTask("task")
-          .camundaAsyncBefore()
-          .camundaInputParameter("foo", "bar")
+        .camundaAsyncBefore()
+        .camundaInputParameter("foo", "bar")
         .endEvent()
         .subProcessDone()
-      .endEvent()
-      .done();
+        .endEvent()
+        .done();
 
     testRule.deploy(process);
 
@@ -2352,10 +2388,10 @@ public class RuntimeServiceTest {
 
     // then
     assertThat(activityInstance).hasStructure(
-      describeActivityInstanceTree(processInstance.getProcessDefinitionId())
-      .beginScope("subprocess")
-        .transition("task")
-      .done());
+        describeActivityInstanceTree(processInstance.getProcessDefinitionId())
+            .beginScope("subprocess")
+            .transition("task")
+            .done());
   }
 
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
@@ -2393,9 +2429,11 @@ public class RuntimeServiceTest {
 
     assertEquals(caseInstanceId, firstInstance.getCaseInstanceId());
 
-    // the second possibility to start a process instance /////////////////////////////////////////////
+    // the second possibility to start a process instance
+    // /////////////////////////////////////////////
 
-    ProcessInstance secondInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess", null, caseInstanceId, null);
+    ProcessInstance secondInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess", null, caseInstanceId,
+        null);
 
     assertEquals(caseInstanceId, secondInstance.getCaseInstanceId());
 
@@ -2435,9 +2473,11 @@ public class RuntimeServiceTest {
 
     assertEquals(caseInstanceId, firstInstance.getCaseInstanceId());
 
-    // the second possibility to start a process instance /////////////////////////////////////////////
+    // the second possibility to start a process instance
+    // /////////////////////////////////////////////
 
-    ProcessInstance secondInstance = runtimeService.startProcessInstanceById(processDefinitionId, null, caseInstanceId, null);
+    ProcessInstance secondInstance = runtimeService.startProcessInstanceById(processDefinitionId, null, caseInstanceId,
+        null);
 
     assertEquals(caseInstanceId, secondInstance.getCaseInstanceId());
 
@@ -2476,60 +2516,69 @@ public class RuntimeServiceTest {
     }
   }
 
-
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/runtime/messageStartEvent.bpmn20.xml")
   @Test
   public void testStartProcessInstanceByMessageWithEarlierVersionOfProcessDefinition() {
-	  String deploymentId = repositoryService.createDeployment().addClasspathResource("org/cibseven/bpm/engine/test/api/runtime/messageStartEvent_version2.bpmn20.xml").deploy().getId();
-	  ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionVersion(1).singleResult();
+    String deploymentId = repositoryService.createDeployment()
+        .addClasspathResource("org/cibseven/bpm/engine/test/api/runtime/messageStartEvent_version2.bpmn20.xml").deploy()
+        .getId();
+    ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionVersion(1)
+        .singleResult();
 
-	  ProcessInstance processInstance = runtimeService.startProcessInstanceByMessageAndProcessDefinitionId("startMessage", processDefinition.getId());
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByMessageAndProcessDefinitionId("startMessage",
+        processDefinition.getId());
 
-	  assertThat(processInstance).isNotNull();
-	  assertThat(processInstance.getProcessDefinitionId()).isEqualTo(processDefinition.getId());
+    assertThat(processInstance).isNotNull();
+    assertThat(processInstance.getProcessDefinitionId()).isEqualTo(processDefinition.getId());
 
-	  // clean up
-	  repositoryService.deleteDeployment(deploymentId, true);
+    // clean up
+    repositoryService.deleteDeployment(deploymentId, true);
   }
 
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/runtime/messageStartEvent.bpmn20.xml")
   @Test
   public void testStartProcessInstanceByMessageWithLastVersionOfProcessDefinition() {
-	  String deploymentId = repositoryService.createDeployment().addClasspathResource("org/cibseven/bpm/engine/test/api/runtime/messageStartEvent_version2.bpmn20.xml").deploy().getId();
-	  ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().latestVersion().singleResult();
+    String deploymentId = repositoryService.createDeployment()
+        .addClasspathResource("org/cibseven/bpm/engine/test/api/runtime/messageStartEvent_version2.bpmn20.xml").deploy()
+        .getId();
+    ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().latestVersion()
+        .singleResult();
 
-	  ProcessInstance processInstance = runtimeService.startProcessInstanceByMessageAndProcessDefinitionId("newStartMessage", processDefinition.getId());
+    ProcessInstance processInstance = runtimeService
+        .startProcessInstanceByMessageAndProcessDefinitionId("newStartMessage", processDefinition.getId());
 
-	  assertThat(processInstance).isNotNull();
-	  assertThat(processInstance.getProcessDefinitionId()).isEqualTo(processDefinition.getId());
+    assertThat(processInstance).isNotNull();
+    assertThat(processInstance.getProcessDefinitionId()).isEqualTo(processDefinition.getId());
 
-	  // clean up
-	  repositoryService.deleteDeployment(deploymentId, true);
-   }
+    // clean up
+    repositoryService.deleteDeployment(deploymentId, true);
+  }
 
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/runtime/messageStartEvent.bpmn20.xml")
   @Test
   public void testStartProcessInstanceByMessageWithNonExistingMessageStartEvent() {
-	  String deploymentId = null;
-	  try {
-		 deploymentId = repositoryService.createDeployment().addClasspathResource("org/cibseven/bpm/engine/test/api/runtime/messageStartEvent_version2.bpmn20.xml").deploy().getId();
-		 ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionVersion(1).singleResult();
+    String deploymentId = null;
+    try {
+      deploymentId = repositoryService.createDeployment()
+          .addClasspathResource("org/cibseven/bpm/engine/test/api/runtime/messageStartEvent_version2.bpmn20.xml")
+          .deploy().getId();
+      ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionVersion(1)
+          .singleResult();
 
-		 runtimeService.startProcessInstanceByMessageAndProcessDefinitionId("newStartMessage", processDefinition.getId());
+      runtimeService.startProcessInstanceByMessageAndProcessDefinitionId("newStartMessage", processDefinition.getId());
 
-		 fail("exeception expected");
-	 } catch(ProcessEngineException e) {
-		 assertThat(e.getMessage()).contains("Cannot correlate message 'newStartMessage'");
-	 }
-	 finally {
-		 // clean up
-		 if(deploymentId != null){
-			 repositoryService.deleteDeployment(deploymentId, true);
-		 }
-	 }
+      fail("exeception expected");
+    } catch (ProcessEngineException e) {
+      assertThat(e.getMessage()).contains("Cannot correlate message 'newStartMessage'");
+    } finally {
+      // clean up
+      if (deploymentId != null) {
+        repositoryService.deleteDeployment(deploymentId, true);
+      }
+    }
   }
 
-  @Deployment(resources = {"org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testActivityInstanceActivityNameProperty() {
     // given
@@ -2708,7 +2757,7 @@ public class RuntimeServiceTest {
     assertEquals("startEvent", task.getActivityType());
   }
 
-  //Test for a bug: when the process engine is rebooted the
+  // Test for a bug: when the process engine is rebooted the
   // cache is cleaned and the deployed process definition is
   // removed from the process cache. This led to problems because
   // the id wasnt fetched from the DB after a redeploy.
@@ -2716,7 +2765,7 @@ public class RuntimeServiceTest {
   public void testStartProcessInstanceByIdAfterReboot() {
 
     // In case this test is run in a test suite, previous engines might
-    // have been initialized and cached.  First we close the
+    // have been initialized and cached. First we close the
     // existing process engines to make sure that the db is clean
     // and that there are no existing process engines involved.
     ProcessEngines.destroy();
@@ -2729,26 +2778,27 @@ public class RuntimeServiceTest {
 
     // Create process engine and deploy test process
     ProcessEngine processEngine = new StandaloneProcessEngineConfiguration()
-      .setProcessEngineName("reboot-test")
-      .setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_FALSE)
-      .setJdbcUrl("jdbc:h2:mem:activiti-reboot-test;DB_CLOSE_DELAY=1000")
-      .setJobExecutorActivate(false)
-      .buildProcessEngine();
+        .setProcessEngineName("reboot-test")
+        .setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_FALSE)
+        .setJdbcUrl("jdbc:h2:mem:activiti-reboot-test;DB_CLOSE_DELAY=1000")
+        .setJobExecutorActivate(false)
+        .buildProcessEngine();
 
     processEngine.getRepositoryService()
-      .createDeployment()
-      .addClasspathResource("org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
-      .deploy();
-      // verify existence of process definition
+        .createDeployment()
+        .addClasspathResource("org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+        .deploy();
+    // verify existence of process definition
     List<ProcessDefinition> processDefinitions = processEngine
-      .getRepositoryService()
-      .createProcessDefinitionQuery()
-      .list();
+        .getRepositoryService()
+        .createProcessDefinitionQuery()
+        .list();
 
     assertEquals(1, processDefinitions.size());
 
     // Start a new Process instance
-    ProcessInstance processInstance = processEngine.getRuntimeService().startProcessInstanceById(processDefinitions.get(0).getId());
+    ProcessInstance processInstance = processEngine.getRuntimeService()
+        .startProcessInstanceById(processDefinitions.get(0).getId());
     String processInstanceId = processInstance.getId();
     assertNotNull(processInstance);
 
@@ -2758,36 +2808,37 @@ public class RuntimeServiceTest {
 
     // Reboot the process engine
     processEngine = new StandaloneProcessEngineConfiguration()
-      .setProcessEngineName("reboot-test")
-      .setDatabaseSchemaUpdate(org.cibseven.bpm.engine.ProcessEngineConfiguration.DB_SCHEMA_UPDATE_FALSE)
-      .setJdbcUrl("jdbc:h2:mem:activiti-reboot-test;DB_CLOSE_DELAY=1000")
-      .setJobExecutorActivate(false)
-      .buildProcessEngine();
+        .setProcessEngineName("reboot-test")
+        .setDatabaseSchemaUpdate(org.cibseven.bpm.engine.ProcessEngineConfiguration.DB_SCHEMA_UPDATE_FALSE)
+        .setJdbcUrl("jdbc:h2:mem:activiti-reboot-test;DB_CLOSE_DELAY=1000")
+        .setJobExecutorActivate(false)
+        .buildProcessEngine();
 
     // Check if the existing process instance is still alive
     processInstance = processEngine
-      .getRuntimeService()
-      .createProcessInstanceQuery()
-      .processInstanceId(processInstanceId)
-      .singleResult();
+        .getRuntimeService()
+        .createProcessInstanceQuery()
+        .processInstanceId(processInstanceId)
+        .singleResult();
 
     assertNotNull(processInstance);
 
-    // Complete the task.  That will end the process instance
+    // Complete the task. That will end the process instance
     TaskService taskService = processEngine.getTaskService();
     Task task = taskService
-      .createTaskQuery()
-      .list()
-      .get(0);
+        .createTaskQuery()
+        .list()
+        .get(0);
     taskService.complete(task.getId());
 
-    // Check if the process instance has really ended.  This means that the process definition has
+    // Check if the process instance has really ended. This means that the process
+    // definition has
     // re-loaded into the process definition cache
     processInstance = processEngine
-      .getRuntimeService()
-      .createProcessInstanceQuery()
-      .processInstanceId(processInstanceId)
-      .singleResult();
+        .getRuntimeService()
+        .createProcessInstanceQuery()
+        .processInstanceId(processInstanceId)
+        .singleResult();
     assertNull(processInstance);
 
     // Extra check to see if a new process instance can be started as well
@@ -2814,31 +2865,37 @@ public class RuntimeServiceTest {
         .singleResult();
     assertEquals("Task in subprocess", subProcessTask.getName());
 
-    // get variables for execution id user task, should return the new value of variable test --> test2
+    // get variables for execution id user task, should return the new value of
+    // variable test --> test2
     assertEquals("test2", runtimeService.getVariable(subProcessTask.getExecutionId(), "test"));
     assertEquals("test2", runtimeService.getVariables(subProcessTask.getExecutionId()).get("test"));
 
-    // get variables for process instance id, should return the initial value of variable test --> test
+    // get variables for process instance id, should return the initial value of
+    // variable test --> test
     assertEquals("test", runtimeService.getVariable(pi.getId(), "test"));
     assertEquals("test", runtimeService.getVariables(pi.getId()).get("test"));
 
     runtimeService.setVariableLocal(subProcessTask.getExecutionId(), "test", "test3");
 
-    // get variables for execution id user task, should return the new value of variable test --> test3
+    // get variables for execution id user task, should return the new value of
+    // variable test --> test3
     assertEquals("test3", runtimeService.getVariable(subProcessTask.getExecutionId(), "test"));
     assertEquals("test3", runtimeService.getVariables(subProcessTask.getExecutionId()).get("test"));
 
-    // get variables for process instance id, should still return the initial value of variable test --> test
+    // get variables for process instance id, should still return the initial value
+    // of variable test --> test
     assertEquals("test", runtimeService.getVariable(pi.getId(), "test"));
     assertEquals("test", runtimeService.getVariables(pi.getId()).get("test"));
 
     runtimeService.setVariable(pi.getId(), "test", "test4");
 
-    // get variables for execution id user task, should return the old value of variable test --> test3
+    // get variables for execution id user task, should return the old value of
+    // variable test --> test3
     assertEquals("test3", runtimeService.getVariable(subProcessTask.getExecutionId(), "test"));
     assertEquals("test3", runtimeService.getVariables(subProcessTask.getExecutionId()).get("test"));
 
-    // get variables for process instance id, should also return the initial value of variable test --> test4
+    // get variables for process instance id, should also return the initial value
+    // of variable test --> test4
     assertEquals("test4", runtimeService.getVariable(pi.getId(), "test"));
     assertEquals("test4", runtimeService.getVariables(pi.getId()).get("test"));
 
@@ -2921,7 +2978,7 @@ public class RuntimeServiceTest {
     variables = runtimeService.getVariables(processInstance.getId());
     assertEquals("hi", variables.get("new var"));
     assertEquals(9987L, variables.get("longVar"));
-    assertEquals((short)456, variables.get("shortVar"));
+    assertEquals((short) 456, variables.get("shortVar"));
     assertEquals(4567, variables.get("integerVar"));
     assertEquals("colgate", variables.get("stringVar"));
     assertEquals(now, variables.get("dateVar"));
@@ -2940,7 +2997,8 @@ public class RuntimeServiceTest {
     assertTrue(filteredVariables.containsKey("stringVar"));
     assertTrue(filteredVariables.containsKey("integerVar"));
 
-    // Try setting the value of the variable that was initially created with value 'null'
+    // Try setting the value of the variable that was initially created with value
+    // 'null'
     runtimeService.setVariable(processInstance.getId(), "nullVar", "a value");
     Object newValue = runtimeService.getVariable(processInstance.getId(), "nullVar");
     assertNotNull(newValue);
@@ -2957,7 +3015,8 @@ public class RuntimeServiceTest {
     assertEquals(serializable, variables.get("serializableVar"));
   }
 
-  @Deployment(resources = {"org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testBasicVariableOperations.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testBasicVariableOperations.bpmn20.xml" })
   @Test
   public void testOnlyChangeType() {
     Map<String, Object> variables = new HashMap<>();
@@ -2973,12 +3032,13 @@ public class RuntimeServiceTest {
     variable = query.singleResult();
     assertEquals(ValueType.LONG.getName(), variable.getTypeName());
 
-    runtimeService.setVariable(pi.getId(), "aVariable", (short)1234);
+    runtimeService.setVariable(pi.getId(), "aVariable", (short) 1234);
     variable = query.singleResult();
     assertEquals(ValueType.SHORT.getName(), variable.getTypeName());
   }
 
-  @Deployment(resources = {"org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testBasicVariableOperations.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testBasicVariableOperations.bpmn20.xml" })
   @Test
   public void testChangeTypeFromSerializableUsingApi() {
 
@@ -3010,7 +3070,8 @@ public class RuntimeServiceTest {
 
   }
 
-  @Deployment(resources = {"org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testBasicVariableOperations.bpmn20.xml"})
+  @Deployment(resources = {
+      "org/cibseven/bpm/engine/test/api/runtime/RuntimeServiceTest.testBasicVariableOperations.bpmn20.xml" })
   @Test
   public void testChangeToSerializableUsingApi() {
     Map<String, Object> variables = new HashMap<>();
@@ -3033,9 +3094,11 @@ public class RuntimeServiceTest {
   public void testGetVariableInstancesFromVariableScope() {
 
     VariableMap variables = createVariables()
-      .putValue("anIntegerVariable", 1234)
-      .putValue("anObjectValue", objectValue(new SimpleSerializableBean(10)).serializationDataFormat(Variables.SerializationDataFormats.JAVA))
-      .putValue("anUntypedObjectValue", new SimpleSerializableBean(30));
+        .putValue("anIntegerVariable", 1234)
+        .putValue("anObjectValue",
+            objectValue(new SimpleSerializableBean(10))
+                .serializationDataFormat(Variables.SerializationDataFormats.JAVA))
+        .putValue("anUntypedObjectValue", new SimpleSerializableBean(30));
 
     runtimeService.startProcessInstanceByKey("testProcess", variables);
 
@@ -3110,7 +3173,7 @@ public class RuntimeServiceTest {
 
   @Deployment(resources = {
       "org/cibseven/bpm/engine/test/api/runtime/trivial.bpmn20.xml",
-      "org/cibseven/bpm/engine/test/api/runtime/rollbackAfterSubProcess.bpmn20.xml"})
+      "org/cibseven/bpm/engine/test/api/runtime/rollbackAfterSubProcess.bpmn20.xml" })
   @Test
   public void testRollbackAfterSubProcess() {
     try {
@@ -3155,8 +3218,8 @@ public class RuntimeServiceTest {
     taskService.complete(deleteTrigger.getId());
 
     // then
-    boolean activityInstanceNull =
-        (Boolean) runtimeService.getVariable(deletingInstance.getId(), "activityInstanceNull");
+    boolean activityInstanceNull = (Boolean) runtimeService.getVariable(deletingInstance.getId(),
+        "activityInstanceNull");
     assertTrue(activityInstanceNull);
   }
 
@@ -3189,7 +3252,8 @@ public class RuntimeServiceTest {
     testRule.deploy(calling, calledA, calledB);
 
     ProcessInstance instance = runtimeService.startProcessInstanceByKey("calling");
-    List<ProcessInstance> subInstances = runtimeService.createProcessInstanceQuery().superProcessInstanceId(instance.getId()).list();
+    List<ProcessInstance> subInstances = runtimeService.createProcessInstanceQuery()
+        .superProcessInstanceId(instance.getId()).list();
 
     // when the process instance is deleted and we do not skip sub processes
     String id = instance.getId();
@@ -3216,7 +3280,8 @@ public class RuntimeServiceTest {
     testRule.deploy(calling, calledA, calledB, calledC);
 
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("calling");
-    List<ProcessInstance> subInstances = runtimeService.createProcessInstanceQuery().superProcessInstanceId(processInstance.getId()).list();
+    List<ProcessInstance> subInstances = runtimeService.createProcessInstanceQuery()
+        .superProcessInstanceId(processInstance.getId()).list();
 
     // when the process instance is deleted and we do skip sub processes
     String id = processInstance.getId();
@@ -3241,11 +3306,14 @@ public class RuntimeServiceTest {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(callingProcessKey);
     ProcessInstance processInstance2 = runtimeService.startProcessInstanceByKey(callingProcessKey);
 
-    List<ProcessInstance> subprocessList = runtimeService.createProcessInstanceQuery().superProcessInstanceId(processInstance.getId()).list();
-    subprocessList.addAll(runtimeService.createProcessInstanceQuery().superProcessInstanceId(processInstance2.getId()).list());
+    List<ProcessInstance> subprocessList = runtimeService.createProcessInstanceQuery()
+        .superProcessInstanceId(processInstance.getId()).list();
+    subprocessList
+        .addAll(runtimeService.createProcessInstanceQuery().superProcessInstanceId(processInstance2.getId()).list());
 
     // when
-    runtimeService.deleteProcessInstances(Arrays.asList(processInstance.getId(), processInstance2.getId()), null, false, false, true, false);
+    runtimeService.deleteProcessInstances(Arrays.asList(processInstance.getId(), processInstance2.getId()), null, false,
+        false, true, false);
 
     // then
     testRule.assertProcessEnded(processInstance.getId());
@@ -3267,11 +3335,14 @@ public class RuntimeServiceTest {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(callingProcessKey);
     ProcessInstance processInstance2 = runtimeService.startProcessInstanceByKey(callingProcessKey);
 
-    List<ProcessInstance> subprocessList = runtimeService.createProcessInstanceQuery().superProcessInstanceId(processInstance.getId()).list();
-    subprocessList.addAll(runtimeService.createProcessInstanceQuery().superProcessInstanceId(processInstance2.getId()).list());
+    List<ProcessInstance> subprocessList = runtimeService.createProcessInstanceQuery()
+        .superProcessInstanceId(processInstance.getId()).list();
+    subprocessList
+        .addAll(runtimeService.createProcessInstanceQuery().superProcessInstanceId(processInstance2.getId()).list());
 
     // when
-    runtimeService.deleteProcessInstances(Arrays.asList(processInstance.getId(), processInstance2.getId()), null, false, false, false, false);
+    runtimeService.deleteProcessInstances(Arrays.asList(processInstance.getId(), processInstance2.getId()), null, false,
+        false, false, false);
 
     // then
     testRule.assertProcessEnded(processInstance.getId());
@@ -3283,7 +3354,7 @@ public class RuntimeServiceTest {
   }
 
   @Test
-  @Deployment(resources={"org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   public void testGetVariablesByEmptyList() {
     // given
     String processInstanceId = runtimeService.startProcessInstanceByKey("oneTaskProcess").getId();
@@ -3297,7 +3368,7 @@ public class RuntimeServiceTest {
   }
 
   @Test
-  @Deployment(resources={"org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   public void testGetVariablesTypedByEmptyList() {
     // given
     String processInstanceId = runtimeService.startProcessInstanceByKey("oneTaskProcess").getId();
@@ -3311,7 +3382,7 @@ public class RuntimeServiceTest {
   }
 
   @Test
-  @Deployment(resources={"org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   public void testGetVariablesLocalByEmptyList() {
     // given
     String processInstanceId = runtimeService.startProcessInstanceByKey("oneTaskProcess").getId();
@@ -3325,42 +3396,42 @@ public class RuntimeServiceTest {
   }
 
   @Test
-  @Deployment(resources={"org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   public void testGetVariablesLocalTypedByEmptyList() {
     // given
     String processInstanceId = runtimeService.startProcessInstanceByKey("oneTaskProcess").getId();
 
     // when
-    Map<String, Object> variables = runtimeService.getVariablesLocalTyped(processInstanceId, new ArrayList<String>(), false);
+    Map<String, Object> variables = runtimeService.getVariablesLocalTyped(processInstanceId, new ArrayList<String>(),
+        false);
 
     // then
     assertNotNull(variables);
     assertTrue(variables.isEmpty());
   }
 
-  private BpmnModelInstance prepareComplexProcess(String calledProcessA,String calledProcessB,String calledProcessC) {
-    BpmnModelInstance calling =
-        Bpmn.createExecutableProcess("calling")
-          .startEvent()
-          .parallelGateway("fork1")
-            .subProcess()
-            .embeddedSubProcess()
-              .startEvent()
-              .parallelGateway("fork2")
-                .callActivity("callingA")
-                  .calledElement(calledProcessA)
-              .endEvent("endA")
+  private BpmnModelInstance prepareComplexProcess(String calledProcessA, String calledProcessB, String calledProcessC) {
+    BpmnModelInstance calling = Bpmn.createExecutableProcess("calling")
+        .startEvent()
+        .parallelGateway("fork1")
+        .subProcess()
+        .embeddedSubProcess()
+        .startEvent()
+        .parallelGateway("fork2")
+        .callActivity("callingA")
+        .calledElement(calledProcessA)
+        .endEvent("endA")
 
-              .moveToNode("fork2")
-              .callActivity("callingB")
-                .calledElement(calledProcessB)
-              .endEvent()
-            .subProcessDone()
+        .moveToNode("fork2")
+        .callActivity("callingB")
+        .calledElement(calledProcessB)
+        .endEvent()
+        .subProcessDone()
 
-          .moveToNode("fork1")
-            .callActivity("callingC")
-              .calledElement(calledProcessC)
-            .endEvent()
+        .moveToNode("fork1")
+        .callActivity("callingC")
+        .calledElement(calledProcessC)
+        .endEvent()
 
         .done();
     return calling;
@@ -3376,13 +3447,12 @@ public class RuntimeServiceTest {
   }
 
   private BpmnModelInstance prepareCallingProcess(String callingProcess, String calledProcess) {
-    BpmnModelInstance calling =
-        Bpmn.createExecutableProcess(callingProcess)
-          .startEvent()
-          .callActivity()
-            .calledElement(calledProcess)
-          .endEvent()
-          .done();
+    BpmnModelInstance calling = Bpmn.createExecutableProcess(callingProcess)
+        .startEvent()
+        .callActivity()
+        .calledElement(calledProcess)
+        .endEvent()
+        .done();
     return calling;
   }
 
