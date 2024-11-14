@@ -213,7 +213,7 @@ pipeline {
                                 -Dbuild.number=${BUILD_NUMBER} \
                                 ${testMode} \
                                 -Dmaven.test.failure.ignore=true \
-                                -pl org.camunda.bpm:camunda-engine-spring-6,:camunda-spin-core,:camunda-engine-rest-core-jakarta,:camunda-webapp-jakarta,:camunda-engine-cdi-jakarta,:camunda-example-invoice-jakarta,:camunda-ejb-client-jakarta,:camunda-qa-integration-tests-engine-jakarta,:camunda-sql-scripts \ 
+                                -pl org.camunda.bpm:camunda-engine-spring-6,:camunda-spin-core,:camunda-engine-rest-core-jakarta,:camunda-webapp-jakarta,:camunda-engine-cdi-jakarta,:camunda-example-invoice-jakarta,:camunda-ejb-client-jakarta,:camunda-qa-integration-tests-engine-jakarta,:camunda-sql-scripts \
                                 -fn
                         """
                     }
