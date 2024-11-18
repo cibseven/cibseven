@@ -196,7 +196,7 @@ pipeline {
 
                     withMaven(options: [junitPublisher(disabled: false), jacocoPublisher(disabled: false)]) {
                         sh """
-                            mvn -f spin/pom.xml -Duser.timezone=CET \
+                            mvn -f spin/pom.xml \
                                 -U \
                                 -Dbuild.number=${BUILD_NUMBER} \
                                 ${testMode} \
