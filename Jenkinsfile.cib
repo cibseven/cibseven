@@ -45,7 +45,7 @@ pipeline {
             defaultValue: true,
             description: 'Build feature branch'
         )
-        choice(
+        booleanParam(
             name: 'VERIFY',
             defaultValue: true,
             description: 'Execute Unit and Integration Tests'
