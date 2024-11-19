@@ -169,7 +169,6 @@ pipeline {
                         sh "mvn -U -Dbuild.number=${BUILD_NUMBER} -f qa/integration-tests-webapps/integration-tests/pom.xml install -DskipTests"
                         sh "mvn -U -Dbuild.number=${BUILD_NUMBER} -f qa/integration-tests-webapps/pom.xml install -DskipTests"
                         sh "mvn -U -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} install -DskipTests"
-                        sh "mvn -U -Dbuild.number=${BUILD_NUMBER} -f spin/pom.xml install -DskipTests"
                     }
                 }
             }
@@ -210,14 +209,12 @@ pipeline {
 
                         sh """
                             mvn -f ${pipelineParams.pom} \
-                            mvn -f spin/pom.xml \
                                 -U \
                                 -Dbuild.number=${BUILD_NUMBER} \
                                 ${testMode} \
                                 -Dmaven.test.failure.ignore=true \
                                 -pl org.camunda.bpm:camunda-engine-spring-6,:camunda-spin-core,:camunda-engine-rest-core-jakarta,:camunda-webapp-jakarta,:camunda-engine-cdi-jakarta,:camunda-example-invoice-jakarta,:camunda-ejb-client-jakarta,:camunda-qa-integration-tests-engine-jakarta,:camunda-sql-scripts \
                                 -fn
-                                -Dmaven.test.failure.ignore=true
                         """
                     }
 
