@@ -43,28 +43,12 @@ pipeline {
         booleanParam(
             name: 'BUILD_FEATURE_BRANCH',
             defaultValue: true,
-            description: 'Build feature branch; Only for non master branch'
+            description: 'Build feature branch'
         )
         choice(
-            name: 'UNIT_TESTS',
-            choices: ['Auto', 'Run', 'Disable'],
-            description: """Execute Unit Tests
-                When
-                - Auto|Run: run unit tests
-                - Disable: disable unit test run
-            """
-        )
-        choice(
-            name: 'INTEGRATION_TESTS',
-            choices: ['Auto', 'Run', 'Disable'],
-            description: """Execute Integration Unit Tests
-                When
-                - Auto: 
-                    - feature branch, pull request: disabled
-                    - master branch: run integration unit tests
-                - Run: run integration unit tests
-                - Disable: disable integration unit test run
-            """
+            name: 'VERIFY',
+            defaultValue: true,
+            description: 'Execute Unit and Integration Tests'
         )
         booleanParam(
             name: 'RELEASE',
@@ -149,16 +133,8 @@ pipeline {
         stage('Build') {
             when {
                 anyOf {
-                    allOf {
-                        expression { params.BUILD_FEATURE_BRANCH == true }
-                    }
-                    allOf {
-                        expression { params.BUILD_FEATURE_BRANCH == false }
-                        anyOf {
-                            expression { params.UNIT_TESTS == 'Run' }
-                            expression { params.INTEGRATION_TESTS == 'Run' }
-                        }
-                    }
+                    expression { params.BUILD_FEATURE_BRANCH == true }
+                    expression { params.VERIFY == true }
                 }
             }
             steps {
@@ -176,33 +152,16 @@ pipeline {
 
         stage('Unit and Integration Tests') {
             when {
-                anyOf {
-                    expression { params.UNIT_TESTS == 'Auto' }
-                    expression { params.UNIT_TESTS == 'Run' }
-                    allOf {
-                        expression { params.INTEGRATION_TESTS == 'Auto' }
-                        anyOf {
-                            branch 'master'
-                            branch 'main'
-                            branch 'cibseven-1.0'
-                        }
-                    }
-                    expression { params.INTEGRATION_TESTS == 'Run' }
-                }
+                expression { params.VERIFY == true }
             }
             steps {
                 script {
-                    def testMode = "test"
-                    if (params.INTEGRATION_TESTS == 'Run' || (params.INTEGRATION_TESTS == 'Auto' && env.BRANCH_NAME == 'master')) {
-                        testMode = "verify"
-                    }
-
                     withMaven(options: [junitPublisher(disabled: false), jacocoPublisher(disabled: false)]) {
                         sh """
                             mvn -f ${pipelineParams.pom} \
                                 -U \
                                 -Dbuild.number=${BUILD_NUMBER} \
-                                ${testMode} \
+                                verify \
                                 -Dmaven.test.failure.ignore=true \
                                 -pl !org.camunda.bpm:camunda-engine-spring-6,!:camunda-spin-core,!:camunda-engine-rest-core-jakarta,!:camunda-webapp-jakarta,!:camunda-engine-cdi-jakarta,!:camunda-example-invoice-jakarta,!:camunda-ejb-client-jakarta,!:camunda-qa-integration-tests-engine-jakarta,!:camunda-sql-scripts
                         """
@@ -211,7 +170,7 @@ pipeline {
                             mvn -f ${pipelineParams.pom} \
                                 -U \
                                 -Dbuild.number=${BUILD_NUMBER} \
-                                ${testMode} \
+                                verify \
                                 -Dmaven.test.failure.ignore=true \
                                 -pl org.camunda.bpm:camunda-engine-spring-6,:camunda-spin-core,:camunda-engine-rest-core-jakarta,:camunda-webapp-jakarta,:camunda-engine-cdi-jakarta,:camunda-example-invoice-jakarta,:camunda-ejb-client-jakarta,:camunda-qa-integration-tests-engine-jakarta,:camunda-sql-scripts \
                                 -fn
