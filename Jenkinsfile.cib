@@ -187,7 +187,7 @@ pipeline {
             when {
                 expression { params.VERIFY == true }
             }
-            parallel {
+            stages {
                 stage('engine-api-compatibility') {
                     withMaven sh "mvn -f engine/pom.xml clean verify -Pcheck-api-compatibility"
                 }
