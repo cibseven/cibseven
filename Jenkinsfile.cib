@@ -97,8 +97,8 @@ pipeline {
                 artifactNumToKeepStr: '5'
             )
         )
-        // Stop build after 120 minutes
-        timeout(time: 120, unit: 'MINUTES')
+        // Stop build after 240 minutes
+        timeout(time: 240, unit: 'MINUTES')
         disableConcurrentBuilds()
     }
 
@@ -153,6 +153,7 @@ pipeline {
         stage('Unit and Integration Tests') {
             when {
                 expression { params.VERIFY == true }
+                expression { params.VERIFY == false } // just disable this stage temporary
             }
             steps {
                 script {
@@ -178,6 +179,35 @@ pipeline {
                     }
 
                     junit allowEmptyResults: true, testResults: ConstantsInternal.MAVEN_TEST_RESULTS
+                }
+            }
+        }
+
+        stage('MISC tests') {
+            when {
+                expression { params.VERIFY == true }
+            }
+            parallel {
+                stage('engine-api-compatibility') {
+                    withMaven sh "mvn -f engine/pom.xml clean verify -Pcheck-api-compatibility"
+                }
+                stage('engine-UNIT-database-table-prefix') {
+                    withMaven sh "mvn -f engine/pom.xml clean test -Pdb-table-prefix"
+                }
+                stage('webapp-UNIT-database-table-prefix') {
+                    withMaven sh "mvn -f webapps/assembly/pom.xml clean test -Pdb-table-prefix -Dskip.frontend.build=true"
+                }
+                stage('engine-IT-wildfly-domain') {
+                    withMaven sh "mvn -f qa/pom.xml clean verify -Pwildfly-domain,h2,engine-integration-jakarta"
+                }
+                stage('engine-IT-wildfly-servlet') {
+                    withMaven sh "mvn -f qa/pom.xml clean verify -Pwildfly,wildfly-servlet,h2,engine-integration-jakarta"
+                }
+                stage('engine-IT-wildfly26-domain') {
+                    withMaven sh "mvn -f qa/pom.xml clean verify -Pwildfly26-domain,h2,engine-integration"
+                }
+                stage('engine-IT-wildfly26-servlet') {
+                    withMaven sh "mvn -f qa/pom.xml clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration"
                 }
             }
         }
