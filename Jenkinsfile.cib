@@ -188,28 +188,32 @@ pipeline {
                 expression { params.VERIFY == true }
             }
             parallel {
-                stage('engine-api-compatibility') {
-                    steps { script { withMaven { sh "mvn -f engine/pom.xml clean verify -Pcheck-api-compatibility" }}}
-                }
-                stage('engine-UNIT-database-table-prefix') {
-                    steps { script { withMaven { sh "mvn -T4 -f engine/pom.xml clean test -Pdb-table-prefix" }}}
+                stage('engine') {
+                    stages {
+                        stage('engine-api-compatibility') {
+                            steps { script { withMaven { sh "mvn -f engine/pom.xml verify -Pcheck-api-compatibility" }}}
+                        }
+                        stage('engine-UNIT-database-table-prefix') {
+                            steps { script { withMaven { sh "mvn -f engine/pom.xml test -Pdb-table-prefix" }}}
+                        }
+                    }
                 }
                 stage('webapp-UNIT-database-table-prefix') {
-                    steps { script { withMaven { sh "mvn -T4 -f webapps/assembly/pom.xml clean test -Pdb-table-prefix -Dskip.frontend.build=true" }}}
+                    steps { script { withMaven { sh "mvn -f webapps/assembly/pom.xml test -Pdb-table-prefix -Dskip.frontend.build=true" }}}
                 }
                 stage('engine-IT-wildfly') {
                     stages {
                         stage('engine-IT-wildfly-domain') {
-                            steps { script { withMaven { sh "mvn -T4 -f qa/pom.xml clean verify -Pwildfly-domain,h2,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly-domain,h2,engine-integration-jakarta" }}}
                         }
                         stage('engine-IT-wildfly-servlet') {
-                            steps { script { withMaven { sh "mvn -T4 -f qa/pom.xml clean verify -Pwildfly,wildfly-servlet,h2,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly,wildfly-servlet,h2,engine-integration-jakarta" }}}
                         }
                         stage('engine-IT-wildfly26-domain') {
-                            steps { script { withMaven { sh "mvn -T4 -f qa/pom.xml clean verify -Pwildfly26-domain,h2,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly26-domain,h2,engine-integration" }}}
                         }
                         stage('engine-IT-wildfly26-servlet') {
-                            steps { script { withMaven { sh "mvn -T4 -f qa/pom.xml clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
                         }
                     }
                 }
