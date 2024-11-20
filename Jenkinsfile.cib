@@ -197,17 +197,21 @@ pipeline {
                 stage('webapp-UNIT-database-table-prefix') {
                     steps { script { withMaven { sh "mvn -f webapps/assembly/pom.xml clean test -Pdb-table-prefix -Dskip.frontend.build=true" }}}
                 }
-                stage('engine-IT-wildfly-domain') {
-                    steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly-domain,h2,engine-integration-jakarta" }}}
-                }
-                stage('engine-IT-wildfly-servlet') {
-                    steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly,wildfly-servlet,h2,engine-integration-jakarta" }}}
-                }
-                stage('engine-IT-wildfly26-domain') {
-                    steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly26-domain,h2,engine-integration" }}}
-                }
-                stage('engine-IT-wildfly26-servlet') {
-                    steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
+                stage('engine-IT-wildfly') {
+                    steps {
+                        stage('engine-IT-wildfly-domain') {
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly-domain,h2,engine-integration-jakarta" }}}
+                        }
+                        stage('engine-IT-wildfly-servlet') {
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly,wildfly-servlet,h2,engine-integration-jakarta" }}}
+                        }
+                        stage('engine-IT-wildfly26-domain') {
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly26-domain,h2,engine-integration" }}}
+                        }
+                        stage('engine-IT-wildfly26-servlet') {
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
+                        }
+                    }
                 }
             }
         }
