@@ -141,10 +141,10 @@ pipeline {
                 script {
                     withMaven(options: [artifactsPublisher(fingerprintFilesDisabled: true, archiveFilesDisabled: true)]) {
                         sh "mvn -V -f ${pipelineParams.pom} clean"
-                        sh("mvn -U -Dbuild.number=${BUILD_NUMBER} -pl org.camunda.bpm:camunda-bom,org.camunda.bpm:camunda-only-bom,org.camunda.bpm:camunda-bom-root install -DskipTests") || true
-                        sh "mvn -U -Dbuild.number=${BUILD_NUMBER} -f qa/integration-tests-webapps/integration-tests/pom.xml install -DskipTests"
-                        sh "mvn -U -Dbuild.number=${BUILD_NUMBER} -f qa/integration-tests-webapps/pom.xml install -DskipTests"
-                        sh "mvn -U -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} install -DskipTests"
+                        sh("mvn -T4 -U -Dbuild.number=${BUILD_NUMBER} -pl org.camunda.bpm:camunda-bom,org.camunda.bpm:camunda-only-bom,org.camunda.bpm:camunda-bom-root install -DskipTests") || true
+                        sh "mvn -T4 -U -Dbuild.number=${BUILD_NUMBER} -f qa/integration-tests-webapps/integration-tests/pom.xml install -DskipTests"
+                        sh "mvn -T4 -U -Dbuild.number=${BUILD_NUMBER} -f qa/integration-tests-webapps/pom.xml install -DskipTests"
+                        sh "mvn -T4 -U -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} install -DskipTests"
                     }
                 }
             }
@@ -160,7 +160,7 @@ pipeline {
                     withMaven(options: [junitPublisher(disabled: false), jacocoPublisher(disabled: false)]) {
                         sh """
                             mvn -f ${pipelineParams.pom} \
-                                -U \
+                                -U -T4 \
                                 -Dbuild.number=${BUILD_NUMBER} \
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
@@ -169,7 +169,7 @@ pipeline {
 
                         sh """
                             mvn -f ${pipelineParams.pom} \
-                                -U \
+                                -U -T4 \
                                 -Dbuild.number=${BUILD_NUMBER} \
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
@@ -192,24 +192,24 @@ pipeline {
                     steps { script { withMaven { sh "mvn -f engine/pom.xml clean verify -Pcheck-api-compatibility" }}}
                 }
                 stage('engine-UNIT-database-table-prefix') {
-                    steps { script { withMaven { sh "mvn -f engine/pom.xml clean test -Pdb-table-prefix" }}}
+                    steps { script { withMaven { sh "mvn -T4 -f engine/pom.xml clean test -Pdb-table-prefix" }}}
                 }
                 stage('webapp-UNIT-database-table-prefix') {
-                    steps { script { withMaven { sh "mvn -f webapps/assembly/pom.xml clean test -Pdb-table-prefix -Dskip.frontend.build=true" }}}
+                    steps { script { withMaven { sh "mvn -T4 -f webapps/assembly/pom.xml clean test -Pdb-table-prefix -Dskip.frontend.build=true" }}}
                 }
                 stage('engine-IT-wildfly') {
                     stages {
                         stage('engine-IT-wildfly-domain') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly-domain,h2,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -T4 -f qa/pom.xml clean verify -Pwildfly-domain,h2,engine-integration-jakarta" }}}
                         }
                         stage('engine-IT-wildfly-servlet') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly,wildfly-servlet,h2,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -T4 -f qa/pom.xml clean verify -Pwildfly,wildfly-servlet,h2,engine-integration-jakarta" }}}
                         }
                         stage('engine-IT-wildfly26-domain') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly26-domain,h2,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -T4 -f qa/pom.xml clean verify -Pwildfly26-domain,h2,engine-integration" }}}
                         }
                         stage('engine-IT-wildfly26-servlet') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -T4 -f qa/pom.xml clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
                         }
                     }
                 }
@@ -240,7 +240,7 @@ pipeline {
                     withMaven(options: [artifactsPublisher(archiveFilesDisabled: false)]) {
                         sh """
                             mvn -f ${pipelineParams.pom} \
-                                -V -U \
+                                -V -U -T4 \
                                 -DskipTests \
                                 org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
                                 deploy \
@@ -273,7 +273,7 @@ pipeline {
                     withMaven(options: [artifactsPublisher(archiveFilesDisabled: false)]) {
                         sh """
                             mvn -f ${pipelineParams.pom} \
-                                -V -U \
+                                -V -U -T4 \
                                 clean \
                                 -DskipTests \
                                 org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
