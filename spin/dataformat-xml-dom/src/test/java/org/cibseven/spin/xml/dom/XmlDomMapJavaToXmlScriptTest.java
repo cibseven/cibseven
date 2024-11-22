@@ -22,10 +22,11 @@ import static org.cibseven.spin.xml.XmlTestConstants.createExampleOrder;
 
 import org.cibseven.spin.impl.test.Script;
 import org.cibseven.spin.impl.test.ScriptTest;
+import org.cibseven.spin.xml.XmlTestUtil;
 import org.cibseven.spin.xml.mapping.Order;
 import org.junit.Test;
 
-public abstract class XmlDomMapJavaToXmlScriptTest extends ScriptTest{
+public abstract class XmlDomMapJavaToXmlScriptTest extends ScriptTest {
 
   @Test
   @Script(execute = false)
@@ -36,7 +37,12 @@ public abstract class XmlDomMapJavaToXmlScriptTest extends ScriptTest{
     script.execute();
     String xml = script.getVariable("xml");
 
-    assertThat(xml).isXmlEqualTo(EXAMPLE_VALIDATION_XML);
+    // In EXAMPLE_VALIDATION_XML, expected date is hardcoded in CET timezone,
+    // ignoring it so that it passes when ran in
+    // different timezone
+    String exampleValidationXmlWoTimezone = XmlTestUtil.removeTimeZone(EXAMPLE_VALIDATION_XML);
+    xml = XmlTestUtil.removeTimeZone(xml);
+    assertThat(xml).isXmlEqualTo(exampleValidationXmlWoTimezone);
   }
 
   @Test(expected = IllegalArgumentException.class)
