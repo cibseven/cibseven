@@ -11,5 +11,5 @@ camunda:
           process-definition-key: proc-def-key
 logging:
   level:
-    org.camunda.bpm.client: debug
+    org.cibseven.bpm.client: debug
       

@@ -10,7 +10,7 @@
   </appender>
 
   <!-- camunda -->
-  <logger name="org.camunda" level="info" />
+  <logger name="org.cibseven" level="info" />
 
   <!-- common dependencies -->
   <logger name="org.apache.ibatis" level="info" />

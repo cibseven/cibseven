@@ -8,7 +8,7 @@
     </encoder>
   </appender>
 
-  <logger name="org.camunda.feel.FeelEngine" level="debug" />
+  <logger name="org.cibseven.feel.FeelEngine" level="debug" />
 
   <root level="debug">
     <appender-ref ref="STDOUT" />

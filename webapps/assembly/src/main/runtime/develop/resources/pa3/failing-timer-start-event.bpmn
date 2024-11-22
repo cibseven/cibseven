@@ -20,7 +20,7 @@
       </bpmn2:timerEventDefinition>
     </bpmn2:intermediateCatchEvent>
     <bpmn2:sequenceFlow id="SequenceFlow_3" name="" sourceRef="IntermediateCatchEvent_1" targetRef="EndEvent_1"/>
-    <bpmn2:serviceTask id="service.task.1" activiti:class="org.camunda.bpm.pa.service.FailingDelegate" name="Service Task">
+    <bpmn2:serviceTask id="service.task.1" activiti:class="org.cibseven.bpm.pa.service.FailingDelegate" name="Service Task">
       <bpmn2:incoming>SequenceFlow_1</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_2</bpmn2:outgoing>
     </bpmn2:serviceTask>

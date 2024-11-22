@@ -1,13 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
-    <groupId>org.camunda.bpm.quarkus</groupId>
-    <artifactId>camunda-bpm-quarkus-engine-parent</artifactId>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <groupId>org.cibseven.bpm.quarkus</groupId>
+    <artifactId>cibseven-bpm-quarkus-engine-parent</artifactId>
+    <version>1.1.0-SNAPSHOT</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>camunda-bpm-quarkus-engine-qa</artifactId>
+  <artifactId>cibseven-bpm-quarkus-engine-qa</artifactId>
   <name>CIB seven - Quarkus Extension - Engine - CDI QA</name>
 
   <properties>
@@ -25,8 +25,8 @@
         <scope>import</scope>
       </dependency>
       <dependency>
-        <groupId>org.camunda.bpm</groupId>
-        <artifactId>camunda-core-internal-dependencies</artifactId>
+        <groupId>org.cibseven.bpm</groupId>
+        <artifactId>cibseven-core-internal-dependencies</artifactId>
         <version>${project.version}</version>
         <scope>import</scope>
         <type>pom</type>
@@ -52,7 +52,7 @@
           </systemPropertyVariables>
 
           <dependenciesToScan>
-            <dependency>org.camunda.bpm:camunda-engine-cdi-jakarta</dependency>
+            <dependency>org.cibseven.bpm:camunda-engine-cdi-jakarta</dependency>
           </dependenciesToScan>
 
           <excludes>
@@ -73,14 +73,14 @@
     <!-- Camunda dependencies -->
 
     <dependency>
-      <groupId>org.camunda.bpm.quarkus</groupId>
-      <artifactId>camunda-bpm-quarkus-engine</artifactId>
+      <groupId>org.cibseven.bpm.quarkus</groupId>
+      <artifactId>cibseven-bpm-quarkus-engine</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.bpm</groupId>
-      <artifactId>camunda-engine-cdi-jakarta</artifactId>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine-cdi-jakarta</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
       <classifier>tests-quarkus</classifier>

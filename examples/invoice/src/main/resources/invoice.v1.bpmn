@@ -74,14 +74,14 @@
     <endEvent id="invoiceProcessed" name="Invoice&#10;processed">
       <incoming>SequenceFlow_3</incoming>
     </endEvent>
-    <serviceTask id="ServiceTask_1" name="Archive Invoice" camunda:async="true" camunda:class="org.camunda.bpm.example.invoice.service.ArchiveInvoiceService">
+    <serviceTask id="ServiceTask_1" name="Archive Invoice" camunda:async="true" camunda:class="org.cibseven.bpm.example.invoice.service.ArchiveInvoiceService">
       <incoming>SequenceFlow_2</incoming>
       <outgoing>SequenceFlow_3</outgoing>
     </serviceTask>
     <endEvent id="invoiceNotProcessed" name="Invoice not&#10;processed">
       <incoming>reviewNotSuccessful</incoming>
     </endEvent>
-    <serviceTask id="ServiceTask_06mdb3v" name="Notify Creditor" camunda:class="org.camunda.bpm.example.invoice.service.NotifyCreditorService">
+    <serviceTask id="ServiceTask_06mdb3v" name="Notify Creditor" camunda:class="org.cibseven.bpm.example.invoice.service.NotifyCreditorService">
       <incoming>invoiceApproved</incoming>
       <outgoing>SequenceFlow_1pcdtz2</outgoing>
     </serviceTask>

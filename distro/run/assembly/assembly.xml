@@ -15,28 +15,28 @@
     <dependencySet>
       <outputDirectory>internal/</outputDirectory>
       <includes>
-        <include>org.camunda.bpm.run:camunda-bpm-run-core</include>
+        <include>org.cibseven.bpm.run:cibseven-bpm-run-core</include>
       </includes>
       <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
     </dependencySet>
     <dependencySet>
       <outputDirectory>internal/oauth2/</outputDirectory>
       <includes>
-        <include>org.camunda.bpm.run:camunda-bpm-run-modules-oauth2</include>
+        <include>org.cibseven.bpm.run:cibseven-bpm-run-modules-oauth2</include>
       </includes>
       <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
     </dependencySet>
     <dependencySet>
       <outputDirectory>internal/example/</outputDirectory>
       <includes>
-        <include>org.camunda.bpm.run:camunda-bpm-run-modules-example-invoice</include>
+        <include>org.cibseven.bpm.run:cibseven-bpm-run-modules-example-invoice</include>
       </includes>
       <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
     </dependencySet>
     <dependencySet>
       <outputDirectory />
       <includes>
-        <include>org.camunda.bpm:license-book:zip</include>
+        <include>org.cibseven.bpm:license-book:zip</include>
       </includes>
       <unpack>true</unpack>
     </dependencySet>

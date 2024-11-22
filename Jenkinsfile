@@ -65,26 +65,26 @@ pipeline {
 
             // archive all .jar, .pom, .xml, .txt runtime artifacts + required .war/.zip/.tar.gz for EE pipeline
             // add a new line for each group of artifacts
-            cambpmArchiveArtifacts('.m2/org/camunda/**/*-SNAPSHOT/**/*.jar,.m2/org/camunda/**/*-SNAPSHOT/**/*.pom,.m2/org/camunda/**/*-SNAPSHOT/**/*.xml,.m2/org/camunda/**/*-SNAPSHOT/**/*.txt',
-                                  '.m2/org/camunda/**/*-SNAPSHOT/**/camunda-webapp*frontend-sources.zip',
-                                  '.m2/org/camunda/**/*-SNAPSHOT/**/license-book*.zip',
-                                  '.m2/org/camunda/**/*-SNAPSHOT/**/camunda-*-assembly*.tar.gz',
-                                  '.m2/org/camunda/**/*-SNAPSHOT/**/camunda-webapp*.war',
-                                  '.m2/org/camunda/**/*-SNAPSHOT/**/camunda-engine-rest*.war',
-                                  '.m2/org/camunda/**/*-SNAPSHOT/**/camunda-example-invoice*.war')
+            cambpmArchiveArtifacts('.m2/org/cibseven/**/*-SNAPSHOT/**/*.jar,.m2/org/cibseven/**/*-SNAPSHOT/**/*.pom,.m2/org/cibseven/**/*-SNAPSHOT/**/*.xml,.m2/org/cibseven/**/*-SNAPSHOT/**/*.txt',
+                                  '.m2/org/cibseven/**/*-SNAPSHOT/**/camunda-webapp*frontend-sources.zip',
+                                  '.m2/org/cibseven/**/*-SNAPSHOT/**/license-book*.zip',
+                                  '.m2/org/cibseven/**/*-SNAPSHOT/**/camunda-*-assembly*.tar.gz',
+                                  '.m2/org/cibseven/**/*-SNAPSHOT/**/camunda-webapp*.war',
+                                  '.m2/org/cibseven/**/*-SNAPSHOT/**/camunda-engine-rest*.war',
+                                  '.m2/org/cibseven/**/*-SNAPSHOT/**/camunda-example-invoice*.war')
             if (env.CHANGE_ID != null && pullRequest.labels.contains('ci:distro')) {
               cambpmArchiveArtifacts(
-                     '.m2/org/camunda/**/*-SNAPSHOT/**/camunda-bpm-*.zip',
-                     '.m2/org/camunda/**/*-SNAPSHOT/**/camunda-bpm-*.tar.gz')
+                     '.m2/org/cibseven/**/*-SNAPSHOT/**/camunda-bpm-*.zip',
+                     '.m2/org/cibseven/**/*-SNAPSHOT/**/camunda-bpm-*.tar.gz')
             }
 
             cambpmStash("platform-stash-runtime",
-                        ".m2/org/camunda/**/*-SNAPSHOT/**",
+                        ".m2/org/cibseven/**/*-SNAPSHOT/**",
                         "**/qa/**,**/*qa*/**,**/*.zip,**/*.tar.gz")
             cambpmStash("platform-stash-archives",
-                        ".m2/org/camunda/bpm/**/*-SNAPSHOT/**/*.zip,.m2/org/camunda/bpm/**/*-SNAPSHOT/**/*.tar.gz")
+                        ".m2/org/cibseven/bpm/**/*-SNAPSHOT/**/*.zip,.m2/org/cibseven/bpm/**/*-SNAPSHOT/**/*.tar.gz")
             cambpmStash("platform-stash-qa",
-                      ".m2/org/camunda/bpm/**/qa/**/*-SNAPSHOT/**,.m2/org/camunda/bpm/**/*qa*/**/*-SNAPSHOT/**",
+                      ".m2/org/cibseven/bpm/**/qa/**/*-SNAPSHOT/**,.m2/org/cibseven/bpm/**/*qa*/**/*-SNAPSHOT/**",
                       "**/*.zip,**/*.tar.gz")
 
             script {

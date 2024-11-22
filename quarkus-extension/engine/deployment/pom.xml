@@ -4,12 +4,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.camunda.bpm.quarkus</groupId>
-    <artifactId>camunda-bpm-quarkus-engine-parent</artifactId>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <groupId>org.cibseven.bpm.quarkus</groupId>
+    <artifactId>cibseven-bpm-quarkus-engine-parent</artifactId>
+    <version>1.1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>camunda-bpm-quarkus-engine-deployment</artifactId>
+  <artifactId>cibseven-bpm-quarkus-engine-deployment</artifactId>
 
   <name>CIB seven - Quarkus Extension - Engine - Deployment</name>
 
@@ -17,8 +17,8 @@
 
     <!-- Camunda dependencies -->
     <dependency>
-      <groupId>org.camunda.bpm.quarkus</groupId>
-      <artifactId>camunda-bpm-quarkus-engine</artifactId>
+      <groupId>org.cibseven.bpm.quarkus</groupId>
+      <artifactId>cibseven-bpm-quarkus-engine</artifactId>
       <version>${project.version}</version>
     </dependency>
 

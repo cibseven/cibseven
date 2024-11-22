@@ -3,14 +3,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <name>CIB seven - engine - Cdi</name>
-  <artifactId>camunda-engine-cdi</artifactId>
+  <artifactId>cibseven-engine-cdi</artifactId>
   <packaging>jar</packaging>
 
   <parent>
-    <groupId>org.camunda.bpm</groupId>
-    <artifactId>camunda-database-settings</artifactId>
+    <groupId>org.cibseven.bpm</groupId>
+    <artifactId>cibseven-database-settings</artifactId>
     <relativePath>../../database</relativePath>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
   </parent>
 
   <properties>
@@ -24,8 +24,8 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.camunda.bpm</groupId>
-        <artifactId>camunda-core-internal-dependencies</artifactId>
+        <groupId>org.cibseven.bpm</groupId>
+        <artifactId>cibseven-core-internal-dependencies</artifactId>
         <version>${project.version}</version>
         <scope>import</scope>
         <type>pom</type>
@@ -42,8 +42,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.camunda.bpm</groupId>
-      <artifactId>camunda-engine</artifactId>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine</artifactId>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
@@ -118,8 +118,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.camunda.bpm</groupId>
-      <artifactId>camunda-bpm-archunit</artifactId>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-bpm-archunit</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -152,7 +152,7 @@
           <trimStackTrace>false</trimStackTrace>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <dependenciesToScan>
-            <dependency>org.camunda.bpm:camunda-bpm-archunit</dependency>
+            <dependency>org.cibseven.bpm:cibseven-bpm-archunit</dependency>
           </dependenciesToScan>
         </configuration>
       </plugin>

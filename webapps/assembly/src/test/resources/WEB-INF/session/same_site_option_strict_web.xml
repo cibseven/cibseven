@@ -8,7 +8,7 @@
 
   <filter>
     <filter-name>SessionCookieFilter</filter-name>
-    <filter-class>org.camunda.bpm.webapp.impl.security.filter.SessionCookieFilter</filter-class>
+    <filter-class>org.cibseven.bpm.webapp.impl.security.filter.SessionCookieFilter</filter-class>
     <init-param>
       <param-name>sameSiteCookieOption</param-name>
       <param-value>strict</param-value>

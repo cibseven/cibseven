@@ -15,4 +15,4 @@ limitations under the License.
 # This is the default environment for using camunda Spin in Python applications.
 
 # Import the Spin S(...) function.
-import org.camunda.spin.Spin.S as S
+import org.cibseven.spin.Spin.S as S

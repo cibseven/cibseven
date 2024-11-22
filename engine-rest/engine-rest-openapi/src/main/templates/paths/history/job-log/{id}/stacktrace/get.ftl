@@ -34,9 +34,9 @@
 
                                        The result is the corresponding stacktrace as plain text.",
                        "value": "java.lang.RuntimeException: A exception message!
-                                  at org.camunda.bpm.pa.service.FailingDelegate.execute(FailingDelegate.java:10)
-                                  at org.camunda.bpm.engine.impl.delegate.JavaDelegateInvocation.invoke(JavaDelegateInvocation.java:34)
-                                  at org.camunda.bpm.engine.impl.delegate.DelegateInvocation.proceed(DelegateInvocation.java:37)
+                                  at org.cibseven.bpm.pa.service.FailingDelegate.execute(FailingDelegate.java:10)
+                                  at org.cibseven.bpm.engine.impl.delegate.JavaDelegateInvocation.invoke(JavaDelegateInvocation.java:34)
+                                  at org.cibseven.bpm.engine.impl.delegate.DelegateInvocation.proceed(DelegateInvocation.java:37)
                                   ..."
                      }']
     />

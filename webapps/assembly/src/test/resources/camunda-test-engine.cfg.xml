@@ -4,7 +4,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans   http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-  <bean id="processEngineConfiguration" class="org.camunda.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration">
+  <bean id="processEngineConfiguration" class="org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration">
   
     <property name="processEngineName" value="webapps-test-engine" />
     <property name="jdbcUrl" value="jdbc:h2:mem:UserAuthenticationResourceTest;DB_CLOSE_DELAY=1000" />
@@ -30,6 +30,6 @@
     <property name="enforceHistoryTimeToLive" value="false" />
   </bean>
   
-  <!--<bean id="uuidGenerator" class="org.camunda.bpm.engine.impl.persistence.StrongUuidGenerator" />-->
+  <!--<bean id="uuidGenerator" class="org.cibseven.bpm.engine.impl.persistence.StrongUuidGenerator" />-->
 
 </beans>

@@ -3,13 +3,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.camunda.bpm.run</groupId>
-    <artifactId>camunda-bpm-run-root</artifactId>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <groupId>org.cibseven.bpm.run</groupId>
+    <artifactId>cibseven-bpm-run-root</artifactId>
+    <version>1.1.0-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
 
-  <artifactId>camunda-bpm-run-modules</artifactId>
+  <artifactId>cibseven-bpm-run-modules</artifactId>
   <name>CIB seven - Run - Modules</name>
   <packaging>pom</packaging>
 
@@ -18,8 +18,8 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.camunda.bpm.springboot</groupId>
-        <artifactId>camunda-bpm-spring-boot-starter</artifactId>
+        <groupId>org.cibseven.bpm.springboot</groupId>
+        <artifactId>cibseven-bpm-spring-boot-starter</artifactId>
         <scope>provided</scope>
       </dependency>
       <dependency>
@@ -83,8 +83,8 @@
         <scope>provided</scope>
       </dependency>
       <dependency>
-        <groupId>org.camunda.bpm</groupId>
-        <artifactId>camunda-engine-rest-core</artifactId>
+        <groupId>org.cibseven.bpm</groupId>
+        <artifactId>cibseven-engine-rest-core</artifactId>
         <scope>provided</scope>
       </dependency>
     </dependencies>

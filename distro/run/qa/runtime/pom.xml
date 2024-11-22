@@ -3,28 +3,27 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.camunda.bpm.run</groupId>
-    <artifactId>camunda-bpm-run-qa</artifactId>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <groupId>org.cibseven.bpm.run</groupId>
+    <artifactId>cibseven-bpm-run-qa</artifactId>
+    <version>1.1.0-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
 
-  <artifactId>camunda-bpm-run-qa-runtime</artifactId>
+  <artifactId>cibseven-bpm-run-qa-runtime</artifactId>
   <name>CIB seven - Run - QA - Runtime</name>
   <packaging>jar</packaging>
   
   <properties>
-    <run-home>${project.build.directory}/run/camunda-bpm-run-distro</run-home>
+    <run-home>${project.build.directory}/run/cibseven-bpm-run-distro</run-home>
     <example-plugin-home>${project.build.directory}/run/example-plugin</example-plugin-home>
-    <cibseven.version>7.22.1-cibseven-SNAPSHOT</cibseven.version>
   </properties>
 
   <dependencies>
 
     <dependency>
-      <groupId>de.cibseven.run</groupId>
-      <artifactId>cibseven-run</artifactId>
-      <version>${cibseven.version}</version>
+      <groupId>org.cibseven.bpm.run</groupId>
+      <artifactId>cibseven-bpm-run</artifactId>
+      <version>${project.version}</version>
       <type>zip</type>
       <scope>test</scope>
       <exclusions>
@@ -38,8 +37,8 @@
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.bpm.run</groupId>
-      <artifactId>camunda-bpm-run-qa-integration-tests</artifactId>
+      <groupId>org.cibseven.bpm.run</groupId>
+      <artifactId>cibseven-bpm-run-qa-integration-tests</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
       <classifier>tests</classifier>
@@ -92,14 +91,14 @@
 
     <!-- Webapps -->
     <dependency>
-      <groupId>org.camunda.bpm.qa</groupId>
-      <artifactId>camunda-qa-integration-tests-webapps</artifactId>
+      <groupId>org.cibseven.bpm.qa</groupId>
+      <artifactId>cibseven-qa-integration-tests-webapps</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.bpm.model</groupId>
-      <artifactId>camunda-bpmn-model</artifactId>
+      <groupId>org.cibseven.bpm.model</groupId>
+      <artifactId>cibseven-bpmn-model</artifactId>
       <scope>test</scope>
     </dependency>
 
@@ -148,7 +147,7 @@
             <configuration>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <dependenciesToScan>
-                <dependenciesToScan>org.camunda.bpm.run:camunda-bpm-run-qa-integration-tests</dependenciesToScan>
+                <dependenciesToScan>org.cibseven.bpm.run:cibseven-bpm-run-qa-integration-tests</dependenciesToScan>
               </dependenciesToScan>
               <systemPropertyVariables>
                 <camunda.run.home>${run-home}</camunda.run.home>
@@ -176,7 +175,7 @@
                 </goals>
                 <phase>generate-test-resources</phase>
                 <configuration>
-                  <includeArtifactIds>camunda-bpm-run</includeArtifactIds>
+                  <includeArtifactIds>cibseven-bpm-run</includeArtifactIds>
                   <overWriteSnapshots>true</overWriteSnapshots>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory>${run-home}</outputDirectory>
@@ -196,7 +195,7 @@
                 </goals>
                 <phase>generate-test-resources</phase>
                 <configuration>
-                  <artifact>org.camunda.bpm.run:camunda-bpm-run-example-plugin:${project.version}</artifact>
+                  <artifact>org.cibseven.bpm.run:cibseven-bpm-run-example-plugin:${project.version}</artifact>
                   <overWriteSnapshots>true</overWriteSnapshots>
                   <stripVersion>true</stripVersion>
                   <outputDirectory>${example-plugin-home}</outputDirectory>

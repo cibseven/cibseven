@@ -1,0 +1,12 @@
+<module xmlns="urn:jboss:module:1.0" name="org.cibseven.bpm.model.cibseven-bpmn-model">
+  <resources>
+    <resource-root path="cibseven-bpmn-model-@project.version@.jar" />
+  </resources>
+
+  <dependencies>
+
+    <module name="javax.api" />
+    <module name="org.cibseven.bpm.model.cibseven-xml-model" />
+
+  </dependencies>
+</module>

@@ -6,7 +6,7 @@
 
   <process-engine name="groovy">
     <job-acquisition>default</job-acquisition>
-    <configuration>org.camunda.bpm.engine.impl.cfg.StandaloneProcessEngineConfiguration</configuration>
+    <configuration>org.cibseven.bpm.engine.impl.cfg.StandaloneProcessEngineConfiguration</configuration>
 
     <properties>
       <property name="history">full</property>
@@ -17,7 +17,7 @@
 
     <plugins>
       <plugin>
-        <class>org.camunda.bpm.integrationtest.deployment.war.beans.GroovyProcessEnginePlugin</class>
+        <class>org.cibseven.bpm.integrationtest.deployment.war.beans.GroovyProcessEnginePlugin</class>
       </plugin>
     </plugins>
   </process-engine>

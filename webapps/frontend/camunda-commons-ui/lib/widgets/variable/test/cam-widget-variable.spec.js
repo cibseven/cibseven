@@ -415,7 +415,7 @@ describe('Variable', function() {
           // then
           expect(page.modal().node.isPresent()).to.eventually.eql(false);
 
-          expect(variable.valueModalLink().getText()).to.eventually.eql('org.camunda.bpm.pa.service.CockpitVariable');
+          expect(variable.valueModalLink().getText()).to.eventually.eql('org.cibseven.bpm.pa.service.CockpitVariable');
         });
 
 
@@ -532,7 +532,7 @@ describe('Variable', function() {
 
       it('prints the object Java class', function() {
         expect(variable.valueModalLink().getText())
-          .to.eventually.eql('org.camunda.bpm.pa.service.CockpitVariable');
+          .to.eventually.eql('org.cibseven.bpm.pa.service.CockpitVariable');
       });
 
 

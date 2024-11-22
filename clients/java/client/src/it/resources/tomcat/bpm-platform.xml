@@ -9,7 +9,7 @@
 
   <process-engine name="default">
     <job-acquisition>default</job-acquisition>
-    <configuration>org.camunda.bpm.engine.impl.cfg.StandaloneProcessEngineConfiguration</configuration>
+    <configuration>org.cibseven.bpm.engine.impl.cfg.StandaloneProcessEngineConfiguration</configuration>
 
     <properties>
       <property name="history">activity</property> <!-- do not remove, needed for PA variable test -->
@@ -28,17 +28,17 @@
     <plugins>
       <!-- plugin enabling Process Application event listener support -->
       <plugin>
-        <class>org.camunda.bpm.application.impl.event.ProcessApplicationEventListenerPlugin</class>
+        <class>org.cibseven.bpm.application.impl.event.ProcessApplicationEventListenerPlugin</class>
       </plugin>
 
       <!-- plugin enabling integration of camunda Spin -->
       <plugin>
-        <class>org.camunda.spin.plugin.impl.SpinProcessEnginePlugin</class>
+        <class>org.cibseven.spin.plugin.impl.SpinProcessEnginePlugin</class>
       </plugin>
 
       <!-- plugin enabling connect support -->
       <plugin>
-        <class>org.camunda.connect.plugin.impl.ConnectProcessEnginePlugin</class>
+        <class>org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin</class>
       </plugin>
 
     </plugins>
@@ -46,7 +46,7 @@
 
   <process-engine name="another-engine">
     <job-acquisition>default</job-acquisition>
-    <configuration>org.camunda.bpm.engine.impl.cfg.StandaloneProcessEngineConfiguration</configuration>
+    <configuration>org.cibseven.bpm.engine.impl.cfg.StandaloneProcessEngineConfiguration</configuration>
 
     <properties>
       <property name="history">activity</property> <!-- do not remove, needed for PA variable test -->
@@ -66,17 +66,17 @@
     <plugins>
       <!-- plugin enabling Process Application event listener support -->
       <plugin>
-        <class>org.camunda.bpm.application.impl.event.ProcessApplicationEventListenerPlugin</class>
+        <class>org.cibseven.bpm.application.impl.event.ProcessApplicationEventListenerPlugin</class>
       </plugin>
 
       <!-- plugin enabling integration of camunda Spin -->
       <plugin>
-        <class>org.camunda.spin.plugin.impl.SpinProcessEnginePlugin</class>
+        <class>org.cibseven.spin.plugin.impl.SpinProcessEnginePlugin</class>
       </plugin>
 
       <!-- plugin enabling connect support -->
       <plugin>
-        <class>org.camunda.connect.plugin.impl.ConnectProcessEnginePlugin</class>
+        <class>org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin</class>
       </plugin>
 
     </plugins>

@@ -8,7 +8,7 @@
         <bpmn2:timeDate xsi:type="bpmn2:tFormalExpression">PT5M</bpmn2:timeDate>
       </bpmn2:timerEventDefinition>
     </bpmn2:startEvent>
-    <bpmn2:serviceTask id="service.task.1" activiti:class="org.camunda.bpm.pa.service.FailingDelegate" activiti:async="true" name="Service Task">
+    <bpmn2:serviceTask id="service.task.1" activiti:class="org.cibseven.bpm.pa.service.FailingDelegate" activiti:async="true" name="Service Task">
       <bpmn2:incoming>SequenceFlow_1</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_2</bpmn2:outgoing>
     </bpmn2:serviceTask>

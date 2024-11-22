@@ -18,7 +18,7 @@ package my.own.custom.spring.boot.project;
 
 import jakarta.ws.rs.ApplicationPath;
 
-import org.camunda.bpm.spring.boot.starter.rest.CamundaJerseyResourceConfig;
+import org.cibseven.bpm.spring.boot.starter.rest.CamundaJerseyResourceConfig;
 import org.springframework.stereotype.Component;
 
 @Component

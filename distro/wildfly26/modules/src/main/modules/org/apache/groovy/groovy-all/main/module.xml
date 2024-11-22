@@ -18,6 +18,6 @@
     <module name="java.sql" />
     <module name="jdk.unsupported" />
     <module name="sun.jdk" />
-    <module name="org.camunda.spin.camunda-spin-core" />
+    <module name="org.cibseven.spin.cibseven-spin-core" />
   </dependencies>
 </module>

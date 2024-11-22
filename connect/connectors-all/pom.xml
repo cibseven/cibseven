@@ -2,12 +2,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.camunda.connect</groupId>
-    <artifactId>camunda-connect-root</artifactId>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <groupId>org.cibseven.connect</groupId>
+    <artifactId>cibseven-connect-root</artifactId>
+    <version>1.1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>camunda-connect-connectors-all</artifactId>
+  <artifactId>cibseven-connect-connectors-all</artifactId>
   <name>CIB seven - connect - all connectors in one</name>
 
   <properties>
@@ -19,13 +19,13 @@
   <dependencies>
 
     <dependency>
-      <groupId>org.camunda.connect</groupId>
-      <artifactId>camunda-connect-http-client</artifactId>
+      <groupId>org.cibseven.connect</groupId>
+      <artifactId>cibseven-connect-http-client</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.connect</groupId>
-      <artifactId>camunda-connect-soap-http-client</artifactId>
+      <groupId>org.cibseven.connect</groupId>
+      <artifactId>cibseven-connect-soap-http-client</artifactId>
     </dependency>
 
   </dependencies>
@@ -47,8 +47,8 @@
               <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
               <artifactSet>
                 <excludes>
-                  <exclude>org.camunda.commons:*</exclude>
-                  <exclude>org.camunda.connect:camunda-connect-core</exclude>
+                  <exclude>org.cibseven.commons:*</exclude>
+                  <exclude>org.cibseven.connect:camunda-connect-core</exclude>
                   <exclude>org.slf4j:*</exclude>
                 </excludes>
               </artifactSet>
@@ -73,7 +73,7 @@
           <includeDependencySources>true</includeDependencySources>
           <includeTransitiveDependencySources>true</includeTransitiveDependencySources>
           <dependencySourceIncludes>
-            <include>org.camunda.connect:*</include>
+            <include>org.cibseven.connect:*</include>
           </dependencySourceIncludes>
           <notimestamp>true</notimestamp>
         </configuration>
@@ -87,7 +87,7 @@
             <Import-Package>
               !connectjar*,
               javax.*;resolution:=optional,
-              org.camunda.commons.logging
+              org.cibseven.commons.logging
             </Import-Package>
             <Bundle-ClassPath>.</Bundle-ClassPath>
             <Embed-Dependency>*;inline=true</Embed-Dependency>

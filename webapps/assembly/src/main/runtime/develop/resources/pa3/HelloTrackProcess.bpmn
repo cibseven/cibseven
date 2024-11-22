@@ -4,7 +4,7 @@
   <process id="helloTrackProcess" name="HelloTrackProcess" isExecutable="true" cam:historyTimeToLive="P180D">
     <startEvent id="start_event_hello" camunda:formKey="embedded:app:/develop/forms/hello-track-start-form.html" camunda:initiator="initiator" name="Process Started">
       <extensionElements>
-        <camunda:executionListener class="org.camunda.bpm.pa.service.FailingListener" event="end"/>
+        <camunda:executionListener class="org.cibseven.bpm.pa.service.FailingListener" event="end"/>
       </extensionElements>
       <outgoing>SequenceFlow_9</outgoing>
     </startEvent>

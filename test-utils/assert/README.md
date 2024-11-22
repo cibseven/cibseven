@@ -24,7 +24,7 @@ Camunda Platform Assert works with multiple Java versions (1.8+). All of this is
 
 ```xml  
 <dependency>
-    <groupId>org.camunda.bpm</groupId>
+    <groupId>org.cibseven.bpm</groupId>
     <artifactId>camunda-bpm-assert</artifactId>
     <version>${camunda.platform.version}</version>
     <scope>test</scope>
@@ -40,7 +40,7 @@ Please note that if you use [Spring Boot](https://spring.io/projects/spring-boot
 Create your test case just as described in the [Camunda Platform Testing Guide](https://docs.camunda.org/manual/latest/user-guide/testing/) and add Camunda Platform Assert by statically importing it in your test class:
 
 ```groovy  
-import static org.camunda.bpm.engine.test.assertions.ProcessEngineTests.*;
+import static org.cibseven.bpm.engine.test.assertions.ProcessEngineTests.*;
 ```
 
 3. Start using the assertions in your test methods
@@ -57,7 +57,7 @@ assertThat(processInstance).isStarted()
 In case you want to combine Camunda Platform Assert with the assertions provided by AssertJ, your imports should look like this:
 ```groovy  
 import static org.assertj.core.api.Assertions.*;
-import static org.camunda.bpm.engine.test.assertions.ProcessEngineTests.*;
+import static org.cibseven.bpm.engine.test.assertions.ProcessEngineTests.*;
 ```
 
 ## Credits
