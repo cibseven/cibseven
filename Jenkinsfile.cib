@@ -204,42 +204,42 @@ pipeline {
                 stage('qa') {
                     stages {
                         stage('engine-IT-tomcat-9-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat9,postgresql,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat9,postgresql,engine-integration" }}}
                         }
                         stage('engine-IT-tomcat-10-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,postgresql,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat,postgresql,engine-integration-jakarta" }}}
                         }
                         stage('engine-IT-wildfly-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,postgresql,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,engine-integration-jakarta" }}}
                         }
                         stage('engine-IT-wildfly26-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly26,postgresql,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly26,postgresql,engine-integration" }}}
                         }
                         stage('engine-IT-XA-wildfly-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,postgresql,postgresql-xa,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,postgresql-xa,engine-integration-jakarta" }}}
                         }
                         stage('engine-IT-XA-wildfly26-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly26,postgresql,postgresql-xa,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly26,postgresql,postgresql-xa,engine-integration" }}}
                         }
                         stage('webapp-IT-tomcat-9-h2') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat9,h2,webapps-integration" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat9,h2,webapps-integration" }}}
                         }
                         stage('webapp-IT-tomcat-10-h2') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}}
                         }
                         stage('webapp-IT-wildfly-h2') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}}
                         }
                         stage('webapp-IT-wildfly26-h2') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly26,h2,webapps-integration" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly26,h2,webapps-integration" }}}
                         }
                     }
                 }
                 stage('camunda-run-IT') {
-                    steps { script { withMaven { sh "mvn -f distro/run/pom.xml install -Pintegration-test-camunda-run" }}}
+                    steps { script { withMaven { sh "mvn -fn -f distro/run/pom.xml install -Pintegration-test-camunda-run" }}}
                 }
                 stage('spring-boot-starter-IT') {
-                    steps { script { withMaven { sh "mvn -f spring-boot-starter/pom.xml install -Pintegration-test-spring-boot-starter" }}}
+                    steps { script { withMaven { sh "mvn -fn -f spring-boot-starter/pom.xml install -Pintegration-test-spring-boot-starter" }}}
                 }
             }
         }
@@ -274,7 +274,7 @@ pipeline {
                             steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly26-domain,h2,engine-integration" }}}
                         }
                         stage('engine-IT-wildfly26-servlet') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
                         }
                     }
                 }
