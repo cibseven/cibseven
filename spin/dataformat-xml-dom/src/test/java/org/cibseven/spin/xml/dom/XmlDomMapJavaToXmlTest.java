@@ -22,6 +22,7 @@ import static org.cibseven.spin.Spin.XML;
 import static org.cibseven.spin.xml.XmlTestConstants.EXAMPLE_VALIDATION_XML;
 import static org.cibseven.spin.xml.XmlTestConstants.createExampleOrder;
 
+import org.cibseven.spin.xml.XmlTestUtil;
 import org.cibseven.spin.xml.mapping.NonXmlRootElementType;
 import org.cibseven.spin.xml.mapping.Order;
 import org.junit.Test;
@@ -32,8 +33,12 @@ public class XmlDomMapJavaToXmlTest {
   public void shouldMapJavaToXml() {
     Order order = createExampleOrder();
     String orderAsString = XML(order).toString();
-
-    assertThat(orderAsString).isXmlEqualTo(EXAMPLE_VALIDATION_XML);
+    // In EXAMPLE_VALIDATION_XML, expected date is hardcoded in CET timezone,
+    // ignoring it so that it passes when ran in
+    // different timezone
+    String exampleValidationXmlWoTimezone = XmlTestUtil.removeTimeZone(EXAMPLE_VALIDATION_XML);
+    orderAsString = XmlTestUtil.removeTimeZone(orderAsString);
+    assertThat(orderAsString).isXmlEqualTo(exampleValidationXmlWoTimezone);
   }
 
   @Test
@@ -53,7 +58,7 @@ public class XmlDomMapJavaToXmlTest {
     try {
       String s = XML(null).toString();
       fail("Expected IllegalArgumentException");
-    } catch(IllegalArgumentException e) {
+    } catch (IllegalArgumentException e) {
       // expected!
     }
   }
