@@ -174,9 +174,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <argLine>
-                -XX:MetaspaceSize=128m -Duser.timezone=GMT+02:00
-              </argLine>
+              <argLine>-XX:MetaspaceSize=128m -Duser.timezone=GMT+02:00</argLine>
               <excludes combine.children="append">
                 <exclude>**/nashorn/**</exclude>
               </excludes>
