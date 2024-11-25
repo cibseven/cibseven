@@ -3,9 +3,9 @@ name: Maven install
 on:
   push:
     branches:
-      - cibseven-org
+      - main
     pull_request:
-      - cibseven-org
+      - main
   workflow_dispatch:
 
 jobs:
