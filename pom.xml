@@ -324,14 +324,12 @@
       <name>CIB seven Public Repository</name>
       <url>https://artifacts.cibseven.de/repository/public</url>
     </repository>
-	<!--
     <repository>
-      <!- - Required for local builds by developers on maintainance branches - ->
-      <id>mvn-cibseven</id>
-      <name>CIB seven Private repository</name>
-      <url>https://nexus.cib.de/repository/mvn-cibseven</url>
+      <!-- Required for local builds by developers on maintainance branches -->
+      <id>mvn-cibseven-snapshots</id>
+      <name>CIB seven Snapshots repository</name>
+      <url>https://artifacts.cibseven.de/repository/snapshots</url>
     </repository>
-	-->
   </repositories>
   
   <licenses>
