@@ -29,6 +29,7 @@
     <version.joda-time>2.12.5</version.joda-time>
     <version.uuid-generator>4.3.0</version.uuid-generator>
     <version.feel-scala>1.17.5</version.feel-scala>
+    <version.license-maven-plugin>2.4.0</version.license-maven-plugin>
   </properties>
 
   <build>
@@ -36,7 +37,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>license-maven-plugin</artifactId>
-        <version>1.14</version>
+        <version>${version.license-maven-plugin}</version>
         <configuration>
           <acceptPomPackaging>true</acceptPomPackaging>
           <excludedScopes>test</excludedScopes>
