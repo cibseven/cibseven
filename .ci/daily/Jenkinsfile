@@ -53,21 +53,6 @@ pipeline {
     }
     stage('Misc') {
       parallel {
-        stage('check-sql-scripts') {
-          when {
-            expression {
-              cambpmWithLabels('all-db','h2','db2','mysql','oracle','mariadb','sqlserver','postgresql')
-            }
-          }
-          steps {
-            cambpmConditionalRetry([
-              agentLabel: 'centos-stable',
-              runSteps: {
-                sh(label: 'Check SQL scripts', script: '.ci/scripts/check-sql-scripts.sh')
-              }
-            ])
-          }
-        }
         stage('stage-javadocs') {
           when {
             branch cambpmDefaultBranch();

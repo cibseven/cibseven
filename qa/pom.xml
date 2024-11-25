@@ -63,6 +63,7 @@
 
   <modules>
     <module>ensure-clean-db-plugin</module>
+    <module>test-db-indexes-in-scripts</module>
   </modules>
 
   <profiles>
