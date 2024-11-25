@@ -4,7 +4,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans   http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-  <bean id="processEngineConfiguration" class="org.camunda.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration">
+  <bean id="processEngineConfiguration" class="org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration">
 
     <property name="jdbcUrl" value="jdbc:h2:mem:engine2;" />
     <property name="jdbcDriver" value="org.h2.Driver" />

@@ -11,7 +11,7 @@ You need this dependency to get started:
 
 ```xml
 <dependency>
-  <groupId>org.camunda.bpm.springboot</groupId>
+  <groupId>org.cibseven.bpm.springboot</groupId>
   <artifactId>camunda-bpm-spring-boot-starter-external-task-client</artifactId>
   <version>...</version>
 </dependency>
@@ -53,7 +53,7 @@ You can also use the basic Spring integration without the Spring Boot Starter:
 
 ```xml
 <dependency>
-  <groupId>org.camunda.bpm</groupId>
+  <groupId>org.cibseven.bpm</groupId>
   <artifactId>camunda-external-task-client-spring</artifactId>
   <version>...</version>
 </dependency>

@@ -1,5 +1,5 @@
 # Find more available configuration properties on the following pages of the documentation.
-# https://docs.cibseven.de/manual/latest/user-guide/cibseven-run/#configure-camunda-bpm-run
+# https://docs.cibseven.de/manual/latest/user-guide/cibseven-run/#configure-cibseven-bpm-run
 # https://docs.cibseven.de/manual/latest/user-guide/spring-boot-integration/configuration/#camunda-engine-properties
 
 camunda.bpm:

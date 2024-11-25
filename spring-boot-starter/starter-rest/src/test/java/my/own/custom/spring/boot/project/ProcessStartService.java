@@ -19,9 +19,9 @@ package my.own.custom.spring.boot.project;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 
-import org.camunda.bpm.engine.RuntimeService;
-import org.camunda.bpm.engine.rest.dto.runtime.ProcessInstanceDto;
-import org.camunda.bpm.engine.runtime.ProcessInstance;
+import org.cibseven.bpm.engine.RuntimeService;
+import org.cibseven.bpm.engine.rest.dto.runtime.ProcessInstanceDto;
+import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

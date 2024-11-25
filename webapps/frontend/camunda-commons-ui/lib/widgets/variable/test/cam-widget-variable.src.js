@@ -73,7 +73,7 @@ var vars = [
     type:   'Object',
     value:  'rO0ABXNyACpvcmcuY2FtdW5kYS5icG0ucGEuc2VydmljZS5Db2NrcGl0VmFyaWFibGUAAAAAAAAAAQIAA0wABWRhdGVzdAAQTGphdmEvdXRpbC9MaXN0O0wABG5hbWV0ABJMamF2YS9sYW5nL1N0cmluZztMAAV2YWx1ZXEAfgACeHBzcgATamF2YS51dGlsLkFycmF5TGlzdHiB0h2Zx2GdAwABSQAEc2l6ZXhwAAAAAXcEAAAAAXNyAA5qYXZhLnV0aWwuRGF0ZWhqgQFLWXQZAwAAeHB3CAAAAUyieV6meHh0AAR0ZXN0dAAUY29ja3BpdFZhcmlhYmxlVmFsdWU',
     valueInfo: {
-      objectTypeName: 'org.camunda.bpm.pa.service.CockpitVariable',
+      objectTypeName: 'org.cibseven.bpm.pa.service.CockpitVariable',
       serializationDataFormat: 'application/x-java-serialized-object'
     }
   },

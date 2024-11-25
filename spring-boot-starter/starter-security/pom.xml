@@ -3,31 +3,31 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.camunda.bpm.springboot.project</groupId>
-    <artifactId>camunda-bpm-spring-boot-starter-root</artifactId>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <groupId>org.cibseven.bpm.springboot.project</groupId>
+    <artifactId>cibseven-bpm-spring-boot-starter-root</artifactId>
+    <version>1.1.0-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.camunda.bpm.springboot</groupId>
-  <artifactId>camunda-bpm-spring-boot-starter-security</artifactId>
+  <groupId>org.cibseven.bpm.springboot</groupId>
+  <artifactId>cibseven-bpm-spring-boot-starter-security</artifactId>
   <name>CIB seven - Spring Boot Starter - Spring Security</name>
 
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>camunda-bpm-spring-boot-starter</artifactId>
+      <artifactId>cibseven-bpm-spring-boot-starter</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>camunda-bpm-spring-boot-starter-webapp</artifactId>
+      <artifactId>cibseven-bpm-spring-boot-starter-webapp</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>camunda-bpm-spring-boot-starter-rest</artifactId>
+      <artifactId>cibseven-bpm-spring-boot-starter-rest</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
@@ -43,7 +43,7 @@
     </dependency>
 
     <dependency>
-      <artifactId>camunda-bpm-spring-boot-starter-test</artifactId>
+      <artifactId>cibseven-bpm-spring-boot-starter-test</artifactId>
       <groupId>${project.groupId}</groupId>
       <version>${project.version}</version>
       <scope>test</scope>

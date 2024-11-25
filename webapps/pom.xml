@@ -4,14 +4,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.camunda.bpm</groupId>
-    <artifactId>camunda-database-settings</artifactId>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <groupId>org.cibseven.bpm</groupId>
+    <artifactId>cibseven-database-settings</artifactId>
+    <version>1.1.0-SNAPSHOT</version>
     <relativePath>../database</relativePath>
   </parent>
 
-  <artifactId>camunda-webapp-root</artifactId>
-  <groupId>org.camunda.bpm.webapp</groupId>
+  <artifactId>cibseven-webapp-root</artifactId>
+  <groupId>org.cibseven.bpm.webapp</groupId>
   <packaging>pom</packaging>
   <name>CIB seven - Webapp - Root</name>
 
@@ -46,8 +46,8 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.camunda.bpm</groupId>
-        <artifactId>camunda-core-internal-dependencies</artifactId>
+        <groupId>org.cibseven.bpm</groupId>
+        <artifactId>cibseven-core-internal-dependencies</artifactId>
         <version>${project.version}</version>
         <scope>import</scope>
         <type>pom</type>
@@ -58,14 +58,14 @@
   <dependencies>
 
     <dependency>
-      <groupId>org.camunda.bpm</groupId>
-      <artifactId>camunda-engine</artifactId>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine</artifactId>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.commons</groupId>
-      <artifactId>camunda-commons-logging</artifactId>
+      <groupId>org.cibseven.commons</groupId>
+      <artifactId>cibseven-commons-logging</artifactId>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>
@@ -77,8 +77,8 @@
     <!-- tests -->
 
     <dependency>
-      <groupId>org.camunda.commons</groupId>
-      <artifactId>camunda-commons-testing</artifactId>
+      <groupId>org.cibseven.commons</groupId>
+      <artifactId>cibseven-commons-testing</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

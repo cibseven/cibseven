@@ -2,20 +2,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <parent>
-    <artifactId>camunda-connect-root</artifactId>
-    <groupId>org.camunda.connect</groupId>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <artifactId>cibseven-connect-root</artifactId>
+    <groupId>org.cibseven.connect</groupId>
+    <version>1.1.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>camunda-connect-http-client</artifactId>
+  <artifactId>cibseven-connect-http-client</artifactId>
   <name>CIB seven - connect - http client</name>
 
   <dependencies>
 
     <dependency>
-      <groupId>org.camunda.connect</groupId>
-      <artifactId>camunda-connect-core</artifactId>
+      <groupId>org.cibseven.connect</groupId>
+      <artifactId>cibseven-connect-core</artifactId>
     </dependency>
 
     <dependency>
@@ -97,7 +97,7 @@
               <comparisonVersion>${connect.version.old}</comparisonVersion>
               <logResults>true</logResults>
               <excludes>
-                <exclude>org/camunda/connect/httpclient/impl/**</exclude>
+                <exclude>org/cibseven/connect/httpclient/impl/**</exclude>
               </excludes>
             </configuration>
             <executions>

@@ -13,7 +13,7 @@
     <bpmn2:subProcess id="SubProcess_1">
       <bpmn2:incoming>SequenceFlow_6</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_5</bpmn2:outgoing>
-      <bpmn2:serviceTask id="ServiceTask_1" activiti:class="org.camunda.bpm.pa.service.FailingDelegate" activiti:async="true" name="Service Task">
+      <bpmn2:serviceTask id="ServiceTask_1" activiti:class="org.cibseven.bpm.pa.service.FailingDelegate" activiti:async="true" name="Service Task">
         <bpmn2:incoming>SequenceFlow_8</bpmn2:incoming>
         <bpmn2:outgoing>SequenceFlow_7</bpmn2:outgoing>
       </bpmn2:serviceTask>

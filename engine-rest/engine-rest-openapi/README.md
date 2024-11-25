@@ -49,7 +49,7 @@ The structure of the template is:
  | | +--sort-params.ftl
  | | +--sort-props.ftl
  +--models
- | +--org/camunda/bpm/engine/rest/dto
+ | +--org/cibseven/bpm/engine/rest/dto
  | | +--ExceptionDto.ftl
  | | +--history
  | | | +--HistoricProcessInstanceQueryDto.ftl
@@ -107,14 +107,14 @@ and some need to be provided if necessary (nice to have - `minimum`,`defaultValu
 
 This folder contains all of the DTOs used in the request and response bodies. Instructions:
 * use the name and package structure of the Rest DTOs when possible
-([org.camunda.bpm.engine.rest.dto.ExceptionDto.java](https://github.com/cibseven/cibseven/blob/master/engine-rest/engine-rest/src/main/java/org/camunda/bpm/engine/rest/dto/ExceptionDto.java) --> 
-[org/camunda/bpm/engine/rest/dto/ExceptionDto.ftl](https://github.com/cibseven/cibseven/blob/master/engine-rest/engine-rest-openapi/src/main/templates/models/org/camunda/bpm/engine/rest/dto/ExceptionDto.ftl))
+([org.cibseven.bpm.engine.rest.dto.ExceptionDto.java](https://github.com/cibseven/cibseven/blob/master/engine-rest/engine-rest/src/main/java/org/cibseven/bpm/engine/rest/dto/ExceptionDto.java) --> 
+[org/cibseven/bpm/engine/rest/dto/ExceptionDto.ftl](https://github.com/cibseven/cibseven/blob/master/engine-rest/engine-rest-openapi/src/main/templates/models/org/cibseven/bpm/engine/rest/dto/ExceptionDto.ftl))
 Keep the properties of OpenAPI doc as close as possible to the Java DTOs and add explicit description whenever a property is not applicable to a certain endpoint (e.g. [PUT /process-instance/suspended](https://github.com/camunda/camunda-bpm-platform/blob/master/engine-rest/engine-rest-openapi/src/main/templates/paths/process-instance/suspended/put.ftl))
 * the definitions of the models are resolved automatically via the folder structure. The `/models` directory should contain only the models that are used in the documentation, any additional files (macros and reusable files) should go to [commons](#commons), do not create empty folders. The models are ordered lexicographically.
 * use the [utils](#utils) from the previous section when possible.
 * use the `dto` macro to define a DTO
   * in case of a DTO hierarchy (`TriggerVariableValueDto extends VariableValueDto`), the `dto` macro provides an `extends` 
-  attribute that makes use of the `allOf` OpenAPI syntax - [example](https://github.com/cibseven/cibseven/blob/392d98b61e5e0eff3e1dad0ee15a5ad986e0d93c/engine-rest/engine-rest-openapi/src/main/templates/models/org/camunda/bpm/engine/rest/dto/runtime/TriggerVariableValueDto.ftl#L2-L19).
+  attribute that makes use of the `allOf` OpenAPI syntax - [example](https://github.com/cibseven/cibseven/blob/392d98b61e5e0eff3e1dad0ee15a5ad986e0d93c/engine-rest/engine-rest-openapi/src/main/templates/models/org/cibseven/bpm/engine/rest/dto/runtime/TriggerVariableValueDto.ftl#L2-L19).
   * the `property` macros should be nested inside the `dto` macro
 * in case the response can be two DTOs depending on request parameter (example - [message correlation](https://docs.cibseven.de/manual/develop/reference/rest/message/post-message/#result) and responses `MessageCorrelationResultDto` or `MessageCorrelationResultWithVariableDto` (extending `MessageCorrelationResultDto`)), please use the DTO for the response that contains all of the properties (in the correlation case - `MessageCorrelationResultWithVariableDto`) even some are not applicable for all of the responses, and make sure to document which properties are not applicable in which use cases. (In some use cases `oneOf` approach might be applicable together with `discrimitator` ([spec](https://github.com/OAI/OpenAPI-Specification/blob/3.0.2/versions/3.0.2.md#discriminator-object)), please test this additionally as the clients might have problems to be generated in this approach.)
 * for the `property` macros DO NOT forget to put `last = true` param for the last property, that will take care for the commas in the json file.

@@ -1,6 +1,6 @@
 # Camunda Platform Quarkus Extensions
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.camunda.bpm.quarkus/camunda-bpm-quarkus-engine/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.camunda.bpm.quarkus/camunda-bpm-quarkus-engine) [![camunda manual latest](https://img.shields.io/badge/manual-latest-brown.svg)](https://docs.camunda.org/manual/develop/user-guide/quarkus-integration/)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.cibseven.bpm.quarkus/camunda-bpm-quarkus-engine/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.cibseven.bpm.quarkus/camunda-bpm-quarkus-engine) [![camunda manual latest](https://img.shields.io/badge/manual-latest-brown.svg)](https://docs.camunda.org/manual/develop/user-guide/quarkus-integration/)
 
 This sub-project provides Camunda Platform Quarkus Extensions that allow you to add behavior to your Quarkus 
 application by adding dependencies to the classpath.
@@ -14,7 +14,7 @@ We also provide some useful examples at our
 ```xml
 <dependency>
   <dependency>
-    <groupId>org.camunda.bpm.quarkus</groupId>
+    <groupId>org.cibseven.bpm.quarkus</groupId>
     <artifactId>camunda-bpm-quarkus-engine</artifactId>
     <version>${version.camunda}</version><!-- place Camunda version here -->
   </dependency>
@@ -68,14 +68,14 @@ quarkus.camunda.datasource=my-datasource
 Caused by: java.lang.VerifyError: Bad type on operand stack
 Exception Details:
 Location:
-org/camunda/bpm/engine/impl/el/JuelExpressionManager.<init>(Ljava/util/Map;)V @28: putfield
+org/cibseven/bpm/engine/impl/el/JuelExpressionManager.<init>(Ljava/util/Map;)V @28: putfield
 Reason:
-Type 'org/camunda/bpm/impl/juel/ExpressionFactoryImpl' (current frame, stack[1]) is not assignable to 'org/camunda/bpm/impl/juel/jakarta/el/ExpressionFactory'
+Type 'org/cibseven/bpm/impl/juel/ExpressionFactoryImpl' (current frame, stack[1]) is not assignable to 'org/cibseven/bpm/impl/juel/jakarta/el/ExpressionFactory'
 Current Frame:
 bci: @28
 flags: { }
-locals: { 'org/camunda/bpm/engine/impl/el/JuelExpressionManager', 'java/util/Map' }
-stack: { 'org/camunda/bpm/engine/impl/el/JuelExpressionManager', 'org/camunda/bpm/impl/juel/ExpressionFactoryImpl' }
+locals: { 'org/cibseven/bpm/engine/impl/el/JuelExpressionManager', 'java/util/Map' }
+stack: { 'org/cibseven/bpm/engine/impl/el/JuelExpressionManager', 'org/cibseven/bpm/impl/juel/ExpressionFactoryImpl' }
 Bytecode:
 0000000: 2ab7 0007 2abb 000c 59b7 000e b500 0f2a
 0000010: 03b5 0013 2abb 0017 59b7 0019 b500 1a2a

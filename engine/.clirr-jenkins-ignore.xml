@@ -16,37 +16,37 @@
   <!-- class removed from public API due to CAM-4307 -->
   <difference>
     <differenceType>8001</differenceType>
-    <className>org/camunda/bpm/engine/history/UserOperationLogContext</className>
+    <className>org/cibseven/bpm/engine/history/UserOperationLogContext</className>
   </difference>
   <!-- package moved into typed-values module of camunda-commons project -->
   <difference>
     <differenceType>8001</differenceType>
-    <className>org/camunda/bpm/engine/variable/**/*</className>
+    <className>org/cibseven/bpm/engine/variable/**/*</className>
   </difference>
   <!-- 8001: class removed due to clean-up after end of support -->
   <difference>
     <differenceType>8001</differenceType>
-    <className>org/camunda/bpm/engine/CrdbTransactionRetryException</className>
+    <className>org/cibseven/bpm/engine/CrdbTransactionRetryException</className>
   </difference>
   <!-- 5001: superclass removed -->
   <!-- new interface introduced in hierarchy, previous superclass renamed -->
   <difference>
     <differenceType>5001</differenceType>
-    <className>org/camunda/bpm/engine/test/mock/MockExpressionManager</className>
+    <className>org/cibseven/bpm/engine/test/mock/MockExpressionManager</className>
     <to>**</to>
   </difference>
   <!-- 5001: superclass removed -->
   <!-- new JUEL module with different package names -->
   <difference>
     <differenceType>5001</differenceType>
-    <className>org/camunda/bpm/engine/test/mock/MockElResolver</className>
+    <className>org/cibseven/bpm/engine/test/mock/MockElResolver</className>
     <to>**</to>
   </difference>
   <!-- 6004: field type changed -->
   <!-- new JUEL module with different package names -->
   <difference>
     <differenceType>6004</differenceType>
-    <className>org/camunda/bpm/application/AbstractProcessApplication</className>
+    <className>org/cibseven/bpm/application/AbstractProcessApplication</className>
     <field>processApplication*ElResolver</field>
     <from>**</from>
     <to>**</to>
@@ -55,7 +55,7 @@
   <!-- new JUEL module with different package names -->
   <difference>
     <differenceType>7006</differenceType>
-    <className>org/camunda/bpm/application/AbstractProcessApplication</className>
+    <className>org/cibseven/bpm/application/AbstractProcessApplication</className>
     <method>*ElResolver*</method>
     <to>**</to>
   </difference>
@@ -63,7 +63,7 @@
   <!-- new JUEL module with different package names -->
   <difference>
     <differenceType>7006</differenceType>
-    <className>org/camunda/bpm/application/ProcessApplicationElResolver</className>
+    <className>org/cibseven/bpm/application/ProcessApplicationElResolver</className>
     <method>*ElResolver*</method>
     <to>**</to>
   </difference>
@@ -71,7 +71,7 @@
   <!-- new JUEL module with different package names -->
   <difference>
     <differenceType>7006</differenceType>
-    <className>org/camunda/bpm/application/ProcessApplicationInterface</className>
+    <className>org/cibseven/bpm/application/ProcessApplicationInterface</className>
     <method>*ElResolver*</method>
     <to>**</to>
   </difference>
@@ -79,7 +79,7 @@
   <!-- new JUEL module with different package names -->
   <difference>
     <differenceType>7006</differenceType>
-    <className>org/camunda/bpm/engine/test/mock/MockExpressionManager</className>
+    <className>org/cibseven/bpm/engine/test/mock/MockExpressionManager</className>
     <method>*ElResolver*</method>
     <to>**</to>
   </difference>
@@ -87,7 +87,7 @@
   <!-- new JUEL module with different package names -->
   <difference>
     <differenceType>7005</differenceType>
-    <className>org/camunda/bpm/engine/test/mock/MockElResolver</className>
+    <className>org/cibseven/bpm/engine/test/mock/MockElResolver</className>
     <method>*ELContext*</method>
     <to>**</to>
   </difference>
@@ -96,14 +96,14 @@
   <!-- removed feature: handling JPA entities as variables-->
   <difference>
     <differenceType>6001</differenceType>
-    <className>org/camunda/bpm/engine/ProcessEngineConfiguration</className>
+    <className>org/cibseven/bpm/engine/ProcessEngineConfiguration</className>
     <field>jpa**</field>
   </difference>
   <!-- 7002: removed method -->
   <!-- removed feature: handling JPA entities as variables-->
   <difference>
     <differenceType>7002</differenceType>
-    <className>org/camunda/bpm/engine/ProcessEngineConfiguration</className>
+    <className>org/cibseven/bpm/engine/ProcessEngineConfiguration</className>
     <method>**Jpa**</method>
   </difference>
 
@@ -111,14 +111,14 @@
   <!-- removed feature: sending telemetry-->
   <difference>
     <differenceType>6001</differenceType>
-    <className>org/camunda/bpm/engine/ProcessEngineConfiguration</className>
+    <className>org/cibseven/bpm/engine/ProcessEngineConfiguration</className>
     <field>telemetryRegistry</field>
   </difference>
   <!-- 7002: removed method -->
   <!-- removed feature: sending telemetry -->
   <difference>>
     <differenceType>7002</differenceType>
-    <className>org/camunda/bpm/engine/ProcessEngineConfiguration</className>
+    <className>org/cibseven/bpm/engine/ProcessEngineConfiguration</className>
     <method>**Telemetry**</method>
   </difference>
 

@@ -118,12 +118,12 @@ Please stop it or remove the file $PID_PATH."
     fi
 
     # start CIB seven Run detached
-    "$JAVA" -Dloader.path="$classPath" -Dcamunda.deploymentDir="$DEPLOYMENT_DIR" $JAVA_OPTS -jar "$BASEDIR/camunda-bpm-run-core.jar" --spring.config.location=file:"$configuration" &
+    "$JAVA" -Dloader.path="$classPath" -Dcamunda.deploymentDir="$DEPLOYMENT_DIR" $JAVA_OPTS -jar "$BASEDIR/cibseven-bpm-run-core.jar" --spring.config.location=file:"$configuration" &
     # store the process id
     echo $! > "$PID_PATH"
 
   else
-    "$JAVA" -Dloader.path="$classPath" -Dcamunda.deploymentDir="$DEPLOYMENT_DIR" $JAVA_OPTS -jar "$BASEDIR/camunda-bpm-run-core.jar" --spring.config.location=file:"$configuration"
+    "$JAVA" -Dloader.path="$classPath" -Dcamunda.deploymentDir="$DEPLOYMENT_DIR" $JAVA_OPTS -jar "$BASEDIR/cibseven-bpm-run-core.jar" --spring.config.location=file:"$configuration"
   fi
 
 elif [ "$1" = "stop" ] ; then

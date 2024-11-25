@@ -94,7 +94,7 @@ pipeline {
             steps {
                 script {
                     withMaven(options: [artifactsPublisher(archiveFilesDisabled: false)]) {
-                        sh("mvn -pl org.camunda.bpm:camunda-bom,org.camunda.bpm:camunda-only-bom,org.camunda.bpm:camunda-bom-root install -DskipTests") || true
+                        sh("mvn -pl org.cibseven.bpm:camunda-bom,org.cibseven.bpm:camunda-only-bom,org.cibseven.bpm:camunda-bom-root install -DskipTests") || true
                         sh "mvn -f qa/integration-tests-webapps/integration-tests/pom.xml install -DskipTests"
                         sh "mvn -f qa/integration-tests-webapps/pom.xml install -DskipTests"
 

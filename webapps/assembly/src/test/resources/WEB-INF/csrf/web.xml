@@ -8,7 +8,7 @@
 
   <filter>
     <filter-name>CsrfPreventionFilter</filter-name>
-    <filter-class>org.camunda.bpm.webapp.impl.security.filter.CsrfPreventionFilter</filter-class>
+    <filter-class>org.cibseven.bpm.webapp.impl.security.filter.CsrfPreventionFilter</filter-class>
   </filter>
   <filter-mapping>
     <filter-name>CsrfPreventionFilter</filter-name>

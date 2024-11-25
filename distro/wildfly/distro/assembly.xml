@@ -16,7 +16,7 @@
     <dependencySet>
       <unpack>true</unpack>
       <includes>
-        <include>org.camunda.bpm.wildfly:camunda-wildfly-assembly</include>
+        <include>org.cibseven.bpm.wildfly:cibseven-wildfly-assembly</include>
       </includes>
       <outputDirectory />
     </dependencySet>
@@ -30,28 +30,28 @@
         </excludes>
       </unpackOptions>
       <includes>
-        <include>org.camunda.bpm.distro:camunda-sql-scripts:jar:*</include>
+        <include>org.cibseven.bpm.distro:cibseven-sql-scripts:jar:*</include>
       </includes>
     </dependencySet>
 
     <dependencySet>
         <outputFileNameMapping>${artifact.artifactId}-${artifact.version}.${artifact.extension}</outputFileNameMapping>
         <includes>
-            <include>org.camunda.bpm:camunda-engine-rest-jakarta:war:*</include>
+            <include>org.cibseven.bpm:cibseven-engine-rest-jakarta:war:*</include>
         </includes>
         <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments</outputDirectory>
     </dependencySet>
     
     <dependencySet>
         <includes>
-          <include>org.camunda.bpm.webapp:camunda-webapp-wildfly:war:*</include>
+          <include>org.cibseven.bpm.webapp:cibseven-webapp-wildfly:war:*</include>
         </includes>
         <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments</outputDirectory>
     </dependencySet>
 
     <dependencySet>
         <includes>
-          <include>org.camunda.bpm.example:camunda-example-invoice-jakarta:war:*</include>
+          <include>org.cibseven.bpm.example:cibseven-example-invoice-jakarta:war:*</include>
         </includes>
         <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments</outputDirectory>
     </dependencySet>

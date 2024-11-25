@@ -1,0 +1,2 @@
+org.cibseven.connect.dummy.DummyConnectorProvider
+org.cibseven.connect.dummy.MyHttpConnectorProvider

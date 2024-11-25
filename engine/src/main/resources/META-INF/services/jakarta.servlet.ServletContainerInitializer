@@ -1,1 +1,1 @@
-org.camunda.bpm.application.impl.JakartaServletProcessApplicationDeployer
+org.cibseven.bpm.application.impl.JakartaServletProcessApplicationDeployer

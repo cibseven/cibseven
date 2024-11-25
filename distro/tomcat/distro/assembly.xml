@@ -14,7 +14,7 @@
     <dependencySet>
       <unpack>true</unpack>
       <includes>
-        <include>org.camunda.bpm.tomcat:camunda-tomcat-assembly</include>
+        <include>org.cibseven.bpm.tomcat:cibseven-tomcat-assembly</include>
       </includes>
       <outputDirectory />
     </dependencySet>
@@ -28,13 +28,13 @@
         </excludes>
       </unpackOptions>
       <includes>
-        <include>org.camunda.bpm.distro:camunda-sql-scripts:jar:*</include>
+        <include>org.cibseven.bpm.distro:cibseven-sql-scripts:jar:*</include>
       </includes>
     </dependencySet>
 
     <dependencySet>
         <includes>
-            <include>org.camunda.bpm:camunda-engine-rest-jakarta:war:*</include>
+            <include>org.cibseven.bpm:cibseven-engine-rest-jakarta:war:*</include>
         </includes>
         <outputDirectory>server/apache-tomcat-${version.tomcat}/webapps/engine-rest</outputDirectory>
         <unpack>true</unpack>
@@ -42,7 +42,7 @@
 
     <dependencySet>
         <includes>
-            <include>org.camunda.bpm.webapp:camunda-webapp-tomcat-jakarta:war:*</include>
+            <include>org.cibseven.bpm.webapp:cibseven-webapp-tomcat-jakarta:war:*</include>
         </includes>
         <outputDirectory>server/apache-tomcat-${version.tomcat}/webapps/camunda</outputDirectory>
         <unpack>true</unpack>
@@ -50,7 +50,7 @@
 
     <dependencySet>
         <includes>
-            <include>org.camunda.bpm.example:camunda-example-invoice-jakarta:war:*</include>
+            <include>org.cibseven.bpm.example:cibseven-example-invoice-jakarta:war:*</include>
         </includes>
         <outputDirectory>server/apache-tomcat-${version.tomcat}/webapps/camunda-invoice</outputDirectory>
         <unpack>true</unpack>

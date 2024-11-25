@@ -2,21 +2,21 @@
   <modelVersion>4.0.0</modelVersion>
 
   <name>CIB seven - engine - Spring</name>
-  <artifactId>camunda-engine-spring</artifactId>
+  <artifactId>cibseven-engine-spring</artifactId>
 
   <parent>
-    <groupId>org.camunda.bpm</groupId>
-    <artifactId>camunda-database-settings</artifactId>
+    <groupId>org.cibseven.bpm</groupId>
+    <artifactId>cibseven-database-settings</artifactId>
     <relativePath>../../database</relativePath>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
   </parent>
 
   <dependencyManagement>
     <dependencies>
 
       <dependency>
-        <groupId>org.camunda.bpm</groupId>
-        <artifactId>camunda-core-internal-dependencies</artifactId>
+        <groupId>org.cibseven.bpm</groupId>
+        <artifactId>cibseven-core-internal-dependencies</artifactId>
         <version>${project.version}</version>
         <scope>import</scope>
         <type>pom</type>
@@ -35,8 +35,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.camunda.bpm</groupId>
-      <artifactId>camunda-engine</artifactId>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -152,8 +152,8 @@
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.bpm</groupId>
-      <artifactId>camunda-bpm-archunit</artifactId>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-bpm-archunit</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -167,7 +167,7 @@
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <dependenciesToScan>
-            <dependency>org.camunda.bpm:camunda-bpm-archunit</dependency>
+            <dependency>org.cibseven.bpm:cibseven-bpm-archunit</dependency>
           </dependenciesToScan>
         </configuration>
       </plugin>
@@ -187,7 +187,7 @@
               <forceCreation>true</forceCreation>
               <excludes>
                 <!-- this is re-defined in the consuming artifacts -->
-                <exclude>META-INF/services/org.camunda.bpm.engine.spring.test.SpringTestHelper</exclude>
+                <exclude>META-INF/services/org.cibseven.bpm.engine.spring.test.SpringTestHelper</exclude>
               </excludes>
             </configuration>
           </execution>

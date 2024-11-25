@@ -1,1 +1,1 @@
-org.camunda.qa.impl.EnsureCleanDbPlugin
+org.cibseven.qa.impl.EnsureCleanDbPlugin

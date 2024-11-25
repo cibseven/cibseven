@@ -5,7 +5,7 @@
   xsi:schemaLocation="http://www.camunda.org/schema/1.0/ProcessApplication http://www.camunda.org/schema/1.0/ProcessApplication ">
 
   <process-engine name="default">
-    <configuration>org.camunda.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration</configuration>
+    <configuration>org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration</configuration>
     <properties>
       <property name="enforceHistoryTimeToLive">false</property>
       <property name="authorizationEnabled">true</property>
@@ -15,16 +15,16 @@
 
     <plugins>
       <plugin>
-        <class>org.camunda.spin.plugin.impl.SpinProcessEnginePlugin</class>
+        <class>org.cibseven.spin.plugin.impl.SpinProcessEnginePlugin</class>
       </plugin>
       <plugin>
-        <class>org.camunda.connect.plugin.impl.ConnectProcessEnginePlugin</class>
+        <class>org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin</class>
       </plugin>
     </plugins>
   </process-engine>
 
   <process-engine name="engine2">
-    <configuration>org.camunda.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration</configuration>
+    <configuration>org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration</configuration>
     <properties>
       <property name="enforceHistoryTimeToLive">false</property>
       <property name="jdbcUrl">jdbc:h2:mem:activiti2;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE</property>
@@ -33,16 +33,16 @@
 
     <plugins>
       <plugin>
-        <class>org.camunda.spin.plugin.impl.SpinProcessEnginePlugin</class>
+        <class>org.cibseven.spin.plugin.impl.SpinProcessEnginePlugin</class>
       </plugin>
       <plugin>
-        <class>org.camunda.connect.plugin.impl.ConnectProcessEnginePlugin</class>
+        <class>org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin</class>
       </plugin>
     </plugins>
   </process-engine>
 
   <process-engine name="engine3">
-    <configuration>org.camunda.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration</configuration>
+    <configuration>org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration</configuration>
     <properties>
       <property name="enforceHistoryTimeToLive">false</property>
       <property name="jdbcUrl">jdbc:h2:mem:activiti3;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE</property>
@@ -51,10 +51,10 @@
 
     <plugins>
       <plugin>
-        <class>org.camunda.spin.plugin.impl.SpinProcessEnginePlugin</class>
+        <class>org.cibseven.spin.plugin.impl.SpinProcessEnginePlugin</class>
       </plugin>
       <plugin>
-        <class>org.camunda.connect.plugin.impl.ConnectProcessEnginePlugin</class>
+        <class>org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin</class>
       </plugin>
     </plugins>
   </process-engine>

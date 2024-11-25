@@ -980,7 +980,7 @@
         <outgoing>SequenceFlow_23</outgoing>
       </startEvent>
       <sequenceFlow id="SequenceFlow_23" sourceRef="StartEvent_3" targetRef="ServiceTask_17"/>
-      <serviceTask id="ServiceTask_17" activiti:class="org.camunda.bpm.pa.service.AddVariablesService" name="Add Variables">
+      <serviceTask id="ServiceTask_17" activiti:class="org.cibseven.bpm.pa.service.AddVariablesService" name="Add Variables">
         <incoming>SequenceFlow_23</incoming>
         <outgoing>SequenceFlow_24</outgoing>
       </serviceTask>

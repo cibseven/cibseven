@@ -17,7 +17,7 @@
     <dependencySet>
       <unpack>true</unpack>
       <includes>
-        <include>org.camunda.bpm.run:camunda-bpm-run-assembly</include>
+        <include>org.cibseven.bpm.run:cibseven-bpm-run-assembly</include>
       </includes>
       <outputDirectory />
     </dependencySet>
@@ -30,7 +30,7 @@
         </excludes>
       </unpackOptions>
       <includes>
-        <include>org.camunda.bpm.distro:camunda-sql-scripts:jar:*</include>
+        <include>org.cibseven.bpm.distro:cibseven-sql-scripts:jar:*</include>
       </includes>
       <outputDirectory>configuration/</outputDirectory>
     </dependencySet>

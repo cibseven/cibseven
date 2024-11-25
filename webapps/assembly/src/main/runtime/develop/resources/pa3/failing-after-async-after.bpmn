@@ -10,7 +10,7 @@
       <bpmn2:outgoing>SequenceFlow_2</bpmn2:outgoing>
     </bpmn2:serviceTask>
     <bpmn2:sequenceFlow id="SequenceFlow_1" name="" sourceRef="StartEvent_2" targetRef="ServiceTask_1"/>
-    <bpmn2:serviceTask id="ServiceTask_2" camunda:class="org.camunda.bpm.pa.service.FailingDelegate" name="B">
+    <bpmn2:serviceTask id="ServiceTask_2" camunda:class="org.cibseven.bpm.pa.service.FailingDelegate" name="B">
       <bpmn2:incoming>SequenceFlow_2</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_3</bpmn2:outgoing>
     </bpmn2:serviceTask>

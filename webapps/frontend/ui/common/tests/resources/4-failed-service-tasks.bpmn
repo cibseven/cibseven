@@ -13,22 +13,22 @@
     </bpmn2:parallelGateway>
     <bpmn2:sequenceFlow id="SequenceFlow_1" sourceRef="StartEvent_1" targetRef="ParallelGateway_1" />
     <bpmn2:sequenceFlow id="SequenceFlow_2" sourceRef="ParallelGateway_1" targetRef="ServiceTask_1" />
-    <bpmn2:serviceTask id="ServiceTask_1" name="Service Task 1" activiti:class="org.camunda.bpm.pa.service.FailingDelegate" activiti:async="true">
+    <bpmn2:serviceTask id="ServiceTask_1" name="Service Task 1" activiti:class="org.cibseven.bpm.pa.service.FailingDelegate" activiti:async="true">
       <bpmn2:incoming>SequenceFlow_2</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_8</bpmn2:outgoing>
     </bpmn2:serviceTask>
     <bpmn2:sequenceFlow id="SequenceFlow_3" sourceRef="ParallelGateway_1" targetRef="ServiceTask_2" />
-    <bpmn2:serviceTask id="ServiceTask_2" name="Service Task 2" activiti:class="org.camunda.bpm.pa.service.FailingDelegate" activiti:async="true">
+    <bpmn2:serviceTask id="ServiceTask_2" name="Service Task 2" activiti:class="org.cibseven.bpm.pa.service.FailingDelegate" activiti:async="true">
       <bpmn2:incoming>SequenceFlow_3</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_9</bpmn2:outgoing>
     </bpmn2:serviceTask>
     <bpmn2:sequenceFlow id="SequenceFlow_4" sourceRef="ParallelGateway_1" targetRef="ServiceTask_3" />
-    <bpmn2:serviceTask id="ServiceTask_3" name="Service Task 3" activiti:class="org.camunda.bpm.pa.service.FailingDelegate" activiti:async="true">
+    <bpmn2:serviceTask id="ServiceTask_3" name="Service Task 3" activiti:class="org.cibseven.bpm.pa.service.FailingDelegate" activiti:async="true">
       <bpmn2:incoming>SequenceFlow_4</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_10</bpmn2:outgoing>
     </bpmn2:serviceTask>
     <bpmn2:sequenceFlow id="SequenceFlow_5" sourceRef="ParallelGateway_1" targetRef="ServiceTask_4" />
-    <bpmn2:serviceTask id="ServiceTask_4" name="Service Task 4" activiti:class="org.camunda.bpm.pa.service.FailingDelegate" activiti:async="true">
+    <bpmn2:serviceTask id="ServiceTask_4" name="Service Task 4" activiti:class="org.cibseven.bpm.pa.service.FailingDelegate" activiti:async="true">
       <bpmn2:incoming>SequenceFlow_5</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_11</bpmn2:outgoing>
     </bpmn2:serviceTask>

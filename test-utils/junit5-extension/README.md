@@ -9,7 +9,7 @@ Add the dependency to your pom.xml
 
 ```xml
     <dependency>
-      <groupId>org.camunda.bpm</groupId>
+      <groupId>org.cibseven.bpm</groupId>
       <artifactId>camunda-bpm-junit5</artifactId>
       <version>7.17.0</version>
       <scope>test</scope>

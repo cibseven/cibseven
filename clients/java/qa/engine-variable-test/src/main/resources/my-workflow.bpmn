@@ -11,7 +11,7 @@
     <bpmn:sequenceFlow id="Flow_1lfeioc" sourceRef="Activity_1mvoh71" targetRef="Event_06i6xdp" />
     <bpmn:serviceTask id="Activity_1mvoh71" camunda:type="external" camunda:topic="my-topic">
       <bpmn:extensionElements>
-        <camunda:executionListener class="org.camunda.qa.MyExecutionListener" event="end" />
+        <camunda:executionListener class="org.cibseven.qa.MyExecutionListener" event="end" />
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1wah0af</bpmn:incoming>
       <bpmn:outgoing>Flow_1lfeioc</bpmn:outgoing>
