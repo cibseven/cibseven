@@ -246,7 +246,7 @@
       <plugin>
         <groupId>com.googlecode.maven-download-plugin</groupId>
         <artifactId>download-maven-plugin</artifactId>
-        <version>1.3.0</version>
+        <version>1.13.0</version>
         <executions>
           <execution>
             <phase>process-resources</phase>
@@ -258,6 +258,8 @@
               <outputFileName>chromedriver.zip</outputFileName>
               <unpack>true</unpack>
               <outputDirectory>${project.build.directory}</outputDirectory>
+              <!-- Include and exclude specific files during unpack -->
+              <includes>**/*</includes>
               <excludes>**/*.chromedriver</excludes>
             </configuration>
           </execution>
@@ -271,10 +273,10 @@
             <id>move-folder</id>
             <phase>process-resources</phase>
             <configuration>
-              <tasks>
+              <target unless="maven.test.skip">
                 <move file="${project.build.directory}/chromedriver-${os.type}"
                     tofile="${project.build.directory}/chromedriver"/>
-              </tasks>
+              </target>
             </configuration>
             <goals>
               <goal>run</goal>
