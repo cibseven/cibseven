@@ -141,6 +141,7 @@ pipeline {
                 script {
                     withMaven(options: [artifactsPublisher(fingerprintFilesDisabled: true, archiveFilesDisabled: true)]) {
                         sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
+                        sh "mvn -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} install -DskipTests"
                     }
                 }
             }
@@ -159,7 +160,7 @@ pipeline {
                                 -Dbuild.number=${BUILD_NUMBER} \
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
-                                -pl !org.camunda.bpm:camunda-engine-spring-6,!:camunda-spin-core,!:camunda-engine-rest-core-jakarta,!:camunda-webapp-jakarta,!:camunda-engine-cdi-jakarta,!:camunda-example-invoice-jakarta,!:camunda-ejb-client-jakarta,!:camunda-qa-integration-tests-engine-jakarta,!:camunda-sql-scripts
+                                -pl !org.cibseven.bpm:cibseven-engine-spring-6,!:cibseven-spin-core,!:cibseven-engine-rest-core-jakarta,!:cibseven-webapp-jakarta,!:cibseven-engine-cdi-jakarta,!:cibseven-example-invoice-jakarta,!:cibseven-ejb-client-jakarta,!:cibseven-qa-integration-tests-engine-jakarta,!:cibseven-sql-scripts
                         """
 
                         sh """
@@ -168,7 +169,7 @@ pipeline {
                                 -Dbuild.number=${BUILD_NUMBER} \
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
-                                -pl org.camunda.bpm:camunda-engine-spring-6,:camunda-spin-core,:camunda-engine-rest-core-jakarta,:camunda-webapp-jakarta,:camunda-engine-cdi-jakarta,:camunda-example-invoice-jakarta,:camunda-ejb-client-jakarta,:camunda-qa-integration-tests-engine-jakarta,:camunda-sql-scripts \
+                                -pl org.cibseven.bpm:cibseven-engine-spring-6,:cibseven-spin-core,:cibseven-engine-rest-core-jakarta,:cibseven-webapp-jakarta,:cibseven-engine-cdi-jakarta,:cibseven-example-invoice-jakarta,:cibseven-ejb-client-jakarta,:cibseven-qa-integration-tests-engine-jakarta,:cibseven-sql-scripts \
                                 -fn
                         """
                     }
