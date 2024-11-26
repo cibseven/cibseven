@@ -47,14 +47,14 @@ public class AbstractWebappUiIT extends AbstractWebIT {
 
   @BeforeClass
   public static void createDriver() {
-    String chromeDriverExecutable = "chromedriver";
+    String chromeDriverExecutable = "target/chromedriver/chromedriver";
     if (System.getProperty( "os.name" ).toLowerCase(Locale.US).indexOf("windows") > -1) {
       chromeDriverExecutable += ".exe";
     }
 
-    File chromeDriver = new File("target/chromedriver/" + chromeDriverExecutable);
+    File chromeDriver = new File(chromeDriverExecutable);
     if (!chromeDriver.exists()) {
-      throw new RuntimeException("chromedriver could not be located!");
+      throw new RuntimeException("Executable \"" + chromeDriverExecutable + "\" could not be located!");
     }
 
     ChromeDriverService chromeDriverService = new ChromeDriverService.Builder()

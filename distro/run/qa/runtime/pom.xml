@@ -217,8 +217,28 @@
                   <url>https://storage.googleapis.com/chrome-for-testing-public/${version.chromedriver}/${os.type}/chromedriver-${os.type}.zip</url>
                   <outputFileName>chromedriver.zip</outputFileName>
                   <unpack>true</unpack>
-                  <outputDirectory>${project.build.directory}/chromedriver</outputDirectory>
+                  <outputDirectory>${project.build.directory}</outputDirectory>
+                  <excludes>**/*.chromedriver</excludes>
                 </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>move-folder</id>
+                <phase>process-resources</phase>
+                <configuration>
+                  <tasks>
+                    <move file="${project.build.directory}/chromedriver-${os.type}"
+                        tofile="${project.build.directory}/chromedriver"/>
+                  </tasks>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
               </execution>
             </executions>
           </plugin>
