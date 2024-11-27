@@ -24,8 +24,8 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-bom</artifactId>
+        <groupId>org.camunda.bpm</groupId>
+        <artifactId>camunda-bom</artifactId>
         <version>7.4.0</version>
         <scope>import</scope>
         <type>pom</type>
@@ -35,8 +35,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine</artifactId>
+      <groupId>org.camunda.bpm</groupId>
+      <artifactId>camunda-engine</artifactId>
     </dependency>
     <dependency>
       <groupId>org.cibseven.bpm.qa.upgrade</groupId>
@@ -138,8 +138,8 @@
                 <configuration>
                   <artifactItems>
                     <artifactItem>
-                      <groupId>org.cibseven.bpm.distro</groupId>
-                      <artifactId>cibseven-sql-scripts</artifactId>
+                      <groupId>org.camunda.bpm.distro</groupId>
+                      <artifactId>camunda-sql-scripts</artifactId>
                       <version>7.4.0</version>
                       <type>test-jar</type>
                       <outputDirectory>${project.build.directory}/scripts-current</outputDirectory>
