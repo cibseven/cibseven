@@ -182,11 +182,7 @@ pipeline {
         stage('Deploy snapshot to nexus.cib.de') {
             when {
                 allOf {
-                    anyOf {
-                        branch 'master'
-                        branch 'main'
-                        branch 'cibseven-1.0'
-                    }
+                    branch 'main'
                     expression { params.RELEASE == false }
                     anyOf {
                         expression { params.DEPLOY == 'Auto' }
@@ -218,11 +214,7 @@ pipeline {
         stage('Deploy release to nexus.cib.de') {
             when {
                 allOf {
-                    anyOf {
-                        branch 'master'
-                        branch 'main'
-                        branch 'cibseven-1.0'
-                    }
+                    branch 'main'
                     expression { params.RELEASE == true }
                     expression { params.DEPLOY == 'Run' }
                 }
@@ -254,11 +246,7 @@ pipeline {
                 anyOf {
                     expression { params.OPEN_API == 'Run' }
                     allOf {
-                        anyOf {
-                            branch 'master'
-                            branch 'main'
-                            branch 'cibseven-1.0'
-                        }
+                        branch 'main'
                         expression { params.RELEASE == true }
                         expression { params.OPEN_API == 'Auto' }
                     }
@@ -275,10 +263,13 @@ pipeline {
                     zip zipFile: 'openAPI-index-html.zip', archive: true, overwrite: true, glob: 'engine-rest/docs/target/index.html'
                     archiveArtifacts artifacts: 'openAPI-index-html.zip', fingerprint: true
 
+                    String version = getDocsVersion()
+                    String docsRepoName = getDocsRepoName()
+
                     // deploy to github pages
                     pushToDocsRepo("Update open API index.html", {
-                        sh 'mkdir -p docs-cibseven-de/rest/cibseven/1.0'
-                        sh 'mv -f engine-rest/docs/target/index.html docs-cibseven-de/rest/cibseven/1.0/index.html'
+                        sh "mkdir -p ${docsRepoName}/rest/cibseven/${version}"
+                        sh "mv -f engine-rest/docs/target/index.html ${docsRepoName}/rest/cibseven/${version}/index.html"
                     })
 
                     // clean up
@@ -295,11 +286,7 @@ pipeline {
                 anyOf {
                     expression { params.JAVA_DOCS == 'Run' }
                     allOf {
-                        anyOf {
-                            branch 'master'
-                            branch 'main'
-                            branch 'cibseven-1.0'
-                        }
+                        branch 'main'
                         expression { params.RELEASE == true }
                         expression { params.JAVA_DOCS == 'Auto' }
                     }
@@ -320,15 +307,18 @@ pipeline {
                         """
                     }
 
+                    String version = getDocsVersion()
+                    String docsRepoName = getDocsRepoName()
+
                     // put as artifact to jenkins job
                     zip zipFile: 'javaDocs.zip', archive: true, overwrite: true, glob: 'target/site/apidocs/'
                     archiveArtifacts artifacts: 'javaDocs.zip', fingerprint: true
 
                     // deploy to github pages
                     pushToDocsRepo("Update javaDocs", {
-                        sh 'mkdir -p docs-cibseven-de/javadoc/cibseven/1.0'
-                        sh 'rm -r docs-cibseven-de/javadoc/cibseven/1.0/*'
-                        sh 'cp -Rf target/site/apidocs/. docs-cibseven-de/javadoc/cibseven/1.0/'
+                        sh "mkdir -p ${docsRepoName}/javadoc/cibseven/${version}"
+                        sh "rm -r ${docsRepoName}/javadoc/cibseven/${version}/*"
+                        sh "cp -Rf target/site/apidocs/. ${docsRepoName}/javadoc/cibseven/${version}/"
                     })
                 }
             }
@@ -386,21 +376,37 @@ pipeline {
     }
 }
 
+def getDocsVersion() {
+    return mavenProjectInformation.version.replace(".0-SNAPSHOT", "")
+}
+
+def getDocsRepoName() {
+    if (mavenProjectInformation.version.indexOf("SNAPSHOT") > 0) {
+        return "docs-staging.cibseven.org"
+    }
+    else {
+        return "docs.cibseven.org"
+    }
+}
+
 def pushToDocsRepo(String commmitMessage, Closure updateRepo) {
+    String version = getDocsVersion()
+    String docsRepoName = getDocsRepoName()
+
     // deploy to github pages
-    sh 'mkdir -p docs-cibseven-de'
-    sh 'chown 1000:1000 docs-cibseven-de'
+    sh "mkdir -p ${docsRepoName}"
+    sh "chown 1000:1000 ${docsRepoName}"
 
     // Avoid Git "dubious ownership" error in checked out repository. Needed in
     // build containers with newer Git versions. Originates from Jenkins running
     // pipeline as root but repository being owned by user 1000. For more, see
     // https://stackoverflow.com/questions/72978485/git-submodule-update-failed-with-fatal-detected-dubious-ownership-in-repositor
-    sh "git config --global --add safe.directory \$(pwd)/docs-cibseven-de"
+    sh "git config --global --add safe.directory \$(pwd)/${docsRepoName}"
 
     // checkout repo once
-    def repoDownloaded = fileExists 'docs-cibseven-de/README.md'
+    def repoDownloaded = fileExists "${docsRepoName}/README.md"
     if (!repoDownloaded) {
-        checkout changelog: false, poll: false, scm: scmGit(branches: [[name: 'main']], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'docs-cibseven-de']], userRemoteConfigs: [[credentialsId: 'credential-github-cib-seven-access-token', url: 'https://github.com/cibseven/docs-cibseven-de.git']])
+        checkout changelog: false, poll: false, scm: scmGit(branches: [[name: 'main']], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: docsRepoName]], userRemoteConfigs: [[credentialsId: 'credential-github-cib-seven-access-token', url: "https://github.com/cibseven/${docsRepoName}.git"]])
     }
 
     updateRepo()
@@ -408,8 +414,8 @@ def pushToDocsRepo(String commmitMessage, Closure updateRepo) {
     // push to repo
     withCredentials([gitUsernamePassword(credentialsId: 'credential-github-cib-seven-access-token', gitToolName: 'Default')]) {
         sh """#!/bin/bash
-            chown -R 1000:1000 docs-cibseven-de
-            cd docs-cibseven-de
+            chown -R 1000:1000 ${docsRepoName}
+            cd ${docsRepoName}
             pwd
             git status
             git add *
