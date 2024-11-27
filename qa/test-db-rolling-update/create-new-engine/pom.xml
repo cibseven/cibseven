@@ -102,8 +102,8 @@
                 <configuration>
                   <artifactItems>
                     <artifactItem>
-                      <groupId>org.cibseven.bpm.distro</groupId>
-                      <artifactId>cibseven-sql-scripts</artifactId>
+                      <groupId>org.camunda.bpm.distro</groupId>
+                      <artifactId>camunda-sql-scripts</artifactId>
                       <version>${camunda.version.current}</version>
                       <type>test-jar</type>
                       <outputDirectory>${project.build.directory}/scripts-current</outputDirectory>
