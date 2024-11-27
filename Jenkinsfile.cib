@@ -263,13 +263,13 @@ pipeline {
                     zip zipFile: 'openAPI-index-html.zip', archive: true, overwrite: true, glob: 'engine-rest/docs/target/index.html'
                     archiveArtifacts artifacts: 'openAPI-index-html.zip', fingerprint: true
 
-                    String version = getDocsVersion()
+                    String docsVersion = getDocsVersion()
                     String docsRepoName = getDocsRepoName()
 
                     // deploy to github pages
                     pushToDocsRepo("Update open API index.html", {
-                        sh "mkdir -p ${docsRepoName}/rest/cibseven/${version}"
-                        sh "mv -f engine-rest/docs/target/index.html ${docsRepoName}/rest/cibseven/${version}/index.html"
+                        sh "mkdir -p ${docsRepoName}/rest/cibseven/${docsVersion}"
+                        sh "mv -f engine-rest/docs/target/index.html ${docsRepoName}/rest/cibseven/${docsVersion}/index.html"
                     })
 
                     // clean up
@@ -307,7 +307,7 @@ pipeline {
                         """
                     }
 
-                    String version = getDocsVersion()
+                    String docsVersion = getDocsVersion()
                     String docsRepoName = getDocsRepoName()
 
                     // put as artifact to jenkins job
@@ -316,9 +316,9 @@ pipeline {
 
                     // deploy to github pages
                     pushToDocsRepo("Update javaDocs", {
-                        sh "mkdir -p ${docsRepoName}/javadoc/cibseven/${version}"
-                        sh "rm -r ${docsRepoName}/javadoc/cibseven/${version}/*"
-                        sh "cp -Rf target/site/apidocs/. ${docsRepoName}/javadoc/cibseven/${version}/"
+                        sh "mkdir -p ${docsRepoName}/javadoc/cibseven/${docsVersion}"
+                        sh "rm -r ${docsRepoName}/javadoc/cibseven/${docsVersion}/*"
+                        sh "cp -Rf target/site/apidocs/. ${docsRepoName}/javadoc/cibseven/${docsVersion}/"
                     })
                 }
             }
@@ -390,7 +390,6 @@ def getDocsRepoName() {
 }
 
 def pushToDocsRepo(String commmitMessage, Closure updateRepo) {
-    String version = getDocsVersion()
     String docsRepoName = getDocsRepoName()
 
     // deploy to github pages
