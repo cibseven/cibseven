@@ -16,7 +16,7 @@
   <properties>
     <!-- camunda.version.current>${project.version}</camunda.version.current-->
     <camunda.version.previous>7.3.0</camunda.version.previous>
-    
+    <camunda.version.current>7.22.0</camunda.version.current>
     <version.h2>${version.h2-v1}</version.h2>
     <version.mariadb>${version.mariadb-v1}</version.mariadb>
   </properties>
@@ -24,8 +24,8 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-bom</artifactId>
+        <groupId>org.camunda.bpm</groupId>
+        <artifactId>camunda-bom</artifactId>
         <version>7.4.0</version>
         <scope>import</scope>
         <type>pom</type>
@@ -35,13 +35,13 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine</artifactId>
+      <groupId>org.camunda.bpm</groupId>
+      <artifactId>camunda-engine</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.cibseven.bpm.qa.upgrade</groupId>
-      <artifactId>cibseven-qa-upgrade-scenario-util</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.camunda.bpm.qa.upgrade</groupId>
+      <artifactId>camunda-qa-upgrade-scenario-util</artifactId>
+      <version>${camunda.version.current}</version>
     </dependency>
   </dependencies>
 
@@ -138,8 +138,8 @@
                 <configuration>
                   <artifactItems>
                     <artifactItem>
-                      <groupId>org.cibseven.bpm.distro</groupId>
-                      <artifactId>cibseven-sql-scripts</artifactId>
+                      <groupId>org.camunda.bpm.distro</groupId>
+                      <artifactId>camunda-sql-scripts</artifactId>
                       <version>7.4.0</version>
                       <type>test-jar</type>
                       <outputDirectory>${project.build.directory}/scripts-current</outputDirectory>
