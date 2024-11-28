@@ -44,6 +44,8 @@
                   <type>jar</type>
                 </artifactItem>
               </artifactItems>
+              <includes>openapi.json</includes>
+              <excludes>META-INF/**</excludes>
             </configuration>
           </execution>
         </executions>
@@ -69,7 +71,17 @@
             </goals>
             <phase>generate-resources</phase>
             <configuration>
-              <arguments>ci</arguments>
+              <arguments>ci --no-audit --no-fund</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>npm version</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <phase>generate-resources</phase>
+            <configuration>
+              <arguments>version --allow-same-version ${project.version}</arguments>
             </configuration>
           </execution>
           <execution>
