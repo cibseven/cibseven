@@ -137,7 +137,7 @@
 
   <profiles>
     <profile>
-      <id>integration-test-camunda-run</id>
+      <id>integration-test-run</id>
       <build>
         <plugins>
           <plugin>

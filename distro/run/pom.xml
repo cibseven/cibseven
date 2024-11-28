@@ -106,7 +106,7 @@
       </modules>
     </profile>
     <profile>
-      <id>integration-test-camunda-run</id>
+      <id>integration-test-run</id>
       <modules>
         <module>qa</module>
       </modules>

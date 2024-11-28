@@ -441,7 +441,7 @@ pipeline {
             cambpmConditionalRetry([
               agentLabel: 'chrome_112',
               runSteps: {
-                cambpmRunMaven('distro/run/', 'clean install -Pintegration-test-camunda-run', runtimeStash: true, archiveStash: true, qaStash: true,
+                cambpmRunMaven('distro/run/', 'clean install -Pintegration-test-run', runtimeStash: true, archiveStash: true, qaStash: true,
                     jdkVersion: 'jdk-17-latest')
               },
               postFailure: {
