@@ -3,7 +3,7 @@ This is a distribution of
        CIB seven v1.0
 
 visit
-       http://docs.cibseven.de/
+       http://docs.cibseven.org/
 
 License information can be found in the LICENSE file.
 

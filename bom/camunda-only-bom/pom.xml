@@ -12,7 +12,7 @@
   <artifactId>cibseven-only-bom</artifactId>
   <packaging>pom</packaging>
   <name>CIB seven Only - Bom</name>
-  <url>https://cibseven.de</url>
+  <url>https://cibseven.org</url>
 
   <description>CIB seven Only bill of material</description>
 

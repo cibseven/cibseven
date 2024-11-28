@@ -37,7 +37,7 @@ pipeline {
         booleanParam(
             name: 'DEPLOY',
             defaultValue: false,
-            description: 'Deploy release artifacts to artifacts.cibseven.de'
+            description: 'Deploy release artifacts to artifacts.cibseven.org'
         )
     }
 
@@ -108,7 +108,7 @@ pipeline {
                                 org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
                                 ${COMMAND} \
                                 -Dnexus.release.repository.id=mvn-cibseven-public \
-                                -Dnexus.release.repository=https://artifacts.cibseven.de/repository/public
+                                -Dnexus.release.repository=https://artifacts.cibseven.org/repository/public
                         """
                     }
                 }

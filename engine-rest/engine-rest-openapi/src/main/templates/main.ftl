@@ -1,6 +1,6 @@
 <#import "/lib/utils.ftl" as lib>
 
-<#assign docsUrl = "https://docs.cibseven.de/manual/${docsVersion}">
+<#assign docsUrl = "https://docs.cibseven.org/manual/${docsVersion}">
 {
   "openapi": "3.0.2",
   "info": {
