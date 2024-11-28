@@ -110,23 +110,6 @@
     </profile>
 
     <profile>
-      <id>distro-ce</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <modules>
-        <!-- This profile is run in the CI after the webapps were built (platform-ASSEMBLY);
-          It should activate any module that has a dependency to the webapps -->
-        <module>spring-boot-starter</module>
-
-        <module>distro/license-book</module>
-        <module>distro/jboss</module>
-        <module>distro/tomcat</module>
-        <module>distro/run</module>
-      </modules>
-    </profile>
-
-    <profile>
       <id>javadocs</id>
       <build>
         <plugins>
@@ -215,16 +198,6 @@
       </activation>
       <modules>
         <module>distro/run</module>
-      </modules>
-    </profile>
-
-    <profile>
-      <id>distro-starter</id>
-      <!-- This profile is run in the release CI for building the enterprise artifacts
-          It can be removed if the distro job is merged with the assembly job and
-          distro-ce is not used for building the spring boot starter -->
-      <modules>
-        <module>spring-boot-starter</module>
       </modules>
     </profile>
 

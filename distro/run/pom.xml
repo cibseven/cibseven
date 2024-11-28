@@ -85,29 +85,14 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <modules>
+        <module>distro</module>
         <module>modules</module>
         <module>modules/rest</module>
         <module>modules/oauth2</module>
         <module>modules/example</module>
+        <module>modules/webapps</module>
         <module>core</module>
         <module>assembly</module>
-        <module>qa</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>distro-ce</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <modules>
-        <module>modules/webapps</module>
-        <module>distro</module>
-        <module>qa</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>integration-test-camunda-run</id>
-      <modules>
         <module>qa</module>
       </modules>
     </profile>
