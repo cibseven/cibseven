@@ -317,7 +317,7 @@ pipeline {
                     // deploy to github pages
                     pushToDocsRepo("Update javaDocs", {
                         sh "mkdir -p ${docsRepoName}/javadoc/cibseven/${docsVersion}"
-                        sh "rm -r ${docsRepoName}/javadoc/cibseven/${docsVersion}/*"
+                        sh "rm -r ${docsRepoName}/javadoc/cibseven/${docsVersion}/* || true"
                         sh "cp -Rf target/site/apidocs/. ${docsRepoName}/javadoc/cibseven/${docsVersion}/"
                     })
                 }
