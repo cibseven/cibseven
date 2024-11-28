@@ -26,7 +26,7 @@ Found a bug in the code or have a feature that you would like to see in the futu
 Try to apply our best practices for creating issues:
 
 * Only Raise an issue if your request requires a code change in CIB seven
-  * If you want to contact the CIB seven customer support, please go to [Contact](https://cibseven.org/kontakt/).
+  * If you want to contact the CIB seven customer support, please go to [Contact](https://cibseven.org/en/contact/).
   * If you have an understanding question or need help building your solution, check out our [Discussions](https://github.com/orgs/cibseven/discussions).
 * Create a high-quality issue:
   * Give enough context so that a person who doesn't know your project can understand your request
