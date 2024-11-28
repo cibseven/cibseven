@@ -1,6 +1,6 @@
 # Find more available configuration properties on the following pages of the documentation.
-# https://docs.cibseven.de/manual/latest/user-guide/cibseven-run/#configure-cibseven-bpm-run
-# https://docs.cibseven.de/manual/latest/user-guide/spring-boot-integration/configuration/#camunda-engine-properties
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#configure-cibseven-bpm-run
+# https://docs.cibseven.org/manual/latest/user-guide/spring-boot-integration/configuration/#camunda-engine-properties
 
 camunda.bpm:
   admin-user:
@@ -9,7 +9,7 @@ camunda.bpm:
   filter:
     create: All tasks
   run:
-# https://docs.cibseven.de/manual/latest/user-guide/cibseven-run/#cross-origin-resource-sharing
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#cross-origin-resource-sharing
     cors:
       enabled: true
       allowed-origins: "*"
@@ -17,7 +17,7 @@ camunda.bpm:
       disable-wadl: false
     deployment:
       deploy-changed-only: true
-# https://docs.cibseven.de/manual/latest/user-guide/cibseven-run/#example-application
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#example-application
     example:
       enabled: true
 

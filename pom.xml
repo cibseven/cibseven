@@ -295,13 +295,13 @@
       <!-- Required for local builds by community users on master branch -->
       <id>mvn-cibseven-public</id>
       <name>CIB seven Public Repository</name>
-      <url>https://artifacts.cibseven.de/repository/public</url>
+      <url>https://artifacts.cibseven.org/repository/public</url>
     </repository>
     <repository>
       <!-- Required for local builds by developers on maintainance branches -->
       <id>mvn-cibseven-snapshots</id>
       <name>CIB seven Snapshots repository</name>
-      <url>https://artifacts.cibseven.de/repository/snapshots</url>
+      <url>https://artifacts.cibseven.org/repository/snapshots</url>
     </repository>
   </repositories>
   
@@ -317,7 +317,7 @@
     <url>https://www.cib.de/</url>
   </organization>
 
-  <url>https://cibseven.de/</url>
+  <url>https://cibseven.org/</url>
 
   <developers>
     <developer>

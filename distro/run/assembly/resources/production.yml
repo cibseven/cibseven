@@ -1,10 +1,10 @@
 # This configuration is intended for production use and was created with respect to the security guide.
 # The provided links to documentation guides for each property will give more information about the purpose of each property.
-# security guide: https://docs.cibseven.de/manual/latest/user-guide/security/
+# security guide: https://docs.cibseven.org/manual/latest/user-guide/security/
 
 camunda.bpm:
-# https://docs.cibseven.de/manual/latest/user-guide/security/#http-header-security-in-webapps
-# https://docs.cibseven.de/manual/latest/webapps/shared-options/header-security/
+# https://docs.cibseven.org/manual/latest/user-guide/security/#http-header-security-in-webapps
+# https://docs.cibseven.org/manual/latest/webapps/shared-options/header-security/
   webapp:
     csrf:
       enable-same-site-cookie: true
@@ -12,27 +12,27 @@ camunda.bpm:
     header-security:
       hsts-disabled: false
 
-# https://docs.cibseven.de/manual/latest/user-guide/security/#authorization
-# https://docs.cibseven.de/manual/latest/user-guide/process-engine/authorization-service/
+# https://docs.cibseven.org/manual/latest/user-guide/security/#authorization
+# https://docs.cibseven.org/manual/latest/user-guide/process-engine/authorization-service/
   authorization.enabled: true
 
   generic-properties.properties:
-# https://docs.cibseven.de/manual/latest/user-guide/security/#variable-values-from-untrusted-sources
+# https://docs.cibseven.org/manual/latest/user-guide/security/#variable-values-from-untrusted-sources
     deserialization-type-validation-enabled: true
     deserialization-allowed-packages:
     deserialization-allowed-classes:
-# https://docs.cibseven.de/manual/latest/user-guide/security/#password-policy
-# https://docs.cibseven.de/manual/latest/user-guide/process-engine/password-policy/
+# https://docs.cibseven.org/manual/latest/user-guide/security/#password-policy
+# https://docs.cibseven.org/manual/latest/user-guide/process-engine/password-policy/
     enable-password-policy: true
 
   run:
-# https://docs.cibseven.de/manual/latest/user-guide/security/#authentication
-# https://docs.cibseven.de/manual/latest/user-guide/cibseven-run/#authentication
+# https://docs.cibseven.org/manual/latest/user-guide/security/#authentication
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#authentication
     auth.enabled: true
     rest.disable-wadl: true
     deployment.deploy-changed-only: true
-# https://docs.cibseven.de/manual/latest/user-guide/process-engine/identity-service/#configuration-properties-of-the-ldap-plugin
-# https://docs.cibseven.de/manual/latest/user-guide/cibseven-run/#ldap-identity-service
+# https://docs.cibseven.org/manual/latest/user-guide/process-engine/identity-service/#configuration-properties-of-the-ldap-plugin
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#ldap-identity-service
 # Uncomment this section to enable LDAP support for CIB seven Run
 #    ldap:
 #      enabled: true
@@ -55,8 +55,8 @@ camunda.bpm:
 #      group-name-attribute: cn
 #      group-member-attribute: member
 #      sort-control-supported: false
-# https://docs.cibseven.de/manual/latest/user-guide/process-engine/authorization-service/#the-administrator-authorization-plugin
-# https://docs.cibseven.de/manual/latest/user-guide/cibseven-run/#ldap-administrator-authorization
+# https://docs.cibseven.org/manual/latest/user-guide/process-engine/authorization-service/#the-administrator-authorization-plugin
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#ldap-administrator-authorization
 # Uncomment this section to grant administrator authorizations to an existing LDAP user or group
 #    admin-auth:
 #      enabled: true
@@ -64,7 +64,7 @@ camunda.bpm:
 #      administrator-group-name: admins
 
 server:
-# https://docs.cibseven.de/manual/latest/user-guide/cibseven-run/#https
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#https
 # do not use the provided certificate in production
   ssl:
     key-store: classpath:keystore.p12
@@ -74,22 +74,22 @@ server:
     key-password: camunda
   port: 8443
 
-# https://docs.cibseven.de/manual/latest/user-guide/security/#http-header-security-in-webapps
-# https://docs.cibseven.de/manual/latest/webapps/shared-options/header-security/
+# https://docs.cibseven.org/manual/latest/user-guide/security/#http-header-security-in-webapps
+# https://docs.cibseven.org/manual/latest/webapps/shared-options/header-security/
   servlet.session.cookie:
     secure: true
     http-only: true
 
-# https://docs.cibseven.de/manual/latest/user-guide/cibseven-run/#logging
-# https://docs.cibseven.de/manual/latest/user-guide/logging/#process-engine
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#logging
+# https://docs.cibseven.org/manual/latest/user-guide/logging/#process-engine
 logging:
    level.root: INFO
    file.name: logs/cibseven-run.log
 
 # datasource configuration is required
 # do not use the H2 databse in production
-# https://docs.cibseven.de/manual/latest/user-guide/cibseven-run/#connect-to-a-database
-# https://docs.cibseven.de/manual/latest/user-guide/cibseven-run/#database
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#connect-to-a-database
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#database
 spring.datasource:
   url: jdbc:h2:./camunda-h2-test-production/process-engine;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
   driver-class-name: org.h2.Driver

@@ -19,7 +19,7 @@
 var _links = [
   {
     label: 'DOCUMENTATION',
-    href: 'https://docs.cibseven.de/manual/latest/webapps/',
+    href: 'https://docs.cibseven.org/manual/latest/webapps/',
     description: 'DOCUMENTATION_DESCRIPTION'
   }
 ];
