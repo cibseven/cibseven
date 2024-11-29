@@ -341,8 +341,12 @@ pipeline {
     }
 }
 
+// returns "1.2" for versions
+// - "1.2.0"
+// - "1.2.3-SNAPSHOT"
 def getDocsVersion() {
-    return mavenProjectInformation.version.replace(".0-SNAPSHOT", "")
+    List version = mavenProjectInformation.version.tokenize('.')
+    return "${version[0]}.${version[1]}"
 }
 
 def getDocsRepoName() {
