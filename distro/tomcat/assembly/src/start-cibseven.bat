@@ -2,7 +2,7 @@
 
 set "CATALINA_HOME=%CD%\server\apache-tomcat-${version.tomcat}"
 
-echo "starting CIB seven 1.0 on Apache Tomcat ${version.tomcat}"
+echo "starting CIB seven 1.1.0 on Apache Tomcat ${version.tomcat}"
 
 cd server\apache-tomcat-${version.tomcat}\bin\
 start startup.bat
