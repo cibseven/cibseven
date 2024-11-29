@@ -1,6 +1,6 @@
 This is a distribution of
 
-       CIB seven v1.0
+       CIB seven v1.1.0
 
 visit
        https://docs.cibseven.org
