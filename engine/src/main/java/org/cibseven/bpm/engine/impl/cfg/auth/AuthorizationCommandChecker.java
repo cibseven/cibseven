@@ -16,6 +16,36 @@
  */
 package org.cibseven.bpm.engine.impl.cfg.auth;
 
+import static org.cibseven.bpm.engine.authorization.Authorization.ANY;
+import static org.cibseven.bpm.engine.authorization.Permissions.CREATE;
+import static org.cibseven.bpm.engine.authorization.Permissions.CREATE_INSTANCE;
+import static org.cibseven.bpm.engine.authorization.Permissions.DELETE;
+import static org.cibseven.bpm.engine.authorization.Permissions.DELETE_HISTORY;
+import static org.cibseven.bpm.engine.authorization.Permissions.DELETE_INSTANCE;
+import static org.cibseven.bpm.engine.authorization.Permissions.READ;
+import static org.cibseven.bpm.engine.authorization.Permissions.READ_HISTORY;
+import static org.cibseven.bpm.engine.authorization.Permissions.READ_INSTANCE;
+import static org.cibseven.bpm.engine.authorization.Permissions.READ_TASK;
+import static org.cibseven.bpm.engine.authorization.Permissions.TASK_ASSIGN;
+import static org.cibseven.bpm.engine.authorization.Permissions.TASK_WORK;
+import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE;
+import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE_INSTANCE;
+import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE_TASK;
+import static org.cibseven.bpm.engine.authorization.Resources.BATCH;
+import static org.cibseven.bpm.engine.authorization.Resources.DECISION_DEFINITION;
+import static org.cibseven.bpm.engine.authorization.Resources.DECISION_REQUIREMENTS_DEFINITION;
+import static org.cibseven.bpm.engine.authorization.Resources.DEPLOYMENT;
+import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION;
+import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_INSTANCE;
+import static org.cibseven.bpm.engine.authorization.Resources.TASK;
+
+import org.cibseven.bpm.engine.authorization.Permission;
+import org.cibseven.bpm.engine.authorization.ProcessDefinitionPermissions;
+import org.cibseven.bpm.engine.authorization.ProcessInstancePermissions;
+import org.cibseven.bpm.engine.authorization.Resources;
+import org.cibseven.bpm.engine.authorization.SystemPermissions;
+import org.cibseven.bpm.engine.authorization.TaskPermissions;
+import org.cibseven.bpm.engine.authorization.UserOperationLogCategoryPermissions;
 import org.cibseven.bpm.engine.history.HistoricCaseInstance;
 import org.cibseven.bpm.engine.history.HistoricDecisionInstance;
 import org.cibseven.bpm.engine.history.HistoricProcessInstance;
@@ -29,23 +59,19 @@ import org.cibseven.bpm.engine.impl.db.PermissionCheckBuilder;
 import org.cibseven.bpm.engine.impl.dmn.entity.repository.DecisionDefinitionEntity;
 import org.cibseven.bpm.engine.impl.dmn.entity.repository.DecisionRequirementsDefinitionEntity;
 import org.cibseven.bpm.engine.impl.history.event.HistoricExternalTaskLogEntity;
-import org.cibseven.bpm.engine.impl.persistence.entity.*;
+import org.cibseven.bpm.engine.impl.persistence.entity.AuthorizationManager;
+import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.cibseven.bpm.engine.impl.persistence.entity.HistoricJobLogEventEntity;
+import org.cibseven.bpm.engine.impl.persistence.entity.HistoricProcessInstanceEntity;
+import org.cibseven.bpm.engine.impl.persistence.entity.HistoricTaskInstanceEntity;
+import org.cibseven.bpm.engine.impl.persistence.entity.HistoricVariableInstanceEntity;
+import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
+import org.cibseven.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
+import org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity;
 import org.cibseven.bpm.engine.repository.CaseDefinition;
 import org.cibseven.bpm.engine.repository.DecisionDefinition;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.CaseExecution;
-
-import static org.cibseven.bpm.engine.authorization.Authorization.ANY;
-import static org.cibseven.bpm.engine.authorization.Permissions.*;
-import static org.cibseven.bpm.engine.authorization.Resources.*;
-
-import org.cibseven.bpm.engine.authorization.Permission;
-import org.cibseven.bpm.engine.authorization.ProcessDefinitionPermissions;
-import org.cibseven.bpm.engine.authorization.ProcessInstancePermissions;
-import org.cibseven.bpm.engine.authorization.Resources;
-import org.cibseven.bpm.engine.authorization.SystemPermissions;
-import org.cibseven.bpm.engine.authorization.TaskPermissions;
-import org.cibseven.bpm.engine.authorization.UserOperationLogCategoryPermissions;
 
 /**
  * {@link CommandChecker} that uses the {@link AuthorizationManager} to perform
