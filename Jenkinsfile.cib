@@ -214,7 +214,7 @@ pipeline {
                                 -DskipTests \
                                 org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
                                 deploy \
-                                -Dnexus.snapshot.repository.id=snapshots \
+                                -Dnexus.snapshot.repository.id=mvn-cibseven-snapshots \
                                 -Dnexus.snapshot.repository=https://artifacts.cibseven.org/repository/snapshots
                         """
                     }
@@ -254,7 +254,7 @@ pipeline {
                                 -DskipTests \
                                 org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
                                 deploy \
-                                -Dnexus.release.repository.id=public \
+                                -Dnexus.release.repository.id=mvn-cibseven-public \
                                 -Dnexus.release.repository=https://artifacts.cibseven.org/repository/public
                         """
                     }
