@@ -60,8 +60,8 @@ pipeline {
             choices: ['Auto', 'Run', 'Disable'],
             description: """Only for master branch;
                 When
-                - RELEASE=false, DEPLOY=Auto|Run: deploy snapshot artifacts to artifacts.cibseven.org
-                - RELEASE=true, DEPLOY=Run: deploy release artifacts to artifacts.cibseven.org
+                - RELEASE=false, DEPLOY=Auto|Run: deploy artifacts to artifacts.cibseven.org
+                - RELEASE=true, DEPLOY=Run: deploy artifacts to artifacts.cibseven.org
             """
         )
         choice(
@@ -141,7 +141,6 @@ pipeline {
                 script {
                     withMaven(options: [artifactsPublisher(fingerprintFilesDisabled: true, archiveFilesDisabled: true)]) {
                         sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
-                        sh "mvn -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} install -DskipTests"
                     }
                 }
             }
@@ -179,83 +178,29 @@ pipeline {
             }
         }
 
-        stage('Deploy snapshot to artifacts.cibseven.org') {
+        stage('Deploy to artifacts.cibseven.org') {
             when {
                 anyOf {
-                    // allow deploy of snapshots from main branch with RELEASE=false, DEPLOY='Run|Auto'
+                    // allow deploy of snapshots from main branch with RELEASE=false, DEPLOY='Auto'
                     allOf {
                         branch 'main'
-                        expression { params.RELEASE == false }
-                        anyOf {
-                            expression { params.DEPLOY == 'Auto' }
-                            expression { params.DEPLOY == 'Run' }
-                        }
+                        expression { params.RELEASE == false } // it is default value
+                        expression { params.DEPLOY == 'Auto' } // it is default value
+                        expression { mavenProjectInformation.version.endsWith("-SNAPSHOT") == true }
                     }
-                    // allow deploy of snapshots from feature/release branch with RELEASE=false, DEPLOY='Run', but not with DEPLOY='Auto'
-                    allOf {
-                        expression { params.RELEASE == false }
-                        expression { params.DEPLOY == 'Run' }
-                    }
+                    // allow deploy DEPLOY='Run', but not with DEPLOY='Auto'.
+                    expression { params.DEPLOY == 'Run' }
                 }
             }
             steps {
                 script {
-                    if (!mavenProjectInformation.version.endsWith("-SNAPSHOT")) {
-                        error("Version should contain \"-SNAPSHOT\" postfix to deploy into artifacts.cibseven.org/repository/snapshots; actual value: ${mavenProjectInformation.version}")
-                    }
-
-                    sh("mvn -pl org.cibseven.bpm:cibseven-bom,org.cibseven.bpm:cibseven-only-bom,org.cibseven.bpm:cibseven-bom-root install -DskipTests") || true
-                    sh "mvn -f qa/integration-tests-webapps/integration-tests/pom.xml install -DskipTests"
-                    sh "mvn -f qa/integration-tests-webapps/pom.xml install -DskipTests"
-
                     withMaven(options: [artifactsPublisher(archiveFilesDisabled: false)]) {
                         sh """
-                            mvn -f ${pipelineParams.pom} \
+                            mvn -T4 \
                                 -DskipTests \
+                                -Pwebapps-integration \
                                 org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
-                                deploy \
-                                -Dnexus.snapshot.repository.id=mvn-cibseven-snapshots \
-                                -Dnexus.snapshot.repository=https://artifacts.cibseven.org/repository/snapshots
-                        """
-                    }
-                }
-            }
-        }
-
-        stage('Deploy release to artifacts.cibseven.org') {
-            when {
-                anyOf {
-                    // allow deploy of release artifacts from main branch with RELEASE=true, DEPLOY='Run', but not with DEPLOY='Auto'
-                    allOf {
-                        branch 'main'
-                        expression { params.RELEASE == true }
-                        expression { params.DEPLOY == 'Run' }
-                    }
-                    // allow deploy of release artifacts from feature/release branch with RELEASE=true, DEPLOY='Run', but not with DEPLOY='Auto'
-                    allOf {
-                        expression { params.RELEASE == true }
-                        expression { params.DEPLOY == 'Run' }
-                    }
-                }
-            }
-            steps {
-                script {
-                    if (mavenProjectInformation.version.endsWith("-SNAPSHOT")) {
-                        error("Version should not contain \"-SNAPSHOT\" postfix to deploy into artifacts.cibseven.org/repository/public; actual value: ${mavenProjectInformation.version}")
-                    }
-
-                    withMaven(options: [artifactsPublisher(archiveFilesDisabled: false)]) {
-                        sh("mvn -pl org.cibseven.bpm:cibseven-bom,org.cibseven.bpm:cibseven-only-bom,org.cibseven.bpm:cibseven-bom-root install -DskipTests") || true
-                        sh "mvn -f qa/integration-tests-webapps/integration-tests/pom.xml install -DskipTests"
-                        sh "mvn -f qa/integration-tests-webapps/pom.xml install -DskipTests"
-
-                        sh """
-                            mvn -f ${pipelineParams.pom} \
-                                -DskipTests \
-                                org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
-                                deploy \
-                                -Dnexus.release.repository.id=mvn-cibseven-public \
-                                -Dnexus.release.repository=https://artifacts.cibseven.org/repository/public
+                                clean deploy
                         """
                     }
                 }
