@@ -313,18 +313,18 @@
   </licenses>
 
   <organization>
-    <name>CIB software GmbH</name>
-    <url>https://www.cib.de/</url>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
   </organization>
 
-  <url>https://cibseven.org/</url>
+  <url>https://cibseven.org</url>
 
   <developers>
     <developer>
       <id>CIB seven</id>
       <name>CIB seven Community</name>
-      <organization>cib.de</organization>
-      <organizationUrl>https://www.cib.de</organizationUrl>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
     </developer>
   </developers>
 
@@ -332,7 +332,7 @@
     <url>https://github.com/cibseven/cibseven</url>
     <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
     <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
-    <tag>cibseven-1.0</tag>
+    <tag>v1.1.0</tag>
   </scm>
 
   <issueManagement>
