@@ -194,10 +194,11 @@ pipeline {
             }
             steps {
                 script {
-                    String repository = "snapshots" 
-                    if (!mavenProjectInformation.version.endsWith("-SNAPSHOT")) {
-                        repository = "public" 
-                    }
+                    String repository = (mavenProjectInformation.version.endsWith("-SNAPSHOT"))
+                        ?   "-Dnexus.snapshot.repository.id=mvn-cibseven-snapshots " +
+                            "-Dnexus.snapshot.repository=https://artifacts.cibseven.org/repository/snapshots"
+                        :   "-Dnexus.release.repository.id=mvn-cibseven-public " +
+                            "-Dnexus.release.repository=https://artifacts.cibseven.org/repository/public"
 
                     withMaven(options: [artifactsPublisher(archiveFilesDisabled: false)]) {
                         sh """
@@ -206,8 +207,7 @@ pipeline {
                                 -Pwebapps-integration \
                                 org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
                                 clean deploy \
-                                -Dnexus.release.repository.id=mvn-cibseven-${repository} \
-                                -Dnexus.release.repository=https://artifacts.cibseven.org/repository/${repository}
+                                ${repository}
                         """
                     }
                 }
