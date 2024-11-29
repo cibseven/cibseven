@@ -196,7 +196,7 @@ pipeline {
                 script {
                     withMaven(options: [artifactsPublisher(archiveFilesDisabled: false)]) {
                         sh """
-                            mvn -T4 \
+                            mvn -T4 -U \
                                 -DskipTests \
                                 -Pwebapps-integration \
                                 org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
