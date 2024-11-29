@@ -19,11 +19,12 @@ package org.cibseven.bpm.engine.rest.sub.runtime.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import javax.ws.rs.core.Response.Status;
-
+import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.ProcessEngine;
+import org.cibseven.bpm.engine.TaskService;
+import org.cibseven.bpm.engine.exception.NullValueException;
 import org.cibseven.bpm.engine.history.HistoricProcessInstance;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.identity.Authentication;
@@ -42,6 +43,7 @@ public class ProcessInstanceCommentResourceImpl implements ProcessInstanceCommen
     this.processInstanceId = processInstanceId;
   }
 
+  @Override
   public List<CommentDto> getComments() {
     if (!isHistoryEnabled()) {
       return Collections.emptyList();
@@ -57,6 +59,66 @@ public class ProcessInstanceCommentResourceImpl implements ProcessInstanceCommen
     }
 
     return comments;
+  }
+
+  /**
+   * Deletes a comment by a given commentId
+   */
+  @Override
+  public void deleteComment(String commentId) {
+    ensureHistoryEnabled(Status.FORBIDDEN);
+    ensureProcessInstanceExists(Status.NOT_FOUND);
+
+    TaskService taskService = engine.getTaskService();
+    try {
+      taskService.deleteProcessInstanceComment(processInstanceId, commentId);
+    } catch (AuthorizationException e) {
+      throw e;
+    } catch (NullValueException e) {
+      throw new InvalidRequestException(Status.BAD_REQUEST, e.getMessage());
+    }
+  }
+
+  /**
+   * Updates message for a given processInstanceId and commentId
+   */
+  @Override
+  public void updateComment(CommentDto comment) {
+    ensureHistoryEnabled(Status.FORBIDDEN);
+    ensureProcessInstanceExists(Status.NOT_FOUND);
+
+    TaskService taskService = engine.getTaskService();
+    try {
+      taskService.updateProcessInstanceComment(processInstanceId, comment.getId(), comment.getMessage());
+    } catch (AuthorizationException e) {
+      throw e;
+    } catch (NullValueException e) {
+      throw new InvalidRequestException(Status.BAD_REQUEST, e.getMessage());
+    }
+  }
+
+  /**
+   * Deletes all comments by a given processInstanceId
+   */
+  @Override
+  public void deleteComments() {
+    ensureHistoryEnabled(Status.FORBIDDEN);
+    ensureProcessInstanceExists(Status.NOT_FOUND);
+    TaskService taskService = engine.getTaskService();
+
+    try {
+      taskService.deleteProcessInstanceComments(processInstanceId);
+    } catch (AuthorizationException e) {
+      throw e;
+    } catch (NullValueException e) {
+      throw new InvalidRequestException(Status.BAD_REQUEST, e.getMessage());
+    }
+  }
+
+  private void ensureHistoryEnabled(Status status) {
+    if (!isHistoryEnabled()) {
+      throw new InvalidRequestException(status, "History is not enabled");
+    }
   }
 
   private boolean isHistoryEnabled() {

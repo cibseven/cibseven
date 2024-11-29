@@ -16,6 +16,9 @@
  */
 package org.cibseven.bpm.engine.impl.cmd;
 
+import static org.cibseven.bpm.engine.ProcessEngineConfiguration.HISTORY_REMOVAL_TIME_STRATEGY_START;
+import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -30,9 +33,6 @@ import org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.task.Comment;
 import org.cibseven.bpm.engine.task.Event;
-
-import static org.cibseven.bpm.engine.ProcessEngineConfiguration.HISTORY_REMOVAL_TIME_STRATEGY_START;
-import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 
 
 /**
@@ -78,10 +78,7 @@ public class AddCommentCmd implements Command<Comment>, Serializable {
       provideRemovalTime(comment);
     }
 
-    String eventMessage = message.replaceAll("\\s+", " ");
-    if (eventMessage.length() > 163) {
-      eventMessage = eventMessage.substring(0, 160) + "...";
-    }
+    String eventMessage = comment.toEventMessage(message);
     comment.setMessage(eventMessage);
 
     comment.setFullMessage(message);

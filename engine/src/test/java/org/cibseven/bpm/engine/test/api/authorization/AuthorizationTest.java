@@ -50,6 +50,7 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.CaseInstance;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
+import org.cibseven.bpm.engine.task.Comment;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.VariableMap;
@@ -69,6 +70,8 @@ public abstract class AuthorizationTest extends PluggableProcessEngineTest {
 
   protected static final String VARIABLE_NAME = "aVariableName";
   protected static final String VARIABLE_VALUE = "aVariableValue";
+  protected static final String TASK_ID = "myTask";
+
   protected List<String> deploymentIds = new ArrayList<>();
 
   @Before
@@ -285,6 +288,10 @@ public abstract class AuthorizationTest extends PluggableProcessEngineTest {
       taskService.deleteTask(taskId, cascade);
       return null;
     });
+  }
+
+  protected Comment createComment(String taskId, String processInstanceId, String message) {
+    return runWithoutAuthorization(() -> taskService.createComment(taskId, processInstanceId, message));
   }
 
   protected void addCandidateUser(final String taskId, final String user) {
