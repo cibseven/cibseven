@@ -11,7 +11,6 @@ import groovy.transform.Field
 
 @Field Logger log = new Logger(this)
 @Field MavenProjectInformation mavenProjectInformation = null
-@Field List<String> helmChartPaths = []
 @Field Map pipelineParams = [
     pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
     mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
@@ -24,9 +23,6 @@ pipeline {
         kubernetes {
             yaml BuildPodCreator.cibStandardPod()
                     .withContainerFromName(pipelineParams.mvnContainerName)
-                    .withHelm3Container()
-                    .withKanikoContainer()
-                    .withSyftContainer()
                     .asYaml()
             defaultContainer pipelineParams.mvnContainerName
         }
