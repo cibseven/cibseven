@@ -220,7 +220,7 @@ pipeline {
                         sh """
                             mvn -T4 -U \
                                 clean deploy \
-                                -Pwebapps-integration,sonatype-oss-release \
+                                -Psonatype-oss-release \
                                 -Dskip.cibseven.release=false \
                                 -DskipTests \
                                 -Dgpg.passphrase=${params.DEPLOY_MAVEN_CENTRAL_PASSWORD}
