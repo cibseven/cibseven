@@ -195,7 +195,7 @@ pipeline {
             }
             steps {
                 script {
-                    withMaven(options: [artifactsPublisher(archiveFilesDisabled: true)]) {
+                    withMaven(options: []) {
                         sh """
                             mvn -T4 -U \
                                 -DskipTests \
@@ -216,7 +216,7 @@ pipeline {
             }
             steps {
                 script {
-                    withMaven(options: [artifactsPublisher(archiveFilesDisabled: true)]) {
+                    withMaven(options: []) {
                         sh """
                             mvn -T4 -U \
                                 clean deploy \
