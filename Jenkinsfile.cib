@@ -256,7 +256,7 @@ pipeline {
                     String docsRepoName = getDocsRepoName()
 
                     // deploy to github pages
-                    pushToDocsRepo("Update open API index.html", {
+                    pushToDocsRepo("Update open API index.html to ${docsVersion}", {
                         sh "mkdir -p ${docsRepoName}/rest/cibseven/${docsVersion}"
                         sh "mv -f engine-rest/docs/target/index.html ${docsRepoName}/rest/cibseven/${docsVersion}/index.html"
                     })
@@ -304,7 +304,7 @@ pipeline {
                     archiveArtifacts artifacts: 'javaDocs.zip', fingerprint: true
 
                     // deploy to github pages
-                    pushToDocsRepo("Update javaDocs", {
+                    pushToDocsRepo("Update javaDocs to ${docsVersion}", {
                         sh "mkdir -p ${docsRepoName}/javadoc/cibseven/${docsVersion}"
                         sh "rm -r ${docsRepoName}/javadoc/cibseven/${docsVersion}/* || true"
                         sh "cp -Rf target/site/apidocs/. ${docsRepoName}/javadoc/cibseven/${docsVersion}/"
