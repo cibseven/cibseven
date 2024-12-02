@@ -16,6 +16,14 @@
  */
 package org.cibseven.bpm.engine.test.api.runtime;
 
+import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
+import static org.cibseven.bpm.engine.test.util.ExecutionAssert.assertThat;
+import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,14 +48,6 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
-
-import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
-import static org.cibseven.bpm.engine.test.util.ExecutionAssert.assertThat;
-import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 
 /**
  * @author Svetlana Dorokhova.

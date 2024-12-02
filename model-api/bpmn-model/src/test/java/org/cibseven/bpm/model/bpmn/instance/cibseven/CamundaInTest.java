@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.model.bpmn.instance.camunda;
+package org.cibseven.bpm.model.bpmn.instance.cibseven;
 
 import org.cibseven.bpm.model.bpmn.instance.BpmnModelElementInstanceTest;
 

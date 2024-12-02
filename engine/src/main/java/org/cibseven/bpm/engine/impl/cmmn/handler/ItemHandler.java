@@ -63,12 +63,12 @@ import org.cibseven.bpm.model.cmmn.instance.PlanItemDefinition;
 import org.cibseven.bpm.model.cmmn.instance.RepetitionRule;
 import org.cibseven.bpm.model.cmmn.instance.RequiredRule;
 import org.cibseven.bpm.model.cmmn.instance.Sentry;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaCaseExecutionListener;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaExpression;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaField;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaScript;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaString;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaVariableListener;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaCaseExecutionListener;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaExpression;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaField;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaScript;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaString;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaVariableListener;
 import org.cibseven.bpm.model.xml.instance.ModelElementInstance;
 import org.cibseven.bpm.model.xml.type.ModelElementType;
 

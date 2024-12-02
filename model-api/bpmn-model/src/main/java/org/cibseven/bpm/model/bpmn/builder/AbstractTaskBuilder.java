@@ -17,13 +17,7 @@
 package org.cibseven.bpm.model.bpmn.builder;
 
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.cibseven.bpm.model.bpmn.instance.ExtensionElements;
 import org.cibseven.bpm.model.bpmn.instance.Task;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaExecutionListener;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaInputOutput;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaInputParameter;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaOutputParameter;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaTaskListener;
 
 /**
  * @author Sebastian Menski

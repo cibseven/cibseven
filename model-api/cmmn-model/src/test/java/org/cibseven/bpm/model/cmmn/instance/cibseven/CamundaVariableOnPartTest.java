@@ -14,10 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.model.cmmn.instance.camunda;
+package org.cibseven.bpm.model.cmmn.instance.cibseven;
 
 import static org.cibseven.bpm.model.cmmn.impl.CmmnModelConstants.CAMUNDA_NS;
-import static org.cibseven.bpm.model.cmmn.impl.CmmnModelConstants.CMMN11_NS;
 
 import java.util.Arrays;
 import java.util.Collection;

@@ -47,7 +47,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.UserTask;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaTaskListener;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaTaskListener;
 import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Rule;

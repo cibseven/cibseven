@@ -14,20 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.model.bpmn.impl.instance.camunda;
-
-import org.cibseven.bpm.model.bpmn.impl.instance.BpmnModelElementInstanceImpl;
-import org.cibseven.bpm.model.bpmn.instance.ResourceAssignmentExpression;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaPotentialStarter;
-import org.cibseven.bpm.model.xml.ModelBuilder;
-import org.cibseven.bpm.model.xml.impl.instance.ModelTypeInstanceContext;
-import org.cibseven.bpm.model.xml.type.ModelElementTypeBuilder;
-import org.cibseven.bpm.model.xml.type.child.ChildElement;
-import org.cibseven.bpm.model.xml.type.child.SequenceBuilder;
+package org.cibseven.bpm.model.bpmn.impl.instance.cibseven;
 
 import static org.cibseven.bpm.model.bpmn.impl.BpmnModelConstants.CAMUNDA_ELEMENT_POTENTIAL_STARTER;
 import static org.cibseven.bpm.model.bpmn.impl.BpmnModelConstants.CAMUNDA_NS;
-import static org.cibseven.bpm.model.xml.type.ModelElementTypeBuilder.ModelTypeInstanceProvider;
+
+import org.cibseven.bpm.model.bpmn.impl.instance.BpmnModelElementInstanceImpl;
+import org.cibseven.bpm.model.bpmn.instance.ResourceAssignmentExpression;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaPotentialStarter;
+import org.cibseven.bpm.model.xml.ModelBuilder;
+import org.cibseven.bpm.model.xml.impl.instance.ModelTypeInstanceContext;
+import org.cibseven.bpm.model.xml.type.ModelElementTypeBuilder;
+import org.cibseven.bpm.model.xml.type.ModelElementTypeBuilder.ModelTypeInstanceProvider;
+import org.cibseven.bpm.model.xml.type.child.ChildElement;
+import org.cibseven.bpm.model.xml.type.child.SequenceBuilder;
 
 /**
  * The BPMN potentialStarter camunda extension

@@ -14,14 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.model.cmmn.impl.instance.camunda;
+package org.cibseven.bpm.model.cmmn.impl.instance.cibseven;
 
 import static org.cibseven.bpm.model.cmmn.impl.CmmnModelConstants.CAMUNDA_ELEMENT_VARIABLE_EVENT;
 import static org.cibseven.bpm.model.cmmn.impl.CmmnModelConstants.CAMUNDA_NS;
 
 import org.cibseven.bpm.model.cmmn.VariableTransition;
 import org.cibseven.bpm.model.cmmn.impl.instance.CmmnModelElementInstanceImpl;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaVariableTransitionEvent;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaVariableTransitionEvent;
 import org.cibseven.bpm.model.xml.ModelBuilder;
 import org.cibseven.bpm.model.xml.impl.instance.ModelTypeInstanceContext;
 import org.cibseven.bpm.model.xml.type.ModelElementTypeBuilder;

@@ -19,7 +19,7 @@ package org.cibseven.bpm.model.bpmn.builder;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.ErrorEventDefinition;
 import org.cibseven.bpm.model.bpmn.instance.ServiceTask;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaErrorEventDefinition;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaErrorEventDefinition;
 
 /**
  * @author Sebastian Menski

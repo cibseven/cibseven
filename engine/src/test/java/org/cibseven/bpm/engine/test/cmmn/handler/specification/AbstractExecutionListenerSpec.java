@@ -29,7 +29,7 @@ import org.cibseven.bpm.engine.impl.cmmn.model.CmmnActivity;
 import org.cibseven.bpm.model.cmmn.CmmnModelInstance;
 import org.cibseven.bpm.model.cmmn.instance.CmmnModelElementInstance;
 import org.cibseven.bpm.model.cmmn.instance.ExtensionElements;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaCaseExecutionListener;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaCaseExecutionListener;
 
 public abstract class AbstractExecutionListenerSpec {
 

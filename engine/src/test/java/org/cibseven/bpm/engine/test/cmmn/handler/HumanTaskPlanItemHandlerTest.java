@@ -68,7 +68,7 @@ import org.cibseven.bpm.model.cmmn.instance.PlanItemControl;
 import org.cibseven.bpm.model.cmmn.instance.RepetitionRule;
 import org.cibseven.bpm.model.cmmn.instance.RequiredRule;
 import org.cibseven.bpm.model.cmmn.instance.Sentry;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaTaskListener;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaTaskListener;
 import org.junit.Before;
 import org.junit.Test;
 

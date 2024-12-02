@@ -39,9 +39,9 @@ import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.model.cmmn.instance.CmmnElement;
 import org.cibseven.bpm.model.cmmn.instance.HumanTask;
 import org.cibseven.bpm.model.cmmn.instance.Role;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaField;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaScript;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaTaskListener;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaField;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaScript;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaTaskListener;
 
 /**
  * @author Roman Smirnov

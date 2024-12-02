@@ -17,6 +17,7 @@
 package org.cibseven.bpm.model.bpmn.builder;
 
 import java.util.Collection;
+
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.Process;
 import org.cibseven.bpm.model.bpmn.instance.StartEvent;

@@ -46,6 +46,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
+
 import com.google.common.collect.Sets;
 
 public class UpdateProcessInstancesSuspendStateAsyncTest {

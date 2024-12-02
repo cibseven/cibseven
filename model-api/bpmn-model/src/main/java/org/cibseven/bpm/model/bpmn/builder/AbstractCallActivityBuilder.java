@@ -18,8 +18,8 @@ package org.cibseven.bpm.model.bpmn.builder;
 
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.CallActivity;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaIn;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaOut;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaIn;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaOut;
 
 /**
  * @author Sebastian Menski

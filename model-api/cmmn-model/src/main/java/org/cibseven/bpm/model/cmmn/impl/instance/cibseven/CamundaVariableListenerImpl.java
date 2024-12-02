@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.model.cmmn.impl.instance.camunda;
+package org.cibseven.bpm.model.cmmn.impl.instance.cibseven;
 
 import static org.cibseven.bpm.model.cmmn.impl.CmmnModelConstants.CAMUNDA_ATTRIBUTE_CLASS;
 import static org.cibseven.bpm.model.cmmn.impl.CmmnModelConstants.CAMUNDA_ATTRIBUTE_DELEGATE_EXPRESSION;
@@ -26,9 +26,9 @@ import static org.cibseven.bpm.model.cmmn.impl.CmmnModelConstants.CAMUNDA_NS;
 import java.util.Collection;
 
 import org.cibseven.bpm.model.cmmn.impl.instance.CmmnModelElementInstanceImpl;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaField;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaScript;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaVariableListener;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaField;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaScript;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaVariableListener;
 import org.cibseven.bpm.model.xml.ModelBuilder;
 import org.cibseven.bpm.model.xml.impl.instance.ModelTypeInstanceContext;
 import org.cibseven.bpm.model.xml.type.ModelElementTypeBuilder;

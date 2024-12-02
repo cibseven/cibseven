@@ -57,7 +57,7 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.builder.ProcessBuilder;
 import org.cibseven.bpm.model.bpmn.instance.SequenceFlow;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaExecutionListener;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaExecutionListener;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

@@ -21,8 +21,8 @@ import org.cibseven.bpm.model.bpmn.instance.CompensateEventDefinition;
 import org.cibseven.bpm.model.bpmn.instance.ErrorEventDefinition;
 import org.cibseven.bpm.model.bpmn.instance.EscalationEventDefinition;
 import org.cibseven.bpm.model.bpmn.instance.StartEvent;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaFormData;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaFormField;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaFormData;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaFormField;
 
 /**
  * @author Sebastian Menski

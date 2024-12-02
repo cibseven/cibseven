@@ -24,7 +24,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,8 +52,8 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.builder.CallActivityBuilder;
 import org.cibseven.bpm.model.bpmn.instance.CallActivity;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaIn;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaOut;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaIn;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaOut;
 import org.junit.Test;
 
 /**

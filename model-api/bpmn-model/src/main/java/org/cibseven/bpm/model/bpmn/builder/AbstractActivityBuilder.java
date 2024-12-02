@@ -25,9 +25,9 @@ import org.cibseven.bpm.model.bpmn.instance.Activity;
 import org.cibseven.bpm.model.bpmn.instance.BoundaryEvent;
 import org.cibseven.bpm.model.bpmn.instance.MultiInstanceLoopCharacteristics;
 import org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnShape;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaInputOutput;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaInputParameter;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaOutputParameter;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaInputOutput;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaInputParameter;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaOutputParameter;
 import org.cibseven.bpm.model.bpmn.instance.dc.Bounds;
 
 /**

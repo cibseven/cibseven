@@ -19,10 +19,8 @@ package org.cibseven.bpm.model.bpmn.builder;
 import org.cibseven.bpm.model.bpmn.BpmnModelException;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.Activity;
-import org.cibseven.bpm.model.bpmn.instance.BoundaryEvent;
 import org.cibseven.bpm.model.bpmn.instance.CompensateEventDefinition;
 import org.cibseven.bpm.model.bpmn.instance.Event;
-import org.cibseven.bpm.model.bpmn.instance.EventDefinition;
 
 public abstract class AbstractCompensateEventDefinitionBuilder<B extends AbstractCompensateEventDefinitionBuilder<B>> extends AbstractRootElementBuilder<B, CompensateEventDefinition>{
 

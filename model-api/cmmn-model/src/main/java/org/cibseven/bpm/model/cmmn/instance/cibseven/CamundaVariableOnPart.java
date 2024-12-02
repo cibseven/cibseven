@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.model.cmmn.instance.camunda;
+package org.cibseven.bpm.model.cmmn.instance.cibseven;
 
 import org.cibseven.bpm.model.cmmn.VariableTransition;
 import org.cibseven.bpm.model.cmmn.instance.CmmnModelElementInstance;
