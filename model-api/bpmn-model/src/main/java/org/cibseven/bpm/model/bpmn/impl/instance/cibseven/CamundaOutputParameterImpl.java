@@ -14,13 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.model.bpmn.impl.instance.camunda;
+package org.cibseven.bpm.model.bpmn.impl.instance.cibseven;
 
 import static org.cibseven.bpm.model.bpmn.impl.BpmnModelConstants.CAMUNDA_ATTRIBUTE_NAME;
 import static org.cibseven.bpm.model.bpmn.impl.BpmnModelConstants.CAMUNDA_ELEMENT_OUTPUT_PARAMETER;
 import static org.cibseven.bpm.model.bpmn.impl.BpmnModelConstants.CAMUNDA_NS;
 
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaOutputParameter;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaOutputParameter;
 import org.cibseven.bpm.model.xml.ModelBuilder;
 import org.cibseven.bpm.model.xml.impl.instance.ModelTypeInstanceContext;
 import org.cibseven.bpm.model.xml.type.ModelElementTypeBuilder;

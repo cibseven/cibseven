@@ -17,6 +17,7 @@
 package org.cibseven.bpm.model.bpmn.builder;
 
 import java.util.List;
+
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.Condition;
 import org.cibseven.bpm.model.bpmn.instance.ConditionalEventDefinition;

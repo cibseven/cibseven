@@ -25,8 +25,8 @@ import org.cibseven.bpm.engine.delegate.DelegateListener;
 import org.cibseven.bpm.engine.impl.cmmn.listener.ScriptCaseExecutionListener;
 import org.cibseven.bpm.engine.impl.scripting.ExecutableScript;
 import org.cibseven.bpm.model.cmmn.CmmnModelInstance;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaCaseExecutionListener;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaScript;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaCaseExecutionListener;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaScript;
 
 public class ScriptExecutionListenerSpec extends AbstractExecutionListenerSpec {
 

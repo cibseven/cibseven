@@ -16,11 +16,11 @@
  */
 package org.cibseven.bpm.engine.test.api.runtime;
 
+import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Stream.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
-import static java.util.stream.Stream.of;
-import static java.util.stream.Collectors.toSet;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,7 +41,6 @@ import org.cibseven.bpm.engine.history.HistoricProcessInstanceQuery;
 import org.cibseven.bpm.engine.history.UserOperationLogEntry;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
-import org.cibseven.bpm.engine.management.JobDefinition;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.runtime.ExecutionQuery;
 import org.cibseven.bpm.engine.runtime.Job;

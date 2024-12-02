@@ -40,7 +40,6 @@ import org.cibseven.bpm.engine.exception.NullValueException;
 import org.cibseven.bpm.engine.history.HistoricProcessInstanceQuery;
 import org.cibseven.bpm.engine.history.UserOperationLogEntry;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
-import org.cibseven.bpm.engine.management.JobDefinition;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;

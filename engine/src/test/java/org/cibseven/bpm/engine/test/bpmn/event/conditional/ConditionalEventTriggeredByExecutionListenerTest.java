@@ -33,7 +33,7 @@ import org.cibseven.bpm.engine.task.TaskQuery;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.SequenceFlow;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaExecutionListener;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaExecutionListener;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;

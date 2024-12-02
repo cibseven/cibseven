@@ -46,8 +46,8 @@ import org.cibseven.bpm.model.cmmn.instance.PlanItemOnPart;
 import org.cibseven.bpm.model.cmmn.instance.PlanItemTransitionStandardEvent;
 import org.cibseven.bpm.model.cmmn.instance.Sentry;
 import org.cibseven.bpm.model.cmmn.instance.Task;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaVariableOnPart;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaVariableTransitionEvent;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaVariableOnPart;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaVariableTransitionEvent;
 import org.junit.Before;
 import org.junit.Test;
 

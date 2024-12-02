@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.cibseven.bpm.engine.MismatchingMessageCorrelationException;
-import org.cibseven.bpm.engine.exception.NotFoundException;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.runtime.MessageCorrelationResult;

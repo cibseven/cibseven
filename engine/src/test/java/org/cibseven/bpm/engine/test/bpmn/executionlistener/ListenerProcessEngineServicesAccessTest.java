@@ -22,7 +22,7 @@ import org.cibseven.bpm.engine.test.bpmn.common.AbstractProcessEngineServicesAcc
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.ManualTask;
 import org.cibseven.bpm.model.bpmn.instance.Task;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaExecutionListener;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaExecutionListener;
 
 /**
  * @author Daniel Meyer

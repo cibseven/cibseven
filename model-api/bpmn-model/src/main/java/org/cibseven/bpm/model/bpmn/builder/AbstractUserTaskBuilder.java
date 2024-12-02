@@ -22,9 +22,9 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.impl.BpmnModelConstants;
 import org.cibseven.bpm.model.bpmn.instance.TimerEventDefinition;
 import org.cibseven.bpm.model.bpmn.instance.UserTask;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaFormData;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaFormField;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaTaskListener;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaFormData;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaFormField;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaTaskListener;
 
 /**
  * @author Sebastian Menski

@@ -18,7 +18,7 @@ package org.cibseven.bpm.model.bpmn.builder;
 
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.SignalEventDefinition;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaIn;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaIn;
 
 /**
  * @author Nikola Koevski

@@ -23,10 +23,10 @@ import static org.junit.Assert.assertTrue;
 import org.cibseven.bpm.engine.delegate.Expression;
 import org.cibseven.bpm.engine.impl.bpmn.parser.FieldDeclaration;
 import org.cibseven.bpm.model.cmmn.CmmnModelInstance;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaCaseExecutionListener;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaExpression;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaField;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaString;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaCaseExecutionListener;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaExpression;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaField;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaString;
 
 public class FieldSpec {
 

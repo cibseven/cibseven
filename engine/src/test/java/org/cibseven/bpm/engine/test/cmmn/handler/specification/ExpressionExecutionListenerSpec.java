@@ -23,7 +23,7 @@ import org.cibseven.bpm.engine.delegate.BaseDelegateExecution;
 import org.cibseven.bpm.engine.delegate.DelegateListener;
 import org.cibseven.bpm.engine.impl.cmmn.listener.ExpressionCaseExecutionListener;
 import org.cibseven.bpm.model.cmmn.CmmnModelInstance;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaCaseExecutionListener;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaCaseExecutionListener;
 
 public class ExpressionExecutionListenerSpec extends AbstractExecutionListenerSpec {
 

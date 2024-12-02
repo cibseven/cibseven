@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.engine.impl.cmmn.handler;
 
+import static org.cibseven.bpm.engine.impl.util.StringUtil.isCompositeExpression;
+
 import org.cibseven.bpm.engine.impl.cmmn.behavior.CallingTaskActivityBehavior;
 import org.cibseven.bpm.engine.impl.cmmn.model.CmmnActivity;
 import org.cibseven.bpm.engine.impl.core.model.BaseCallableElement;
@@ -28,8 +30,6 @@ import org.cibseven.bpm.engine.impl.el.Expression;
 import org.cibseven.bpm.engine.impl.el.ExpressionManager;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.model.cmmn.instance.CmmnElement;
-
-import static org.cibseven.bpm.engine.impl.util.StringUtil.isCompositeExpression;
 
 /**
  * @author Roman Smirnov

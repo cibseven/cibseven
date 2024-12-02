@@ -14,13 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.model.bpmn.impl.instance.camunda;
+package org.cibseven.bpm.model.bpmn.impl.instance.cibseven;
 
 import java.util.List;
 
 import org.cibseven.bpm.model.bpmn.impl.instance.BpmnModelElementInstanceImpl;
 import org.cibseven.bpm.model.bpmn.instance.BpmnModelElementInstance;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaGenericValueElement;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaGenericValueElement;
 import org.cibseven.bpm.model.xml.impl.instance.ModelTypeInstanceContext;
 import org.cibseven.bpm.model.xml.impl.util.ModelUtil;
 import org.cibseven.bpm.model.xml.instance.DomElement;

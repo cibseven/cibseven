@@ -17,7 +17,10 @@
 package org.cibseven.bpm.model.bpmn.builder;
 
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.cibseven.bpm.model.bpmn.instance.*;
+import org.cibseven.bpm.model.bpmn.instance.BoundaryEvent;
+import org.cibseven.bpm.model.bpmn.instance.ErrorEventDefinition;
+import org.cibseven.bpm.model.bpmn.instance.EscalationEventDefinition;
+import org.cibseven.bpm.model.bpmn.instance.FlowNode;
 import org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnEdge;
 import org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnShape;
 import org.cibseven.bpm.model.bpmn.instance.dc.Bounds;

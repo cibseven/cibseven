@@ -28,8 +28,8 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.builder.CallActivityBuilder;
 import org.cibseven.bpm.model.bpmn.instance.CallActivity;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaIn;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaOut;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaIn;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaOut;
 import org.junit.Rule;
 import org.junit.Test;
 

@@ -14,12 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.model.bpmn.impl.instance.camunda;
+package org.cibseven.bpm.model.bpmn.impl.instance.cibseven;
 
 import org.cibseven.bpm.model.bpmn.impl.instance.BpmnModelElementInstanceImpl;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaExpression;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaField;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaString;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaExpression;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaField;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaString;
 import org.cibseven.bpm.model.xml.ModelBuilder;
 import org.cibseven.bpm.model.xml.impl.instance.ModelTypeInstanceContext;
 import org.cibseven.bpm.model.xml.type.ModelElementTypeBuilder;

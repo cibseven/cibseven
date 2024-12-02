@@ -18,7 +18,7 @@ package org.cibseven.bpm.model.bpmn.builder;
 
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.BaseElement;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaFormField;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaFormField;
 
 /**
  * @author Kristin Polenz

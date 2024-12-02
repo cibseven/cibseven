@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.model.bpmn.impl.instance.camunda;
+package org.cibseven.bpm.model.bpmn.impl.instance.cibseven;
 
 import static org.cibseven.bpm.model.bpmn.impl.BpmnModelConstants.CAMUNDA_ELEMENT_LIST;
 import static org.cibseven.bpm.model.bpmn.impl.BpmnModelConstants.CAMUNDA_NS;
@@ -25,7 +25,7 @@ import java.util.List;
 
 import org.cibseven.bpm.model.bpmn.impl.instance.BpmnModelElementInstanceImpl;
 import org.cibseven.bpm.model.bpmn.instance.BpmnModelElementInstance;
-import org.cibseven.bpm.model.bpmn.instance.camunda.CamundaList;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaList;
 import org.cibseven.bpm.model.xml.ModelBuilder;
 import org.cibseven.bpm.model.xml.UnsupportedModelOperationException;
 import org.cibseven.bpm.model.xml.impl.instance.ModelTypeInstanceContext;

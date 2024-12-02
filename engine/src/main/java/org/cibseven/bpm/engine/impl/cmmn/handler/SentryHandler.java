@@ -41,7 +41,7 @@ import org.cibseven.bpm.model.cmmn.instance.OnPart;
 import org.cibseven.bpm.model.cmmn.instance.PlanItem;
 import org.cibseven.bpm.model.cmmn.instance.PlanItemOnPart;
 import org.cibseven.bpm.model.cmmn.instance.Sentry;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaVariableOnPart;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaVariableOnPart;
 import org.cibseven.bpm.model.xml.instance.ModelElementInstance;
 
 /**

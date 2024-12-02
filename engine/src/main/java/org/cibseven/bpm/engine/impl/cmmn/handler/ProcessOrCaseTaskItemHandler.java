@@ -26,8 +26,8 @@ import org.cibseven.bpm.engine.impl.core.variable.mapping.value.ParameterValuePr
 import org.cibseven.bpm.engine.impl.el.ExpressionManager;
 import org.cibseven.bpm.model.cmmn.instance.CmmnElement;
 import org.cibseven.bpm.model.cmmn.instance.PlanItemDefinition;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaIn;
-import org.cibseven.bpm.model.cmmn.instance.camunda.CamundaOut;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaIn;
+import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaOut;
 
 /**
  * @author Roman Smirnov
