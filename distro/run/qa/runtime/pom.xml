@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.cibseven.bpm.run</groupId>
     <artifactId>cibseven-bpm-run-qa</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
 
@@ -137,7 +137,7 @@
 
   <profiles>
     <profile>
-      <id>integration-test-camunda-run</id>
+      <id>integration-test-run</id>
       <build>
         <plugins>
           <plugin>
@@ -206,7 +206,7 @@
           <plugin>
             <groupId>com.googlecode.maven-download-plugin</groupId>
             <artifactId>download-maven-plugin</artifactId>
-            <version>1.3.0</version>
+            <version>1.13.0</version>
             <executions>
               <execution>
                 <phase>process-resources</phase>
@@ -217,8 +217,30 @@
                   <url>https://storage.googleapis.com/chrome-for-testing-public/${version.chromedriver}/${os.type}/chromedriver-${os.type}.zip</url>
                   <outputFileName>chromedriver.zip</outputFileName>
                   <unpack>true</unpack>
-                  <outputDirectory>${project.build.directory}/chromedriver</outputDirectory>
+                  <outputDirectory>${project.build.directory}</outputDirectory>
+                  <!-- Include and exclude specific files during unpack -->
+                  <includes>**/*</includes>
+                  <excludes>**/*.chromedriver</excludes>
                 </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>move-folder</id>
+                <phase>process-resources</phase>
+                <configuration>
+                  <target unless="maven.test.skip">
+                    <move file="${project.build.directory}/chromedriver-${os.type}"
+                        tofile="${project.build.directory}/chromedriver"/>
+                  </target>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
               </execution>
             </executions>
           </plugin>
@@ -248,5 +270,44 @@
       </properties>
     </profile>
   </profiles>
+
+  <description>
+    Description of CIB seven - Run - QA - Runtime
+  </description>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>v1.1.0</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
 
 </project>

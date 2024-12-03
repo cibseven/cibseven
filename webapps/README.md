@@ -131,7 +131,7 @@ Have a look at our [contribution guide](https://github.com/camunda/camunda-bpm-p
 
 ## Help and support
 
-* [Documentation](http://docs.cibseven.de/manual/latest/)
+* [Documentation](http://docs.cibseven.org/manual/latest/)
 * [Discussions](https://github.com/orgs/cibseven/discussions)
 * [Stackoverflow](https://stackoverflow.com/questions/tagged/cibseven)
 

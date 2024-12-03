@@ -1,6 +1,6 @@
 {
   "name": "docs",
-  "version": "7.22.1-cibseven-SNAPSHOT",
+  "version": "X.X.X-SNAPSHOT",
   "private": true,
   "scripts": {
     "build": "node build"

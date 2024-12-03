@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'Jenkinsfile.*'
     pull_request:
       - main
   workflow_dispatch:

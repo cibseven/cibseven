@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-root</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
     <relativePath>../</relativePath>
   </parent>
 
@@ -354,11 +354,33 @@
   </licenses>
 
   <organization>
-    <name>CIB software GmbH</name>
-    <url>https://www.cib.de/</url>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
   </organization>
 
-  <url>https://cibseven.de/</url>
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>v1.1.0</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
+
 </project>
 
 

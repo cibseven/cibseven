@@ -2,12 +2,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.cibseven.bpm.qa.upgrade</groupId>
-    <artifactId>cibseven-qa-db-instance-migration</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <groupId>org.camunda.bpm.qa.upgrade</groupId>
+    <artifactId>camunda-qa-db-instance-migration</artifactId>
+    <version>7.22.1-cibseven</version>
   </parent>
 
-  <artifactId>cibseven-qa-upgrade-test-fixture-73</artifactId>
+  <artifactId>camunda-qa-upgrade-test-fixture-73</artifactId>
   <packaging>jar</packaging>
   <name>CIB seven - QA - upgrade - instance migration - test fixture - 7.3.0</name>
 
@@ -24,8 +24,8 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-bom</artifactId>
+        <groupId>org.camunda.bpm</groupId>
+        <artifactId>camunda-bom</artifactId>
         <version>7.3.0</version>
         <scope>import</scope>
         <type>pom</type>
@@ -35,13 +35,13 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine</artifactId>
+      <groupId>org.camunda.bpm</groupId>
+      <artifactId>camunda-engine</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.cibseven.bpm.qa.upgrade</groupId>
-      <artifactId>cibseven-qa-upgrade-scenario-util</artifactId>
+      <groupId>org.camunda.bpm.qa.upgrade</groupId>
+      <artifactId>camunda-qa-upgrade-scenario-util</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
@@ -127,8 +127,8 @@
                 <configuration>
                   <artifactItems>
                     <artifactItem>
-                      <groupId>org.cibseven.bpm.distro</groupId>
-                      <artifactId>cibseven-sql-scripts</artifactId>
+                      <groupId>org.camunda.bpm.distro</groupId>
+                      <artifactId>camunda-sql-scripts</artifactId>
                       <version>7.3.0</version>
                       <type>test-jar</type>
                       <outputDirectory>${project.build.directory}/scripts-current</outputDirectory>
@@ -202,7 +202,7 @@
                     <srcFile>${project.build.directory}/scripts-current/sql/upgrade/${database.type}_engine_${camunda.previous.majorVersion}.${camunda.previous.minorVersion}_to_${camunda.current.majorVersion}.${camunda.current.minorVersion}.sql</srcFile>
                     <srcFile>${project.build.directory}/scripts-current/sql/upgrade/${database.type}_identity_${camunda.previous.majorVersion}.${camunda.previous.minorVersion}_to_${camunda.current.majorVersion}.${camunda.current.minorVersion}.sql</srcFile>
                     <!-- delete global grant authorizations created with the engine script -->
-                    <srcFile>src/main/resources/org/cibseven/bpm/qa/upgrade/alldb_engine_delete_global_auth.sql</srcFile>
+                    <srcFile>src/main/resources/org/camunda/bpm/qa/upgrade/alldb_engine_delete_global_auth.sql</srcFile>
                   </srcFiles>
                 </configuration>
               </execution>
@@ -227,7 +227,7 @@
                 </goals>
                 <phase>process-test-classes</phase>
                 <configuration>
-                  <mainClass>org.cibseven.bpm.qa.upgrade.TestFixture</mainClass>
+                  <mainClass>org.camunda.bpm.qa.upgrade.TestFixture</mainClass>
                 </configuration>
               </execution>
             </executions>
@@ -236,5 +236,44 @@
       </build>
     </profile>
   </profiles>
+
+  <description>
+    Description of CIB seven - QA - upgrade - instance migration - test fixture - 7.3.0
+  </description>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>v1.1.0</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
 
 </project>
