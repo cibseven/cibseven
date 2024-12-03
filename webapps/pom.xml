@@ -179,7 +179,7 @@
             </goals>
             <phase>generate-resources</phase>
             <configuration>
-              <arguments>version --allow-same-version ${project.version}</arguments>
+              <arguments>version --allow-same-version --no-git-tag-version ${project.version}</arguments>
             </configuration>
           </execution>
           <execution>
@@ -210,6 +210,16 @@
             <phase>generate-resources</phase>
             <configuration>
               <arguments>run build</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>npm version back</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <phase>generate-resources</phase>
+            <configuration>
+              <arguments>version --allow-same-version --no-git-tag-version 0.0.0</arguments>
             </configuration>
           </execution>
         </executions>

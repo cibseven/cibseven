@@ -1,7 +1,7 @@
 {
   "name": "camunda-bpm-webapp",
   "private": true,
-  "version": "X.X.X-SNAPSHOT",
+  "version": "0.0.0",
   "main": "index.js",
   "scripts": {
     "dependencies": "license-checker --production --json --relativeLicensePath",
