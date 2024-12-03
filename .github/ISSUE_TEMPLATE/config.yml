@@ -1,8 +1,11 @@
 blank_issues_enabled: false
 contact_links:
-  - name: User Forum
-    url: https://forum.camunda.io/
-    about: Ask questions about using Camunda Platform here.
-  - name: Enterprise Support
-    url: https://docs.camunda.org/enterprise/support/
-    about: As an enterprise customer, contact our product support here.
+  - name: Discussions
+    url: https://github.com/cibseven/discussions
+    about: Ask questions about using CIB seven here.
+  - name: Please contact me!
+    url: https://cibseven.org/kontakt/
+    about: Fill a form with your questions and we will contact you back.
+  - name: CIB seven newsletter
+    url: https://cibseven.org/en/newsletter/
+    about: Subscribe to the CIB seven newsletter and stay up to date!
