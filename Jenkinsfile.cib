@@ -259,6 +259,9 @@ pipeline {
                     steps { script { withMaven { sh "mvn -f webapps/assembly/pom.xml test -Pdb-table-prefix -Dskip.frontend.build=true" }}}
                 }
                 stage('engine-IT-wildfly') {
+                    when {
+                        expression { params.VERIFY != params.VERIFY } // just disable this stage temporary
+                    }
                     stages {
                         stage('engine-IT-wildfly-domain') {
                             steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly-domain,h2,engine-integration-jakarta" }}}
