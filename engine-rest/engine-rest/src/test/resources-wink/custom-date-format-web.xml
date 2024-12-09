@@ -10,7 +10,7 @@
     <servlet-class>org.apache.wink.server.internal.servlet.RestServlet</servlet-class>
     <init-param>
       <param-name>javax.ws.rs.Application</param-name>
-      <param-value>org.camunda.bpm.engine.rest.util.container.JaxrsApplication</param-value>
+      <param-value>org.cibseven.bpm.engine.rest.util.container.JaxrsApplication</param-value>
     </init-param>
   </servlet>
 
@@ -20,11 +20,11 @@
   </servlet-mapping>
 
   <listener>
-    <listener-class>org.camunda.bpm.engine.rest.CustomJacksonDateFormatListener</listener-class>
+    <listener-class>org.cibseven.bpm.engine.rest.CustomJacksonDateFormatListener</listener-class>
   </listener>
 
   <context-param>
-    <param-name>org.camunda.bpm.engine.rest.jackson.dateFormat</param-name>
+    <param-name>org.cibseven.bpm.engine.rest.jackson.dateFormat</param-name>
     <param-value>yyyy-MM-dd'T'HH:mm:ss</param-value>
   </context-param>
 

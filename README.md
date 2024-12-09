@@ -1,11 +1,11 @@
 # CIB seven - The open source BPMN platform
 
-[![cibseven manual latest](https://img.shields.io/badge/manual-latest-brown.svg)](https://docs.cibseven.de/manual/latest/) [![License](https://img.shields.io/github/license/cibseven/cibseven?color=blue&logo=apache)](https://github.com/camunda/camunda-bpm-platform/blob/master/LICENSE) [![Discussions](https://img.shields.io/badge/discussions-cibseven-green)](https://github.com/orgs/cibseven/discussions)
+[![cibseven manual latest](https://img.shields.io/badge/manual-latest-brown.svg)](https://docs.cibseven.org/manual/latest/) [![License](https://img.shields.io/github/license/cibseven/cibseven?color=blue&logo=apache)](https://github.com/cibseven/cibseven/blob/master/LICENSE) [![Discussions](https://img.shields.io/badge/discussions-cibseven-green)](https://github.com/orgs/cibseven/discussions)
 
 CIB seven is a flexible framework for workflow and process automation. Its core is a native BPMN 2.0 process engine that runs inside the Java Virtual Machine. It can be embedded inside any Java application and any Runtime Container. It integrates with Java EE 6 and is a perfect match for the Spring Framework. On top of the process engine, you can choose from a stack of tools for human workflow management, operations and monitoring.
 
-- Web Site: https://cibseven.de
-- Getting Started: https://docs.cibseven.de/get-started/
+- Web Site: https://cibseven.org
+- Getting Started: https://docs.cibseven.org/get-started/
 - Discussions: https://github.com/orgs/cibseven/discussions
 - Issue Tracker: https://github.com/cibseven/cibseven/issues
 
@@ -36,7 +36,7 @@ CIB seven provides a rich set of components centered around the BPM lifecycle.
 #### And there's more...
 
 - [bpmn.io](https://bpmn.io/) - Toolkits for BPMN, CMMN, and DMN in JavaScript (rendering, modeling)
-- [Community Extensions](https://docs.cibseven.de/manual/latest/introduction/extensions/) - Extensions on top of CIB seven provided and maintained by our great open source community
+- [Community Extensions](https://docs.cibseven.org/manual/latest/introduction/extensions/) - Extensions on top of CIB seven provided and maintained by our great open source community
 
 ## A Framework
 
@@ -63,4 +63,4 @@ To run the tests in this repository, please see our [testing tips and tricks](TE
 
 The source files in this repository are made available under the [Apache License Version 2.0](./LICENSE).
 
-CIB seven uses and includes third-party dependencies published under various licenses. By downloading and using CIB seven artifacts, you agree to their terms and conditions. Refer to https://docs.cibseven.de/manual/latest/introduction/third-party-libraries/ for an overview of third-party libraries and particularly important third-party licenses we want to make you aware of.
+CIB seven uses and includes third-party dependencies published under various licenses. By downloading and using CIB seven artifacts, you agree to their terms and conditions. Refer to https://docs.cibseven.org/manual/latest/introduction/third-party-libraries/ for an overview of third-party libraries and particularly important third-party licenses we want to make you aware of.

@@ -1,0 +1,1 @@
+order = S(input, "application/xml").mapTo("org.cibseven.spin.xml.mapping.Order");

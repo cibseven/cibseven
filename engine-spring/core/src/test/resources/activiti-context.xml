@@ -4,7 +4,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-  <bean id="processEngineConfiguration" class="org.camunda.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration"
+  <bean id="processEngineConfiguration" class="org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration"
         init-method="init">
 
     <property name="jdbcUrl" value="jdbc:h2:mem:camunda;DB_CLOSE_DELAY=-1" />
@@ -27,7 +27,7 @@
     <property name="processEngineName" value="activitiContextProcessName"/>
   </bean>
 
-  <bean id="processEngine" class="org.camunda.bpm.engine.spring.ProcessEngineFactoryBean">
+  <bean id="processEngine" class="org.cibseven.bpm.engine.spring.ProcessEngineFactoryBean">
     <property name="processEngineConfiguration" ref="processEngineConfiguration"/>
   </bean>
 

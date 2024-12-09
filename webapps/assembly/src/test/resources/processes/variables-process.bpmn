@@ -6,7 +6,7 @@
       <bpmn2:outgoing>SequenceFlow_1</bpmn2:outgoing>
     </bpmn2:startEvent>
     <bpmn2:sequenceFlow id="SequenceFlow_1" sourceRef="StartEvent_1" targetRef="ServiceTask_1"/>
-    <bpmn2:serviceTask id="ServiceTask_1" activiti:class="org.camunda.bpm.cockpit.plugin.base.pa.VariableSavingDelegate" name="Service Task">
+    <bpmn2:serviceTask id="ServiceTask_1" activiti:class="org.cibseven.bpm.cockpit.plugin.base.pa.VariableSavingDelegate" name="Service Task">
       <bpmn2:incoming>SequenceFlow_1</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_2</bpmn2:outgoing>
     </bpmn2:serviceTask>

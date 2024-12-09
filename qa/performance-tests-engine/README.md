@@ -104,11 +104,11 @@ The raw JSON result files allow you to inspect the database communication betwee
 
 ```json
 {
-    "testName": "org.camunda.bpm.qa.performance.engine.bpmn.SequencePerformanceTest.asyncSequence1Step",
+    "testName": "org.cibseven.bpm.qa.performance.engine.bpmn.SequencePerformanceTest.asyncSequence1Step",
     "configuration": {
         "numberOfThreads": 1,
         "numberOfRuns": 1,
-        "testWatchers": "org.camunda.bpm.qa.performance.engine.sql.statementlog.StatementLogPerfTestWatcher"
+        "testWatchers": "org.cibseven.bpm.qa.performance.engine.sql.statementlog.StatementLogPerfTestWatcher"
     },
     "duration": 20,
     "stepResults": [

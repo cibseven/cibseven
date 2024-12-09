@@ -1,1 +1,1 @@
-org.camunda.bpm.engine.cdi.test.ArquillianAutomaticDeployment
+org.cibseven.bpm.engine.cdi.test.ArquillianAutomaticDeployment

@@ -3,30 +3,17 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.camunda.bpm</groupId>
-    <artifactId>camunda-bom-root</artifactId>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <groupId>org.cibseven.bpm</groupId>
+    <artifactId>cibseven-bom-root</artifactId>
+    <version>1.2.0-SNAPSHOT</version>
     <relativePath>../</relativePath>
   </parent>
 
-  <artifactId>camunda-bom</artifactId>
+  <artifactId>cibseven-bom</artifactId>
   <packaging>pom</packaging>
   <name>CIB seven - Bom</name>
-  <url>https://cibseven.de</url>
 
   <description>CIB seven bill of material</description>
-
-  <licenses>
-    <license>
-      <name>The Apache Software License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-    </license>
-  </licenses>
-
-  <organization>
-    <name>CIB software GmbH</name>
-    <url>https://www.cib.de/</url>
-  </organization>
 
   <dependencyManagement>
     <dependencies>
@@ -48,12 +35,48 @@
       </dependency>
       <!-- Camunda Platform public artifacts -->
       <dependency>
-        <groupId>org.camunda.bpm</groupId>
-        <artifactId>camunda-only-bom</artifactId>
+        <groupId>org.cibseven.bpm</groupId>
+        <artifactId>cibseven-only-bom</artifactId>
         <version>${project.version}</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
     </dependencies>
   </dependencyManagement>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>v1.1.0</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
+
 </project>

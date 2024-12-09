@@ -31,7 +31,7 @@ BpmnModelInstance modelInstance = Bpmn.createExecutableProcess("processId")
 ----
 
 For more complex examples see the link:https://docs.camunda.org/manual/latest/user-guide/model-api/bpmn-model-api/fluent-builder-api/[docs],
-the tests in link:src/test/java/org/camunda/bpm/model/bpmn/builder/ProcessBuilderTest.java[ProcessBuilderTest.java] or this
+the tests in link:src/test/java/org/cibseven/bpm/model/bpmn/builder/ProcessBuilderTest.java[ProcessBuilderTest.java] or this
 link:https://github.com/camunda/camunda-bpm-examples/tree/master/bpmn-model-api/generate-process-fluent-api[example].
 
 === Create an empty BPMN model
@@ -63,7 +63,7 @@ However, not all elements supported by the model are exposed through fluent
 builders and the fluent api may not be the appropriate API style for all usecases.
 In such cases, the full API can be used for creating a process model.
 The following code creates a simple Process as a jUnit4 test using the full API:
-link:src/test/java/org/camunda/bpm/model/bpmn/CreateModelTest.java[CreateModelTest.java].
+link:src/test/java/org/cibseven/bpm/model/bpmn/CreateModelTest.java[CreateModelTest.java].
 
 === Find elements inside the model
 
@@ -117,5 +117,5 @@ Java JRE 1.8+ is required. We test camunda BPMN model API on Oracle and IBM JVMs
 === Does this API support all BPMN 2.0 Elements?
 
 No, but support is already quite extensive. See
-link:src/main/java/org/camunda/bpm/model/bpmn/instance[org.camunda.bpm.model.bpmn.instance]
+link:src/main/java/org/cibseven/bpm/model/bpmn/instance[org.cibseven.bpm.model.bpmn.instance]
 for a list of currently supported elements.

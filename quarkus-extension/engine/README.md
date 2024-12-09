@@ -6,7 +6,7 @@ the following dependency into your `pom.xml` file.
 ```xml
 <dependency>
   <dependency>
-    <groupId>org.camunda.bpm.quarkus</groupId>
+    <groupId>org.cibseven.bpm.quarkus</groupId>
     <artifactId>camunda-bpm-quarkus-engine</artifactId>
     <version>${version.camunda}</version><!-- place Camunda version here -->
   </dependency>

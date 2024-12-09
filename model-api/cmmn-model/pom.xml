@@ -2,29 +2,29 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.camunda.bpm.model</groupId>
-    <artifactId>camunda-model-apis</artifactId>
+    <groupId>org.cibseven.bpm.model</groupId>
+    <artifactId>cibseven-model-apis</artifactId>
     <relativePath>../</relativePath>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>camunda-cmmn-model</artifactId>
+  <artifactId>cibseven-cmmn-model</artifactId>
   <packaging>jar</packaging>
 
   <name>CIB seven - CMMN Model API</name>
   <inceptionYear>2014</inceptionYear>
   <properties>
-    <camunda.artifact>org.camunda.bpm.model.cmmn</camunda.artifact>
+    <cibseven.artifact>org.cibseven.bpm.model.cmmn</cibseven.artifact>
     <camunda.osgi.export>
-      !org.camunda.bpm.model.cmmn.schema.*,
+      !org.cibseven.bpm.model.cmmn.schema.*,
       ${camunda.osgi.export.pkg};${camunda.osgi.version};-noimport:=true
     </camunda.osgi.export>
   </properties>
   <dependencies>
 
     <dependency>
-      <groupId>org.camunda.bpm.model</groupId>
-      <artifactId>camunda-xml-model</artifactId>
+      <groupId>org.cibseven.bpm.model</groupId>
+      <artifactId>cibseven-xml-model</artifactId>
     </dependency>
 
     <dependency>
@@ -40,8 +40,8 @@
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.bpm</groupId>
-      <artifactId>camunda-bpm-archunit</artifactId>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-bpm-archunit</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -73,7 +73,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <dependenciesToScan>
-            <dependency>org.camunda.bpm:camunda-bpm-archunit</dependency>
+            <dependency>org.cibseven.bpm:camunda-bpm-archunit</dependency>
           </dependenciesToScan>
         </configuration>
       </plugin>
@@ -96,7 +96,7 @@
               <comparisonVersion>${camunda.version.old}</comparisonVersion>
               <logResults>true</logResults>
               <excludes>
-                <exclude>org/camunda/bpm/model/cmmn/impl/**</exclude>
+                <exclude>org/cibseven/bpm/model/cmmn/impl/**</exclude>
               </excludes>
             </configuration>
             <executions>
@@ -130,5 +130,44 @@
       </build>
     </profile>
   </profiles>
+
+  <description>
+    Description of CIB seven - CMMN Model API
+  </description>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>v1.1.0</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
 
 </project>

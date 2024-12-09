@@ -1,15 +1,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>camunda-qa-wildfly26-runtime</artifactId>
+  <artifactId>cibseven-qa-wildfly26-runtime</artifactId>
   <packaging>jar</packaging>
 
   <name>CIB seven - QA Wildfly 26 Test Runtime</name>
 
   <parent>
-    <groupId>org.camunda.bpm.qa</groupId>
-    <artifactId>camunda-qa</artifactId>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <groupId>org.cibseven.bpm.qa</groupId>
+    <artifactId>cibseven-qa</artifactId>
+    <version>1.2.0-SNAPSHOT</version>
   </parent>
 
   <dependencies>
@@ -35,8 +35,8 @@
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.bpm.qa</groupId>
-      <artifactId>camunda-qa-ensure-clean-db</artifactId>
+      <groupId>org.cibseven.bpm.qa</groupId>
+      <artifactId>cibseven-qa-ensure-clean-db</artifactId>
       <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>
@@ -132,8 +132,8 @@
       <dependencies>
         <dependency>
           <!-- make sure it comes after WildFly 26 modules in the build -->
-          <groupId>org.camunda.bpm.wildfly</groupId>
-          <artifactId>camunda-wildfly26-modules</artifactId>
+          <groupId>org.cibseven.bpm.wildfly</groupId>
+          <artifactId>cibseven-wildfly26-modules</artifactId>
           <version>${project.version}</version>
           <type>pom</type>
           <scope>test</scope>
@@ -196,8 +196,8 @@
                       <excludes>**/h2database/**</excludes>
                     </artifactItem>
                     <artifactItem>
-                      <groupId>org.camunda.bpm.wildfly</groupId>
-                      <artifactId>camunda-wildfly26-modules</artifactId>
+                      <groupId>org.cibseven.bpm.wildfly</groupId>
+                      <artifactId>cibseven-wildfly26-modules</artifactId>
                       <version>${project.version}</version>
                       <type>tar.gz</type>
                       <overWrite>true</overWrite>
@@ -267,7 +267,7 @@
                     </copy>
 
                     <delete>
-                      <fileset dir="${wildfly26.runtime.location}/modules/org/camunda/bpm/qa" includes="**/*.jar" />
+                      <fileset dir="${wildfly26.runtime.location}/modules/org/cibseven/bpm/qa" includes="**/*.jar" />
                     </delete>
                     <!-- copy all files again, but this only matches fox files and this treatment makes is maven 2/3 compatible => timestamped snapshot -->
                     <copy todir="${wildfly26.runtime.location}/modules" flatten="false" verbose="true">
@@ -275,7 +275,7 @@
                       <mapper>
                         <chainedmapper>
                           <regexpmapper from="^(.*)/([^/]+)/([^/]*)$$" to="\1/main/\3" handledirsep="yes" />
-                          <regexpmapper from="^(org.camunda.bpm.qa.*)/((camunda-[A-Za-z-]*)[0-9\.]*).*.jar$$" to="\1/\3${project.version}.jar" handledirsep="yes" />
+                          <regexpmapper from="^(org.cibseven.bpm.qa.*)/((cibseven-[A-Za-z-]*)[0-9\.]*).*.jar$$" to="\1/\3${project.version}.jar" handledirsep="yes" />
                         </chainedmapper>
                       </mapper>
                     </copy>
@@ -301,8 +301,8 @@
       <dependencies>
         <dependency>
           <!-- make sure it comes after WildFly 26 modules in the build -->
-          <groupId>org.camunda.bpm.wildfly</groupId>
-          <artifactId>camunda-wildfly26-modules</artifactId>
+          <groupId>org.cibseven.bpm.wildfly</groupId>
+          <artifactId>cibseven-wildfly26-modules</artifactId>
           <version>${project.version}</version>
           <type>pom</type>
           <scope>test</scope>
@@ -335,8 +335,8 @@
                       <excludes>**/h2database/**</excludes>
                     </artifactItem>
                     <artifactItem>
-                      <groupId>org.camunda.bpm.wildfly</groupId>
-                      <artifactId>camunda-wildfly26-modules</artifactId>
+                      <groupId>org.cibseven.bpm.wildfly</groupId>
+                      <artifactId>cibseven-wildfly26-modules</artifactId>
                       <version>${project.version}</version>
                       <type>tar.gz</type>
                       <overWrite>true</overWrite>
@@ -406,7 +406,7 @@
                     </copy>
 
                     <delete>
-                      <fileset dir="${wildfly26.runtime.location}/modules/org/camunda/bpm/qa" includes="**/*.jar" />
+                      <fileset dir="${wildfly26.runtime.location}/modules/org/cibseven/bpm/qa" includes="**/*.jar" />
                     </delete>
                     <!-- copy all files again, but this only matches fox files and this treatment makes is maven 2/3 compatible => timestamped snapshot -->
                     <copy todir="${wildfly26.runtime.location}/modules" flatten="false" verbose="true">
@@ -414,7 +414,7 @@
                       <mapper>
                         <chainedmapper>
                           <regexpmapper from="^(.*)/([^/]+)/([^/]*)$$" to="\1/main/\3" handledirsep="yes" />
-                          <regexpmapper from="^(org.camunda.bpm.qa.*)/((camunda-[A-Za-z-]*)[0-9\.]*).*.jar$$" to="\1/\3${project.version}.jar" handledirsep="yes" />
+                          <regexpmapper from="^(org.cibseven.bpm.qa.*)/((cibseven-[A-Za-z-]*)[0-9\.]*).*.jar$$" to="\1/\3${project.version}.jar" handledirsep="yes" />
                         </chainedmapper>
                       </mapper>
                     </copy>
@@ -435,4 +435,43 @@
       </build>
     </profile>
   </profiles>
+  <description>
+    Description of CIB seven - QA Wildfly 26 Test Runtime
+  </description>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>v1.1.0</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
+
 </project>

@@ -2,14 +2,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.camunda.bpm</groupId>
-    <artifactId>camunda-database-settings</artifactId>
+    <groupId>org.cibseven.bpm</groupId>
+    <artifactId>cibseven-database-settings</artifactId>
     <relativePath>../database</relativePath>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.camunda.bpm.springboot.project</groupId>
-  <artifactId>camunda-bpm-spring-boot-starter-root</artifactId>
+  <groupId>org.cibseven.bpm.springboot.project</groupId>
+  <artifactId>cibseven-bpm-spring-boot-starter-root</artifactId>
   <name>CIB seven - Spring Boot Starter - Root Pom</name>
   <inceptionYear>2015</inceptionYear>
 
@@ -41,26 +41,6 @@
         <module>starter-test</module>
         <module>starter-client/spring</module>
         <module>starter-client/spring-boot</module>
-        <module>starter-qa</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>distro-ce</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <modules>
-        <module>starter-webapp-core</module>
-        <module>starter-webapp</module>
-        <module>starter-qa</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>distro-starter</id>
-      <!-- This profile is run in the release CI for building the enterprise artifacts
-          It can be removed if the distro job is merged with the assembly and
-          distro-ce is not used for building the spring boot starter -->
-      <modules>
         <module>starter-webapp-core</module>
         <module>starter-webapp</module>
         <module>starter-qa</module>
@@ -162,5 +142,44 @@
 
     </plugins>
   </build>
+
+  <description>
+    Description of CIB seven - Spring Boot Starter - Root Pom
+  </description>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>v1.1.0</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
 
 </project>

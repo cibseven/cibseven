@@ -2,13 +2,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.camunda.bpm</groupId>
-    <artifactId>camunda-root</artifactId>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <groupId>org.cibseven.bpm</groupId>
+    <artifactId>cibseven-root</artifactId>
+    <version>1.2.0-SNAPSHOT</version>
     <relativePath>../</relativePath>
   </parent>
 
-  <artifactId>camunda-parent</artifactId>
+  <artifactId>cibseven-parent</artifactId>
   <name>CIB seven - Parent Pom</name>
   <inceptionYear>2013</inceptionYear>
   <packaging>pom</packaging>
@@ -68,7 +68,8 @@
 
     <version.arquillian>1.1.10.Final</version.arquillian>
     <version.shrinkwrap.resolvers>2.2.2</version.shrinkwrap.resolvers>
-    <version.selenium>4.10.0</version.selenium>
+    <version.selenium>4.26.0</version.selenium>
+    <version.chromedriver>131.0.6778.85</version.chromedriver>
     <version.freemarker>2.3.31</version.freemarker>
 
     <version.jboss-javaee-spec>3.0.2.Final</version.jboss-javaee-spec>
@@ -79,7 +80,7 @@
     <version.npm>10.7.0</version.npm>
 
     <!-- OSGi bundles properties -->
-    <camunda.artifact />
+    <cibseven.artifact />
     <camunda.osgi.import.camunda.spin.version>version="[$(version;==;${camunda.spin.version.clean}),$(version;=+;${camunda.spin.version.clean}))"</camunda.osgi.import.camunda.spin.version>
     <camunda.osgi.import.camunda.connect.version>version="[$(version;==;${camunda.connect.version.clean}),$(version;=+;${camunda.connect.version.clean}))"</camunda.osgi.import.camunda.connect.version>
     <camunda.osgi.import.camunda.commons.version>version="[$(version;==;${camunda.commons.version.clean}),$(version;=+;${camunda.commons.version.clean}))"</camunda.osgi.import.camunda.commons.version>
@@ -100,16 +101,16 @@
     <camunda.osgi.failok>false</camunda.osgi.failok>
     <camunda.osgi.export>${camunda.osgi.export.pkg};${camunda.osgi.version};-noimport:=true</camunda.osgi.export>
     <!--
-    <camunda.osgi.export.pkg>!*.impl;${camunda.artifact}*</camunda.osgi.export.pkg>
-    <camunda.osgi.private.pkg>${camunda.artifact}*.impl</camunda.osgi.private.pkg>
+    <camunda.osgi.export.pkg>!*.impl;${cibseven.artifact}*</camunda.osgi.export.pkg>
+    <camunda.osgi.private.pkg>${cibseven.artifact}*.impl</camunda.osgi.private.pkg>
     -->
-    <camunda.osgi.export.pkg>${camunda.artifact}*</camunda.osgi.export.pkg>
+    <camunda.osgi.export.pkg>${cibseven.artifact}*</camunda.osgi.export.pkg>
     <camunda.osgi.private.pkg />
     <camunda.osgi.version>version=${project.version}</camunda.osgi.version>
     <camunda.osgi.split.pkg>-split-package:=first</camunda.osgi.split.pkg>
     <camunda.osgi.import>${camunda.osgi.import.pkg}</camunda.osgi.import>
     <camunda.osgi.dynamic />
-    <camunda.osgi.symbolic.name>${camunda.artifact}</camunda.osgi.symbolic.name>
+    <camunda.osgi.symbolic.name>${cibseven.artifact}</camunda.osgi.symbolic.name>
     <camunda.osgi.exclude.dependencies>false</camunda.osgi.exclude.dependencies>
     <camunda.osgi.remove.headers>Ignore-Package,Include-Resource,Private-Package,Bundle-DocURL</camunda.osgi.remove.headers>
     <camunda.osgi.include.resource>{maven-resources}</camunda.osgi.include.resource>
@@ -121,8 +122,8 @@
     <dependencies>
 
       <dependency>
-        <groupId>org.camunda.bpm</groupId>
-        <artifactId>camunda-bom</artifactId>
+        <groupId>org.cibseven.bpm</groupId>
+        <artifactId>cibseven-bom</artifactId>
         <version>${project.version}</version>
         <type>pom</type>
         <scope>import</scope>
@@ -293,8 +294,8 @@
             <rules>
               <jakartaDefaults>true</jakartaDefaults>
               <renames>
-                <rename>jar:file:${org.camunda.bpm:camunda-engine:jar}!/META-INF/jakarta-renames.properties</rename>
-                <rename>jar:file:${org.camunda.bpm:camunda-engine:jar}!/META-INF/camunda-renames.properties</rename>
+                <rename>jar:file:${org.cibseven.bpm:cibseven-engine:jar}!/META-INF/jakarta-renames.properties</rename>
+                <rename>jar:file:${org.cibseven.bpm:cibseven-engine:jar}!/META-INF/camunda-renames.properties</rename>
               </renames>
             </rules>
             <classifier>jakarta</classifier>
@@ -353,11 +354,33 @@
   </licenses>
 
   <organization>
-    <name>CIB software GmbH</name>
-    <url>https://www.cib.de/</url>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
   </organization>
 
-  <url>https://cibseven.de/</url>
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>v1.1.0</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
+
 </project>
 
 

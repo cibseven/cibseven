@@ -47,15 +47,9 @@ pipeline {
             if (env.CHANGE_ID != null && pullRequest.labels.contains('ci:skipTests')) {
                skipTests = "-DskipTests "
             }
-            withVault([vaultSecrets: [
-                [
-                    path        : 'secret/products/cambpm/ci/xlts.dev',
-                    secretValues: [
-                        [envVar: 'XLTS_REGISTRY', vaultKey: 'registry'],
-                        [envVar: 'XLTS_AUTH_TOKEN', vaultKey: 'authToken']]
-                ]]]) {
+            withVault([vaultSecrets: []]) {
               cambpmRunMaven('.',
-                  'clean source:jar deploy source:test-jar com.mycila:license-maven-plugin:check -Pdistro,distro-ce,distro-wildfly,distro-webjar,h2-in-memory -DaltStagingDirectory=${WORKSPACE}/staging -DskipRemoteStaging=true '+ skipTests,
+                  'clean source:jar deploy source:test-jar com.mycila:license-maven-plugin:check -Pdistro,distro-wildfly,distro-webjar,h2-in-memory -DaltStagingDirectory=${WORKSPACE}/staging -DskipRemoteStaging=true '+ skipTests,
                   withCatch: false,
                   withNpm: true,
                   // we use JDK 17 to build the artifacts, as it is required for supporting Spring Boot 3
@@ -65,26 +59,26 @@ pipeline {
 
             // archive all .jar, .pom, .xml, .txt runtime artifacts + required .war/.zip/.tar.gz for EE pipeline
             // add a new line for each group of artifacts
-            cambpmArchiveArtifacts('.m2/org/camunda/**/*-SNAPSHOT/**/*.jar,.m2/org/camunda/**/*-SNAPSHOT/**/*.pom,.m2/org/camunda/**/*-SNAPSHOT/**/*.xml,.m2/org/camunda/**/*-SNAPSHOT/**/*.txt',
-                                  '.m2/org/camunda/**/*-SNAPSHOT/**/camunda-webapp*frontend-sources.zip',
-                                  '.m2/org/camunda/**/*-SNAPSHOT/**/license-book*.zip',
-                                  '.m2/org/camunda/**/*-SNAPSHOT/**/camunda-*-assembly*.tar.gz',
-                                  '.m2/org/camunda/**/*-SNAPSHOT/**/camunda-webapp*.war',
-                                  '.m2/org/camunda/**/*-SNAPSHOT/**/camunda-engine-rest*.war',
-                                  '.m2/org/camunda/**/*-SNAPSHOT/**/camunda-example-invoice*.war')
+            cambpmArchiveArtifacts('.m2/org/cibseven/**/*-SNAPSHOT/**/*.jar,.m2/org/cibseven/**/*-SNAPSHOT/**/*.pom,.m2/org/cibseven/**/*-SNAPSHOT/**/*.xml,.m2/org/cibseven/**/*-SNAPSHOT/**/*.txt',
+                                  '.m2/org/cibseven/**/*-SNAPSHOT/**/camunda-webapp*frontend-sources.zip',
+                                  '.m2/org/cibseven/**/*-SNAPSHOT/**/license-book*.zip',
+                                  '.m2/org/cibseven/**/*-SNAPSHOT/**/camunda-*-assembly*.tar.gz',
+                                  '.m2/org/cibseven/**/*-SNAPSHOT/**/camunda-webapp*.war',
+                                  '.m2/org/cibseven/**/*-SNAPSHOT/**/camunda-engine-rest*.war',
+                                  '.m2/org/cibseven/**/*-SNAPSHOT/**/camunda-example-invoice*.war')
             if (env.CHANGE_ID != null && pullRequest.labels.contains('ci:distro')) {
               cambpmArchiveArtifacts(
-                     '.m2/org/camunda/**/*-SNAPSHOT/**/camunda-bpm-*.zip',
-                     '.m2/org/camunda/**/*-SNAPSHOT/**/camunda-bpm-*.tar.gz')
+                     '.m2/org/cibseven/**/*-SNAPSHOT/**/camunda-bpm-*.zip',
+                     '.m2/org/cibseven/**/*-SNAPSHOT/**/camunda-bpm-*.tar.gz')
             }
 
             cambpmStash("platform-stash-runtime",
-                        ".m2/org/camunda/**/*-SNAPSHOT/**",
+                        ".m2/org/cibseven/**/*-SNAPSHOT/**",
                         "**/qa/**,**/*qa*/**,**/*.zip,**/*.tar.gz")
             cambpmStash("platform-stash-archives",
-                        ".m2/org/camunda/bpm/**/*-SNAPSHOT/**/*.zip,.m2/org/camunda/bpm/**/*-SNAPSHOT/**/*.tar.gz")
+                        ".m2/org/cibseven/bpm/**/*-SNAPSHOT/**/*.zip,.m2/org/cibseven/bpm/**/*-SNAPSHOT/**/*.tar.gz")
             cambpmStash("platform-stash-qa",
-                      ".m2/org/camunda/bpm/**/qa/**/*-SNAPSHOT/**,.m2/org/camunda/bpm/**/*qa*/**/*-SNAPSHOT/**",
+                      ".m2/org/cibseven/bpm/**/qa/**/*-SNAPSHOT/**,.m2/org/cibseven/bpm/**/*qa*/**/*-SNAPSHOT/**",
                       "**/*.zip,**/*.tar.gz")
 
             script {
@@ -441,7 +435,7 @@ pipeline {
             cambpmConditionalRetry([
               agentLabel: 'chrome_112',
               runSteps: {
-                cambpmRunMaven('distro/run/', 'clean install -Pintegration-test-camunda-run', runtimeStash: true, archiveStash: true, qaStash: true,
+                cambpmRunMaven('distro/run/', 'clean install -Pintegration-test-run', runtimeStash: true, archiveStash: true, qaStash: true,
                     jdkVersion: 'jdk-17-latest')
               },
               postFailure: {

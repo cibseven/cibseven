@@ -1,54 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  
-  <groupId>de.cibseven.run</groupId>
-  <artifactId>cibseven-run</artifactId>
-  <version>1.1-SNAPSHOT</version>
-  <packaging>pom</packaging>
 
   <parent>
-    <groupId>org.camunda.bpm.run</groupId>
-    <artifactId>camunda-bpm-run-root</artifactId>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <groupId>org.cibseven.bpm.run</groupId>
+    <artifactId>cibseven-bpm-run-root</artifactId>
+    <version>1.2.0-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
 
+  <artifactId>cibseven-bpm-run</artifactId>
   <name>CIB seven - Run - Distribution</name>
-  
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-	    <groupId>org.camunda.bpm</groupId>
-	    <artifactId>camunda-bom</artifactId>
-	    <version>${project.parent.version}</version>
-	    <scope>import</scope>
-        <type>pom</type>
-	  </dependency>
-    </dependencies>
-  </dependencyManagement>
+  <packaging>pom</packaging>
 
   <dependencies>
 
     <dependency>
-      <groupId>org.camunda.bpm.run</groupId>
-      <artifactId>camunda-bpm-run-assembly</artifactId>
-      <version>${project.parent.version}</version>
+      <groupId>org.cibseven.bpm.run</groupId>
+      <artifactId>cibseven-bpm-run-assembly</artifactId>
+      <version>${project.version}</version>
       <type>tar.gz</type>
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.bpm.distro</groupId>
-      <artifactId>camunda-sql-scripts</artifactId>
-      <version>${project.parent.version}</version>
+      <groupId>org.cibseven.bpm.distro</groupId>
+      <artifactId>cibseven-sql-scripts</artifactId>
+      <version>${project.version}</version>
       <type>jar</type>
     </dependency>
 
     <!-- make sure this runs after webapps -->
     <dependency>
-      <groupId>org.camunda.bpm.run</groupId>
-      <artifactId>camunda-bpm-run-modules-webapps</artifactId>
-      <version>${project.parent.version}</version>
+      <groupId>org.cibseven.bpm.run</groupId>
+      <artifactId>cibseven-bpm-run-modules-webapps</artifactId>
+      <version>${project.version}</version>
       <type>pom</type>
       <exclusions>
         <!-- we don't need any transitive dependencies -->
@@ -89,5 +74,44 @@
       </plugin>
     </plugins>
   </build>
+
+  <description>
+    Description of CIB seven - Run - Distribution
+  </description>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>v1.1.0</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
 
 </project>

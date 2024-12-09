@@ -3,12 +3,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.camunda.bpm.run</groupId>
-    <artifactId>camunda-bpm-run-modules</artifactId>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <groupId>org.cibseven.bpm.run</groupId>
+    <artifactId>cibseven-bpm-run-modules</artifactId>
+    <version>1.2.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>camunda-bpm-run-modules-example-invoice</artifactId>
+  <artifactId>cibseven-bpm-run-modules-example-invoice</artifactId>
   <name>CIB seven - Run - Module Example Invoice</name>
   
   <properties>
@@ -21,14 +21,14 @@
   <dependencies>
 
     <dependency>
-      <groupId>org.camunda.bpm.springboot</groupId>
-      <artifactId>camunda-bpm-spring-boot-starter-webapp</artifactId>
+      <groupId>org.cibseven.bpm.springboot</groupId>
+      <artifactId>cibseven-bpm-spring-boot-starter-webapp</artifactId>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.bpm.example</groupId>
-      <artifactId>camunda-example-invoice-jakarta</artifactId>
+      <groupId>org.cibseven.bpm.example</groupId>
+      <artifactId>cibseven-example-invoice-jakarta</artifactId>
       <version>${project.version}</version>
       <classifier>classes</classifier>
       <scope>provided</scope>
@@ -53,8 +53,8 @@
             <configuration>
               <artifactItems>
                 <artifactItem>
-                  <groupId>org.camunda.bpm.example</groupId>
-                  <artifactId>camunda-example-invoice-jakarta</artifactId>
+                  <groupId>org.cibseven.bpm.example</groupId>
+                  <artifactId>cibseven-example-invoice-jakarta</artifactId>
                   <version>${project.version}</version>
                   <type>war</type>
                   <outputDirectory>${project.build.directory}/classes</outputDirectory>
@@ -83,5 +83,44 @@
       </plugin>
     </plugins>
   </build>
+
+  <description>
+    Description of CIB seven - Run - Module Example Invoice
+  </description>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>v1.1.0</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
 
 </project>

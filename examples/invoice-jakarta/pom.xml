@@ -1,15 +1,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>camunda-example-invoice-jakarta</artifactId>
+  <artifactId>cibseven-example-invoice-jakarta</artifactId>
   <packaging>war</packaging>
   <name>CIB seven - Example - Invoice Jakarta</name>
 
   <parent>
-    <groupId>org.camunda.bpm.example</groupId>
-    <artifactId>camunda-example-root</artifactId>
+    <groupId>org.cibseven.bpm.example</groupId>
+    <artifactId>cibseven-example-root</artifactId>
     <relativePath>../</relativePath>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
   </parent>
 
   <dependencyManagement>
@@ -218,5 +218,44 @@
       </plugin>
     </plugins>
   </build>
+
+  <description>
+    Description of CIB seven - Example - Invoice Jakarta
+  </description>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>v1.1.0</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
 
 </project>

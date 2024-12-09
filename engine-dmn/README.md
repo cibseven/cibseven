@@ -17,7 +17,7 @@ Add the following Maven Coordinates to your project:
 
 ```xml
 <dependency>
-  <groupId>org.camunda.bpm.dmn</groupId>
+  <groupId>org.cibseven.bpm.dmn</groupId>
   <artifactId>camunda-engine-dmn</artifactId>
   <version>${version.camunda}</version>
 </dependency>
@@ -53,7 +53,7 @@ public class DmnApp {
 Add the following Maven Coordinates to your project:
 ```xml
 <dependency>
-  <groupId>org.camunda.bpm</groupId>
+  <groupId>org.cibseven.bpm</groupId>
   <artifactId>camunda-engine</artifactId>
   <version>${version.camunda}</versions>
 </dependency>

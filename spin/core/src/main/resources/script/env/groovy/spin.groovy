@@ -18,4 +18,4 @@
 /*
  * Bind the Spin S(...) function to the variable S.
  */
-S = org.camunda.spin.Spin.&S
+S = org.cibseven.spin.Spin.&S

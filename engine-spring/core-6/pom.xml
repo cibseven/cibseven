@@ -2,21 +2,21 @@
   <modelVersion>4.0.0</modelVersion>
 
   <name>CIB seven - engine - Spring 6</name>
-  <artifactId>camunda-engine-spring-6</artifactId>
+  <artifactId>cibseven-engine-spring-6</artifactId>
 
   <parent>
-    <groupId>org.camunda.bpm</groupId>
-    <artifactId>camunda-database-settings</artifactId>
+    <groupId>org.cibseven.bpm</groupId>
+    <artifactId>cibseven-database-settings</artifactId>
     <relativePath>../../database</relativePath>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
   </parent>
 
   <dependencyManagement>
     <dependencies>
 
       <dependency>
-        <groupId>org.camunda.bpm</groupId>
-        <artifactId>camunda-core-internal-dependencies</artifactId>
+        <groupId>org.cibseven.bpm</groupId>
+        <artifactId>cibseven-core-internal-dependencies</artifactId>
         <version>${project.version}</version>
         <scope>import</scope>
         <type>pom</type>
@@ -43,8 +43,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.camunda.bpm</groupId>
-      <artifactId>camunda-engine</artifactId>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -160,8 +160,8 @@
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.bpm</groupId>
-      <artifactId>camunda-bpm-archunit</artifactId>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-bpm-archunit</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -305,7 +305,7 @@
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <dependenciesToScan>
-            <dependency>org.camunda.bpm:camunda-bpm-archunit</dependency>
+            <dependency>org.cibseven.bpm:cibseven-bpm-archunit</dependency>
           </dependenciesToScan>
         </configuration>
       </plugin>
@@ -407,5 +407,44 @@
       </plugin>
     </plugins>
   </build>
+
+  <description>
+    Description of CIB seven - engine - Spring 6
+  </description>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>v1.1.0</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
 
 </project>

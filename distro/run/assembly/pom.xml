@@ -3,13 +3,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.camunda.bpm.run</groupId>
-    <artifactId>camunda-bpm-run-root</artifactId>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <groupId>org.cibseven.bpm.run</groupId>
+    <artifactId>cibseven-bpm-run-root</artifactId>
+    <version>1.2.0-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
 
-  <artifactId>camunda-bpm-run-assembly</artifactId>
+  <artifactId>cibseven-bpm-run-assembly</artifactId>
   <name>CIB seven - Run - Assembly</name>
   <packaging>pom</packaging>
   
@@ -36,8 +36,8 @@
   <dependencies>
     <!-- make sure the assembly runs after the REST module -->
     <dependency>
-      <groupId>org.camunda.bpm.run</groupId>
-      <artifactId>camunda-bpm-run-modules-rest</artifactId>
+      <groupId>org.cibseven.bpm.run</groupId>
+      <artifactId>cibseven-bpm-run-modules-rest</artifactId>
       <version>${project.version}</version>
       <type>pom</type>
       <exclusions>
@@ -51,8 +51,8 @@
 
     <!-- make sure this runs after the oauth2 module -->
     <dependency>
-      <groupId>org.camunda.bpm.run</groupId>
-      <artifactId>camunda-bpm-run-modules-oauth2</artifactId>
+      <groupId>org.cibseven.bpm.run</groupId>
+      <artifactId>cibseven-bpm-run-modules-oauth2</artifactId>
       <version>${project.version}</version>
       <type>pom</type>
       <exclusions>
@@ -65,8 +65,8 @@
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.bpm.run</groupId>
-      <artifactId>camunda-bpm-run-modules-example-invoice</artifactId>
+      <groupId>org.cibseven.bpm.run</groupId>
+      <artifactId>cibseven-bpm-run-modules-example-invoice</artifactId>
       <version>${project.version}</version>
       <type>jar</type>
       <exclusions>
@@ -79,8 +79,8 @@
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.bpm.run</groupId>
-      <artifactId>camunda-bpm-run-core</artifactId>
+      <groupId>org.cibseven.bpm.run</groupId>
+      <artifactId>cibseven-bpm-run-core</artifactId>
       <version>${project.version}</version>
       <exclusions>
         <!-- we consume an uberjar that contains all of its dependencies -->
@@ -92,7 +92,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.bpm</groupId>
+      <groupId>org.cibseven.bpm</groupId>
       <artifactId>license-book</artifactId>
       <version>${project.version}</version>
       <type>zip</type>
@@ -158,5 +158,44 @@
       </plugin>
     </plugins>
   </build>
+
+  <description>
+    Description of CIB seven - Run - Assembly
+  </description>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>v1.1.0</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
 
 </project>

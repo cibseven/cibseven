@@ -1,13 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>camunda-qa-integration-tests-engine</artifactId>
+  <artifactId>cibseven-qa-integration-tests-engine</artifactId>
   <name>CIB seven - QA Integration Tests - Engine</name>
 
   <parent>
-    <groupId>org.camunda.bpm.qa</groupId>
-    <artifactId>camunda-qa</artifactId>
-    <version>7.22.1-cibseven-SNAPSHOT</version>
+    <groupId>org.cibseven.bpm.qa</groupId>
+    <artifactId>cibseven-qa</artifactId>
+    <version>1.2.0-SNAPSHOT</version>
   </parent>
 
   <properties>
@@ -104,33 +104,33 @@
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.bpm.javaee</groupId>
-      <artifactId>camunda-ejb-client</artifactId>
+      <groupId>org.cibseven.bpm.javaee</groupId>
+      <artifactId>cibseven-ejb-client</artifactId>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.bpm</groupId>
-      <artifactId>camunda-engine-cdi</artifactId>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine-cdi</artifactId>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
-          <artifactId>camunda-engine</artifactId>
-          <groupId>org.camunda.bpm</groupId>
+          <artifactId>cibseven-engine</artifactId>
+          <groupId>org.cibseven.bpm</groupId>
         </exclusion>
       </exclusions>
     </dependency>
 
     <!-- camunda -->
     <dependency>
-      <groupId>org.camunda.bpm</groupId>
-      <artifactId>camunda-engine</artifactId>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine</artifactId>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.bpm.dmn</groupId>
-      <artifactId>camunda-engine-dmn</artifactId>
+      <groupId>org.cibseven.bpm.dmn</groupId>
+      <artifactId>cibseven-engine-dmn</artifactId>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
@@ -149,25 +149,25 @@
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.bpm</groupId>
-      <artifactId>camunda-engine-spring</artifactId>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine-spring</artifactId>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
-          <artifactId>camunda-engine</artifactId>
-          <groupId>org.camunda.bpm</groupId>
+          <artifactId>cibseven-engine</artifactId>
+          <groupId>org.cibseven.bpm</groupId>
         </exclusion>
       </exclusions>
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.spin</groupId>
-      <artifactId>camunda-spin-core</artifactId>
+      <groupId>org.cibseven.spin</groupId>
+      <artifactId>cibseven-spin-core</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.spin</groupId>
-      <artifactId>camunda-spin-dataformat-json-jackson</artifactId>
+      <groupId>org.cibseven.spin</groupId>
+      <artifactId>cibseven-spin-dataformat-json-jackson</artifactId>
     </dependency>
 
     <dependency>
@@ -180,24 +180,24 @@
       BOM must be installed before this module is built
     -->
     <dependency>
-      <groupId>org.camunda.bpm</groupId>
-      <artifactId>camunda-bom</artifactId>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-bom</artifactId>
       <version>${project.version}</version>
       <type>pom</type>
       <scope>test</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.bpm</groupId>
-      <artifactId>camunda-core-internal-dependencies</artifactId>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-core-internal-dependencies</artifactId>
       <version>${project.version}</version>
       <type>pom</type>
       <scope>test</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.camunda.connect</groupId>
-      <artifactId>camunda-connect-core</artifactId>
+      <groupId>org.cibseven.connect</groupId>
+      <artifactId>cibseven-connect-core</artifactId>
     </dependency>
 
     <!-- explicit Spring dependencies for applications
@@ -274,9 +274,9 @@
             <configuration>
               <forceCreation>true</forceCreation>
               <excludes>
-                <exclude>org/camunda/bpm/integrationtest/util/TestConstants*</exclude>
-                <exclude>org/camunda/bpm/integrationtest/util/TestContainer*</exclude>
-                <exclude>org/camunda/bpm/integrationtest/util/TestProcessApplication*</exclude>
+                <exclude>org/cibseven/bpm/integrationtest/util/TestConstants*</exclude>
+                <exclude>org/cibseven/bpm/integrationtest/util/TestContainer*</exclude>
+                <exclude>org/cibseven/bpm/integrationtest/util/TestProcessApplication*</exclude>
               </excludes>
             </configuration>
           </execution>
@@ -292,8 +292,8 @@
       <dependencies>
         <dependency>
           <!-- make sure this comes after runtime in the reactor build -->
-          <groupId>org.camunda.bpm.qa</groupId>
-          <artifactId>camunda-qa-wildfly26-runtime</artifactId>
+          <groupId>org.cibseven.bpm.qa</groupId>
+          <artifactId>cibseven-qa-wildfly26-runtime</artifactId>
           <version>${project.version}</version>
           <scope>provided</scope>
           <type>pom</type>
@@ -370,8 +370,8 @@
       <dependencies>
         <dependency>
           <!-- make sure this comes after runtime in the reactor build -->
-          <groupId>org.camunda.bpm.qa</groupId>
-          <artifactId>camunda-qa-wildfly26-runtime</artifactId>
+          <groupId>org.cibseven.bpm.qa</groupId>
+          <artifactId>cibseven-qa-wildfly26-runtime</artifactId>
           <version>${project.version}</version>
           <scope>provided</scope>
           <type>pom</type>
@@ -487,8 +487,8 @@
         <dependencies>
           <!-- import internal dependencies before JBoss to preserve internal versions, e.g. for JUnit -->
           <dependency>
-            <groupId>org.camunda.bpm</groupId>
-            <artifactId>camunda-core-internal-dependencies</artifactId>
+            <groupId>org.cibseven.bpm</groupId>
+            <artifactId>cibseven-core-internal-dependencies</artifactId>
             <version>${project.version}</version>
             <scope>import</scope>
             <type>pom</type>
@@ -505,8 +505,8 @@
       <dependencies>
         <dependency>
           <!-- make sure this comes after runtime in the reactor build -->
-          <groupId>org.camunda.bpm.qa</groupId>
-          <artifactId>camunda-qa-tomcat9-runtime</artifactId>
+          <groupId>org.cibseven.bpm.qa</groupId>
+          <artifactId>cibseven-qa-tomcat9-runtime</artifactId>
           <version>${project.version}</version>
           <scope>provided</scope>
           <type>pom</type>
@@ -665,8 +665,8 @@
       <id>clean-db</id>
       <dependencies>
         <dependency>
-          <groupId>org.camunda.bpm</groupId>
-          <artifactId>camunda-engine</artifactId>
+          <groupId>org.cibseven.bpm</groupId>
+          <artifactId>cibseven-engine</artifactId>
           <scope>test</scope>
         </dependency>
       </dependencies>
@@ -685,8 +685,8 @@
                 <configuration>
                   <artifactItems>
                     <artifactItem>
-                      <groupId>org.camunda.bpm</groupId>
-                      <artifactId>camunda-engine</artifactId>
+                      <groupId>org.cibseven.bpm</groupId>
+                      <artifactId>cibseven-engine</artifactId>
                       <outputDirectory>${project.build.directory}/sql-scripts/engine</outputDirectory>
                       <overWrite>true</overWrite>
                     </artifactItem>
@@ -708,13 +708,13 @@
                 <configuration>
                   <srcFiles>
                     <!-- try dropping the DB if it exists. -->
-                    <srcFile>${project.build.directory}/sql-scripts/engine/org/camunda/bpm/engine/db/drop/activiti.${database.type}.drop.decision.engine.sql</srcFile>
-                    <srcFile>${project.build.directory}/sql-scripts/engine/org/camunda/bpm/engine/db/drop/activiti.${database.type}.drop.case.engine.sql</srcFile>
-                    <srcFile>${project.build.directory}/sql-scripts/engine/org/camunda/bpm/engine/db/drop/activiti.${database.type}.drop.engine.sql</srcFile>
-                    <srcFile>${project.build.directory}/sql-scripts/engine/org/camunda/bpm/engine/db/drop/activiti.${database.type}.drop.identity.sql</srcFile>
-                    <srcFile>${project.build.directory}/sql-scripts/engine/org/camunda/bpm/engine/db/drop/activiti.${database.type}.drop.decision.history.sql</srcFile>
-                    <srcFile>${project.build.directory}/sql-scripts/engine/org/camunda/bpm/engine/db/drop/activiti.${database.type}.drop.case.history.sql</srcFile>
-                    <srcFile>${project.build.directory}/sql-scripts/engine/org/camunda/bpm/engine/db/drop/activiti.${database.type}.drop.history.sql</srcFile>
+                    <srcFile>${project.build.directory}/sql-scripts/engine/org/cibseven/bpm/engine/db/drop/activiti.${database.type}.drop.decision.engine.sql</srcFile>
+                    <srcFile>${project.build.directory}/sql-scripts/engine/org/cibseven/bpm/engine/db/drop/activiti.${database.type}.drop.case.engine.sql</srcFile>
+                    <srcFile>${project.build.directory}/sql-scripts/engine/org/cibseven/bpm/engine/db/drop/activiti.${database.type}.drop.engine.sql</srcFile>
+                    <srcFile>${project.build.directory}/sql-scripts/engine/org/cibseven/bpm/engine/db/drop/activiti.${database.type}.drop.identity.sql</srcFile>
+                    <srcFile>${project.build.directory}/sql-scripts/engine/org/cibseven/bpm/engine/db/drop/activiti.${database.type}.drop.decision.history.sql</srcFile>
+                    <srcFile>${project.build.directory}/sql-scripts/engine/org/cibseven/bpm/engine/db/drop/activiti.${database.type}.drop.case.history.sql</srcFile>
+                    <srcFile>${project.build.directory}/sql-scripts/engine/org/cibseven/bpm/engine/db/drop/activiti.${database.type}.drop.history.sql</srcFile>
                   </srcFiles>
                   <autocommit>true</autocommit>
                   <onError>continue</onError>
@@ -726,4 +726,43 @@
       </build>
     </profile>
   </profiles>
+  <description>
+    Description of CIB seven - QA Integration Tests - Engine
+  </description>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>v1.1.0</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
+
 </project>

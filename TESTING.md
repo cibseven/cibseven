@@ -7,7 +7,7 @@
 # Best Practices for Writing Test Cases
 
 * write JUnit4-style tests, not JUnit3
-* Project `camunda-engine`: If you need a process engine object, use the JUnit rule `org.camunda.bpm.engine.test.util.ProvidedProcessEngineRule`. It ensures that the process engine object is reused across test cases and that certain integrity checks are performed after every test. For example:
+* Project `camunda-engine`: If you need a process engine object, use the JUnit rule `org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule`. It ensures that the process engine object is reused across test cases and that certain integrity checks are performed after every test. For example:
   ```
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
@@ -18,12 +18,12 @@
     ...
   }
   ```
-* Project `camunda-engine`: As an alternative to the above, you can extend extend the `org.camunda.bpm.engine.test.util.PluggableProcessEngineTest` class.
+* Project `camunda-engine`: As an alternative to the above, you can extend extend the `org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest` class.
   The class already provides an instance of the `ProvidedProcessEngineRule`, as well as the `ProcessEngineTestRule` that
   provides some additional custom assertions and helper methods.
   * However, if you need to make modifications to the `ProcessEngineConfiguration`, then please use the `ProcessEngineBootstrapRule`
     as described below. 
-* Project `camunda-engine`: If you need a process engine with custom configuration, use the JUnit rule `org.camunda.bpm.engine.test.util.ProcessEngineBootstrapRule` and chain it with `org.camunda.bpm.engine.test.util.ProvidedProcessEngineRule` like so:
+* Project `camunda-engine`: If you need a process engine with custom configuration, use the JUnit rule `org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule` and chain it with `org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule` like so:
   ```
   protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
       // apply configuration options here

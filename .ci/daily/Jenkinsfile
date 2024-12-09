@@ -53,21 +53,6 @@ pipeline {
     }
     stage('Misc') {
       parallel {
-        stage('check-sql-scripts') {
-          when {
-            expression {
-              cambpmWithLabels('all-db','h2','db2','mysql','oracle','mariadb','sqlserver','postgresql')
-            }
-          }
-          steps {
-            cambpmConditionalRetry([
-              agentLabel: 'centos-stable',
-              runSteps: {
-                sh(label: 'Check SQL scripts', script: '.ci/scripts/check-sql-scripts.sh')
-              }
-            ])
-          }
-        }
         stage('stage-javadocs') {
           when {
             branch cambpmDefaultBranch();
@@ -196,7 +181,7 @@ pipeline {
               ],
               runSteps: {
                 cambpmRunMaven('.',
-                  "install source:jar -Pdistro,distro-ce,distro-wildfly,distro-webjar -B",
+                  "install source:jar -Pdistro,distro-wildfly,distro-webjar -B",
                   withNpm: true,
                   jdkVersion: 'jdk-17-latest',
                   settingsXml: 'public-repo')

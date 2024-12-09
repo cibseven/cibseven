@@ -14,7 +14,7 @@
 
     <plugins>
       <plugin>
-        <class>org.camunda.bpm.integrationtest.deployment.war.beans.GroovyProcessEnginePlugin</class>
+        <class>org.cibseven.bpm.integrationtest.deployment.war.beans.GroovyProcessEnginePlugin</class>
       </plugin>
     </plugins>
   </process-engine>

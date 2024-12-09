@@ -132,7 +132,7 @@ engine-rest-jakarta-unit-compatibility-wildfly:
   jdkVersion: 'openjdk-jdk-17-latest'
 platform-jdk-temurin-jdk-17-latest:
   directory: '.'
-  command: 'install source:jar source:test-jar -Pdistro,distro-ce,distro-wildfly'
+  command: 'install source:jar source:test-jar -Pdistro,distro-wildfly'
   stash:
     runtimeStash: true
   withNpm: true
@@ -142,7 +142,7 @@ platform-jdk-temurin-jdk-17-latest:
     image: 'maven:3.9.7-eclipse-temurin-17'
 platform-jdk-temurin-jdk-21-latest:
   directory: '.'
-  command: 'install source:jar source:test-jar -Pdistro,distro-ce,distro-wildfly'
+  command: 'install source:jar source:test-jar -Pdistro,distro-wildfly'
   stash:
     runtimeStash: true
   withNpm: true
@@ -165,7 +165,7 @@ platform-jdk-temurin-jdk-11-latest:
           !distro/run,!distro/run/assembly,!distro/run/core,!distro/run/distro,!distro/run/modules,!distro/run/modules/example,
           !distro/run/modules/rest,!distro/run/modules/webapps,!distro/run/modules/oauth2,!distro/run/qa,!distro/run/qa/integration-tests,
           !distro/run/qa/runtime,!distro/run/qa/example-plugin''
-    -Pdistro,distro-ce,distro-wildfly'
+    -Pdistro,distro-wildfly'
   stash:
     runtimeStash: true
   withNpm: true
@@ -175,7 +175,7 @@ platform-jdk-temurin-jdk-11-latest:
     image: 'maven:3.9.7-eclipse-temurin-11'
 platform-jdk-jdk-17-latest:
   directory: '.'
-  command: 'install source:jar source:test-jar -Pdistro,distro-ce,distro-wildfly -Dskip.frontend.build=true'
+  command: 'install source:jar source:test-jar -Pdistro,distro-wildfly -Dskip.frontend.build=true'
   stash:
     runtimeStash: true
   nodeLabel: 'h2'
@@ -183,7 +183,7 @@ platform-jdk-jdk-17-latest:
   withNpm: true
 platform-jdk-jdk-21-latest:
   directory: '.'
-  command: 'install source:jar source:test-jar -Pdistro,distro-ce,distro-wildfly -Dskip.frontend.build=true'
+  command: 'install source:jar source:test-jar -Pdistro,distro-wildfly -Dskip.frontend.build=true'
   stash:
     runtimeStash: true
   nodeLabel: 'h2'
@@ -204,7 +204,7 @@ platform-jdk-jdk-11-latest:
           !distro/run,!distro/run/assembly,!distro/run/core,!distro/run/distro,!distro/run/modules,!distro/run/modules/example,
           !distro/run/modules/rest,!distro/run/modules/webapps,!distro/run/modules/oauth2,!distro/run/qa,!distro/run/qa/integration-tests,
           !distro/run/qa/runtime,!distro/run/qa/example-plugin''
-    -Pdistro,distro-ce,distro-wildfly
+    -Pdistro,distro-wildfly
     -Dskip.frontend.build=true'
   stash:
     runtimeStash: true

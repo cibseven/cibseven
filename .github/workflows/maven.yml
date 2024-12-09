@@ -1,0 +1,35 @@
+name: Maven install
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'Jenkinsfile.*'
+    pull_request:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        cache: 'maven'
+
+    - name: Run Maven install
+      run: mvn install
+
+    - name: Junit Test Dashboard
+      uses: janisz/action@v2
+      with:
+        paths: ${{ github.workspace }}/**/target/surefire-reports/*.xml

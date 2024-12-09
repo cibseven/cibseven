@@ -1,9 +1,9 @@
 This is a distribution of
 
-       CIB seven v1.0
+       CIB seven v1.1.0
 
 visit
-       https://docs.cibseven.de
+       https://docs.cibseven.org
 
 License information can be found in the LICENSE file.
  
@@ -35,8 +35,8 @@ Contents:
         This directory contains all resources to configure the distro.
         Find a detailed guide on how to use this directory on the following
         documentation pages:
-        https://docs.cibseven.de/manual/latest/installation/cibseven-run/
-        https://docs.cibseven.de/manual/latest/user-guide/cibseven-run/
+        https://docs.cibseven.org/manual/latest/installation/cibseven-run/
+        https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/
 
 ==================
 

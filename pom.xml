@@ -2,16 +2,16 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>de.cibseven</groupId>
+    <groupId>org.cibseven</groupId>
 	  <artifactId>release-parent</artifactId>
-	  <version>1.0</version>
+	  <version>1.1.0</version>
     <!-- do not remove empty tag - http://jira.codehaus.org/browse/MNG-4687 -->
     <relativePath />
   </parent>
 
-  <groupId>org.camunda.bpm</groupId>
-  <artifactId>camunda-root</artifactId>
-  <version>7.22.1-cibseven-SNAPSHOT</version>
+  <groupId>org.cibseven.bpm</groupId>
+  <artifactId>cibseven-root</artifactId>
+  <version>1.2.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>CIB seven - Root Pom</name>
   <inceptionYear>2024</inceptionYear>
@@ -29,6 +29,7 @@
     <version.joda-time>2.12.5</version.joda-time>
     <version.uuid-generator>4.3.0</version.uuid-generator>
     <version.feel-scala>1.17.5</version.feel-scala>
+    <version.license-maven-plugin>2.4.0</version.license-maven-plugin>
   </properties>
 
   <build>
@@ -36,7 +37,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>license-maven-plugin</artifactId>
-        <version>1.14</version>
+        <version>${version.license-maven-plugin}</version>
         <configuration>
           <acceptPomPackaging>true</acceptPomPackaging>
           <excludedScopes>test</excludedScopes>
@@ -106,23 +107,6 @@
         <module>database</module>
         <module>parent</module>
         <module>bom</module>
-      </modules>
-    </profile>
-
-    <profile>
-      <id>distro-ce</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <modules>
-        <!-- This profile is run in the CI after the webapps were built (platform-ASSEMBLY);
-          It should activate any module that has a dependency to the webapps -->
-        <module>spring-boot-starter</module>
-
-        <module>distro/license-book</module>
-        <module>distro/jboss</module>
-        <module>distro/tomcat</module>
-        <module>distro/run</module>
       </modules>
     </profile>
 
@@ -215,16 +199,6 @@
       </activation>
       <modules>
         <module>distro/run</module>
-      </modules>
-    </profile>
-
-    <profile>
-      <id>distro-starter</id>
-      <!-- This profile is run in the release CI for building the enterprise artifacts
-          It can be removed if the distro job is merged with the assembly job and
-          distro-ce is not used for building the spring boot starter -->
-      <modules>
-        <module>spring-boot-starter</module>
       </modules>
     </profile>
 
@@ -322,13 +296,13 @@
       <!-- Required for local builds by community users on master branch -->
       <id>mvn-cibseven-public</id>
       <name>CIB seven Public Repository</name>
-      <url>https://artifacts.cibseven.de/repository/public</url>
+      <url>https://artifacts.cibseven.org/repository/public</url>
     </repository>
     <repository>
       <!-- Required for local builds by developers on maintainance branches -->
-      <id>mvn-cibseven</id>
-      <name>CIB seven Private repository</name>
-      <url>https://nexus.cib.de/repository/mvn-cibseven</url>
+      <id>mvn-cibseven-snapshots</id>
+      <name>CIB seven Snapshots repository</name>
+      <url>https://artifacts.cibseven.org/repository/snapshots</url>
     </repository>
   </repositories>
   
@@ -340,18 +314,18 @@
   </licenses>
 
   <organization>
-    <name>CIB software GmbH</name>
-    <url>https://www.cib.de/</url>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
   </organization>
 
-  <url>https://cibseven.de/</url>
+  <url>https://cibseven.org</url>
 
   <developers>
     <developer>
       <id>CIB seven</id>
       <name>CIB seven Community</name>
-      <organization>cib.de</organization>
-      <organizationUrl>https://www.cib.de</organizationUrl>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
     </developer>
   </developers>
 
@@ -359,7 +333,7 @@
     <url>https://github.com/cibseven/cibseven</url>
     <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
     <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
-    <tag>cibseven-1.0</tag>
+    <tag>v1.1.0</tag>
   </scm>
 
   <issueManagement>
