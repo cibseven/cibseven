@@ -150,14 +150,13 @@ pipeline {
         stage('Unit and Integration Tests') {
             when {
                 expression { params.VERIFY == true }
-                expression { params.VERIFY == false } // just disable this stage temporary
             }
             steps {
                 script {
                     withMaven(options: [junitPublisher(disabled: false), jacocoPublisher(disabled: false)]) {
                         sh """
                             mvn -f ${pipelineParams.pom} \
-                                -U -T4 \
+                                -U \
                                 -Dbuild.number=${BUILD_NUMBER} \
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
@@ -166,7 +165,7 @@ pipeline {
 
                         sh """
                             mvn -f ${pipelineParams.pom} \
-                                -U -T4 \
+                                -U \
                                 -Dbuild.number=${BUILD_NUMBER} \
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
@@ -182,7 +181,7 @@ pipeline {
 
         stage('h2 UNIT, engine IT, webapp IT') {
             when {
-                expression { params.VERIFY == true }
+                expression { params.VERIFY != params.VERIFY } // just disable this stage temporary
             }
             parallel {
                 stage('engine') {
