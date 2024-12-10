@@ -15,6 +15,11 @@
 
   <packaging>pom</packaging>
 
+  <properties>
+    <!-- disable parallel unit tests run -->
+    <surefire.forkCount>1</surefire.forkCount>
+  </properties>
+
   <dependencyManagement>
     <dependencies>
       <dependency>

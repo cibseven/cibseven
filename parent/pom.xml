@@ -116,6 +116,8 @@
     <camunda.osgi.include.resource>{maven-resources}</camunda.osgi.include.resource>
     <camunda.osgi.embed />
     <plugin.version.maven-bundle>5.1.9</plugin.version.maven-bundle> <!-- compatible with JDK 17 -->
+    <!-- Define the maximum number of JVM processes that Surefire will spawn concurrently to execute the tests. 1C equals to number of available CPU cores in system. -->
+    <surefire.forkCount>1C</surefire.forkCount>
   </properties>
 
   <dependencyManagement>
@@ -147,6 +149,7 @@
             </systemPropertyVariables>
             <argLine>-Xmx968m -Duser.language=en -Duser.region=US -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory}/heap_dump.hprof</argLine>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
+            <forkCount>${surefire.forkCount}</forkCount>
           </configuration>
         </plugin>
         <plugin>
