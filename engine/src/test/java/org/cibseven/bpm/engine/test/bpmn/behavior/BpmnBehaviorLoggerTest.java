@@ -14,13 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.camunda.bpm.engine.test.bpmn.behavior;
+package org.cibseven.bpm.engine.test.bpmn.behavior;
 
 import ch.qos.logback.classic.Level;
-import org.camunda.bpm.engine.ProcessEngineException;
-import org.camunda.bpm.engine.test.Deployment;
-import org.camunda.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.camunda.commons.testing.ProcessEngineLoggingRule;
+import org.cibseven.bpm.engine.ProcessEngineException;
+import org.cibseven.bpm.engine.test.Deployment;
+import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
+import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,11 +37,11 @@ public class BpmnBehaviorLoggerTest extends PluggableProcessEngineTest {
 
   @Rule
   public ProcessEngineLoggingRule processEngineLoggingRule = new ProcessEngineLoggingRule().watch(
-      "org.camunda.bpm.engine.bpmn.behavior", Level.INFO);
+      "org.cibseven.bpm.engine.bpmn.behavior", Level.INFO);
 
   @Test
   @Deployment(resources = {
-      "org/camunda/bpm/engine/test/bpmn/behavior/BpmnBehaviorLoggerTest.UnhandledBpmnError.bpmn20.xml" })
+      "org/cibseven/bpm/engine/test/bpmn/behavior/BpmnBehaviorLoggerTest.UnhandledBpmnError.bpmn20.xml" })
   public void shouldIncludeBpmnErrorMessageInUnhandledBpmnError() {
     // given
     processEngineConfiguration.setEnableExceptionsAfterUnhandledBpmnError(true);
@@ -54,7 +54,7 @@ public class BpmnBehaviorLoggerTest extends PluggableProcessEngineTest {
 
   @Test
   @Deployment(resources = {
-      "org/camunda/bpm/engine/test/bpmn/behavior/BpmnBehaviorLoggerTest.UnhandledBpmnError.bpmn20.xml" })
+      "org/cibseven/bpm/engine/test/bpmn/behavior/BpmnBehaviorLoggerTest.UnhandledBpmnError.bpmn20.xml" })
   public void shouldLogBpmnErrorMessageInUnhandledBpmnErrorWithoutException() {
     // given
     String logMessage = "Execution with id 'serviceTask' throws an error event with errorCode 'errorCode' and errorMessage 'ouch!'";

@@ -159,7 +159,7 @@ public class TaskCommentAuthorizationTest extends AuthorizationTest {
   }
 
   @Test
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   public void testDeleteProcessTaskCommentWithoutAuthorization() {
     // given
     ProcessInstance processInstance = startProcessInstanceByKey(PROCESS_KEY);
@@ -179,7 +179,7 @@ public class TaskCommentAuthorizationTest extends AuthorizationTest {
   }
 
   @Test
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   public void testDeleteProcessTaskComment() {
     // given
     ProcessInstance processInstance = startProcessInstanceByKey(PROCESS_KEY);
@@ -197,7 +197,7 @@ public class TaskCommentAuthorizationTest extends AuthorizationTest {
   }
 
   @Test
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   public void testDeleteProcessTaskCommentsWithoutAuthorization() {
     // given
     ProcessInstance processInstance = startProcessInstanceByKey(PROCESS_KEY);
@@ -217,7 +217,7 @@ public class TaskCommentAuthorizationTest extends AuthorizationTest {
   }
 
   @Test
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   public void testDeleteProcessTaskComments() {
     // given
     ProcessInstance processInstance = startProcessInstanceByKey(PROCESS_KEY);
@@ -236,7 +236,7 @@ public class TaskCommentAuthorizationTest extends AuthorizationTest {
   }
 
   @Test
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   public void testUpdateProcessTaskCommentWithoutAuthorization() {
     // given
     ProcessInstance processInstance = startProcessInstanceByKey(PROCESS_KEY);
@@ -257,7 +257,7 @@ public class TaskCommentAuthorizationTest extends AuthorizationTest {
   }
 
   @Test
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   public void testUpdateProcessTaskComment() {
     // given
     ProcessInstance processInstance = startProcessInstanceByKey(PROCESS_KEY);

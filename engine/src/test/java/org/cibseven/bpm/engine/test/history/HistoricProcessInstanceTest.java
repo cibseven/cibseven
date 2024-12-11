@@ -54,6 +54,7 @@ import org.cibseven.bpm.engine.exception.NotValidException;
 import org.cibseven.bpm.engine.exception.NullValueException;
 import org.cibseven.bpm.engine.history.HistoricActivityInstance;
 import org.cibseven.bpm.engine.history.HistoricProcessInstance;
+import org.cibseven.bpm.engine.history.HistoricProcessInstanceQuery;
 import org.cibseven.bpm.engine.history.HistoricVariableInstance;
 import org.cibseven.bpm.engine.impl.history.HistoryLevel;
 import org.cibseven.bpm.engine.impl.history.event.HistoricProcessInstanceEventEntity;
