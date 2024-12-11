@@ -156,7 +156,6 @@ pipeline {
                     withMaven(options: [junitPublisher(disabled: false), jacocoPublisher(disabled: false)]) {
                         sh """
                             mvn -f ${pipelineParams.pom} \
-                                -U \
                                 -Dbuild.number=${BUILD_NUMBER} \
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
@@ -165,7 +164,6 @@ pipeline {
 
                         sh """
                             mvn -f ${pipelineParams.pom} \
-                                -U \
                                 -Dbuild.number=${BUILD_NUMBER} \
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
