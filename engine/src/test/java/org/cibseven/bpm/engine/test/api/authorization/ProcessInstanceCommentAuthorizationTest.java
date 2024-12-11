@@ -32,7 +32,7 @@ import org.junit.Test;
 public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
   protected static final String ONE_TASK_PROCESS_KEY = "oneTaskProcess";
 
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   @Test
   public void testDeleteProcessInstanceTaskCommentWithoutAuthorization() {
     // given
@@ -55,7 +55,7 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
     deleteTask(TASK_ID, true);
   }
 
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   @Test
   public void testDeleteProcessInstanceTaskComment() {
     // given
@@ -75,7 +75,7 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
     deleteTask(TASK_ID, true);
   }
 
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   @Test
   public void testDeleteProcessInstanceTaskCommentsWithoutAuthorization() {
     // given
@@ -97,7 +97,7 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
     deleteTask(TASK_ID, true);
   }
 
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   @Test
   public void testDeleteProcessInstanceTaskComments() {
     // given
@@ -119,7 +119,7 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
     deleteTask(TASK_ID, true);
   }
 
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   @Test
   public void testUpdateProcessInstanceTaskCommentWithoutAuthorization() {
     // given
@@ -140,7 +140,7 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
     deleteTask(TASK_ID, true);
   }
 
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   @Test
   public void testUpdateProcessInstanceTaskComment() {
     // given
@@ -165,7 +165,7 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
     deleteTask(taskId, true);
   }
 
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   @Test
   public void testDeleteProcessInstanceCommentWithoutAuthorization() {
     // given
@@ -184,7 +184,7 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
     }
   }
 
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   @Test
   public void testDeleteProcessInstanceComment() {
     // given
@@ -200,7 +200,7 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
     assertEquals("The comments list should be empty", Collections.emptyList(), deletedCommentLst);
   }
 
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   @Test
   public void testDeleteProcessInstanceCommentsWithoutAuthorization() {
     // given
@@ -218,7 +218,7 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
     }
   }
 
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   @Test
   public void testDeleteProcessInstanceComments() {
     // given
@@ -236,7 +236,7 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
     assertEquals("The comments list should be empty", Collections.emptyList(), comments);
   }
 
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   @Test
   public void testUpdateProcessInstanceCommentWithoutAuthorization() {
     // given
@@ -254,7 +254,7 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
     }
   }
 
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   @Test
   public void testUpdateProcessInstanceComment() {
     // given

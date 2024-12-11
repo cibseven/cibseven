@@ -337,7 +337,7 @@ public class TaskServiceTest {
     taskService.deleteTask(taskId, true);
   }
 
-  @Deployment(resources = { "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testDeleteTaskCommentWithProcessInstance() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -409,7 +409,7 @@ public class TaskServiceTest {
     taskService.deleteTask(taskId, true);
   }
 
-  @Deployment(resources = { "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testDeleteProcessInstanceTaskComments() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -514,7 +514,7 @@ public class TaskServiceTest {
     taskService.deleteTask(taskId, true);
   }
 
-  @Deployment(resources = { "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testUpdateProcessTaskComment() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -542,7 +542,7 @@ public class TaskServiceTest {
     }
   }
 
-  @Deployment(resources = { "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testDeleteProcessInstanceCommentNotExistingCommentId() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -551,7 +551,7 @@ public class TaskServiceTest {
     taskService.deleteProcessInstanceComment(processInstance.getId(), "notExistingCommentId");
   }
 
-  @Deployment(resources = { "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testDeleteTaskProcessInstanceComment() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -570,7 +570,7 @@ public class TaskServiceTest {
     assertThat(shouldBeDeletedLst).isEmpty();
   }
 
-  @Deployment(resources = { "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testDeleteProcessInstanceComment() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -607,7 +607,7 @@ public class TaskServiceTest {
     }
   }
 
-  @Deployment(resources = { "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testDeleteProcessInstanceCommentsNoComments() {
 
@@ -617,7 +617,7 @@ public class TaskServiceTest {
     taskService.deleteProcessInstanceComments(processInstance.getId());
   }
 
-  @Deployment(resources = { "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testDeleteProcessInstanceCommentsWithoutTaskComments() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -635,7 +635,7 @@ public class TaskServiceTest {
     assertThat(shouldBeDeletedLst).isEmpty();
   }
 
-  @Deployment(resources = { "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testDeleteProcessInstanceCommentsWithTask() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -655,7 +655,7 @@ public class TaskServiceTest {
     assertThat(shouldBeDeletedLst).isEmpty();
   }
 
-  @Deployment(resources = { "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testUpdateProcessInstanceCommentNullCommentId() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -667,7 +667,7 @@ public class TaskServiceTest {
     }
   }
 
-  @Deployment(resources = { "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testUpdateProcessInstanceCommentNullProcessInstanceId() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -682,7 +682,7 @@ public class TaskServiceTest {
     }
   }
 
-  @Deployment(resources = { "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testUpdateProcessInstanceCommentNullMessage() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -698,7 +698,7 @@ public class TaskServiceTest {
     }
   }
 
-  @Deployment(resources = { "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testUpdateProcessInstanceCommentNotExistingCommentId() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -717,7 +717,7 @@ public class TaskServiceTest {
     }
   }
 
-  @Deployment(resources = { "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testUpdateProcessInstanceCommentWithTask() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -739,7 +739,7 @@ public class TaskServiceTest {
     assertEquals(updatedMessage, actual.getFullMessage());
   }
 
-  @Deployment(resources = { "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   @Test
   public void testUpdateProcessInstanceCommentWithoutTask() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -911,7 +911,7 @@ public class TaskServiceTest {
       String processInstanceId = "someProcessInstanceId";
       String attachmentName = "attachmentName";
       String attachmentDescription = "attachmentDescription";
-      String url = "http://camunda.org";
+      String url = "http://cibseven.org";
 
       Attachment attachment = taskService.createAttachment(
           attachmentType,
@@ -2708,7 +2708,7 @@ public class TaskServiceTest {
   }
 
   @Test
-  @Deployment(resources = { "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   public void testDeleteTaskAttachmentWithTaskIdEmpty() {
     // given
     runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -2725,7 +2725,7 @@ public class TaskServiceTest {
   }
 
   @Test
-  @Deployment(resources = { "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml" })
   public void testDeleteTaskAttachmentWithTaskIdNoLongerExists() {
     // given
     runtimeService.startProcessInstanceByKey("oneTaskProcess");
