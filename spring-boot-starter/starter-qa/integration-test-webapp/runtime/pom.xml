@@ -146,7 +146,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>3.0.0-M3</version>
+            <version>${version.surefire}</version>
             <configuration>
               <dependenciesToScan>
                 <dependency>org.cibseven.bpm.qa:cibseven-qa-integration-tests-webapps</dependency>
