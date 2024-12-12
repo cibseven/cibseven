@@ -63,7 +63,7 @@ pipeline {
         password(
             name: 'DEPLOY_MAVEN_CENTRAL_PASSWORD',
             defaultValue: '',
-            description: 'Enter a password for deployment to Maven Central (no need to activate DEPLOY parameter above if you want just to deploy to Maven Central)'
+            description: 'Enter a password for deployment to Maven Central (no need to activate DEPLOY parameter above if you want just to deploy to Maven Central). If you will not change this value - you will not run deploy to Maven Central.'
         )
         choice(
             name: 'OPEN_API',
@@ -308,8 +308,8 @@ pipeline {
 
         stage('Deploy to Maven Central') {
             when {
-                anyOf {
-                    expression { params.DEPLOY_MAVEN_CENTRAL_PASSWORD != "" } // it is default value
+                allOf {
+                    expression { params.DEPLOY_MAVEN_CENTRAL_PASSWORD.toString().isEmpty() == false } // "" is default value
                     expression { mavenProjectInformation.version.endsWith("-SNAPSHOT") == false }
                 }
             }
