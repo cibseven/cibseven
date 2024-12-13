@@ -82,7 +82,9 @@
   <!-- USER SELECT -->
 
   <select id="selectUser" parameterType="string" resultMap="userResultMap">
-    select * from ${prefix}ACT_ID_USER where ID_ = #{id,jdbcType=VARCHAR}
+    (select * from ${prefix}ACT_ID_USER where ID_ = #{id,jdbcType=VARCHAR})
+    UNION ALL
+    (select * from ${prefix}ACT_ID_USER where LOWER(ID_) = LOWER(#{id,jdbcType=VARCHAR}))
   </select>
     
   <select id="selectUserByQueryCriteria" parameterType="org.camunda.bpm.engine.impl.UserQueryImpl" resultMap="userResultMap">
