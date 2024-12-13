@@ -3,27 +3,21 @@ package org.cibseven.bpm.engine.impl.identity.db;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.persistence.entity.UserEntity;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import io.zonky.test.db.postgres.embedded.EmbeddedPostgres;
+import io.zonky.test.db.postgres.junit.EmbeddedPostgresRules;
+import io.zonky.test.db.postgres.junit.SingleInstancePostgresRule;
 
 public class DbIdentityServiceTest {
 
-	private static EmbeddedPostgres embeddedPostgres;
-	
-	@BeforeClass
-	public static void setUpClass() throws IOException {
-		embeddedPostgres = EmbeddedPostgres.builder().start();
-	}
+	@ClassRule
+	public static SingleInstancePostgresRule pg = EmbeddedPostgresRules.singleInstance();
 	
 	@Rule
 	public final ProcessEngineRule processEngineRuleH2 = new ProcessEngineRule(
@@ -33,17 +27,19 @@ public class DbIdentityServiceTest {
 //			.setJdbcUsername("sa")
 //			.setJdbcPassword("")
 			.setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE)
+			.setHistory(ProcessEngineConfiguration.HISTORY_FULL)
 			.buildProcessEngine()
 	);
 	
 	@Rule
 	public final ProcessEngineRule processEngineRulePG = new ProcessEngineRule(
 		ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration()
-			.setJdbcUrl(embeddedPostgres.getJdbcUrl("postgres", "postgres"))
+			.setJdbcUrl(pg.getEmbeddedPostgres().getJdbcUrl("postgres", "postgres"))
 			.setJdbcDriver("org.postgresql.Driver")
 			.setJdbcUsername("postgres")
 			.setJdbcPassword("postgres")
 			.setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE)
+			.setHistory(ProcessEngineConfiguration.HISTORY_FULL)
 			.buildProcessEngine()
 	);
 	
@@ -79,7 +75,7 @@ public class DbIdentityServiceTest {
 
 	@Test
 	public void testCheckPasswordWithSimilarUserIdsH2() {
-		checkPasswordWithSimilarUserIds(processEngineRulePG.getIdentityService());
+		checkPasswordWithSimilarUserIds(processEngineRuleH2.getIdentityService());
 	}
 	
 	@Test
@@ -104,9 +100,11 @@ public class DbIdentityServiceTest {
 		try {
 			assertTrue(identityService.checkPassword("TestUser", "password1"));
 			assertTrue(identityService.checkPassword("TESTUSER", "password2"));
+			
 			assertTrue(identityService.checkPassword("testuser", "password1"));
 			// first returned user has password1
 			assertFalse(identityService.checkPassword("testuser", "password2"));
+			
 			assertFalse(identityService.checkPassword("TestUser", "wrongpassword"));
 			assertFalse(identityService.checkPassword("TESTUSER", "wrongpassword"));
 		} finally {
@@ -114,12 +112,5 @@ public class DbIdentityServiceTest {
 			identityService.deleteUser(userId2);
 		}
 	}
-
-	@AfterClass
-	public static void tearDownClass() throws IOException {
-		if (embeddedPostgres != null) {
-			embeddedPostgres.close();
-		}
-	}
-
+	
 }
