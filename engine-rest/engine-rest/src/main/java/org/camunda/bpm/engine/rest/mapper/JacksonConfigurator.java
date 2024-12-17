@@ -16,15 +16,21 @@
  */
 package org.camunda.bpm.engine.rest.mapper;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.util.Properties;
 
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 
+import org.camunda.bpm.engine.impl.ProcessEngineLogger;
+import org.camunda.bpm.engine.impl.util.EngineUtilLogger;
 import org.camunda.bpm.engine.rest.hal.Hal;
 
+import com.fasterxml.jackson.core.StreamReadConstraints;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -34,8 +40,31 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @Produces({MediaType.APPLICATION_JSON, Hal.APPLICATION_HAL_JSON})
 public class JacksonConfigurator implements ContextResolver<ObjectMapper> {
 
+  protected static final EngineUtilLogger LOG = ProcessEngineLogger.UTIL_LOGGER;
+
   public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
   public static String dateFormatString = DEFAULT_DATE_FORMAT;
+
+  private static final String PROPERTIES_FILE = "jackson.properties";
+  private static final String LENGTH_PROPERTY = "jackson.maxStringLength";
+  private static int maxStringLength = 20_000_000;
+
+  static {
+    Properties properties = new Properties();
+    try (InputStream inputStream = JacksonConfigurator.class.getClassLoader().getResourceAsStream(PROPERTIES_FILE)) {
+      if (inputStream == null) {
+        LOG.logMissingPropertiesFile(PROPERTIES_FILE);
+      } else {
+        properties.load(inputStream);
+      }
+
+    } catch (IOException e) {
+      LOG.exceptionWhileReadingFile(PROPERTIES_FILE, e);
+    }
+
+    maxStringLength = Integer.parseInt(properties.getProperty(LENGTH_PROPERTY, maxStringLength + ""));
+
+  }
 
   public static ObjectMapper configureObjectMapper(ObjectMapper mapper) {
     SimpleDateFormat dateFormat = new SimpleDateFormat(dateFormatString);
@@ -44,6 +73,10 @@ public class JacksonConfigurator implements ContextResolver<ObjectMapper> {
     mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     
     mapper.registerModule(new JavaTimeModule());
+
+    StreamReadConstraints streamReadConstrains = StreamReadConstraints.builder().maxStringLength(maxStringLength)
+            .build();
+    mapper.getFactory().setStreamReadConstraints(streamReadConstrains);
 
     return mapper;
   }
