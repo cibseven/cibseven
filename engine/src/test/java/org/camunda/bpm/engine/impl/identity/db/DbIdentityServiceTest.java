@@ -1,12 +1,12 @@
-package org.cibseven.bpm.engine.impl.identity.db;
+package org.camunda.bpm.engine.impl.identity.db;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.cibseven.bpm.engine.IdentityService;
-import org.cibseven.bpm.engine.ProcessEngineConfiguration;
-import org.cibseven.bpm.engine.impl.persistence.entity.UserEntity;
-import org.cibseven.bpm.engine.test.ProcessEngineRule;
+import org.camunda.bpm.engine.IdentityService;
+import org.camunda.bpm.engine.ProcessEngineConfiguration;
+import org.camunda.bpm.engine.impl.persistence.entity.UserEntity;
+import org.camunda.bpm.engine.test.ProcessEngineRule;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
