@@ -4,14 +4,14 @@
   <parent>
     <groupId>de.cibseven</groupId>
 	  <artifactId>release-parent</artifactId>
-	  <version>1.0</version>
+	  <version>1.1.1</version>
     <!-- do not remove empty tag - http://jira.codehaus.org/browse/MNG-4687 -->
     <relativePath />
   </parent>
 
   <groupId>org.camunda.bpm</groupId>
   <artifactId>camunda-root</artifactId>
-  <version>7.22.0-cibseven</version>
+  <version>7.22.1-cibseven</version>
   <packaging>pom</packaging>
   <name>CIB seven - Root Pom</name>
   <inceptionYear>2024</inceptionYear>
@@ -326,9 +326,9 @@
     </repository>
     <repository>
       <!-- Required for local builds by developers on maintainance branches -->
-      <id>mvn-cibseven</id>
+      <id>mvn-cibseven-private</id>
       <name>CIB seven Private repository</name>
-      <url>https://nexus.cib.de/repository/mvn-cibseven</url>
+      <url>https://artifacts.cibseven.de/repository/private</url>
     </repository>
   </repositories>
   

@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.camunda.bpm.webapp</groupId>
     <artifactId>camunda-webapp-root</artifactId>
-    <version>7.22.0-cibseven</version>
+    <version>7.22.1-cibseven</version>
     <relativePath>../</relativePath>
   </parent>
 
