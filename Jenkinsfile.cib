@@ -11,7 +11,6 @@ import groovy.transform.Field
 
 @Field Logger log = new Logger(this)
 @Field MavenProjectInformation mavenProjectInformation = null
-@Field List<String> helmChartPaths = []
 @Field Map pipelineParams = [
     pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
     mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
@@ -24,9 +23,6 @@ pipeline {
         kubernetes {
             yaml BuildPodCreator.cibStandardPod()
                     .withContainerFromName(pipelineParams.mvnContainerName)
-                    .withHelm3Container()
-                    .withKanikoContainer()
-                    .withSyftContainer()
                     .asYaml()
             defaultContainer pipelineParams.mvnContainerName
         }
@@ -43,28 +39,12 @@ pipeline {
         booleanParam(
             name: 'BUILD_FEATURE_BRANCH',
             defaultValue: true,
-            description: 'Build feature branch; Only for non master branch'
+            description: 'Build feature branch'
         )
-        choice(
-            name: 'UNIT_TESTS',
-            choices: ['Auto', 'Run', 'Disable'],
-            description: """Execute Unit Tests
-                When
-                - Auto|Run: run unit tests
-                - Disable: disable unit test run
-            """
-        )
-        choice(
-            name: 'INTEGRATION_TESTS',
-            choices: ['Auto', 'Run', 'Disable'],
-            description: """Execute Integration Unit Tests
-                When
-                - Auto: 
-                    - feature branch, pull request: disabled
-                    - master branch: run integration unit tests
-                - Run: run integration unit tests
-                - Disable: disable integration unit test run
-            """
+        booleanParam(
+            name: 'VERIFY',
+            defaultValue: true,
+            description: 'Execute Unit and Integration Tests'
         )
         booleanParam(
             name: 'RELEASE',
@@ -76,9 +56,14 @@ pipeline {
             choices: ['Auto', 'Run', 'Disable'],
             description: """Only for master branch;
                 When
-                - RELEASE=false, DEPLOY=Auto|Run: deploy snapshot artefacts
-                - RELEASE=true, DEPLOY=Run: deploy release artefacts
+                - RELEASE=false, DEPLOY=Auto|Run: deploy artifacts to artifacts.cibseven.org
+                - RELEASE=true, DEPLOY=Run: deploy artifacts to artifacts.cibseven.org
             """
+        )
+        password(
+            name: 'DEPLOY_MAVEN_CENTRAL_PASSWORD',
+            defaultValue: '',
+            description: 'Enter a password for deployment to Maven Central (no need to activate DEPLOY parameter above if you want just to deploy to Maven Central). If you will not change this value - you will not run deploy to Maven Central.'
         )
         choice(
             name: 'OPEN_API',
@@ -113,8 +98,8 @@ pipeline {
                 artifactNumToKeepStr: '5'
             )
         )
-        // Stop build after 120 minutes
-        timeout(time: 120, unit: 'MINUTES')
+        // Stop build after 240 minutes
+        timeout(time: 240, unit: 'MINUTES')
         disableConcurrentBuilds()
     }
 
@@ -146,32 +131,17 @@ pipeline {
             }
         }
 
-        stage('Build without deploy and tests') {
+        stage('Build') {
             when {
-                allOf {
+                anyOf {
                     expression { params.BUILD_FEATURE_BRANCH == true }
-                    not {
-                        anyOf {
-                            branch 'master'
-                            branch 'main'
-                            branch 'cibseven-1.0'
-                        }
-                    }
+                    expression { params.VERIFY == true }
                 }
             }
             steps {
                 script {
-                    // withMaven automatically add "--batch-mode"
                     withMaven(options: [artifactsPublisher(fingerprintFilesDisabled: true, archiveFilesDisabled: true)]) {
-                        sh """
-                            mvn -f ${pipelineParams.pom} \
-                                -V -U \
-                                clean package \
-                                -T4 \
-                                -Dmaven.test.skip \
-                                -DskipTests \
-                                -Dbuild.number=${BUILD_NUMBER}
-                        """
+                        sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
                     }
                 }
             }
@@ -179,105 +149,181 @@ pipeline {
 
         stage('Unit and Integration Tests') {
             when {
-                anyOf {
-                    expression { params.UNIT_TESTS == 'Auto' }
-                    expression { params.UNIT_TESTS == 'Run' }
-                    allOf {
-                        expression { params.INTEGRATION_TESTS == 'Auto' }
-                        anyOf {
-                            branch 'master'
-                            branch 'main'
-                            branch 'cibseven-1.0'
-                        }
-                    }
-                    expression { params.INTEGRATION_TESTS == 'Run' }
-                }
+                expression { params.VERIFY == true }
             }
             steps {
                 script {
-                    def testMode = "test"
-                    if (params.INTEGRATION_TESTS == 'Run' || (params.INTEGRATION_TESTS == 'Auto' && env.BRANCH_NAME == 'master')) {
-                        testMode = "verify"
-                    }
-
                     withMaven(options: [junitPublisher(disabled: false), jacocoPublisher(disabled: false)]) {
                         sh """
                             mvn -f ${pipelineParams.pom} \
-                                -V -U \
-                                ${testMode} \
-                                -Dmaven.test.failure.ignore=true
+                                -Dbuild.number=${BUILD_NUMBER} \
+                                verify \
+                                -Dmaven.test.failure.ignore=true \
+                                -pl !org.cibseven.bpm:cibseven-engine-spring-6,!:cibseven-spin-core,!:cibseven-engine-rest-core-jakarta,!:cibseven-webapp-jakarta,!:cibseven-engine-cdi-jakarta,!:cibseven-example-invoice-jakarta,!:cibseven-ejb-client-jakarta,!:cibseven-qa-integration-tests-engine-jakarta,!:cibseven-sql-scripts
+                        """
+
+                        sh """
+                            mvn -f ${pipelineParams.pom} \
+                                -Dbuild.number=${BUILD_NUMBER} \
+                                verify \
+                                -Dmaven.test.failure.ignore=true \
+                                -pl org.cibseven.bpm:cibseven-engine-spring-6,:cibseven-spin-core,:cibseven-engine-rest-core-jakarta,:cibseven-webapp-jakarta,:cibseven-engine-cdi-jakarta,:cibseven-example-invoice-jakarta,:cibseven-ejb-client-jakarta,:cibseven-qa-integration-tests-engine-jakarta,:cibseven-sql-scripts \
+                                -fn
                         """
                     }
+
                     junit allowEmptyResults: true, testResults: ConstantsInternal.MAVEN_TEST_RESULTS
                 }
             }
         }
 
-        stage('Deploy snapshot') {
+        stage('h2 UNIT, engine IT, webapp IT') {
             when {
-                allOf {
-                    anyOf {
-                        branch 'master'
+                expression { params.VERIFY != params.VERIFY } // just disable this stage temporary
+            }
+            parallel {
+                stage('engine') {
+                    stages {
+                        stage('engine-UNIT-historylevel-audit') {
+                            steps { script { withMaven { sh "mvn -f engine/pom.xml verify -Pcfghistoryaudit" }}}
+                        }
+                        stage('engine-UNIT-database-table-prefix') {
+                            steps { script { withMaven { sh "mvn -f engine/pom.xml verify -Pcfghistoryactivity" }}}
+                        }
+                    }
+                }
+                stage('quarkus-UNIT') {
+                    steps { script { withMaven { sh "mvn -f quarkus-extension/pom.xml clean install -Pquarkus-tests" }}}
+                }
+                stage('qa') {
+                    stages {
+                        stage('engine-IT-tomcat-9-postgresql-142') {
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat9,postgresql,engine-integration" }}}
+                        }
+                        stage('engine-IT-tomcat-10-postgresql-142') {
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat,postgresql,engine-integration-jakarta" }}}
+                        }
+                        stage('engine-IT-wildfly-postgresql-142') {
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,engine-integration-jakarta" }}}
+                        }
+                        stage('engine-IT-wildfly26-postgresql-142') {
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly26,postgresql,engine-integration" }}}
+                        }
+                        stage('engine-IT-XA-wildfly-postgresql-142') {
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,postgresql-xa,engine-integration-jakarta" }}}
+                        }
+                        stage('engine-IT-XA-wildfly26-postgresql-142') {
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly26,postgresql,postgresql-xa,engine-integration" }}}
+                        }
+                        stage('webapp-IT-tomcat-9-h2') {
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat9,h2,webapps-integration" }}}
+                        }
+                        stage('webapp-IT-tomcat-10-h2') {
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}}
+                        }
+                        stage('webapp-IT-wildfly-h2') {
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}}
+                        }
+                        stage('webapp-IT-wildfly26-h2') {
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly26,h2,webapps-integration" }}}
+                        }
+                    }
+                }
+                stage('camunda-run-IT') {
+                    steps { script { withMaven { sh "mvn -fn -f distro/run/pom.xml install -Pintegration-test-camunda-run" }}}
+                }
+                stage('spring-boot-starter-IT') {
+                    steps { script { withMaven { sh "mvn -fn -f spring-boot-starter/pom.xml install -Pintegration-test-spring-boot-starter" }}}
+                }
+            }
+        }
+
+        stage('MISC tests') {
+            when {
+                expression { params.VERIFY == true }
+            }
+            parallel {
+                stage('engine') {
+                    stages {
+                        stage('engine-api-compatibility') {
+                            steps { script { withMaven { sh "mvn -f engine/pom.xml verify -Pcheck-api-compatibility" }}}
+                        }
+                        stage('engine-UNIT-database-table-prefix') {
+                            steps { script { withMaven { sh "mvn -f engine/pom.xml test -Pdb-table-prefix" }}}
+                        }
+                    }
+                }
+                stage('webapp-UNIT-database-table-prefix') {
+                    steps { script { withMaven { sh "mvn -f webapps/assembly/pom.xml test -Pdb-table-prefix -Dskip.frontend.build=true" }}}
+                }
+                stage('engine-IT-wildfly') {
+                    when {
+                        expression { params.VERIFY != params.VERIFY } // just disable this stage temporary
+                    }
+                    stages {
+                        stage('engine-IT-wildfly-domain') {
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly-domain,h2,engine-integration-jakarta" }}}
+                        }
+                        stage('engine-IT-wildfly-servlet') {
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly,wildfly-servlet,h2,engine-integration-jakarta" }}}
+                        }
+                        stage('engine-IT-wildfly26-domain') {
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly26-domain,h2,engine-integration" }}}
+                        }
+                        stage('engine-IT-wildfly26-servlet') {
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to artifacts.cibseven.org') {
+            when {
+                anyOf {
+                    // allow deploy of snapshots from main branch with RELEASE=false, DEPLOY='Auto'
+                    allOf {
                         branch 'main'
-                        branch 'cibseven-1.0'
+                        expression { params.RELEASE == false } // it is default value
+                        expression { params.DEPLOY == 'Auto' } // it is default value
+                        expression { mavenProjectInformation.version.endsWith("-SNAPSHOT") == true }
                     }
-                    expression { params.RELEASE == false }
-                    anyOf {
-                        expression { params.DEPLOY == 'Auto' }
-                        expression { params.DEPLOY == 'Run' }
-                    }
+                    // allow deploy DEPLOY='Run', but not with DEPLOY='Auto'.
+                    expression { params.DEPLOY == 'Run' }
                 }
             }
             steps {
                 script {
-                    if (!mavenProjectInformation.version.endsWith("-SNAPSHOT")) {
-                        error("Version should contain -SNAPSHOT postfix; actual value: ${mavenProjectInformation.version}")
-                    }
-
-                    withMaven(options: [artifactsPublisher(archiveFilesDisabled: false)]) {
+                    withMaven(options: []) {
                         sh """
-                            mvn -f ${pipelineParams.pom} \
-                                -V -U \
-                                clean \
+                            mvn -T4 -U \
                                 -DskipTests \
-                                org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
-                                deploy \
-                                -Dnexus.snapshot.repository.id=mvn-cibseven-snapshot \
-                                -Dnexus.snapshot.repository=https://nexus.cib.de/repository/mvn-cibseven-snapshot
+                                -Pwebapps-integration \
+                                clean deploy
                         """
                     }
                 }
             }
         }
 
-        stage('Deploy release') {
+        stage('Deploy to Maven Central') {
             when {
                 allOf {
-                    anyOf {
-                        branch 'master'
-                        branch 'main'
-                        branch 'cibseven-1.0'
-                    }
-                    expression { params.RELEASE == true }
-                    expression { params.DEPLOY == 'Run' }
+                    expression { params.DEPLOY_MAVEN_CENTRAL_PASSWORD.toString().isEmpty() == false } // "" is default value
+                    expression { mavenProjectInformation.version.endsWith("-SNAPSHOT") == false }
+                    expression { isPatchVersion() == false }
                 }
             }
             steps {
                 script {
-                    if (mavenProjectInformation.version.endsWith("-SNAPSHOT")) {
-                        error("Version should not contain -SNAPSHOT postfix; actual value: ${mavenProjectInformation.version}")
-                    }
-
-                    withMaven(options: [artifactsPublisher(archiveFilesDisabled: false)]) {
+                    withMaven(options: []) {
                         sh """
-                            mvn -f ${pipelineParams.pom} \
-                                -V -U \
-                                clean \
+                            mvn -T4 -U \
+                                clean deploy \
+                                -Psonatype-oss-release \
+                                -Dskip.cibseven.release=false \
                                 -DskipTests \
-                                org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
-                                deploy \
-                                -Dnexus.snapshot.repository.id=mvn-cibseven-release \
-                                -Dnexus.snapshot.repository=https://nexus.cib.de/repository/mvn-cibseven-release
+                                -Dgpg.passphrase=${params.DEPLOY_MAVEN_CENTRAL_PASSWORD}
                         """
                     }
                 }
@@ -289,13 +335,10 @@ pipeline {
                 anyOf {
                     expression { params.OPEN_API == 'Run' }
                     allOf {
-                        anyOf {
-                            branch 'master'
-                            branch 'main'
-                            branch 'cibseven-1.0'
-                        }
+                        branch 'main'
                         expression { params.RELEASE == true }
                         expression { params.OPEN_API == 'Auto' }
+                        expression { isPatchVersion() == false }
                     }
                 }
             }
@@ -310,10 +353,13 @@ pipeline {
                     zip zipFile: 'openAPI-index-html.zip', archive: true, overwrite: true, glob: 'engine-rest/docs/target/index.html'
                     archiveArtifacts artifacts: 'openAPI-index-html.zip', fingerprint: true
 
+                    String docsVersion = getDocsVersion()
+                    String docsRepoName = getDocsRepoName()
+
                     // deploy to github pages
-                    pushToDocsRepo("Update open API index.html", {
-                        sh 'mkdir -p docs-cibseven-de/rest/cibseven/1.0'
-                        sh 'mv -f engine-rest/docs/target/index.html docs-cibseven-de/rest/cibseven/1.0/index.html'
+                    pushToDocsRepo("Update open API index.html to ${docsVersion}", {
+                        sh "mkdir -p ${docsRepoName}/rest/cibseven/${docsVersion}"
+                        sh "mv -f engine-rest/docs/target/index.html ${docsRepoName}/rest/cibseven/${docsVersion}/index.html"
                     })
 
                     // clean up
@@ -330,13 +376,10 @@ pipeline {
                 anyOf {
                     expression { params.JAVA_DOCS == 'Run' }
                     allOf {
-                        anyOf {
-                            branch 'master'
-                            branch 'main'
-                            branch 'cibseven-1.0'
-                        }
+                        branch 'main'
                         expression { params.RELEASE == true }
                         expression { params.JAVA_DOCS == 'Auto' }
+                        expression { isPatchVersion() == false }
                     }
                 }
             }
@@ -355,15 +398,18 @@ pipeline {
                         """
                     }
 
+                    String docsVersion = getDocsVersion()
+                    String docsRepoName = getDocsRepoName()
+
                     // put as artifact to jenkins job
                     zip zipFile: 'javaDocs.zip', archive: true, overwrite: true, glob: 'target/site/apidocs/'
                     archiveArtifacts artifacts: 'javaDocs.zip', fingerprint: true
 
                     // deploy to github pages
-                    pushToDocsRepo("Update javaDocs", {
-                        sh 'mkdir -p docs-cibseven-de/javadoc/cibseven/1.0'
-                        sh 'rm -r docs-cibseven-de/javadoc/cibseven/1.0/*'
-                        sh 'cp -Rf target/site/apidocs/. docs-cibseven-de/javadoc/cibseven/1.0/'
+                    pushToDocsRepo("Update javaDocs to ${docsVersion}", {
+                        sh "mkdir -p ${docsRepoName}/javadoc/cibseven/${docsVersion}"
+                        sh "rm -r ${docsRepoName}/javadoc/cibseven/${docsVersion}/* || true"
+                        sh "cp -Rf target/site/apidocs/. ${docsRepoName}/javadoc/cibseven/${docsVersion}/"
                     })
                 }
             }
@@ -421,21 +467,52 @@ pipeline {
     }
 }
 
+// - "1.2.0" -> no
+// - "1.2.0-SNAPSHOT" -> no
+// - "1.2.3" -> yes
+// - "1.2.3-SNAPSHOT" -> yes
+def isPatchVersion() {
+    List version = mavenProjectInformation.version.tokenize('.')
+    if (version.size() < 3) {
+        return fasle
+    }
+    return version[2].tokenize('-')[0] != "0"
+}
+
+// returns "1.2" for versions
+// - "1.2.0"
+// - "1.2.3-SNAPSHOT"
+def getDocsVersion() {
+    List version = mavenProjectInformation.version.tokenize('.')
+    return "${version[0]}.${version[1]}"
+}
+
+def getDocsRepoName() {
+    if (mavenProjectInformation.version.indexOf("SNAPSHOT") > 0) {
+        return "docs-staging.cibseven.org"
+    }
+    else {
+        return "docs.cibseven.org"
+    }
+}
+
 def pushToDocsRepo(String commmitMessage, Closure updateRepo) {
+    String docsRepoName = getDocsRepoName()
+
     // deploy to github pages
-    sh 'mkdir -p docs-cibseven-de'
-    sh 'chown 1000:1000 docs-cibseven-de'
+    sh "mkdir -p ${docsRepoName}"
+    sh "chown 1000:1000 ${docsRepoName}"
 
     // Avoid Git "dubious ownership" error in checked out repository. Needed in
     // build containers with newer Git versions. Originates from Jenkins running
     // pipeline as root but repository being owned by user 1000. For more, see
     // https://stackoverflow.com/questions/72978485/git-submodule-update-failed-with-fatal-detected-dubious-ownership-in-repositor
-    sh "git config --global --add safe.directory \$(pwd)/docs-cibseven-de"
+    sh "git config --global --add safe.directory \$(pwd)/${docsRepoName}"
 
     // checkout repo once
-    def repoDownloaded = fileExists 'docs-cibseven-de/README.md'
+    def repoDownloaded = fileExists "${docsRepoName}/README.md"
     if (!repoDownloaded) {
-        checkout changelog: false, poll: false, scm: scmGit(branches: [[name: 'main']], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'docs-cibseven-de']], userRemoteConfigs: [[credentialsId: 'credential-github-cib-seven-access-token', url: 'https://github.com/cibseven/docs-cibseven-de.git']])
+        checkout changelog: false, poll: false, scm: scmGit(branches: [[name: 'main']], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: docsRepoName]], userRemoteConfigs: [[credentialsId: 'credential-github-cib-seven-access-token', url: "https://github.com/cibseven/${docsRepoName}.git"]])
     }
 
     updateRepo()
@@ -443,8 +520,8 @@ def pushToDocsRepo(String commmitMessage, Closure updateRepo) {
     // push to repo
     withCredentials([gitUsernamePassword(credentialsId: 'credential-github-cib-seven-access-token', gitToolName: 'Default')]) {
         sh """#!/bin/bash
-            chown -R 1000:1000 docs-cibseven-de
-            cd docs-cibseven-de
+            chown -R 1000:1000 ${docsRepoName}
+            cd ${docsRepoName}
             pwd
             git status
             git add *

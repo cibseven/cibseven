@@ -131,6 +131,17 @@
     </dependencies>
   </dependencyManagement>
 
+  <distributionManagement>
+    <snapshotRepository>
+      <id>none</id>
+      <url>none</url>
+    </snapshotRepository>
+    <repository>
+      <id>mvn-cibseven-private</id>
+      <url>https://artifacts.cibseven.org/repository/private</url>
+    </repository>
+  </distributionManagement>
+
    <build>
     <pluginManagement>
       <plugins>
