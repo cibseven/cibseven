@@ -47,7 +47,7 @@ public class JacksonConfigurator implements ContextResolver<ObjectMapper> {
 
   private static final String PROPERTIES_FILE = "jackson.properties";
   private static final String LENGTH_PROPERTY = "jackson.maxStringLength";
-  private static int maxStringLength = 20_000_000;
+  private static int maxStringLength = StreamReadConstraints.DEFAULT_MAX_STRING_LEN;
 
   static {
     Properties properties = new Properties();
