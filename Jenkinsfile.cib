@@ -294,16 +294,16 @@ pipeline {
             }
             steps {
                 script {
-                    String additionalProfiles = ""
+                    String deployment = ""
                     if (isPatchVersion()) {
-                        additionalProfiles = ",patch-deployment"
+                        deployment = "-Dnexus.release.repository.id=mvn-cibseven-private -Dnexus.release.repository=https://artifacts.cibseven.de/repository/private"
                     }
 
                     withMaven(options: []) {
                         sh """
                             mvn -T4 -U \
                                 -DskipTests \
-                                -Pwebapps-integration${additionalProfiles} \
+                                -Pwebapps-integration ${deployment} \
                                 clean deploy
                         """
                     }
