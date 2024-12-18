@@ -6,66 +6,56 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.StreamReadConstraints;
+import com.fasterxml.jackson.core.exc.StreamConstraintsException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JacksonConfiguratorTest {
 
-    final static int STD_LIMIT = StreamReadConstraints.DEFAULT_MAX_STRING_LEN;
-	final static int ACTUAL_LIMIT = 50_000_000;
+	final static int DEFAULT_LIMIT = StreamReadConstraints.DEFAULT_MAX_STRING_LEN;
+	final static int HIGHER_LIMIT = 50_000_000;
 
 	@Test
 	public void testMaxStringLengthBelow() throws JsonProcessingException {
-		final boolean status = test(ACTUAL_LIMIT - 1);
-		assertEquals(status, true);
+		test(HIGHER_LIMIT - 1);
 	}
 
 	@Test
 	public void testMaxStringLengthExactly() throws JsonProcessingException {
-		final boolean status = test(ACTUAL_LIMIT);
-		assertEquals(status, true);
+		test(HIGHER_LIMIT);
+	}
+
+	@Test(expected = StreamConstraintsException.class)
+	public void testMaxStringLengthAbove() throws JsonProcessingException {
+		test(HIGHER_LIMIT + 1);
 	}
 
 	@Test
-	public void testMaxStringLengthAbove() throws JsonProcessingException {
-		final boolean status = test(ACTUAL_LIMIT + 1);
-		assertEquals(status, false);
-	}
-
-    @Test
 	public void testStdStringLengthBelow() throws JsonProcessingException {
-		final boolean status = test(STD_LIMIT - 1);
-		assertEquals(status, true);
+		test(DEFAULT_LIMIT - 1);
 	}
 
 	@Test
 	public void testStdStringLengthExactly() throws JsonProcessingException {
-		final boolean status = test(STD_LIMIT);
-		assertEquals(status, true);
+		test(DEFAULT_LIMIT);
 	}
 
 	@Test
 	public void testStdStringLengthAbove() throws JsonProcessingException {
-		final boolean status = test(STD_LIMIT + 1);
-		assertEquals(status, true);
+		test(DEFAULT_LIMIT + 1);
 	}
 
-	public boolean test(final int dataLength) throws JsonProcessingException {
+	public void test(final int dataLength) throws JsonProcessingException {
 
 		JacksonConfigurator configurator = new JacksonConfigurator();
 		ObjectMapper objectMapper = configurator.getContext(ObjectMapper.class);
 
 		StreamReadConstraints constraints = objectMapper.getFactory().streamReadConstraints();
-		assertEquals(ACTUAL_LIMIT, constraints.getMaxStringLength());
+		assertEquals(HIGHER_LIMIT, constraints.getMaxStringLength());
 
-		try {
-			String longString = new String(new char[dataLength]).replace('\0', 'x');
-			String json = objectMapper.writeValueAsString(longString);
-			String deserializedString = objectMapper.readValue(json, String.class);
-			assertEquals(longString, deserializedString);
-			return true;
-		}
-		catch (Exception ex) {
-			return false;
-		}
+		String longString = new String(new char[dataLength]).replace('\0', 'x');
+		String json = objectMapper.writeValueAsString(longString);
+		String deserializedString = objectMapper.readValue(json, String.class);
+		assertEquals(longString, deserializedString);
 	}
+
 }
