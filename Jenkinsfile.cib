@@ -294,11 +294,16 @@ pipeline {
             }
             steps {
                 script {
+                    String additionalProfiles = ""
+                    if (isPatchVersion()) {
+                        additionalProfiles = ",patch-deployment"
+                    }
+
                     withMaven(options: []) {
                         sh """
                             mvn -T4 -U \
                                 -DskipTests \
-                                -Pwebapps-integration \
+                                -Pwebapps-integration${additionalProfiles} \
                                 clean deploy
                         """
                     }
