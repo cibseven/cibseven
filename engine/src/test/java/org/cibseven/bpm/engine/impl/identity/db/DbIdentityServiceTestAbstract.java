@@ -4,53 +4,17 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.cibseven.bpm.engine.IdentityService;
-import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.persistence.entity.UserEntity;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 
-import io.zonky.test.db.postgres.junit.EmbeddedPostgresRules;
-import io.zonky.test.db.postgres.junit.SingleInstancePostgresRule;
+public abstract class DbIdentityServiceTestAbstract {
 
-public class DbIdentityServiceTest {
-
-	@ClassRule
-	public static SingleInstancePostgresRule pg = EmbeddedPostgresRules.singleInstance();
-	
-	@Rule
-	public final ProcessEngineRule processEngineRuleH2 = new ProcessEngineRule(
-		ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration()
-//			.setJdbcUrl("jdbc:h2:mem:camunda;DB_CLOSE_DELAY=-1")
-//			.setJdbcDriver("org.h2.Driver")
-//			.setJdbcUsername("sa")
-//			.setJdbcPassword("")
-			.setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE)
-			.setHistory(ProcessEngineConfiguration.HISTORY_FULL)
-			.buildProcessEngine()
-	);
-	
-	@Rule
-	public final ProcessEngineRule processEngineRulePG = new ProcessEngineRule(
-		ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration()
-			.setJdbcUrl(pg.getEmbeddedPostgres().getJdbcUrl("postgres", "postgres"))
-			.setJdbcDriver("org.postgresql.Driver")
-			.setJdbcUsername("postgres")
-			.setJdbcPassword("postgres")
-			.setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE)
-			.setHistory(ProcessEngineConfiguration.HISTORY_FULL)
-			.buildProcessEngine()
-	);
+	protected abstract ProcessEngineRule getProcessEngineRule();
 	
 	@Test
-	public void testCheckPasswordCaseInsensitiveUserIdH2() {
-		checkPasswordCaseInsensitiveUserId(processEngineRuleH2.getIdentityService());
-	}
-	
-	@Test
-	public void testCheckPasswordCaseInsensitiveUserIdPG() {
-		checkPasswordCaseInsensitiveUserId(processEngineRulePG.getIdentityService());
+	public void testCheckPasswordCaseInsensitiveUserId() {
+		checkPasswordCaseInsensitiveUserId(getProcessEngineRule().getIdentityService());
 	}
 
 	private void checkPasswordCaseInsensitiveUserId(IdentityService identityService) {
@@ -72,15 +36,10 @@ public class DbIdentityServiceTest {
 			identityService.deleteUser(userId);
 		}
 	}
-
-	@Test
-	public void testCheckPasswordWithSimilarUserIdsH2() {
-		checkPasswordWithSimilarUserIds(processEngineRuleH2.getIdentityService());
-	}
 	
 	@Test
-	public void testCheckPasswordWithSimilarUserIdsPG() {
-		checkPasswordWithSimilarUserIds(processEngineRulePG.getIdentityService());
+	public void testCheckPasswordWithSimilarUserIds() {
+		checkPasswordWithSimilarUserIds(getProcessEngineRule().getIdentityService());
 	}
 
 	private void checkPasswordWithSimilarUserIds(IdentityService identityService) {
