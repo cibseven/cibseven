@@ -476,7 +476,7 @@ pipeline {
 def isPatchVersion() {
     List version = mavenProjectInformation.version.tokenize('.')
     if (version.size() < 3) {
-        return fasle
+        return false
     }
     return version[2].tokenize('-')[0] != "0"
 }
