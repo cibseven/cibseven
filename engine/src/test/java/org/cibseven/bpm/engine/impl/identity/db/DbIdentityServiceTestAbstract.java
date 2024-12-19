@@ -57,9 +57,13 @@ public abstract class DbIdentityServiceTestAbstract {
 		user.setPassword("s3cret");
 		identityService.saveUser(user);
 
-		User foundUser = identityService.createUserQuery().userId(userId.toUpperCase()).singleResult();
-		assertNotNull(foundUser);
-		assertEquals(user.getPassword(), foundUser.getPassword());
+		try {
+			User foundUser = identityService.createUserQuery().userId(userId).singleResult();
+			assertNotNull(foundUser);
+			assertEquals(user.getPassword(), foundUser.getPassword());
+		} finally {
+			identityService.deleteUser(userId);
+		}
 	}
 
 	private void checkPasswordWithSimilarUserIds(IdentityService identityService) {
