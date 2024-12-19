@@ -1,19 +1,19 @@
-License Book for CIB seven 1.0
+License Book for CIB seven 1.0.1
 
-This is a license book. It contains licensing information for third-party libraries which are used in this release of the CIB seven platform 1.0. (Document generated on the: 2024-11-07)
+This is a license book. It contains licensing information for third-party libraries which are used in this release of the CIB seven platform 1.0.1 (Document generated on the: 2024-12-19)
 
 Introduction
 This document, which forms part of the program documentation, is intended to help the reader in understanding the licence terms and copyright for third-party libraries associated with the CIB seven platform.
 
-Product License – CIB seven 1.0
-This is a distribution of CIB seven v1.0 (visit https://docs.cibseven.de) a Java-based framework. The software is mainly published under the Apache License 2.0 and other open source licenses. Which components are published under an open source license is clearly stated in the license header of a source code file or a LICENSE file present in the root directory of the software code repository.
+Product License – CIB seven 1.0.1
+This is a distribution of CIB seven v1.0.1 (visit https://docs.cibseven.org) a Java-based framework. The software is mainly published under the Apache License 2.0 and other open source licenses. Which components are published under an open source license is clearly stated in the license header of a source code file or a LICENSE file present in the root directory of the software code repository.
 
 Licenses for Third-Party Libraries: 
 The following section provides licensing information for third-party libraries that are included with the CIB Seven source code and binaries for convenience. None of these libraries have been modified or altered; they are distributed as originally provided. For ease of reference, the licence text for each library is included only once. Each Library (in source or object form) is licensed to you by its original copyright holders under the Open Source licence specified in this Licence Book. Nothing in this licence book, or in any licence agreement with us, limits or restricts any rights you may have to a component under its original open source licence, nor does it make the original authors or copyright holders liable for your use or distribution of that component.
 
 We would like to thank all the contributors who have created these libraries.
 
-The libraries used in CIB Seven 1.0 are licensed under the following terms and conditions: 
+The libraries used in CIB Seven 1.0.1 are licensed under the following terms and conditions: 
 
 * Apache 2.0
 * bpmn.io
