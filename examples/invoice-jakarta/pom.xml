@@ -250,7 +250,7 @@
     <url>https://github.com/cibseven/cibseven</url>
     <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
     <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
-    <tag>v1.1.0</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
