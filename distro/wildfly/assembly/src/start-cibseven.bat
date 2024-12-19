@@ -2,7 +2,7 @@
 
 set "JBOSS_HOME=%CD%\server\wildfly-${version.wildfly}"
 
-echo "starting CIB seven 1.0 on Wildfly Application Server ${version.wildfly}"
+echo "starting CIB seven ${project.version} on Wildfly Application Server ${version.wildfly}"
 
 cd server\wildfly-${version.wildfly}\bin\
 start standalone.bat

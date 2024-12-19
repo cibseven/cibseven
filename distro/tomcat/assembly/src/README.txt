@@ -1,6 +1,6 @@
 This is a distribution of
 
-       CIB seven v1.1.0
+       CIB seven v${project.version}
 
 visit
        http://docs.cibseven.org/
@@ -48,7 +48,7 @@ Contents:
 
 ==================
 
-CIB seven version: 1.1.0
+CIB seven version: ${project.version}
 Apache Tomcat Server version: ${version.tomcat}
 
 =================
