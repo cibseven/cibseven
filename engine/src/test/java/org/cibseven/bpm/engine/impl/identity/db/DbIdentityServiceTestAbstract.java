@@ -1,9 +1,12 @@
 package org.cibseven.bpm.engine.impl.identity.db;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.cibseven.bpm.engine.IdentityService;
+import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.impl.persistence.entity.UserEntity;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.junit.Test;
@@ -40,6 +43,23 @@ public abstract class DbIdentityServiceTestAbstract {
 	@Test
 	public void testCheckPasswordWithSimilarUserIds() {
 		checkPasswordWithSimilarUserIds(getProcessEngineRule().getIdentityService());
+	}
+
+	@Test
+	public void testGetUserByQueryCaseInsensitive() {
+
+		IdentityService identityService = getProcessEngineRule().getIdentityService();
+
+		// Create a test user
+		UserEntity user = new UserEntity();
+		String userId = "demo";
+		user.setId(userId);
+		user.setPassword("s3cret");
+		identityService.saveUser(user);
+
+		User foundUser = identityService.createUserQuery().userId(userId.toUpperCase()).singleResult();
+		assertNotNull(foundUser);
+		assertEquals(user.getPassword(), foundUser.getPassword());
 	}
 
 	private void checkPasswordWithSimilarUserIds(IdentityService identityService) {
