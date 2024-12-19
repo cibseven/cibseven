@@ -1,9 +1,12 @@
 package org.camunda.bpm.engine.impl.identity.db;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.camunda.bpm.engine.IdentityService;
+import org.camunda.bpm.engine.identity.User;
 import org.camunda.bpm.engine.ProcessEngineConfiguration;
 import org.camunda.bpm.engine.impl.persistence.entity.UserEntity;
 import org.camunda.bpm.engine.test.ProcessEngineRule;
@@ -41,6 +44,23 @@ public abstract class DbIdentityServiceTestAbstract {
 	@Test
 	public void testCheckPasswordWithSimilarUserIds() {
 		checkPasswordWithSimilarUserIds(getProcessEngineRule().getIdentityService());
+	}
+
+	@Test
+	public void testGetUserByQueryCaseInsensitive() {
+
+		IdentityService identityService = getProcessEngineRule().getIdentityService();
+
+		// Create a test user
+		UserEntity user = new UserEntity();
+		String userId = "demo";
+		user.setId(userId);
+		user.setPassword("s3cret");
+		identityService.saveUser(user);
+
+		User foundUser = identityService.createUserQuery().userId(userId.toUpperCase()).singleResult();
+		assertNotNull(foundUser);
+		assertEquals(user.getPassword(), foundUser.getPassword());
 	}
 
 	private void checkPasswordWithSimilarUserIds(IdentityService identityService) {
