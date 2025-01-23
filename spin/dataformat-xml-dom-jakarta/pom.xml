@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.camunda.spin</groupId>
     <artifactId>camunda-spin-root</artifactId>
-    <version>7.22.1-cibseven</version>
+    <version>7.22.2-cibseven</version>
   </parent>
 
   <artifactId>camunda-spin-dataformat-xml-dom-jakarta</artifactId>

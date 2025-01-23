@@ -2,7 +2,7 @@
   <parent>
     <groupId>org.camunda.bpm.quarkus</groupId>
     <artifactId>camunda-bpm-quarkus-engine-parent</artifactId>
-    <version>7.22.1-cibseven</version>
+    <version>7.22.2-cibseven</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>

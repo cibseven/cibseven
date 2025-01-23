@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.camunda.bpm.tomcat</groupId>
     <artifactId>camunda-tomcat</artifactId>
-    <version>7.22.1-cibseven</version>
+    <version>7.22.2-cibseven</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
