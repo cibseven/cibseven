@@ -281,12 +281,11 @@ public class AuthCacheTest {
     assertThat(nextAuth.getCacheValidationTime()).isEqualTo(addMinutes(5, ClockUtil.getCurrentTime()));
     assertThat(initialAuthentication).isNotSameAs(nextAuth);
 
-    User user = engineMock.getIdentityService()
-      .createUserQuery()
-      .userId("userId1")
-      .singleResult();
-
-    when(user).thenReturn(null);
+    List<User> users = engineMock.getIdentityService()
+  	      .createUserQuery()
+  	      .userId("userId1")
+  	      .list();
+    when(users).thenReturn(new ArrayList<User>());
 
     Date currentTime = addDays(ClockUtil.getCurrentTime(), 2);
     ClockUtil.setCurrentTime(currentTime);
@@ -394,12 +393,11 @@ public class AuthCacheTest {
     assertThat(nextAuthEngineThree.getCacheValidationTime())
       .isEqualTo(datePlus5Minutes);
 
-    User user = engineMocks[1].getIdentityService()
-      .createUserQuery()
-      .userId("userId2")
-      .singleResult();
-
-    when(user).thenReturn(null);
+    List<User> users = engineMocks[1].getIdentityService()
+    	      .createUserQuery()
+    	      .userId("userId2")
+    	      .list();
+    when(users).thenReturn(new ArrayList<User>());
 
     Date currentTime = addDays(ClockUtil.getCurrentTime(), 2);
     ClockUtil.setCurrentTime(currentTime);
