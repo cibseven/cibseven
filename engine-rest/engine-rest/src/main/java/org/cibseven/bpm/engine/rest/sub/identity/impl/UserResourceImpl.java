@@ -32,6 +32,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.util.List;
 
 import static org.cibseven.bpm.engine.authorization.Permissions.DELETE;
 import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE;
@@ -130,9 +131,26 @@ public class UserResourceImpl extends AbstractIdentityResource implements UserRe
 
   protected User findUserObject() {
     try {
-      return identityService.createUserQuery()
-          .userId(resourceId)
-          .singleResult();
+		List<User> users = identityService
+			.createUserQuery()
+			.userId(resourceId)
+			.list();
+    
+		User user = null;
+		
+		if (users.isEmpty()) {
+			return null;
+		} else if (users.size() == 1) {
+			user = users.get(0);
+		} else {
+			
+			user = users.stream().filter(u -> u.getId().equals(resourceId)).findFirst().orElse(null);
+			
+			if (user == null) {
+				user = users.get(0);
+			}
+		}
+		return user;
     } catch(ProcessEngineException e) {
       throw new InvalidRequestException(Status.INTERNAL_SERVER_ERROR, "Exception while performing user query: "+e.getMessage());
     }
