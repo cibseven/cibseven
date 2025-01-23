@@ -1,6 +1,6 @@
 {
   "name": "docs",
-  "version": "7.22.1-cibseven",
+  "version": "7.22.2-cibseven",
   "private": true,
   "scripts": {
     "build": "node build"
