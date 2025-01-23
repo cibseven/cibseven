@@ -7,7 +7,6 @@ import static org.junit.Assert.assertTrue;
 
 import org.camunda.bpm.engine.IdentityService;
 import org.camunda.bpm.engine.identity.User;
-import org.camunda.bpm.engine.ProcessEngineConfiguration;
 import org.camunda.bpm.engine.impl.persistence.entity.UserEntity;
 import org.camunda.bpm.engine.test.ProcessEngineRule;
 import org.junit.Test;
@@ -69,32 +68,39 @@ public abstract class DbIdentityServiceTestAbstract {
 
 	private void checkPasswordWithSimilarUserIds(IdentityService identityService) {
 		
-		UserEntity user1 = new UserEntity();
-		String userId1 = "TestUser";
-		user1.setId(userId1);
-		user1.setPassword("password1");
-		identityService.saveUser(user1);
-
-		UserEntity user2 = new UserEntity();
-		String userId2 = "TESTUSER";
-		user2.setId(userId2);
-		user2.setPassword("password2");
-		identityService.saveUser(user2);
+		String userId1 = "Jonny";
+		{
+			UserEntity user = new UserEntity();
+			user.setId(userId1);
+			user.setPassword(userId1);
+			identityService.saveUser(user);
+		}
+		
+		String userId2 = "Jonny";
+		{
+			UserEntity user = new UserEntity();
+			user.setId(userId2);
+			user.setPassword(userId2);
+			identityService.saveUser(user);
+		}
 
 		try {
-			assertTrue(identityService.checkPassword("TestUser", "password1"));
-			assertTrue(identityService.checkPassword("TESTUSER", "password2"));
+			assertTrue(identityService.checkPassword(userId1, userId1));
+			assertTrue(identityService.checkPassword(userId2, userId2));
+			assertTrue(identityService.checkPassword(userId1.toUpperCase(), userId1));
+			assertFalse(identityService.checkPassword(userId2.toUpperCase(), userId2));
 			
-			assertTrue(identityService.checkPassword("testuser", "password1"));
-			// first returned user has password1
-			assertFalse(identityService.checkPassword("testuser", "password2"));
+			assertFalse(identityService.checkPassword(userId1, "wrongpassword"));
+			assertFalse(identityService.checkPassword(userId2, "wrongpassword"));
 			
-			assertFalse(identityService.checkPassword("TestUser", "wrongpassword"));
-			assertFalse(identityService.checkPassword("TESTUSER", "wrongpassword"));
+			assertFalse(identityService.checkPassword(userId1.toUpperCase(), "wrongpassword"));
+			assertFalse(identityService.checkPassword(userId2.toUpperCase(), "wrongpassword"));
+			
 		} finally {
 			identityService.deleteUser(userId1);
 			identityService.deleteUser(userId2);
 		}
+		
 	}
 	
 }

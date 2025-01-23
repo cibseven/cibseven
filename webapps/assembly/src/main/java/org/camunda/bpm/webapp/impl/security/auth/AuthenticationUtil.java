@@ -79,7 +79,7 @@ public class AuthenticationUtil {
     User user = processEngine.getIdentityService()
       .createUserQuery()
       .userId(username)
-      .singleResult();
+      .list().stream().filter(u -> u.getId().equals(username)).findFirst().orElse(null);
 
     if (user == null) {
       return null;
