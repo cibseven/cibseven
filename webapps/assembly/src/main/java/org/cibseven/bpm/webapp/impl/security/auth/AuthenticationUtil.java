@@ -77,24 +77,24 @@ public class AuthenticationUtil {
     String userId = username;
 
     List<User> users = processEngine.getIdentityService()
-		      .createUserQuery()
-		      .userId(username)
-		      .list();
-    
+              .createUserQuery()
+              .userId(username)
+              .list();
+
     User user = null;
-    
+
     if (users.isEmpty()) {
-    	return null;
-	} else if (users.size() == 1) {
-		user = users.get(0);
-	} else {
-		
-		user = users.stream().filter(u -> u.getId().equals(username)).findFirst().orElse(null);
-		
-		if (user == null) {
-			user = users.get(0);
-		}
-	}
+        return null;
+    } else if (users.size() == 1) {
+        user = users.get(0);
+    } else {
+
+        user = users.stream().filter(u -> u.getId().equals(username)).findFirst().orElse(null);
+
+        if (user == null) {
+            user = users.get(0);
+        }
+    }
 
     if (user == null) {
       return null;

@@ -201,29 +201,29 @@ public class UserAuthenticationResourceTest {
     assertThat(userAuthentication.getCacheValidationTime())
       .isEqualTo(new Date(ClockUtil.getCurrentTime().getTime() + 1000 * 60 * 5));
   }
-  
+
   @Test
   public void testCaseInsensitiveLogin() {
     // given
     String userId = "jonny";
-	User user = identityService.newUser(userId);
+    User user = identityService.newUser(userId);
     user.setPassword(userId);
     identityService.saveUser(user);
-    
+
     Authorization authorization = authorizationService.createNewAuthorization(Authorization.AUTH_TYPE_GRANT);
     authorization.setResource(Resources.APPLICATION);
     authorization.setResourceId("tasklist");
     authorization.setPermissions(new Permissions[] {Permissions.ACCESS});
     authorization.setUserId(user.getId());
     authorizationService.saveAuthorization(authorization);
-    
+
     processEngineConfiguration.setAuthorizationEnabled(true);
-    
+
     // when
     UserAuthenticationResource authResource = new UserAuthenticationResource();
     authResource.request = new MockHttpServletRequest();
     Response response = authResource.doLogin("webapps-test-engine", "tasklist", userId.toUpperCase(), userId);
-    
+
     // then
     Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
     UserAuthentication userAuthentication = AuthenticationUtil.getAuthsFromSession(authResource.request.getSession())
@@ -231,27 +231,27 @@ public class UserAuthenticationResourceTest {
       .get(0);
     assertThat(userAuthentication.getIdentityId()).isEqualTo(userId);
   }
-  
+
   @Test
   public void testTwoUsersCaseInsensitiveLogin() {
     // given
-	  
+
     String userId1 = "jonny";
     {
-    	User user = identityService.newUser(userId1);
+        User user = identityService.newUser(userId1);
         user.setPassword(userId1);
         identityService.saveUser(user);
     }
-    
+
     String userId2 = "Jonny";
     {
-    	User user = identityService.newUser(userId2);
+        User user = identityService.newUser(userId2);
         user.setPassword(userId2);
         identityService.saveUser(user);
     }
-    
+
     {
-    	Authorization authorization = authorizationService.createNewAuthorization(Authorization.AUTH_TYPE_GRANT);
+        Authorization authorization = authorizationService.createNewAuthorization(Authorization.AUTH_TYPE_GRANT);
         authorization.setResource(Resources.APPLICATION);
         authorization.setResourceId("tasklist");
         authorization.setPermissions(new Permissions[] {Permissions.ACCESS});
@@ -259,19 +259,19 @@ public class UserAuthenticationResourceTest {
         authorizationService.saveAuthorization(authorization);
     }
     {
-    	Authorization authorization = authorizationService.createNewAuthorization(Authorization.AUTH_TYPE_GRANT);
+        Authorization authorization = authorizationService.createNewAuthorization(Authorization.AUTH_TYPE_GRANT);
         authorization.setResource(Resources.APPLICATION);
         authorization.setResourceId("tasklist");
         authorization.setPermissions(new Permissions[] {Permissions.ACCESS});
         authorization.setUserId(userId2);
         authorizationService.saveAuthorization(authorization);
     }
-    
+
     processEngineConfiguration.setAuthorizationEnabled(true);
-    
+
     {
-    	// when
-    	UserAuthenticationResource authResource = new UserAuthenticationResource();
+        // when
+        UserAuthenticationResource authResource = new UserAuthenticationResource();
         authResource.request = new MockHttpServletRequest();
         Response response = authResource.doLogin("webapps-test-engine", "tasklist", userId1, userId1);
         // then
@@ -281,10 +281,10 @@ public class UserAuthenticationResourceTest {
           .get(0);
         assertThat(userAuthentication.getIdentityId()).isEqualTo(userId1);
     }
-    
+
     {
-    	// when
-    	UserAuthenticationResource authResource = new UserAuthenticationResource();
+        // when
+        UserAuthenticationResource authResource = new UserAuthenticationResource();
         authResource.request = new MockHttpServletRequest();
         Response response = authResource.doLogin("webapps-test-engine", "tasklist", userId2, userId2);
         // then
@@ -294,29 +294,29 @@ public class UserAuthenticationResourceTest {
           .get(0);
         assertThat(userAuthentication.getIdentityId()).isEqualTo(userId2);
     }
-    
+
   }
-  
+
   @Test
   public void testTwoUsersLowerCaseLogin() {
     // given
-	  
+
     String userId1 = "Jonny";
     {
-    	User user = identityService.newUser(userId1);
+        User user = identityService.newUser(userId1);
         user.setPassword(userId1);
         identityService.saveUser(user);
     }
-    
+
     String userId2 = "jonnY";
     {
-    	User user = identityService.newUser(userId2);
+        User user = identityService.newUser(userId2);
         user.setPassword(userId2);
         identityService.saveUser(user);
     }
-    
+
     {
-    	Authorization authorization = authorizationService.createNewAuthorization(Authorization.AUTH_TYPE_GRANT);
+        Authorization authorization = authorizationService.createNewAuthorization(Authorization.AUTH_TYPE_GRANT);
         authorization.setResource(Resources.APPLICATION);
         authorization.setResourceId("tasklist");
         authorization.setPermissions(new Permissions[] {Permissions.ACCESS});
@@ -324,19 +324,19 @@ public class UserAuthenticationResourceTest {
         authorizationService.saveAuthorization(authorization);
     }
     {
-    	Authorization authorization = authorizationService.createNewAuthorization(Authorization.AUTH_TYPE_GRANT);
+        Authorization authorization = authorizationService.createNewAuthorization(Authorization.AUTH_TYPE_GRANT);
         authorization.setResource(Resources.APPLICATION);
         authorization.setResourceId("tasklist");
         authorization.setPermissions(new Permissions[] {Permissions.ACCESS});
         authorization.setUserId(userId2);
         authorizationService.saveAuthorization(authorization);
     }
-    
+
     processEngineConfiguration.setAuthorizationEnabled(true);
-    
+
     {
-    	// when
-    	UserAuthenticationResource authResource = new UserAuthenticationResource();
+        // when
+        UserAuthenticationResource authResource = new UserAuthenticationResource();
         authResource.request = new MockHttpServletRequest();
         Response response = authResource.doLogin("webapps-test-engine", "tasklist", userId1, userId1);
         // then
@@ -346,10 +346,10 @@ public class UserAuthenticationResourceTest {
           .get(0);
         assertThat(userAuthentication.getIdentityId()).isEqualTo(userId1);
     }
-    
+
     {
-    	// when
-    	UserAuthenticationResource authResource = new UserAuthenticationResource();
+        // when
+        UserAuthenticationResource authResource = new UserAuthenticationResource();
         authResource.request = new MockHttpServletRequest();
         Response response = authResource.doLogin("webapps-test-engine", "tasklist", userId2, userId2);
         // then
@@ -359,10 +359,10 @@ public class UserAuthenticationResourceTest {
           .get(0);
         assertThat(userAuthentication.getIdentityId()).isEqualTo(userId2);
     }
-    
+
     {
-    	// when
-    	UserAuthenticationResource authResource = new UserAuthenticationResource();
+        // when
+        UserAuthenticationResource authResource = new UserAuthenticationResource();
         authResource.request = new MockHttpServletRequest();
         Response response = authResource.doLogin("webapps-test-engine", "tasklist", userId1.toLowerCase(), userId1);
         // then
@@ -372,7 +372,7 @@ public class UserAuthenticationResourceTest {
           .get(0);
         assertThat(userAuthentication.getIdentityId()).isEqualTo(userId1);
     }
-    
+
   }
 
   protected void setAuthentication(String user, String engineName) {

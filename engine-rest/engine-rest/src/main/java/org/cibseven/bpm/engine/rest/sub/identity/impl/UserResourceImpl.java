@@ -131,26 +131,26 @@ public class UserResourceImpl extends AbstractIdentityResource implements UserRe
 
   protected User findUserObject() {
     try {
-		List<User> users = identityService
-			.createUserQuery()
-			.userId(resourceId)
-			.list();
-    
-		User user = null;
-		
-		if (users.isEmpty()) {
-			return null;
-		} else if (users.size() == 1) {
-			user = users.get(0);
-		} else {
-			
-			user = users.stream().filter(u -> u.getId().equals(resourceId)).findFirst().orElse(null);
-			
-			if (user == null) {
-				user = users.get(0);
-			}
-		}
-		return user;
+        List<User> users = identityService
+            .createUserQuery()
+            .userId(resourceId)
+            .list();
+
+        User user = null;
+
+        if (users.isEmpty()) {
+            return null;
+        } else if (users.size() == 1) {
+            user = users.get(0);
+        } else {
+
+            user = users.stream().filter(u -> u.getId().equals(resourceId)).findFirst().orElse(null);
+
+            if (user == null) {
+                user = users.get(0);
+            }
+        }
+        return user;
     } catch(ProcessEngineException e) {
       throw new InvalidRequestException(Status.INTERNAL_SERVER_ERROR, "Exception while performing user query: "+e.getMessage());
     }

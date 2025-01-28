@@ -394,9 +394,9 @@ public class AuthCacheTest {
       .isEqualTo(datePlus5Minutes);
 
     List<User> users = engineMocks[1].getIdentityService()
-    	      .createUserQuery()
-    	      .userId("userId2")
-    	      .list();
+        .createUserQuery()
+        .userId("userId2")
+        .list();
     when(users).thenReturn(new ArrayList<User>());
 
     Date currentTime = addDays(ClockUtil.getCurrentTime(), 2);
