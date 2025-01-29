@@ -14,35 +14,40 @@ import org.junit.Test;
 public abstract class DbIdentityServiceTestAbstract {
 
 	protected abstract ProcessEngineRule getProcessEngineRule();
-	
+
+	private static UserEntity createUser(IdentityService identityService, String userId) {
+		UserEntity user = new UserEntity();
+		user.setId(userId);
+		user.setPassword(userId);
+		identityService.saveUser(user);
+		return user;
+	}
+
 	@Test
 	public void testCheckPasswordCaseInsensitiveUserId() {
 		checkPasswordCaseInsensitiveUserId(getProcessEngineRule().getIdentityService());
 	}
 
-	private void checkPasswordCaseInsensitiveUserId(IdentityService identityService) {
-		// Create a test user
-		UserEntity user = new UserEntity();
+	private static void checkPasswordCaseInsensitiveUserId(IdentityService identityService) {
+
 		String userId = "testuser";
-		user.setId(userId);
-		user.setPassword("s3cret");
-		identityService.saveUser(user);
+
+		createUser(identityService, userId);
 
 		try {
 			// Test with different cases for userId
-			assertTrue(identityService.checkPassword("TESTUSER", "s3cret"));
-			assertTrue(identityService.checkPassword("testuser", "s3cret"));
-			assertTrue(identityService.checkPassword("TestUser", "s3cret"));
-			assertFalse(identityService.checkPassword("testuser", "wrongpassword"));
-			assertFalse(identityService.checkPassword("wronguser", "s3cret"));
+			assertTrue(identityService.checkPassword(userId, userId));
+			assertTrue(identityService.checkPassword(userId.toUpperCase(), userId));
+			assertTrue(identityService.checkPassword("TestUser", userId));
+
+			assertFalse(identityService.checkPassword(userId, "wrongpassword"));
+			assertFalse(identityService.checkPassword(userId.toUpperCase(), "wrongpassword"));
+			assertFalse(identityService.checkPassword("TestUser", "wrongpassword"));
+
+			assertFalse(identityService.checkPassword("wronguser", userId));
 		} finally {
 			identityService.deleteUser(userId);
 		}
-	}
-	
-	@Test
-	public void testCheckPasswordWithSimilarUserIds() {
-		checkPasswordWithSimilarUserIds(getProcessEngineRule().getIdentityService());
 	}
 
 	@Test
@@ -51,11 +56,8 @@ public abstract class DbIdentityServiceTestAbstract {
 		IdentityService identityService = getProcessEngineRule().getIdentityService();
 
 		// Create a test user
-		UserEntity user = new UserEntity();
 		String userId = "demo";
-		user.setId(userId);
-		user.setPassword("s3cret");
-		identityService.saveUser(user);
+		UserEntity user = createUser(identityService, userId);
 
 		try {
 			User foundUser = identityService.createUserQuery().userId(userId).singleResult();
@@ -66,34 +68,40 @@ public abstract class DbIdentityServiceTestAbstract {
 		}
 	}
 
-	private void checkPasswordWithSimilarUserIds(IdentityService identityService) {
-		
-		UserEntity user1 = new UserEntity();
-		String userId1 = "TestUser";
-		user1.setId(userId1);
-		user1.setPassword("password1");
-		identityService.saveUser(user1);
+	@Test
+	public void testCheckPasswordWithSimilarUserIds() {
+		checkPasswordWithSimilarUserIds(getProcessEngineRule().getIdentityService());
+	}
 
-		UserEntity user2 = new UserEntity();
-		String userId2 = "TESTUSER";
-		user2.setId(userId2);
-		user2.setPassword("password2");
-		identityService.saveUser(user2);
+	private static void checkPasswordWithSimilarUserIds(IdentityService identityService) {
+
+		String userId1 = "jonny";
+		String userId2 = "Jonny";
 
 		try {
-			assertTrue(identityService.checkPassword("TestUser", "password1"));
-			assertTrue(identityService.checkPassword("TESTUSER", "password2"));
-			
-			assertTrue(identityService.checkPassword("testuser", "password1"));
-			// first returned user has password1
-			assertFalse(identityService.checkPassword("testuser", "password2"));
-			
-			assertFalse(identityService.checkPassword("TestUser", "wrongpassword"));
-			assertFalse(identityService.checkPassword("TESTUSER", "wrongpassword"));
+
+			createUser(identityService, userId1);
+			createUser(identityService, userId2);
+
+			assertTrue(identityService.checkPassword(userId1, userId1));
+			assertTrue(identityService.checkPassword(userId2, userId2));
+			assertTrue(identityService.checkPassword(userId1.toUpperCase(), userId1));
+			assertFalse(identityService.checkPassword(userId2.toUpperCase(), userId2));
+
+			assertFalse(identityService.checkPassword(userId1, "wrongpassword"));
+			assertFalse(identityService.checkPassword(userId2, "wrongpassword"));
+
+			assertFalse(identityService.checkPassword(userId1.toUpperCase(), "wrongpassword"));
+			assertFalse(identityService.checkPassword(userId2.toUpperCase(), "wrongpassword"));
+
 		} finally {
-			identityService.deleteUser(userId1);
-			identityService.deleteUser(userId2);
+			try {
+				identityService.deleteUser(userId1);
+			} finally {
+				identityService.deleteUser(userId2);
+			}
 		}
+
 	}
-	
+
 }
