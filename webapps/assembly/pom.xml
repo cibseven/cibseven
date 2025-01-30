@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.cibseven.bpm.webapp</groupId>
     <artifactId>cibseven-webapp-root</artifactId>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
     <relativePath>../</relativePath>
   </parent>
 
@@ -649,7 +649,7 @@
     <url>https://github.com/cibseven/cibseven</url>
     <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
     <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
-    <tag>v1.1.1</tag>
+    <tag>v1.1.2</tag>
   </scm>
 
   <issueManagement>
