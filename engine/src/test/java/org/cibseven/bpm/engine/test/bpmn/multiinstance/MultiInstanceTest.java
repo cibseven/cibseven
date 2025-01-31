@@ -55,7 +55,8 @@ import org.cibseven.bpm.engine.test.util.ActivityInstanceAssert;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Ignore;
+import org.cibseven.bpm.model.bpmn.Bpmn;
+import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.Test;
 
 
@@ -422,7 +423,6 @@ public class MultiInstanceTest extends PluggableProcessEngineTest {
   }
 
   @Deployment
-  @Ignore
   @Test
   public void testParallelUserTasksBasedOnCollectionExpression() {
     DelegateEvent.clearEvents();
@@ -430,6 +430,37 @@ public class MultiInstanceTest extends PluggableProcessEngineTest {
     runtimeService.startProcessInstanceByKey("process",
         Variables.createVariables().putValue("myBean", new DelegateBean()));
 
+    List<DelegateEvent> recordedEvents = DelegateEvent.getEvents();
+    assertEquals(2, recordedEvents.size());
+
+    assertEquals("miTasks#multiInstanceBody", recordedEvents.get(0).getCurrentActivityId());
+    assertEquals("miTasks#multiInstanceBody", recordedEvents.get(1).getCurrentActivityId()); // or miTasks
+
+    DelegateEvent.clearEvents();
+  }
+
+  @Test
+  public void testSequentialUserTasksBasedOnCollectionExpression() {
+    DelegateEvent.clearEvents();
+
+    BpmnModelInstance model = Bpmn.createExecutableProcess("process")
+        .startEvent()
+        .userTask("miTasks")
+            .multiInstance()
+            .sequential()
+            .camundaCollection("${myBean.resolveCollection(execution)}")
+            .camundaElementVariable("elementVar")
+            .multiInstanceDone()
+        .endEvent()
+        .done();
+
+    testRule.deploy(model);
+
+    runtimeService.startProcessInstanceByKey("process",
+        Variables.createVariables().putValue("myBean", new DelegateBean()));
+
+    Task singleResult = taskService.createTaskQuery().singleResult();
+    taskService.complete(singleResult.getId());
     List<DelegateEvent> recordedEvents = DelegateEvent.getEvents();
     assertEquals(2, recordedEvents.size());
 
