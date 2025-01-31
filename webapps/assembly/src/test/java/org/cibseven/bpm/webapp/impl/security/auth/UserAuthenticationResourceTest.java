@@ -17,6 +17,7 @@
 package org.cibseven.bpm.webapp.impl.security.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mockStatic;
 
 import java.util.Date;
 import javax.ws.rs.core.Response;
@@ -37,6 +38,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.MockedStatic;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 /**
@@ -373,6 +375,26 @@ public class UserAuthenticationResourceTest {
         assertThat(userAuthentication.getIdentityId()).isEqualTo(userId1);
     }
 
+  }
+
+  @Test
+  public void shouldReturnUnauthorizedOnNullAuthentication() {
+    // given
+    User jonny = identityService.newUser("jonny");
+    jonny.setPassword("jonnyspassword");
+    identityService.saveUser(jonny);
+    UserAuthenticationResource authResource = new UserAuthenticationResource();
+    authResource.request = new MockHttpServletRequest();
+
+    try (MockedStatic<AuthenticationUtil> authenticationUtilMock = mockStatic(AuthenticationUtil.class)) {
+      authenticationUtilMock.when(() -> AuthenticationUtil.createAuthentication("webapps-test-engine", "jonny")).thenReturn(null);
+
+      // when
+      Response response = authResource.doLogin("webapps-test-engine", "tasklist", "jonny", "jonnyspassword");
+
+      // then
+      Assert.assertEquals(Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
+    }
   }
 
   protected void setAuthentication(String user, String engineName) {
