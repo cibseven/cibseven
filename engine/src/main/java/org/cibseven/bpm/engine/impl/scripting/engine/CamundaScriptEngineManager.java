@@ -16,8 +16,16 @@
  */
 package org.cibseven.bpm.engine.impl.scripting.engine;
 
+import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
+
+import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
+
+import com.oracle.truffle.js.scriptengine.GraalJSScriptEngine;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -60,6 +68,71 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
         .collect(Collectors.toList());
 
   }
+  
+	@Override
+	public ScriptEngine getEngineByName(String shortName) {
+
+		if (GRAAL_JS_SCRIPT_ENGINE_NAME.equalsIgnoreCase(shortName)) {
+
+			CibSevenClassLoader cibSevenClassLoader = new CibSevenClassLoader(
+					Thread.currentThread().getContextClassLoader());
+
+			Context.Builder builder = Context.newBuilder("js").allowExperimentalOptions(true)
+					.hostClassLoader(cibSevenClassLoader)
+					.option("js.syntax-extensions", "true")
+					.option("js.script-engine-global-scope-import", "true")
+					.option("js.load", "true")
+					.option("js.print", "true")
+					.option("js.global-arguments", "true");
+
+			ProcessEngineConfigurationImpl config = org.cibseven.bpm.engine.impl.context.Context
+					.getProcessEngineConfiguration();
+			if (config != null) {
+				if (config.isConfigureScriptEngineHostAccess()) {
+					// make sure Graal JS can provide access to the host and can lookup classes
+//			        scriptEngine.getContext().setAttribute("polyglot.js.allowHostAccess", true, ScriptContext.ENGINE_SCOPE);
+//			        scriptEngine.getContext().setAttribute("polyglot.js.allowHostClassLookup", true, ScriptContext.ENGINE_SCOPE);
+					builder
+					.allowHostAccess(HostAccess.ALL)
+					.allowHostClassLookup(className -> true);
+				}
+				if (config.isEnableScriptEngineLoadExternalResources()) {
+					// make sure Graal JS can load external scripts
+//			        scriptEngine.getContext().setAttribute("polyglot.js.allowIO", true, ScriptContext.ENGINE_SCOPE);
+					builder.allowIO(true);
+				}
+				if (config.isEnableScriptEngineNashornCompatibility()) {
+					// enable Nashorn compatibility mode
+//			        scriptEngine.getContext().setAttribute("polyglot.js.nashorn-compat", true, ScriptContext.ENGINE_SCOPE);
+					builder.allowAllAccess(true);
+//					builder.allowHostAccess(NASHORN_HOST_ACCESS);
+
+				}
+			}
+
+			return GraalJSScriptEngine.create(null, builder);
+		}
+
+		return super.getEngineByName(shortName);
+	}
+  
+  private static class CibSevenClassLoader extends ClassLoader {
+
+		public CibSevenClassLoader(ClassLoader parent) {
+			super(parent);
+		}
+
+		@Override
+		protected Class<?> findClass(String name) throws ClassNotFoundException {
+
+			if (name != null && name.startsWith("org.camunda")) {
+				System.out.println("CibSevenClassLoader.findClass() - " + name);
+				name = name.replace("org.camunda", "org.cibseven");
+			}
+			
+			return Class.forName(name);
+		}
+	}
 
   /**
    * Fetches the config logic of a given engine from the mappings and executes it in case it exists.

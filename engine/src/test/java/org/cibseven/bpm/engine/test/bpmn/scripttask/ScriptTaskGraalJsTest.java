@@ -25,11 +25,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-
 import org.cibseven.bpm.engine.ScriptEvaluationException;
-import org.cibseven.bpm.engine.impl.scripting.engine.DefaultScriptEngineResolver;
 import org.cibseven.bpm.engine.impl.scripting.engine.ScriptEngineResolver;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.junit.After;
@@ -39,9 +35,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
-
-import com.oracle.truffle.js.scriptengine.GraalJSEngineFactory;
-import com.oracle.truffle.js.scriptengine.GraalJSScriptEngine;
 
 @RunWith(Parameterized.class)
 public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
@@ -59,9 +52,6 @@ public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
     processEngineConfiguration.setConfigureScriptEngineHostAccess(configureHostAccess);
     processEngineConfiguration.setEnableScriptEngineLoadExternalResources(enableExternalResources);
     processEngineConfiguration.setEnableScriptEngineNashornCompatibility(enableNashornCompat);
-    // create custom script engine lookup to receive a fresh GraalVM JavaScript engine
-    processEngineConfiguration.setScriptEngineResolver(new TestScriptEngineResolver(
-        processEngineConfiguration.getScriptEngineResolver().getScriptEngineManager()));
   }
 
   @After
@@ -276,21 +266,64 @@ public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
               "Operation is not allowed");
       }
   }
+  
+  @Test
+  public void shouldLoadCibSevenClass() {
+    // Given
+    String scriptText = "try {"
+                      + "  throw new org.camunda.bpm.engine.delegate.BpmnError('ServiceTaskError');"
+                      + "} catch (e) {"
+                      + "  execution.setVariable('errorMessage', e.message);"
+                      + "}";
 
-  protected static class TestScriptEngineResolver extends DefaultScriptEngineResolver {
+    deployProcess(GRAALJS, scriptText);
+    
+    if (enableNashornCompat || configureHostAccess) {
+      // When
+      ProcessInstance pi = runtimeService.startProcessInstanceByKey("testProcess");
+      
+      Object variable = runtimeService.getVariable(pi.getId(), "errorMessage");
 
-    public TestScriptEngineResolver(ScriptEngineManager scriptEngineManager) {
-      super(scriptEngineManager);
+		String errorMessage = (String) variable;
+
+		// Then
+		assertNull(errorMessage);
+    } else {
+      // When
+      assertThatThrownBy(() -> runtimeService.startProcessInstanceByKey("testProcess"))
+        // Then
+        .isInstanceOf(ScriptEvaluationException.class)
+        .hasMessageContaining("TypeError");
     }
+  }
+  
+  @Test
+  public void shouldNotLoadCibSevenClass() {
+    // Given
+    String scriptText = "try {"
+                      + "  throw new org.camunda.community.BpmnError('ServiceTaskError');"
+                      + "} catch (e) {"
+                      + "  execution.setVariable('errorMessage', e.message);"
+                      + "}";
 
-    @Override
-    protected ScriptEngine getScriptEngine(String language) {
-      if (GRAALJS.equalsIgnoreCase(language)) {
-        GraalJSScriptEngine scriptEngine = new GraalJSEngineFactory().getScriptEngine();
-        configureScriptEngines(language, scriptEngine);
-        return scriptEngine;
-      }
-      return super.getScriptEngine(language);
+    deployProcess(GRAALJS, scriptText);
+    
+    if (enableNashornCompat || configureHostAccess) {
+      // When
+      ProcessInstance pi = runtimeService.startProcessInstanceByKey("testProcess");
+      
+      Object variable = runtimeService.getVariable(pi.getId(), "errorMessage");
+
+		String errorMessage = (String) variable;
+
+		// Then
+		assertNull(errorMessage);
+    } else {
+      // When
+      assertThatThrownBy(() -> runtimeService.startProcessInstanceByKey("testProcess"))
+        // Then
+        .isInstanceOf(ScriptEvaluationException.class)
+        .hasMessageContaining("TypeError");
     }
   }
 
