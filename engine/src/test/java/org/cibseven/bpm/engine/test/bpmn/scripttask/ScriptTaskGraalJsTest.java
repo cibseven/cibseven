@@ -63,6 +63,7 @@ public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
     processEngineConfiguration.setConfigureScriptEngineHostAccess(configureHostAccess);
     processEngineConfiguration.setEnableScriptEngineLoadExternalResources(enableExternalResources);
     processEngineConfiguration.setEnableScriptEngineNashornCompatibility(enableNashornCompat);
+    processEngineConfiguration.setUseCibSevenNamespaceInScripting(true);
   }
 
   @After

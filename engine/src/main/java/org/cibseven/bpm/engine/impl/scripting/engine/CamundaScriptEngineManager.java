@@ -81,7 +81,10 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
   @Override
   public ScriptEngine getEngineByName(String shortName) {
 
-    if (GRAAL_JS_SCRIPT_ENGINE_NAME.equalsIgnoreCase(shortName)) {
+    ProcessEngineConfigurationImpl config = org.cibseven.bpm.engine.impl.context.Context
+        .getProcessEngineConfiguration();
+    
+    if (config != null && config.isUseCibSevenNamespaceInScripting() && GRAAL_JS_SCRIPT_ENGINE_NAME.equalsIgnoreCase(shortName)) {
 
       CibSevenClassLoader cibSevenClassLoader = new CibSevenClassLoader(Thread.currentThread().getContextClassLoader());
 
@@ -93,9 +96,6 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
           .option(JS_GLOBAL_ARGUMENTS_OPTION, "true")
           .option(JS_SCRIPT_ENGINE_GLOBAL_SCOPE_IMPORT_OPTION, "true");
 
-      ProcessEngineConfigurationImpl config = org.cibseven.bpm.engine.impl.context.Context
-          .getProcessEngineConfiguration();
-      if (config != null) {
         if (config.isConfigureScriptEngineHostAccess()) {
           // make sure Graal JS can provide access to the host and can lookup classes
 //          scriptEngine.getContext().setAttribute("polyglot.js.allowHostAccess", true, ScriptContext.ENGINE_SCOPE);
@@ -113,7 +113,6 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
           builder.allowAllAccess(true);
 //          builder.allowHostAccess(NASHORN_HOST_ACCESS);
         }
-      }
 
       return GraalJSScriptEngine.create(null, builder);
     }
