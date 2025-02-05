@@ -416,6 +416,12 @@ public abstract class ProcessEngineConfiguration {
    * be available on failure (e.g. with external tasks or RPA tasks).
    */
   protected boolean skipOutputMappingOnCanceledActivities = false;
+  
+  /**
+   * If set to true, the process engine will replace org.camunda with org.cibseven namespace
+   * in processed, using scripting environments.
+   */
+  protected boolean useCibSevenNamespaceInScripting = false;
 
   /** use one of the static createXxxx methods instead */
   protected ProcessEngineConfiguration() {
@@ -1060,4 +1066,13 @@ public abstract class ProcessEngineConfiguration {
   public void setSkipOutputMappingOnCanceledActivities(boolean skipOutputMappingOnCanceledActivities) {
     this.skipOutputMappingOnCanceledActivities = skipOutputMappingOnCanceledActivities;
   }
+
+  public boolean isUseCibSevenNamespaceInScripting() {
+    return useCibSevenNamespaceInScripting;
+  }
+
+  public void setUseCibSevenNamespaceInScripting(boolean useCibSevenNamespaceInScripting) {
+    this.useCibSevenNamespaceInScripting = useCibSevenNamespaceInScripting;
+  }
+  
 }

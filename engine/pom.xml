@@ -331,7 +331,6 @@
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js-scriptengine</artifactId>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
