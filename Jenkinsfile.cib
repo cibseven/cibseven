@@ -1,6 +1,6 @@
 #!groovy
 
-@Library('cib-pipeline-library') _
+@Library('cib-pipeline-library@DEVOPS-146_high-resources') _
 
 import de.cib.pipeline.library.Constants
 import de.cib.pipeline.library.kubernetes.BuildPodCreator
