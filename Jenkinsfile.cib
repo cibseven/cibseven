@@ -22,7 +22,7 @@ pipeline {
     agent {
         kubernetes {
             yaml BuildPodCreator.cibStandardPod()
-                    .withContainerFromName(pipelineParams.mvnContainerName)
+                    .withContainerFromName(pipelineParams.mvnContainerName, [memory: ConstantsInternal.RESOURCE_MEMORY_XLARGE])
                     .asYaml()
             defaultContainer pipelineParams.mvnContainerName
         }
