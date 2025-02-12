@@ -67,133 +67,213 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- Jakarta API -->
-
-    <dependency>
-      <groupId>jakarta.ws.rs</groupId>
-      <artifactId>jakarta.ws.rs-api</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>jakarta.servlet</groupId>
-      <artifactId>jakarta.servlet-api</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
-    <!-- Resteasy -->
-
-    <dependency>
-      <groupId>org.jboss.resteasy</groupId>
-      <artifactId>resteasy-core</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
   </dependencies>
+  
+  <profiles>
+    <profile>
+      <id>tomcat-rest</id>
+      <activation>
+        <property>
+          <name>restTomcat</name>
+        </property>
+      </activation>
+      <dependencies>
+        <!-- Jakarta API -->
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>wildfly</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <archive>
-                <manifestEntries>
-                  <!-- module dependencies for deployment on wildfly  -->
-                  <Dependencies>org.cibseven.bpm.cibseven-engine,org.cibseven.bpm.dmn.cibseven-engine-dmn,org.cibseven.commons.cibseven-commons-logging,org.cibseven.spin.cibseven-spin-core,org.cibseven.bpm.juel.cibseven-juel services,org.graalvm.js.js-scriptengine services</Dependencies>
-                </manifestEntries>
-              </archive>
-              <descriptors>
-                <descriptor>assembly-war-wildfly.xml</descriptor>
-              </descriptors>
-              <finalName>cibseven-engine-rest-jakarta-${project.version}</finalName>
-              <attach>true</attach>
-              <classifier>wildfly</classifier>
-              <outputDirectory>target/</outputDirectory>
-              <workDirectory>target/assembly/work</workDirectory>
-            </configuration>
-          </execution>
+        <dependency>
+          <groupId>jakarta.ws.rs</groupId>
+          <artifactId>jakarta.ws.rs-api</artifactId>
+        </dependency>
 
-          <execution>
-            <id>tomcat</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>assembly-war-tomcat.xml</descriptor>
-              </descriptors>
-              <finalName>cibseven-engine-rest-jakarta-${project.version}</finalName>
-              <attach>true</attach>
-              <classifier>tomcat</classifier>
-              <outputDirectory>target/</outputDirectory>
-              <workDirectory>target/assembly/work</workDirectory>
-            </configuration>
-          </execution>
+        <dependency>
+          <groupId>jakarta.servlet</groupId>
+          <artifactId>jakarta.servlet-api</artifactId>
+        </dependency>
 
-          <execution>
-            <id>classes</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>assembly-classes.xml</descriptor>
-              </descriptors>
-              <finalName>cibseven-engine-rest-jakarta-${project.version}</finalName>
-              <attach>true</attach>
-              <outputDirectory>target/</outputDirectory>
-              <workDirectory>target/assembly/work</workDirectory>
-            </configuration>
-          </execution>
+        <!-- Resteasy -->
 
-          <execution>
-            <id>sources</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>assembly-sources.xml</descriptor>
-              </descriptors>
-              <finalName>cibseven-engine-rest-jakarta-${project.version}</finalName>
-              <attach>true</attach>
-              <outputDirectory>target/</outputDirectory>
-              <workDirectory>target/assembly/work</workDirectory>
-            </configuration>
-          </execution>
+        <dependency>
+          <groupId>org.jboss.resteasy</groupId>
+          <artifactId>resteasy-core</artifactId>
+        </dependency>
+      </dependencies>
 
-          <execution>
-            <id>tests</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>assembly-tests.xml</descriptor>
-              </descriptors>
-              <finalName>cibseven-engine-rest-jakarta-${project.version}</finalName>
-              <attach>true</attach>
-              <outputDirectory>target/</outputDirectory>
-              <workDirectory>target/assembly/work</workDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>copy-webxml</id>
+                <phase>compile</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>
+                    ${project.build.directory}/m2e-wtp/web-resources/WEB-INF</outputDirectory>
+                  <resources>
+                    <resource>
+                      <directory>
+                        src/main/runtime/tomcat/webapp/WEB-INF</directory>
+                      <includes>
+                        <include>web.xml</include>
+                      </includes>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
 
-    </plugins>
-  </build>
+    </profile>
+    
+    <profile>
+      <id>jboss-rest</id>
+      <activation>
+        <property>
+          <name>!restTomcat</name>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>jakarta.ws.rs</groupId>
+          <artifactId>jakarta.ws.rs-api</artifactId>
+          <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>jakarta.servlet</groupId>
+          <artifactId>jakarta.servlet-api</artifactId>
+          <scope>provided</scope>
+        </dependency>
+
+				<!-- Resteasy -->
+
+        <dependency>
+          <groupId>org.jboss.resteasy</groupId>
+          <artifactId>resteasy-core</artifactId>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>wildfly</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <archive>
+                    <manifestEntries>
+					  <!-- module dependencies for deployment on wildfly  -->
+                      <Dependencies>org.cibseven.bpm.cibseven-engine,org.cibseven.bpm.dmn.cibseven-engine-dmn,org.cibseven.commons.cibseven-commons-logging,org.cibseven.spin.cibseven-spin-core,org.cibseven.bpm.juel.cibseven-juel
+                        services,org.graalvm.js.js-scriptengine
+                        services</Dependencies>
+                    </manifestEntries>
+                  </archive>
+                  <descriptors>
+                    <descriptor>assembly-war-wildfly.xml</descriptor>
+                  </descriptors>
+                  <finalName>
+                    cibseven-engine-rest-jakarta-${project.version}</finalName>
+                  <attach>true</attach>
+                  <classifier>wildfly</classifier>
+                  <outputDirectory>target/</outputDirectory>
+                  <workDirectory>target/assembly/work</workDirectory>
+                </configuration>
+              </execution>
+
+              <execution>
+                <id>tomcat</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <descriptors>
+                    <descriptor>assembly-war-tomcat.xml</descriptor>
+                  </descriptors>
+                  <finalName>
+                    cibseven-engine-rest-jakarta-${project.version}</finalName>
+                  <attach>true</attach>
+                  <classifier>tomcat</classifier>
+                  <outputDirectory>target/</outputDirectory>
+                  <workDirectory>target/assembly/work</workDirectory>
+                </configuration>
+              </execution>
+
+              <execution>
+                <id>classes</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <descriptors>
+                    <descriptor>assembly-classes.xml</descriptor>
+                  </descriptors>
+                  <finalName>
+                    cibseven-engine-rest-jakarta-${project.version}</finalName>
+                  <attach>true</attach>
+                  <outputDirectory>target/</outputDirectory>
+                  <workDirectory>target/assembly/work</workDirectory>
+                </configuration>
+              </execution>
+
+              <execution>
+                <id>sources</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <descriptors>
+                    <descriptor>assembly-sources.xml</descriptor>
+                  </descriptors>
+                  <finalName>
+                    cibseven-engine-rest-jakarta-${project.version}</finalName>
+                  <attach>true</attach>
+                  <outputDirectory>target/</outputDirectory>
+                  <workDirectory>target/assembly/work</workDirectory>
+                </configuration>
+              </execution>
+
+              <execution>
+                <id>tests</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <descriptors>
+                    <descriptor>assembly-tests.xml</descriptor>
+                  </descriptors>
+                  <finalName>
+                    cibseven-engine-rest-jakarta-${project.version}</finalName>
+                  <attach>true</attach>
+                  <outputDirectory>target/</outputDirectory>
+                  <workDirectory>target/assembly/work</workDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  
   <description>
     Description of CIB seven - engine - REST - Assembly Jakarta
   </description>
