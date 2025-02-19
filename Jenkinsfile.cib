@@ -28,12 +28,6 @@ pipeline {
         }
     }
 
-    // Trigger
-    triggers {
-        // Triggers only for master and when not in test mode
-        cron(env.BRANCH_NAME.equals('master') && !pipelineParams.testMode ? 'H H * * 1-5' : '')
-    }
-
     // Parameter that can be changed in the Jenkins UI
     parameters {
         booleanParam(
