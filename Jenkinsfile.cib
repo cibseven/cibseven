@@ -1,6 +1,6 @@
 #!groovy
 
-@Library('cib-pipeline-library') _
+@Library('cib-pipeline-library@DEVOPS-146_high-resources') _
 
 import de.cib.pipeline.library.Constants
 import de.cib.pipeline.library.kubernetes.BuildPodCreator
@@ -22,16 +22,10 @@ pipeline {
     agent {
         kubernetes {
             yaml BuildPodCreator.cibStandardPod()
-                    .withContainerFromName(pipelineParams.mvnContainerName)
+                    .withContainerFromName(pipelineParams.mvnContainerName, [memory: ConstantsInternal.RESOURCE_MEMORY_XLARGE])
                     .asYaml()
             defaultContainer pipelineParams.mvnContainerName
         }
-    }
-
-    // Trigger
-    triggers {
-        // Triggers only for master and when not in test mode
-        cron(env.BRANCH_NAME.equals('master') && !pipelineParams.testMode ? 'H H * * 1-5' : '')
     }
 
     // Parameter that can be changed in the Jenkins UI

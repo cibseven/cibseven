@@ -112,7 +112,7 @@ public class UserRestServiceInteractionTest extends AbstractRestServiceTest {
     UserQuery sampleUserQuery = mock(UserQuery.class);
     when(identityServiceMock.createUserQuery()).thenReturn(sampleUserQuery);
     when(sampleUserQuery.userId(MockProvider.EXAMPLE_USER_ID)).thenReturn(sampleUserQuery);
-    when(sampleUserQuery.singleResult()).thenReturn(sampleUser);
+    when(sampleUserQuery.list()).thenReturn(List.of(sampleUser));
 
     given()
         .pathParam("id", MockProvider.EXAMPLE_USER_ID)
@@ -191,7 +191,7 @@ public class UserRestServiceInteractionTest extends AbstractRestServiceTest {
     UserQuery sampleUserQuery = mock(UserQuery.class);
     when(identityServiceMock.createUserQuery()).thenReturn(sampleUserQuery);
     when(sampleUserQuery.userId(MockProvider.EXAMPLE_USER_ID)).thenReturn(sampleUserQuery);
-    when(sampleUserQuery.singleResult()).thenReturn(sampleUser);
+    when(sampleUserQuery.list()).thenReturn(List.of(sampleUser));
     when(identityServiceMock.getCurrentAuthentication()).thenReturn(null);
 
     when(processEngineConfigurationMock.isAuthorizationEnabled()).thenReturn(true);
@@ -503,7 +503,7 @@ public class UserRestServiceInteractionTest extends AbstractRestServiceTest {
     UserQuery sampleUserQuery = mock(UserQuery.class);
     when(identityServiceMock.createUserQuery()).thenReturn(sampleUserQuery);
     when(sampleUserQuery.userId(MockProvider.EXAMPLE_USER_ID)).thenReturn(sampleUserQuery);
-    when(sampleUserQuery.singleResult()).thenReturn(initialUser);
+    when(sampleUserQuery.list()).thenReturn(List.of(initialUser));
 
     UserCredentialsDto dto = new UserCredentialsDto();
     dto.setPassword("new-password");
@@ -529,7 +529,7 @@ public class UserRestServiceInteractionTest extends AbstractRestServiceTest {
     UserQuery sampleUserQuery = mock(UserQuery.class);
     when(identityServiceMock.createUserQuery()).thenReturn(sampleUserQuery);
     when(sampleUserQuery.userId(MockProvider.EXAMPLE_USER_ID)).thenReturn(sampleUserQuery);
-    when(sampleUserQuery.singleResult()).thenReturn(initialUser);
+    when(sampleUserQuery.list()).thenReturn(List.of(initialUser));
 
     String message = "exception expected";
     doThrow(new AuthorizationException(message)).when(identityServiceMock).saveUser(any(User.class));
@@ -557,7 +557,7 @@ public class UserRestServiceInteractionTest extends AbstractRestServiceTest {
     UserQuery sampleUserQuery = mock(UserQuery.class);
     when(identityServiceMock.createUserQuery()).thenReturn(sampleUserQuery);
     when(sampleUserQuery.userId(MockProvider.EXAMPLE_USER_ID)).thenReturn(sampleUserQuery);
-    when(sampleUserQuery.singleResult()).thenReturn(initialUser);
+    when(sampleUserQuery.list()).thenReturn(List.of(initialUser));
 
     Authentication authentication = MockProvider.createMockAuthentication();
     when(identityServiceMock.getCurrentAuthentication()).thenReturn(authentication);
@@ -654,7 +654,7 @@ public class UserRestServiceInteractionTest extends AbstractRestServiceTest {
     UserQuery sampleUserQuery = mock(UserQuery.class);
     when(identityServiceMock.createUserQuery()).thenReturn(sampleUserQuery);
     when(sampleUserQuery.userId(MockProvider.EXAMPLE_USER_ID)).thenReturn(sampleUserQuery);
-    when(sampleUserQuery.singleResult()).thenReturn(initialUser);
+    when(sampleUserQuery.list()).thenReturn(List.of(initialUser));
 
     UserProfileDto updateDto = UserProfileDto.fromUser(userUpdate);
 
@@ -710,7 +710,7 @@ public class UserRestServiceInteractionTest extends AbstractRestServiceTest {
     UserQuery sampleUserQuery = mock(UserQuery.class);
     when(identityServiceMock.createUserQuery()).thenReturn(sampleUserQuery);
     when(sampleUserQuery.userId(MockProvider.EXAMPLE_USER_ID)).thenReturn(sampleUserQuery);
-    when(sampleUserQuery.singleResult()).thenReturn(initialUser);
+    when(sampleUserQuery.list()).thenReturn(List.of(initialUser));
 
     String message = "exception expected";
     doThrow(new AuthorizationException(message)).when(identityServiceMock).saveUser(any(User.class));
