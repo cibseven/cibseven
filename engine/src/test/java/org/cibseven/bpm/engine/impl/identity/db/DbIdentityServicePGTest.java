@@ -18,8 +18,8 @@ public class DbIdentityServicePGTest extends DbIdentityServiceTestAbstract {
         final String workspaceDir = System.getenv("WORKSPACE");
         if (workspaceDir != null) {
             final Path tempPath = Paths.get(workspaceDir, "temp_embedded_pg");
-            System.setProperty("java.io.tmpdir", tempPath);
-            System.setProperty("TMPDIR", tempPath);
+            //System.setProperty("java.io.tmpdir", tempPath.toString());
+            System.setProperty("TMPDIR", tempPath.toString());
             return tempPath;
         }
         else {
