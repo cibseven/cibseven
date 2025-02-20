@@ -1,5 +1,6 @@
 package org.cibseven.bpm.engine.impl.identity.db;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
@@ -12,9 +13,21 @@ import io.zonky.test.db.postgres.junit.SingleInstancePostgresRule;
 
 public class DbIdentityServicePGTest extends DbIdentityServiceTestAbstract {
 
+    private static Path getWorkingDirectory() {
+        // Retrieve the Jenkins workspace directory from the environment variable
+        final String workspaceDir = System.getenv("WORKSPACE");
+        if (workspaceDir != null) {
+            return Paths.get(workspaceDir, "temp_embedded_pg");
+        }
+        else {
+            // fallback to default /tmp
+            return Paths.get(System.getProperty("java.io.tmpdir"), "temp_embedded_pg");
+        }
+    }
+
 	@ClassRule
 	public static SingleInstancePostgresRule pg = EmbeddedPostgresRules.singleInstance()
-	.customize(builder -> builder.setDataDirectory(Paths.get("custom/pgdata")));
+	.customize(builder -> builder.setDataDirectory(DbIdentityServicePGTest.getWorkingDirectory()));
 	
 	@Rule
 	public final ProcessEngineRule processEngineRule = new ProcessEngineRule(
