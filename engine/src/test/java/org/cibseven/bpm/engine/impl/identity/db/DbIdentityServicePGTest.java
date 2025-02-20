@@ -17,7 +17,10 @@ public class DbIdentityServicePGTest extends DbIdentityServiceTestAbstract {
         // Retrieve the Jenkins workspace directory from the environment variable
         final String workspaceDir = System.getenv("WORKSPACE");
         if (workspaceDir != null) {
-            return Paths.get(workspaceDir, "temp_embedded_pg");
+            final Path tempPath = Paths.get(workspaceDir, "temp_embedded_pg");
+            System.setProperty("java.io.tmpdir", tempPath);
+            System.setProperty("TMPDIR", tempPath);
+            return tempPath;
         }
         else {
             // fallback to default /tmp
