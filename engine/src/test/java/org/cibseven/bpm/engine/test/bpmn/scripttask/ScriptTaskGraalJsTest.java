@@ -18,18 +18,22 @@ package org.cibseven.bpm.engine.test.bpmn.scripttask;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.cibseven.bpm.engine.impl.scripting.engine.CamundaScriptEngineManager.CAMUNDA_NAMESPACE;
+import static org.cibseven.bpm.engine.impl.scripting.engine.CamundaScriptEngineManager.CIBSEVEN_NAMESPACE;
+import static org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines.ECMASCRIPT_SCRIPTING_LANGUAGE;
+import static org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines.GRAAL_JS_SCRIPT_ENGINE_NAME;
+import static org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines.JAVASCRIPT_SCRIPTING_LANGUAGE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
+import java.util.List;
 
 import org.cibseven.bpm.engine.ScriptEvaluationException;
-import org.cibseven.bpm.engine.impl.scripting.engine.DefaultScriptEngineResolver;
+import org.cibseven.bpm.engine.delegate.BpmnError;
+import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.scripting.engine.ScriptEngineResolver;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.junit.After;
@@ -39,12 +43,12 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
-
-import com.oracle.truffle.js.scriptengine.GraalJSEngineFactory;
-import com.oracle.truffle.js.scriptengine.GraalJSScriptEngine;
+import org.slf4j.Logger;
 
 @RunWith(Parameterized.class)
 public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
+  
+  Logger LOG = ProcessEngineLogger.TEST_LOGGER.getLogger();
 
   private static final String GRAALJS = "graal.js";
 
@@ -59,9 +63,7 @@ public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
     processEngineConfiguration.setConfigureScriptEngineHostAccess(configureHostAccess);
     processEngineConfiguration.setEnableScriptEngineLoadExternalResources(enableExternalResources);
     processEngineConfiguration.setEnableScriptEngineNashornCompatibility(enableNashornCompat);
-    // create custom script engine lookup to receive a fresh GraalVM JavaScript engine
-    processEngineConfiguration.setScriptEngineResolver(new TestScriptEngineResolver(
-        processEngineConfiguration.getScriptEngineResolver().getScriptEngineManager()));
+    processEngineConfiguration.setUseCibSevenNamespaceInScripting(true);
   }
 
   @After
@@ -276,22 +278,81 @@ public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
               "Operation is not allowed");
       }
   }
+  
+  @Test
+  public void shouldLoadCibSevenClass() {
+    
+    for (String engineName : List.of(
+        GRAALJS,
+        GRAAL_JS_SCRIPT_ENGINE_NAME,
+        JAVASCRIPT_SCRIPTING_LANGUAGE,
+        ECMASCRIPT_SCRIPTING_LANGUAGE
+        )) {
 
-  protected static class TestScriptEngineResolver extends DefaultScriptEngineResolver {
-
-    public TestScriptEngineResolver(ScriptEngineManager scriptEngineManager) {
-      super(scriptEngineManager);
-    }
-
-    @Override
-    protected ScriptEngine getScriptEngine(String language) {
-      if (GRAALJS.equalsIgnoreCase(language)) {
-        GraalJSScriptEngine scriptEngine = new GraalJSEngineFactory().getScriptEngine();
-        configureScriptEngines(language, scriptEngine);
-        return scriptEngine;
+      String cibsevenPackage = BpmnError.class.getPackageName();
+      String camundaPackage = cibsevenPackage.replace(CIBSEVEN_NAMESPACE, CAMUNDA_NAMESPACE);
+      String existingCommunityPackage = org.camunda.community.BpmnError.class.getPackageName();
+      String wrongPackage = "org.wrongpackage";
+      
+      List<String[]> packages = List.of(
+          new String[]{camundaPackage, cibsevenPackage},
+          new String[]{cibsevenPackage, cibsevenPackage},
+          new String[]{existingCommunityPackage, existingCommunityPackage},
+          new String[]{wrongPackage, null} // should not be accessible
+      );
+      
+      for (String[] tuple : packages) {
+        
+        String processPackage = tuple[0];
+        String expectedPackage = tuple[1];
+        
+        LOG.debug(engineName + ": " + processPackage + " -> " + expectedPackage);
+        
+        final String expectedClass = BpmnError.class.getSimpleName();
+        final String expectedMessage = "ServiceTaskError";
+        
+        final String errorMessageVar = "errorMessage";
+        final String errorClassVar = "errorClass";
+        final String errorPackageVar = "errorPackage";
+        
+        // Given
+        String scriptText = "try {"
+            + "const " + expectedClass + " = Java.type(\"" + processPackage + "." + expectedClass + "\");"
+            + ""
+            + "let error = new " + expectedClass + "(\"" + expectedMessage + "\");"
+            + "let message = error.getErrorCode() || \"Default error code\";"
+            + ""
+            + "execution.setVariable('" + errorClassVar + "', error.getClass().getName());"
+            + "execution.setVariable('" + errorPackageVar + "', error.getClass().getPackageName());"
+            + "execution.setVariable('"+ errorMessageVar + "', message);"
+            + "} catch (e) {"
+            + "execution.setVariable('" + errorMessageVar + "', e.message);"
+            + "}";
+        
+        deployProcess(engineName, scriptText);
+        
+        if (enableNashornCompat || configureHostAccess) {
+          // When
+          ProcessInstance pi = runtimeService.startProcessInstanceByKey("testProcess");
+          
+          // Then
+          if (expectedPackage == null) {
+            assertEquals("Access to host class " + processPackage + "." + expectedClass + " is not allowed or does not exist.", runtimeService.getVariable(pi.getId(), errorMessageVar));
+          } else {
+            assertEquals(expectedMessage, runtimeService.getVariable(pi.getId(), errorMessageVar));
+            assertEquals(expectedPackage + "." + expectedClass, runtimeService.getVariable(pi.getId(), errorClassVar));
+            assertEquals(expectedPackage, runtimeService.getVariable(pi.getId(), errorPackageVar));
+          }
+        
+        } else {
+          // When
+          assertThatThrownBy(() -> runtimeService.startProcessInstanceByKey("testProcess"))
+            // Then
+            .isInstanceOf(ScriptEvaluationException.class)
+            .hasMessageContaining("Unable to evaluate script");
+        }
       }
-      return super.getScriptEngine(language);
     }
   }
-
+  
 }
