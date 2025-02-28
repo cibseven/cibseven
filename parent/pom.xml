@@ -352,7 +352,7 @@
             <configuration>
               <excludes>
                 <!-- When the profile is activated (CIB's jenkins job), exclude DbIdentityServicePGTest -->
-                <exclude>**/*.java</exclude>
+                <exclude>**/DbIdentityServicePGTest.java</exclude>
               </excludes>
             </configuration>
           </plugin>
