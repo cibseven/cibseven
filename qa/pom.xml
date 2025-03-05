@@ -92,6 +92,9 @@
         <module>test-db-instance-migration</module>
         <module>test-db-rolling-update</module>
         <module>test-old-engine</module>
+        <module>performance-tests-engine</module>
+        <module>large-data-tests</module>
+        <module>integration-tests-engine-jakarta</module>
       </modules>
     </profile>
 
