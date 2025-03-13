@@ -148,13 +148,13 @@ pipeline {
             steps {
                 script {
                     withMaven(options: [junitPublisher(disabled: false), jacocoPublisher(disabled: false)]) {
-//                        sh """
-//                            mvn -f ${pipelineParams.pom} \
-//                                -Dbuild.number=${BUILD_NUMBER} \
-//                                verify \
-//                                -Dmaven.test.failure.ignore=true \
-//                                -pl !org.cibseven.bpm:cibseven-engine-spring-6,!:cibseven-spin-core,!:cibseven-engine-rest-core-jakarta,!:cibseven-webapp-jakarta,!:cibseven-engine-cdi-jakarta,!:cibseven-example-invoice-jakarta,!:cibseven-ejb-client-jakarta,!:cibseven-qa-integration-tests-engine-jakarta,!:cibseven-sql-scripts
-//                        """
+                        sh """
+                            mvn -f ${pipelineParams.pom} \
+                                -Dbuild.number=${BUILD_NUMBER} \
+                                verify \
+                                -Dmaven.test.failure.ignore=true \
+                                -pl !org.cibseven.bpm:cibseven-engine-spring-6,!:cibseven-spin-core,!:cibseven-engine-rest-core-jakarta,!:cibseven-webapp-jakarta,!:cibseven-engine-cdi-jakarta,!:cibseven-example-invoice-jakarta,!:cibseven-ejb-client-jakarta,!:cibseven-qa-integration-tests-engine-jakarta,!:cibseven-sql-scripts
+                        """
 
                         sh """
                             mvn -f ${pipelineParams.pom} \
@@ -166,7 +166,7 @@ pipeline {
                         """
                     }
 
-                    // junit allowEmptyResults: true, testResults: ConstantsInternal.MAVEN_TEST_RESULTS
+                    junit allowEmptyResults: true, testResults: ConstantsInternal.MAVEN_TEST_RESULTS
                 }
             }
         }
