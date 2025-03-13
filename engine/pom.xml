@@ -862,7 +862,7 @@
                      the same except for the whole unit test suite -->
                 <exclude>**/DatabaseTablePrefixTest.java</exclude>
                 <exclude>**/DeploymentTest.java</exclude>
-				<exclude>**/DeploymentAutoHistoryTest.java</exclude>
+                <exclude>**/DeploymentAutoHistoryTest.java</exclude>
                 <exclude>**/CustomHistoryLevelUserOperationLogTest.java</exclude>
                 <exclude>**/CustomHistoryLevelWithoutUserOperationLogTest.java</exclude>
                 <exclude>**/CustomHistoryLevelIncidentTest.java</exclude>
@@ -871,8 +871,8 @@
                 <exclude>**/HistoryCleanupDisabledOnBootstrapTest.java</exclude>
                 <exclude>**/LoginAttemptsTest.java</exclude>
                 <exclude>**/ConcurrentHistoryCleanupUpdateOfFailingJobTest.java</exclude>
-				<!-- When the profile is activated by CIB's jenkins job, exclude DbIdentityServicePGTest -->
-				<exclude>**/DbIdentityServicePGTest.java</exclude>
+                <!-- When the profile is activated by CIB's jenkins job, exclude DbIdentityServicePGTest -->
+                <exclude>${OPTIONAL_TEST_EXCLUDE}</exclude>
               </excludes>
             </configuration>
           </plugin>
