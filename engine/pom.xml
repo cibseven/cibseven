@@ -872,7 +872,7 @@
                 <exclude>**/LoginAttemptsTest.java</exclude>
                 <exclude>**/ConcurrentHistoryCleanupUpdateOfFailingJobTest.java</exclude>
 				<!-- When the profile is activated by CIB's jenkins job, exclude DbIdentityServicePGTest -->
-				<exclude>${OPTIONAL_TEST_EXCLUDE}</exclude>
+				<exclude>**/DbIdentityServicePGTest.java</exclude>
               </excludes>
             </configuration>
           </plugin>
