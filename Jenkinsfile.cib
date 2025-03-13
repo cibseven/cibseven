@@ -244,7 +244,7 @@ pipeline {
                         }
                         stage('engine-UNIT-database-table-prefix') {
                             // Temporary disable postgres test because of access issue for tmp dir on Jenkins
-                            steps { script { withMaven { sh "mvn -f engine/pom.xml test -Pdb-table-prefix -DOPTIONAL_TEST_EXCLUDE=org/cibseven/bpm/engine/impl/identity/db/DbIdentityServicePGTest.java" }}}
+                            steps { script { withMaven { sh "mvn -f engine/pom.xml test -Pdb-table-prefix,disableDbIdentityServicePGTest" }}}
                         }
                     }
                 }
