@@ -432,6 +432,8 @@
           <excludes>
             <exclude>**/*TestCase.java</exclude>
             <exclude>%regex[.*(${test.excludes}).*Test.*.class]</exclude>
+            <!-- When the profile is activated by CIB's jenkins job, exclude DbIdentityServicePGTest -->
+            <exclude>${OPTIONAL_PGTEST_EXCLUDE}</exclude>
           </excludes>
           <dependenciesToScan>
             <dependency>org.cibseven.bpm:cibseven-bpm-archunit</dependency>
