@@ -341,25 +341,6 @@
       </build>
     </profile>
 
-    <profile>
-      <id>disable.DbIdentityServicePGTest</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>${version.surefire}</version>
-            <configuration>
-              <excludes>
-                <!-- When the profile is activated (CIB's jenkins job), exclude DbIdentityServicePGTest -->
-                <exclude>**/DbIdentityServicePGTest.java</exclude>
-              </excludes>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
   </profiles>
 
   <repositories>

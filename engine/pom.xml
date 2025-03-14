@@ -954,13 +954,6 @@
      </properties>
     </profile>
 	
-	<profile>
-      <id>disableDbIdentityServicePGTest</id>
-      <properties>
-       <OPTIONAL_PGTEST_EXCLUDE>**/DbIdentityServicePGTest.java</OPTIONAL_PGTEST_EXCLUDE>
-      </properties>
-    </profile>
-
   </profiles>
 
   <description>
