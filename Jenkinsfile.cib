@@ -147,8 +147,7 @@ pipeline {
             }
             steps {
                 script {
-                    withMaven(options: []) {
-//                    withMaven(options: [junitPublisher(disabled: false), jacocoPublisher(disabled: false)]) {
+                    withMaven(options: [junitPublisher(disabled: false), jacocoPublisher(disabled: false)]) {
 //                        sh """
 //                            mvn -f ${pipelineParams.pom} \
 //                                -Dbuild.number=${BUILD_NUMBER} \
@@ -169,7 +168,7 @@ pipeline {
                         """
                     }
 
-                    //junit allowEmptyResults: true, testResults: ConstantsInternal.MAVEN_TEST_RESULTS, skipPublishingChecks: true
+                    junit allowEmptyResults: true, testResults: ConstantsInternal.MAVEN_TEST_RESULTS
                 }
             }
         }
