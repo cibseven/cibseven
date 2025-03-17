@@ -168,7 +168,7 @@ pipeline {
                         """
                     }
 
-                    junit allowEmptyResults: true, testResults: ConstantsInternal.MAVEN_TEST_RESULTS
+                    junit allowEmptyResults: true, testResults: ConstantsInternal.MAVEN_TEST_RESULTS, skipPublishingChecks: true
                 }
             }
         }
