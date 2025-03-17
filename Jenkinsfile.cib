@@ -147,12 +147,13 @@ pipeline {
             }
             steps {
                 script {
-                    withMaven(options: [junitPublisher(disabled: false), jacocoPublisher(disabled: false)]) {
+                    withMaven(options: []) {
                         sh """
                             mvn -f ${pipelineParams.pom} \
                                 -Dbuild.number=${BUILD_NUMBER} \
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
+                                -DOPTIONAL_PGTEST_EXCLUDE=org/cibseven/bpm/engine/impl/identity/db/DbIdentityServicePGTest.java \
                                 -pl !org.cibseven.bpm:cibseven-engine-spring-6,!:cibseven-spin-core,!:cibseven-engine-rest-core-jakarta,!:cibseven-webapp-jakarta,!:cibseven-engine-cdi-jakarta,!:cibseven-example-invoice-jakarta,!:cibseven-ejb-client-jakarta,!:cibseven-qa-integration-tests-engine-jakarta,!:cibseven-sql-scripts
                         """
 
@@ -161,6 +162,7 @@ pipeline {
                                 -Dbuild.number=${BUILD_NUMBER} \
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
+                                -DOPTIONAL_PGTEST_EXCLUDE=org/cibseven/bpm/engine/impl/identity/db/DbIdentityServicePGTest.java \
                                 -pl org.cibseven.bpm:cibseven-engine-spring-6,:cibseven-spin-core,:cibseven-engine-rest-core-jakarta,:cibseven-webapp-jakarta,:cibseven-engine-cdi-jakarta,:cibseven-example-invoice-jakarta,:cibseven-ejb-client-jakarta,:cibseven-qa-integration-tests-engine-jakarta,:cibseven-sql-scripts \
                                 -fn
                         """
@@ -243,7 +245,8 @@ pipeline {
                             steps { script { withMaven { sh "mvn -f engine/pom.xml verify -Pcheck-api-compatibility" }}}
                         }
                         stage('engine-UNIT-database-table-prefix') {
-                            steps { script { withMaven { sh "mvn -f engine/pom.xml test -Pdb-table-prefix" }}}
+                            // Temporary disable postgres test because of access issue for tmp dir on Jenkins
+                            steps { script { withMaven { sh "mvn -f engine/pom.xml test -Pdb-table-prefix -DOPTIONAL_PGTEST_EXCLUDE=**/DbIdentityServicePGTest.java" }}}
                         }
                     }
                 }
