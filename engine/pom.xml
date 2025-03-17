@@ -953,7 +953,7 @@
       <test.excludes>bpmn|cmmn</test.excludes>
      </properties>
     </profile>
-	
+
   </profiles>
 
   <description>

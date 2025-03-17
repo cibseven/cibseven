@@ -147,7 +147,6 @@ pipeline {
             }
             steps {
                 script {
-//                    withMaven(options: [junitPublisher(disabled: false), jacocoPublisher(disabled: false)]) {
                     withMaven(options: []) {
                         sh """
                             mvn -f ${pipelineParams.pom} \

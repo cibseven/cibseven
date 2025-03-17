@@ -340,7 +340,6 @@
         </plugins>
       </build>
     </profile>
-
   </profiles>
 
   <repositories>
