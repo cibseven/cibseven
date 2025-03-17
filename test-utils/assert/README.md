@@ -1,6 +1,6 @@
-# Camunda Platform Assert
+# CIB seven Assert
 
-**Camunda Platform Assert** makes it easy to assert the status of your BPMN processes and CMMN cases when driving them forward in your typical unit test methods. Simply write code like
+**CIB seven Assert** makes it easy to assert the status of your BPMN processes and CMMN cases when driving them forward in your typical unit test methods. Simply write code like
 
 ```groovy
 assertThat(instance).isWaitingAt("UserTask_InformCustomer");
@@ -15,8 +15,8 @@ complete(task(instance), withVariables("approved", true));
 
 ## Compatibility
 
-Camunda Platform Assert works with the corresponding version of Camunda Platform (i.e., Camunda Platform Assert 7.17.0 is compatible to Camunda Platform 7.17.0). The compatibility between earlier versions are as shown [in the documentation](https://docs.camunda.org/manual/latest/user-guide/testing/#assertions-version-compatibility).
-Camunda Platform Assert works with multiple Java versions (1.8+). All of this is continuously verified by executing around 500 test cases. 
+CIB seven Assert works with the corresponding version of CIB seven (i.e., CIB seven Assert 1.1.0 is compatible to CIB seven 1.1.0). The compatibility between earlier versions are as shown [in the documentation](https://docs.cibseven.org/manual/latest/user-guide/testing/#assertions-version-compatibility).
+CIB seven Assert works with multiple Java versions (11+). All of this is continuously verified by executing around 500 test cases. 
 
 ## Get started
 
@@ -25,19 +25,19 @@ Camunda Platform Assert works with multiple Java versions (1.8+). All of this is
 ```xml  
 <dependency>
     <groupId>org.cibseven.bpm</groupId>
-    <artifactId>camunda-bpm-assert</artifactId>
-    <version>${camunda.platform.version}</version>
+    <artifactId>cibseven-bpm-assert</artifactId>
+    <version>${cibseven.platform.version}</version>
     <scope>test</scope>
 </dependency>
 ```
 
-Additionally, [AssertJ](https://assertj.github.io/doc/) needs to be provided as a dependency with a version that is compatible with the one documented in the [compatibility matrix](https://docs.camunda.org/manual/latest/user-guide/testing/#assertions-version-compatibility).
+Additionally, [AssertJ](https://assertj.github.io/doc/) needs to be provided as a dependency with a version that is compatible with the one documented in the [compatibility matrix](https://docs.cibseven.org/manual/latest/user-guide/testing/#assertions-version-compatibility).
 
-Please note that if you use [Spring Boot](https://spring.io/projects/spring-boot) or the [Camunda Spring Boot Starter](https://docs.camunda.org/manual/latest/user-guide/spring-boot-integration/) in your project, AssertJ is already included in your project's setup.
+Please note that if you use [Spring Boot](https://spring.io/projects/spring-boot) or the [CIB seven Spring Boot Starter](https://docs.cibseven.org/manual/latest/user-guide/spring-boot-integration/) in your project, AssertJ is already included in your project's setup.
 
 2. Add a static import to your test class
 
-Create your test case just as described in the [Camunda Platform Testing Guide](https://docs.camunda.org/manual/latest/user-guide/testing/) and add Camunda Platform Assert by statically importing it in your test class:
+Create your test case just as described in the [CIB seven Testing Guide](https://docs.cibseven.org/manual/latest/user-guide/testing/) and add CIB seven Assert by statically importing it in your test class:
 
 ```groovy  
 import static org.cibseven.bpm.engine.test.assertions.ProcessEngineTests.*;
@@ -45,7 +45,7 @@ import static org.cibseven.bpm.engine.test.assertions.ProcessEngineTests.*;
 
 3. Start using the assertions in your test methods
 
-You now have access to all the Camunda Platform assertions. Assuming you want to assert that your process instance is actually started, waiting at a specific user task and that task should yet be unassigned, but waiting to be assigned to a user of a specific group, just write:
+You now have access to all the CIB seven assertions. Assuming you want to assert that your process instance is actually started, waiting at a specific user task and that task should yet be unassigned, but waiting to be assigned to a user of a specific group, just write:
 
 ```groovy
 assertThat(processInstance).isStarted()
@@ -54,7 +54,7 @@ assertThat(processInstance).isStarted()
     .isNotAssigned();
 ```
 
-In case you want to combine Camunda Platform Assert with the assertions provided by AssertJ, your imports should look like this:
+In case you want to combine CIB seven Assert with the assertions provided by AssertJ, your imports should look like this:
 ```groovy  
 import static org.assertj.core.api.Assertions.*;
 import static org.cibseven.bpm.engine.test.assertions.ProcessEngineTests.*;
@@ -62,7 +62,7 @@ import static org.cibseven.bpm.engine.test.assertions.ProcessEngineTests.*;
 
 ## Credits
 
-The Camunda Platform Assert project used to be the community extension, created and supported by
+The CIB seven Assert project (previously Camunda Platform Assert) used to be the community extension, created and supported by
 
 <img src="http://camunda.github.io/camunda-bpm-assert/resources/images/community-award.png" align="right" width="76">
 
@@ -80,3 +80,4 @@ In 2014, the library won the **Camunda Platform Community Award**.
 
 Starting from version 3.0.0 it was adopted as part of the Camunda Platform.
 Starting from version 7.17.0 it was merged into the Camunda Platform main repository.
+Starting from version 7.22.0 it was forked as CIB seven Assert with version 1.1.0.
