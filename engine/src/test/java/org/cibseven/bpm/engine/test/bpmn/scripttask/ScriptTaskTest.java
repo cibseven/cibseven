@@ -41,6 +41,8 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.model.bpmn.Bpmn;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -58,7 +60,21 @@ public class ScriptTaskTest extends AbstractScriptTaskTest {
   private static final String RUBY = "ruby";
   private static final String GROOVY = "groovy";
   private static final String JUEL = "juel";
+  
+  private static boolean useCibSevenNamespace = false;
+  
+  @Before
+  public void setup() {
+    useCibSevenNamespace = processEngineConfiguration.isUseCibSevenNamespaceInScripting();
+    processEngineConfiguration.setUseCibSevenNamespaceInScripting(true);
+  }
 
+  @After
+  public void resetConfiguration() {
+    processEngineConfiguration.setUseCibSevenNamespaceInScripting(useCibSevenNamespace);
+  }
+
+  
   @Test
   public void testJavascriptProcessVarVisibility() {
 
@@ -734,9 +750,6 @@ public class ScriptTaskTest extends AbstractScriptTaskTest {
   @Test
   public void shouldLoadCibSevenClassGroovy() {
 
-    boolean wasCibSpaceUsed = processEngineConfiguration.isUseCibSevenNamespaceInScripting();
-    processEngineConfiguration.setUseCibSevenNamespaceInScripting(true);
-
     String cibsevenPackage = BpmnError.class.getPackageName();
     String camundaPackage = cibsevenPackage.replace(CIBSEVEN_NAMESPACE, CAMUNDA_NAMESPACE);
     String existingCommunityPackage = org.camunda.community.BpmnError.class.getPackageName();
@@ -786,7 +799,5 @@ public class ScriptTaskTest extends AbstractScriptTaskTest {
             .hasMessageContaining("Unable to compile script");
       }
     }
-    // restore
-    processEngineConfiguration.setUseCibSevenNamespaceInScripting(wasCibSpaceUsed);
   }
 }
