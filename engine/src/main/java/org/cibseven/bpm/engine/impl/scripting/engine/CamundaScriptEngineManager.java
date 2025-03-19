@@ -17,6 +17,7 @@
 package org.cibseven.bpm.engine.impl.scripting.engine;
 
 import static org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines.GRAAL_JS_SCRIPT_ENGINE_NAME;
+import static org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines.GROOVY_SCRIPTING_LANGUAGE;
 
 import java.util.List;
 import java.util.Map;
@@ -84,7 +85,9 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
     ProcessEngineConfigurationImpl config = org.cibseven.bpm.engine.impl.context.Context
         .getProcessEngineConfiguration();
     
-    if (config != null && config.isUseCibSevenNamespaceInScripting() && GRAAL_JS_SCRIPT_ENGINE_NAME.equalsIgnoreCase(shortName)) {
+    boolean useCibSevenNameSpace= config != null && config.isUseCibSevenNamespaceInScripting();
+    
+    if (useCibSevenNameSpace && GRAAL_JS_SCRIPT_ENGINE_NAME.equalsIgnoreCase(shortName)) {
 
       CibSevenClassLoader cibSevenClassLoader = new CibSevenClassLoader(Thread.currentThread().getContextClassLoader());
 
@@ -115,6 +118,12 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
         }
 
       return GraalJSScriptEngine.create(null, builder);
+      
+    } else if (useCibSevenNameSpace && GROOVY_SCRIPTING_LANGUAGE.equalsIgnoreCase(shortName)) {
+
+      var cibSevenClassLoader = new CibSevenClassLoader(Thread.currentThread().getContextClassLoader());
+      var groovyClassLoader = new groovy.lang.GroovyClassLoader(cibSevenClassLoader);
+      return new org.codehaus.groovy.jsr223.GroovyScriptEngineImpl(groovyClassLoader);
     }
 
     return super.getEngineByName(shortName);
