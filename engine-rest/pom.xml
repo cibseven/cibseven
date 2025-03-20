@@ -14,9 +14,9 @@
   <name>CIB seven - engine - REST - Root</name>
 
   <properties>
-    <version.rest-assured>4.5.0</version.rest-assured>
+    <version.rest-assured>5.5.1</version.rest-assured>
     <!-- override groovy version with the one used by rest-assured -->
-    <version.groovy>3.0.9</version.groovy>
+    <version.groovy>4.0.22</version.groovy>
     <version.apache.httpcore>4.4.5</version.apache.httpcore>
     <version.commons-codec>1.15</version.commons-codec>
     <!-- disable parallel unit tests run -->
@@ -28,7 +28,7 @@
       <!-- explicitly declare groovy dependencies, so it prevents our groovy version
             from overriding the groovy version from rest-assured -->
       <dependency>
-        <groupId>org.codehaus.groovy</groupId>
+        <groupId>org.apache.groovy</groupId>
         <artifactId>groovy-bom</artifactId>
         <version>${version.groovy}</version>
         <scope>import</scope>
