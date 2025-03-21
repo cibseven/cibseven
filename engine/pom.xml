@@ -325,7 +325,6 @@
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js</artifactId>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
