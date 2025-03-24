@@ -16,6 +16,6 @@
     <module name="org.cibseven.bpm.model.cibseven-dmn-model" />
     <module name="org.cibseven.bpm.dmn.cibseven-engine-feel-api" />
     <module name="org.cibseven.bpm.dmn.cibseven-engine-feel-juel" />
-    <module name="org.cibseven.bpm.dmn.cibseven-engine-feel-scala" export="true" />
+    <module name="org.cibseven.bpm.dmn.cibseven-engine-feel-scala" export="true" services="import" />
   </dependencies>
 </module>
