@@ -1,0 +1,168 @@
+#!groovy
+
+@Library('cib-pipeline-library') _
+
+import de.cib.pipeline.library.Constants
+import de.cib.pipeline.library.kubernetes.BuildPodCreator
+import de.cib.pipeline.library.logging.Logger
+import de.cib.pipeline.library.ConstantsInternal
+import de.cib.pipeline.library.MavenProjectInformation
+import groovy.transform.Field
+
+@Field Logger log = new Logger(this)
+@Field MavenProjectInformation mavenProjectInformation = null
+@Field Map pipelineParams = [
+    pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
+    mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
+    uiParamPresets: [:],
+    testMode: false
+]
+
+pipeline {
+    agent {
+        kubernetes {
+            yaml BuildPodCreator.cibStandardPod()
+                    .withContainerFromName(pipelineParams.mvnContainerName)
+                    .asYaml()
+            defaultContainer pipelineParams.mvnContainerName
+        }
+    }
+
+    options {
+        buildDiscarder(
+            logRotator(
+                // number of build logs to keep
+                numToKeepStr:'5',
+                // history to keep in days
+                daysToKeepStr: '15',
+                // artifacts are kept for days
+                artifactDaysToKeepStr: '15',
+                // number of builds have their artifacts kept
+                artifactNumToKeepStr: '5'
+            )
+        )
+        // Stop build after 240 minutes
+        timeout(time: 240, unit: 'MINUTES')
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('Print Settings & Checkout') {
+            steps {
+                script {
+                    printSettings()
+
+                    def pom = readMavenPom file: pipelineParams.pom
+
+                    // for overlays often no groupId is set as the parent groupId is used
+                    def groupId = pom.groupId
+                    if (groupId == null) {
+                        groupId = pom.parent.groupId
+                        log.info "parent groupId is used"
+                    }
+
+                    mavenProjectInformation = new MavenProjectInformation(groupId, pom.artifactId, pom.version, pom.name, pom.description)
+
+                    log.info "Build Project: ${mavenProjectInformation.groupId}:${mavenProjectInformation.artifactId}, ${mavenProjectInformation.name} with version ${mavenProjectInformation.version}"
+
+                    // Avoid Git "dubious ownership" error in checked out repository. Needed in
+                    // build containers with newer Git versions. Originates from Jenkins running
+                    // pipeline as root but repository being owned by user 1000. For more, see
+                    // https://stackoverflow.com/questions/72978485/git-submodule-update-failed-with-fatal-detected-dubious-ownership-in-repositor
+                    sh "git config --global --add safe.directory \$(pwd)"
+                }
+            }
+        }
+
+        stage('CycloneDX SBOM') {
+			steps {
+				script {
+					withMaven(options: [artifactsPublisher(archiveFilesDisabled: false)]) {
+						sh """
+							mvn \
+								clean \
+								org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
+								package \
+								-Dmaven.test.skip \
+								-DskipTests \
+								${pipelineParams.mvnParams}
+						"""
+					}
+				}
+			}
+        }
+		
+		stage('OWASP Dependency-Track') {
+			steps {
+				script {
+					// TODO: check why synchronous doesn't work anymore (worked before)
+					withCredentials([string(credentialsId: Constants.DEPENDENCY_TRACK_CREDENTIALS_ID, variable: 'API_KEY')]) {
+						dependencyTrackPublisher(
+							artifact: 'target/bom.xml',
+							projectName: mavenProjectInformation.artifactId,
+							projectVersion: mavenProjectInformation.version,
+							projectProperties: [
+								description: mavenProjectInformation.description,
+								group: mavenProjectInformation.groupId,
+								tags: ['maven']
+							],
+							synchronous: false,
+							dependencyTrackApiKey: API_KEY
+						)
+					}
+				}
+			}
+		}
+
+    }
+
+    post {
+        always {
+            script {
+                log.info 'End of the build'
+            }
+        }
+
+        success {
+            script {
+                log.info '✅ Build successful'
+                if (params.RELEASE_BUILD == true) {
+                    notifyResult(
+                        office365WebhookId: pipelineParams.office365WebhookId,
+                        message: "Application was successfully released with version ${mavenProjectInformation.version}"
+                    )
+                }
+            }
+        }
+
+        unstable {
+            script {
+                log.warning '⚠️ Build unstable'
+            }
+        }
+
+        failure {
+            script {
+                log.warning '❌ Build failed'
+                if (env.BRANCH_NAME == 'main') {
+                    notifyResult(
+                        office365WebhookId: pipelineParams.office365WebhookId,
+                        message: "Access build info at ${env.BUILD_URL}"
+                    )
+                }
+            }
+        }
+
+        fixed {
+            script {
+                log.info '✅ Previous issues fixed'
+                if (env.BRANCH_NAME == 'main') {
+                    notifyResult(
+                        office365WebhookId: pipelineParams.office365WebhookId,
+                        message: "Access build info at ${env.BUILD_URL}"
+                    )
+                }
+            }
+        }
+    }
+}
