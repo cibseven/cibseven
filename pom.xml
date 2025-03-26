@@ -30,6 +30,7 @@
     <version.uuid-generator>4.3.0</version.uuid-generator>
     <version.feel-scala>1.18.1</version.feel-scala>
     <version.license-maven-plugin>2.4.0</version.license-maven-plugin>
+    <cyclonedx-maven-plugin.version>2.9.1</cyclonedx-maven-plugin.version>
   </properties>
 
   <build>
@@ -42,6 +43,27 @@
           <acceptPomPackaging>true</acceptPomPackaging>
           <excludedScopes>test</excludedScopes>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.cyclonedx</groupId>
+        <artifactId>cyclonedx-maven-plugin</artifactId>
+        <version>${cyclonedx-maven-plugin.version}</version>
+        <configuration>
+          <includeCompileScope>true</includeCompileScope>
+          <includeProvidedScope>true</includeProvidedScope>
+          <includeRuntimeScope>true</includeRuntimeScope>
+          <includeSystemScope>true</includeSystemScope>
+          <includeTestScope>false</includeTestScope>
+          <includeLicenseText>false</includeLicenseText>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>makeAggregateBom</goal>
+            </goals>
+            <phase>package</phase>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
