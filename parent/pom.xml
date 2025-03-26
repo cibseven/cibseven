@@ -55,7 +55,7 @@
     <version.surefire>3.0.0-M5</version.surefire>
 
     <version.commonj>1.1.0</version.commonj>
-    <version.bouncycastle>1.47</version.bouncycastle>
+    <version.bouncycastle>1.70</version.bouncycastle>
 
     <!-- application servers -->
     <version.wildfly>33.0.1.Final</version.wildfly>
