@@ -84,8 +84,7 @@ pipeline {
 								org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
 								package \
 								-Dmaven.test.skip \
-								-DskipTests \
-								${pipelineParams.mvnParams}
+								-DskipTests
 						"""
 					}
 				}
