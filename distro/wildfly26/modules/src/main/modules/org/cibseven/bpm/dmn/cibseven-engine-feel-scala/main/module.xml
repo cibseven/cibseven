@@ -10,7 +10,8 @@
     <module name="org.cibseven.commons.cibseven-commons-typed-values" />
     <module name="org.cibseven.commons.cibseven-commons-logging" />
 
-    <module name="org.cibseven.bpm.cibseven-engine-plugin-spin" optional="true" services="import" export="true" />
-    <module name="org.cibseven.feel.feel-engine" services="import" export="true" />
+    <module name="org.cibseven.bpm.cibseven-engine-plugin-spin" optional="true" />
+	
+    <module name="org.cibseven.feel.feel-engine" />
   </dependencies>
 </module>
