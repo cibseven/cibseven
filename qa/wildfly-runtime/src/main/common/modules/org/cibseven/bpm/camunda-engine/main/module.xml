@@ -41,10 +41,6 @@
     <module name="org.cibseven.template-engines.camunda-template-engines-freemarker" services="import" />
     <module name="org.cibseven.spin.camunda-spin-core" services="import" />
 
-    <module name="org.cibseven.feel.feel-engine" services="import"/>
-    <module name="org.cibseven.bpm.dmn.camunda-engine-feel-scala" services="import" export="true"/>
-    <module name="org.cibseven.bpm.camunda-engine-plugin-spin" services="import"/>
-
     <module name="org.cibseven.bpm.dmn.camunda-engine-dmn" />
     <module name="org.cibseven.bpm.juel.camunda-juel" services="import"/>
 
