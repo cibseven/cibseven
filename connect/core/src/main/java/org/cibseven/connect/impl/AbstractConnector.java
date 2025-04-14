@@ -27,7 +27,7 @@ import org.cibseven.connect.spi.ConnectorRequestInterceptor;
 
 /**
  * Abstract implementation of the connector interface.
- *
+ * <p>
  * This implementation provides a linked list of interceptors and related methods for
  * handling interceptor invocation.
  *
@@ -41,9 +41,9 @@ public abstract class AbstractConnector<Q extends ConnectorRequest<R>, R extends
   /**
    * The {@link ConnectorRequestInterceptor} chain
    */
-  protected List<ConnectorRequestInterceptor> requestInterceptors = new LinkedList<ConnectorRequestInterceptor>();
+  protected List<ConnectorRequestInterceptor> requestInterceptors = new LinkedList<>();
 
-  public AbstractConnector(String connectorId) {
+  protected AbstractConnector(String connectorId) {
     this.connectorId = connectorId;
   }
 
