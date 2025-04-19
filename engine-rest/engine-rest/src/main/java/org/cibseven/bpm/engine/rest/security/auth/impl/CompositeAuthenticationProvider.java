@@ -28,15 +28,18 @@ import javax.servlet.http.HttpServletResponse;
  * provider. If the first provider fails, it falls back to the second provider.
  */
 public class CompositeAuthenticationProvider implements AuthenticationProvider {
-
-  private AuthenticationProvider primaryProvider;
-  private AuthenticationProvider fallbackProvider;
-
-  public void setPrimaryProvider(AuthenticationProvider primaryProvider) {
-    this.primaryProvider = primaryProvider;
+  
+  public static AuthenticationProvider createDefault() {
+    AuthenticationProvider primaryProvider = new JwtTokenAuthenticationProvider();
+    AuthenticationProvider fallbackProvider = new HttpBasicAuthenticationProvider();
+    return new CompositeAuthenticationProvider(primaryProvider, fallbackProvider);
   }
 
-  public void setFallbackProvider(AuthenticationProvider fallbackProvider) {
+  private final AuthenticationProvider primaryProvider;
+  private final AuthenticationProvider fallbackProvider;
+  
+  public CompositeAuthenticationProvider(AuthenticationProvider primaryProvider, AuthenticationProvider fallbackProvider) {
+    this.primaryProvider = primaryProvider;
     this.fallbackProvider = fallbackProvider;
   }
 
