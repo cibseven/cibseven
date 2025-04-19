@@ -38,7 +38,9 @@ public class CompositeAuthenticationProviderTest {
     public void setUp() {
         basicProvider = mock(HttpBasicAuthenticationProvider.class);
         jwtProvider = mock(JwtTokenAuthenticationProvider.class);
-        compositeProvider = new CompositeAuthenticationProvider(basicProvider, jwtProvider);
+        compositeProvider = new CompositeAuthenticationProvider();
+        compositeProvider.setPrimaryProvider(basicProvider);
+        compositeProvider.setFallbackProvider(jwtProvider);
         mockEngine = mock(ProcessEngine.class);
     }
 
