@@ -29,14 +29,16 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class CompositeAuthenticationProvider implements AuthenticationProvider {
   
-  public static AuthenticationProvider createDefault() {
-    AuthenticationProvider primaryProvider = new JwtTokenAuthenticationProvider();
-    AuthenticationProvider fallbackProvider = new HttpBasicAuthenticationProvider();
-    return new CompositeAuthenticationProvider(primaryProvider, fallbackProvider);
-  }
-
   private final AuthenticationProvider primaryProvider;
   private final AuthenticationProvider fallbackProvider;
+
+  /**
+   * Default constructor using JwtTokenAuthenticationProvider as primary and
+   * HttpBasicAuthenticationProvider as fallback.
+   */
+  public CompositeAuthenticationProvider() {
+    this(new JwtTokenAuthenticationProvider(), new HttpBasicAuthenticationProvider());
+  }
   
   public CompositeAuthenticationProvider(AuthenticationProvider primaryProvider, AuthenticationProvider fallbackProvider) {
     this.primaryProvider = primaryProvider;
