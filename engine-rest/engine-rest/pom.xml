@@ -108,15 +108,6 @@
       <scope>provided</scope>
     </dependency>
 
-<!--    
-    <dependency>
-      <groupId>org.cibseven.webapp.auth</groupId>
-      <artifactId>common-auth</artifactId>
-      <version>${common-auth.version}</version>
-      <scope>provided</scope>
-    </dependency>
--->
-
     <dependency>
       <groupId>javax.activation</groupId>
       <artifactId>activation</artifactId>
