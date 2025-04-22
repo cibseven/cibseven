@@ -16,6 +16,7 @@
     <version.tomcat>7.0.50</version.tomcat>
     <rest.http.port>38080</rest.http.port>
     <javax.activation.version>1.1.1</javax.activation.version>
+    <jjwt.version>0.12.6</jjwt.version>
   </properties>
 
   <dependencies>
@@ -63,6 +64,24 @@
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-jsr310</artifactId>
     </dependency>
+    
+	<dependency> <!-- https://github.com/jwtk/jjwt -->
+	  <groupId>io.jsonwebtoken</groupId>
+	  <artifactId>jjwt-api</artifactId>
+	  <version>${jjwt.version}</version>
+	</dependency>
+	
+	<dependency>
+	  <groupId>io.jsonwebtoken</groupId>
+	  <artifactId>jjwt-impl</artifactId>
+	  <version>${jjwt.version}</version>
+	</dependency>
+	
+	<dependency>
+	  <groupId>io.jsonwebtoken</groupId>
+	  <artifactId>jjwt-jackson</artifactId> <!-- or jjwt-gson if Gson is preferred -->
+	  <version>${jjwt.version}</version>
+	</dependency>
 
     <!-- provided deps -->
     <dependency>
