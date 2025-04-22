@@ -61,82 +61,82 @@
 
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/process-definition*</url-pattern>
+    <url-pattern>/process-definition/*</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/process-instance*</url-pattern>
+    <url-pattern>/process-instance/*</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/history*</url-pattern>
+    <url-pattern>/history/*</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/execution*</url-pattern>
+    <url-pattern>/execution/*</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/batch*</url-pattern>
+    <url-pattern>/batch/*</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/decision-definition*</url-pattern>
+    <url-pattern>/decision-definition/*</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/deployment*</url-pattern>
+    <url-pattern>/deployment/*</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/filter*</url-pattern>
+    <url-pattern>/filter/*</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/incident*</url-pattern>
+    <url-pattern>/incident/*</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/job-definition*</url-pattern>
+    <url-pattern>/job-definition/*</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/job*</url-pattern>
+    <url-pattern>/job/*</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/telemetry*</url-pattern>
+    <url-pattern>/telemetry/*</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/metrics*</url-pattern>
+    <url-pattern>/metrics/*</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/authorization*</url-pattern>
+    <url-pattern>/authorization/*</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/group*</url-pattern>
+    <url-pattern>/group/*</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/user*</url-pattern>
+    <url-pattern>/user/*</url-pattern>
   </filter-mapping>
   
   <!-- This one should not be filtered, in order to be able to login
@@ -148,22 +148,22 @@
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/message*</url-pattern>
+    <url-pattern>/message/*</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/event-subscription*</url-pattern>
+    <url-pattern>/event-subscription/*</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/variable-instance*</url-pattern>
+    <url-pattern>/variable-instance/*</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/task*</url-pattern>
+    <url-pattern>/task/*</url-pattern>
   </filter-mapping>
   
   <servlet>
