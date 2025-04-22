@@ -40,7 +40,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
 public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
-
+  
   public static final String AUTHORIZATION_HEADER = "Authorization";
   public static final String BEARER_PREFIX = "Bearer ";
     
@@ -54,29 +54,36 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
     try {
       configuration = Configuration.getInstance();
       HttpServletRequest rq = (HttpServletRequest) request;
-      JwtUser user = (JwtUser) parse(rq.getHeader(AUTHORIZATION_HEADER), configuration.getSecret());
+      
+      String authHeader = rq.getHeader(AUTHORIZATION_HEADER);
+      if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
+        return AuthenticationResult.unsuccessful();
+      }
+      
+      JwtUser user = parse(authHeader, configuration.getSecret());
+      
       return AuthenticationResult.successful(user.getUserID());
+      
     } catch (AuthenticationException e) {
       return AuthenticationResult.unsuccessful();
     }
   }
   
-  public JwtUser parse(String token, String jwtTokenSecret) {
+  public JwtUser parse(String tokenHeader, String jwtTokenSecret) {
     try {
+      String token = tokenHeader.replace(BEARER_PREFIX, "");
       SecretKey key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtTokenSecret));
-      Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token.replace(BEARER_PREFIX, "")).getPayload();
-      JwtUser user = deserialize((String) claims.get("user"), token);
+      Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+      JwtUser user = deserialize((String) claims.get("user"));
       return user;
     } catch (ExpiredJwtException x) {
-      throw new AuthenticationException(token, x.getMessage());
-      // ToDo: handle token expiration
-//      throw new TokenExpiredException();
+      throw new AuthenticationException(tokenHeader, x.getMessage());
     } catch (JwtException x) {
-      throw new AuthenticationException(token, x.getMessage());
+      throw new AuthenticationException(tokenHeader, x.getMessage());
     }
   }
   
-  public JwtUser deserialize(String json, String token) {
+  private JwtUser deserialize(String json) {
     try {
       ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
       JwtUser user = mapper.readValue(json, JwtUser.class);
