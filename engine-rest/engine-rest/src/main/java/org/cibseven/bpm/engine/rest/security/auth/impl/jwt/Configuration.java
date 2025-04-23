@@ -22,32 +22,32 @@ import java.util.Properties;
 
 public class Configuration {
 
-  public static final String PROPERTIES_FILE = "cibseven-plugins.properties";
-  
+  public static final String PROPERTIES_FILE = "cibseven-webclient.properties";
+
   private static Configuration instance;
-  
+
   private String secret;
-  
+
   public static Configuration getInstance() {
     if (instance == null) {
       instance = new Configuration();
     }
     return instance;
   }
-  
+
   private Configuration() {
     Properties defaultSettings = loadProperties();
     this.secret = getProperty(defaultSettings, "authentication.jwtSecret");
   }
-  
+
   public String getSecret() {
     return secret;
   }
-  
+
   private String getProperty(Properties defaultProperties, String propertyName) {
     return defaultProperties.getProperty(propertyName);
   }
-  
+
   private Properties loadProperties() {
     Properties properties = new Properties();
     try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(PROPERTIES_FILE)) {
