@@ -47,7 +47,12 @@ public class CompositeAuthenticationProvider implements AuthenticationProvider {
 
   @Override
   public AuthenticationResult extractAuthenticatedUser(HttpServletRequest request, ProcessEngine engine) {
-    
+	
+	// Exclude /engine-rest/identity/verify from authentication
+	if (request.getRequestURI().equals("/engine-rest/identity/verify")) {
+	    return AuthenticationResult.successful("anonymous");
+	}
+	
     // Try primary provider
     AuthenticationResult result = primaryProvider.extractAuthenticatedUser(request, engine);
     
