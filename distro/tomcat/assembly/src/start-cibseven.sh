@@ -2,6 +2,25 @@
 
 export CATALINA_HOME="$(dirname "$0")/server/apache-tomcat-${version.tomcat}"
 
+# Define the target file path
+FILE="$CATALINA_HOME/lib/cibseven-webclient.properties"
+
+# Check if the file already exists
+if [ ! -f "$FILE" ]; then
+  # Create directory if it doesn't exist
+  # mkdir -p "$(dirname "$FILE")"
+
+  # Generate a 155-character alphanumeric random string
+  RANDOM_STRING=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 155)
+
+  # Write the content to the file
+  echo "authentication.jwtSecret=$RANDOM_STRING" > "$FILE"
+
+  echo "File \"$FILE\" created with random jwtSecret."
+else
+  echo "File \"$FILE\" already exists. No changes made."
+fi
+
 UNAME=`which uname`
 if [ -n "$UNAME" -a "`$UNAME`" = "Darwin" ]
 then
