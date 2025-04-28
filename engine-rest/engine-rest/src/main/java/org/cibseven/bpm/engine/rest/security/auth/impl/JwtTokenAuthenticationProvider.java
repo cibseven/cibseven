@@ -18,6 +18,7 @@ package org.cibseven.bpm.engine.rest.security.auth.impl;
 
 import java.io.IOException;
 import java.util.Base64;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
