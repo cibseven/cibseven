@@ -1,68 +1,74 @@
-<form class="form-horizontal"
-      role="form">
+<form role="form" class="mb-4 container-fluid">
 
   <p>Do you approve this invoice?</p>
 
-  <div class="form-group">
-    <label class="control-label col-md-2">Invoice Document</label>
-    <div class="form-control-static col-md-10">
-      <a cam-file-download="invoiceDocument"></a>
+  <div class="row mb-3">
+    <label class="col-md-2 col-form-label">Invoice Document</label>
+    <div class="col-md-10">
+      <p class="form-control-plaintext">
+        <a cam-file-download="invoiceDocument"></a>
+      </p>
     </div>
   </div>
 
-  <div class="form-group">
-    <label class="control-label col-md-2">Creditor</label>
+  <div class="row mb-3">
+    <label class="col-md-2 col-form-label">Creditor</label>
     <div class="col-md-10">
       <input cam-variable-name="creditor"
              type="text"
              name="creditor"
-             readonly="true"
-             class="form-control" />
-    </div>
-  </div>
-  <div class="form-group">
-    <label class="control-label col-md-2">Amount</label>
-    <div class="col-md-10">
-      <input cam-variable-name="amount"
-             type="text"
-             name="amount"
-             readonly="true"
-             class="form-control" />
-    </div>
-  </div>
-  <div class="form-group">
-    <label class="control-label col-md-2">Invoice Category</label>
-    <div class="col-md-10">
-      <input cam-variable-name="invoiceCategory"
-             type="text"
-             name="amount"
-             readonly="true"
-             class="form-control" />
-    </div>
-  </div>
-  <div class="form-group">
-    <label class="control-label col-md-2">Invoice Number</label>
-    <div class="col-md-10">
-      <input cam-variable-name="invoiceNumber"
-             type="text"
-             name="invoiceNumber"
-             readonly="true"
+             readonly
              class="form-control" />
     </div>
   </div>
 
-  <div class="form-group">
-    <div class="col-md-10 col-md-offset-2">
-      <div class="checkbox">
-        <label>
-          <input cam-variable-name="approved"
-                 cam-variable-type="Boolean"
-                 type="checkbox"
-                 name="approved"
-                 class="form-control" />
+  <div class="row mb-3">
+    <label class="col-md-2 col-form-label">Amount</label>
+    <div class="col-md-10">
+      <input cam-variable-name="amount"
+             type="text"
+             name="amount"
+             readonly
+             class="form-control" />
+    </div>
+  </div>
+
+  <div class="row mb-3">
+    <label class="col-md-2 col-form-label">Invoice Category</label>
+    <div class="col-md-10">
+      <input cam-variable-name="invoiceCategory"
+             type="text"
+             name="amount"
+             readonly
+             class="form-control" />
+    </div>
+  </div>
+
+  <div class="row mb-3">
+    <label class="col-md-2 col-form-label">Invoice Number</label>
+    <div class="col-md-10">
+      <input cam-variable-name="invoiceNumber"
+             type="text"
+             name="invoiceNumber"
+             readonly
+             class="form-control" />
+    </div>
+  </div>
+
+  <div class="row mb-3">
+    <div class="offset-md-2 col-md-10">
+      <div class="form-check">
+        <input cam-variable-name="approved"
+               cam-variable-type="Boolean"
+               type="checkbox"
+               name="approved"
+               class="form-check-input"
+               id="approvedCheckbox" />
+        <label class="form-check-label" for="approvedCheckbox">
           Do you approve?
         </label>
       </div>
     </div>
   </div>
+
 </form>
