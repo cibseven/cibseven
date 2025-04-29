@@ -17,6 +17,7 @@
 
   <properties>
     <skipTests>true</skipTests>
+  	<cibseven-webapp.version>1.0.0-SNAPSHOT</cibseven-webapp.version>
   </properties>
 
   <dependencyManagement>
@@ -63,6 +64,15 @@
                   <type>war</type>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.outputDirectory}/META-INF/resources/webjars/camunda</outputDirectory>
+                  <excludes>META-INF/**</excludes>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.cibseven.webapp</groupId>
+                  <artifactId>cibseven-webclient-web</artifactId>
+                  <version>${cibseven-webapp.version}</version>
+                  <type>war</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.outputDirectory}/META-INF/resources/webjars/webapp</outputDirectory>
                   <excludes>META-INF/**</excludes>
                 </artifactItem>
               </artifactItems>
