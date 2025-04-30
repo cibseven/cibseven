@@ -393,10 +393,10 @@ pipeline {
                                 javadoc:javadoc \
                                 javadoc:aggregate \
                                 -Pdistro,distro-wildfly,distro-webjar,javadocs \
-                                -pl \'!distro/wildfly/modules,!distro/wildfly26/modules,!engine-rest/engine-rest-openapi\' \
+                                -pl !org.cibseven.bpm.wildfly:cibseven-wildfly,!org.cibseven.bpm.wildfly:cibseven-wildfly26 \
                                 -DskipTests=true \
                                 -Dskip.frontend.build=true \
-                                -U
+                                -T4 -U
                         """
                     }
 
