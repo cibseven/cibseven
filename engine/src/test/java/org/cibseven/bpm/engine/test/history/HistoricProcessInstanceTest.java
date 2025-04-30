@@ -2709,7 +2709,7 @@ public class HistoricProcessInstanceTest {
   }
 
   @Test
-  @Deployment(resources = {"org/camunda/bpm/engine/test/history/oneTaskProcess.bpmn20.xml"})
+  @Deployment(resources = {"org/cibseven/bpm/engine/test/history/oneTaskProcess.bpmn20.xml"})
 public void shouldExcludeByProcessInstanceIdNotIn() {
     // GIVEN
     String processInstanceIdOne = runtimeService.startProcessInstanceByKey("oneTaskProcess").getProcessInstanceId();
@@ -2735,7 +2735,7 @@ public void shouldExcludeByProcessInstanceIdNotIn() {
   }
 
   @Test
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   public void testWithNonExistentProcessInstanceIdNotIn() {
     // GIVEN
     String processInstanceIdOne = runtimeService.startProcessInstanceByKey("oneTaskProcess").getProcessInstanceId();
@@ -2758,7 +2758,7 @@ public void shouldExcludeByProcessInstanceIdNotIn() {
   }
 
   @Test
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   public void testQueryByOneInvalidProcessInstanceIdNotIn() {
     try {
       // when
@@ -2771,7 +2771,7 @@ public void shouldExcludeByProcessInstanceIdNotIn() {
   }
 
   @Test
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   public void testExcludingProcessInstanceAndProcessInstanceIdNotIn() {
     // GIVEN
     String processInstanceIdOne = runtimeService.startProcessInstanceByKey("oneTaskProcess").getProcessInstanceId();
@@ -2787,7 +2787,7 @@ public void shouldExcludeByProcessInstanceIdNotIn() {
   }
 
   @Test
-  @Deployment(resources = "org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
   public void testExcludingProcessInstanceIdsAndProcessInstanceIdNotIn() {
     // GIVEN
     String processInstanceIdOne = runtimeService.startProcessInstanceByKey("oneTaskProcess").getProcessInstanceId();
