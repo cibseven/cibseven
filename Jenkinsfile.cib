@@ -154,7 +154,7 @@ pipeline {
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
                                 -DOPTIONAL_PGTEST_EXCLUDE=org/cibseven/bpm/engine/impl/identity/db/DbIdentityServicePGTest.java \
-                                -pl !org.cibseven.bpm:cibseven-engine-spring-6,!:cibseven-spin-core,!:cibseven-engine-rest-core-jakarta,!:cibseven-webapp-jakarta,!:cibseven-engine-cdi-jakarta,!:cibseven-example-invoice-jakarta,!:cibseven-ejb-client-jakarta,!:cibseven-qa-integration-tests-engine-jakarta,!:cibseven-sql-scripts
+                                -pl !org.cibseven.bpm:cibseven-engine-spring-6,!:cibseven-spin-core,!:cibseven-engine-rest-core-jakarta,!:cibseven-webapp-jakarta,!:cibseven-engine-cdi-jakarta,!:cibseven-example-invoice-jakarta,!:cibseven-ejb-client-jakarta,!:cibseven-sql-scripts
                         """
 
                         sh """
@@ -163,7 +163,7 @@ pipeline {
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
                                 -DOPTIONAL_PGTEST_EXCLUDE=org/cibseven/bpm/engine/impl/identity/db/DbIdentityServicePGTest.java \
-                                -pl org.cibseven.bpm:cibseven-engine-spring-6,:cibseven-spin-core,:cibseven-engine-rest-core-jakarta,:cibseven-webapp-jakarta,:cibseven-engine-cdi-jakarta,:cibseven-example-invoice-jakarta,:cibseven-ejb-client-jakarta,:cibseven-qa-integration-tests-engine-jakarta,:cibseven-sql-scripts \
+                                -pl org.cibseven.bpm:cibseven-engine-spring-6,:cibseven-spin-core,:cibseven-engine-rest-core-jakarta,:cibseven-webapp-jakarta,:cibseven-engine-cdi-jakarta,:cibseven-example-invoice-jakarta,:cibseven-ejb-client-jakarta,:cibseven-sql-scripts \
                                 -fn
                         """
                     }
