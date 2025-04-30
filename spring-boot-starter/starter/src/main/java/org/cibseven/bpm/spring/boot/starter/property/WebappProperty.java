@@ -22,13 +22,13 @@ import static org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties
 
 public class WebappProperty {
 
-  public static final String DEFAULT_APP_PATH = "/webapp";
+  public static final String DEFAULT_APP_PATH = "/camunda";
 
   public static final String PREFIX = CamundaBpmProperties.PREFIX + ".webapp";
 
   protected boolean indexRedirectEnabled = true;
 
-  protected String webjarClasspath = "/META-INF/resources/webjars/webapp";
+  protected String webjarClasspath = "/META-INF/resources/webjars/camunda";
 
   protected String securityConfigFile = "/securityFilterRules.json";
 
