@@ -56,6 +56,13 @@
         <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments</outputDirectory>
     </dependencySet>
     
+    <dependencySet>
+         <includes>
+             <include>org.cibseven.webapp:cibseven-webclient-web:war:*</include>
+         </includes>
+         <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments</outputDirectory>
+     </dependencySet>
+    
   </dependencySets>
   
   <fileSets>
@@ -72,5 +79,4 @@
       <destName>camunda-welcome.war.dodeploy</destName>
     </file>  
   </files>
-  
 </assembly>
