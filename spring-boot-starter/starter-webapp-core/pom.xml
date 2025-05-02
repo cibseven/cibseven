@@ -25,14 +25,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.cibseven.webapp</groupId>
-      <artifactId>cibseven-webclient-web</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
-      <type>jar</type>
-      <classifier>classes</classifier>
-    </dependency>
-
-    <dependency>
       <groupId>org.cibseven.bpm.webapp</groupId>
       <artifactId>cibseven-webapp-webjar</artifactId>
       <scope>test</scope>
