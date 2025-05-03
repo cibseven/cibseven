@@ -47,7 +47,6 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer {
   @Autowired
   private CamundaBpmProperties properties;
 
-
   @Bean
   public CamundaBpmWebappInitializer camundaBpmWebappInitializer() {
     return new CamundaBpmWebappInitializer(properties);
@@ -89,10 +88,16 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer {
 
   @Override
   public void addViewControllers(ViewControllerRegistry registry) {
+
     WebappProperty webapp = properties.getWebapp();
     if (webapp.isIndexRedirectEnabled()) {
-      String applicationPath = webapp.getApplicationPath();
-      registry.addRedirectViewController("/", applicationPath + "/app/");
+
+      registry.addRedirectViewController("/", "/webapp/");
+      registry.addViewController("/webapp/").setViewName("forward:/webapp/index.html");
+
+      // ToDo: add property to differentiate between old and new webapp
+      // String applicationPath = webapp.getApplicationPath();
+      // registry.addRedirectViewController("/", applicationPath + "/app/");
     }
   }
 
