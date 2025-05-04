@@ -63,12 +63,12 @@
       <type>war</type>
     </dependency>
     
-    <!-- <dependency>
-       <groupId>org.cibseven.webapp</groupId>
-       <artifactId>cibseven-webclient-web</artifactId>
-       <version>${cibseven-webapp.version}</version>
-       <type>war</type>
-     </dependency> -->
+    <dependency>
+      <groupId>org.cibseven.webapp</groupId>
+      <artifactId>cibseven-webclient-web</artifactId>
+      <version>${cibseven-webapp.version}</version>
+      <type>war</type>
+    </dependency>
 
   </dependencies>
 

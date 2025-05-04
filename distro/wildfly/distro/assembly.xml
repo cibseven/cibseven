@@ -56,12 +56,13 @@
         <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments</outputDirectory>
     </dependencySet>
     
-    <!-- <dependencySet>
-         <includes>
-             <include>org.cibseven.webapp:cibseven-webclient-web:war:*</include>
+    <dependencySet>
+        <includes>
+          <include>org.cibseven.webapp:cibseven-webclient-web:war:*</include>
          </includes>
          <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments</outputDirectory>
-     </dependencySet> -->
+         <outputFileNameMapping>webapp.war</outputFileNameMapping>
+    </dependencySet>
     
   </dependencySets>
   
@@ -70,10 +71,6 @@
       <directory>../../camunda-welcome</directory>
       <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments/camunda-welcome.war</outputDirectory>
     </fileSet>
-    <fileSet>
-      <directory>../../webapp</directory>
-      <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments/webapp.war</outputDirectory>
-    </fileSet>
   </fileSets>
   
   <files>
@@ -81,11 +78,6 @@
       <source>src/EMPTY_FILE</source>
       <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments/</outputDirectory>
       <destName>camunda-welcome.war.dodeploy</destName>
-    </file>  
-    <file>
-      <source>src/EMPTY_FILE</source>
-      <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments/</outputDirectory>
-      <destName>webapp.war.dodeploy</destName>
-    </file> 
+    </file>
   </files>
 </assembly>
