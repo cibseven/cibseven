@@ -68,7 +68,29 @@ SET productionChosen=false
 SET detachProcess=false
 SET classPath=%PARENTDIR%configuration\userlib,%PARENTDIR%configuration\keystore
 SET configuration=%PARENTDIR%configuration\default.yml
+SET webclientProperties=%PARENTDIR%configuration\userlib\cibseven-webclient.properties
 
+REM check and create if needed webclient properties file with jwt secret
+setlocal EnableDelayedExpansion
+:: Check if the file exists
+if not exist "%webclientProperties%" (
+    :: Generate a 155-character alphanumeric random string
+    set "CHARS=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    set "RANDOM_STRING="
+
+    for /L %%i in (1,1,155) do (
+        set /A "IDX=!random! %% 62"
+        for %%C in (!IDX!) do set "RANDOM_STRING=!RANDOM_STRING!!CHARS:~%%C,1!"
+    )
+
+    :: Write to the file with a newline at the end
+    > "%webclientProperties%" echo.authentication.jwtSecret=!RANDOM_STRING!
+
+    echo File "%webclientProperties%" created with random jwtSecret.
+) else (
+    echo File "%webclientProperties%" already exists. No changes made.
+)
+endlocal
 
 REM inspect arguments
 :Loop

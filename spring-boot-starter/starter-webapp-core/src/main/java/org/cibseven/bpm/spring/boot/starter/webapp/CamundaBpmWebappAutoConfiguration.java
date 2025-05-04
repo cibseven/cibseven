@@ -82,7 +82,9 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer {
     registry.addResourceHandler(applicationPath + "/favicon.ico")
         .addResourceLocations(classpath);
 
-    registry.addResourceHandler("/webapp/**").addResourceLocations("classpath:/META-INF/resources/webjars/webapp/");
+    // ToDo: currently moved to cibseven-webclient-web, check after tomcat and
+    // wildfly deployments are verified
+    // registry.addResourceHandler("/webapp/**").addResourceLocations("classpath:/META-INF/resources/webjars/webapp/");
 
   }
 
@@ -92,12 +94,14 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer {
     WebappProperty webapp = properties.getWebapp();
     if (webapp.isIndexRedirectEnabled()) {
 
-      registry.addRedirectViewController("/", "/webapp/");
-      registry.addViewController("/webapp/").setViewName("forward:/webapp/index.html");
+      // ToDo: currently moved to cibseven-webclient-web, check after tomcat and
+      // wildfly deployments are verified
+      // registry.addRedirectViewController("/", "/webapp/");
+      // registry.addViewController("/webapp/").setViewName("forward:/webapp/index.html");
 
       // ToDo: add property to differentiate between old and new webapp
-      // String applicationPath = webapp.getApplicationPath();
-      // registry.addRedirectViewController("/", applicationPath + "/app/");
+      String applicationPath = webapp.getApplicationPath();
+      registry.addRedirectViewController("/", applicationPath + "/app/");
     }
   }
 
