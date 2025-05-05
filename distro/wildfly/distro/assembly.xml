@@ -61,7 +61,6 @@
           <include>org.cibseven.webapp:cibseven-webclient-web:war:*</include>
          </includes>
          <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments</outputDirectory>
-         <outputFileNameMapping>webapp.war</outputFileNameMapping>
     </dependencySet>
     
   </dependencySets>
