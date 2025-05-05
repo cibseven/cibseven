@@ -63,38 +63,6 @@ public class CamundaBpmRestInitializer implements ServletContextInitializer {
 
     registerFilter("EmptyBodyFilter", EmptyBodyFilter.class, restApiPathPattern);
     registerFilter("CacheControlFilter", CacheControlFilter.class, restApiPathPattern);
-    
-    registerAuthorizationFilter(restApiPathPattern);
-  }
-
-  private void registerAuthorizationFilter(String restApiPathPattern) {
-	Map<String, String> initParams = new HashMap<>();
-	initParams.put("authentication-provider", CompositeAuthenticationProvider.class.getCanonicalName());
-	// Apply to all URLs under engine-rest except /engine-rest/identity/verify
-	String[] urlPatterns = Arrays.asList(
-        "/process-definition/*",
-        "/process-instance/*",
-        "/history/*",
-        "/execution/*",
-        "/batch/*",
-        "/decision-definition/*",
-        "/deployment/*",
-        "/filter/*",
-        "/incident/*",
-        "/job-definition/*",
-        "/job/*",
-        "/telemetry/*",
-        "/metrics/*",
-        "/authorization/*",
-        "/group/*",
-        "/user/*",
-        "/message/*",
-        "/event-subscription/*",
-        "/variable-instance/*",
-        "/task/*",
-        "/engine/*"
-	).stream().map(pattern -> restApiPathPattern + pattern).toArray(String[]::new);
-	registerFilter("ProcessEngineAuthenticationFilter", ProcessEngineAuthenticationFilter.class, initParams, urlPatterns);
   }
 
 private FilterRegistration registerFilter(final String filterName, final Class<? extends Filter> filterClass, final String... urlPatterns) {
@@ -106,9 +74,7 @@ private FilterRegistration registerFilter(final String filterName, final Class<?
     FilterRegistration filterRegistration = servletContext.getFilterRegistration(filterName);
 
     if (filterRegistration == null) {
-      FilterRegistration.Dynamic registration = servletContext.addFilter(filterName, filterClass);
-      registration.setAsyncSupported(true);
-      filterRegistration = registration;
+      filterRegistration = servletContext.addFilter(filterName, filterClass);
       filterRegistration.addMappingForUrlPatterns(DISPATCHER_TYPES, true, urlPatterns);
 
       if (initParameters != null) {
