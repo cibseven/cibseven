@@ -97,14 +97,13 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer {
 
     WebappProperty webapp = properties.getWebapp();
     if (webapp.isIndexRedirectEnabled()) {
-
-      registry.addRedirectViewController("/", "/webapp/");
-      registry.addRedirectViewController("/webapp", "/webapp/");
-      registry.addViewController("/webapp/").setViewName("forward:/webapp/index.html");
-
-      // ToDo: add property to differentiate between old and new webapp
-      //String applicationPath = webapp.getApplicationPath(); // /camunda
-      //registry.addRedirectViewController("/", applicationPath + "/app/");
+    	if (webapp.isUseLegacyWebapp()) {
+    		registry.addRedirectViewController("/", webapp.getApplicationPath() + "/app/tasklist");
+    		registry.addViewController(webapp.getApplicationPath() + "/app/tasklist").setViewName("forward:" + webapp.getApplicationPath() + "/app/tasklist/index.html");
+		} else {
+			registry.addRedirectViewController("/", webapp.getApplicationPath());
+			registry.addViewController(webapp.getApplicationPath()).setViewName("forward:" + webapp.getApplicationPath() + "/index.html");
+		}
     }
   }
 
