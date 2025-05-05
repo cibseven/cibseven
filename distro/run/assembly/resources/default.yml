@@ -49,8 +49,8 @@ logging:
 
 # LDAP
 ldap:
-  url: ldap://ldap.cib.de
-  folder: DC=cib,DC=de
+  url: ldap://ldap.cibseven.org
+  folder: DC=cibseven,DC=org
   userNameAttribute: samAccountName
   userDisplayNameAttribute: name
   modifiedDateFormat: yyyyMMddHHmmss.SX
@@ -90,7 +90,7 @@ camunda:
 flow:
   webclient:
     task:
-      url: http://localhost:8080/client/#/seven/auth/tasks/*/
+      url: /webapp/#/seven/auth/tasks/*/
   # If this params is set to false, the number of instances and incidents wont be taken.
   fetchInstances: true
   fetchIncidents: true
@@ -106,7 +106,7 @@ flow:
 
 # Camunda Cockpit URL
 cockpit:
-  url: http://localhost:8080/camunda/app/cockpit/default/
+  url: /camunda/app/cockpit/default/
 
 # Used to set a theme (Bootstrap)
 theme: cib
@@ -116,7 +116,7 @@ services:
 
 springdoc:
   swagger-ui:
-    path: /swagger-ui
+    path: /webapp/swagger-ui
     operationsSorter: alpha
     tagsSorter: alpha
     doc-expansion: none 
