@@ -1,44 +1,45 @@
-<form class="form-horizontal"
-      role="form">
+<form role="form" class="mb-4 container-fluid">
 
-  <div class="control-group">
-    <label class="control-label">Creditor</label>
-    <div class="controls">
+  <div class="row mb-3">
+    <label class="col-md-2 col-form-label">Creditor</label>
+    <div class="col-md-10">
       <input cam-variable-name="creditor"
              type="text"
              name="creditor"
-             readonly="true"
+             readonly
              class="form-control" />
     </div>
   </div>
-  <div class="control-group">
-    <label class="control-label">Amount</label>
-    <div class="controls">
+
+  <div class="row mb-3">
+    <label class="col-md-2 col-form-label">Amount</label>
+    <div class="col-md-10">
       <input cam-variable-name="amount"
              type="text"
              name="amount"
-             readonly="true"
+             readonly
              class="form-control" />
     </div>
   </div>
-  <div class="control-group">
-    <label class="control-label">Invoice Number</label>
-    <div class="controls">
+
+  <div class="row mb-3">
+    <label class="col-md-2 col-form-label">Invoice Number</label>
+    <div class="col-md-10">
       <input cam-variable-name="invoiceNumber"
              type="text"
              name="invoiceNumber"
-             readonly="true"
+             readonly
              class="form-control" />
     </div>
   </div>
-  <div class="control-group">
-    <label class="control-label">Reviewer: </label>
-    <div class="controls">
+
+  <div class="row mb-3">
+    <label class="col-md-2 col-form-label">Reviewer</label>
+    <div class="col-md-10">
       <select cam-variable-name="reviewer"
               cam-variable-type="String"
-              type="text"
               name="reviewer"
-              class="form-control"
+              class="form-select"
               required>
         <option></option>
         <option value="demo">Demo</option>
@@ -46,7 +47,8 @@
         <option value="peter">Peter</option>
         <option value="mary">Mary</option>
       </select>
-      <p>Who should review this invoice?</p>
+      <p class="form-text mt-1">Who should review this invoice?</p>
     </div>
   </div>
+
 </form>
