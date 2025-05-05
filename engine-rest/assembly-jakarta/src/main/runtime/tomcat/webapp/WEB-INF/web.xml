@@ -153,6 +153,11 @@
     <url-pattern>/identity/verify</url-pattern>
   </filter-mapping>
    -->
+
+  <filter-mapping>
+    <filter-name>cibseven-composite-auth</filter-name>
+    <url-pattern>/identity/groups</url-pattern>
+  </filter-mapping>
   
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
@@ -172,6 +177,11 @@
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
     <url-pattern>/task/*</url-pattern>
+  </filter-mapping>
+  
+  <filter-mapping>
+    <filter-name>cibseven-composite-auth</filter-name>
+    <url-pattern>/engine/*</url-pattern>
   </filter-mapping>
   
   <servlet>
