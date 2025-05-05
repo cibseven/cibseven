@@ -73,7 +73,7 @@ module.exports = (_env, argv = {}) => {
             '^/api': ''
           }
         },
-        '/camunda-welcome': {
+        '/cibseven-welcome': {
           target: 'http://localhost:8080/',
           logLevel: 'debug'
         },
