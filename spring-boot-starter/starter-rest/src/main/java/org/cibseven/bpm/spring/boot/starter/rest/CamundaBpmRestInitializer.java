@@ -16,15 +16,11 @@
  */
 package org.cibseven.bpm.spring.boot.starter.rest;
 
-import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.cibseven.bpm.engine.rest.filter.CacheControlFilter;
 import org.cibseven.bpm.engine.rest.filter.EmptyBodyFilter;
-import org.cibseven.bpm.engine.rest.security.auth.ProcessEngineAuthenticationFilter;
-import org.cibseven.bpm.engine.rest.security.auth.impl.CompositeAuthenticationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.web.servlet.JerseyApplicationPath;
@@ -65,7 +61,7 @@ public class CamundaBpmRestInitializer implements ServletContextInitializer {
     registerFilter("CacheControlFilter", CacheControlFilter.class, restApiPathPattern);
   }
 
-private FilterRegistration registerFilter(final String filterName, final Class<? extends Filter> filterClass, final String... urlPatterns) {
+  private FilterRegistration registerFilter(final String filterName, final Class<? extends Filter> filterClass, final String... urlPatterns) {
     return registerFilter(filterName, filterClass, null, urlPatterns);
   }
 
