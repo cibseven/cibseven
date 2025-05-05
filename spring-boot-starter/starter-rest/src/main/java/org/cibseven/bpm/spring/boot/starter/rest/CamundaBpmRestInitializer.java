@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.spring.boot.starter.rest;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -69,7 +70,31 @@ public class CamundaBpmRestInitializer implements ServletContextInitializer {
   private void registerAuthorizationFilter(String restApiPathPattern) {
 	Map<String, String> initParams = new HashMap<>();
 	initParams.put("authentication-provider", CompositeAuthenticationProvider.class.getCanonicalName());
-	registerFilter("ProcessEngineAuthenticationFilter", ProcessEngineAuthenticationFilter.class, initParams, restApiPathPattern);
+	// Apply to all URLs under engine-rest except /engine-rest/identity/verify
+	String[] urlPatterns = Arrays.asList(
+        "/process-definition/*",
+        "/process-instance/*",
+        "/history/*",
+        "/execution/*",
+        "/batch/*",
+        "/decision-definition/*",
+        "/deployment/*",
+        "/filter/*",
+        "/incident/*",
+        "/job-definition/*",
+        "/job/*",
+        "/telemetry/*",
+        "/metrics/*",
+        "/authorization/*",
+        "/group/*",
+        "/user/*",
+        "/message/*",
+        "/event-subscription/*",
+        "/variable-instance/*",
+        "/task/*",
+        "/engine/*"
+	).stream().map(pattern -> restApiPathPattern + pattern).toArray(String[]::new);
+	registerFilter("ProcessEngineAuthenticationFilter", ProcessEngineAuthenticationFilter.class, initParams, urlPatterns);
   }
 
 private FilterRegistration registerFilter(final String filterName, final Class<? extends Filter> filterClass, final String... urlPatterns) {
