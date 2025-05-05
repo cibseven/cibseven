@@ -58,7 +58,7 @@
     
     <dependencySet>
         <includes>
-          <include>org.cibseven.webapp:cibseven-webclient-web:war:*</include>
+          <include>org.cibseven.webapp:cibseven-webclient-web:war:wildfly</include>
          </includes>
          <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments</outputDirectory>
     </dependencySet>
