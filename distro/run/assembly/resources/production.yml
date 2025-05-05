@@ -101,3 +101,129 @@ spring.datasource:
 # https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-spring-mvc-static-content
 spring.web.resources:
   static-locations: NULL
+
+# All parameters below belong to cibseven-webclient configuration, for more info - see here:
+# https://docs.cibseven.org/manual/latest/user-guide/spring-boot-integration/configuration/#webclient
+spring:
+  config:
+    import:
+      - optional:classpath:cibseven-webclient.properties
+      - optional:classpath:cibseven-webclient.yaml
+
+# LDAP
+ldap:
+  url: ldap://ldap.cibseven.org
+  folder: DC=cibseven,DC=org
+  userNameAttribute: samAccountName
+  userDisplayNameAttribute: name
+  modifiedDateFormat: yyyyMMddHHmmss.SX
+  followReferrals: follow
+
+# Token generation
+authentication:
+  jwtSecret: 
+  tokenValidMinutes: 60
+  tokenProlongMinutes: 1440
+  
+# BPM Provider
+bpm:
+  provider: org.cibseven.webapp.providers.SevenProvider
+
+# User providers
+user:
+  provider: org.cibseven.webapp.auth.SevenUserProvider
+  # provider: org.cibseven.webapp.auth.LdapUserProvider
+  # provider: org.cibseven.webapp.auth.KeycloakUserProvider
+  # provider: org.cibseven.webapp.auth.AdfsUserProvider
+
+# Set the wild card is gonna be used for the users search. By default is "*".
+users:
+  search:
+    wildcard:
+
+userAnon:
+  id: demo
+
+# Engine rest
+camunda:
+  engineRest:
+    url: http://localhost:8080
+  historyLevel: full
+
+flow:
+  webclient:
+    task:
+      url: /webapp/#/seven/auth/tasks/*/
+  # If this params is set to false, the number of instances and incidents wont be taken.
+  fetchInstances: true
+  fetchIncidents: true
+  # External token user creation
+  token:
+    secret: 
+    deny:
+      external:
+        ip: true
+  datasource:
+    fileValue:
+      enabled: false
+
+# Camunda Cockpit URL
+cockpit:
+  url: /camunda/app/cockpit/default/
+
+# Used to set a theme (Bootstrap)
+theme: cib
+
+services:
+  basePath: /webapp/services/v1
+
+springdoc:
+  swagger-ui:
+    path: /webapp/swagger-ui
+    operationsSorter: alpha
+    tagsSorter: alpha
+    doc-expansion: none 
+  # webclient server url for the swagger-ui. Only needs to be set if the automatic detection is wrong.
+  cibsevenWebclient:
+    serverUrl: ""
+
+api:
+  common:
+    title: "CIB seven webclient API"
+    description: "This API exposes the functionality of CIB seven webclient as a REST service under the Apache License 2.0."
+    termsOfService: "https://www.apache.org/licenses/LICENSE-2.0"
+    license: "Apache 2.0"
+    licenseUrl: "https://www.apache.org/licenses/LICENSE-2.0"
+    contact:
+      name: "CIB seven"
+      url: "https://cibseven.org"
+      email: "info@cibseven.org"
+
+#custom:
+#  spring:
+#    jackson:
+#      parser:
+#        max-size: 25000000
+
+# Activate "/actuator/info" and "/actuator/health" endpoints
+management:
+  endpoints:
+    enabled-by-default: false # Disable all endpoints by default
+    web:
+      exposure:
+        include: health,info # Include only health and info endpoints
+  endpoint:
+    info:
+      enabled: true # Enable the info endpoint
+    health:
+      enabled: true # Enable the health endpoint
+      probes:
+        enabled: true # Enable health probes (if applicable)
+  info:
+    build:
+      enabled: true # Enable build information
+    git:
+      enabled: true # Enable git information
+      mode: full # Use full mode for git information
+    java:
+      enabled: true # Enable Java information (ensure your setup supports this)
