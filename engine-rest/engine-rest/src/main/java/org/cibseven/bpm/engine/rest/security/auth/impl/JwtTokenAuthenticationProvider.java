@@ -19,6 +19,9 @@ package org.cibseven.bpm.engine.rest.security.auth.impl;
 import java.io.IOException;
 import java.util.Base64;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javax.crypto.SecretKey;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -41,31 +44,53 @@ import io.jsonwebtoken.security.Keys;
 
 public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
   
+  private static final Logger LOGGER = Logger.getLogger(JwtTokenAuthenticationProvider.class.getName());
+  
   public static final String AUTHORIZATION_HEADER = "Authorization";
   public static final String BEARER_PREFIX = "Bearer ";
     
-  private Configuration configuration;
-  
   @Override
   public void augmentResponseByAuthenticationChallenge(HttpServletResponse response, ProcessEngine engine) { }
 
   @Override
   public AuthenticationResult extractAuthenticatedUser(HttpServletRequest request, ProcessEngine engine) {
     try {
-      configuration = Configuration.getInstance();
+      
+      String jwtSecret = Configuration.getInstance().getSecret();
+      
+      if (jwtSecret == null) {
+        return AuthenticationResult.unsuccessful();
+      }
+      
+      logSecured(jwtSecret, "jwtSecret");
+      
       HttpServletRequest rq = (HttpServletRequest) request;
       
       String authHeader = rq.getHeader(AUTHORIZATION_HEADER);
+      
+      logSecured(authHeader, "authHeader");
+      
       if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
         return AuthenticationResult.unsuccessful();
       }
       
-      JwtUser user = parse(authHeader, configuration.getSecret());
+      JwtUser user = parse(authHeader, jwtSecret);
       
       return AuthenticationResult.successful(user.getUserID());
       
     } catch (AuthenticationException e) {
       return AuthenticationResult.unsuccessful();
+    }
+  }
+
+  private void logSecured(String securedString, String propertyName) {
+    if (securedString == null) {
+      LOGGER.warning("No " + propertyName + " provided!");
+    } else if (securedString.length() > 10) {
+        String uglifiedString = securedString.substring(0, 5) + "..." + securedString.substring(securedString.length() - 5);
+        LOGGER.log(Level.FINEST, propertyName + ": {0}", uglifiedString);
+    } else {
+      LOGGER.warning(propertyName + " is too short!");
     }
   }
   

@@ -1,72 +1,81 @@
-<form class="form-horizontal"
-      role="form">
+<form class="mb-4 container-fluid" role="form">
 
-  <p>
-    <strong>Please clarify:</strong><br/>
-    This invoice needs clarification and could not be approved due to missing data.
-  </p>
+  <div class="mb-3">
+    <p>
+      <strong>Please clarify:</strong><br />
+      This invoice needs clarification and could not be approved due to missing data.
+    </p>
+  </div>
 
-  <div class="form-group">
-    <label class="control-label col-md-2">Invoice Document</label>
-    <div class="form-control-static col-md-10">
-      <a cam-file-download="invoiceDocument"></a>
+  <div class="row mb-3">
+    <label class="col-md-2 col-form-label">Invoice Document</label>
+    <div class="col-md-10">
+      <p class="form-control-plaintext">
+        <a cam-file-download="invoiceDocument"></a>
+      </p>
     </div>
   </div>
 
-  <div class="form-group">
-    <label class="control-label col-md-2">Creditor</label>
+  <div class="row mb-3">
+    <label for="creditor" class="col-md-2 col-form-label">Creditor</label>
     <div class="col-md-10">
       <input cam-variable-name="creditor"
              type="text"
              name="creditor"
+             id="creditor"
              class="form-control" />
     </div>
   </div>
 
-  <div class="form-group">
-    <label class="control-label col-md-2">Amount</label>
+  <div class="row mb-3">
+    <label for="amount" class="col-md-2 col-form-label">Amount</label>
     <div class="col-md-10">
       <input cam-variable-name="amount"
              type="text"
              name="amount"
+             id="amount"
              class="form-control" />
     </div>
   </div>
 
-  <div class="form-group">
-    <label class="control-label col-md-2">Invoice Category</label>
+  <div class="row mb-3">
+    <label for="invoiceCategory" class="col-md-2 col-form-label">Invoice Category</label>
     <div class="col-md-10">
       <select cam-variable-name="invoiceCategory"
-              class="form-control">
+              name="invoiceCategory"
+              id="invoiceCategory"
+              class="form-select">
         <option>Travel Expenses</option>
         <option>Misc</option>
       </select>
     </div>
   </div>
 
-  <div class="form-group">
-    <label class="control-label col-md-2">Invoice Number</label>
+  <div class="row mb-3">
+    <label for="invoiceNumber" class="col-md-2 col-form-label">Invoice Number</label>
     <div class="col-md-10">
       <input cam-variable-name="invoiceNumber"
              type="text"
              name="invoiceNumber"
+             id="invoiceNumber"
              class="form-control" />
     </div>
   </div>
 
-  <div class="form-group">
-    <div class="col-md-10 col-md-offset-2">
-      <div class="checkbox">
-        <label>
-          <input cam-variable-name="clarified"
-                 cam-variable-type="Boolean"
-                 type="checkbox"
-                 name="clarified"
-                 class="form-control" />
+  <div class="row mb-3">
+    <div class="col-md-10 offset-md-2">
+      <div class="form-check">
+        <input cam-variable-name="clarified"
+               cam-variable-type="Boolean"
+               type="checkbox"
+               name="clarified"
+               id="clarified"
+               class="form-check-input" />
+        <label class="form-check-label" for="clarified">
           Could you clarify the invoice?
         </label>
       </div>
     </div>
   </div>
-</form>
 
+</form>

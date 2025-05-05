@@ -11,6 +11,10 @@
   </parent>
 
   <name>CIB seven - tomcat Distro</name>
+  
+  <properties>
+  	<cibseven-webapp.version>1.0.0-SNAPSHOT</cibseven-webapp.version>
+  </properties>
 
   <dependencies>
 
@@ -49,6 +53,13 @@
       <groupId>org.cibseven.bpm.example</groupId>
       <artifactId>cibseven-example-invoice-jakarta</artifactId>
       <version>${project.version}</version>
+      <type>war</type>
+    </dependency>
+    
+	<dependency>
+      <groupId>org.cibseven.webapp</groupId>
+      <artifactId>cibseven-webclient-web</artifactId>
+      <version>${cibseven-webapp.version}</version>
       <type>war</type>
     </dependency>
 
