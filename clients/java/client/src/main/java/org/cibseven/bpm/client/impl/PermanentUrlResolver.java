@@ -14,29 +14,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.container.impl.jmx.deployment;
+package org.cibseven.bpm.client.impl;
 
-import javax.naming.Context;
-import javax.naming.NamingException;
-import javax.naming.spi.InitialContextFactory;
+import org.cibseven.bpm.client.UrlResolver;
 
-import java.util.Hashtable;
+/**
+ * UrlResolver with permanent address
+ */
+public class PermanentUrlResolver implements UrlResolver {
 
-public class MockInitialContextFactory implements InitialContextFactory {
+  protected String baseUrl;
 
-  private static final ThreadLocal<Context> currentContext = new ThreadLocal<Context>();
-
-  @Override
-  public Context getInitialContext(Hashtable<?, ?> environment) throws NamingException {
-    return currentContext.get();
+  public PermanentUrlResolver(String baseUrl) {
+    this.setBaseUrl(baseUrl);
   }
 
-  public static void setCurrentContext(Context context) {
-    currentContext.set(context);
+  public void setBaseUrl(String baseUrl) {
+    this.baseUrl = baseUrl;
   }
 
-  public static void clearCurrentContext() {
-    currentContext.remove();
+  public String getBaseUrl() {
+    return this.baseUrl;
   }
-
 }

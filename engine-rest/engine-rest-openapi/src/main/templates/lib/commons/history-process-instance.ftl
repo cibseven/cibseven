@@ -52,6 +52,12 @@
     "desc": "Filter by process instance ids. ${listTypeDescription}."
   },
 
+  "processInstanceIdNotIn": {
+    "type": "array",
+    "itemType": "string",
+    "desc": "Exclude instances by process instance ids. ${listTypeDescription}."
+  },
+
   "processDefinitionId": {
     "type": "string",
     "desc": "Filter by the process definition the instances run on."
@@ -111,6 +117,12 @@
   "unfinished": {
     "type": "boolean",
     "desc": "Only include unfinished process instances. Value may only be `true`, as `false` is the default behavior."
+  },
+
+  "withJobsRetrying": {
+    "type": "boolean",
+    "desc": "Only include process instances which are associated with jobs that have encountered exceptions and still
+     have retries left. Value may only be `true`, as `false` is the default behavior."
   },
 
   "withIncidents": {

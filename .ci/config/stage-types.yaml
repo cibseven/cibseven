@@ -34,7 +34,7 @@ db-unit:
   - 'postgresql'
   podSpec:
     cpu: 4
-    images: ['maven:3.9.7-eclipse-temurin-11', 'postgres:17.0']
+    images: ['maven:3.9.7-eclipse-temurin-17', 'postgres:17.0']
 sql-scripts:
   directory: 'distro/sql-script'
   command: 'install -Pcheck-sql,'
@@ -139,6 +139,7 @@ engine-rest-IT-embedded-wildfly26:
   labels:
   - 'rest-api'
   nodeLabel: 'h2'
+  jdkVersion: 'jdk-11-0-21'
 engine-rest-jakarta-unit-compatibility-wildfly:
   directory: 'engine-rest/engine-rest-jakarta'
   command: 'clean install -Pwildfly-compatibility'
@@ -182,8 +183,9 @@ platform-jdk-temurin-jdk-11-latest:
           !spring-boot-starter/starter-qa/integration-test-webapp/runtime,
           !distro/run,!distro/run/assembly,!distro/run/core,!distro/run/distro,!distro/run/modules,!distro/run/modules/example,
           !distro/run/modules/rest,!distro/run/modules/webapps,!distro/run/modules/oauth2,!distro/run/qa,!distro/run/qa/integration-tests,
-          !distro/run/qa/runtime,!distro/run/qa/example-plugin''
-    -Pdistro,distro-wildfly'
+          !distro/run/qa/runtime,!distro/run/qa/example-plugin,
+          !qa/integration-tests-engine-jakarta''
+    -Pdistro,distro-ce'
   stash:
     runtimeStash: true
   withNpm: true
@@ -221,8 +223,9 @@ platform-jdk-jdk-11-latest:
           !spring-boot-starter/starter-qa/integration-test-webapp/runtime,
           !distro/run,!distro/run/assembly,!distro/run/core,!distro/run/distro,!distro/run/modules,!distro/run/modules/example,
           !distro/run/modules/rest,!distro/run/modules/webapps,!distro/run/modules/oauth2,!distro/run/qa,!distro/run/qa/integration-tests,
-          !distro/run/qa/runtime,!distro/run/qa/example-plugin''
-    -Pdistro,distro-wildfly
+          !distro/run/qa/runtime,!distro/run/qa/example-plugin,
+          !qa/integration-tests-engine-jakarta''
+    -Pdistro,distro-ce
     -Dskip.frontend.build=true'
   stash:
     runtimeStash: true
