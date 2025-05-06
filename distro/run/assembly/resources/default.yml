@@ -127,14 +127,14 @@ springdoc:
 
 api:
   common:
-    title: "CIB Seven webclient API"
-    description: "This API exposes the functionality of CIB Seven webclient as a REST service."
-    termsOfService: "https://www.cib.de"
-    license: "Proprietary License of CIB software GmbH"
-    licenseUrl: "https://www.cib.de"
+    title: "CIB seven webclient API"
+    description: "This API exposes the functionality of CIB seven webclient as a REST service under the Apache License 2.0."
+    termsOfService: "https://www.apache.org/licenses/LICENSE-2.0"
+    license: "Apache 2.0"
+    licenseUrl: "https://www.apache.org/licenses/LICENSE-2.0"
     contact:
-      name: "CIB software GmbH"
-      url: "https://www.cib.de"
+      name: "CIB seven"
+      url: "https://cibseven.org"
       email: "info@cibseven.org"
 
 #custom:

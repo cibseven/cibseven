@@ -17,13 +17,10 @@
 package org.cibseven.bpm.spring.boot.starter.rest;
 
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.cibseven.bpm.engine.rest.filter.CacheControlFilter;
 import org.cibseven.bpm.engine.rest.filter.EmptyBodyFilter;
-import org.cibseven.bpm.engine.rest.security.auth.ProcessEngineAuthenticationFilter;
-import org.cibseven.bpm.engine.rest.security.auth.impl.CompositeAuthenticationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.web.servlet.JerseyApplicationPath;
@@ -62,17 +59,9 @@ public class CamundaBpmRestInitializer implements ServletContextInitializer {
 
     registerFilter("EmptyBodyFilter", EmptyBodyFilter.class, restApiPathPattern);
     registerFilter("CacheControlFilter", CacheControlFilter.class, restApiPathPattern);
-    
-    registerAuthorizationFilter(restApiPathPattern);
   }
 
-  private void registerAuthorizationFilter(String restApiPathPattern) {
-	Map<String, String> initParams = new HashMap<>();
-	initParams.put("authentication-provider", CompositeAuthenticationProvider.class.getCanonicalName());
-	registerFilter("ProcessEngineAuthenticationFilter", ProcessEngineAuthenticationFilter.class, initParams, restApiPathPattern);
-  }
-
-private FilterRegistration registerFilter(final String filterName, final Class<? extends Filter> filterClass, final String... urlPatterns) {
+  private FilterRegistration registerFilter(final String filterName, final Class<? extends Filter> filterClass, final String... urlPatterns) {
     return registerFilter(filterName, filterClass, null, urlPatterns);
   }
 
@@ -81,9 +70,7 @@ private FilterRegistration registerFilter(final String filterName, final Class<?
     FilterRegistration filterRegistration = servletContext.getFilterRegistration(filterName);
 
     if (filterRegistration == null) {
-      FilterRegistration.Dynamic registration = servletContext.addFilter(filterName, filterClass);
-      registration.setAsyncSupported(true);
-      filterRegistration = registration;
+      filterRegistration = servletContext.addFilter(filterName, filterClass);
       filterRegistration.addMappingForUrlPatterns(DISPATCHER_TYPES, true, urlPatterns);
 
       if (initParameters != null) {
