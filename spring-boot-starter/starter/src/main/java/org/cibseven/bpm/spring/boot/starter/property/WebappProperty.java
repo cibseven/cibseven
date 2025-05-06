@@ -17,14 +17,10 @@
 package org.cibseven.bpm.spring.boot.starter.property;
 
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.beans.factory.annotation.Value;
 
 import static org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties.joinOn;
 
-@Configuration
-@PropertySource("file:../configuration/default.yml")
 public class WebappProperty {
 	
   public static final String LEGACY_APP_PATH = "/camunda";
@@ -33,16 +29,15 @@ public class WebappProperty {
 
   public static final String PREFIX = CamundaBpmProperties.PREFIX + ".webapp";
   
-  @Value("${flow.webclient.legacy:false}")
-  protected boolean useLegacyWebapp;
+  protected boolean useLegacyWebapp = false;
 
   protected boolean indexRedirectEnabled = true;
 
-  protected String legacyWebjarClasspath = "/META-INF/resources/webjars/camunda";
-  
-  protected String webjarClasspath = "/META-INF/resources/webjars/webapp";
-
   protected String securityConfigFile = "/securityFilterRules.json";
+  
+  protected String legacyWebjarClasspath = "/META-INF/resources/webjars" + LEGACY_APP_PATH;
+  
+  protected String webjarClasspath = "/META-INF/resources/webjars" + DEFAULT_APP_PATH;
 
   protected String applicationPath = DEFAULT_APP_PATH;
 
@@ -72,12 +67,13 @@ public class WebappProperty {
 
   public void setUseLegacyWebapp(boolean useLegacyWebapp) {
     this.useLegacyWebapp = useLegacyWebapp;
-  }	  
+  }
 
+  public String getLegacyWebjarClasspath() {
+	return legacyWebjarClasspath;
+  }
+  
   public String getWebjarClasspath() {
-	if (useLegacyWebapp) {
-		return legacyWebjarClasspath;
-	}
     return webjarClasspath;
   }
 
@@ -94,10 +90,7 @@ public class WebappProperty {
   }
 
   public String getApplicationPath() {
-    if (useLegacyWebapp) {
-    	return LEGACY_APP_PATH;
-    }       
-    return applicationPath;    
+    return applicationPath;
   }
 
   public void setApplicationPath(String applicationPath) {

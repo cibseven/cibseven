@@ -72,24 +72,25 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer {
 
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
-    final String classpath = "classpath:" + properties.getWebapp().getWebjarClasspath();
+    final String legacyClasspath = "classpath:" + properties.getWebapp().getLegacyWebjarClasspath();
     WebappProperty webapp = properties.getWebapp();
-    String applicationPath = webapp.getApplicationPath();
+    String legacyApplicationPath = webapp.getLegacyApplicationPath();
 
-    registry.addResourceHandler(applicationPath + "/lib/**")
-        .addResourceLocations(classpath + "/lib/");
-    registry.addResourceHandler(applicationPath + "/api/**")
+    registry.addResourceHandler(legacyApplicationPath + "/lib/**")
+        .addResourceLocations(legacyClasspath + "/lib/");
+    registry.addResourceHandler(legacyApplicationPath + "/api/**")
         .addResourceLocations("classpath:/api/");
-    registry.addResourceHandler(applicationPath + "/app/**")
-        .addResourceLocations(classpath + "/app/");
-    registry.addResourceHandler(applicationPath + "/assets/**")
-        .addResourceLocations(classpath + "/assets/");
-     registry.addResourceHandler(applicationPath + "/favicon.ico")
-         .addResourceLocations(classpath + "/") // add slash to get rid of the WARN log
-         .resourceChain(true)
-         .addResolver(faviconResourceResolver());
-    
-    registry.addResourceHandler("/webapp/**").addResourceLocations("classpath:/META-INF/resources/webjars/webapp/");
+    registry.addResourceHandler(legacyApplicationPath + "/app/**")
+        .addResourceLocations(legacyClasspath + "/app/");
+    registry.addResourceHandler(legacyApplicationPath + "/assets/**")
+        .addResourceLocations(legacyClasspath + "/assets/");
+    registry.addResourceHandler(legacyApplicationPath + "/favicon.ico")
+        .addResourceLocations(legacyClasspath + "/") // add slash to get rid of the WARN log
+        .resourceChain(true)
+        .addResolver(faviconResourceResolver());    
+    // registry.addResourceHandler(legacyApplicationPath + "/**").addResourceLocations(legacyClasspath+ "/");     
+      
+     registry.addResourceHandler(webapp.getApplicationPath() + "/**").addResourceLocations("classpath:" + webapp.getWebjarClasspath()+ "/");     
   }
 
   @Override
@@ -98,11 +99,13 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer {
     WebappProperty webapp = properties.getWebapp();
     if (webapp.isIndexRedirectEnabled()) {
     	if (webapp.isUseLegacyWebapp()) {
-    		registry.addRedirectViewController("/", webapp.getApplicationPath() + "/app/tasklist");
-    		registry.addViewController(webapp.getApplicationPath() + "/app/tasklist").setViewName("forward:" + webapp.getApplicationPath() + "/app/tasklist/index.html");
-		} else {
-			registry.addRedirectViewController("/", webapp.getApplicationPath());
-			registry.addViewController(webapp.getApplicationPath()).setViewName("forward:" + webapp.getApplicationPath() + "/index.html");
+    	    registry.addRedirectViewController("/", webapp.getLegacyApplicationPath() + "/app/");
+    	} else {
+			//registry.addRedirectViewController("/", webapp.getApplicationPath() + "/");
+		    //registry.addRedirectViewController(webapp.getApplicationPath() + "/", webapp.getApplicationPath() + "/");
+		    registry.addRedirectViewController("/", "/webapp/");
+		    registry.addRedirectViewController("/webapp", "/webapp/");
+		    registry.addRedirectViewController("/webapp/", "/webapp/index.html");
 		}
     }
   }

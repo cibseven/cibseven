@@ -105,9 +105,9 @@ public class CamundaBpmWebappInitializer implements ServletContextInitializer {
         applicationPath + "/api/*", applicationPath + "/app/*");
     
     if (webapp.isUseLegacyWebapp()) {
-    		registerFilter("Security Filter", LazySecurityFilter.class,
-	        singletonMap("configFile", webapp.getSecurityConfigFile()),
-	        applicationPath + "/api/*", applicationPath + "/app/*");
+		registerFilter("Security Filter", LazySecurityFilter.class,
+        singletonMap("configFile", webapp.getSecurityConfigFile()),
+        applicationPath + "/api/*", applicationPath + "/app/*");
 	}
     
     registerFilter("CsrfPreventionFilter", CsrfPreventionFilter.class,
