@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export JBOSS_HOME="$(dirname "$0")/server/wildfly-35.0.0.Final"
+export JBOSS_HOME="$(dirname "$0")/server/wildfly-${version.wildfly}"
 
 # Define the target file path
 FILE="$JBOSS_HOME/modules/org/cibseven/config/main/cibseven-webclient.properties"
