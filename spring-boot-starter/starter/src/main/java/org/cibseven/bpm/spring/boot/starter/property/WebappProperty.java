@@ -88,6 +88,10 @@ public class WebappProperty {
   public void setSecurityConfigFile(String securityConfigFile) {
     this.securityConfigFile = securityConfigFile;
   }
+  
+  public String getLegacyApplicationPath() {
+	return LEGACY_APP_PATH;
+  }
 
   public String getApplicationPath() {
     return applicationPath;
