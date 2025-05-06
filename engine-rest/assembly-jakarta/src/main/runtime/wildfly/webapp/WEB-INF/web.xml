@@ -51,6 +51,7 @@
   </filter-mapping>
 
   <!-- Composite Authentication Filter with Jwt Token and Http Basic -->
+  <!--
   <filter>
     <filter-name>cibseven-composite-auth</filter-name>
     <filter-class>
@@ -149,18 +150,6 @@
     <url-pattern>/user/*</url-pattern>
   </filter-mapping>
   
-  <!-- This one should not be filtered, in order to be able to login
-  <filter-mapping>
-    <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/identity/verify</url-pattern>
-  </filter-mapping>
-   -->
-   
-  <filter-mapping>
-    <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/identity/groups</url-pattern>
-  </filter-mapping>
-  
   <filter-mapping>
     <filter-name>cibseven-composite-auth</filter-name>
     <url-pattern>/message/*</url-pattern>
@@ -185,5 +174,18 @@
     <filter-name>cibseven-composite-auth</filter-name>
     <url-pattern>/engine/*</url-pattern>
   </filter-mapping>
+  
+  <filter-mapping>
+    <filter-name>cibseven-composite-auth</filter-name>
+    <url-pattern>/identity/groups</url-pattern>
+  </filter-mapping>
+  -->
+  
+  <!-- This one should not be filtered, in order to be able to login
+  <filter-mapping>
+    <filter-name>cibseven-composite-auth</filter-name>
+    <url-pattern>/identity/verify</url-pattern>
+  </filter-mapping>
+  -->
 
 </web-app>
