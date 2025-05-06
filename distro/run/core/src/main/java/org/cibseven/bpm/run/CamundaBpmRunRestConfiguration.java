@@ -65,7 +65,7 @@ public class CamundaBpmRunRestConfiguration {
   private static int AUTH_FILTER_PRECEDENCE = 1;
 
   @Bean
-  @ConditionalOnProperty(name = "enabled", havingValue = "true", matchIfMissing = true, prefix = CamundaBpmRunAuthenticationProperties.PREFIX)
+  @ConditionalOnProperty(name = "enabled", havingValue = "true", prefix = CamundaBpmRunAuthenticationProperties.PREFIX)
   public FilterRegistrationBean<Filter> processEngineAuthenticationFilter(JerseyApplicationPath applicationPath) {
     FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>();
     registration.setName("cibseven-auth");
