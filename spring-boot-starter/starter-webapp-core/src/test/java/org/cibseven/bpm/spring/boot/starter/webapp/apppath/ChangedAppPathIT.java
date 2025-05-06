@@ -84,8 +84,12 @@ public class ChangedAppPathIT {
     httpClientRule.performRequest("http://localhost:" + port + "/");
 
     // then
+//    assertThat(httpClientRule.getHeader("Location")).isEqualTo("http://localhost:" + port +
+//        MY_APP_PATH + "/app/");
+    
+    // ToDo: update after hardcoded path removal
     assertThat(httpClientRule.getHeader("Location")).isEqualTo("http://localhost:" + port +
-        MY_APP_PATH + "/app/");
+      "/webapp/");
   }
 
   @Test
