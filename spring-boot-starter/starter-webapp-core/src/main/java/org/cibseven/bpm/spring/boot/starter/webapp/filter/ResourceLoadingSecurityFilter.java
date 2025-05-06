@@ -37,7 +37,7 @@ public class ResourceLoadingSecurityFilter extends SecurityFilter implements Res
   @Override
   protected void loadFilterRules(FilterConfig filterConfig, String applicationPath) throws ServletException {
     String configFileName = filterConfig.getInitParameter("configFile");
-    Resource resource = resourceLoader.getResource("classpath:" +webappProperty.getWebjarClasspath() + configFileName);
+    Resource resource = resourceLoader.getResource("classpath:" + webappProperty.getLegacyWebjarClasspath() + configFileName);
     InputStream configFileResource;
     try {
       configFileResource = resource.getInputStream();
