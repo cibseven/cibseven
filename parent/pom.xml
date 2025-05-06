@@ -18,10 +18,10 @@
   </description>
 
   <properties>
-    <version.quarkus>3.15.0</version.quarkus>
+    <version.quarkus>3.20.0</version.quarkus>
     <version.spring.framework>5.3.39</version.spring.framework>
-    <version.spring.framework6>6.1.15</version.spring.framework6>
-    <version.spring-boot>3.3.6</version.spring-boot>
+    <version.spring.framework6>6.2.4</version.spring.framework6>
+    <version.spring-boot>3.4.4</version.spring-boot>
     <version.resteasy>3.15.6.Final</version.resteasy>
     <version.jersey2>2.34</version.jersey2>
     <!-- use minimum version of resteasy and jersey -->
@@ -57,14 +57,14 @@
     <version.bouncycastle>1.47</version.bouncycastle>
 
     <!-- application servers -->
-    <version.wildfly>33.0.1.Final</version.wildfly>
-    <version.wildfly.core>25.0.1.Final</version.wildfly.core>
+    <version.wildfly>35.0.0.Final</version.wildfly>
+    <version.wildfly.core>27.0.0.Final</version.wildfly.core>
 
     <version.wildfly26>26.0.1.Final</version.wildfly26>
     <version.wildfly26.core>18.0.4.Final</version.wildfly26.core>
 
-    <version.tomcat9>9.0.90</version.tomcat9>
-    <version.tomcat>10.1.30</version.tomcat>
+    <version.tomcat9>9.0.100</version.tomcat9>
+    <version.tomcat>10.1.36</version.tomcat>
 
     <version.arquillian>1.1.10.Final</version.arquillian>
     <version.shrinkwrap.resolvers>2.2.2</version.shrinkwrap.resolvers>
@@ -147,7 +147,10 @@
             <systemPropertyVariables>
               <myWorkingDir>${project.build.directory}</myWorkingDir>
             </systemPropertyVariables>
-            <argLine>-Xmx968m -Duser.language=en -Duser.region=US -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory}/heap_dump.hprof</argLine>
+            <argLine>-Xmx968m -Duser.language=en -Duser.region=US -XX:+HeapDumpOnOutOfMemoryError
+              -XX:HeapDumpPath=${project.build.directory}/heap_dump.hprof
+              --add-opens=java.base/java.util=ALL-UNNAMED
+              --add-opens=java.base/java.lang=ALL-UNNAMED</argLine>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
             <forkCount>${surefire.forkCount}</forkCount>
           </configuration>
@@ -243,7 +246,7 @@
         <plugin>
           <groupId>org.codehaus.cargo</groupId>
           <artifactId>cargo-maven3-plugin</artifactId>
-          <version>1.10.9</version>
+          <version>1.10.16</version>
         </plugin>
         <plugin>
           <groupId>net.kennychua</groupId>

@@ -11,7 +11,7 @@
     <module name="org.cibseven.commons.cibseven-commons-logging" />
 
     <module name="org.cibseven.bpm.cibseven-engine-plugin-spin" optional="true" />
-
-    <module name="org.camunda.feel.feel-engine" />
+	
+    <module name="org.cibseven.feel.feel-engine" />
   </dependencies>
 </module>

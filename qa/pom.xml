@@ -92,15 +92,8 @@
         <module>test-db-instance-migration</module>
         <module>test-db-rolling-update</module>
         <module>test-old-engine</module>
-      </modules>
-    </profile>
-
-    <profile>
-      <id>jdk17</id>
-      <activation>
-        <jdk>[17,)</jdk>
-      </activation>
-      <modules>
+        <module>performance-tests-engine</module>
+        <module>large-data-tests</module>
         <module>integration-tests-engine-jakarta</module>
       </modules>
     </profile>
@@ -191,6 +184,24 @@
       <modules>
         <module>test-old-engine</module>
       </modules>
+    </profile>
+
+    <profile>
+      <id>java11</id>
+      <activation>
+        <jdk>11</jdk>
+      </activation>
+      <dependencyManagement>
+        <dependencies>
+          <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-framework-bom</artifactId>
+            <version>${version.spring.framework}</version>
+            <type>pom</type>
+            <scope>import</scope>
+          </dependency>
+        </dependencies>
+      </dependencyManagement>
     </profile>
   </profiles>
 

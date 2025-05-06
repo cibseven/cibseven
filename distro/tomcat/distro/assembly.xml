@@ -55,13 +55,21 @@
         <outputDirectory>server/apache-tomcat-${version.tomcat}/webapps/camunda-invoice</outputDirectory>
         <unpack>true</unpack>
     </dependencySet>
+    
+    <dependencySet>
+        <includes>
+            <include>org.cibseven.webapp:cibseven-webclient-web:war:*</include>
+        </includes>
+        <outputDirectory>server/apache-tomcat-${version.tomcat}/webapps/webapp</outputDirectory>
+        <unpack>true</unpack>
+    </dependencySet>
 
   </dependencySets>
 
   <fileSets>
     <fileSet>
-      <directory>../../camunda-welcome</directory>
-      <outputDirectory>server/apache-tomcat-${version.tomcat}/webapps/camunda-welcome</outputDirectory>
+      <directory>../../cibseven-welcome</directory>
+      <outputDirectory>server/apache-tomcat-${version.tomcat}/webapps/cibseven-welcome</outputDirectory>
     </fileSet>
   </fileSets>
 </assembly>
