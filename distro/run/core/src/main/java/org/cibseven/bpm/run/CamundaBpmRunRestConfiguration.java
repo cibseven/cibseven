@@ -19,6 +19,7 @@ package org.cibseven.bpm.run;
 import jakarta.servlet.Filter;
 import org.apache.catalina.filters.CorsFilter;
 import org.cibseven.bpm.engine.rest.security.auth.ProcessEngineAuthenticationFilter;
+import org.cibseven.bpm.engine.rest.security.auth.impl.CompositeAuthenticationProvider;
 import org.cibseven.bpm.run.property.CamundaBpmRunAuthenticationProperties;
 import org.cibseven.bpm.run.property.CamundaBpmRunCorsProperty;
 import org.cibseven.bpm.run.property.CamundaBpmRunProperties;
@@ -35,6 +36,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 @EnableConfigurationProperties(CamundaBpmRunProperties.class)
@@ -66,17 +68,46 @@ public class CamundaBpmRunRestConfiguration {
   @ConditionalOnProperty(name = "enabled", havingValue = "true", prefix = CamundaBpmRunAuthenticationProperties.PREFIX)
   public FilterRegistrationBean<Filter> processEngineAuthenticationFilter(JerseyApplicationPath applicationPath) {
     FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>();
-    registration.setName("camunda-auth");
+    registration.setName("cibseven-auth");
     registration.setFilter(new ProcessEngineAuthenticationFilter());
     registration.setOrder(AUTH_FILTER_PRECEDENCE);
 
-    String restApiPathPattern = applicationPath.getUrlMapping();
-    registration.addUrlPatterns(restApiPathPattern);
+    String restApiPathPattern = applicationPath.getPath();
+
+	// Apply to all URLs under engine-rest except /engine-rest/identity/verify
+	String[] urlPatterns = Arrays.asList(
+        "/process-definition/*",
+        "/process-instance/*",
+        "/history/*",
+        "/execution/*",
+        "/batch/*",
+        "/decision-definition/*",
+        "/deployment/*",
+        "/filter/*",
+        "/incident/*",
+        "/job-definition/*",
+        "/job/*",
+        "/telemetry/*",
+        "/metrics/*",
+        "/authorization/*",
+        "/group/*",
+        "/user/*",
+        "/message/*",
+        "/event-subscription/*",
+        "/variable-instance/*",
+        "/task/*",
+        "/engine/*",
+        "/identity/groups"
+	).stream().map(pattern -> (restApiPathPattern + pattern).replaceFirst("^(\\/+|([^/]))", "/$2")).toArray(String[]::new);
+	registration.addUrlPatterns(urlPatterns);
+	registration.setAsyncSupported(true);
 
     // if nothing is set, use Http Basic authentication
     CamundaBpmRunAuthenticationProperties properties = camundaBpmRunProperties.getAuth();
     if (properties.getAuthentication() == null || CamundaBpmRunAuthenticationProperties.DEFAULT_AUTH.equals(properties.getAuthentication())) {
-      registration.addInitParameter("authentication-provider", "org.cibseven.bpm.engine.rest.security.auth.impl.HttpBasicAuthenticationProvider");
+      registration.addInitParameter("authentication-provider", "org.cibseven.bpm.engine.rest.security.auth.impl.CompositeAuthenticationProvider");
+    } else if (CamundaBpmRunAuthenticationProperties.BASIC_AUTH.equals(properties.getAuthentication())) {
+    	registration.addInitParameter("authentication-provider", "org.cibseven.bpm.engine.rest.security.auth.impl.HttpBasicAuthenticationProvider");
     }
     return registration;
   }

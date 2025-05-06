@@ -26,6 +26,25 @@ detachProcess=false
 classPath=$PARENTDIR/configuration/userlib/,$PARENTDIR/configuration/keystore/
 configuration=$PARENTDIR/configuration/default.yml
 
+## check and create if needed webclient properties file with jwt secret
+
+# Define the target file path
+webclientProperties="$PARENTDIR/configuration/userlib/cibseven-webclient.properties"
+
+# Check if the file already exists
+if [ ! -f "$webclientProperties" ]; then
+
+  # Generate a 155-character alphanumeric random string
+  RANDOM_STRING=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 155)
+
+  # Write the content to the file
+  echo "authentication.jwtSecret=$RANDOM_STRING" > "$webclientProperties"
+
+  echo "File \"$webclientProperties\" created with random jwtSecret."
+else
+  echo "File \"$webclientProperties\" already exists. No changes made."
+fi
+
 if [ "$1" = "start" ] ; then
   shift
   # setup the JVM

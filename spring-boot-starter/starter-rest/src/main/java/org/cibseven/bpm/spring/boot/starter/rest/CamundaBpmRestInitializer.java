@@ -16,6 +16,9 @@
  */
 package org.cibseven.bpm.spring.boot.starter.rest;
 
+import java.util.EnumSet;
+import java.util.Map;
+
 import org.cibseven.bpm.engine.rest.filter.CacheControlFilter;
 import org.cibseven.bpm.engine.rest.filter.EmptyBodyFilter;
 import org.slf4j.Logger;
@@ -28,8 +31,6 @@ import jakarta.servlet.Filter;
 import jakarta.servlet.FilterRegistration;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
-import java.util.EnumSet;
-import java.util.Map;
 
 /**
  * Inspired by:

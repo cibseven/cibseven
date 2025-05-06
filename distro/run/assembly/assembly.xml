@@ -90,19 +90,19 @@
       <source>resources/run.bat</source>
       <filtered>true</filtered>
       <outputDirectory>internal/</outputDirectory>
-      <fileMode>0755</fileMode>
+      <fileMode>0644</fileMode>
     </file>
     <file>
       <source>resources/start.bat</source>
       <filtered>true</filtered>
       <outputDirectory />
-      <fileMode>0755</fileMode>
+      <fileMode>0644</fileMode>
     </file>
     <file>
       <source>resources/shutdown.bat</source>
       <filtered>true</filtered>
       <outputDirectory />
-      <fileMode>0755</fileMode>
+      <fileMode>0644</fileMode>
     </file>
     <file>
       <source>../../license/LICENSE</source>
