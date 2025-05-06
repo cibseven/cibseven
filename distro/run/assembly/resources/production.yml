@@ -103,7 +103,7 @@ spring.web.resources:
   static-locations: NULL
 
 # All parameters below belong to cibseven-webclient configuration, for more info - see here:
-# https://docs.cibseven.org/manual/latest/user-guide/spring-boot-integration/configuration/#webclient
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#cib-seven-webclient-properties
 spring:
   config:
     import:
