@@ -56,6 +56,13 @@
         <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments</outputDirectory>
     </dependencySet>
     
+    <dependencySet>
+        <includes>
+          <include>org.cibseven.webapp:cibseven-webclient-web:war:wildfly</include>
+         </includes>
+         <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments</outputDirectory>
+    </dependencySet>
+    
   </dependencySets>
   
   <fileSets>
@@ -70,7 +77,6 @@
       <source>src/EMPTY_FILE</source>
       <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments/</outputDirectory>
       <destName>cibseven-welcome.war.dodeploy</destName>
-    </file>  
+    </file>
   </files>
-  
 </assembly>
