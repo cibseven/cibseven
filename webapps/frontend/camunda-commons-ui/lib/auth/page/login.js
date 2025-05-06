@@ -67,7 +67,7 @@ var Controller = [
     if (showFirstLogin) {
       $http({
         method: 'GET',
-        url: '/camunda-welcome'
+        url: '/cibseven-welcome'
       })
         .then(function(res) {
           if (res.status !== 200) {
