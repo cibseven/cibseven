@@ -40,6 +40,7 @@ Contents:
         After starting the server, you can access the 
         following web applications:
 
+        http://localhost:8080/webapp
         http://localhost:8080/camunda
         http://localhost:8080/engine-rest
 
