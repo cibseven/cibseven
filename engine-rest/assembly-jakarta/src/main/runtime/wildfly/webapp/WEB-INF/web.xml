@@ -49,6 +49,29 @@
     <filter-name>CacheControlFilter</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
+  
+  <!-- Pseudo Authentication Filter through custom header (not for production)-->
+  <filter>
+    <filter-name>cibseven-pseudo-auth</filter-name>
+    <filter-class>
+        org.cibseven.bpm.engine.rest.security.auth.ProcessEngineAuthenticationFilter
+    </filter-class>
+    <async-supported>true</async-supported>
+    <init-param>
+        <param-name>authentication-provider</param-name>
+        <param-value>
+            org.cibseven.bpm.engine.rest.security.auth.impl.PseudoAuthenticationProvider
+        </param-value>
+    </init-param>
+    <init-param>
+      <param-name>rest-url-pattern-prefix</param-name>
+      <param-value></param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>cibseven-pseudo-auth</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
 
   <!-- Composite Authentication Filter with Jwt Token and Http Basic -->
   <!--
