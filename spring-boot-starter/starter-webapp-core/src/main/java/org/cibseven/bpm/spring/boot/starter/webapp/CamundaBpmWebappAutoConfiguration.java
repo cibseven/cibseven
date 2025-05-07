@@ -101,11 +101,9 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer {
     	if (webapp.isUseLegacyWebapp()) {
     	    registry.addRedirectViewController("/", webapp.getLegacyApplicationPath() + "/app/");
     	} else {
-			//registry.addRedirectViewController("/", webapp.getApplicationPath() + "/");
-		    //registry.addRedirectViewController(webapp.getApplicationPath() + "/", webapp.getApplicationPath() + "/");
-		    registry.addRedirectViewController("/", "/webapp/");
-		    registry.addRedirectViewController("/webapp", "/webapp/");
-		    registry.addRedirectViewController("/webapp/", "/webapp/index.html");
+    		// using AppendTrailingSlashFilter
+			registry.addRedirectViewController("/", webapp.getApplicationPath() + "/");
+		    registry.addViewController(webapp.getApplicationPath() + "/").setViewName("forward:" + webapp.getApplicationPath() + "/index.html");
 		}
     }
   }
