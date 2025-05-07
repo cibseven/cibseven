@@ -89,7 +89,6 @@ camunda:
 
 flow:
   webclient:
-    legacy: false
     task:
       url: /webapp/#/seven/auth/tasks/*/
   # If this params is set to false, the number of instances and incidents wont be taken.
