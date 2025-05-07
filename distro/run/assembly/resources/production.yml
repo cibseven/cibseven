@@ -28,7 +28,9 @@ camunda.bpm:
   run:
 # https://docs.cibseven.org/manual/latest/user-guide/security/#authentication
 # https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#authentication
-    auth.enabled: true
+    auth:
+      enabled: true
+      authentication: composite
     rest.disable-wadl: true
     deployment.deploy-changed-only: true
 # https://docs.cibseven.org/manual/latest/user-guide/process-engine/identity-service/#configuration-properties-of-the-ldap-plugin
