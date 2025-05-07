@@ -37,7 +37,7 @@ public class Configuration {
 
   private Configuration() {
     Properties defaultSettings = loadProperties();
-    this.secret = getProperty(defaultSettings, "authentication.jwtSecret");
+    this.secret = getProperty(defaultSettings, "cibseven.webclient.authentication.jwtSecret");
   }
 
   public String getSecret() {

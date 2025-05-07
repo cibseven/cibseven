@@ -2,7 +2,7 @@
 # The provided links to documentation guides for each property will give more information about the purpose of each property.
 # security guide: https://docs.cibseven.org/manual/latest/user-guide/security/
 
-cibseven.bpm:
+camunda.bpm:
 # https://docs.cibseven.org/manual/latest/user-guide/security/#http-header-security-in-webapps
 # https://docs.cibseven.org/manual/latest/webapps/shared-options/header-security/
   webapp:
