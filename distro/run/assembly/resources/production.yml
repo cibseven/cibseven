@@ -188,7 +188,7 @@ cibseven:
 
 springdoc:
   swagger-ui:
-    path: /swagger-ui
+    path: /webapp/swagger-ui
     operationsSorter: alpha
     tagsSorter: alpha
     doc-expansion: none
