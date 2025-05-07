@@ -24,7 +24,7 @@ public class CamundaBpmRunAuthenticationProperties {
   public static final String PREFIX = CamundaBpmRunProperties.PREFIX + ".auth";
   public static final String DEFAULT_AUTH = "pseudo";
   public static final String BASIC_AUTH = "basic";
-  public static final String COMPOSITE_AUTH = "pseudo";
+  public static final String COMPOSITE_AUTH = "composite";
   public static final List<String> AUTH_METHODS = Arrays.asList(DEFAULT_AUTH, BASIC_AUTH, COMPOSITE_AUTH);
 
   boolean enabled;
