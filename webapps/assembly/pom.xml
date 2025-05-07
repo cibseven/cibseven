@@ -282,7 +282,7 @@
                 <configuration>
                   <tasks>
                     <mkdir dir="${project.basedir}/target/webapp" />
-                    <mkdir dir="${project.basedir}/target/camunda-welcome" />
+                    <mkdir dir="${project.basedir}/target/cibseven-welcome" />
                   </tasks>
                 </configuration>
               </execution>
@@ -302,8 +302,8 @@
               </webAppConfig>
               <contextHandlers>
                 <contextHandler implementation="org.eclipse.jetty.maven.plugin.JettyWebAppContext">
-                  <war>${project.basedir}/target/camunda-welcome/</war>
-                  <contextPath>/camunda-welcome</contextPath>
+                  <war>${project.basedir}/target/cibseven-welcome/</war>
+                  <contextPath>/cibseven-welcome</contextPath>
                 </contextHandler>
               </contextHandlers>
             </configuration>
@@ -380,7 +380,7 @@
                 <configuration>
                   <tasks>
                     <mkdir dir="${project.basedir}/target/webapp" />
-                    <mkdir dir="${project.basedir}/target/camunda-welcome" />
+                    <mkdir dir="${project.basedir}/target/cibseven-welcome" />
                   </tasks>
                 </configuration>
               </execution>
@@ -405,8 +405,8 @@
                   <contextPath>/engine-rest</contextPath>
                 </contextHandler>
                 <contextHandler implementation="org.eclipse.jetty.maven.plugin.JettyWebAppContext">
-                  <war>${project.basedir}/target/camunda-welcome/</war>
-                  <contextPath>/camunda-welcome</contextPath>
+                  <war>${project.basedir}/target/cibseven-welcome/</war>
+                  <contextPath>/cibseven-welcome</contextPath>
                 </contextHandler>
               </contextHandlers>
             </configuration>

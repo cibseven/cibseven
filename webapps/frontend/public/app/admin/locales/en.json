@@ -271,7 +271,7 @@
     "FILTER": "Filter",
     "FILTERS": "Filters",
     "FIRST_LOGIN_HEADING": "Welcome to CIB seven",
-    "FIRST_LOGIN_INFO": "It looks like this is your first time using the webapps. Check out the <a href=\"/camunda-welcome\">CIB seven Welcome Page</a> for a quick overview.",
+    "FIRST_LOGIN_INFO": "It looks like this is your first time using the webapps. Check out the <a href=\"/cibseven-welcome\">CIB seven Welcome Page</a> for a quick overview.",
     "GENERIC_CONFIRMATION_CANCEL": "Cancel",
     "GENERIC_CONFIRMATION_PROCEED": "Proceed",
     "GENERIC_CONFIRMATION_TITLE": "Please confirm",

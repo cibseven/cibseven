@@ -11,7 +11,7 @@ if [ ! -f "$FILE" ]; then
   # mkdir -p "$(dirname "$FILE")"
 
   # Generate a 155-character alphanumeric random string
-  RANDOM_STRING=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 155)
+  RANDOM_STRING=$(LC_CTYPE=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 155)
 
   # Write the content to the file
   echo "authentication.jwtSecret=$RANDOM_STRING" > "$FILE"
@@ -41,9 +41,9 @@ if [ -z "$BROWSER" ]; then
 fi
 
 if [ -z "$BROWSER" ]; then
-  (sleep 15; echo -e "We are sorry... We tried all we could do but we couldn't locate your default browser... \nIf you want to see our default website please open your browser and insert this URL:\nhttp://localhost:8080/camunda-welcome/index.html";) &
+  (sleep 15; echo -e "We are sorry... We tried all we could do but we couldn't locate your default browser... \nIf you want to see our default website please open your browser and insert this URL:\nhttp://localhost:8080/cibseven-welcome/index.html";) &
 else
-  (sleep 5; $BROWSER "http://localhost:8080/camunda-welcome/index.html";) &
+  (sleep 5; $BROWSER "http://localhost:8080/cibseven-welcome/index.html";) &
 fi
 
 /bin/sh "$(dirname "$0")/server/apache-tomcat-${version.tomcat}/bin/startup.sh"

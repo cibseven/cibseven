@@ -167,6 +167,9 @@
             <local-routing/>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:ee:6.0">
+			<global-modules>
+				<module name="org.cibseven.config" slot="main"/>
+			</global-modules>
             <spec-descriptor-property-replacement>false</spec-descriptor-property-replacement>
             <concurrent>
                 <context-services>

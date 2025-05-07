@@ -24,8 +24,11 @@ Contents:
         and one for Linux/Mac (.sh). After executing it, you can access the 
         following web applications:
 
-        webapps: http://localhost:8080/
-        rest: http://localhost:8080/engine-rest/
+        webapps:
+            http://localhost:8080/webapp/
+            http://localhost:8080/camunda/
+        rest:
+            http://localhost:8080/engine-rest/
 
   internal/
         This directory contains the Java application and optional components

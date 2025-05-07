@@ -317,7 +317,7 @@
     "FILTER_VARIABLE_NAME_PLACEHOLDER": "Machinenname der Variable",
     "FINISHED": "Abgeschlossen",
     "FIRST_LOGIN_HEADING": "Willkommen bei CIB seven",
-    "FIRST_LOGIN_INFO": "Anscheinend verwenden Sie die Webapps zum ersten mal. Besuchen Sie die <a href=\"/camunda-welcome\">CIB seven Welcome Seite</a> für einen schnellen Überblick.",
+    "FIRST_LOGIN_INFO": "Anscheinend verwenden Sie die Webapps zum ersten mal. Besuchen Sie die <a href=\"/cibseven-welcome\">CIB seven Welcome Seite</a> für einen schnellen Überblick.",
     "FOLLOW_UP": "Wiedervorlage",
     "FOLLOW_UP_DATE": "Wiedervorlagedatum",
     "FORM": "Formular",
