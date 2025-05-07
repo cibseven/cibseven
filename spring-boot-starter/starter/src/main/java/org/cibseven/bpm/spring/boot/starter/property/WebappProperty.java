@@ -29,8 +29,6 @@ public class WebappProperty {
 
   public static final String PREFIX = CamundaBpmProperties.PREFIX + ".webapp";
   
-  protected boolean useLegacyWebapp = false;
-
   protected boolean indexRedirectEnabled = true;
 
   protected String securityConfigFile = "/securityFilterRules.json";
@@ -59,14 +57,6 @@ public class WebappProperty {
 
   public void setIndexRedirectEnabled(boolean indexRedirectEnabled) {
     this.indexRedirectEnabled = indexRedirectEnabled;
-  }
-  
-  public boolean isUseLegacyWebapp() {
-    return useLegacyWebapp;
-  }
-
-  public void setUseLegacyWebapp(boolean useLegacyWebapp) {
-    this.useLegacyWebapp = useLegacyWebapp;
   }
 
   public String getLegacyWebjarClasspath() {

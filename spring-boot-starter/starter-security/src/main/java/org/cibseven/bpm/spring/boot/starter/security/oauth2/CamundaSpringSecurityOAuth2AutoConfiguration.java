@@ -70,7 +70,7 @@ public class CamundaSpringSecurityOAuth2AutoConfiguration {
                                                       OAuth2Properties oAuth2Properties) {
     this.oAuth2Properties = oAuth2Properties;
     WebappProperty webapp = properties.getWebapp();
-    this.webappPath = webapp.getApplicationPath();
+    this.webappPath = webapp.getLegacyApplicationPath();
   }
 
   @Bean
