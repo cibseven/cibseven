@@ -25,8 +25,8 @@ Contents:
         following web applications:
 
         webapps:
-            http://localhost:8080/webapp
-            http://localhost:8080/camunda
+            http://localhost:8080/webapp/
+            http://localhost:8080/camunda/
         rest:
             http://localhost:8080/engine-rest/
 
