@@ -50,7 +50,7 @@ public class ResourceLoadingProcessEnginesFilter extends ProcessEnginesFilter im
 
     if (requestUri.equals(legacyAppPath)) {
       // only redirect from index ("/") if index redirect is enabled
-	  if(!requestUri.isEmpty() || webappProperty.isIndexRedirectEnabled()) {    	  
+	  if(!requestUri.isEmpty() || webappProperty.isIndexRedirectEnabled()) {
       	  response.sendRedirect(String.format("%s%s/app/%s/", contextPath, legacyApplicationPath, DEFAULT_REDIRECT_APP));    	  
       	  return;
       }
@@ -64,7 +64,7 @@ public class ResourceLoadingProcessEnginesFilter extends ProcessEnginesFilter im
     InputStream is = null;
 
     try {
-      Resource resource = resourceLoader.getResource("classpath:"+webappProperty.getWebjarClasspath() + name);
+      Resource resource = resourceLoader.getResource("classpath:"+webappProperty.getLegacyWebjarClasspath() + name);
       is = resource.getInputStream();
 
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));
