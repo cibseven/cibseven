@@ -36,6 +36,7 @@ Contents:
         following web applications:
 
         http://localhost:8080/webapp
+        http://localhost:8080/camunda
         http://localhost:8080/engine-rest
 
   sql/
