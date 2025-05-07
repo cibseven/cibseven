@@ -98,17 +98,21 @@ public class CamundaBpmRunRestConfiguration {
         "/task/*",
         "/engine/*",
         "/identity/groups"
-	).stream().map(pattern -> (restApiPathPattern + pattern).replaceFirst("^(\\/+|([^/]))", "/$2")).toArray(String[]::new);
-	registration.addUrlPatterns(urlPatterns);
+	).stream().map(pattern -> addUrl(restApiPathPattern, pattern)).toArray(String[]::new);
 	registration.setAsyncSupported(true);
 
     // if nothing is set, use Http Basic authentication
     CamundaBpmRunAuthenticationProperties properties = camundaBpmRunProperties.getAuth();
     if (properties.getAuthentication() == null || CamundaBpmRunAuthenticationProperties.DEFAULT_AUTH.equals(properties.getAuthentication())) {
-      registration.addInitParameter("authentication-provider", "org.cibseven.bpm.engine.rest.security.auth.impl.CompositeAuthenticationProvider");
+    	urlPatterns = new String[] { addUrl(restApiPathPattern, "/filter/*") };
+    	registration.addInitParameter("authentication-provider", "org.cibseven.bpm.engine.rest.security.auth.impl.PseudoAuthenticationProvider");
+    } else if (CamundaBpmRunAuthenticationProperties.COMPOSITE_AUTH.equals(properties.getAuthentication())) {
+    	registration.addInitParameter("authentication-provider", "org.cibseven.bpm.engine.rest.security.auth.impl.CompositeAuthenticationProvider");
     } else if (CamundaBpmRunAuthenticationProperties.BASIC_AUTH.equals(properties.getAuthentication())) {
     	registration.addInitParameter("authentication-provider", "org.cibseven.bpm.engine.rest.security.auth.impl.HttpBasicAuthenticationProvider");
-    }
+	}
+    
+    registration.addUrlPatterns(urlPatterns);
     return registration;
   }
 
@@ -145,6 +149,10 @@ public class CamundaBpmRunRestConfiguration {
     CamundaJerseyResourceConfig camundaJerseyResourceConfig = new CamundaJerseyResourceConfig();
     camundaJerseyResourceConfig.setProperties(Collections.singletonMap("jersey.config.server.wadl.disableWadl", camundaBpmRunProperties.getRest().isDisableWadl()));
     return camundaJerseyResourceConfig;
+  }
+  
+  private String addUrl(String base, String extend) {
+	  return (base + extend).replaceFirst("^(\\/+|([^/]))", "/$2");
   }
 
 }

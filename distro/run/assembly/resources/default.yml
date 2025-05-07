@@ -20,6 +20,9 @@ camunda.bpm:
 # https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#example-application
     example:
       enabled: true
+    auth:
+      enabled: true
+      authentication: pseudo
 
 # datasource configuration is required
 spring.datasource:
