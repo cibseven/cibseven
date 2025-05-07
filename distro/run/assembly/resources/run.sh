@@ -38,7 +38,7 @@ if [ ! -f "$webclientProperties" ]; then
   RANDOM_STRING=$(LC_CTYPE=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 155)
 
   # Write the content to the file
-  echo "authentication.jwtSecret=$RANDOM_STRING" > "$webclientProperties"
+  echo "cibseven.webclient.authentication.jwtSecret=$RANDOM_STRING" > "$webclientProperties"
 
   echo "File \"$webclientProperties\" created with random jwtSecret."
 else

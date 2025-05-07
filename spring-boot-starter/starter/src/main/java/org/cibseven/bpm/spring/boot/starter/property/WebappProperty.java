@@ -21,18 +21,24 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import static org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties.joinOn;
 
 public class WebappProperty {
-
-  public static final String DEFAULT_APP_PATH = "/camunda";
+	
+  public static final String LEGACY_APP_PATH = "/camunda";
+  
+  public static final String DEFAULT_APP_PATH = "/webapp";
 
   public static final String PREFIX = CamundaBpmProperties.PREFIX + ".webapp";
-
+  
   protected boolean indexRedirectEnabled = true;
 
-  protected String webjarClasspath = "/META-INF/resources/webjars/camunda";
-
   protected String securityConfigFile = "/securityFilterRules.json";
+  
+  protected String legacyWebjarClasspath = "/META-INF/resources/webjars" + LEGACY_APP_PATH;
+  
+  protected String webjarClasspath = "/META-INF/resources/webjars" + DEFAULT_APP_PATH;
 
   protected String applicationPath = DEFAULT_APP_PATH;
+  
+  protected String legacyApplicationPath = LEGACY_APP_PATH;
 
   @NestedConfigurationProperty
   private CsrfProperties csrf = new CsrfProperties();
@@ -54,6 +60,14 @@ public class WebappProperty {
     this.indexRedirectEnabled = indexRedirectEnabled;
   }
 
+  public String getLegacyWebjarClasspath() {
+	return legacyWebjarClasspath;
+  }
+  
+  public void setLegacyWebjarClasspath(String legacyWebjarClasspath) {
+	  this.legacyWebjarClasspath = legacyWebjarClasspath;
+  }
+  
   public String getWebjarClasspath() {
     return webjarClasspath;
   }
@@ -68,6 +82,14 @@ public class WebappProperty {
 
   public void setSecurityConfigFile(String securityConfigFile) {
     this.securityConfigFile = securityConfigFile;
+  }
+  
+  public String getLegacyApplicationPath() {
+	return legacyApplicationPath;
+  }
+  
+  public void setLegacyApplicationPath(String legacyApplicationPath) {
+	this.legacyApplicationPath = sanitizeApplicationPath(legacyApplicationPath);
   }
 
   public String getApplicationPath() {

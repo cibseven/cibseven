@@ -28,7 +28,7 @@ public class WebAppPathPropertyDefaultTest extends ParsePropertiesHelper {
     // given
 
     // when
-    String applicationPath = webapp.getApplicationPath();
+    String applicationPath = webapp.getLegacyApplicationPath();
 
     // then
     assertThat(applicationPath).isEqualTo("/camunda");

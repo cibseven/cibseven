@@ -43,15 +43,16 @@ public class ResourceLoadingProcessEnginesFilter extends ProcessEnginesFilter im
   protected void applyFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
     String contextPath = request.getContextPath();
     String requestUri = request.getRequestURI().substring(contextPath.length());
-    String applicationPath = webappProperty.getApplicationPath();
+    String legacyApplicationPath = webappProperty.getLegacyApplicationPath();
 
     requestUri = trimChar(requestUri, '/');
-    String appPath = trimChar(applicationPath, '/');
-    if (requestUri.equals(appPath)) {
+    String legacyAppPath = trimChar(legacyApplicationPath, '/');
+
+    if (requestUri.equals(legacyAppPath)) {
       // only redirect from index ("/") if index redirect is enabled
-      if(!requestUri.isEmpty() || webappProperty.isIndexRedirectEnabled()) {
-        response.sendRedirect(String.format("%s%s/app/%s/", contextPath, applicationPath, DEFAULT_REDIRECT_APP));
-        return;
+	  if(!requestUri.isEmpty() || webappProperty.isIndexRedirectEnabled()) {
+      	  response.sendRedirect(String.format("%s%s/app/%s/", contextPath, legacyApplicationPath, DEFAULT_REDIRECT_APP));    	  
+      	  return;
       }
     }
 
@@ -63,7 +64,7 @@ public class ResourceLoadingProcessEnginesFilter extends ProcessEnginesFilter im
     InputStream is = null;
 
     try {
-      Resource resource = resourceLoader.getResource("classpath:"+webappProperty.getWebjarClasspath() + name);
+      Resource resource = resourceLoader.getResource("classpath:"+webappProperty.getLegacyWebjarClasspath() + name);
       is = resource.getInputStream();
 
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));

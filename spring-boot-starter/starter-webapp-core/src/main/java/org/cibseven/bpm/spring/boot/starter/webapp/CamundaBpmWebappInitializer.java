@@ -88,29 +88,33 @@ public class CamundaBpmWebappInitializer implements ServletContextInitializer {
 
     WebappProperty webapp = properties.getWebapp();
     String applicationPath = webapp.getApplicationPath();
+    String legacyApplicationPath = webapp.getLegacyApplicationPath();
 
-    ServletContextUtil.setAppPath(applicationPath, servletContext);
+    ServletContextUtil.setAppPath(legacyApplicationPath, servletContext);
 
     // make sure that trailing slashes are added for the registered patterns
     // see AppendTrailingSlashFilter for details
     registerFilter("AppendTrailingSlashFilter", AppendTrailingSlashFilter.class,
-        applicationPath + "/app",
-        applicationPath + "/app/cockpit",
-        applicationPath + "/app/admin",
-        applicationPath + "/app/tasklist",
-        applicationPath + "/app/welcome");
+		legacyApplicationPath + "/app",
+		legacyApplicationPath + "/app/cockpit",
+		legacyApplicationPath + "/app/admin",
+		legacyApplicationPath + "/app/tasklist",
+		legacyApplicationPath + "/app/welcome",
+        applicationPath);
     registerFilter("Authentication Filter", AuthenticationFilter.class,
         Collections.singletonMap("cacheTimeToLive", getAuthCacheTTL(webapp)),
-        applicationPath + "/api/*", applicationPath + "/app/*");
-    registerFilter("Security Filter", LazySecurityFilter.class,
+        legacyApplicationPath + "/api/*", legacyApplicationPath + "/app/*");
+    
+	registerFilter("Security Filter", LazySecurityFilter.class,
         singletonMap("configFile", webapp.getSecurityConfigFile()),
-        applicationPath + "/api/*", applicationPath + "/app/*");
+        webapp.getLegacyApplicationPath() + "/api/*", webapp.getLegacyApplicationPath() + "/app/*");
+    
     registerFilter("CsrfPreventionFilter", CsrfPreventionFilter.class,
         webapp.getCsrf().getInitParams(),
-        applicationPath + "/api/*", applicationPath + "/app/*");
+        legacyApplicationPath + "/api/*", legacyApplicationPath + "/app/*");
     registerFilter("SessionCookieFilter", SessionCookieFilter.class,
         webapp.getSessionCookie().getInitParams(),
-        applicationPath + "/api/*", applicationPath + "/app/*");
+        legacyApplicationPath + "/api/*", legacyApplicationPath + "/app/*");
 
     Map<String, String> headerSecurityProperties = webapp
       .getHeaderSecurity()
@@ -118,30 +122,30 @@ public class CamundaBpmWebappInitializer implements ServletContextInitializer {
 
     registerFilter("HttpHeaderSecurity", HttpHeaderSecurityFilter.class,
         headerSecurityProperties,
-        applicationPath + "/api/*", applicationPath + "/app/*");
+        legacyApplicationPath + "/api/*", legacyApplicationPath + "/app/*");
 
     registerFilter("Engines Filter", LazyProcessEnginesFilter.class,
-        applicationPath + "/api/*",
-                   applicationPath + "/app/*",
-                   applicationPath + "/",
-                   applicationPath);
+		legacyApplicationPath + "/api/*",
+		legacyApplicationPath + "/app/*",
+		legacyApplicationPath + "/",
+		legacyApplicationPath);
 
     registerFilter("EmptyBodyFilter", EmptyBodyFilter.class,
-        applicationPath + "/api/*", applicationPath + "/app/*");
+		legacyApplicationPath + "/api/*", legacyApplicationPath + "/app/*");
 
     registerFilter("CacheControlFilter", CacheControlFilter.class,
-        applicationPath + "/api/*", applicationPath + "/app/*", applicationPath + "/assets/*");
+		legacyApplicationPath + "/api/*", legacyApplicationPath + "/app/*", legacyApplicationPath + "/assets/*");
 
     registerServlet("Cockpit Api", CockpitApplication.class,
-        applicationPath + "/api/cockpit/*");
+		legacyApplicationPath + "/api/cockpit/*");
     registerServlet("Admin Api", AdminApplication.class,
-        applicationPath + "/api/admin/*");
+		legacyApplicationPath + "/api/admin/*");
     registerServlet("Tasklist Api", TasklistApplication.class,
-        applicationPath + "/api/tasklist/*");
+		legacyApplicationPath + "/api/tasklist/*");
     registerServlet("Engine Api", EngineRestApplication.class,
-        applicationPath + "/api/engine/*");
+		legacyApplicationPath + "/api/engine/*");
     registerServlet("Welcome Api", WelcomeApplication.class,
-        applicationPath + "/api/welcome/*");
+		legacyApplicationPath + "/api/welcome/*");
   }
 
   protected String getAuthCacheTTL(WebappProperty webapp) {
