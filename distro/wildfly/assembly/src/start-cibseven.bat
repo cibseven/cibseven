@@ -20,7 +20,7 @@ if not exist "%FILE%" (
     )
 
     :: Write to the file with a newline at the end
-    > "%FILE%" echo.authentication.jwtSecret=!RANDOM_STRING!
+    > "%FILE%" echo.cibseven.webclient.authentication.jwtSecret=!RANDOM_STRING!
 
     echo File "%FILE%" created with random jwtSecret.
 ) else (
