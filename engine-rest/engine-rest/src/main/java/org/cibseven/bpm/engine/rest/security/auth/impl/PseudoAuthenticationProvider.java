@@ -21,28 +21,27 @@ import org.cibseven.bpm.engine.rest.security.auth.AuthenticationProvider;
 import org.cibseven.bpm.engine.rest.security.auth.AuthenticationResult;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 /**
-* <p>
-* Authenticates a user through userid from custom header.
-* </p>
-*
-* @author Patrick Fincke
-*/
+ * <p>
+ * Authenticates a user through userid from custom header.
+ * </p>
+ *
+ * @author Patrick Fincke
+ */
 public class PseudoAuthenticationProvider implements AuthenticationProvider {
-  
+
   protected static final String USER_ID_HEADER = "Context-User-ID";
-  
+
   @Override
   public AuthenticationResult extractAuthenticatedUser(HttpServletRequest request,
       ProcessEngine engine) {
     String userIdHeader = request.getHeader(USER_ID_HEADER);
-    if (userIdHeader == null || userIdHeader.isEmpty()) {
-      return AuthenticationResult.unsuccessful();
-    }
     return AuthenticationResult.successful(userIdHeader);
   }
-  
+
   @Override
-  public void augmentResponseByAuthenticationChallenge(HttpServletResponse response, ProcessEngine engine) {  }
-  
+  public void augmentResponseByAuthenticationChallenge(HttpServletResponse response, ProcessEngine engine) {
+  }
+
 }
