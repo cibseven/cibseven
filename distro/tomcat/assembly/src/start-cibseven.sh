@@ -11,7 +11,7 @@ if [ ! -f "$FILE" ]; then
   # mkdir -p "$(dirname "$FILE")"
 
   # Generate a 155-character alphanumeric random string
-  RANDOM_STRING=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 155)
+  RANDOM_STRING=$(LC_CTYPE=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 155)
 
   # Write the content to the file
   echo "authentication.jwtSecret=$RANDOM_STRING" > "$FILE"
