@@ -103,10 +103,10 @@ public class CamundaBpmRunRestConfiguration {
 
     // if nothing is set, use Http Basic authentication
     CamundaBpmRunAuthenticationProperties properties = camundaBpmRunProperties.getAuth();
-    if (properties.getAuthentication() == null || CamundaBpmRunAuthenticationProperties.PSEUDO_AUTH.equals(properties.getAuthentication())) {
+    if (properties.getAuthentication() == null || CamundaBpmRunAuthenticationProperties.DEFAULT_AUTH.equals(properties.getAuthentication())) {
     	urlPatterns = new String[] { addUrl(restApiPathPattern, "/filter/*") };
     	registration.addInitParameter("authentication-provider", "org.cibseven.bpm.engine.rest.security.auth.impl.PseudoAuthenticationProvider");
-    } else if (CamundaBpmRunAuthenticationProperties.DEFAULT_AUTH.equals(properties.getAuthentication())) {
+    } else if (CamundaBpmRunAuthenticationProperties.COMPOSITE_AUTH.equals(properties.getAuthentication())) {
     	registration.addInitParameter("authentication-provider", "org.cibseven.bpm.engine.rest.security.auth.impl.CompositeAuthenticationProvider");
     } else if (CamundaBpmRunAuthenticationProperties.BASIC_AUTH.equals(properties.getAuthentication())) {
     	registration.addInitParameter("authentication-provider", "org.cibseven.bpm.engine.rest.security.auth.impl.HttpBasicAuthenticationProvider");
