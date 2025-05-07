@@ -84,7 +84,7 @@ if not exist "%webclientProperties%" (
     )
 
     :: Write to the file with a newline at the end
-    > "%webclientProperties%" echo.authentication.jwtSecret=!RANDOM_STRING!
+    > "%webclientProperties%" echo.cibseven.webclient.authentication.jwtSecret=!RANDOM_STRING!
 
     echo File "%webclientProperties%" created with random jwtSecret.
 ) else (
