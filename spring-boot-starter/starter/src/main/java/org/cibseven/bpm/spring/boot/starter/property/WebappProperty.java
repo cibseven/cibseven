@@ -38,6 +38,8 @@ public class WebappProperty {
   protected String webjarClasspath = "/META-INF/resources/webjars" + DEFAULT_APP_PATH;
 
   protected String applicationPath = DEFAULT_APP_PATH;
+  
+  protected String legacyApplicationPath = LEGACY_APP_PATH;
 
   @NestedConfigurationProperty
   private CsrfProperties csrf = new CsrfProperties();
@@ -63,6 +65,10 @@ public class WebappProperty {
 	return legacyWebjarClasspath;
   }
   
+  public void setLegacyWebjarClasspath(String legacyWebjarClasspath) {
+	  this.legacyWebjarClasspath = legacyWebjarClasspath;
+  }
+  
   public String getWebjarClasspath() {
     return webjarClasspath;
   }
@@ -80,7 +86,11 @@ public class WebappProperty {
   }
   
   public String getLegacyApplicationPath() {
-	return LEGACY_APP_PATH;
+	return legacyApplicationPath;
+  }
+  
+  public void setLegacyApplicationPath(String legacyApplicationPath) {
+	this.legacyApplicationPath = sanitizeApplicationPath(legacyApplicationPath);
   }
 
   public String getApplicationPath() {
