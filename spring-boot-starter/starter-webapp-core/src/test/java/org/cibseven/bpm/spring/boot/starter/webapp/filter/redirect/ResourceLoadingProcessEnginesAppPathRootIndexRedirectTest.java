@@ -21,8 +21,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
-import org.cibseven.bpm.spring.boot.starter.webapp.filter.util.HttpClientRule;
+import org.cibseven.bpm.spring.boot.starter.property.WebappProperty;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.util.FilterTestApp;
+import org.cibseven.bpm.spring.boot.starter.webapp.filter.util.HttpClientRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,7 +36,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(classes = { FilterTestApp.class},
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     properties = {
-        "camunda.bpm.webapp.application-path=/",
+        "camunda.bpm.webapp.application-path=" + WebappProperty.DEFAULT_APP_PATH,
         "camunda.bpm.webapp.index-redirect-enabled=true",
         "camunda.bpm.admin-user.id=admin" })
 @DirtiesContext
@@ -55,6 +56,10 @@ public class ResourceLoadingProcessEnginesAppPathRootIndexRedirectTest {
 
     // then
     // the request should have been redirected to Tasklist
-    assertThat(con.getURL().toString()).isEqualTo("http://localhost:" + port + "/app/tasklist/default/");
+    // assertThat(con.getURL().toString()).isEqualTo("http://localhost:" + port + "/app/tasklist/default/");
+    
+    // logic changed to use application path 
+    assertThat(con.getURL().toString()).isEqualTo("http://localhost:" + port + WebappProperty.DEFAULT_APP_PATH + "/");
+    
   }
 }

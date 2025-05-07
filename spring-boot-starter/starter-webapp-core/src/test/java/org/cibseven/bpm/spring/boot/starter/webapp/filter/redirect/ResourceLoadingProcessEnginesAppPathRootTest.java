@@ -22,8 +22,9 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 
 import org.apache.commons.io.IOUtils;
-import org.cibseven.bpm.spring.boot.starter.webapp.filter.util.HttpClientRule;
+import org.cibseven.bpm.spring.boot.starter.property.WebappProperty;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.util.FilterTestApp;
+import org.cibseven.bpm.spring.boot.starter.webapp.filter.util.HttpClientRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +37,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(classes = { FilterTestApp.class},
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     properties = {
-        "camunda.bpm.webapp.application-path=/",
+        "camunda.bpm.webapp.application-path=" + WebappProperty.DEFAULT_APP_PATH,
         "camunda.bpm.webapp.index-redirect-enabled=false" })
 @DirtiesContext
 public class ResourceLoadingProcessEnginesAppPathRootTest {

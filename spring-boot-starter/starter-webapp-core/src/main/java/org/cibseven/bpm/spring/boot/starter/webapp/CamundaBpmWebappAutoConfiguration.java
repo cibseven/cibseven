@@ -88,7 +88,6 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer {
         .addResourceLocations(legacyClasspath + "/") // add slash to get rid of the WARN log
         .resourceChain(true)
         .addResolver(faviconResourceResolver());    
-    // registry.addResourceHandler(legacyApplicationPath + "/**").addResourceLocations(legacyClasspath+ "/");     
       
      registry.addResourceHandler(webapp.getApplicationPath() + "/**").addResourceLocations("classpath:" + webapp.getWebjarClasspath()+ "/");     
 
@@ -100,7 +99,7 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer {
     WebappProperty webapp = properties.getWebapp();
     if (webapp.isIndexRedirectEnabled()) {
 		// using AppendTrailingSlashFilter
-		registry.addRedirectViewController("/", webapp.getApplicationPath() + "/");
+      registry.addRedirectViewController("/", webapp.getApplicationPath() + "/");
 	    registry.addViewController(webapp.getApplicationPath() + "/").setViewName("forward:" + webapp.getApplicationPath() + "/index.html");
     }
   }

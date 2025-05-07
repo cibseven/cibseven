@@ -17,7 +17,6 @@
 package org.cibseven.bpm.spring.boot.starter.property;
 
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
-import org.springframework.beans.factory.annotation.Value;
 
 import static org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties.joinOn;
 
