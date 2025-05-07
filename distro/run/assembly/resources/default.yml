@@ -47,100 +47,88 @@ logging:
       springframework:
         web: DEBUG
 
-# LDAP
-ldap:
-  url: ldap://ldap.cibseven.org
-  folder: DC=cibseven,DC=org
-  userNameAttribute: samAccountName
-  userDisplayNameAttribute: name
-  modifiedDateFormat: yyyyMMddHHmmss.SX
-  followReferrals: follow
-
-# Token generation
-authentication:
-  jwtSecret: 
-  tokenValidMinutes: 60
-  tokenProlongMinutes: 1440
-  
-# BPM Provider
-bpm:
-  provider: org.cibseven.webapp.providers.SevenProvider
-
-# User providers
-user:
-  provider: org.cibseven.webapp.auth.SevenUserProvider
-  # provider: org.cibseven.webapp.auth.LdapUserProvider
-  # provider: org.cibseven.webapp.auth.KeycloakUserProvider
-  # provider: org.cibseven.webapp.auth.AdfsUserProvider
-
-# Set the wild card is gonna be used for the users search. By default is "*".
-users:
-  search:
-    wildcard:
-
-userAnon:
-  id: demo
-
-# Engine rest
-camunda:
-  engineRest:
-    url: http://localhost:8080
-  historyLevel: full
-
-flow:
+cibseven:
   webclient:
-    task:
-      url: /webapp/#/seven/auth/tasks/*/
-  # If this params is set to false, the number of instances and incidents wont be taken.
-  fetchInstances: true
-  fetchIncidents: true
-  # External token user creation
-  token:
-    secret: 
-    deny:
-      external:
-        ip: true
-  datasource:
-    fileValue:
-      enabled: false
+    # Engine rest
+    engineRest:
+      url: http://localhost:8080
+    historyLevel: full
+    # Token generation
+    authentication:
+      jwtSecret:
+      tokenValidMinutes: 60
+      tokenProlongMinutes: 1440
+    # LDAP
+    ldap:
+      url: ldap://ldap.cibseven.org
+      folder: DC=cibseven,DC=org
+      userNameAttribute: samAccountName
+      userDisplayNameAttribute: name
+      modifiedDateFormat: yyyyMMddHHmmss.SX
+      followReferrals: follow
 
-# Camunda Cockpit URL
-cockpit:
-  url: /camunda/app/cockpit/default/
+    # BPM Provider
+    bpm:
+      provider: org.cibseven.webapp.providers.SevenProvider
 
-# Used to set a theme (Bootstrap)
-theme: cib
+    # User providers
+    user:
+      provider: org.cibseven.webapp.auth.SevenUserProvider
+      # provider: org.cibseven.webapp.auth.LdapUserProvider
+      # provider: org.cibseven.webapp.auth.KeycloakUserProvider
+      # provider: org.cibseven.webapp.auth.AdfsUserProvider
 
-services:
-  basePath: /webapp/services/v1
+    # Set the wild card is gonna be used for the users search. By default is "*".
+    users:
+      search:
+        wildcard:
+
+    # If this params is set to false, the number of instances and incidents wont be taken.
+    fetchInstances: true
+    fetchIncidents: true
+
+    # External token user creation
+    token:
+      secret: 
+      deny:
+        external:
+          ip: true
+    datasource:
+      fileValue:
+        enabled: false
+    cockpit:
+      url: /camunda/app/cockpit/default/
+    theme: cib
+
+    services:
+      basePath: /webapp/services/v1
+  
+    api:
+      common:
+        title: "CIB seven webclient API"
+        description: "This API exposes the functionality of CIB seven webclient as a REST service under the Apache License 2.0."
+        termsOfService: "https://www.apache.org/licenses/LICENSE-2.0"
+        license: "Apache 2.0"
+        licenseUrl: "https://www.apache.org/licenses/LICENSE-2.0"
+        contact:
+          name: "CIB seven"
+          url: "https://cibseven.org"
+          email: "info@cibseven.org"
+        # webclient server url for the swagger-ui. Only needs to be set if the automatic detection is wrong.
+        url:
+
+#    custom:
+#      spring:
+#        jackson:
+#          parser:
+#            max-size: 25000000
 
 springdoc:
   swagger-ui:
-    path: /webapp/swagger-ui
+    path: /swagger-ui
     operationsSorter: alpha
     tagsSorter: alpha
-    doc-expansion: none 
-  # webclient server url for the swagger-ui. Only needs to be set if the automatic detection is wrong.
-  cibsevenWebclient:
-    serverUrl: ""
-
-api:
-  common:
-    title: "CIB seven webclient API"
-    description: "This API exposes the functionality of CIB seven webclient as a REST service under the Apache License 2.0."
-    termsOfService: "https://www.apache.org/licenses/LICENSE-2.0"
-    license: "Apache 2.0"
-    licenseUrl: "https://www.apache.org/licenses/LICENSE-2.0"
-    contact:
-      name: "CIB seven"
-      url: "https://cibseven.org"
-      email: "info@cibseven.org"
-
-#custom:
-#  spring:
-#    jackson:
-#      parser:
-#        max-size: 25000000
+    doc-expansion: none
 
 # Activate "/actuator/info" and "/actuator/health" endpoints
 management:
