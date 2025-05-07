@@ -37,6 +37,9 @@ public class PseudoAuthenticationProvider implements AuthenticationProvider {
   public AuthenticationResult extractAuthenticatedUser(HttpServletRequest request,
       ProcessEngine engine) {
     String userIdHeader = request.getHeader(USER_ID_HEADER);
+    if (userIdHeader == null || userIdHeader.isEmpty()) {
+      return AuthenticationResult.successful("");
+    }
     return AuthenticationResult.successful(userIdHeader);
   }
 
