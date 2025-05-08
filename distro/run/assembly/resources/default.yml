@@ -46,9 +46,6 @@ spring:
 logging:
   level:
     root: INFO
-    org:
-      springframework:
-        web: DEBUG
 
 cibseven:
   webclient:
