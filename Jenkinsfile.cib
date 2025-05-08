@@ -46,18 +46,18 @@ pipeline {
             description: 'Only for master branch; Release or snapshot build'
         )
         choice(
-            name: 'DEPLOY',
+            name: 'DEPLOY_TO_ARTIFACTS',
             choices: ['Auto', 'Run', 'Disable'],
             description: """Only for master branch;
                 When
-                - RELEASE=false, DEPLOY=Auto|Run: deploy artifacts to artifacts.cibseven.org
-                - RELEASE=true, DEPLOY=Run: deploy artifacts to artifacts.cibseven.org
+                - RELEASE=false, DEPLOY_TO_ARTIFACTS=Auto|Run: deploy artifacts to artifacts.cibseven.org
+                - RELEASE=true, DEPLOY_TO_ARTIFACTS=Run: deploy artifacts to artifacts.cibseven.org
             """
         )
-        password(
-            name: 'DEPLOY_MAVEN_CENTRAL_PASSWORD',
-            defaultValue: '',
-            description: 'Enter a password for deployment to Maven Central (no need to activate DEPLOY parameter above if you want just to deploy to Maven Central). If you will not change this value - you will not run deploy to Maven Central.'
+        booleanParam(
+            name: 'DEPLOY_TO_MAVEN_CENTRAL',
+            defaultValue: false,
+            description: 'Deploy artifacts to Maven Central (no need to activate DEPLOY_TO_ARTIFACTS parameter above if you want just to deploy to Maven Central). If you will not change this value - you will not run deploy to Maven Central.'
         )
         choice(
             name: 'OPEN_API',
@@ -278,15 +278,15 @@ pipeline {
         stage('Deploy to artifacts.cibseven.org') {
             when {
                 anyOf {
-                    // allow deploy of snapshots from main branch with RELEASE=false, DEPLOY='Auto'
+                    // allow deploy of snapshots from main branch with RELEASE=false, DEPLOY_TO_ARTIFACTS='Auto'
                     allOf {
                         branch 'main'
                         expression { params.RELEASE == false } // it is default value
-                        expression { params.DEPLOY == 'Auto' } // it is default value
+                        expression { params.DEPLOY_TO_ARTIFACTS == 'Auto' } // it is default value
                         expression { mavenProjectInformation.version.endsWith("-SNAPSHOT") == true }
                     }
-                    // allow deploy DEPLOY='Run', but not with DEPLOY='Auto'.
-                    expression { params.DEPLOY == 'Run' }
+                    // allow deploy DEPLOY_TO_ARTIFACTS='Run', but not with DEPLOY_TO_ARTIFACTS='Auto'.
+                    expression { params.DEPLOY_TO_ARTIFACTS == 'Run' }
                 }
             }
             steps {
@@ -311,7 +311,7 @@ pipeline {
         stage('Deploy to Maven Central') {
             when {
                 allOf {
-                    expression { params.DEPLOY_MAVEN_CENTRAL_PASSWORD.toString().isEmpty() == false } // "" is default value
+                    expression { params.DEPLOY_TO_MAVEN_CENTRAL }
                     expression { mavenProjectInformation.version.endsWith("-SNAPSHOT") == false }
                     expression { isPatchVersion() == false }
                 }
@@ -319,14 +319,21 @@ pipeline {
             steps {
                 script {
                     withMaven(options: []) {
-                        sh """
-                            mvn -T4 -U \
-                                clean deploy \
-                                -Psonatype-oss-release \
-                                -Dskip.cibseven.release=false \
-                                -DskipTests \
-                                -Dgpg.passphrase=${params.DEPLOY_MAVEN_CENTRAL_PASSWORD}
-                        """
+                        withCredentials([file(credentialsId: 'credential-cibseven-gpg-private-key', variable: 'GPG_KEY_FILE'), string(credentialsId: 'credential-cibseven-gpg-passphrase', variable: 'GPG_KEY_PASS')]) {
+                            sh "gpg --batch --import ${GPG_KEY_FILE}"
+
+                            def GPG_KEYNAME = sh(script: "gpg --list-keys --with-colons | grep pub | cut -d: -f5", returnStdout: true).trim()
+
+                            sh """
+                                mvn -T4 -U \
+                                    -Dgpg.keyname="${GPG_KEYNAME}" \
+                                    -Dgpg.passphrase="${GPG_KEY_PASS}" \
+                                    clean deploy \
+                                    -Psonatype-oss-release \
+                                    -Dskip.cibseven.release="${!params.DEPLOY_TO_ARTIFACTS}" \
+                                    -DskipTests
+                            """
+                        }
                     }
                 }
             }
