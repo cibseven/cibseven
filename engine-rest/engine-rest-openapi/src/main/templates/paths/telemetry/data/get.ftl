@@ -23,8 +23,8 @@
                        "value": {
                            "installation": "8343cc7a-8ad1-42d4-97d2-43452c0bdfa3",
                            "product": {
-                             "name": "Camunda BPM Runtime",
-                             "version": "7.14.0",
+                             "name": "CIB seven",
+                             "version": "2.0.0",
                              "edition": "enterprise",
                              "internals": {
                                "database": {  
