@@ -43,12 +43,12 @@ pipeline {
         booleanParam(
             name: 'RELEASE',
             defaultValue: false,
-            description: 'Only for master branch; Release or snapshot build'
+            description: 'Only for main branch; Release or snapshot build'
         )
         choice(
             name: 'DEPLOY_TO_ARTIFACTS',
             choices: ['Auto', 'Run', 'Disable'],
-            description: """Only for master branch;
+            description: """Only for main branch;
                 When
                 - RELEASE=false, DEPLOY_TO_ARTIFACTS=Auto|Run: deploy artifacts to artifacts.cibseven.org
                 - RELEASE=true, DEPLOY_TO_ARTIFACTS=Run: deploy artifacts to artifacts.cibseven.org
@@ -62,18 +62,18 @@ pipeline {
         choice(
             name: 'OPEN_API',
             choices: ['Auto', 'Run', 'Disable'],
-            description: """Only for master branch;
+            description: """Only for main branch;
                 When
-                - OPEN_API=Auto: creates openAPI index.html only for master branch with RELEASE=true
+                - OPEN_API=Auto: creates openAPI index.html only for main branch with RELEASE=true
                 - OPEN_API=Run: creates openAPI index.html
             """
         )
         choice(
             name: 'JAVA_DOCS',
             choices: ['Auto', 'Run', 'Disable'],
-            description: """Only for master branch;
+            description: """Only for main branch;
                 When
-                - JAVA_DOCS=Auto: creates javaDocs pages only for master branch with RELEASE=true
+                - JAVA_DOCS=Auto: creates javaDocs pages only for main branch with RELEASE=true
                 - JAVA_DOCS=Run: creates javaDocs pages
             """
         )
@@ -453,7 +453,7 @@ pipeline {
         failure {
             script {
                 log.warning '❌ Build failed'
-                if (env.BRANCH_NAME == 'master') {
+                if (env.BRANCH_NAME == 'main') {
                     notifyResult(
                         office365WebhookId: pipelineParams.office365WebhookId,
                         message: "Access build info at ${env.BUILD_URL}"
@@ -465,7 +465,7 @@ pipeline {
         fixed {
             script {
                 log.info '✅ Previous issues fixed'
-                if (env.BRANCH_NAME == 'master') {
+                if (env.BRANCH_NAME == 'main') {
                     notifyResult(
                         office365WebhookId: pipelineParams.office365WebhookId,
                         message: "Access build info at ${env.BUILD_URL}"
