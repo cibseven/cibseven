@@ -46,9 +46,6 @@ spring:
 logging:
   level:
     root: INFO
-    org:
-      springframework:
-        web: DEBUG
 
 cibseven:
   webclient:
@@ -127,8 +124,10 @@ cibseven:
 #            max-size: 25000000
 
 springdoc:
+  api-docs:
+    path: /webapp/v3/api-docs
   swagger-ui:
-    path: /swagger-ui
+    path: /webapp/swagger-ui
     operationsSorter: alpha
     tagsSorter: alpha
     doc-expansion: none
