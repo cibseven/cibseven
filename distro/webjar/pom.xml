@@ -7,7 +7,7 @@
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-parent</artifactId>
     <relativePath>../../parent</relativePath>
-    <version>1.2.0-SNAPSHOT</version>
+    <version>2.0.0</version>
   </parent>
 
   <groupId>org.cibseven.bpm.webapp</groupId>
@@ -17,7 +17,7 @@
 
   <properties>
     <skipTests>true</skipTests>
-  	<cibseven-webapp.version>1.0.0-SNAPSHOT</cibseven-webapp.version>
+    <cibseven-webapp.version>2.0.0</cibseven-webapp.version>
   </properties>
 
   <dependencyManagement>
