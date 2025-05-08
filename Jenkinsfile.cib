@@ -45,14 +45,10 @@ pipeline {
             defaultValue: false,
             description: 'Only for main branch; Release or snapshot build'
         )
-        choice(
+        booleanParam(
             name: 'DEPLOY_TO_ARTIFACTS',
-            choices: ['Auto', 'Run', 'Disable'],
-            description: """Only for main branch;
-                When
-                - RELEASE=false, DEPLOY_TO_ARTIFACTS=Auto|Run: deploy artifacts to artifacts.cibseven.org
-                - RELEASE=true, DEPLOY_TO_ARTIFACTS=Run: deploy artifacts to artifacts.cibseven.org
-            """
+            defaultValue: false,
+            description: "Deploy artifacts to artifacts.cibseven.org. Default false, but true when main branch and SNAPSHOT version"
         )
         booleanParam(
             name: 'DEPLOY_TO_MAVEN_CENTRAL',
@@ -278,15 +274,16 @@ pipeline {
         stage('Deploy to artifacts.cibseven.org') {
             when {
                 anyOf {
-                    // allow deploy of snapshots from main branch with RELEASE=false, DEPLOY_TO_ARTIFACTS='Auto'
+                    // allow deploy of snapshots from main branch
                     allOf {
                         branch 'main'
-                        expression { params.RELEASE == false } // it is default value
-                        expression { params.DEPLOY_TO_ARTIFACTS == 'Auto' } // it is default value
                         expression { mavenProjectInformation.version.endsWith("-SNAPSHOT") == true }
                     }
-                    // allow deploy DEPLOY_TO_ARTIFACTS='Run', but not with DEPLOY_TO_ARTIFACTS='Auto'.
-                    expression { params.DEPLOY_TO_ARTIFACTS == 'Run' }
+                    // force deploy
+                    allOf {
+                        expression { params.DEPLOY_TO_ARTIFACTS }
+                        expression { params.DEPLOY_TO_MAVEN_CENTRAL == false }
+                    }
                 }
             }
             steps {
