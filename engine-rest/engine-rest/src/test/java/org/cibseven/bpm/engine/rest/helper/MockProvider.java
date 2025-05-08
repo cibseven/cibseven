@@ -992,8 +992,8 @@ public abstract class MockProvider {
 
   // Telemetry
   public static final String EXAMPLE_TELEMETRY_INSTALLATION_ID = "8343cc7a-8ad1-42d4-97d2-43452c0bdfa3";
-  public static final String EXAMPLE_TELEMETRY_PRODUCT_NAME = "Camunda BPM Runtime";
-  public static final String EXAMPLE_TELEMETRY_PRODUCT_VERSION = "7.14.0";
+  public static final String EXAMPLE_TELEMETRY_PRODUCT_NAME = "CIB seven";
+  public static final String EXAMPLE_TELEMETRY_PRODUCT_VERSION = "2.0.0";
   public static final String EXAMPLE_TELEMETRY_PRODUCT_EDITION = "enterprise";
   public static final String EXAMPLE_TELEMETRY_DB_VENDOR = "h2";
   public static final String EXAMPLE_TELEMETRY_DB_VERSION = "1.4.190 (2015-10-11)";
