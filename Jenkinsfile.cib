@@ -351,6 +351,7 @@ pipeline {
             steps {
                 script {
                     withMaven {
+                        sh 'mvn -f engine-rest/engine-rest-openapi-generator/pom.xml clean install -U'
                         sh 'mvn -f engine-rest/engine-rest-openapi/pom.xml clean install -U'
                         sh 'mvn -f engine-rest/docs/pom.xml clean package -U'
                     }
