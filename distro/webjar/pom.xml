@@ -41,6 +41,13 @@
       <type>jar</type>
       <classifier>classes</classifier>
     </dependency>
+    <dependency>
+      <groupId>org.cibseven.webapp</groupId>
+      <artifactId>cibseven-webclient-web</artifactId>
+      <version>${cibseven-webapp.version}</version>
+      <type>jar</type>
+      <classifier>classes</classifier>
+    </dependency>
   </dependencies>
 
   <build>
