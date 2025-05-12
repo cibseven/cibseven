@@ -41,11 +41,6 @@ pipeline {
             description: 'Execute Unit and Integration Tests'
         )
         booleanParam(
-            name: 'RELEASE',
-            defaultValue: false,
-            description: 'Only for main branch; Release or snapshot build'
-        )
-        booleanParam(
             name: 'DEPLOY_TO_ARTIFACTS',
             defaultValue: false,
             description: "Deploy artifacts to artifacts.cibseven.org. Default false, but true when main branch and SNAPSHOT version"
@@ -342,7 +337,6 @@ pipeline {
                     expression { params.OPEN_API == 'Run' }
                     allOf {
                         branch 'main'
-                        expression { params.RELEASE == true }
                         expression { params.OPEN_API == 'Auto' }
                         expression { isPatchVersion() == false }
                     }
@@ -384,7 +378,6 @@ pipeline {
                     expression { params.JAVA_DOCS == 'Run' }
                     allOf {
                         branch 'main'
-                        expression { params.RELEASE == true }
                         expression { params.JAVA_DOCS == 'Auto' }
                         expression { isPatchVersion() == false }
                     }
@@ -433,12 +426,6 @@ pipeline {
         success {
             script {
                 log.info '✅ Build successful'
-                if (params.RELEASE_BUILD == true) {
-                    notifyResult(
-                        office365WebhookId: pipelineParams.office365WebhookId,
-                        message: "Application was successfully released with version ${mavenProjectInformation.version}"
-                    )
-                }
             }
         }
 
