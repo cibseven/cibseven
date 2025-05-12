@@ -50,23 +50,15 @@ pipeline {
             defaultValue: false,
             description: 'Deploy artifacts to Maven Central (no need to activate DEPLOY_TO_ARTIFACTS parameter above if you want just to deploy to Maven Central). If you will not change this value - you will not run deploy to Maven Central.'
         )
-        choice(
+        booleanParam(
             name: 'OPEN_API',
-            choices: ['Auto', 'Run', 'Disable'],
-            description: """Only for main branch;
-                When
-                - OPEN_API=Auto: creates openAPI index.html only for main branch with RELEASE=true
-                - OPEN_API=Run: creates openAPI index.html
-            """
+            defaultValue: false,
+            description: "Deploy openAPI index.html to docs.cibseven.org (or docs-staging.cibseven.org, if it is a -SNAPSHOT version)"
         )
-        choice(
+        booleanParam(
             name: 'JAVA_DOCS',
-            choices: ['Auto', 'Run', 'Disable'],
-            description: """Only for main branch;
-                When
-                - JAVA_DOCS=Auto: creates javaDocs pages only for main branch with RELEASE=true
-                - JAVA_DOCS=Run: creates javaDocs pages
-            """
+            defaultValue: false,
+            description: "Deploy javaDocs to docs.cibseven.org (or docs-staging.cibseven.org, if it is a -SNAPSHOT version)"
         )
     }
 
@@ -333,14 +325,7 @@ pipeline {
 
         stage('Documentation, OpenAPI') {
             when {
-                anyOf {
-                    expression { params.OPEN_API == 'Run' }
-                    allOf {
-                        branch 'main'
-                        expression { params.OPEN_API == 'Auto' }
-                        expression { isPatchVersion() == false }
-                    }
-                }
+                expression { params.OPEN_API }
             }
             steps {
                 script {
@@ -374,14 +359,7 @@ pipeline {
 
         stage('Documentation, javaDocs') {
             when {
-                anyOf {
-                    expression { params.JAVA_DOCS == 'Run' }
-                    allOf {
-                        branch 'main'
-                        expression { params.JAVA_DOCS == 'Auto' }
-                        expression { isPatchVersion() == false }
-                    }
-                }
+                expression { params.JAVA_DOCS }
             }
             steps {
                 script {
