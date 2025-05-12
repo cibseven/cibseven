@@ -76,18 +76,10 @@
     <module>engine-rest-jakarta</module>
     <module>assembly</module>
     <module>assembly-jakarta</module>
+    <module>engine-rest-openapi-generator</module>
+    <module>engine-rest-openapi</module>
+    <module>docs</module>
   </modules>
-
-  <profiles>
-    <profile>
-      <id>docs-engine-rest-openapi</id>
-      <modules>
-        <module>engine-rest-openapi</module>
-        <module>engine-rest-openapi-generator</module>
-        <module>docs</module>
-      </modules>
-    </profile>
-  </profiles>
 
   <description>
     Description of CIB seven - engine - REST - Root
