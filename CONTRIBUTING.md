@@ -114,7 +114,7 @@ A pull request can be submitted as follows:
 Before submitting your pull request for code review, please go through the following checklist:
 
 1. Is your code formatted according to our code style guidelines?
-    * Java Code Style Guidelines: You can import [template and settings files](https://github.com/cibseven/cibseven/tree/master/settings) into your IDE before you start coding.
+    * Java Code Style Guidelines: You can import [template and settings files](https://github.com/cibseven/cibseven/tree/main/settings) into your IDE before you start coding.
     * Javascript: Your code is automatically formatted whenever you commit.
 1. Is your code covered by unit tests?
     * Ask us if you are not sure where to write the tests or what kind of tests you should write.
@@ -149,7 +149,7 @@ feat(engine): Support BPEL
 related to #123
 ```
 
-Have a look at the [commit history](https://github.com/cibseven/cibseven/commits/master) for real-life examples.
+Have a look at the [commit history](https://github.com/cibseven/cibseven/commits/main) for real-life examples.
 
 
 ## \<type\>
@@ -166,7 +166,7 @@ One of the following:
  
 ## \<scope\>
 
-The scope is the module that is changed by the commit. E.g. `engine` in the case of https://github.com/cibseven/cibseven/tree/master/engine.
+The scope is the module that is changed by the commit. E.g. `engine` in the case of https://github.com/cibseven/cibseven/tree/main/engine.
 
 ## \<subject\>
 
