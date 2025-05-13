@@ -323,6 +323,29 @@ pipeline {
 
                             sh """
                                 mvn -T4 -U \
+                                    -f engine-rest/engine-rest-openapi-generator/pom.xml
+                                    -Dgpg.keyname="${GPG_KEYNAME}" \
+                                    -Dgpg.passphrase="${GPG_KEY_PASS}" \
+                                    clean deploy \
+                                    -Psonatype-oss-release \
+                                    -Dskip.cibseven.release="${!params.DEPLOY_TO_ARTIFACTS}" \
+                                    -DskipTests
+                            """
+
+                            sh """
+                                mvn -T4 -U \
+                                    -f engine-rest/engine-rest-openapi/pom.xml
+                                    -Dgpg.keyname="${GPG_KEYNAME}" \
+                                    -Dgpg.passphrase="${GPG_KEY_PASS}" \
+                                    clean deploy \
+                                    -Psonatype-oss-release \
+                                    -Dskip.cibseven.release="${!params.DEPLOY_TO_ARTIFACTS}" \
+                                    -DskipTests
+                            """
+
+                             sh """
+                                mvn -T4 -U \
+                                    -f engine-rest/docs/pom.xml
                                     -Dgpg.keyname="${GPG_KEYNAME}" \
                                     -Dgpg.passphrase="${GPG_KEY_PASS}" \
                                     clean deploy \
