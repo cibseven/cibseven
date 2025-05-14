@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.cibseven.bpm.engine.rest.filter.CacheControlFilter;
 import org.cibseven.bpm.engine.rest.filter.EmptyBodyFilter;
+import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.web.servlet.JerseyApplicationPath;
@@ -30,7 +31,7 @@ import jakarta.servlet.DispatcherType;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterRegistration;
 import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletException;
+
 
 /**
  * Inspired by:
@@ -47,13 +48,18 @@ public class CamundaBpmRestInitializer implements ServletContextInitializer {
 
   private JerseyApplicationPath applicationPath;
 
-  public CamundaBpmRestInitializer(JerseyApplicationPath applicationPath) {
+  private final CamundaBpmProperties properties;
+
+  public CamundaBpmRestInitializer(JerseyApplicationPath applicationPath, CamundaBpmProperties properties) {
     this.applicationPath = applicationPath;
+    this.properties = properties;
   }
 
   @Override
-  public void onStartup(ServletContext servletContext) throws ServletException {
+  public void onStartup(ServletContext servletContext) {
     this.servletContext = servletContext;
+
+    properties.getRestApi().getFetchAndLock().getInitParams().forEach(servletContext::setInitParameter);
 
     String restApiPathPattern = applicationPath.getUrlMapping();
 
@@ -82,4 +88,5 @@ public class CamundaBpmRestInitializer implements ServletContextInitializer {
 
     return filterRegistration;
   }
+
 }
