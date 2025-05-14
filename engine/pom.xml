@@ -307,6 +307,7 @@
     <dependency>
       <groupId>org.apache.groovy</groupId>
       <artifactId>groovy-jsr223</artifactId>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -324,6 +325,7 @@
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js</artifactId>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
