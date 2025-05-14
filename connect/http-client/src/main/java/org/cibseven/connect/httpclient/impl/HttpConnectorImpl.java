@@ -16,7 +16,7 @@
  */
 package org.cibseven.connect.httpclient.impl;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.cibseven.connect.httpclient.HttpConnector;
 import org.cibseven.connect.httpclient.HttpRequest;
 import org.cibseven.connect.httpclient.HttpResponse;
@@ -35,7 +35,7 @@ public class HttpConnectorImpl extends AbstractHttpConnector<HttpRequest, HttpRe
     return new HttpRequestImpl(this);
   }
 
-  protected HttpResponse createResponse(CloseableHttpResponse response) {
+  protected HttpResponse createResponse(ClassicHttpResponse response) {
     return new HttpResponseImpl(response);
   }
 
