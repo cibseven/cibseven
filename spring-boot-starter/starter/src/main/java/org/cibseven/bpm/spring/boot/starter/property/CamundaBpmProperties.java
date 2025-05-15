@@ -141,6 +141,12 @@ public class CamundaBpmProperties {
   @NestedConfigurationProperty
   private WebappProperty webapp = new WebappProperty();
 
+  /**
+   * run contains the authentication configuration (for the shake of jwtSecret)
+   */
+  @NestedConfigurationProperty
+  private RunProperties run = new RunProperties();
+
   @NestedConfigurationProperty
   private AuthorizationProperty authorization = new AuthorizationProperty();
 
@@ -248,6 +254,14 @@ public class CamundaBpmProperties {
   public void setWebapp(WebappProperty webapp) {
     this.webapp = webapp;
   }
+  
+  public RunProperties getRun() {
+	return run;
+  }
+  
+  public void setRun(RunProperties run) {
+	  this.run = run;
+  }
 
   public AuthorizationProperty getAuthorization() {
     return authorization;
@@ -346,6 +360,7 @@ public class CamundaBpmProperties {
       .add("database=" + database)
       .add("jobExecution=" + jobExecution)
       .add("webapp=" + webapp)
+      .add("run=" + run)
       .add("authorization=" + authorization)
       .add("genericProperties=" + genericProperties)
       .add("adminUser=" + adminUser)
