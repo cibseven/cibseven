@@ -19,10 +19,14 @@ package org.cibseven.bpm.spring.boot.starter.property;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
 import static org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties.joinOn;
 
+@ConfigurationProperties(prefix = AuthProperties.PREFIX)
 public class AuthProperties {
 
+  public static final String PREFIX = RunProperties.PREFIX + ".auth";
   public static final String DEFAULT_AUTH = "pseudo";
   public static final String BASIC_AUTH = "basic";
   public static final String COMPOSITE_AUTH = "composite";

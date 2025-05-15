@@ -1,1 +1,2 @@
 org.cibseven.bpm.spring.boot.starter.rest.CamundaBpmRestJerseyAutoConfiguration
+org.cibseven.bpm.spring.boot.starter.rest.CamundaBpmRunRestConfiguration

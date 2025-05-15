@@ -25,7 +25,10 @@ import static org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties
 import java.util.ArrayList;
 import java.util.List;
 
+@ConfigurationProperties(prefix = RunProperties.PREFIX)
 public class RunProperties {
+	
+  public static final String PREFIX = CamundaBpmProperties.PREFIX + ".run";
 
   @NestedConfigurationProperty
   protected AuthProperties auth = new AuthProperties();
