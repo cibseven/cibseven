@@ -42,6 +42,9 @@ import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
  * @author Tom Baeyens
  */
 public abstract class ReflectUtil {
+  
+  public static final String CIBSEVEN_NAMESPACE = "org.cibseven.";
+  public static final String CAMUNDA_NAMESPACE = "org.camunda.";
 
   private static final EngineUtilLogger LOG = ProcessEngineLogger.UTIL_LOGGER;
 
@@ -107,7 +110,18 @@ public abstract class ReflectUtil {
      }
    }
 
-   if(clazz == null) {
+   if(clazz == null) {  
+     // try org.cibseven name space if name shading is enabled and className belongs to org.camunda
+     if (className.startsWith(CAMUNDA_NAMESPACE)) {      
+       ProcessEngineConfigurationImpl config = org.cibseven.bpm.engine.impl.context.Context
+           .getProcessEngineConfiguration();
+       
+       if (config != null && config.isUseCibSevenNamespaceInReflection()) {
+         String classNameCib = className.replace(CAMUNDA_NAMESPACE, CIBSEVEN_NAMESPACE);
+         return loadClass(classNameCib);
+       }
+     }
+     
      throw LOG.classLoadingException(className, throwable);
    }
    return clazz;
@@ -115,7 +129,23 @@ public abstract class ReflectUtil {
 
   public static <T> Class<? extends T> loadClass(String className, ClassLoader customClassloader, Class<T> clazz) throws ClassNotFoundException, ClassCastException {
     if(customClassloader != null) {
-      return (Class<? extends T>) customClassloader.loadClass(className);
+      try {
+        return (Class<? extends T>) customClassloader.loadClass(className);
+      } 
+      catch(Throwable t) {       
+        // try org.cibseven name space if name shading is enabled and className belongs to org.camunda
+        if (className.startsWith(CAMUNDA_NAMESPACE)) {      
+          ProcessEngineConfigurationImpl config = org.cibseven.bpm.engine.impl.context.Context
+              .getProcessEngineConfiguration();
+          
+          if (config != null && config.isUseCibSevenNamespaceInReflection()) {
+            String classNameCib = className.replace(CAMUNDA_NAMESPACE, CIBSEVEN_NAMESPACE);
+            return (Class<? extends T>) customClassloader.loadClass(classNameCib);
+          }
+        }
+        
+        throw LOG.classLoadingException(className, t);
+      }
     } else {
       return (Class<? extends T>) loadClass(className);
     }

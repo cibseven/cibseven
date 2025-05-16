@@ -37,6 +37,7 @@ import org.cibseven.bpm.engine.ScriptEvaluationException;
 import org.cibseven.bpm.engine.delegate.BpmnError;
 import org.cibseven.bpm.engine.exception.NullValueException;
 import org.cibseven.bpm.engine.impl.util.CollectionUtil;
+import org.cibseven.bpm.engine.impl.util.ReflectUtil;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
@@ -797,5 +798,48 @@ public class ScriptTaskTest extends AbstractScriptTaskTest {
     processEngineConfiguration.setUseCibSevenNamespaceInScripting(useCibSevenNamespace);
     processEngineConfiguration.getScriptingEngines().setEnableScriptEngineCaching(useScriptEngineCaching);
   }
+  
+  @Test
+  public void shouldLoadCibSevenClass() {
 
+    // Save current configuration for using name-space
+    boolean useCibSevenNamespace = processEngineConfiguration.isUseCibSevenNamespaceInReflection();
+    
+    // configure context
+    processEngineConfiguration.setUseCibSevenNamespaceInReflection(true);
+    org.cibseven.bpm.engine.impl.context.Context.setProcessEngineConfiguration(processEngineConfiguration);
+    
+    String cibsevenClass = BpmnError.class.getName();
+    String camundaClass = cibsevenClass.replace(CIBSEVEN_NAMESPACE, CAMUNDA_NAMESPACE);
+    String existingCommunityClass = org.camunda.community.BpmnError.class.getName();
+    String wrongClass = "org.camunda.NonExistentClass";
+
+    List<String[]> packages = List.of(
+        new String[] { camundaClass, cibsevenClass },
+        new String[] { cibsevenClass, cibsevenClass },
+        new String[] { existingCommunityClass, existingCommunityClass }, 
+        new String[] { wrongClass, null } // should not be accessible
+    );
+
+    for (String[] tuple : packages) {
+
+      String processedClass = tuple[0];
+      String expectedClass = tuple[1];
+
+      if (expectedClass != null) {
+        var foundClass = ReflectUtil.loadClass(processedClass);
+        assertEquals(foundClass.getName(), expectedClass);
+      } else {
+
+        // When
+        assertThatThrownBy(() -> ReflectUtil.loadClass(processedClass))
+            // Then
+            .isInstanceOf(org.cibseven.bpm.engine.ClassLoadingException.class);
+      }
+    }
+    
+    // Restore configuration
+    org.cibseven.bpm.engine.impl.context.Context.removeProcessEngineConfiguration();
+    processEngineConfiguration.setUseCibSevenNamespaceInReflection(useCibSevenNamespace);
+  }
 }
