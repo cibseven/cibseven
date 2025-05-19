@@ -801,14 +801,6 @@ public class ScriptTaskTest extends AbstractScriptTaskTest {
   
   @Test
   public void shouldLoadCibSevenClass() {
-
-    // Save current configuration for using name-space
-    boolean useCibSevenNamespace = processEngineConfiguration.isUseCibSevenNamespaceInReflection();
-    
-    // configure context
-    processEngineConfiguration.setUseCibSevenNamespaceInReflection(true);
-    org.cibseven.bpm.engine.impl.context.Context.setProcessEngineConfiguration(processEngineConfiguration);
-    
     String cibsevenClass = BpmnError.class.getName();
     String camundaClass = cibsevenClass.replace(CIBSEVEN_NAMESPACE, CAMUNDA_NAMESPACE);
     String existingCommunityClass = org.camunda.community.BpmnError.class.getName();
@@ -817,71 +809,53 @@ public class ScriptTaskTest extends AbstractScriptTaskTest {
     List<String[]> packages = List.of(
         new String[] { camundaClass, cibsevenClass },
         new String[] { cibsevenClass, cibsevenClass },
-        new String[] { existingCommunityClass, existingCommunityClass }, 
-        new String[] { wrongClass, null } // should not be accessible
+        new String[] { existingCommunityClass, existingCommunityClass },
+        new String[] { wrongClass, null }
     );
 
-    for (String[] tuple : packages) {
-
-      String processedClass = tuple[0];
-      String expectedClass = tuple[1];
-
-      if (expectedClass != null) {
-        var foundClass = ReflectUtil.loadClass(processedClass);
-        assertEquals(foundClass.getName(), expectedClass);
-      } else {
-
-        // When
-        assertThatThrownBy(() -> ReflectUtil.loadClass(processedClass))
-            // Then
-            .isInstanceOf(org.cibseven.bpm.engine.ClassLoadingException.class);
-      }
-    }
-    
-    // Restore configuration
-    org.cibseven.bpm.engine.impl.context.Context.removeProcessEngineConfiguration();
-    processEngineConfiguration.setUseCibSevenNamespaceInReflection(useCibSevenNamespace);
+    runClassLoadingTest(true, packages);
   }
-  
+
   @Test
   public void shouldFailWithCamundaClass() {
-
-    // Save current configuration for using name-space
-    boolean useCibSevenNamespace = processEngineConfiguration.isUseCibSevenNamespaceInReflection();
-    
-    // configure context
-    processEngineConfiguration.setUseCibSevenNamespaceInReflection(false);
-    org.cibseven.bpm.engine.impl.context.Context.setProcessEngineConfiguration(processEngineConfiguration);
-    
     String cibsevenClass = BpmnError.class.getName();
     String camundaClass = cibsevenClass.replace(CIBSEVEN_NAMESPACE, CAMUNDA_NAMESPACE);
     String existingCommunityClass = org.camunda.community.BpmnError.class.getName();
 
     List<String[]> packages = List.of(
-        new String[] { camundaClass, null }, // should not be accessible if shading is off: UseCibSevenNamespaceInReflection = false
+        new String[] { camundaClass, null },
         new String[] { cibsevenClass, cibsevenClass },
         new String[] { existingCommunityClass, existingCommunityClass }
     );
 
-    for (String[] tuple : packages) {
+    runClassLoadingTest(false, packages);
+  }
 
-      String processedClass = tuple[0];
-      String expectedClass = tuple[1];
+  private void runClassLoadingTest(boolean useCibSevenNamespaceInReflection, List<String[]> packages) {
+    // Save current configuration
+    boolean originalSetting = processEngineConfiguration.isUseCibSevenNamespaceInReflection();
 
-      if (expectedClass != null) {
-        var foundClass = ReflectUtil.loadClass(processedClass);
-        assertEquals(foundClass.getName(), expectedClass);
-      } else {
+    try {
+      // Configure context
+      processEngineConfiguration.setUseCibSevenNamespaceInReflection(useCibSevenNamespaceInReflection);
+      org.cibseven.bpm.engine.impl.context.Context.setProcessEngineConfiguration(processEngineConfiguration);
 
-        // When
-        assertThatThrownBy(() -> ReflectUtil.loadClass(processedClass))
-            // Then
-            .isInstanceOf(org.cibseven.bpm.engine.ClassLoadingException.class);
+      for (String[] tuple : packages) {
+        String processedClass = tuple[0];
+        String expectedClass = tuple[1];
+
+        if (expectedClass != null) {
+          var foundClass = ReflectUtil.loadClass(processedClass);
+          assertEquals(foundClass.getName(), expectedClass);
+        } else {
+          assertThatThrownBy(() -> ReflectUtil.loadClass(processedClass))
+              .isInstanceOf(org.cibseven.bpm.engine.ClassLoadingException.class);
+        }
       }
+    } finally {
+      // Restore configuration
+      org.cibseven.bpm.engine.impl.context.Context.removeProcessEngineConfiguration();
+      processEngineConfiguration.setUseCibSevenNamespaceInReflection(originalSetting);
     }
-    
-    // Restore configuration
-    org.cibseven.bpm.engine.impl.context.Context.removeProcessEngineConfiguration();
-    processEngineConfiguration.setUseCibSevenNamespaceInReflection(useCibSevenNamespace);
   }
 }
