@@ -157,7 +157,7 @@ public class HistoricProcessInstanceQueryDto extends AbstractQueryDto<HistoricPr
     return rootProcessInstanceId;
   }
 
-  @CibsevenQueryParam("rootProcessInstanceId")
+  @CamundaQueryParam("rootProcessInstanceId")
   public void setRootProcessInstanceId(String rootProcessInstanceId) {
     this.rootProcessInstanceId = rootProcessInstanceId;
   }
