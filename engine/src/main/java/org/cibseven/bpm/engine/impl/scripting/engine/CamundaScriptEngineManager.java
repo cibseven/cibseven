@@ -18,6 +18,8 @@ package org.cibseven.bpm.engine.impl.scripting.engine;
 
 import static org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines.GRAAL_JS_SCRIPT_ENGINE_NAME;
 import static org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines.GROOVY_SCRIPTING_LANGUAGE;
+import static org.cibseven.bpm.engine.impl.util.ReflectUtil.CAMUNDA_NAMESPACE;
+import static org.cibseven.bpm.engine.impl.util.ReflectUtil.CIBSEVEN_NAMESPACE;
 
 import java.util.List;
 import java.util.Map;
@@ -50,9 +52,6 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
   private static final String JS_PRINT_OPTION = "js.print";
   private static final String JS_GLOBAL_ARGUMENTS_OPTION = "js.global-arguments";
   
-  public static final String CIBSEVEN_NAMESPACE = "org.cibseven";
-  public static final String CAMUNDA_NAMESPACE = "org.camunda";
-
   protected final Map<String, Runnable> engineNameToInitLogicMappings = Map.of(
       GRAAL_JS_SCRIPT_ENGINE_NAME, this::disableGraalVMInterpreterOnlyModeWarnings
   );

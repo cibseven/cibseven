@@ -18,8 +18,8 @@ package org.cibseven.bpm.engine.test.bpmn.scripttask;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.cibseven.bpm.engine.impl.scripting.engine.CamundaScriptEngineManager.CAMUNDA_NAMESPACE;
-import static org.cibseven.bpm.engine.impl.scripting.engine.CamundaScriptEngineManager.CIBSEVEN_NAMESPACE;
+import static org.cibseven.bpm.engine.impl.util.ReflectUtil.CAMUNDA_NAMESPACE;
+import static org.cibseven.bpm.engine.impl.util.ReflectUtil.CIBSEVEN_NAMESPACE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
