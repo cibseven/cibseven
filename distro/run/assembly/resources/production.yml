@@ -23,7 +23,11 @@ camunda.bpm:
     deserialization-allowed-classes:
 # https://docs.cibseven.org/manual/latest/user-guide/security/#password-policy
 # https://docs.cibseven.org/manual/latest/user-guide/process-engine/password-policy/
-    enable-password-policy: true
+    enable-password-policy: true    
+    # update old namespace in script tasks, after migration from camunda to cibseven
+    useCibSevenNamespaceInScripting: false
+    # update old namespace in saved serialized objects, after migration from camunda to cibseven
+    useCibSevenNamespaceInReflection: false
 
   run:
 # https://docs.cibseven.org/manual/latest/user-guide/security/#authentication
