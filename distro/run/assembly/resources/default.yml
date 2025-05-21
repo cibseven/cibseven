@@ -23,6 +23,12 @@ camunda.bpm:
     auth:
       enabled: true
       authentication: pseudo
+# https://docs.cibseven.org/manual/latest/user-guide/spring-boot-integration/configuration/#generic-properties
+  generic-properties.properties:
+    # update old namespace in script tasks, after migration from camunda to cibseven
+    useCibSevenNamespaceInScripting: false
+    # update old namespace in saved serialized objects, after migration from camunda to cibseven
+    useCibSevenNamespaceInReflection: false
 
 # datasource configuration is required
 spring.datasource:

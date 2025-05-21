@@ -17,7 +17,7 @@
       <property name="authorizationEnabled">true</property>
       <property name="jobExecutorDeploymentAware">true</property>
       <property name="historyCleanupBatchWindowStartTime">00:01</property>
-      <!-- allow to update imports in script tasks and saved serialized objects, after migration from camunda to cib seven  -->
+      <!-- allow to update imports in script tasks and saved serialized objects, after migration from camunda to cibseven  -->
       <property name="useCibSevenNamespaceInScripting">false</property>
       <property name="useCibSevenNamespaceInReflection">false</property>
     </properties>

@@ -132,7 +132,7 @@ public abstract class ReflectUtil {
       try {
         return (Class<? extends T>) customClassloader.loadClass(className);
       } 
-      catch(Throwable t) {       
+      catch(Exception e) {       
         // try org.cibseven name space if name shading is enabled and className belongs to org.camunda
         if (className.startsWith(CAMUNDA_NAMESPACE)) {      
           ProcessEngineConfigurationImpl config = org.cibseven.bpm.engine.impl.context.Context
@@ -144,7 +144,7 @@ public abstract class ReflectUtil {
           }
         }
         
-        throw LOG.classLoadingException(className, t);
+        throw LOG.classLoadingException(className, e);
       }
     } else {
       return (Class<? extends T>) loadClass(className);
