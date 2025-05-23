@@ -199,7 +199,7 @@ pipeline {
         stage('sql-scripts-h2') {
           when {
             expression {
-              cambpmWithLabels('h2', 'all-db')
+              cambpmWithLabels('all', 'h2', 'all-db')
             }
           }
           steps {
@@ -217,7 +217,7 @@ pipeline {
         stage('UPGRADE-instance-migration-h2') {
           when {
             expression {
-              cambpmWithLabels('default-build', 'migration')
+              cambpmWithLabels('all', 'default-build', 'migration')
             }
           }
           steps {
@@ -236,7 +236,7 @@ pipeline {
         stage('UPGRADE-old-engine-h2') {
           when {
             expression {
-              cambpmWithLabels('h2', 'all-db')
+              cambpmWithLabels('all', 'h2', 'all-db')
             }
           }
           steps {
@@ -255,7 +255,7 @@ pipeline {
         stage('UPGRADE-rolling-update-h2') {
           when {
             expression {
-              cambpmWithLabels('rolling-update', 'default-build')
+              cambpmWithLabels('all', 'rolling-update', 'default-build')
             }
           }
           steps {
@@ -274,7 +274,7 @@ pipeline {
         stage('PERFORMANCE-large-data-h2') {
           when {
             expression {
-              cambpmWithLabels()
+              cambpmWithLabels('all')
             }
           }
           steps {
@@ -311,7 +311,7 @@ pipeline {
           // see the .ci/config/matrices.yaml for the stage generation values
           // see .ci/config/stage-types.yaml for the stage configurations
           parallel(cambpmGetMatrixStages('jdk-ce-stages', failedStageTypes, { stageInfo ->
-            return cambpmWithLabels('default-build', 'jdk')
+            return cambpmWithLabels('all', 'default-build', 'jdk')
           }))
         }
       }
