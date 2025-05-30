@@ -1,12 +1,38 @@
 // https://github.com/camunda/jenkins-global-shared-library
-// https://github.com/camunda/cambpm-jenkins-shared-library
-@Library(['camunda-ci', 'cambpm-jenkins-shared-library']) _
+// https://github.com/cibseven/cambpm-jenkins-shared-library
+// @Library(['camunda-ci']) _
+@Library('cib-pipeline-library@DEVOPS-146_high-resources') _
+library identifier: 'cambpm-jenkins-shared-library@main', 
+        retriever: modernSCM([
+            $class: 'GitSCMSource',
+            remote: 'https://github.com/cibseven/cambpm-jenkins-shared-library.git',
+            credentialsId: 'credential-github-cib-seven-access-token'
+        ])
+
+import de.cib.pipeline.library.Constants
+import de.cib.pipeline.library.kubernetes.BuildPodCreator
+import de.cib.pipeline.library.logging.Logger
+import de.cib.pipeline.library.ConstantsInternal
+import de.cib.pipeline.library.MavenProjectInformation
+import groovy.transform.Field
+
+@Field Logger log = new Logger(this)
+@Field MavenProjectInformation mavenProjectInformation = null
+@Field Map pipelineParams = [
+    pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
+    mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
+    uiParamPresets: [:],
+    testMode: false
+]
 
 pipeline {
   agent {
-    node {
-      label 'jenkins-job-runner'
-    }
+      kubernetes {
+          yaml BuildPodCreator.cibStandardPod()
+                  .withContainerFromName(pipelineParams.mvnContainerName, [memory: "12Gi", ephemeralStorage: "12Gi"])
+                  .asYaml()
+          defaultContainer pipelineParams.mvnContainerName
+      }
   }
   environment {
     LOGGER_LOG_LEVEL = 'DEBUG'
