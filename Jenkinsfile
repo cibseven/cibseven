@@ -1,6 +1,7 @@
 // https://github.com/camunda/jenkins-global-shared-library
 // https://github.com/cibseven/cambpm-jenkins-shared-library
 // @Library(['camunda-ci']) _
+@Library('cib-pipeline-library@DEVOPS-146_high-resources') _
 library identifier: 'cambpm-jenkins-shared-library@main', 
         retriever: modernSCM([
             $class: 'GitSCMSource',
@@ -8,12 +9,17 @@ library identifier: 'cambpm-jenkins-shared-library@main',
             credentialsId: 'credential-github-cib-seven-access-token'
         ])
 
+import de.cib.pipeline.library.kubernetes.BuildPodCreator
+
 def failedStageTypes = []
 
 pipeline {
   agent {
-    node {
-      label 'jenkins-job-runner'
+    kubernetes {
+      yaml BuildPodCreator.cibStandardPod()
+              .withContainerFromName('maven', [memory: "12Gi", ephemeralStorage: "12Gi"])
+              .asYaml()
+      defaultContainer 'maven'
     }
   }
   environment {
