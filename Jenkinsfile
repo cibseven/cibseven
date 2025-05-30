@@ -4,7 +4,8 @@
 library identifier: 'cambpm-jenkins-shared-library@main', 
         retriever: modernSCM([
             $class: 'GitSCMSource',
-            remote: 'git@github.com:cibseven/cambpm-jenkins-shared-library.git'
+            remote: 'https://github.com/cibseven/cambpm-jenkins-shared-library.git',
+            credentialsId: 'credential-github-cib-seven-access-token'
         ])
 
 def failedStageTypes = []
