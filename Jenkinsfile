@@ -22,7 +22,6 @@ pipeline {
   }
   options {
     buildDiscarder(logRotator(numToKeepStr: '5'))
-    copyArtifactPermission('*')
     disableConcurrentBuilds(abortPrevious: true)
    }
   parameters {
