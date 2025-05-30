@@ -9,18 +9,32 @@ library identifier: 'cambpm-jenkins-shared-library@main',
             credentialsId: 'credential-github-cib-seven-access-token'
         ])
 
+import de.cib.pipeline.library.Constants
 import de.cib.pipeline.library.kubernetes.BuildPodCreator
+import de.cib.pipeline.library.logging.Logger
+import de.cib.pipeline.library.ConstantsInternal
+import de.cib.pipeline.library.MavenProjectInformation
+import groovy.transform.Field
+
+@Field Logger log = new Logger(this)
+@Field MavenProjectInformation mavenProjectInformation = null
+@Field Map pipelineParams = [
+    pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
+    mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
+    uiParamPresets: [:],
+    testMode: false
+]
 
 def failedStageTypes = []
 
 pipeline {
   agent {
-    kubernetes {
-      yaml BuildPodCreator.cibStandardPod()
-              .withContainerFromName('maven', [memory: "12Gi", ephemeralStorage: "12Gi"])
-              .asYaml()
-      defaultContainer 'maven'
-    }
+      kubernetes {
+          yaml BuildPodCreator.cibStandardPod()
+                  .withContainerFromName(pipelineParams.mvnContainerName, [memory: "12Gi", ephemeralStorage: "12Gi"])
+                  .asYaml()
+          defaultContainer pipelineParams.mvnContainerName
+      }
   }
   environment {
     LOGGER_LOG_LEVEL = 'DEBUG'
