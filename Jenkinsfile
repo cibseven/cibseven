@@ -1,6 +1,11 @@
 // https://github.com/camunda/jenkins-global-shared-library
-// https://github.com/camunda/cambpm-jenkins-shared-library
-@Library(['camunda-ci', 'cambpm-jenkins-shared-library']) _
+// https://github.com/cibseven/cambpm-jenkins-shared-library
+@Library(['camunda-ci']) _
+library identifier: 'cambpm-jenkins-shared-library@main', 
+        retriever: modernSCM([
+            $class: 'GitSCMSource',
+            remote: 'https://github.com/cibseven/cambpm-jenkins-shared-library.git'
+        ])
 
 def failedStageTypes = []
 
