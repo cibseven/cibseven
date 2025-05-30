@@ -1,6 +1,6 @@
 // https://github.com/camunda/jenkins-global-shared-library
 // https://github.com/cibseven/cambpm-jenkins-shared-library
-@Library(['camunda-ci']) _
+// @Library(['camunda-ci']) _
 library identifier: 'cambpm-jenkins-shared-library@main', 
         retriever: modernSCM([
             $class: 'GitSCMSource',
