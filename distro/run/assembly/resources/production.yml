@@ -114,9 +114,11 @@ spring:
 
 cibseven:
   webclient:
-    # Engine rest
     engineRest:
+      # Base URL of the CIB seven engine
       url: http://localhost:8080
+      # Configurable REST API path (default: /engine-rest)
+      path: /engine-rest
     historyLevel: full
     # Token generation
     authentication:
