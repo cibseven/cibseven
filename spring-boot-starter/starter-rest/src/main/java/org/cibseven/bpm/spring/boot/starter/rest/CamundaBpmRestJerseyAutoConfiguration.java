@@ -24,11 +24,22 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.JerseyApplicationPath;
 import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Value;
 
 @AutoConfigureBefore({ JerseyAutoConfiguration.class })
 @AutoConfigureAfter({ CamundaBpmAutoConfiguration.class })
 public class CamundaBpmRestJerseyAutoConfiguration {
 
+  @Bean
+  public JerseyApplicationPath jerseyApplicationPath(@Value("${cibseven.webclient.engineRest.path:/engine-rest}") String path) {
+	return new JerseyApplicationPath() {
+	   @Override
+	   public String getPath() {
+	      return path;
+	   }
+	};
+  }
+	
   @Bean
   @ConditionalOnMissingBean(CamundaJerseyResourceConfig.class)
   public CamundaJerseyResourceConfig createRestConfig() {
