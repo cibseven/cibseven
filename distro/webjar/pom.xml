@@ -17,7 +17,7 @@
 
   <properties>
     <skipTests>true</skipTests>
-    <cibseven-webapp.version>2.0.0</cibseven-webapp.version>
+    <cibseven-webapp.version>2.1.0-SNAPSHOT</cibseven-webapp.version>
   </properties>
 
   <dependencyManagement>
