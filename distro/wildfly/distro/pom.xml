@@ -11,10 +11,6 @@
   <packaging>pom</packaging>
 
   <name>CIB seven - Wildfly Distro</name>
-  
-  <properties>
-    <cibseven-webapp.version>2.0.0</cibseven-webapp.version>
-  </properties>
 
   <dependencies>
     <dependency>
@@ -66,7 +62,7 @@
     <dependency>
       <groupId>org.cibseven.webapp</groupId>
       <artifactId>cibseven-webclient-web</artifactId>
-      <version>${cibseven-webapp.version}</version>
+      <version>${project.version}</version>
       <classifier>wildfly</classifier>
       <type>war</type>
     </dependency>
