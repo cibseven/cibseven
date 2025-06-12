@@ -1,1 +1,2 @@
 spring.jersey.application-path: "/rest"
+cibseven.webclient.engineRest.path: "/rest"
