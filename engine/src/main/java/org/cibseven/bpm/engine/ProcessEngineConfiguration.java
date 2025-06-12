@@ -422,6 +422,13 @@ public abstract class ProcessEngineConfiguration {
    * in processed, using scripting environments.
    */
   protected boolean useCibSevenNamespaceInScripting = false;
+  
+  /**
+   * If set to true, the process engine will try to resolve class names, belonging to org.camunda namespace,
+   *  as the objects, belonging to org.cibseven namespace. It allows to handle serialized objects,
+   *  saved in the database under org.camunda namespace
+   */
+  protected boolean useCibSevenNamespaceInReflection = false;
 
   /** use one of the static createXxxx methods instead */
   protected ProcessEngineConfiguration() {
@@ -1073,6 +1080,14 @@ public abstract class ProcessEngineConfiguration {
 
   public void setUseCibSevenNamespaceInScripting(boolean useCibSevenNamespaceInScripting) {
     this.useCibSevenNamespaceInScripting = useCibSevenNamespaceInScripting;
+  }
+  
+  public boolean isUseCibSevenNamespaceInReflection() {
+    return useCibSevenNamespaceInReflection;
+  }
+  
+  public void setUseCibSevenNamespaceInReflection(boolean useCibSevenNamespaceInReflection) {
+    this.useCibSevenNamespaceInReflection = useCibSevenNamespaceInReflection;
   }
   
 }
