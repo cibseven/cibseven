@@ -17,7 +17,6 @@
 
   <properties>
     <skipTests>true</skipTests>
-    <cibseven-webapp.version>2.0.0</cibseven-webapp.version>
   </properties>
 
   <dependencyManagement>
@@ -44,7 +43,7 @@
     <dependency>
       <groupId>org.cibseven.webapp</groupId>
       <artifactId>cibseven-webclient-web</artifactId>
-      <version>${cibseven-webapp.version}</version>
+      <version>${project.version}</version>
       <type>jar</type>
       <classifier>classes</classifier>
     </dependency>
