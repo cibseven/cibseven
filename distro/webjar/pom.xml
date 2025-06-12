@@ -17,7 +17,6 @@
 
   <properties>
     <skipTests>true</skipTests>
-    <cibseven-webapp.version>2.0.0</cibseven-webapp.version>
   </properties>
 
   <dependencyManagement>
@@ -44,7 +43,7 @@
     <dependency>
       <groupId>org.cibseven.webapp</groupId>
       <artifactId>cibseven-webclient-web</artifactId>
-      <version>${cibseven-webapp.version}</version>
+      <version>${project.version}</version>
       <type>jar</type>
       <classifier>classes</classifier>
     </dependency>
@@ -100,6 +99,8 @@
                 <move file="${project.build.outputDirectory}/META-INF/resources/webjars/camunda/WEB-INF/securityFilterRules.json" todir="${project.build.outputDirectory}/META-INF/resources/webjars/camunda/" />
                 <delete dir="${project.build.outputDirectory}/META-INF/resources/webjars/camunda/WEB-INF" />
                 <move file="${project.build.outputDirectory}/META-INF/resources/webjars/camunda/plugin" tofile="${project.build.outputDirectory}/META-INF/resources/plugin" verbose="true" />
+                <!-- remove CIB Seven WEB-INF -->
+                <delete dir="${project.build.outputDirectory}/META-INF/resources/webjars/webapp/WEB-INF" verbose="true"/>
                 <!-- add cibseven-welcome page -->
                 <copy todir="${project.build.outputDirectory}/META-INF/resources/cibseven-welcome/">
                   <fileset dir="../cibseven-welcome/" />
