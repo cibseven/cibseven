@@ -20,6 +20,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Base64;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.cibseven.bpm.engine.rest.impl.FetchAndLockHandlerImpl;
 
 public class Configuration {
 
@@ -30,6 +34,8 @@ public class Configuration {
 
   private String secret;
 
+  private static final Logger LOG = Logger.getLogger(FetchAndLockHandlerImpl.class.getName());
+  
   public static Configuration getInstance() {
     if (instance == null) {
       instance = new Configuration();
@@ -41,13 +47,13 @@ public class Configuration {
     this.secret = readEnvironment();
     if (this.secret == null || this.secret.isEmpty()) {
       loadProperties();
-      System.out.println("Secret found in properties: " + this.secret);
+      LOG.log(Level.INFO, "Failed to stop tomcat instance", "Secret found in properties: " + this.secret);
     }
     else
     {
-    	System.out.println("Secret found in environment: " + this.secret);
+    	LOG.log(Level.INFO, "Failed to stop tomcat instance", "Secret found in environment: " + this.secret);
     }
-    System.out.println("Decoded: " + Base64.getDecoder().decode(this.secret.getBytes()));
+    LOG.log(Level.INFO, "Failed to stop tomcat instance", "Decoded: " + Base64.getDecoder().decode(this.secret.getBytes()));
   }
 
   public String getSecret() {
