@@ -1013,7 +1013,7 @@ public abstract class MockProvider {
   public static final String EXAMPLE_TELEMETRY_DATA_COLLECTION_START_DATE = withTimezone("2022-01-01T00:00:00");
   
   //
-  public static final String EXAMPLE_CONFIGURATION_JWTSECRET_ENVIRONMENT = "environmentJwtSecret";
+  public static final String EXAMPLE_CONFIGURATION_JWTSECRET_ENVIRONMENT = "2cf2b6c82423a0737b735cd44d12e9f0d7e9b48ba0dd1d81088eda070711f534";
   public static final String EXAMPLE_CONFIGURATION_JWTSECRET_PROPERTY = "i5adHBsvDBUdPrfFeidOFeIoZWXqWW2MUoEXhz8GR1iQgcMlMiUPNeScOwbtJWrxjCbJUelVKDghBuy8om34Yqx4Dyw20rQnlPmDtroaTZrIm5uXOrtsInCANix1b7TrA1Duqtern30sNrRVu2wSV8Z88k8";
 
   public static final DatabaseImpl EXAMPLE_TELEMETRY_DATABASE = new DatabaseImpl(EXAMPLE_TELEMETRY_DB_VENDOR,
