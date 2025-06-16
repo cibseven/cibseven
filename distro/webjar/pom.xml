@@ -75,7 +75,7 @@
                 <artifactItem>
                   <groupId>org.cibseven.webapp</groupId>
                   <artifactId>cibseven-webclient-web</artifactId>
-                  <version>${cibseven-webapp.version}</version>
+                  <version>${project.version}</version>
                   <type>war</type>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.outputDirectory}/META-INF/resources/webjars/webapp</outputDirectory>
