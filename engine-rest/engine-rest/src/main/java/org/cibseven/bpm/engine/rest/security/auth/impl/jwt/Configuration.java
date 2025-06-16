@@ -18,6 +18,7 @@ package org.cibseven.bpm.engine.rest.security.auth.impl.jwt;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Base64;
 import java.util.Properties;
 
 public class Configuration {
@@ -40,7 +41,13 @@ public class Configuration {
     this.secret = readEnvironment();
     if (this.secret == null || this.secret.isEmpty()) {
       loadProperties();
+      System.out.println("Secret found in properties: " + this.secret);
     }
+    else
+    {
+    	System.out.println("Secret found in environment: " + this.secret);
+    }
+    System.out.println("Decoded: " + Base64.getDecoder().decode(this.secret.getBytes()));
   }
 
   public String getSecret() {
