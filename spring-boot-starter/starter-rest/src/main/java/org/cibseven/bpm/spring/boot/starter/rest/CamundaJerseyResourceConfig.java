@@ -16,12 +16,14 @@
  */
 package org.cibseven.bpm.spring.boot.starter.rest;
 
+import jakarta.ws.rs.ApplicationPath;
 import org.cibseven.bpm.engine.rest.impl.CamundaRestResources;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
 
+@ApplicationPath("/engine-rest")
 public class CamundaJerseyResourceConfig extends ResourceConfig implements InitializingBean {
 
   private static final Logger log = org.slf4j.LoggerFactory.getLogger(CamundaJerseyResourceConfig.class);
