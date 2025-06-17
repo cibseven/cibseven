@@ -18,9 +18,7 @@ package org.cibseven.bpm.engine.rest.security.auth.impl.jwt;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Base64;
 import java.util.Properties;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.cibseven.bpm.engine.rest.impl.FetchAndLockHandlerImpl;
@@ -47,13 +45,7 @@ public class Configuration {
     this.secret = readEnvironment();
     if (this.secret == null || this.secret.isEmpty()) {
       loadProperties();
-      LOG.log(Level.INFO, "Failed to stop tomcat instance", "Secret found in properties: " + this.secret);
     }
-    else
-    {
-    	LOG.log(Level.INFO, "Failed to stop tomcat instance", "Secret found in environment: " + this.secret);
-    }
-    LOG.log(Level.INFO, "Failed to stop tomcat instance", "Decoded: " + Base64.getDecoder().decode(this.secret.getBytes()));
   }
 
   public String getSecret() {

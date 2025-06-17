@@ -17,6 +17,7 @@ public class ConfigurationTest {
 	
 	@Test
 	public void testConfigurationWithEnvironment() {
+        Assert.assertEquals(System.getenv("CIBSEVEN_WEBCLIENT_AUTHENTICATION_JWTSECRET"), MockProvider.EXAMPLE_CONFIGURATION_JWTSECRET_ENVIRONMENT);
         String jwtSecret = Configuration.getInstance().getSecret();
 	    Assert.assertEquals(MockProvider.EXAMPLE_CONFIGURATION_JWTSECRET_ENVIRONMENT, jwtSecret);
 	}
