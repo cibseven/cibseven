@@ -16,30 +16,36 @@
  */
 package org.cibseven.bpm.spring.boot.starter.webapp;
 
+import java.util.Map;
+
 import org.cibseven.bpm.spring.boot.starter.CamundaBpmAutoConfiguration;
 import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
 import org.cibseven.bpm.spring.boot.starter.property.WebappProperty;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.LazyDelegateFilter.InitHook;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.LazyInitRegistration;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.ResourceLoaderDependingFilter;
+import org.cibseven.webapp.rest.BaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.autoconfigure.web.servlet.WebMvcRegistrations;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.web.method.HandlerTypePredicate;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 @Configuration
 @ConditionalOnProperty(prefix = WebappProperty.PREFIX, name = "enabled", matchIfMissing = true)
 @ConditionalOnBean(CamundaBpmProperties.class)
 @ConditionalOnWebApplication
 @AutoConfigureAfter(CamundaBpmAutoConfiguration.class)
-public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer {
+public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer, WebMvcRegistrations {
 
   @Autowired
   private ResourceLoader resourceLoader;
@@ -68,6 +74,14 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer {
   @Bean
   public FaviconResourceResolver faviconResourceResolver() {
     return new FaviconResourceResolver();
+  }
+  
+  @Override
+  public RequestMappingHandlerMapping getRequestMappingHandlerMapping() {
+    RequestMappingHandlerMapping mapping = new RequestMappingHandlerMapping();
+    mapping.setPathPrefixes(Map.of(properties.getWebapp().getApplicationPath(),
+      HandlerTypePredicate.forAssignableType(BaseService.class)));
+    return mapping;
   }
 
   @Override
