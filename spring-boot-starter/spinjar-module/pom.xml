@@ -1,0 +1,80 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.cibseven.bpm.springboot.project</groupId>
+    <artifactId>cibseven-bpm-spring-boot-starter-root</artifactId>
+    <version>2.1.0-SNAPSHOT</version>
+  </parent>
+  
+  <groupId>org.cibseven.bpm.springboot</groupId>
+  <artifactId>spinjar-module</artifactId>
+  
+  <properties>
+		<spin.version>2.1.0-SNAPSHOT</spin.version>
+	</properties>
+	
+  <dependencies>
+	<!-- <dependency>
+	    <groupId>org.cibseven.spin</groupId>
+	    <artifactId>cibseven-spin-core</artifactId>
+		    <version>${spin.version}</version>
+	  </dependency>
+	  -->  
+		<dependency>
+		    <groupId>org.cibseven.spin</groupId>
+		    <artifactId>cibseven-spin-dataformat-all</artifactId>
+		    <version>${spin.version}</version>
+		</dependency>
+  
+<!--	<dependency>
+		    <groupId>org.cibseven.spin</groupId>
+		    <artifactId>cibseven-spin-dataformat-json-jackson</artifactId>
+		    <version>${spin.version}</version>
+		</dependency>
+		-->		
+		
+		<dependency>
+		    <groupId>io.vavr</groupId>
+		    <artifactId>vavr-jackson</artifactId>
+		    <version>0.10.3</version>
+		</dependency>
+  </dependencies>
+  
+  
+  <build>
+        <plugins>
+            <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+            <createDependencyReducedPom>true</createDependencyReducedPom>
+              <createSourcesJar>true</createSourcesJar>
+              <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
+            <artifactSet>
+                <excludes>
+                  <exclude>org.cibseven.commons:*</exclude>
+                  <exclude>org.cibseven.spin:camunda-spin-core</exclude>
+                  <exclude>com.fasterxml.jackson.core:*</exclude>
+                  <exclude>org.slf4j:*</exclude>
+                </excludes>
+              </artifactSet>
+              <relocations>
+                <relocation>
+				  <pattern>io.vavr.jackson</pattern>
+				  <shadedPattern>spinjar.io.vavr.jackson</shadedPattern>
+				</relocation>
+              </relocations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+    </build>
+</project>

@@ -187,4 +187,7 @@
     <url>https://github.com/cibseven/cibseven/issues</url>
   </issueManagement>
 
+  <modules>
+  	<module>spinjar-module</module>
+  </modules>
 </project>
