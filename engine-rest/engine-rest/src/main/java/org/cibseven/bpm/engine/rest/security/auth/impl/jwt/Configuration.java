@@ -19,7 +19,6 @@ package org.cibseven.bpm.engine.rest.security.auth.impl.jwt;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-import java.util.logging.Logger;
 
 public class Configuration {
 
@@ -30,8 +29,6 @@ public class Configuration {
 
   private String secret;
 
-  private static final Logger LOG = Logger.getLogger(FetchAndLockHandlerImpl.class.getName());
-  
   public static Configuration getInstance() {
     if (instance == null) {
       instance = new Configuration();
