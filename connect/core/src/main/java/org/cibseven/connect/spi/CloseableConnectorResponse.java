@@ -27,6 +27,6 @@ package org.cibseven.connect.spi;
  */
 public interface CloseableConnectorResponse extends ConnectorResponse {
 
-  public void close();
+  void close();
 
 }

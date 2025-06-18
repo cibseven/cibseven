@@ -28,7 +28,6 @@ public class HttpConnectorLogger extends ConnectLogger {
 
   public void ignoreHeader(String field, String value) {
     logInfo("002", "Ignoring header with name '{}' and value '{}'", field, value);
-
   }
 
   public void payloadIgnoredForHttpMethod(String method) {
@@ -60,7 +59,7 @@ public class HttpConnectorLogger extends ConnectLogger {
   }
 
   public ConnectorRequestException httpRequestError(int statusCode , String connectorResponse) {
-    return new ConnectorRequestException(exceptionMessage("010", "HTTP request failed with Status Code: {} ," 
+    return new ConnectorRequestException(exceptionMessage("010", "HTTP request failed with Status Code: {} ,"
         + " Response: {}", statusCode, connectorResponse));
   }
 
