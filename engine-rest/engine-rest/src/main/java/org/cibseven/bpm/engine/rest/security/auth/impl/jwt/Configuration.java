@@ -21,8 +21,6 @@ import java.io.InputStream;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-import org.cibseven.bpm.engine.rest.impl.FetchAndLockHandlerImpl;
-
 public class Configuration {
 
   public static final String PROPERTIES_FILE = "cibseven-webclient.properties";
