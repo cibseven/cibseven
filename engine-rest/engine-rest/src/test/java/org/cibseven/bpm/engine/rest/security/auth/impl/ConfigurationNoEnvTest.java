@@ -5,7 +5,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 
-public class ConfigurationTestNoEnv {
+public class ConfigurationNoEnvTest {
 	
 	@Test
 	public void testConfigurationFromProperties() {
