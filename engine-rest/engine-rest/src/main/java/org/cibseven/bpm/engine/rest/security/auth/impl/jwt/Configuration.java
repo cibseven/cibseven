@@ -23,6 +23,7 @@ import java.util.Properties;
 public class Configuration {
 
   public static final String PROPERTIES_FILE = "cibseven-webclient.properties";
+  public static final String PROPERTY_JWTSECRET = "cibseven.webclient.authentication.jwtSecret";
 
   private static Configuration instance;
 
@@ -36,8 +37,10 @@ public class Configuration {
   }
 
   private Configuration() {
-    Properties defaultSettings = loadProperties();
-    this.secret = getProperty(defaultSettings, "cibseven.webclient.authentication.jwtSecret");
+    this.secret = readEnvironment();
+    if (this.secret == null || this.secret.isEmpty()) {
+      loadProperties();
+    }
   }
 
   public String getSecret() {
@@ -48,17 +51,23 @@ public class Configuration {
     return defaultProperties.getProperty(propertyName);
   }
 
-  private Properties loadProperties() {
+  private void loadProperties() {
     Properties properties = new Properties();
     try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(PROPERTIES_FILE)) {
-      if (inputStream == null) {
-        throw new IllegalStateException("Could not find configuration file " + PROPERTIES_FILE + " in classpath");
+      if (inputStream != null) {
+        properties.load(inputStream);
+        this.secret = getProperty(properties, PROPERTY_JWTSECRET);
       }
-      properties.load(inputStream);
-      return properties;
     } catch (IOException e) {
       throw new IllegalStateException("Unable to load template configuration from: " + PROPERTIES_FILE, e);
     }
+    if (this.secret == null || this.secret.isEmpty()) {
+      throw new IllegalStateException("Could not find configuration file " + PROPERTIES_FILE + " in classpath");
+    }
+  }
+
+  String readEnvironment() {
+    return System.getenv(PROPERTY_JWTSECRET.replace('.','_').toUpperCase());
   }
 
 }
