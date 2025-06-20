@@ -67,8 +67,13 @@
     <version.wildfly26>26.0.1.Final</version.wildfly26>
     <version.wildfly26.core>18.0.4.Final</version.wildfly26.core>
 
+<<<<<<< HEAD
     <version.tomcat9>9.0.107</version.tomcat9>
     <version.tomcat>10.1.43</version.tomcat>
+=======
+    <version.tomcat9>9.0.106</version.tomcat9>
+    <version.tomcat>10.1.42</version.tomcat>
+>>>>>>> f4b0691acc (chore(deps): update to latest tomcat and spring boot (#5239))
 
     <version.arquillian>1.1.10.Final</version.arquillian>
     <version.shrinkwrap.resolvers>2.2.2</version.shrinkwrap.resolvers>
