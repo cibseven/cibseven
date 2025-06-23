@@ -4,8 +4,8 @@ cibseven-spin
 <p>
   <a href="https://cibseven.org/">Home</a> |
   <a href="https://docs.cibseven.org/manual/1.1/reference/spin/">Documentation</a> |
-  <a href="https://forum.camunda.org/">Forum</a> |
-  <a href="https://app.camunda.com/jira/browse/CAM">Issues</a> |
+  <a href="https://github.com/orgs/cibseven/discussions">Forum</a> |
+  <a href="https://github.com/cibseven/cibseven/issues">Issues</a> |
   <a href="../LICENSE">License</a> |
   <a href="../CONTRIBUTING.md">Contribute</a>
 </p>
