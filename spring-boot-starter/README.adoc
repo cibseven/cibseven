@@ -1,4 +1,4 @@
-# camunda-bpm-spring-boot-starter
+# cibseven-bpm-spring-boot-starter
 
 [cols="a,a,a,a"]
 ,====
@@ -14,14 +14,14 @@ image::https://www.openhub.net/p/camunda-bpm-spring-boot-starter/widgets/project
 
 This project provides Spring Boot starters that allow you to integrate the Camunda Platform into your Spring Boot applications.
 
-Please check out the https://docs.camunda.org/manual/develop/user-guide/spring-boot-integration/[Documentation],
-the https://docs.camunda.org/get-started/spring-boot/[Getting Started Guide] and
-the https://github.com/camunda/camunda-bpm-examples/tree/master/spring-boot-starter[Examples].
+Please check out the https://docs.cibseven.org/manual/latest/user-guide/spring-boot-integration//[Documentation],
+the https://docs.cibseven.org/get-started/spring-boot//[Getting Started Guide] and
+the 	https://github.com/cibseven/cibseven-bpm-examples/tree/master/spring-boot-starter[Examples].
 
 ## Resources
 
 * https://app.camunda.com/jira/browse/CAM/component/13850[Issue Tracker] - if you have an idea for a new feature or want to file a bug ... this is the place to go.
-* https://github.com/camunda/camunda-bpm-spring-boot-starter/blob/master/.github/CONTRIBUTING.md[Contributing] - check this if you want to contribute
+* https://github.com/cibseven/cibseven/blob/main/CONTRIBUTING.md[Contributing] - check this if you want to contribute
 * https://forum.camunda.org/c/spring-boot-starter[Discussion Forum] - this project has it's own sub-category at the camunda forum ... use it!
 
 ## Resources for versions older than 2.3.0
