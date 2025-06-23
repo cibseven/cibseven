@@ -16,7 +16,7 @@ This project provides Spring Boot starters that allow you to integrate the Camun
 
 Please check out the https://docs.cibseven.org/manual/latest/user-guide/spring-boot-integration//[Documentation],
 the https://docs.cibseven.org/get-started/spring-boot//[Getting Started Guide] and
-the 	https://github.com/cibseven/cibseven-bpm-examples/tree/master/spring-boot-starter[Examples].
+the https://github.com/camunda/camunda-bpm-examples/tree/master/spring-boot-starter[Examples].
 
 ## Resources
 
