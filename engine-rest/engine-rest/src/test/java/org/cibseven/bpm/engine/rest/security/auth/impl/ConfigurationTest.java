@@ -10,16 +10,23 @@ import org.junit.Rule;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 
 public class ConfigurationTest {
-	
+
 	@Rule
-	public EnvironmentVariablesRule environmentVariablesRule =
-	  new EnvironmentVariablesRule("CIBSEVEN_WEBCLIENT_AUTHENTICATION_JWTSECRET", MockProvider.EXAMPLE_CONFIGURATION_JWTSECRET_ENVIRONMENT);
-	
+	public EnvironmentVariablesRule environmentVariablesRule = new EnvironmentVariablesRule();
+
 	@Test
 	public void testConfigurationWithEnvironment() {
-        Assert.assertEquals(System.getenv("CIBSEVEN_WEBCLIENT_AUTHENTICATION_JWTSECRET"), MockProvider.EXAMPLE_CONFIGURATION_JWTSECRET_ENVIRONMENT);
-        String jwtSecret = Configuration.getInstance().getSecret();
-	    Assert.assertEquals(MockProvider.EXAMPLE_CONFIGURATION_JWTSECRET_ENVIRONMENT, jwtSecret);
+
+		String key = "CIBSEVEN_WEBCLIENT_AUTHENTICATION_JWTSECRET";
+
+        	environmentVariablesRule.set(key, MockProvider.EXAMPLE_CONFIGURATION_JWTSECRET_ENVIRONMENT);
+
+	        Assert.assertEquals(System.getenv(key), MockProvider.EXAMPLE_CONFIGURATION_JWTSECRET_ENVIRONMENT);
+
+        	String jwtSecret = Configuration.getInstance().getSecret();
+
+	   	Assert.assertEquals(MockProvider.EXAMPLE_CONFIGURATION_JWTSECRET_ENVIRONMENT, jwtSecret);
+
 	}
 
 }
