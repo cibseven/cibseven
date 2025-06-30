@@ -157,7 +157,6 @@ pipeline {
         }
 
         stage('qa: migration and update') {
-        {
             when {
                 expression { params.VERIFY == true }
             }
