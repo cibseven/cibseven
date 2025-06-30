@@ -161,18 +161,18 @@ pipeline {
                 expression { params.VERIFY == true }
             }
             stages {
-                //stage('old engine') {
-                //    steps { script { withMaven { sh "mvn -fn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2" }}}
-                //}
+                stage('old engine') {
+                    steps { script { withMaven { sh "mvn -fn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2" }}}
+                }
                 //stage('rolling update') {
                 //    steps { script { withMaven { sh "mvn -fn -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}}
                 //}
                 //stage('large data') {
                 //    steps { script { withMaven { sh "mvn -fn -f qa/large-data-tests/pom.xml clean install -Plarge-data-tests,h2" }}}
                 //}
-                stage('performance') {
-                    steps { script { withMaven { sh "mvn -fn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}}
-                }
+                //stage('performance') {
+                //    steps { script { withMaven { sh "mvn -fn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}}
+                //}
                 //stage('instanse-migration') {
                 //    steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,engine-integration-jakarta" }}}
                 //}
