@@ -415,6 +415,7 @@
 
                 <!-- The test is not relevant in `old-engine` setup and lacks necessary resource files -->
                 <exclude>**DatabaseNamingConsistencyTest.java</exclude>
+                <exclude>${TEMPORARY_OLD_ENGINE_TEST_EXCLUDE}</exclude>
               </excludes>
               <testFailureIgnore>false</testFailureIgnore>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
