@@ -156,7 +156,7 @@ pipeline {
             }
         }
 
-        stage {
+        stage ('Update and migration:') {
             when {
                 expression { params.VERIFY == true }
             }
