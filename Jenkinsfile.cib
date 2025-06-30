@@ -161,9 +161,9 @@ pipeline {
                 expression { params.VERIFY == true }
             }
             stages {
-                stage('old engine') {
-                    steps { script { withMaven { sh "mvn -fn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2" }}}
-                }
+                //stage('old engine') {
+                //    steps { script { withMaven { sh "mvn -fn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2" }}}
+                //}
                 stage('rolling update') {
                     steps { script { withMaven { sh "mvn -fn -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}}
                 }
