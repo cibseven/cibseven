@@ -28,7 +28,7 @@
     <version.mybatis>3.5.15</version.mybatis>
     <version.joda-time>2.12.5</version.joda-time>
     <version.uuid-generator>4.3.0</version.uuid-generator>
-    <version.feel-scala>1.19.1</version.feel-scala>
+    <version.feel-scala>1.19.3</version.feel-scala>
     <version.license-maven-plugin>2.4.0</version.license-maven-plugin>
   </properties>
 
@@ -230,7 +230,7 @@
     </profile>
 
     <profile>
-      <id>sonatype-oss-release</id>
+      <id>central-sonatype-publish</id>
       <modules>
         <module>spring-boot-starter</module>
         <module>quarkus-extension</module>
