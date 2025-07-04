@@ -171,7 +171,7 @@ pipeline {
  //           steps { script { withMaven { sh "mvn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}}
  //       }
 		
-        stage('Rolling update') {
+       stage('Rolling update') {
             when { expression { params.VERIFY == true }}
             steps { script { withMaven { sh "mvn -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}}
         }
