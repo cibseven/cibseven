@@ -34,7 +34,8 @@ import java.util.List;
  */
 public class HistoryCleanupScenario {
 
-  static final Date FIXED_DATE = new Date(1363608000000L);
+  // should be 18.03.2013 13:00 in the local TimeZone
+  static final Date FIXED_DATE = (new java.util.GregorianCalendar(2013, 2, 18, 13, 0)).getTime();
 
   @Deployment
   public static String deploy() {
