@@ -179,13 +179,13 @@ pipeline {
             }
         }
 
-//        stage('Instanse migration') {
-//            when { expression { params.VERIFY == true }}
-//            steps {
-//                script { withMaven { sh "mvn -f qa/test-db-util clean install" }}
-//                script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
-//            }
-//        }
+        stage('Instanse migration') {
+            when { expression { params.VERIFY == true }}
+            steps {
+                script { withMaven { sh "mvn -f qa/test-db-util clean install" }}
+                script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
+            }
+        }
 
         stage('h2 UNIT, engine IT, webapp IT') {
             when {
