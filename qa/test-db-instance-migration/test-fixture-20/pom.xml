@@ -68,6 +68,16 @@
   <profiles>
     <profile>
       <id>instance-migration</id>
+
+        <!-- workaround: https://nexus.cib.de/repository/mvn-repos don't contain mvn-cibseven-public which is needed for previous versions -->
+        <repositories>
+          <repository>
+            <id>mvn-cibseven-public-test</id>
+            <name>CIB seven Public Repository</name>
+            <url>https://artifacts.cibseven.org/repository/public</url>
+          </repository>
+        </repositories>  
+
       <build>
         <plugins>
 
@@ -137,8 +147,7 @@
                     <artifactItem>
                       <groupId>org.cibseven.bpm.distro</groupId>
                       <artifactId>cibseven-sql-scripts</artifactId>
-                      <!-- <version>2.0.0</version> SHOULD BE THIS ONE FOR fixture-2.0, BUT ABSENT ON NEXUS, so use 2.1.0-snapshot -->
-                      <version>2.1.0-SNAPSHOT</version>
+                      <version>2.0.0</version>
                       <type>test-jar</type>
                       <outputDirectory>${project.build.directory}/scripts-current</outputDirectory>
                       <overWrite>true</overWrite>
