@@ -40,6 +40,11 @@ pipeline {
             defaultValue: true,
             description: 'Execute Unit and Integration Tests'
         )
+		booleanParam(
+            name: 'MIGRATION_VERIFY',
+            defaultValue: true,
+            description: 'Execute Unit and Integration Tests'
+        )
         booleanParam(
             name: 'DEPLOY_TO_ARTIFACTS',
             defaultValue: false,
@@ -156,34 +161,30 @@ pipeline {
             }
         }
 
-        stage('Performance') {
-            when { expression { params.VERIFY == false }}
-            steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}}
-        }
-
-        stage('Large data') {
-            when { expression { params.VERIFY == false }}
-            steps { script { withMaven { sh "mvn -f qa/large-data-tests/pom.xml clean install -Plarge-data-tests,h2" }}}
-        }
-
-        stage('Old engine with new schema') { // TODO: fix BpmPlatformXmlLocationTest and DbIdentityServicePGTest
-            when { expression { params.VERIFY == false }}
-            steps { script { withMaven { sh "mvn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}}
-        }
-  
-        stage('Rolling update') {
-            when { expression { params.VERIFY == false }}
-            steps {
-                script { withMaven { sh "mvn -f qa/test-db-util clean install" }}
-                script { withMaven { sh "mvn -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}
-            }
-        }
-
-        stage('Instanse migration') {
-            when { expression { params.VERIFY == true }}
-            steps {
-                script { withMaven { sh "mvn -f qa/test-db-util clean install" }}
-                script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
+        stage('Update and Migration') {
+            when { expression { params.MIGRATION_VERIFY == false }}
+            stages {
+                stage('Performance') {
+                    steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}}
+                }
+                stage('Large data') {
+                    steps { script { withMaven { sh "mvn -f qa/large-data-tests/pom.xml clean install -Plarge-data-tests,h2" }}}
+                }
+                stage('Old engine with new schema') { // TODO: fix BpmPlatformXmlLocationTest and DbIdentityServicePGTest
+                    steps { script { withMaven { sh "mvn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}}
+                }
+                stage('Rolling update') {
+                    steps {
+                        script { withMaven { sh "mvn -f qa/test-db-util clean install" }}
+                        script { withMaven { sh "mvn -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}
+                    }
+                }
+                stage('Instanse migration') {
+                    steps {
+                        script { withMaven { sh "mvn -f qa/test-db-util clean install" }}
+                        script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
+                    }
+                }
             }
         }
 
