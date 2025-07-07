@@ -131,7 +131,7 @@ pipeline {
 
         stage('Unit and Integration Tests') {
             when {
-                expression { params.VERIFY == false }
+                expression { params.VERIFY == true }
             }
             steps {
                 script {
@@ -162,7 +162,7 @@ pipeline {
         }
 
         stage('Update and Migration') {
-            when { expression { params.MIGRATION_VERIFY == false }}
+            when { expression { params.MIGRATION_VERIFY == true }}
             stages {
                 stage('Performance') {
                     steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}}
