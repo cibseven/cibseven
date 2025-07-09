@@ -1,6 +1,6 @@
-<module xmlns="urn:jboss:module:1.0" name="org.cibseven.bpm.wildfly.camunda-wildfly-subsystem">
+<module xmlns="urn:jboss:module:1.0" name="org.cibseven.bpm.wildfly.cibseven-wildfly-subsystem">
   <resources>
-    <resource-root path="camunda-wildfly26-subsystem-@project.version@.jar" />
+    <resource-root path="cibseven-wildfly26-subsystem-@project.version@.jar" />
   </resources>
 
   <dependencies>
@@ -33,15 +33,15 @@
     <module name="org.jboss.as.web-common" />
     <module name="org.jboss.invocation" />
 
-    <module name="org.cibseven.bpm.camunda-engine" />
-    <module name="org.cibseven.bpm.identity.camunda-identity-ldap" />
-    <module name="org.cibseven.bpm.camunda-engine-plugin-spin" services="import" />
-    <module name="org.cibseven.bpm.camunda-engine-plugin-connect" />
-    <module name="org.cibseven.bpm.qa.camunda-qa-ensure-clean-db" services="import" />
+    <module name="org.cibseven.bpm.cibseven-engine" />
+    <module name="org.cibseven.bpm.identity.cibseven-identity-ldap" />
+    <module name="org.cibseven.bpm.cibseven-engine-plugin-spin" services="import" />
+    <module name="org.cibseven.bpm.cibseven-engine-plugin-connect" />
+    <module name="org.cibseven.bpm.qa.cibseven-qa-ensure-clean-db" services="import" />
 
-    <module name="org.cibseven.connect.camunda-connect-core" />
-    <module name="org.cibseven.connect.camunda-connect-http-client" services="import" />
-    <module name="org.cibseven.connect.camunda-connect-soap-http-client" services="import" />
+    <module name="org.cibseven.connect.cibseven-connect-core" />
+    <module name="org.cibseven.connect.cibseven-connect-http-client" services="import" />
+    <module name="org.cibseven.connect.cibseven-connect-soap-http-client" services="import" />
 
     <!-- for LDAP plugin only -->
     <module name="sun.jdk" />
