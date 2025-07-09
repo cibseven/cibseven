@@ -30,6 +30,8 @@
     <version.uuid-generator>4.3.0</version.uuid-generator>
     <version.feel-scala>1.19.1</version.feel-scala>
     <version.license-maven-plugin>2.4.0</version.license-maven-plugin>
+    <!-- Version for cibseven-webclient-web -->
+    <cibseven-webapp.version>2.0.0</cibseven-webapp.version>
   </properties>
 
   <build>

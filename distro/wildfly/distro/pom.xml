@@ -62,7 +62,7 @@
     <dependency>
       <groupId>org.cibseven.webapp</groupId>
       <artifactId>cibseven-webclient-web</artifactId>
-      <version>${project.version}</version>
+      <version>${cibseven-webapp.version}</version>
       <classifier>wildfly</classifier>
       <type>war</type>
     </dependency>
