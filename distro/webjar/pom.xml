@@ -43,7 +43,7 @@
     <dependency>
       <groupId>org.cibseven.webapp</groupId>
       <artifactId>cibseven-webclient-web</artifactId>
-      <version>${project.version}</version>
+      <version>${cibseven-webapp.version}</version>
       <type>jar</type>
       <classifier>classes</classifier>
     </dependency>
@@ -75,7 +75,7 @@
                 <artifactItem>
                   <groupId>org.cibseven.webapp</groupId>
                   <artifactId>cibseven-webclient-web</artifactId>
-                  <version>${project.version}</version>
+                  <version>${cibseven-webapp.version}</version>
                   <type>war</type>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.outputDirectory}/META-INF/resources/webjars/webapp</outputDirectory>
