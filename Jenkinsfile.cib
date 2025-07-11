@@ -155,8 +155,6 @@ pipeline {
                                 -fn
                         """
                     }
-
-                    junit allowEmptyResults: true, testResults: ConstantsInternal.MAVEN_TEST_RESULTS
                 }
             }
         }
@@ -185,6 +183,18 @@ pipeline {
                         script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
                     }
                 }
+            }
+        }
+
+        stage('JUnit Report') {
+            when {
+                anyOf {
+                    expression { params.VERIFY == true }
+                    expression { params.MIGRATION_VERIFY == true }
+                }
+            }
+            steps {
+                script { junit allowEmptyResults: true, testResults: ConstantsInternal.MAVEN_TEST_RESULTS }
             }
         }
 
