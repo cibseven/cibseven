@@ -70,7 +70,7 @@
     <version.arquillian>1.1.10.Final</version.arquillian>
     <version.shrinkwrap.resolvers>2.2.2</version.shrinkwrap.resolvers>
     <version.selenium>4.26.0</version.selenium>
-    <version.chromedriver>131.0.6778.85</version.chromedriver>
+    <version.chromedriver>138.0.7204.94</version.chromedriver>
     <version.freemarker>2.3.31</version.freemarker>
 
     <version.jboss-javaee-spec>3.0.2.Final</version.jboss-javaee-spec>
