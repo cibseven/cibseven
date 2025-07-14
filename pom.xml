@@ -3,8 +3,8 @@
 
   <parent>
     <groupId>org.cibseven</groupId>
-	  <artifactId>release-parent</artifactId>
-	  <version>1.1.0</version>
+	  <artifactId>release-parent-ee</artifactId>
+	  <version>0.0.2</version>
     <!-- do not remove empty tag - http://jira.codehaus.org/browse/MNG-4687 -->
     <relativePath />
   </parent>
@@ -305,6 +305,19 @@
       <name>CIB seven Snapshots repository</name>
       <url>https://artifacts.cibseven.org/repository/snapshots</url>
     </repository>
+    <repository>
+      <!-- Required for local enterprise releases and parent pom -->
+      <id>mvn-cibseven-enterprise</id>
+      <name>CIB seven Enterprise repository</name>
+      <url>https://artifacts.cibseven.org/repository/enterprise</url>
+    </repository>
+    <repository>
+      <!-- Required for local enterprise snapshots and parent pom -->
+      <id>mvn-cibseven-enterprise-snapshots</id>
+      <name>CIB seven Enterprise Snapshots repository</name>
+      <url>https://artifacts.cibseven.org/repository/enterprise-snapshots</url>
+    </repository>
+
   </repositories>
   
   <licenses>

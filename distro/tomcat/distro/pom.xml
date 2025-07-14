@@ -13,7 +13,7 @@
   <name>CIB seven - tomcat Distro</name>
   
   <properties>
-    <cibseven-webapp.version>2.0.0</cibseven-webapp.version>
+    <cibseven-webapp.version>2.1.0-ee-SNAPSHOT</cibseven-webapp.version>
   </properties>
 
   <dependencies>
@@ -58,7 +58,7 @@
     
 	<dependency>
       <groupId>org.cibseven.webapp</groupId>
-      <artifactId>cibseven-webclient-web</artifactId>
+      <artifactId>cibseven-webclient-web-ee</artifactId>
       <version>${cibseven-webapp.version}</version>
       <type>war</type>
     </dependency>

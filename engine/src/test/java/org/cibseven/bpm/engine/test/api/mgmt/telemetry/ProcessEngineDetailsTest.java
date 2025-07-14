@@ -158,6 +158,6 @@ public class ProcessEngineDetailsTest {
     // then
     // the version is read from the product-info.properties file
     assertThat(engineInfo.getVersion()).isEqualTo(TestconfigProperties.getEngineVersion());
-    assertThat(engineInfo.getEdition()).isEqualTo(EDITION_COMMUNITY);
+    assertThat(engineInfo.getEdition()).isEqualTo(EDITION_ENTERPRISE);
   }
 }
