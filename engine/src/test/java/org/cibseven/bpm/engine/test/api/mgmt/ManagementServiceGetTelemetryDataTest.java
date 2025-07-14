@@ -17,6 +17,8 @@
 package org.cibseven.bpm.engine.test.api.mgmt;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.cibseven.bpm.engine.impl.util.ProcessEngineDetails.EDITION_COMMUNITY;
+import static org.cibseven.bpm.engine.impl.util.ProcessEngineDetails.EDITION_ENTERPRISE;
 import static org.cibseven.bpm.engine.management.Metrics.DECISION_INSTANCES;
 import static org.cibseven.bpm.engine.management.Metrics.EXECUTED_DECISION_ELEMENTS;
 import static org.cibseven.bpm.engine.management.Metrics.FLOW_NODE_INSTANCES;
@@ -133,7 +135,7 @@ public class ManagementServiceGetTelemetryDataTest {
 
     // then
     assertThat(telemetryData.getProduct().getName()).isEqualTo("CIB seven");
-    assertThat(telemetryData.getProduct().getEdition()).isEqualTo("community");
+    assertThat(telemetryData.getProduct().getEdition()).isEqualTo(EDITION_ENTERPRISE);
     assertThat(telemetryData.getProduct().getVersion()).isEqualTo(ParseUtil.parseProcessEngineVersion(true).getVersion());
   }
 
