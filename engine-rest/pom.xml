@@ -16,7 +16,7 @@
   <properties>
     <version.rest-assured>5.5.1</version.rest-assured>
     <!-- override groovy version with the one used by rest-assured -->
-    <version.groovy>4.0.26</version.groovy>
+    <version.groovy>4.0.27</version.groovy>
     <version.apache.httpcore>4.4.5</version.apache.httpcore>
     <version.commons-codec>1.15</version.commons-codec>
     <!-- disable parallel unit tests run -->
