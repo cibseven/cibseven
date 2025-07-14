@@ -12,10 +12,6 @@
 
   <name>CIB seven - Wildfly Distro</name>
   
-  <properties>
-    <cibseven-webapp.version>2.1.0-ee-SNAPSHOT</cibseven-webapp.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <!-- this dependency is to make sure that we are executed after the

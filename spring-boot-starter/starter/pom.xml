@@ -10,10 +10,6 @@
   <artifactId>cibseven-bpm-spring-boot-starter</artifactId>
   <name>CIB seven - Spring Boot Starter</name>
 
-  <properties>
-    <cibseven-webapp.version>2.1.0-ee-SNAPSHOT</cibseven-webapp.version>
-  </properties>
-
   <dependencyManagement>
     <dependencies>
       <dependency>
