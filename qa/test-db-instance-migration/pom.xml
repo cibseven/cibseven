@@ -1,16 +1,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.camunda.bpm.qa.upgrade</groupId>
-  <artifactId>camunda-qa-db-instance-migration</artifactId>
+  <groupId>org.cibseven.bpm.qa.upgrade</groupId>
+  <artifactId>cibseven-qa-db-instance-migration</artifactId>
 
   <packaging>pom</packaging>
-  <name>CIB seven - QA - upgrade - instance migration</name>
+  <name>CIB seven Platform - QA - upgrade - instance migration</name>
 
   <parent>
-    <groupId>org.camunda.bpm.qa</groupId>
-    <artifactId>camunda-qa</artifactId>
-    <version>7.22.1-cibseven</version>
+    <groupId>org.cibseven.bpm.qa</groupId>
+    <artifactId>cibseven-qa</artifactId>
+    <version>2.1.0-SNAPSHOT</version>
   </parent>
 
   <properties>
@@ -21,28 +21,9 @@
   </properties>
 
   <modules>
-    <module>test-fixture-72</module>
-    <module>test-fixture-73</module>
-    <module>test-fixture-74</module>
-    <module>test-fixture-75</module>
-    <module>test-fixture-76</module>
-    <module>test-fixture-77</module>
-    <module>test-fixture-78</module>
-    <module>test-fixture-79</module>
-    <module>test-fixture-710</module>
-    <module>test-fixture-711</module>
-    <module>test-fixture-712</module>
-    <module>test-fixture-713</module>
-    <module>test-fixture-714</module>
-    <module>test-fixture-715</module>
-    <module>test-fixture-716</module>
-    <module>test-fixture-717</module>
-    <module>test-fixture-718</module>
-    <module>test-fixture-719</module>
-    <module>test-fixture-720</module>
-    <module>test-fixture-721</module>
-    <module>test-fixture-722</module>
-    <module>test-fixture-723</module>
+    <module>test-fixture-11</module>
+    <module>test-fixture-20</module>
+    <module>test-fixture-21</module>
     <module>test-migration</module>
   </modules>
 

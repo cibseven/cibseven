@@ -12,10 +12,6 @@
 
   <name>CIB seven - tomcat Distro</name>
   
-  <properties>
-    <cibseven-webapp.version>2.1.0-ee-SNAPSHOT</cibseven-webapp.version>
-  </properties>
-
   <dependencies>
 
     <dependency>

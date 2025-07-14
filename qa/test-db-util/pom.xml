@@ -2,22 +2,22 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.camunda.bpm.qa</groupId>
-    <artifactId>camunda-qa</artifactId>
-    <version>7.22.1-cibseven</version>
+    <groupId>org.cibseven.bpm.qa</groupId>
+    <artifactId>cibseven-qa</artifactId>
+    <version>2.1.0-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.camunda.bpm.qa.upgrade</groupId>
-  <artifactId>camunda-qa-upgrade-scenario-util</artifactId>
+  <groupId>org.cibseven.bpm.qa.upgrade</groupId>
+  <artifactId>cibseven-qa-upgrade-scenario-util</artifactId>
   <packaging>jar</packaging>
   <name>CIB seven - QA - upgrade - scenario util</name>
 
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.camunda.bpm</groupId>
-        <artifactId>camunda-bom</artifactId>
-        <version>7.2.0</version>
+        <groupId>org.cibseven.bpm</groupId>
+        <artifactId>cibseven-bom</artifactId>
+        <version>1.1.0</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -27,8 +27,8 @@
   <dependencies>
 
     <dependency>
-      <groupId>org.camunda.bpm</groupId>
-      <artifactId>camunda-engine</artifactId>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine</artifactId>
       <scope>provided</scope>
     </dependency>
 

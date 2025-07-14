@@ -80,7 +80,8 @@
                   <type>war</type>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.outputDirectory}/META-INF/resources/webjars/webapp</outputDirectory>
-                  <excludes>META-INF/**</excludes>
+                  <!-- exclude CIB Seven WEB-INF and Spring Boot loader as well-->
+                  <excludes>META-INF/**,WEB-INF/**,org/**</excludes>
                 </artifactItem>
               </artifactItems>
             </configuration>
