@@ -35,6 +35,7 @@ import org.cibseven.bpm.engine.impl.telemetry.dto.LicenseKeyDataImpl;
 import org.cibseven.bpm.engine.impl.telemetry.dto.TelemetryDataImpl;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.impl.util.ParseUtil;
+import org.cibseven.bpm.engine.impl.util.ProcessEngineDetails;
 import org.cibseven.bpm.engine.telemetry.ApplicationServer;
 import org.cibseven.bpm.engine.telemetry.Metric;
 import org.cibseven.bpm.engine.telemetry.TelemetryData;
@@ -135,7 +136,12 @@ public class ManagementServiceGetTelemetryDataTest {
 
     // then
     assertThat(telemetryData.getProduct().getName()).isEqualTo("CIB seven");
-    assertThat(telemetryData.getProduct().getEdition()).isEqualTo(EDITION_ENTERPRISE);
+    
+    // Determine expected edition based on whether version contains "-ee"
+    ProcessEngineDetails engineDetails = ParseUtil.parseProcessEngineVersion(false);
+    String expectedEdition = engineDetails.getVersion().contains("-ee") ? EDITION_ENTERPRISE : EDITION_COMMUNITY;
+    assertThat(telemetryData.getProduct().getEdition()).isEqualTo(expectedEdition);
+    
     assertThat(telemetryData.getProduct().getVersion()).isEqualTo(ParseUtil.parseProcessEngineVersion(true).getVersion());
   }
 
