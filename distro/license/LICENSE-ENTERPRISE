@@ -1,0 +1,35 @@
+CIB seven Enterprise Edition LICENSE
+ 
+IMPORTANT: This distribution contains components under different licenses.
+ 
+COMMUNITY COMPONENTS (Apache 2.0 Licensed):
+This distribution contains Community Edition components that are based on the
+Camunda Platform open source project and CIB seven Community Edition, which are
+licensed under the Apache License 2.0 (see LICENSE file). These components may
+be used, modified, and distributed according to the terms of the Apache License 2.0.
+ 
+ENTERPRISE COMPONENTS (Proprietary Licensed):
+This distribution also contains additional Enterprise Edition components that are
+protected by intellectual property laws and provided to you (the licensee, meaning the individual or legal entity who has entered into a commercial license agreement with CIB seven) under a commercial license agreement containing restrictions on use and disclosure.
+ 
+The Enterprise components include but are not limited to:
+- Advanced monitoring and analytics features
+- Advanced deployment and clustering capabilities
+- Premium support and maintenance features
+- Other proprietary enhancements marked as "Enterprise" in the codebase
+ 
+RESTRICTIONS ON ENTERPRISE COMPONENTS:
+Except as expressly permitted in your Enterprise license agreement or allowed by law, you
+may not use, copy, reproduce, translate, broadcast, modify, license, transmit,
+distribute, exhibit, perform, publish the Enterprise components, or display any
+part in any form, or by any means. Reverse engineering, disassembly, or
+decompilation of the Enterprise components, unless required by law for
+interoperability, is prohibited.
+ 
+The Enterprise components are proprietary software and are subject to the terms
+and conditions of your commercial Enterprise license agreement with CIB seven. Please
+refer to your Enterprise license agreement for the complete terms and conditions governing
+the use of Enterprise components.
+ 
+For questions regarding Enterprise component licensing, please refer to:
+https://docs.cibseven.org”
