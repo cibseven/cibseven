@@ -119,10 +119,7 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
       return GraalJSScriptEngine.create(null, builder);
       
     } else if (useCibSevenNameSpace && GROOVY_SCRIPTING_LANGUAGE.equalsIgnoreCase(shortName)) {
-
-      var cibSevenClassLoader = new CibSevenClassLoader(Thread.currentThread().getContextClassLoader());
-      var groovyClassLoader = new groovy.lang.GroovyClassLoader(cibSevenClassLoader);
-      return new org.codehaus.groovy.jsr223.GroovyScriptEngineImpl(groovyClassLoader);
+      return org.cibseven.bpm.engine.impl.scripting.util.CibSevenScriptEngineUtil.createGroovyScriptEngine();
     }
 
     return super.getEngineByName(shortName);
@@ -146,6 +143,33 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
   }
 
   /**
+   * Creates a CibSevenClassLoader that can be used by external script engines.
+   * This classloader automatically translates Camunda namespace classes to CibSeven namespace.
+   * 
+   * Example usage with Groovy:
+   * <pre>
+   * ClassLoader cibSevenClassLoader = CamundaScriptEngineManager.createCibSevenClassLoader();
+   * GroovyClassLoader groovyClassLoader = new GroovyClassLoader(cibSevenClassLoader);
+   * ScriptEngine groovyEngine = new GroovyScriptEngineImpl(groovyClassLoader);
+   * </pre>
+   * 
+   * @return A ClassLoader that handles CibSeven namespace translation
+   */
+  public static ClassLoader createCibSevenClassLoader() {
+    return createCibSevenClassLoader(Thread.currentThread().getContextClassLoader());
+  }
+
+  /**
+   * Creates a CibSevenClassLoader with a specific parent ClassLoader.
+   * 
+   * @param parent The parent ClassLoader
+   * @return A ClassLoader that handles CibSeven namespace translation
+   */
+  public static ClassLoader createCibSevenClassLoader(ClassLoader parent) {
+    return new CibSevenClassLoader(parent);
+  }
+
+  /**
    * Fetches the config logic of a given engine from the mappings and executes it in case it exists.
    *
    * @param engineName the given engine name
@@ -159,6 +183,31 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
 
   protected void disableGraalVMInterpreterOnlyModeWarnings() {
     System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");
+  }
+
+  /**
+   * Creates a Groovy script engine with CibSevenClassLoader using reflection to avoid compile-time dependency.
+   * Returns null if Groovy classes are not available at runtime.
+   */
+  protected ScriptEngine createGroovyScriptEngineWithCibSevenClassLoader() {
+    try {
+      ClassLoader cibSevenClassLoader = createCibSevenClassLoader();
+      
+      // Use reflection to create GroovyClassLoader
+      Class<?> groovyClassLoaderClass = Class.forName("groovy.lang.GroovyClassLoader", true, cibSevenClassLoader);
+      var groovyClassLoaderConstructor = groovyClassLoaderClass.getConstructor(ClassLoader.class);
+      var groovyClassLoader = groovyClassLoaderConstructor.newInstance(cibSevenClassLoader);
+      
+      // Use reflection to create GroovyScriptEngineImpl
+      Class<?> groovyScriptEngineClass = Class.forName("org.codehaus.groovy.jsr223.GroovyScriptEngineImpl", true, cibSevenClassLoader);
+      var groovyScriptEngineConstructor = groovyScriptEngineClass.getConstructor(groovyClassLoaderClass);
+      return (ScriptEngine) groovyScriptEngineConstructor.newInstance(groovyClassLoader);
+      
+    } catch (Exception e) {
+      // Log the error and fall back to standard script engine manager
+      System.err.println("Failed to create Groovy script engine with CibSevenClassLoader: " + e.getMessage());
+      return super.getEngineByName(GROOVY_SCRIPTING_LANGUAGE);
+    }
   }
 
 }
