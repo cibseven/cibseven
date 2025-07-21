@@ -327,7 +327,7 @@ pipeline {
                             mvn -T4 -U \
                                 -DskipTests \
                                 -Pwebapps-integration ${deployment} \
-                                clean deploy
+                                clean deploy -X -e
                         """
                     }
                 }
