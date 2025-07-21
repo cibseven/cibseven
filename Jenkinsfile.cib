@@ -303,15 +303,15 @@ pipeline {
         stage('Deploy to artifacts.cibseven.org') {
             when {
                 anyOf {
-                    // allow deploy of snapshots from main branch
                     allOf {
-                        branch 'main'
+                        // Automatically deploy on main branch if version is SNAPSHOT
+                        expression { branch 'main' }
                         expression { mavenProjectInformation.version.endsWith("-SNAPSHOT") == true }
+                        expression { !params.DEPLOY_TO_MAVEN_CENTRAL }
                     }
-                    // force deploy
                     allOf {
                         expression { params.DEPLOY_TO_ARTIFACTS }
-                        expression { params.DEPLOY_TO_MAVEN_CENTRAL == false }
+                        expression { !params.DEPLOY_TO_MAVEN_CENTRAL }
                     }
                 }
             }
