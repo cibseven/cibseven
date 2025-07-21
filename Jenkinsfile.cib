@@ -305,7 +305,7 @@ pipeline {
                 anyOf {
                     allOf {
                         // Automatically deploy on main branch if version is SNAPSHOT
-                        expression { env.BRANCH_NAME == 'main' }
+                        branch 'main'
                         expression { mavenProjectInformation.version.endsWith("-SNAPSHOT") == true }
                         expression { !params.DEPLOY_TO_MAVEN_CENTRAL }
                     }
