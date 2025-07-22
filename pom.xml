@@ -31,7 +31,7 @@
     <version.feel-scala>1.19.1</version.feel-scala>
     <version.license-maven-plugin>2.4.0</version.license-maven-plugin>
     <!-- Version for cibseven-webclient-web -->
-    <cibseven-webapp.version>${project.version}</cibseven-webapp.version>
+    <cibseven-webapp.version>2.1.0-20250722.120948-31</cibseven-webapp.version>
   </properties>
 
   <build>
