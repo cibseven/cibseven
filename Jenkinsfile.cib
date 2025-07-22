@@ -18,7 +18,6 @@ import groovy.transform.Field
     testMode: false
 ]
 
-
 pipeline {
     agent {
         kubernetes {
