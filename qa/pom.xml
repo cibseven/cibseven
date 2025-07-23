@@ -38,6 +38,7 @@
     <jboss.mail-smtp.port>25</jboss.mail-smtp.port>
 
     <!-- tomcat -->
+	<version.tomcat>10.1.42</version.tomcat>
     <tomcat.connector.http.port>48080</tomcat.connector.http.port>
     <tomcat.connector.http.redirectPort>48443</tomcat.connector.http.redirectPort>
     <tomcat.connector.ajp.port>48009</tomcat.connector.ajp.port>
@@ -81,7 +82,7 @@
         <module>integration-tests-webapps</module>
         <module>integration-tests-engine</module>
         <module>test-db-util</module>
-        <!-- <module>test-db-instance-migration</module> -->
+        <module>test-db-instance-migration</module>
         <module>test-db-rolling-update</module>
         <module>test-old-engine</module>
         <module>performance-tests-engine</module>

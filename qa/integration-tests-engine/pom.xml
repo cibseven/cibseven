@@ -577,6 +577,7 @@
                 <exclude>**/ManagedJobExecutorTest.java</exclude>
               </excludes>
               <redirectTestOutputToFile>${redirect.test.output}</redirectTestOutputToFile>
+              <forkCount>1</forkCount>
             </configuration>
           </plugin>
         </plugins>

@@ -670,6 +670,13 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
+			
+			<includes>
+			  <include>**/JobPrioritizationTest.java</include>
+			</includes>
+			
+			
+			
               <excludes>
                 <!-- no EE stuff on tomcat :) -->
                 <exclude>**/ear/**</exclude>
@@ -704,6 +711,7 @@
 
               </excludes>
               <redirectTestOutputToFile>${redirect.test.output}</redirectTestOutputToFile>
+              <forkCount>1</forkCount>
             </configuration>
           </plugin>
         </plugins>
