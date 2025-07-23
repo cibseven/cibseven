@@ -45,7 +45,7 @@ public class TestProcessEngineJndiBinding_JBOSS extends AbstractFoxPlatformInteg
   public void testDefaultProcessEngineBindingCreated() {
     
     try {
-      ProcessEngine processEngine = InitialContext.doLookup("java:global/camunda-bpm-platform/process-engine/default");
+      ProcessEngine processEngine = InitialContext.doLookup("java:global/cibseven-bpm-platform/process-engine/default");
       Assert.assertNotNull("Process engine must not be null", processEngine);
       
     } catch(Exception e) {
