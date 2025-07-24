@@ -46,13 +46,13 @@ public class TestManagedDomain_JBOSS {
   @Test
   public void shouldBeAbleToLookupDefaultProcessEngine() {
     try {
-      Assert.assertNotNull(InitialContext.doLookup("java:global/cibseven-bpm-platform/process-engine/default"));
+    	Assert.assertNotNull(InitialContext.doLookup("java:global/camunda-bpm-platform/process-engine/default"));
     } catch (NamingException e) {
       Assert.fail("Could not lookup default process engine");
     }
 
     try {
-      Assert.assertNotNull(InitialContext.doLookup("java:global/cibseven-bpm-platform/process-engine/someNonExistingEngine"));
+      Assert.assertNotNull(InitialContext.doLookup("java:global/camunda-bpm-platform/process-engine/someNonExistingEngine"));
       Assert.fail("Should not be able to lookup someNonExistingEngine process engine");
     } catch (NamingException e) {
       // expected
