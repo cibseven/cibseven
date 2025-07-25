@@ -13,6 +13,8 @@
 
   <properties>
     <cibseven.old.engine.version>2.0.0</cibseven.old.engine.version>
+	<!-- Specific groovy version is only needed for CIB seven 2.0. For next old engines could be removed and parent version should be used -->
+	<cibseven.old.groovy.version>4.0.22</cibseven.old.groovy.version>
   </properties>
 
   <build>
@@ -178,6 +180,8 @@
         <dependency>
           <groupId>org.apache.groovy</groupId>
           <artifactId>groovy-jsr223</artifactId>
+		  <!-- Specific groovy version is only needed for CIB seven 2.0. For next old engines could be removed and parent version should be used -->
+          <version>${cibseven.old.groovy.version}</version>
         </dependency>
 
         <dependency>
