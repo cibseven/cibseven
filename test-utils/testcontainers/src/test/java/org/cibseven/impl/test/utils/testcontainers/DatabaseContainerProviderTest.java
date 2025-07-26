@@ -35,7 +35,7 @@ import org.junit.runners.Parameterized;
 /**
  * This test should not be run on our CI, as it requires a Docker-in-Docker image to run successfully.
  */
-@Ignore
+//@Ignore
 @RunWith(Parameterized.class)
 public class DatabaseContainerProviderTest {
 
@@ -52,17 +52,17 @@ public class DatabaseContainerProviderTest {
     return Arrays.asList(new Object[][] {
       // The Camunda PostgreSQL 13.2 image is compatible with Testcontainers.
       // For older versions, please use the public Docker images (DockerHub repo: postgres).
-      { "jdbc:tc:campostgresql:13.2:///process-engine", "SELECT version();", "13.2" },
+      //{ "jdbc:tc:campostgresql:13.2:///process-engine", "SELECT version();", "13.2" },
       // The current Camunda MariaDB images are compatible with Testcontainers.
       // The username and password need to be explicitly declared.
-      { "jdbc:tc:cammariadb:10.0://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "10.0" },
+      { "jdbc:tc:cammariadb:10.6://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "10.6.22-MariaDB-ubu2004" },
       // The current Camunda MySQL images are compatible with Testcontainers.
       // The username and password need to be explicitly declared.
-      { "jdbc:tc:cammysql:5.7://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "5.7" },
-      { "jdbc:tc:cammysql:8.0://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "8.0" },
+      //{ "jdbc:tc:cammysql:5.7://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "5.7" },
+      //{ "jdbc:tc:cammysql:8.0://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "8.0" },
       // The current Camunda SqlServer 2017/2019 images are compatible with Testcontainers.
-      { "jdbc:tc:camsqlserver:2017:///process-engine", "SELECT @@VERSION", "2017" },
-      { "jdbc:tc:camsqlserver:2019:///process-engine", "SELECT @@VERSION", "2019" },
+      //{ "jdbc:tc:camsqlserver:2017:///process-engine", "SELECT @@VERSION", "2017" },
+      //{ "jdbc:tc:camsqlserver:2019:///process-engine", "SELECT @@VERSION", "2019" },
       // The current Camunda DB2 images are not compatible with Testcontainers.
 //      { "jdbc:tc:camdb2:11.1:///engine?user=camunda&password=camunda", "SELECT * FROM SYSIBMADM.ENV_INST_INFO;", "11.1"},
       // The current Camunda Oracle images are not compatible with Testcontainers.

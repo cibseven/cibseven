@@ -34,6 +34,24 @@ public class CamundaMariaDBContainerProvider extends MariaDBContainerProvider {
   public JdbcDatabaseContainer newInstance(String tag) {
     DockerImageName dockerImageName = TestcontainersHelper
       .resolveDockerImageName("mariadb", tag, "mariadb");
-    return new MariaDBContainer(dockerImageName);
+
+    MariaDBContainer<?> mariaDBContainer = new MariaDBContainer<>(dockerImageName)
+    .withCommand("--transaction-isolation=READ-COMMITTED")
+    .withDatabaseName("process-engine")
+    .withUsername("camunda")
+    .withPassword("camunda")
+    .withExposedPorts(3306)
+    /*
+    .waitingFor(Wait.forLogMessage(".*ready for connections.*", 1)
+        .withStartupTimeout(Duration.ofMinutes(2)))
+    .waitingFor(Wait.forListeningPort())
+    .withStartupTimeoutSeconds(120)
+    .withExposedPorts(3306)
+    .withCreateContainerCmdModifier(cmd -> cmd.withHostConfig(
+        new HostConfig().withPortBindings(new PortBinding(Ports.Binding.bindPort(3306), new ExposedPort(3306)))
+    ))
+    */;
+    // mariaDBContainer.start();
+    return mariaDBContainer;
   }
 }
