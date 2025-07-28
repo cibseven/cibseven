@@ -8,6 +8,7 @@ import de.cib.pipeline.library.logging.Logger
 import de.cib.pipeline.library.ConstantsInternal
 import de.cib.pipeline.library.MavenProjectInformation
 import groovy.transform.Field
+import com.cloudbees.groovy.cps.NonCPS
 
 @Field Logger log = new Logger(this)
 @Field MavenProjectInformation mavenProjectInformation = null
@@ -18,13 +19,18 @@ import groovy.transform.Field
     testMode: false
 ]
 
+@NonCPS
+def createPodYaml() {
+    return BuildPodCreator.cibStandardPod()
+        .withContainerFromName(pipelineParams.mvnContainerName, [memory: "12Gi", ephemeralStorage: "12Gi"])
+        .withVolume('/var/run/docker.sock', '/var/run/docker.sock', 'HostPath')
+        .asYaml()
+}
+
 pipeline {
     agent {
         kubernetes {
-            yaml BuildPodCreator.cibStandardPod()
-                .withContainerFromName(pipelineParams.mvnContainerName, [memory: "12Gi", ephemeralStorage: "12Gi"])
-                .withVolume('/var/run/docker.sock', '/var/run/docker.sock', 'HostPath')
-                .asYaml()
+            yaml createPodYaml()
             defaultContainer 'maven'
         }
     }
