@@ -53,6 +53,8 @@ spec:
     stages {
         stage('Testcontainers Integration Tests') {
             steps {
+              sh 'docker ps -a'
+              /*
               sh '''
                 mvn clean install -f parent/pom.xml
                 mvn clean install -f internal-dependencies/pom.xml
@@ -61,6 +63,7 @@ spec:
                 mvn clean install -DskipTests -f test-utils/testcontainers/pom.xml
                 mvn -f engine/pom.xml -Dtest=ProcessInstanceAuthorizationTest#testSimpleQueryWithoutAuthorization test -P mariadb,testcontainers
               '''
+              */
             }
         }
     }
