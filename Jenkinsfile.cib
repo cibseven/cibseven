@@ -55,7 +55,7 @@ spec:
             steps {
               sh 'cat /etc/*release*'
               sh '''
-                apk add --no-cache docker-cli
+                yum install -y docker
                 docker --version
               '''
               sh 'docker ps -a'
