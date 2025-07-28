@@ -58,11 +58,7 @@ spec:
               sh 'echo $HOSTNAME'
               // sh 'ps aux'
               sh 'echo $container'
-              sh '''
-                dnf install -y docker
-                docker --version
-              '''
-              sh 'docker ps -a'
+              sh 'curl --unix-socket /var/run/docker.sock http://localhost/containers/json'
               /*
               sh '''
                 mvn clean install -f parent/pom.xml
