@@ -55,7 +55,7 @@ spec:
             steps {
               sh 'cat /etc/*release*'
               sh '''
-                yum install -y docker
+                dnf install -y docker
                 docker --version
               '''
               sh 'docker ps -a'
