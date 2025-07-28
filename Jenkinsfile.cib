@@ -48,6 +48,11 @@ spec:
         stage('Testcontainers Integration Tests') {
             steps {
 
+              sh 'cat /etc/*release*'
+              sh 'docker version'
+              sh 'docker info'
+              sh 'docker ps -a'
+
               /*
               sh '''
                   # Install curl for testing
@@ -84,7 +89,7 @@ spec:
                     --health-interval=5s \
                     --health-timeout=3s \
                     --health-retries=10 \
-                    mariadb:latest
+                    mariadb:10.6
                   
                   # Wait for MariaDB to become healthy
                   echo "Waiting for MariaDB to become healthy..."
@@ -106,33 +111,22 @@ spec:
                   docker rm test-mariadb
               '''
 
-              /*
-              sh 'cat /etc/*release*'
-              sh 'docker version'
-              sh 'docker info'
-              sh 'docker ps -a'
-              */
-
-              /*
               sh '''
                   apk add --no-cache openjdk17 maven
                   java -version
                   mvn -version
               '''
-              */
 
-              /*
               sh '''
                 mvn clean install -f parent/pom.xml
                 mvn clean install -f internal-dependencies/pom.xml
                 mvn clean install -f database/pom.xml
                 mvn dependency:tree -DskipTests -f test-utils/testcontainers/pom.xml | grep commons-compress
                 mvn clean install -DskipTests -f test-utils/testcontainers/pom.xml
-                mvn -f engine/pom.xml -Dtest=ProcessInstanceAuthorizationTest#testSimpleQueryWithoutAuthorization test -P mariadb,testcontainers
               '''
-              */
 
-              /*
+              // sh 'mvn -f engine/pom.xml -Dtest=ProcessInstanceAuthorizationTest#testSimpleQueryWithoutAuthorization test -P mariadb,testcontainers'
+
               script {
                   parallel (
                       'Maven Test': {
@@ -141,7 +135,7 @@ spec:
                       'Docker Monitor': {
                           sh '''
                               i=1
-                              while [ $i -le 60 ]; do
+                              while [ $i -le 35 ]; do
                                   echo "=== Iteration $i at $(date) ==="
                                   docker ps -a
                                   sleep 5
@@ -151,7 +145,6 @@ spec:
                       }
                   )
               }
-              */
               
             }
         }
