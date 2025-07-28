@@ -29,6 +29,9 @@ spec:
   containers:
   - name: maven
     image: maven:3.8.1-openjdk-17
+    env:
+      - name: DOCKER_HOST
+        value: tcp://localhost:2375
     resources:
       requests:
         memory: "12Gi"
@@ -39,13 +42,17 @@ spec:
     command:
     - cat
     tty: true
-    volumeMounts:
-    - mountPath: /var/run/docker.sock
-      name: docker-sock
-  volumes:
-  - name: docker-sock
-    hostPath:
-      path: /var/run/docker.sock
+  - name: docker
+    image: docker:dind
+    securityContext:
+      privileged: true
+    resources:
+      requests:
+        memory: "2Gi"
+        ephemeral-storage: "2Gi"
+      limits:
+        memory: "2Gi"
+        ephemeral-storage: "2Gi"
 """
             defaultContainer 'maven'
         }
@@ -56,11 +63,9 @@ spec:
               sh 'cat /etc/*release*'
               sh 'cat /etc/os-release'
               sh 'echo $HOSTNAME'
-              sh 'ping 192.168.96.236'
               sh 'echo $container'
-              sh 'ls -l /var/run/docker.sock'
-              sh 'file /var/run/docker.sock'
-              sh 'curl --unix-socket /var/run/docker.sock http://localhost/containers/json'
+              sh 'curl http://localhost:2375/_ping'
+              sh 'curl http://localhost:2375/containers/json'
               /*
               sh '''
                 mvn clean install -f parent/pom.xml
