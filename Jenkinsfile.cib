@@ -53,6 +53,10 @@ spec:
     stages {
         stage('Testcontainers Integration Tests') {
             steps {
+              sh '''
+                apt-get update && apt-get install -y docker.io
+                docker --version
+              '''
               sh 'docker ps -a'
               /*
               sh '''
