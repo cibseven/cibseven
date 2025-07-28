@@ -32,10 +32,10 @@ spec:
     resources:
       requests:
         memory: "12Gi"
-        ephemeralStorage: "12Gi"
+        ephemeral-storage: "12Gi"
       limits:
         memory: "12Gi"
-        ephemeralStorage: "12Gi"
+        ephemeral-storage: "12Gi"
     command:
     - cat
     tty: true
