@@ -58,7 +58,7 @@ spec:
                   java -version
                   mvn -version
               '''
-
+              /*
               sh '''
                 mvn clean install -f parent/pom.xml
                 mvn clean install -f internal-dependencies/pom.xml
@@ -67,7 +67,22 @@ spec:
                 mvn clean install -DskipTests -f test-utils/testcontainers/pom.xml
                 mvn -f engine/pom.xml -Dtest=ProcessInstanceAuthorizationTest#testSimpleQueryWithoutAuthorization test -P mariadb,testcontainers
               '''
-              
+              */
+              parallel {
+                  'Maven Test': {
+                      sh 'mvn -f engine/pom.xml -Dtest=ProcessInstanceAuthorizationTest#testSimpleQueryWithoutAuthorization test -P mariadb,testcontainers'
+                  },
+                  'Docker Monitor': {
+                      sh '''
+                          for i in {1..60}; do
+                              echo "=== Iteration $i at $(date) ==="
+                              docker ps -a
+                              sleep 5
+                          done
+                      '''
+                  }
+              }
+
             }
         }
     }
