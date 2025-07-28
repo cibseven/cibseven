@@ -85,7 +85,7 @@ spec:
                     -e MYSQL_ROOT_PASSWORD=testpass \
                     -e MYSQL_DATABASE=testdb \
                     -p 3306:3306 \
-                    --health-cmd="mariadb -u root -ptestpass -e 'SELECT 1'" \
+                    --health-cmd="mariadb -u root -ptestpass --skip-ssl -e 'SELECT 1'" \
                     --health-interval=5s \
                     --health-timeout=3s \
                     --health-retries=10 \
@@ -100,8 +100,8 @@ spec:
                   echo "MariaDB is now healthy!"
                   
                   # Test connection to MariaDB (using mariadb command instead of deprecated mysql)
-                  mariadb -h localhost -P 3306 -u root -ptestpass --ssl-disabled -e "SELECT VERSION();"
-                  mariadb -h localhost -P 3306 -u root -ptestpass --ssl-disabled -e "SHOW DATABASES;"
+                  mariadb -h localhost -P 3306 -u root -ptestpass --skip-ssl -e "SELECT VERSION();"
+                  mariadb -h localhost -P 3306 -u root -ptestpass --skip-ssl -e "SHOW DATABASES;"
                   
                   # Show running containers
                   docker ps -a
