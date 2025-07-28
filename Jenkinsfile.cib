@@ -106,9 +106,9 @@ spec:
                   # Show running containers
                   docker ps -a
                   
-                  # Clean up
-                  docker stop test-mariadb
-                  docker rm test-mariadb
+                  # Keep MariaDB running for the tests (don't clean up here)
+                  # docker stop test-mariadb
+                  # docker rm test-mariadb
               '''
 
               sh '''
@@ -135,7 +135,7 @@ spec:
                       'Docker Monitor': {
                           sh '''
                               i=1
-                              while [ $i -le 35 ]; do
+                              while [ $i -le 10 ]; do
                                   echo "=== Iteration $i at $(date) ==="
                                   docker ps -a
                                   sleep 5
@@ -145,6 +145,14 @@ spec:
                       }
                   )
               }
+              
+              // Clean up MariaDB container after tests
+              sh '''
+                  echo "Cleaning up MariaDB container..."
+                  docker stop test-mariadb || true
+                  docker rm test-mariadb || true
+                  docker ps -a
+              '''
               
             }
         }
