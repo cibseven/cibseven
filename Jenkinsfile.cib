@@ -133,7 +133,10 @@ pipeline {
             when {
                 expression { params.VERIFY == true }
             }
-            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}}
+            steps { 
+               script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
+               script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
+            }
         }
 
         stage('Unit and Integration Tests') {
