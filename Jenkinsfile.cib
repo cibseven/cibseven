@@ -56,6 +56,14 @@ spec:
       limits:
         memory: "2Gi"
         ephemeral-storage: "2Gi"
+    volumeMounts:
+      - name: docker-sock
+        mountPath: /var/run/docker.sock
+  volumes:
+    - name: docker-sock
+      hostPath:
+        path: /var/run/docker.sock
+        type: Socket
 """
             defaultContainer 'docker'
         }
