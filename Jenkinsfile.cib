@@ -22,7 +22,7 @@ pipeline {
     agent {
         kubernetes {
             yaml BuildPodCreator.cibStandardPod()
-                .withContainerFromName('maven', [memory: "4Gi", ephemeralStorage: "10Gi"])
+                .withContainerFromName(pipelineParams.mvnContainerName, [memory: "12Gi", ephemeralStorage: "12Gi"])
                 .withVolume('/var/run/docker.sock', '/var/run/docker.sock', 'HostPath')
                 .asYaml()
             defaultContainer 'maven'
