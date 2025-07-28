@@ -68,21 +68,22 @@ spec:
                 mvn -f engine/pom.xml -Dtest=ProcessInstanceAuthorizationTest#testSimpleQueryWithoutAuthorization test -P mariadb,testcontainers
               '''
               */
-              parallel {
-                  'Maven Test': {
-                      sh 'mvn -f engine/pom.xml -Dtest=ProcessInstanceAuthorizationTest#testSimpleQueryWithoutAuthorization test -P mariadb,testcontainers'
-                  },
-                  'Docker Monitor': {
-                      sh '''
-                          for i in {1..60}; do
-                              echo "=== Iteration $i at $(date) ==="
-                              docker ps -a
-                              sleep 5
-                          done
-                      '''
-                  }
+              script {
+                  parallel (
+                      'Maven Test': {
+                          sh 'mvn -f engine/pom.xml -Dtest=ProcessInstanceAuthorizationTest#testSimpleQueryWithoutAuthorization test -P mariadb,testcontainers'
+                      },
+                      'Docker Monitor': {
+                          sh '''
+                              for i in {1..60}; do
+                                  echo "=== Iteration $i at $(date) ==="
+                                  docker ps -a
+                                  sleep 5
+                              done
+                          '''
+                      }
+                  )
               }
-
             }
         }
     }
