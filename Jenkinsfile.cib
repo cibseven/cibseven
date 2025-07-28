@@ -21,16 +21,18 @@ import com.cloudbees.groovy.cps.NonCPS
 
 @NonCPS
 def createPodYaml() {
-    def podCreator = BuildPodCreator.cibStandardPod()
-        .withContainerFromName(pipelineParams.mvnContainerName, [memory: "12Gi", ephemeralStorage: "12Gi"])
+    return BuildPodCreator.cibStandardPod()
+        .withContainerFromName(Constants.MAVEN_JDK_17_CONTAINER, [memory: "12Gi", ephemeralStorage: "12Gi"])
         .withVolume('/var/run/docker.sock', '/var/run/docker.sock', 'HostPath')
-    return podCreator.asYaml()
+        .asYaml()
 }
+
+def podYaml = createPodYaml()
 
 pipeline {
     agent {
         kubernetes {
-            yaml createPodYaml()
+            yaml podYaml
             defaultContainer 'maven'
         }
     }
