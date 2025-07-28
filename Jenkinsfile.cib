@@ -47,16 +47,18 @@ spec:
     stages {
         stage('Testcontainers Integration Tests') {
             steps {
+              /*
               sh 'cat /etc/*release*'
               sh 'docker version'
               sh 'docker info'
               sh 'docker ps -a'
+              */
               sh '''
                   apk add --no-cache openjdk17 maven
                   java -version
                   mvn -version
               '''
-              /*
+
               sh '''
                 mvn clean install -f parent/pom.xml
                 mvn clean install -f internal-dependencies/pom.xml
@@ -65,7 +67,7 @@ spec:
                 mvn clean install -DskipTests -f test-utils/testcontainers/pom.xml
                 mvn -f engine/pom.xml -Dtest=ProcessInstanceAuthorizationTest#testSimpleQueryWithoutAuthorization test -P mariadb,testcontainers
               '''
-              */
+              
             }
         }
     }
