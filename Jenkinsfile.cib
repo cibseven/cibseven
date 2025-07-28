@@ -48,7 +48,26 @@ spec:
         stage('Testcontainers Integration Tests') {
             steps {
 
-              sh 'docker run hello-world'
+              sh '''
+                  # Install curl for testing
+                  apk add --no-cache curl
+                  
+                  # Run a small HTTP server in the background
+                  docker run -d --name test-server -p 8080:80 nginx:alpine
+                  
+                  # Wait a moment for the server to start
+                  sleep 5
+                  
+                  # Test the server with curl
+                  curl -f http://localhost:8080/
+                  
+                  # Show running containers
+                  docker ps -a
+                  
+                  # Clean up
+                  docker stop test-server
+                  docker rm test-server
+              '''
 
               /*
               sh 'cat /etc/*release*'
