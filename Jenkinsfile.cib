@@ -21,10 +21,10 @@ import com.cloudbees.groovy.cps.NonCPS
 
 @NonCPS
 def createPodYaml() {
-    return BuildPodCreator.cibStandardPod()
+    def podCreator = BuildPodCreator.cibStandardPod()
         .withContainerFromName(pipelineParams.mvnContainerName, [memory: "12Gi", ephemeralStorage: "12Gi"])
         .withVolume('/var/run/docker.sock', '/var/run/docker.sock', 'HostPath')
-        .asYaml()
+    return podCreator.asYaml()
 }
 
 pipeline {
