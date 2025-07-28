@@ -57,6 +57,7 @@ spec:
                 mvn clean install -f parent/pom.xml
                 mvn clean install -f internal-dependencies/pom.xml
                 mvn clean install -f database/pom.xml
+                mvn dependency:tree -DskipTests -f test-utils/testcontainers/pom.xml | grep commons-compress
                 mvn clean install -DskipTests -f test-utils/testcontainers/pom.xml
                 mvn -f engine/pom.xml -Dtest=ProcessInstanceAuthorizationTest#testSimpleQueryWithoutAuthorization test -P mariadb,testcontainers
               '''
