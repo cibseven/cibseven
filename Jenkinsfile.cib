@@ -32,8 +32,8 @@ spec:
     securityContext:
       privileged: true
     env:
-      - name: DOCKER_TLS_CERTDIR
-        value: ""
+    - name: DOCKER_TLS_CERTDIR
+      value: ""
     resources:
       requests:
         memory: "2Gi"
@@ -42,16 +42,16 @@ spec:
         memory: "2Gi"
         ephemeral-storage: "2Gi"
     volumeMounts:
-      - name: docker-sock
-        mountPath: /var/run/docker.sock
-  volumes:
     - name: docker-sock
-      hostPath:
-        path: /var/run/docker.sock
-        type: Socket
-  command:
+      mountPath: /var/run/docker.sock
+    command:
     - cat
     tty: true
+  volumes:
+  - name: docker-sock
+    hostPath:
+      path: /var/run/docker.sock
+      type: Socket
 """
             defaultContainer 'docker'
         }
