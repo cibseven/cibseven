@@ -25,29 +25,23 @@ pipeline {
             yaml """
 apiVersion: v1
 kind: Pod
+metadata:
+  name: dind
 spec:
   containers:
-  - name: maven
-    image: maven:3.8.1-openjdk-17
+  - name: dind
+    image: docker:dind
+    securityContext:
+      privileged: true
     resources:
       requests:
-        memory: "12Gi"
-        ephemeral-storage: "12Gi"
+        memory: "2Gi"
+        ephemeral-storage: "2Gi"
       limits:
-        memory: "12Gi"
-        ephemeral-storage: "12Gi"
-    command:
-    - cat
-    tty: true
-    volumeMounts:
-    - mountPath: /var/run/docker.sock
-      name: docker-sock
-  volumes:
-  - name: docker-sock
-    hostPath:
-      path: /var/run/docker.sock
+        memory: "2Gi"
+        ephemeral-storage: "2Gi"
 """
-            defaultContainer 'maven'
+            defaultContainer 'dind'
         }
     }
     stages {
