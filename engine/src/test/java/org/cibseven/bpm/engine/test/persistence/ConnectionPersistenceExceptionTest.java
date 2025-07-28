@@ -39,7 +39,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 // This test is excluded on Oracle since the SQL State changed with the new version of the JDBC driver.
-@RequiredDatabase(excludes = { DbSqlSessionFactory.H2, DbSqlSessionFactory.ORACLE })
+// MariaDB is excluded because it returns different SQL error codes for connection errors.
+@RequiredDatabase(excludes = { DbSqlSessionFactory.H2, DbSqlSessionFactory.ORACLE, DbSqlSessionFactory.MARIADB })
 public class ConnectionPersistenceExceptionTest {
 
   @Rule
