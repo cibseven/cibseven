@@ -54,7 +54,7 @@ spec:
         stage('Testcontainers Integration Tests') {
             steps {
                 dir('engine') {
-                    sh 'mvn test -mariadb,testcontainers'
+                    sh 'mvn test -Pmariadb,testcontainers'
                 }
             }
         }
