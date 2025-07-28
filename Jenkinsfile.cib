@@ -56,7 +56,7 @@ spec:
               sh 'cat /etc/*release*'
               sh 'cat /etc/os-release'
               sh 'echo $HOSTNAME'
-              // sh 'ps aux'
+              sh 'ping 192.168.96.236'
               sh 'echo $container'
               sh 'ls -l /var/run/docker.sock'
               sh 'file /var/run/docker.sock'
