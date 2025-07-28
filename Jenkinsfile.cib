@@ -58,6 +58,7 @@ spec:
               sh 'echo $HOSTNAME'
               // sh 'ps aux'
               sh 'echo $container'
+              sh 'ls -l /var/run/docker.sock'
               sh 'curl --unix-socket /var/run/docker.sock http://localhost/containers/json'
               /*
               sh '''
