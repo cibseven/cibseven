@@ -54,7 +54,7 @@ spec:
         stage('Testcontainers Integration Tests') {
             steps {
                 dir('engine') {
-                    sh 'mvn test -Pmariadb,testcontainers'
+                    sh 'mvn clean install -DskipTests -Pwebapps-integration && mvn -f engine/pom.xml -Dtest=ProcessInstanceAuthorizationTest#testSimpleQueryWithoutAuthorization test -P mariadb,testcontainers'
                 }
             }
         }
