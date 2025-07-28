@@ -53,8 +53,9 @@ spec:
     stages {
         stage('Testcontainers Integration Tests') {
             steps {
+              sh 'cat /etc/*release*'
               sh '''
-                apt-get update && apt-get install -y docker.io
+                apk add --no-cache docker-cli
                 docker --version
               '''
               sh 'docker ps -a'
