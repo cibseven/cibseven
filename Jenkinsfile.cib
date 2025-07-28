@@ -35,10 +35,10 @@ spec:
       privileged: true
     resources:
       requests:
-        memory: "256Mi"
+        memory: "2Gi"
         ephemeral-storage: "2Gi"
       limits:
-        memory: "256Mi"
+        memory: "2Gi"
         ephemeral-storage: "2Gi"
 """
             defaultContainer 'dind'
