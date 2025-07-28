@@ -34,11 +34,11 @@ spec:
         value: tcp://localhost:2375
     resources:
       requests:
-        memory: "12Gi"
-        ephemeral-storage: "12Gi"
+        memory: "2Gi"
+        ephemeral-storage: "2Gi"
       limits:
-        memory: "12Gi"
-        ephemeral-storage: "12Gi"
+        memory: "2Gi"
+        ephemeral-storage: "2Gi"
     command:
     - cat
     tty: true
