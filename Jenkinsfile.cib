@@ -57,7 +57,7 @@ spec:
         memory: "2Gi"
         ephemeral-storage: "2Gi"
 """
-            defaultContainer 'maven'
+            defaultContainer 'docker'
         }
     }
     stages {
@@ -67,6 +67,10 @@ spec:
               sh 'cat /etc/os-release'
               sh 'echo $HOSTNAME'
               sh 'echo $container'
+              sh 'which docker'
+              sh 'docker version'
+              sh 'docker info'
+              sh 'docker ps -a'
               sh 'curl http://localhost:2375/_ping'
               sh 'curl http://localhost:2375/containers/json'
               /*
