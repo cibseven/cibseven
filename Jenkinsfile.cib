@@ -130,7 +130,7 @@ spec:
               script {
                   parallel (
                       'Maven Test': {
-                          sh 'mvn -f engine/pom.xml -Dtest=ProcessInstanceAuthorizationTest#testSimpleQueryWithoutAuthorization test -P mariadb,testcontainers --offline'
+                          sh 'mvn -f engine/pom.xml -Dtest=ProcessInstanceAuthorizationTest#testSimpleQueryWithoutAuthorization test -P mariadb,testcontainers'
                       },
                       'Docker Monitor': {
                           sh '''
