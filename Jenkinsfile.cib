@@ -53,7 +53,7 @@ spec:
     stages {
         stage('Testcontainers Integration Tests') {
             steps {
-                  sh 'mvn clean install -f database/pom.xml && mvn clean install -f test-utils/testcontainers/pom.xml && mvn -f engine/pom.xml -Dtest=ProcessInstanceAuthorizationTest#testSimpleQueryWithoutAuthorization test -P mariadb,testcontainers'
+                  sh 'mvn clean install -f database/pom.xml && mvn clean install -DskipTests -f test-utils/testcontainers/pom.xml && mvn -f engine/pom.xml -Dtest=ProcessInstanceAuthorizationTest#testSimpleQueryWithoutAuthorization test -P mariadb,testcontainers'
             }
         }
     }
