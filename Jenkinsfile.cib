@@ -48,6 +48,9 @@ spec:
         stage('Testcontainers Integration Tests') {
             steps {
               sh 'cat /etc/*release*'
+              sh 'docker version'
+              sh 'docker info'
+              sh 'docker ps -a'
               /*
               sh '''
                 mvn clean install -f parent/pom.xml
