@@ -27,21 +27,6 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
-  - name: maven
-    image: maven:3.8.1-openjdk-17
-    env:
-      - name: DOCKER_HOST
-        value: tcp://localhost:2375
-    resources:
-      requests:
-        memory: "2Gi"
-        ephemeral-storage: "2Gi"
-      limits:
-        memory: "2Gi"
-        ephemeral-storage: "2Gi"
-    command:
-    - cat
-    tty: true
   - name: docker
     image: docker:dind
     securityContext:
@@ -64,6 +49,9 @@ spec:
       hostPath:
         path: /var/run/docker.sock
         type: Socket
+  command:
+    - cat
+    tty: true
 """
             defaultContainer 'docker'
         }
