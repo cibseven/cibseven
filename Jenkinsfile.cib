@@ -72,23 +72,31 @@ spec:
               */
 
               sh '''
-                  # Install mysql client for testing
-                  apk add --no-cache mysql-client
+                  # Install mariadb client for testing
+                  apk add --no-cache mariadb-client
                   
-                  # Run MariaDB in the background
+                  # Run MariaDB in the background with health check
                   docker run -d --name test-mariadb \
                     -e MYSQL_ROOT_PASSWORD=testpass \
                     -e MYSQL_DATABASE=testdb \
                     -p 3306:3306 \
+                    --health-cmd="mariadb -u root -ptestpass -e 'SELECT 1'" \
+                    --health-interval=5s \
+                    --health-timeout=3s \
+                    --health-retries=10 \
                     mariadb:latest
                   
-                  # Wait for MariaDB to start up (it takes longer than nginx)
-                  echo "Waiting for MariaDB to start..."
-                  sleep 30
+                  # Wait for MariaDB to become healthy
+                  echo "Waiting for MariaDB to become healthy..."
+                  while [ "$(docker inspect --format='{{.State.Health.Status}}' test-mariadb)" != "healthy" ]; do
+                    echo "MariaDB health status: $(docker inspect --format='{{.State.Health.Status}}' test-mariadb)"
+                    sleep 2
+                  done
+                  echo "MariaDB is now healthy!"
                   
-                  # Test connection to MariaDB
-                  mysql -h localhost -P 3306 -u root -ptestpass -e "SELECT VERSION();"
-                  mysql -h localhost -P 3306 -u root -ptestpass -e "SHOW DATABASES;"
+                  # Test connection to MariaDB (using mariadb command instead of deprecated mysql)
+                  mariadb -h localhost -P 3306 -u root -ptestpass -e "SELECT VERSION();"
+                  mariadb -h localhost -P 3306 -u root -ptestpass -e "SHOW DATABASES;"
                   
                   # Show running containers
                   docker ps -a
