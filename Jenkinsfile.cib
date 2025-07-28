@@ -44,9 +44,6 @@ spec:
     volumeMounts:
     - name: docker-sock
       mountPath: /var/run/docker.sock
-    command:
-    - cat
-    tty: true
   volumes:
   - name: docker-sock
     hostPath:
