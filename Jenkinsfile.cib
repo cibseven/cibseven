@@ -56,7 +56,7 @@ spec:
               sh 'cat /etc/*release*'
               sh 'cat /etc/os-release'
               sh 'echo $HOSTNAME'
-              sh 'ps aux'
+              // sh 'ps aux'
               sh 'echo $container'
               sh '''
                 dnf install -y docker
