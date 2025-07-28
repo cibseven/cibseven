@@ -670,13 +670,17 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-			
-			<includes>
-			  <include>**/JobPrioritizationTest.java</include>
-			</includes>
-			
-			
-			
+
+  <!--   <includes>
+  <include>**/JobPrioritizationTest.java</include> 
+  <include>**/CdiBeanCaseTaskResolutionTest.java</include>
+  <include>**/DecisionContextSwitchTest.java</include>
+  <include>**/CdiBeanCallActivityResolutionTest.java</include> 
+  <include>**/PlatformServicesJndiBindingTest.java</include>
+  </includes> -->
+
+
+
               <excludes>
                 <!-- no EE stuff on tomcat :) -->
                 <exclude>**/ear/**</exclude>

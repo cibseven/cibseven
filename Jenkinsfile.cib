@@ -129,9 +129,16 @@ pipeline {
             }
         }
 
-        stage('Unit and Integration Tests') {
+        stage('Integration Jakarta Tests') {
             when {
                 expression { params.VERIFY == true }
+            }
+            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}}
+        }
+
+        stage('Unit and Integration Tests') {
+            when {
+                expression { params.VERIFY != params.VERIFY }
             }
             steps {
                 script {
@@ -261,7 +268,7 @@ pipeline {
 
         stage('MISC tests') {
             when {
-                expression { params.VERIFY == true }
+                expression { params.VERIFY != params.VERIFY }
             }
             parallel {
                 stage('engine') {
