@@ -48,6 +48,7 @@ spec:
         stage('Testcontainers Integration Tests') {
             steps {
 
+              /*
               sh '''
                   # Install curl for testing
                   apk add --no-cache curl
@@ -67,6 +68,45 @@ spec:
                   # Clean up
                   docker stop test-server
                   docker rm test-server
+              '''
+              */
+
+              sh '''
+                  # Install mysql client for testing
+                  apk add --no-cache mysql-client
+                  
+                  # Run MariaDB in the background
+                  docker run -d --name test-mariadb \
+                    -e MYSQL_ROOT_PASSWORD=testpass \
+                    -e MYSQL_DATABASE=testdb \
+                    -p 3306:3306 \
+                    mariadb:latest
+                  
+                  # Wait for MariaDB to start up (it takes longer than nginx)
+                  echo "Waiting for MariaDB to start..."
+                  # Check if MariaDB is ready by attempting connections
+                  for i in {1..30}; do
+                    if mysql -h localhost -P 3306 -u root -ptestpass -e "SELECT 1;" >/dev/null 2>&1; then
+                      echo "MariaDB is ready after $i attempts!"
+                      break
+                    fi
+                    echo "Attempt $i: MariaDB not ready yet, waiting..."
+                    sleep 2
+                  done
+                  
+                  # Final check to ensure it's actually working
+                  mysql -h localhost -P 3306 -u root -ptestpass -e "SELECT 1;" || exit 1
+                  
+                  # Test connection to MariaDB
+                  mysql -h localhost -P 3306 -u root -ptestpass -e "SELECT VERSION();"
+                  mysql -h localhost -P 3306 -u root -ptestpass -e "SHOW DATABASES;"
+                  
+                  # Show running containers
+                  docker ps -a
+                  
+                  # Clean up
+                  docker stop test-mariadb
+                  docker rm test-mariadb
               '''
 
               /*
