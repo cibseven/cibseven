@@ -162,6 +162,13 @@ pipeline {
         stage('QA Tests') {
             when { expression { params.QA_VERIFY == true }}
             stages {
+                stage('Web and Engine Integration') {
+                    steps { 
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
+                        // TODO: enable chrome and chromedriver on jenkins and remove the exclusion (or move from integration tests to our selenium tests)
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration -DWEB_INT_CMDL_EXCLUDE=org.cibseven.bpm.LoginIT" }}
+                    }
+                }
                 stage('Performance') {
                     steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}}
                 }
@@ -181,13 +188,6 @@ pipeline {
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util clean install" }}
                         script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
-                    }
-                }
-                stage('Web and Engine Integration') {
-                    steps { 
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
-                        // TODO: enable chrome and chromedriver on jenkins and remove the exclusion (or move from integration tests to our selenium tests)
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration -DWEB_INT_CMDL_EXCLUDE=org.cibseven.bpm.LoginIT" }}
                     }
                 }
             }
