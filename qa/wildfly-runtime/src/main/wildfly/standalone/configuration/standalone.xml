@@ -509,7 +509,10 @@
                         <property name="isAutoSchemaUpdate">true</property>
                         <property name="authorizationEnabled">true</property>
                         <property name="jobExecutorDeploymentAware">true</property>
-                        <property name="historyCleanupBatchWindowStartTime">00:01</property>
+                        <!-- disable history cleanup job for engine integration unit tests: 
+                        the history cleanup job may start automatically, but inside unit tests we expect only process related jobs.
+                        Note that historyCleanupBatchWindowStartTime would interfere with it -->
+                        <property name="enforceHistoryTimeToLive">false</property>
                     </properties>
                     <plugins>
 
