@@ -9,7 +9,7 @@
       <bpmn:incoming>Flow_0sl4a4f</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_0ali2qn" sourceRef="Activity_1q08bp7" targetRef="Activity_1v9lsig" />
-    <bpmn:serviceTask id="Activity_1q08bp7" camunda:class="org.camunda.bpm.integrationtest.functional.spin.FeelContextDelegate">
+    <bpmn:serviceTask id="Activity_1q08bp7" camunda:class="org.cibseven.bpm.integrationtest.functional.spin.FeelContextDelegate">
       <bpmn:extensionElements>
         <camunda:inputOutput>
           <camunda:inputParameter name="context">
