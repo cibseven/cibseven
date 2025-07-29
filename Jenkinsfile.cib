@@ -40,8 +40,8 @@ pipeline {
             defaultValue: true,
             description: 'Execute Unit and Integration Tests'
         )
-		booleanParam(
-            name: 'MIGRATION_VERIFY',
+        booleanParam(
+            name: 'QA_VERIFY',
             defaultValue: false,
             description: 'Execute Update and Migration Tests'
         )
@@ -129,20 +129,9 @@ pipeline {
             }
         }
 
-        stage('Integration Jakarta Tests') {
-            when {
-                expression { params.VERIFY == true }
-            }
-            steps { 
-               script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
-	           // TODO: enable chrome and chromedriver on jenkins and remove the exclusion   
-               script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration -DWEB_INT_CMDL_EXCLUDE=org.cibseven.bpm.LoginIT" }}
-            }
-        }
-
         stage('Unit and Integration Tests') {
             when {
-                expression { params.VERIFY != params.VERIFY }
+                expression { params.VERIFY == true }
             }
             steps {
                 script {
@@ -170,8 +159,8 @@ pipeline {
             }
         }
 
-        stage('Update and Migration') {
-            when { expression { params.MIGRATION_VERIFY == true }}
+        stage('QA Tests') {
+            when { expression { params.QA_VERIFY == true }}
             stages {
                 stage('Performance') {
                     steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}}
@@ -194,6 +183,13 @@ pipeline {
                         script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
                     }
                 }
+                stage('Web and Engine Integration') {
+                    steps { 
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
+                        // TODO: enable chrome and chromedriver on jenkins and remove the exclusion (or move from integration tests to our selenium tests)
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration -DWEB_INT_CMDL_EXCLUDE=org.cibseven.bpm.LoginIT" }}
+                    }
+                }
             }
         }
 
@@ -201,7 +197,7 @@ pipeline {
             when {
                 anyOf {
                     expression { params.VERIFY == true }
-                    expression { params.MIGRATION_VERIFY == true }
+                    expression { params.QA_VERIFY == true }
                 }
             }
             steps {
@@ -272,7 +268,7 @@ pipeline {
 
         stage('MISC tests') {
             when {
-                expression { params.VERIFY != params.VERIFY }
+                expression { params.VERIFY == true }
             }
             parallel {
                 stage('engine') {
