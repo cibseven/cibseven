@@ -135,7 +135,8 @@ pipeline {
             }
             steps { 
                script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
-               script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
+	           // TODO: enable chrome and chromedriver on jenkins and remove the exclusion   
+               script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration -DWEB_INT_CMDL_EXCLUDE=org.cibseven.bpm.LoginIT" }}
             }
         }
 
