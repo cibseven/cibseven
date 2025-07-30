@@ -194,7 +194,7 @@
         <!-- The order of declaration of the plugin executions is important to preserve the correct build sequence of
              a) packing b) unpacking the server c) copy libs so that the properties are resolved correctly. -->
         <plugins>
-          <!-- Produces the camunda-qa-tomcat9.tar.gz -->
+          <!-- Produces the cibseven-qa-tomcat9.tar.gz -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-assembly-plugin</artifactId>
@@ -214,7 +214,7 @@
                   <outputDirectory>target/</outputDirectory>
                   <workDirectory>target/assembly/work</workDirectory>
                   <tarLongFileMode>gnu</tarLongFileMode>
-                  <finalName>camunda-qa-tomcat9</finalName>
+                  <finalName>cibseven-qa-tomcat9</finalName>
                 </configuration>
               </execution>
             </executions>
@@ -231,7 +231,7 @@
                 <phase>generate-resources</phase>
                 <configuration>
                   <target>
-                    <untar src="${project.build.directory}/camunda-qa-tomcat9.tar.gz" dest="${project.build.directory}/" compression="gzip" />
+                    <untar src="${project.build.directory}/cibseven-qa-tomcat9.tar.gz" dest="${project.build.directory}/" compression="gzip" />
                   </target>
                 </configuration>
                 <goals>

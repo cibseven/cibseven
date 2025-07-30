@@ -44,7 +44,7 @@ public class ErrorPageIT extends AbstractWebIntegrationTest {
     assertEquals(Status.NOT_FOUND.getStatusCode(), response.getStatus());
     assertTrue(response.getType().toString().startsWith(MediaType.TEXT_HTML));
     String responseEntity = response.getEntity(String.class);
-    assertTrue(responseEntity.contains("Camunda"));
+    assertTrue(responseEntity.contains("CIB seven"));
     assertTrue(responseEntity.contains("Not Found"));
 
     // cleanup
