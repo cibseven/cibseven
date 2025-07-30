@@ -595,7 +595,7 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <dependenciesToScan>
-                <dependency>org.cibseven.bpm.qa:cibs-qa-integration-tests-webapps</dependency>
+                <dependency>org.cibseven.bpm.qa:cibseven-qa-integration-tests-webapps</dependency>
               </dependenciesToScan>
               <skipTests>false</skipTests>
               <includes>
