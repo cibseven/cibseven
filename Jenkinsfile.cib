@@ -43,7 +43,7 @@ pipeline {
         booleanParam(
             name: 'QA_VERIFY',
             defaultValue: false,
-            description: 'Execute Update and Migration Tests'
+            description: 'Execute QA Tests'
         )
         booleanParam(
             name: 'DEPLOY_TO_ARTIFACTS',
