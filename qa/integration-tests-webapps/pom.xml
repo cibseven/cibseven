@@ -249,6 +249,7 @@
         <version>1.13.0</version>
         <executions>
           <execution>
+            <id>wget-chromedriver</id>
             <phase>process-resources</phase>
             <goals>
               <goal>wget</goal>
@@ -263,6 +264,23 @@
               <excludes>**/*.chromedriver</excludes>
             </configuration>
           </execution>
+
+          <execution>
+            <id>wget-chrome</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>wget</goal>
+            </goals>
+            <configuration>
+              <url>https://storage.googleapis.com/chrome-for-testing-public/${version.chromedriver}/${os.type}/chrome-${os.type}.zip</url>
+              <outputFileName>chrome.zip</outputFileName>
+              <unpack>true</unpack>
+              <outputDirectory>${project.build.directory}</outputDirectory>
+              <!-- Include and exclude specific files during unpack -->
+              <includes>**/*</includes>
+            </configuration>
+          </execution>
+
         </executions>
       </plugin>
       <plugin>
@@ -270,7 +288,7 @@
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
           <execution>
-            <id>move-folder</id>
+            <id>move-driver-folder</id>
             <phase>process-resources</phase>
             <configuration>
               <target unless="maven.test.skip">
@@ -282,6 +300,21 @@
               <goal>run</goal>
             </goals>
           </execution>
+  
+          <execution>
+            <id>move-chrome-folder</id>
+            <phase>process-resources</phase>
+            <configuration>
+              <target unless="maven.test.skip">
+                <move file="${project.build.directory}/chrome-${os.type}"
+                    tofile="${project.build.directory}/chrome"/>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>  
+
         </executions>
       </plugin>
     </plugins>

@@ -43,8 +43,10 @@ public class AbstractWebappUiIntegrationTest extends AbstractWebIntegrationTest 
   @BeforeClass
   public static void createDriver() {
     String chromeDriverExecutable = "target/chromedriver/chromedriver";
+    String chromeExecutable = "target/chrome/chrome";
     if (System.getProperty( "os.name" ).toLowerCase(Locale.US).indexOf("windows") > -1) {
       chromeDriverExecutable += ".exe";
+      chromeExecutable += ".exe";
     }
 
     File chromeDriver = new File(chromeDriverExecutable);
@@ -64,7 +66,8 @@ public class AbstractWebappUiIntegrationTest extends AbstractWebIntegrationTest 
         .addArguments("--disable-gpu")
         .addArguments("--no-sandbox")
         .addArguments("--disable-dev-shm-usage")
-        .addArguments("--remote-allow-origins=*");
+        .addArguments("--remote-allow-origins=*")
+        .setBinary(chromeExecutable);
 
     driver = new ChromeDriver(chromeDriverService, chromeOptions);
   }
