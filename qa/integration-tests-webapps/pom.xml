@@ -272,8 +272,8 @@
               <goal>wget</goal>
             </goals>
             <configuration>
-              <url>https://storage.googleapis.com/chrome-for-testing-public/${version.chromedriver}/${os.type}/chrome-${os.type}.zip</url>
-              <outputFileName>chrome.zip</outputFileName>
+              <url>https://storage.googleapis.com/chrome-for-testing-public/${version.chromedriver}/${os.type}/chrome-headless-shell-${os.type}.zip</url>
+              <outputFileName>chrome-headless-shell.zip</outputFileName>
               <unpack>true</unpack>
               <outputDirectory>${project.build.directory}</outputDirectory>
               <!-- Include and exclude specific files during unpack -->
@@ -306,7 +306,7 @@
             <phase>process-resources</phase>
             <configuration>
               <target unless="maven.test.skip">
-                <move file="${project.build.directory}/chrome-${os.type}"
+                <move file="${project.build.directory}/chrome-headless-shell-${os.type}"
                     tofile="${project.build.directory}/chrome"/>
               </target>
             </configuration>

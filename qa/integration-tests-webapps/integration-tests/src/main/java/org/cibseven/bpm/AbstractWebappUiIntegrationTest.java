@@ -43,7 +43,7 @@ public class AbstractWebappUiIntegrationTest extends AbstractWebIntegrationTest 
   @BeforeClass
   public static void createDriver() {
     String chromeDriverExecutable = "target/chromedriver/chromedriver";
-    String chromeExecutable = "target/chrome/chrome";
+    String chromeExecutable = "target/chrome/chrome-headless-shell";
     if (System.getProperty( "os.name" ).toLowerCase(Locale.US).indexOf("windows") > -1) {
       chromeDriverExecutable += ".exe";
       chromeExecutable += ".exe";
