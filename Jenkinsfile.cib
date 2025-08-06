@@ -40,10 +40,10 @@ pipeline {
             defaultValue: true,
             description: 'Execute Unit and Integration Tests'
         )
-		booleanParam(
-            name: 'MIGRATION_VERIFY',
+        booleanParam(
+            name: 'QA_VERIFY',
             defaultValue: false,
-            description: 'Execute Update and Migration Tests'
+            description: 'Execute QA Tests'
         )
         booleanParam(
             name: 'DEPLOY_TO_ARTIFACTS',
@@ -159,9 +159,16 @@ pipeline {
             }
         }
 
-        stage('Update and Migration') {
-            when { expression { params.MIGRATION_VERIFY == true }}
+        stage('QA Tests') {
+            when { expression { params.QA_VERIFY == true }}
             stages {
+                stage('Web and Engine Integration') {
+                    steps { 
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
+                        // TODO: enable chrome and chromedriver on jenkins and remove the exclusion (or move from integration tests to our selenium tests)
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration -DWEB_INT_CMDL_EXCLUDE=org.cibseven.bpm.LoginIT" }}
+                    }
+                }
                 stage('Performance') {
                     steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}}
                 }
@@ -190,7 +197,7 @@ pipeline {
             when {
                 anyOf {
                     expression { params.VERIFY == true }
-                    expression { params.MIGRATION_VERIFY == true }
+                    expression { params.QA_VERIFY == true }
                 }
             }
             steps {
