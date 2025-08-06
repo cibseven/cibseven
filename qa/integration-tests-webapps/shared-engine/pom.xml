@@ -508,6 +508,10 @@
               <systemPropertyVariables>
                 <selenium.screenshot.directory>${project.build.directory}/selenium-screenshots</selenium.screenshot.directory>
               </systemPropertyVariables>
+              <excludes>
+                  <!-- allows to exclude some tests from command line with using -DWEB_INT_CMDL_EXCLUDE=exluded_tests option -->
+                  <exclude>${WEB_INT_CMDL_EXCLUDE}</exclude>
+              </excludes>
             </configuration>
           </plugin>
         </plugins>
