@@ -392,17 +392,25 @@
         <artifactId>json-path</artifactId>
         <version>${version.json-path}</version>
       </dependency>
+
+      <dependency>
+        <groupId>com.cronutils</groupId>
+        <artifactId>cron-utils</artifactId>
+        <version>${version.cronutils}</version>
+      </dependency>
       
       <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>db2</artifactId>
         <version>${version.testcontainers}</version>
       </dependency>
+
       <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>oracle-xe</artifactId>
         <version>${version.testcontainers}</version>
       </dependency>
+      
     </dependencies>
   </dependencyManagement>
 
