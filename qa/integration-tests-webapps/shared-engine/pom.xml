@@ -130,6 +130,7 @@
               <excludes>
                 <!-- CAM-14109 -->
                 <exclude>**/SessionCookieSameSiteIT.java</exclude>
+                <exclude>**/LoginIT.java</exclude>
               </excludes>
             </configuration>
           </plugin>
@@ -250,6 +251,7 @@
               <excludes>
                 <!-- CAM-14109 -->
                 <exclude>**/SessionCookieSameSiteIT.java</exclude>
+                <exclude>**/LoginIT.java</exclude>
               </excludes>
             </configuration>
           </plugin>
@@ -357,6 +359,15 @@
                   </properties>
                 </deployable>
               </deployables>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <exclude>**/LoginIT.java</exclude>
+              </excludes>
             </configuration>
           </plugin>
         </plugins>
@@ -472,6 +483,15 @@
               </deployables>
             </configuration>
           </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <exclude>**/LoginIT.java</exclude>
+              </excludes>
+            </configuration>
+          </plugin>
         </plugins>
       </build>
     </profile>
@@ -508,10 +528,6 @@
               <systemPropertyVariables>
                 <selenium.screenshot.directory>${project.build.directory}/selenium-screenshots</selenium.screenshot.directory>
               </systemPropertyVariables>
-              <excludes>
-                  <!-- allows to exclude some tests from command line with using -DWEB_INT_CMDL_EXCLUDE=exluded_tests option -->
-                  <exclude>${WEB_INT_CMDL_EXCLUDE}</exclude>
-              </excludes>
             </configuration>
           </plugin>
         </plugins>
