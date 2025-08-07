@@ -1,6 +1,6 @@
-<module xmlns="urn:jboss:module:1.0" name="org.cibseven.bpm.camunda-engine">
+<module xmlns="urn:jboss:module:1.0" name="org.cibseven.bpm.cibseven-engine">
   <resources>
-    <resource-root path="camunda-engine-@project.version@.jar" />
+    <resource-root path="cibseven-engine-@project.version@.jar" />
   </resources>
 
   <dependencies>
@@ -30,19 +30,19 @@
 
     <module name="sun.jdk" services="import"/>
 
-    <module name="org.cibseven.bpm.model.camunda-xml-model" />
-    <module name="org.cibseven.bpm.model.camunda-bpmn-model" />
-    <module name="org.cibseven.bpm.model.camunda-cmmn-model" />
-    <module name="org.cibseven.bpm.model.camunda-dmn-model" />
+    <module name="org.cibseven.bpm.model.cibseven-xml-model" />
+    <module name="org.cibseven.bpm.model.cibseven-bpmn-model" />
+    <module name="org.cibseven.bpm.model.cibseven-cmmn-model" />
+    <module name="org.cibseven.bpm.model.cibseven-dmn-model" />
 
-    <module name="org.cibseven.commons.camunda-commons-logging" />
-    <module name="org.cibseven.commons.camunda-commons-utils" />
-    <module name="org.cibseven.commons.camunda-commons-typed-values" export="true" />
-    <module name="org.cibseven.template-engines.camunda-template-engines-freemarker" services="import" />
-    <module name="org.cibseven.spin.camunda-spin-core" services="import" />
+    <module name="org.cibseven.commons.cibseven-commons-logging" />
+    <module name="org.cibseven.commons.cibseven-commons-utils" />
+    <module name="org.cibseven.commons.cibseven-commons-typed-values" export="true" />
+    <module name="org.cibseven.template-engines.cibseven-template-engines-freemarker" services="import" />
+    <module name="org.cibseven.spin.cibseven-spin-core" services="import" />
 
-    <module name="org.cibseven.bpm.dmn.camunda-engine-dmn" />
-    <module name="org.cibseven.bpm.juel.camunda-juel" services="import"/>
+    <module name="org.cibseven.bpm.dmn.cibseven-engine-dmn" />
+    <module name="org.cibseven.bpm.juel.cibseven-juel" services="import"/>
 
     <module name="org.slf4j" />
 

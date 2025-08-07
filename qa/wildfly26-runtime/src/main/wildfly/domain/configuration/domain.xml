@@ -40,7 +40,7 @@
         <extension module="org.wildfly.extension.security.manager"/>
         <extension module="org.wildfly.extension.undertow"/>
         <extension module="org.wildfly.iiop-openjdk"/>
-        <extension module="org.cibseven.bpm.wildfly.camunda-wildfly-subsystem"/>
+        <extension module="org.cibseven.bpm.wildfly.cibseven-wildfly-subsystem"/>
     </extensions>
     <system-properties>
         <property name="java.net.preferIPv4Stack" value="true"/>

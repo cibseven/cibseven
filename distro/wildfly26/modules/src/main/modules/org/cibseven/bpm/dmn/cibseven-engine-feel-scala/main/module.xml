@@ -12,6 +12,6 @@
 
     <module name="org.cibseven.bpm.cibseven-engine-plugin-spin" optional="true" />
 	
-    <module name="org.cibseven.feel.feel-engine" />
+    <module name="org.camunda.feel.feel-engine" />
   </dependencies>
 </module>

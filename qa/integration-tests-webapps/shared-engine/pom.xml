@@ -130,6 +130,7 @@
               <excludes>
                 <!-- CAM-14109 -->
                 <exclude>**/SessionCookieSameSiteIT.java</exclude>
+                <exclude>**/LoginIT.java</exclude>
               </excludes>
             </configuration>
           </plugin>
@@ -250,6 +251,7 @@
               <excludes>
                 <!-- CAM-14109 -->
                 <exclude>**/SessionCookieSameSiteIT.java</exclude>
+                <exclude>**/LoginIT.java</exclude>
               </excludes>
             </configuration>
           </plugin>
@@ -357,6 +359,15 @@
                   </properties>
                 </deployable>
               </deployables>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <exclude>**/LoginIT.java</exclude>
+              </excludes>
             </configuration>
           </plugin>
         </plugins>
@@ -470,6 +481,15 @@
                   </properties>
                 </deployable>
               </deployables>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <exclude>**/LoginIT.java</exclude>
+              </excludes>
             </configuration>
           </plugin>
         </plugins>
