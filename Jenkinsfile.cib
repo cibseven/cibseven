@@ -130,8 +130,8 @@ pipeline {
             }
             steps { 
                script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,engine-integration-jakarta" }}
-	           // TODO: enable chrome and chromedriver on jenkins and remove the exclusion   
-               script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration -DWEB_INT_CMDL_EXCLUDE=org.cibseven.bpm.LoginIT" }}
+	           // TODO: enable chrome and chromedriver on jenkins and remove LoginIt exclusion in pom   
+               script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}
             }
         }
 
