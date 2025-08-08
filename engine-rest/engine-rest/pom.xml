@@ -661,6 +661,31 @@
       </build>
     </profile>
 
+    <profile>
+      <id>below-jdk17</id>
+      <activation>
+        <jdk>(,17)</jdk>
+      </activation>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <testExcludes>
+                <exclude>**/AuthenticationFilterPathMatchingTest.java</exclude>
+                <exclude>**/JwtTokenAuthenticationProviderTest.java</exclude>
+                <exclude>**/ConfigurationTest.java</exclude>
+                <exclude>**/ConfigurationNoEnvTest.java</exclude>
+                <exclude>**/CompositeAuthenticationProviderTest.java</exclude>
+              </testExcludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
   </profiles>
   <description>
     Description of CIB seven - engine - REST
