@@ -1,0 +1,141 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.cibseven.bpm.wildfly</groupId>
+    <artifactId>cibseven-wildfly28</artifactId>
+    <version>2.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>cibseven-bpm-wildfly28</artifactId>
+  <packaging>pom</packaging>
+
+  <name>CIB seven - Wildfly 28 Distro</name>
+
+  <dependencies>
+    <dependency>
+      <!-- this dependency is to make sure that we are executed after the
+        integration tests have passed in the reactor -->
+      <groupId>org.cibseven.bpm.qa</groupId>
+      <artifactId>cibseven-qa</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.cibseven.bpm.wildfly</groupId>
+      <artifactId>cibseven-wildfly28-assembly</artifactId>
+      <version>${project.version}</version>
+      <type>tar.gz</type>
+    </dependency>
+
+    <dependency>
+      <groupId>org.cibseven.bpm.distro</groupId>
+      <artifactId>cibseven-sql-scripts</artifactId>
+      <version>${project.version}</version>
+      <type>jar</type>
+    </dependency>
+
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine-rest-jakarta</artifactId>
+      <version>${project.version}</version>
+      <classifier>wildfly</classifier>
+      <type>war</type>
+    </dependency>
+
+    <dependency>
+      <groupId>org.cibseven.bpm.webapp</groupId>
+      <artifactId>cibseven-webapp-wildfly</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+    </dependency>
+
+    <dependency>
+      <groupId>org.cibseven.bpm.example</groupId>
+      <artifactId>cibseven-example-invoice-jakarta</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.cibseven.webapp</groupId>
+      <artifactId>cibseven-webclient-web</artifactId>
+      <version>${cibseven-webapp.version}</version>
+      <classifier>wildfly</classifier>
+      <type>war</type>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>distro</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>assembly.xml</descriptor>
+              </descriptors>
+              <finalName>cibseven-bpm-wildfly28-${project.version}</finalName>
+              <attach>true</attach>
+              <appendAssemblyId>false</appendAssemblyId>
+              <outputDirectory>target/</outputDirectory>
+              <workDirectory>target/assembly/work</workDirectory>
+              <tarLongFileMode>gnu</tarLongFileMode>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <description>
+    Description of CIB seven - Wildfly 28 Distro
+  </description>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
+
+</project>

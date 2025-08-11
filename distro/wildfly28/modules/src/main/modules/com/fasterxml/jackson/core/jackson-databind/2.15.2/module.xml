@@ -1,0 +1,17 @@
+<module xmlns="urn:jboss:module:1.0" name="com.fasterxml.jackson.core.jackson-databind" slot="@version.jackson@" >
+  <resources>
+    <resource-root path="jackson-databind-@version.jackson@.jar" />
+  </resources>
+
+  <dependencies>
+
+    <module name="java.base" />
+    <module name="java.desktop"/>
+    <module name="java.logging"/>
+    <module name="java.sql"/>
+    <module name="java.xml"/>
+    <module name="com.fasterxml.jackson.core.jackson-core" export="true" slot="@version.jackson@" />
+    <module name="com.fasterxml.jackson.core.jackson-annotations" export="true" slot="@version.jackson@" />
+
+  </dependencies>
+</module>
