@@ -182,6 +182,7 @@
         <module>distro/license-book</module>
         <module>distro/wildfly</module>
         <module>distro/wildfly26</module>
+        <module>distro/wildfly28</module>
       </modules>
     </profile>
 
