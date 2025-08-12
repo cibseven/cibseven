@@ -69,7 +69,6 @@
         <module>assembly</module>
         <module>modules</module>
         <module>subsystem</module>
-        <module>webapp</module>
         <module>distro</module>
       </modules>
     </profile>
