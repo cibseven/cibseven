@@ -1,6 +1,6 @@
 This is a distribution of
 
-       CIB seven v1.0
+       CIB seven v${project.version}
 
 visit
        http://docs.cibseven.org/
@@ -14,6 +14,17 @@ please refer to the documentation that accompanies this distribution
 
 The packaged Wildfly Application Server is licensed under
 the LGPL license.
+
+==================
+
+Troubleshooting:
+
+If you encounter the following error when deploying the CIB seven web application:
+
+    java.lang.IllegalArgumentException: Secret must be at least 155 characters long and a base64 decodable string
+
+it means that the `cibseven-webclient.properties` configuration file is missing from the classpath.  
+Detailed instructions can be found in the Wildfly Configuration section of the documentation.
 
 ==================
 
