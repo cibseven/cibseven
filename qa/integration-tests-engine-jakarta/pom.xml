@@ -795,6 +795,11 @@
                 <exclude>**/FeelEngineTest.java</exclude>
               </excludes>
               <redirectTestOutputToFile>${redirect.test.output}</redirectTestOutputToFile>
+              
+              <!-- Restrict to a single JVM fork -->
+		      <forkCount>1</forkCount>
+		      <reuseForks>true</reuseForks>
+		      
             </configuration>
           </plugin>
         </plugins>
