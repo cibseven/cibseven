@@ -17,6 +17,17 @@ the LGPL license.
 
 ==================
 
+Troubleshooting:
+
+If you encounter the following error when deploying the CIB seven web application:
+
+    java.lang.IllegalArgumentException: Secret must be at least 155 characters long and a base64 decodable string
+
+it means that the `cibseven-webclient.properties` configuration file is missing from the classpath.  
+Detailed instructions can be found in the Wildfly Configuration section of the documentation.
+
+==================
+
 Contents:
 
   lib/
@@ -54,7 +65,7 @@ Contents:
 
 ==================
 
-CIB seven version: 1.0
+CIB seven version: v${project.version}
 Wildfly Application Server version: ${version.wildfly28}
 
 =================
