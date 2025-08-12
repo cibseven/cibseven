@@ -23,13 +23,6 @@
         <scope>import</scope>
         <type>pom</type>
       </dependency>
-     <dependency>
-        <groupId>org.apache.groovy</groupId>
-        <artifactId>groovy-bom</artifactId>
-        <version>${version.groovy}</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
     </dependencies>
   </dependencyManagement>
 
