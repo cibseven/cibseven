@@ -65,7 +65,7 @@ Contents:
 
 ==================
 
-CIB seven version: 1.0
+CIB seven version: v${project.version}
 Wildfly Application Server version: ${version.wildfly}
 
 =================
