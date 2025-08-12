@@ -129,17 +129,6 @@ pipeline {
             }
         }
 
-		stage('Integration Jakarta Tests') {
-            when {
-                expression { params.VERIFY == true }
-            }
-            steps { 
-               script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,engine-integration-jakarta" }}
-	           // TODO: enable chrome and chromedriver on jenkins and remove the exclusion   
-               script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration -DWEB_INT_CMDL_EXCLUDE=org.cibseven.bpm.LoginIT" }}
-            }
-        }
-
         stage('Unit and Integration Tests') {
             when {
                 expression { params.VERIFY == true }
@@ -176,8 +165,11 @@ pipeline {
                 stage('Web and Engine Integration') {
                     steps { 
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
-                        // TODO: enable chrome and chromedriver on jenkins and remove the exclusion (or move from integration tests to our selenium tests)
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration -DWEB_INT_CMDL_EXCLUDE=org.cibseven.bpm.LoginIT" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,engine-integration-jakarta" }}
+
+                        // TODO: enable chrome and chromedriver on jenkins and remove the exclusion for org.cibseven.bpm.LoginIT
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
+		                script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}
                     }
                 }
                 stage('Performance') {
