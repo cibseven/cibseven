@@ -30,6 +30,8 @@
     <version.uuid-generator>4.3.0</version.uuid-generator>
     <version.feel-scala>1.19.1</version.feel-scala>
     <version.license-maven-plugin>2.4.0</version.license-maven-plugin>
+    <!-- Version for cibseven-webclient-web -->
+    <cibseven-webapp.version>${project.version}</cibseven-webapp.version>
   </properties>
 
   <build>
@@ -286,24 +288,11 @@
   
   <repositories>
     <repository>
-      <id>maven-central</id>
-      <name>Maven Central</name>
-      <url>https://repo1.maven.org/maven2</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <!-- Required for local builds by community users on master branch -->
-      <id>mvn-cibseven-public</id>
-      <name>CIB seven Public Repository</name>
-      <url>https://artifacts.cibseven.org/repository/public</url>
-    </repository>
-    <repository>
-      <!-- Required for local builds by developers on maintainance branches -->
-      <id>mvn-cibseven-snapshots</id>
-      <name>CIB seven Snapshots repository</name>
-      <url>https://artifacts.cibseven.org/repository/snapshots</url>
+      <id>mvn-group</id>
+      <name>Maven group</name>
+      <!-- Links to repos for local builds by community users on master branch,
+      for local builds by developers on maintainance branches, jboss and maven central -->
+      <url>https://artifacts.cibseven.org/repository/mvn-group</url>
     </repository>
   </repositories>
   

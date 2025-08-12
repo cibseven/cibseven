@@ -2,17 +2,19 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.camunda.bpm.qa</groupId>
-    <artifactId>camunda-qa</artifactId>
-    <version>7.22.1-cibseven</version>
+    <groupId>org.cibseven.bpm.qa</groupId>
+    <artifactId>cibseven-qa</artifactId>
+    <version>2.1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>camunda-qa-old-engine</artifactId>
+  <artifactId>cibseven-qa-old-engine</artifactId>
   <packaging>jar</packaging>
   <name>CIB seven - QA - test new schema with old engine</name>
 
   <properties>
-    <camunda.old.engine.version>7.22.0</camunda.old.engine.version>
+    <cibseven.old.engine.version>2.0.0</cibseven.old.engine.version>
+	<!-- Specific groovy version is only needed for CIB seven 2.0. For next old engines could be removed and parent version should be used -->
+	<cibseven.old.groovy.version>4.0.22</cibseven.old.groovy.version>
   </properties>
 
   <build>
@@ -96,10 +98,10 @@
       <dependencyManagement>
         <dependencies>
           <dependency>
-            <groupId>org.camunda.bpm</groupId>
-            <artifactId>camunda-bom</artifactId>
+            <groupId>org.cibseven.bpm</groupId>
+            <artifactId>cibseven-bom</artifactId>
             <!-- Cannot use variables due to bug in Maven Release Plugin -->
-            <version>7.22.0</version>
+            <version>2.0.0</version>
             <scope>import</scope>
             <type>pom</type>
           </dependency>
@@ -178,6 +180,8 @@
         <dependency>
           <groupId>org.apache.groovy</groupId>
           <artifactId>groovy-jsr223</artifactId>
+		  <!-- Specific groovy version is only needed for CIB seven 2.0. For next old engines could be removed and parent version should be used -->
+          <version>${cibseven.old.groovy.version}</version>
         </dependency>
 
         <dependency>
@@ -193,15 +197,15 @@
         </dependency>
 
         <dependency>
-          <groupId>org.camunda.bpm.distro</groupId>
-          <artifactId>camunda-sql-scripts</artifactId>
+          <groupId>org.cibseven.bpm.distro</groupId>
+          <artifactId>cibseven-sql-scripts</artifactId>
           <version>${project.version}</version>
           <type>test-jar</type>
         </dependency>
 
         <dependency>
-          <groupId>org.camunda.bpm</groupId>
-          <artifactId>camunda-engine</artifactId>
+          <groupId>org.cibseven.bpm</groupId>
+          <artifactId>cibseven-engine</artifactId>
           <scope>test</scope>
         </dependency>
         <dependency>
@@ -225,8 +229,8 @@
         </dependency>
 
         <dependency>
-          <groupId>org.camunda.commons</groupId>
-          <artifactId>camunda-commons-testing</artifactId>
+          <groupId>org.cibseven.commons</groupId>
+          <artifactId>cibseven-commons-testing</artifactId>
           <scope>test</scope>
         </dependency>
 
@@ -287,9 +291,9 @@
                 <configuration>
                   <artifactItems>
                     <artifactItem>
-                      <groupId>org.camunda.bpm</groupId>
-                      <artifactId>camunda-engine</artifactId>
-                      <version>${camunda.old.engine.version}</version>
+                      <groupId>org.cibseven.bpm</groupId>
+                      <artifactId>cibseven-engine</artifactId>
+                      <version>${cibseven.old.engine.version}</version>
                       <type>test-jar</type>
                       <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
                     </artifactItem>
@@ -307,8 +311,8 @@
                 <configuration>
                   <artifactItems>
                     <artifactItem>
-                      <groupId>org.camunda.bpm.distro</groupId>
-                      <artifactId>camunda-sql-scripts</artifactId>
+                      <groupId>org.cibseven.bpm.distro</groupId>
+                      <artifactId>cibseven-sql-scripts</artifactId>
                       <version>${project.version}</version>
                       <type>test-jar</type>
                       <outputDirectory>${project.build.directory}/scripts-current</outputDirectory>
@@ -415,6 +419,7 @@
 
                 <!-- The test is not relevant in `old-engine` setup and lacks necessary resource files -->
                 <exclude>**DatabaseNamingConsistencyTest.java</exclude>
+                <exclude>${TEMPORARY_OLD_ENGINE_TEST_EXCLUDE}</exclude>
               </excludes>
               <testFailureIgnore>false</testFailureIgnore>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
@@ -422,6 +427,8 @@
                 -XX:HeapDumpPath=${project.build.directory}/heap_dump.hprof
                 --add-opens=java.base/java.util=ALL-UNNAMED
                 --add-opens=java.base/java.lang=ALL-UNNAMED</argLine>
+				
+              <forkCount>1</forkCount>	
             </configuration>
           </plugin>
 

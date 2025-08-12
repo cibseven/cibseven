@@ -24,14 +24,6 @@
 
   <dependencies>
     
-	<dependency>
-      <groupId>org.cibseven.webapp</groupId>
-      <artifactId>cibseven-webclient-web</artifactId>
-      <version>${project.version}</version>
-      <type>jar</type>
-      <classifier>classes</classifier>
-    </dependency>
-    
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-engine-spring-6</artifactId>
