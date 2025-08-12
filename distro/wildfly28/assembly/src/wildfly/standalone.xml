@@ -38,7 +38,7 @@
         <extension module="org.wildfly.extension.request-controller"/>
         <extension module="org.wildfly.extension.security.manager"/>
         <extension module="org.wildfly.extension.undertow"/>
-        <extension module="org.cibseven.bpm.wildfly.cibseven-wildfly-subsystem"/>        
+        <extension module="org.cibseven.bpm.wildfly.cibseven-wildfly-subsystem"/>
     </extensions>
     <management>
         <audit-log>
