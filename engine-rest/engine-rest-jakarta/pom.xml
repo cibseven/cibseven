@@ -704,6 +704,10 @@
             <configuration>
               <testExcludes>
                 <exclude>**/AuthenticationFilterPathMatchingTest.java</exclude>
+                <exclude>**/JwtTokenAuthenticationProviderTest.java</exclude>
+                <exclude>**/ConfigurationTest.java</exclude>
+                <exclude>**/ConfigurationNoEnvTest.java</exclude>
+                <exclude>**/CompositeAuthenticationProviderTest.java</exclude>
               </testExcludes>
             </configuration>
           </plugin>
