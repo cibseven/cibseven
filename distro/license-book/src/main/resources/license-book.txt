@@ -6270,7 +6270,7 @@ url: https://github.com/twbs/bootstrap
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-bpm-sdk:2.1.0-2-SNAPSHOT
+bpm-sdk:2.0.2
 name: bpm-sdk
 description: Camunda BPM SDK extracted as a standalone library.
 license: Apache-2.0
@@ -6483,7 +6483,7 @@ url: https://github.com/watson/ci-info
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-cib-common-components:2.0.1-5-SNAPSHOT
+cib-common-components:2.0.2
 name: cib-common-components
 description: Common vue components for building different web applications
 license: Apache-2.0
