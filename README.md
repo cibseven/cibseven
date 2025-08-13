@@ -65,23 +65,23 @@ The source files in this repository are made available under the [Apache License
 
 CIB seven uses and includes third-party dependencies published under various licenses. By downloading and using CIB seven artifacts, you agree to their terms and conditions. Refer to https://docs.cibseven.org/manual/latest/introduction/third-party-libraries/ for an overview of third-party libraries and particularly important third-party licenses we want to make you aware of.
 
-# CIB seven Enterprise Edition - Release Procedure
+## CIB seven Enterprise Edition - Release Procedure
 
 The Enterprise Edition is based on CIB seven CE and Community+, so their stability is crucial for a successful EE release.
 
-## Pre-Release Checklist
+### Pre-Release Checklist
 
 - **Verify [CIB seven CE](https://github.com/cibseven/cibseven)** is stable
-   - Ensure that all tests are passing in jenkins: https://jenkins.cib.de/job/cibseven/job/github_branches/job/main/
+   - Ensure that all tests are passing in Jenkins: https://jenkins.cib.de/job/cibseven/job/github_branches/job/main/
 
 - **Verify [CIB seven Community+](https://gitlab.cib.de/web/cibseven/mirror-cibseven)** is functioning properly and stable
    - Build the project locally and verify that all distributions (tomcat, run, wildfly) are working as expected and all tests are passing
-   - **Important**: Ensure the following synchronization steps are completed:
+   - >**Important**: Ensure the following synchronization steps are completed:
       - Pull the latest changes from the upstream CIB seven CE repository into mirror-cibseven repository
       - When necessary, synchronize relevant changes from the upstream Camunda open-source repository: https://github.com/camunda/camunda-bpm-platform
+      - Ensure CIB seven EE is synchronized with mirror-cibseven, as it is maintained as a GitLab fork.
 
-
-## Prepare release - Build and Deploy Snapshots
+### Prepare release - Build and Deploy Snapshots
 1. **Merge Changes**: Ensure all required changes are merged into the protected `main` branch
 2. **Create Release Branch**: Create a new branch for the release preparation (e.g., `preparing-for-ee-release`)
 3. **Increment Version**: If necessary, increment the version number and ensure all module versions are aligned. You can use the following command to set the new snapshot version across multiple POM files:
@@ -89,8 +89,15 @@ The Enterprise Edition is based on CIB seven CE and Community+, so their stabili
    mvn versions:set -DnewVersion=2.0.1-ee-SNAPSHOT -DgenerateBackupPoms=false
    ```
 4. **Update Dependencies:**
-   - Ensure that the `<artifactId>release-parent-ee</artifactId>` dependency is updated to the latest available version in all relevant POM files.
-   - Update the `cibseven-webapp.version` property to the latest snapshot version in the root `pom.xml`.
+   - For each project, follow the appropriate **snapshot release procedure**:
+      - [cibseven-release-parent-ee](https://gitlab.cib.de/web/cibseven/cibseven-release-parent-ee#release-procedure) *(optional, release only if there were changes)*
+     - [cibseven-license-check](https://gitlab.cib.de/web/cibseven/cibseven-license-check#release-procedure) *(optional, release only if there were changes)*
+     - [mirror-cibseven-webclient](https://gitlab.cib.de/web/cibseven/github-mirror/mirror-cibseven-webclient#release-procedure) *(ensure `bpm-sdk` and `cib-common-components` are updated to the latest versions from [npm-hosted](https://artifacts.cibseven.org/#browse/browse:npm-hosted))*
+     - [cibseven-webclient-ee](https://gitlab.cib.de/web/cibseven/cibseven-webclient-ee#release-procedure) *(must be aligned with the target upcoming version, e.g. `2.0.2-alpha-ee-SNAPSHOT`, and match the version used for CIB seven EE; also ensure you have the latest snapshot versions of `cibseven-webclient-core` (from [enterprise-snapshot](https://artifacts.cibseven.org/#browse/browse:enterprise-snapshots:org%2Fcibseven%2Fwebapp%2Fcibseven-webclient-core)) and `cibseven-components` (from [npm-hosted](https://artifacts.cibseven.org/#browse/browse:npm-hosted:cib-common-components)))*
+
+   - Ensure that the `<artifactId>release-parent-ee</artifactId>` dependency is updated to the latest available version (from [enterprise-snapshot](https://artifacts.cibseven.org/#browse/browse:enterprise-snapshots:org%2Fcibseven%2Frelease-parent-ee)) in all relevant POM files.
+   - Update the `cibseven-webapp.version` property to the latest snapshot version (from [enterprise-snapshot](https://artifacts.cibseven.org/#browse/browse:enterprise-snapshots:org%2Fcibseven%2Fwebapp%2Fcibseven-webclient-web-ee)) in the root `pom.xml`.
+   
 5. **Verify Build and Tests**:
    - Execute automated tests and confirm all tests pass by running the CI/CD job for your branch: https://jenkins.cib.de/job/cibseven/job/enterprise-edition/job/cibseven-ee
        
@@ -106,11 +113,14 @@ The Enterprise Edition is based on CIB seven CE and Community+, so their stabili
    - Update the version in `pom.xml` to use the latest snapshot: `<cibseven.version>2.0.2-alpha-ee-SNAPSHOT</cibseven.version>`
    - Verify that the application builds and runs successfully
 
-## Release to Production 
 
-1. **Update Dependencies**: Update `cibseven-webapp.version` to the latest non-snapshot version:
-   - Ensure that the `<artifactId>release-parent-ee</artifactId>` dependency is updated to the latest available non-snapshot version version in all relevant POM files.
-   - Update the `cibseven-webapp.version` property to the latest non-snapshot version in all POM files where it is used (not just the root `pom.xml`).
+### Release to Production
+
+1. **Update Dependencies**: 
+   > **Important:** Before continuing, verify that all required dependencies are released to the production (enterprise) repository, confirm that no snapshot versions remain in your POM files or dependency configurations, and ensure all required versions are properly aligned across modules. This ensures your project uses only the latest stable artifacts and prevents issues with missing, outdated, or mismatched dependencies.
+   - Update `cibseven-webapp.version` to the latest non-snapshot version:
+   - Ensure that the `<artifactId>release-parent-ee</artifactId>` dependency is updated to the latest available non-snapshot version (from [enterprise repository](https://artifacts.cibseven.org/#browse/browse:enterprise:org%2Fcibseven%2Frelease-parent-ee)) in all relevant POM files.
+   - Update the `cibseven-webapp.version` property to the latest non-snapshot version (from [enterprise repository](https://artifacts.cibseven.org/#browse/browse:enterprise:org%2Fcibseven%2Fwebapp%2Fcibseven-webclient-web-ee)) in all POM files where it is used (not just the root `pom.xml`).
 2. **Set Release Version**: Remove `-SNAPSHOT` suffixes from all version numbers using Maven:
    ```bash
    # Replace with your target release version
