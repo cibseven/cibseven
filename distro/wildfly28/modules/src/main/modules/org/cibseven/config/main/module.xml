@@ -1,0 +1,5 @@
+<module xmlns="urn:jboss:module:1.5" name="org.cibseven.config">
+    <resources>
+        <resource-root path="./"/>
+    </resources>
+</module>

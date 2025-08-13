@@ -1,0 +1,22 @@
+<module xmlns="urn:jboss:module:1.0" name="org.cibseven.bpm.cibseven-engine-plugin-spin">
+  <resources>
+    <resource-root path="cibseven-engine-plugin-spin-@project.version@.jar" />
+  </resources>
+
+  <dependencies>
+
+    <module name="java.base" />
+    <module name="org.joda.time" slot="2.1" />
+
+    <module name="org.cibseven.commons.cibseven-commons-typed-values" />
+    <module name="org.cibseven.commons.cibseven-commons-logging" />
+    <module name="org.cibseven.bpm.cibseven-engine" />
+
+    <module name="org.cibseven.spin.cibseven-spin-core" />
+    <module name="org.cibseven.spin.cibseven-spin-dataformat-json-jackson" services="import" />
+    <module name="org.cibseven.spin.cibseven-spin-dataformat-xml-dom-jakarta" services="import" />
+
+    <module name="org.cibseven.bpm.dmn.cibseven-engine-feel-scala" />
+    <module name="org.camunda.feel.feel-engine" />
+  </dependencies>
+</module>

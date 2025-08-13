@@ -1,0 +1,16 @@
+<module xmlns="urn:jboss:module:1.0" name="org.cibseven.spin.cibseven-spin-dataformat-xml-dom-jakarta">
+  <resources>
+    <resource-root path="cibseven-spin-dataformat-xml-dom-jakarta-@project.version@.jar" />
+  </resources>
+
+  <dependencies>
+    <module name="java.base" />
+    <module name="java.desktop" />
+    <module name="jakarta.xml.bind.api"/>
+    <module name="org.cibseven.spin.cibseven-spin-core" />
+    <module name="org.cibseven.commons.cibseven-commons-logging" />
+    <module name="org.cibseven.commons.cibseven-commons-utils" />
+    <module name="org.cibseven.commons.cibseven-commons-typed-values" />
+  </dependencies>
+
+</module>

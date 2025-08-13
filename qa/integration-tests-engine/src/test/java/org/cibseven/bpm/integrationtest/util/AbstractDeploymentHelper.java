@@ -105,7 +105,7 @@ public abstract class AbstractDeploymentHelper {
           .loadPomFromFile("pom.xml")
           .addDependencies(
               MavenDependencies.createDependency(engineSpringArtifactName, ScopeType.COMPILE, false,
-                  MavenDependencies.createExclusion("org.cibseven.bpm:camunda-engine")),
+                  MavenDependencies.createExclusion("org.cibseven.bpm:cibseven-engine")),
                   MavenDependencies.createDependency("org.springframework:spring-context", ScopeType.COMPILE, false),
                   MavenDependencies.createDependency("org.springframework:spring-jdbc", ScopeType.COMPILE, false),
                   MavenDependencies.createDependency("org.springframework:spring-tx", ScopeType.COMPILE, false),
@@ -160,11 +160,11 @@ public abstract class AbstractDeploymentHelper {
       return Maven.configureResolver()
           .workOffline()
           .loadPomFromFile("pom.xml")
-          .resolve("org.cibseven.spin:camunda-spin-dataformat-json-jackson")
+          .resolve("org.cibseven.spin:cibseven-spin-dataformat-json-jackson")
           .using(new RejectDependenciesStrategy(false,
-              "org.cibseven.spin:camunda-spin-core",
-              "org.cibseven.commons:camunda-commons-logging",
-              "org.cibseven.commons:camunda-commons-utils"))
+              "org.cibseven.spin:cibseven-spin-core",
+              "org.cibseven.commons:cibseven-commons-logging",
+              "org.cibseven.commons:cibseven-commons-utils"))
           .as(JavaArchive.class);
     } else {
       throw new RuntimeException("Unable to determine dependencies for spinJacksonJsonDataFormat: " + server);

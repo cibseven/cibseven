@@ -24,7 +24,6 @@ import org.cibseven.bpm.spring.boot.starter.event.ProcessApplicationEventPublish
 import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
 import org.cibseven.bpm.spring.boot.starter.property.ManagementProperties;
 import org.cibseven.bpm.spring.boot.starter.util.CamundaBpmVersion;
-import org.cibseven.webapp.SevenWebclientContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -45,7 +44,6 @@ import org.springframework.context.annotation.Primary;
   CamundaBpmActuatorConfiguration.class,
   CamundaBpmPluginConfiguration.class,
   CamundaBpmTelemetryConfiguration.class,
-  SevenWebclientContext.class,
   SpringProcessEngineServicesConfiguration.class
 })
 @Configuration

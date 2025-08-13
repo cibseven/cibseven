@@ -182,6 +182,7 @@
         <module>distro/license-book</module>
         <module>distro/wildfly</module>
         <module>distro/wildfly26</module>
+        <module>distro/wildfly28</module>
       </modules>
     </profile>
 
@@ -288,24 +289,11 @@
   
   <repositories>
     <repository>
-      <id>maven-central</id>
-      <name>Maven Central</name>
-      <url>https://repo1.maven.org/maven2</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <!-- Required for local builds by community users on master branch -->
-      <id>mvn-cibseven-public</id>
-      <name>CIB seven Public Repository</name>
-      <url>https://artifacts.cibseven.org/repository/public</url>
-    </repository>
-    <repository>
-      <!-- Required for local builds by developers on maintainance branches -->
-      <id>mvn-cibseven-snapshots</id>
-      <name>CIB seven Snapshots repository</name>
-      <url>https://artifacts.cibseven.org/repository/snapshots</url>
+      <id>mvn-group</id>
+      <name>Maven group</name>
+      <!-- Links to repos for local builds by community users on master branch,
+      for local builds by developers on maintainance branches, jboss and maven central -->
+      <url>https://artifacts.cibseven.org/repository/mvn-group</url>
     </repository>
     <repository>
       <!-- Required for local enterprise releases and parent pom -->

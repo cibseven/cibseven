@@ -20,7 +20,7 @@
     <!-- json-smart and accessors-smart are runtime dependencies of json-path -->
     <third-party-bom-scopes>compile|runtime</third-party-bom-scopes>
   </properties>
-
+  
   <dependencies>
     <dependency>
       <groupId>org.cibseven.bpm.wildfly</groupId>
