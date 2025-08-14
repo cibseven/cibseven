@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.cibseven.commons</groupId>
     <artifactId>cibseven-commons-root</artifactId>
-    <version>2.1.0-alpha-SNAPSHOT</version>
+    <version>2.1.0-alpha</version>
   </parent>
 
   <artifactId>cibseven-commons-testing</artifactId>

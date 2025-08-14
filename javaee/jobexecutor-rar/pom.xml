@@ -9,7 +9,7 @@
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-parent</artifactId>
     <relativePath>../../parent</relativePath>
-    <version>2.1.0-alpha-SNAPSHOT</version>
+    <version>2.1.0-alpha</version>
   </parent>
 
   <dependencyManagement>
