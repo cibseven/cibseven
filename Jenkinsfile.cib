@@ -321,7 +321,6 @@ pipeline {
                     // force deploy
                     allOf {
                         expression { params.DEPLOY_TO_ARTIFACTS }
-                        expression { params.DEPLOY_TO_MAVEN_CENTRAL == false }
                     }
                 }
             }
