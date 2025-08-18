@@ -158,7 +158,6 @@ platform-jdk-temurin-jdk-17-latest:
   command: 'install source:jar source:test-jar -Pdistro,distro-wildfly'
   stash:
     runtimeStash: true
-  withNpm: true
   jdkVersion: 'jdk-17-latest'
   withPodSpec: true
   podSpec:
@@ -169,7 +168,6 @@ platform-jdk-temurin-jdk-21-latest:
   command: 'install source:jar source:test-jar -Pdistro,distro-wildfly'
   stash:
     runtimeStash: true
-  withNpm: true
   jdkVersion: 'jdk-21-latest'
   withPodSpec: true
   podSpec:
@@ -194,7 +192,6 @@ platform-jdk-temurin-jdk-11-latest:
     -Pdistro,distro-ce'
   stash:
     runtimeStash: true
-  withNpm: true
   jdkVersion: 'jdk-11-latest'
   withPodSpec: true
   podSpec:
@@ -207,7 +204,6 @@ platform-jdk-jdk-17-latest:
     runtimeStash: true
   nodeLabel: 'h2'
   jdkVersion: 'jdk-17-latest'
-  withNpm: true
 platform-jdk-jdk-21-latest:
   directory: '.'
   command: 'install source:jar source:test-jar -Pdistro,distro-wildfly -Dskip.frontend.build=true'
@@ -215,7 +211,6 @@ platform-jdk-jdk-21-latest:
     runtimeStash: true
   nodeLabel: 'h2'
   jdkVersion: 'jdk-21-latest'
-  withNpm: true
 platform-jdk-jdk-11-latest:
   directory: '.'
   command: 'install source:jar source:test-jar
@@ -238,5 +233,4 @@ platform-jdk-jdk-11-latest:
     runtimeStash: true
   nodeLabel: 'h2'
   jdkVersion: 'jdk-11-latest'
-  withNpm: true
 
