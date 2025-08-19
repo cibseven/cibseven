@@ -39,8 +39,8 @@ public class GetTaskFormVariablesCmd extends AbstractGetFormVariablesCmd {
 
   private static final long serialVersionUID = 1L;
 
-  public GetTaskFormVariablesCmd(String taskId, Collection<String> variableNames, boolean deserializeObjectValues) {
-    super(taskId, variableNames, deserializeObjectValues);
+  public GetTaskFormVariablesCmd(String taskId, Collection<String> variableNames, boolean deserializeObjectValues, boolean localVariablesOnly) {
+    super(taskId, variableNames, deserializeObjectValues, localVariablesOnly);
   }
 
   public VariableMap execute(CommandContext commandContext) {
@@ -59,13 +59,19 @@ public class GetTaskFormVariablesCmd extends AbstractGetFormVariablesCmd {
       TaskFormData taskFormData = taskDefinition.getTaskFormHandler().createTaskForm(task);
       for (FormField formField : taskFormData.getFormFields()) {
         if(formVariableNames == null || formVariableNames.contains(formField.getId())) {
-          result.put(formField.getId(), createVariable(formField, task));
+          if (localVariablesOnly) {
+            result.put(formField.getId(), createExtendedVariable(formField, task));
+          } else {
+            result.put(formField.getId(), createVariable(formField, task));
+          }
         }
       }
+      //TODO: if (localVariablesOnly) load HTML or .form file and create structure of form fields
     }
 
     // collect remaining variables from task scope and parent scopes
-    task.collectVariables(result, formVariableNames, false, deserializeObjectValues);
+    if (!localVariablesOnly)
+      task.collectVariables(result, formVariableNames, false, deserializeObjectValues);
 
     return result;
   }

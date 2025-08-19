@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 package org.cibseven.bpm.engine.impl.cmd;
-
 import java.io.Serializable;
 import java.util.Collection;
 
 import org.cibseven.bpm.engine.delegate.VariableScope;
 import org.cibseven.bpm.engine.form.FormField;
+import org.cibseven.bpm.engine.impl.form.FormFieldDto;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
-
+//import org.cibseven.bpm.engine.variable.impl.type.FormFieldValueTypeImpl;
 /**
  * @author  Daniel Meyer
  */
@@ -35,11 +35,13 @@ public abstract class AbstractGetFormVariablesCmd implements Command<VariableMap
   public String resourceId;
   public Collection<String> formVariableNames;
   protected boolean deserializeObjectValues;
+  protected boolean localVariablesOnly;
 
-  public AbstractGetFormVariablesCmd(String resourceId, Collection<String> formVariableNames, boolean deserializeObjectValues) {
+  public AbstractGetFormVariablesCmd(String resourceId, Collection<String> formVariableNames, boolean deserializeObjectValues, boolean localVariablesOnly) {
     this.resourceId = resourceId;
     this.formVariableNames = formVariableNames;
     this.deserializeObjectValues = deserializeObjectValues;
+    this.localVariablesOnly = localVariablesOnly;
   }
 
   protected TypedValue createVariable(FormField formField, VariableScope variableScope) {
@@ -47,6 +49,17 @@ public abstract class AbstractGetFormVariablesCmd implements Command<VariableMap
 
     if(value != null) {
       return value;
+    }
+    else {
+      return null;
+    }
+
+  }
+
+  protected Object createExtendedVariable(FormField formField, VariableScope variableScope) {
+
+    if(formField.getValue() != null) {
+      return new FormFieldDto(formField);
     }
     else {
       return null;

@@ -113,6 +113,9 @@ public class ProcessDefinitionRestServiceInteractionTest extends AbstractRestSer
   protected static final String START_FORM_VARIABLES_URL = SINGLE_PROCESS_DEFINITION_URL + "/form-variables";
   protected static final String START_FORM_VARIABLES_BY_KEY_URL = SINGLE_PROCESS_DEFINITION_BY_KEY_URL + "/form-variables";
 
+//  protected static final String START_FORM_VARIABLES_LOCAL_URL = SINGLE_PROCESS_DEFINITION_URL + "/form-variables-local";
+//  protected static final String START_FORM_VARIABLES_LOCAL_BY_KEY_URL = SINGLE_PROCESS_DEFINITION_BY_KEY_URL + "/form-variables-local";
+
   protected static final String SINGLE_PROCESS_DEFINITION_SUSPENDED_URL = SINGLE_PROCESS_DEFINITION_URL + "/suspended";
   protected static final String SINGLE_PROCESS_DEFINITION_BY_KEY_SUSPENDED_URL = SINGLE_PROCESS_DEFINITION_BY_KEY_URL + "/suspended";
   protected static final String SINGLE_PROCESS_DEFINITION_HISTORY_TIMETOLIVE_URL = SINGLE_PROCESS_DEFINITION_URL + "/history-time-to-live";
@@ -184,7 +187,7 @@ public class ProcessDefinitionRestServiceInteractionTest extends AbstractRestSer
     when(formServiceMock.submitStartForm(eq(MockProvider.EXAMPLE_PROCESS_DEFINITION_ID), any(), any())).thenReturn(mockInstance);
 
     VariableMap startFormVariablesMock = MockProvider.createMockFormVariables();
-    when(formServiceMock.getStartFormVariables(eq(EXAMPLE_PROCESS_DEFINITION_ID), any(), anyBoolean())).thenReturn(startFormVariablesMock);
+    when(formServiceMock.getStartFormVariables(eq(EXAMPLE_PROCESS_DEFINITION_ID), any(), anyBoolean(), anyBoolean())).thenReturn(startFormVariablesMock);
 
   }
 
@@ -860,8 +863,24 @@ public class ProcessDefinitionRestServiceInteractionTest extends AbstractRestSer
       .when().get(START_FORM_VARIABLES_URL)
       .body();
 
-    verify(formServiceMock, times(1)).getStartFormVariables(EXAMPLE_PROCESS_DEFINITION_ID, null, true);
+    verify(formServiceMock, times(1)).getStartFormVariables(EXAMPLE_PROCESS_DEFINITION_ID, null, true, false);
   }
+
+  // TODO: verify count conflicts
+//  @Test
+//  public void testGetStartFormVariablesLocal() {
+//
+//    given().pathParam("id", EXAMPLE_PROCESS_DEFINITION_ID)
+//      .then().expect()
+//        .statusCode(Status.OK.getStatusCode()).contentType(ContentType.JSON)
+//        .body(MockProvider.EXAMPLE_VARIABLE_INSTANCE_NAME+".value", equalTo(MockProvider.EXAMPLE_PRIMITIVE_VARIABLE_VALUE.getValue()))
+//        .body(MockProvider.EXAMPLE_VARIABLE_INSTANCE_NAME+".type",
+//            equalTo(VariableTypeHelper.toExpectedValueTypeName(MockProvider.EXAMPLE_PRIMITIVE_VARIABLE_VALUE.getType())))
+//      .when().get(START_FORM_VARIABLES_LOCAL_URL)
+//      .body();
+//
+//    verify(formServiceMock, times(1)).getStartFormVariables(EXAMPLE_PROCESS_DEFINITION_ID, null, true, true);
+//  }
 
   @Test
   public void testGetStartFormVariablesVarNames() {
@@ -873,7 +892,7 @@ public class ProcessDefinitionRestServiceInteractionTest extends AbstractRestSer
       .statusCode(Status.OK.getStatusCode()).contentType(ContentType.JSON)
     .when().get(START_FORM_VARIABLES_URL);
 
-    verify(formServiceMock, times(1)).getStartFormVariables(EXAMPLE_PROCESS_DEFINITION_ID, Arrays.asList("a", "b", "c"), true);
+    verify(formServiceMock, times(1)).getStartFormVariables(EXAMPLE_PROCESS_DEFINITION_ID, Arrays.asList("a", "b", "c"), true, false);
   }
 
   @Test
@@ -891,7 +910,7 @@ public class ProcessDefinitionRestServiceInteractionTest extends AbstractRestSer
       .when().get(START_FORM_VARIABLES_URL)
       .body();
 
-    verify(formServiceMock, times(1)).getStartFormVariables(EXAMPLE_PROCESS_DEFINITION_ID, null, false);
+    verify(formServiceMock, times(1)).getStartFormVariables(EXAMPLE_PROCESS_DEFINITION_ID, null, false, false);
   }
 
   @Test
@@ -905,13 +924,13 @@ public class ProcessDefinitionRestServiceInteractionTest extends AbstractRestSer
       .statusCode(Status.OK.getStatusCode()).contentType(ContentType.JSON)
     .when().get(START_FORM_VARIABLES_URL);
 
-    verify(formServiceMock, times(1)).getStartFormVariables(EXAMPLE_PROCESS_DEFINITION_ID, Arrays.asList("a", "b", "c"), false);
+    verify(formServiceMock, times(1)).getStartFormVariables(EXAMPLE_PROCESS_DEFINITION_ID, Arrays.asList("a", "b", "c"), false, false);
   }
 
   @Test
   public void testGetStartFormVariablesThrowsAuthorizationException() {
     String message = "expected exception";
-    when(formServiceMock.getStartFormVariables(MockProvider.EXAMPLE_PROCESS_DEFINITION_ID, null, true)).thenThrow(new AuthorizationException(message));
+    when(formServiceMock.getStartFormVariables(MockProvider.EXAMPLE_PROCESS_DEFINITION_ID, null, true, false)).thenThrow(new AuthorizationException(message));
 
     given()
       .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
@@ -3938,7 +3957,7 @@ public class ProcessDefinitionRestServiceInteractionTest extends AbstractRestSer
   @Test
   public void testGetStartFormVariablesThrowsAuthorizationException_ByKey() {
     String message = "expected exception";
-    when(formServiceMock.getStartFormVariables(MockProvider.EXAMPLE_PROCESS_DEFINITION_ID, null, true)).thenThrow(new AuthorizationException(message));
+    when(formServiceMock.getStartFormVariables(MockProvider.EXAMPLE_PROCESS_DEFINITION_ID, null, true, false)).thenThrow(new AuthorizationException(message));
 
     given()
       .pathParam("key", MockProvider.EXAMPLE_PROCESS_DEFINITION_KEY)
