@@ -24,7 +24,9 @@ import org.cibseven.bpm.engine.impl.form.FormFieldDto;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
-//import org.cibseven.bpm.engine.variable.impl.type.FormFieldValueTypeImpl;
+
+import com.google.gson.JsonObject;
+
 /**
  * @author  Daniel Meyer
  */
@@ -57,14 +59,15 @@ public abstract class AbstractGetFormVariablesCmd implements Command<VariableMap
   }
 
   protected Object createExtendedVariable(FormField formField, VariableScope variableScope) {
-
     if(formField.getValue() != null) {
       return new FormFieldDto(formField);
     }
     else {
       return null;
     }
-
   }
 
+  protected Object createExtendedVariable(JsonObject jsonFormControl, Object variableValue) {
+    return new FormFieldDto(jsonFormControl, variableValue);
+  }
 }

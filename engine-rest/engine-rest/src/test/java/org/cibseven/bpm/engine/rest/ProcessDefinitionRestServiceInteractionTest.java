@@ -113,8 +113,8 @@ public class ProcessDefinitionRestServiceInteractionTest extends AbstractRestSer
   protected static final String START_FORM_VARIABLES_URL = SINGLE_PROCESS_DEFINITION_URL + "/form-variables";
   protected static final String START_FORM_VARIABLES_BY_KEY_URL = SINGLE_PROCESS_DEFINITION_BY_KEY_URL + "/form-variables";
 
-//  protected static final String START_FORM_VARIABLES_LOCAL_URL = SINGLE_PROCESS_DEFINITION_URL + "/form-variables-local";
-//  protected static final String START_FORM_VARIABLES_LOCAL_BY_KEY_URL = SINGLE_PROCESS_DEFINITION_BY_KEY_URL + "/form-variables-local";
+  protected static final String START_FORM_VARIABLES_LOCAL_URL = SINGLE_PROCESS_DEFINITION_URL + "/form-variables-local";
+  protected static final String START_FORM_VARIABLES_LOCAL_BY_KEY_URL = SINGLE_PROCESS_DEFINITION_BY_KEY_URL + "/form-variables-local";
 
   protected static final String SINGLE_PROCESS_DEFINITION_SUSPENDED_URL = SINGLE_PROCESS_DEFINITION_URL + "/suspended";
   protected static final String SINGLE_PROCESS_DEFINITION_BY_KEY_SUSPENDED_URL = SINGLE_PROCESS_DEFINITION_BY_KEY_URL + "/suspended";
@@ -865,22 +865,6 @@ public class ProcessDefinitionRestServiceInteractionTest extends AbstractRestSer
 
     verify(formServiceMock, times(1)).getStartFormVariables(EXAMPLE_PROCESS_DEFINITION_ID, null, true, false);
   }
-
-  // TODO: verify count conflicts
-//  @Test
-//  public void testGetStartFormVariablesLocal() {
-//
-//    given().pathParam("id", EXAMPLE_PROCESS_DEFINITION_ID)
-//      .then().expect()
-//        .statusCode(Status.OK.getStatusCode()).contentType(ContentType.JSON)
-//        .body(MockProvider.EXAMPLE_VARIABLE_INSTANCE_NAME+".value", equalTo(MockProvider.EXAMPLE_PRIMITIVE_VARIABLE_VALUE.getValue()))
-//        .body(MockProvider.EXAMPLE_VARIABLE_INSTANCE_NAME+".type",
-//            equalTo(VariableTypeHelper.toExpectedValueTypeName(MockProvider.EXAMPLE_PRIMITIVE_VARIABLE_VALUE.getType())))
-//      .when().get(START_FORM_VARIABLES_LOCAL_URL)
-//      .body();
-//
-//    verify(formServiceMock, times(1)).getStartFormVariables(EXAMPLE_PROCESS_DEFINITION_ID, null, true, true);
-//  }
 
   @Test
   public void testGetStartFormVariablesVarNames() {

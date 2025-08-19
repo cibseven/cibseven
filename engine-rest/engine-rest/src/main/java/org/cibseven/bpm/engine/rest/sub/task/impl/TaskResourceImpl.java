@@ -403,8 +403,10 @@ public class TaskResourceImpl implements TaskResource {
 	      if (formFieldRestImpl != null && formFieldRestImpl instanceof FormFieldDto) {
 	        FormFieldDto dto = (FormFieldDto)formFieldRestImpl;
 	        TypedValue typedValue = (TypedValue)dto.getValue();
-	        dto.setValue(VariableValueDto.fromTypedValue(typedValue, false));
-	        resultMap.put(variableName, dto);
+	        if (typedValue != null) {
+	           dto.setValue(VariableValueDto.fromTypedValue(typedValue, false));
+	          resultMap.put(variableName, dto);
+	        }
 	      }
 	    }
 	    return resultMap;
