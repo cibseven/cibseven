@@ -16,13 +16,12 @@
  */
 package org.cibseven.bpm.engine.impl.repository;
 
-import org.cibseven.bpm.engine.impl.persistence.entity.DeploymentEntity;
-import org.cibseven.bpm.engine.impl.persistence.entity.ResourceEntity;
-import org.cibseven.bpm.engine.repository.CandidateDeployment;
-import org.cibseven.bpm.engine.repository.Resource;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.cibseven.bpm.engine.impl.persistence.entity.DeploymentEntity;
+import org.cibseven.bpm.engine.repository.CandidateDeployment;
+import org.cibseven.bpm.engine.repository.Resource;
 
 public class CandidateDeploymentImpl implements CandidateDeployment {
 

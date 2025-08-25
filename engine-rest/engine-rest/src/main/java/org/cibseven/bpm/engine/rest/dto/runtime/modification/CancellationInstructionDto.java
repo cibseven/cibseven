@@ -23,7 +23,6 @@ import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.runtime.InstantiationBuilder;
 import org.cibseven.bpm.engine.runtime.ModificationBuilder;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceModificationBuilder;
-import org.cibseven.bpm.engine.runtime.ProcessInstantiationBuilder;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.ObjectMapper;

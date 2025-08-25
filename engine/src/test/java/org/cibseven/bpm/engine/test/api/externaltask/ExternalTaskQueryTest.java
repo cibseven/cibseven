@@ -44,8 +44,6 @@ import org.cibseven.bpm.engine.exception.NullValueException;
 import org.cibseven.bpm.engine.externaltask.ExternalTask;
 import org.cibseven.bpm.engine.externaltask.ExternalTaskQuery;
 import org.cibseven.bpm.engine.externaltask.LockedExternalTask;
-import org.cibseven.bpm.engine.impl.db.sql.DbSqlSessionFactory;
-import org.cibseven.bpm.engine.impl.test.RequiredDatabase;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.ActivityInstance;
@@ -56,7 +54,6 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**

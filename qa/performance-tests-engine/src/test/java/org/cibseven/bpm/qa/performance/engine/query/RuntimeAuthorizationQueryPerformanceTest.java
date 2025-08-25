@@ -16,16 +16,17 @@
  */
 package org.cibseven.bpm.qa.performance.engine.query;
 
+import static org.cibseven.bpm.engine.authorization.Permissions.READ;
+import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_INSTANCE;
+import static org.cibseven.bpm.engine.authorization.Resources.TASK;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import org.cibseven.bpm.engine.AuthorizationService;
-import org.cibseven.bpm.engine.HistoryService;
-import org.cibseven.bpm.engine.ManagementService;
 import org.cibseven.bpm.engine.ProcessEngine;
-import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.TaskService;
 import org.cibseven.bpm.engine.authorization.Authorization;
@@ -43,9 +44,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
-
-import static org.cibseven.bpm.engine.authorization.Resources.*;
-import static org.cibseven.bpm.engine.authorization.Permissions.*;
 
 /**
  * @author Daniel Meyer

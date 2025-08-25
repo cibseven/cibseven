@@ -16,31 +16,31 @@
  */
 package org.cibseven.bpm.dmn.feel.impl.scala;
 
+import static camundajar.impl.scala.jdk.CollectionConverters.ListHasAsScala;
+
+import java.util.Arrays;
+
+import org.camunda.feel.FeelEngine.Builder;
+import org.camunda.feel.FeelEngine.Failure;
+import org.camunda.feel.context.CustomContext;
+import org.camunda.feel.context.VariableProvider;
+import org.camunda.feel.context.VariableProvider.CompositeVariableProvider;
+import org.camunda.feel.context.VariableProvider.StaticVariableProvider;
+import org.camunda.feel.impl.JavaValueMapper;
+import org.camunda.feel.valuemapper.CustomValueMapper;
+import org.camunda.feel.valuemapper.ValueMapper.CompositeValueMapper;
 import org.cibseven.bpm.dmn.feel.impl.FeelEngine;
 import org.cibseven.bpm.dmn.feel.impl.scala.function.CustomFunctionTransformer;
 import org.cibseven.bpm.dmn.feel.impl.scala.function.FeelCustomFunctionProvider;
 import org.cibseven.bpm.dmn.feel.impl.scala.spin.SpinValueMapperFactory;
 import org.cibseven.bpm.engine.variable.context.VariableContext;
-import org.camunda.feel.FeelEngine$;
-import org.camunda.feel.FeelEngine.Builder;
-import org.camunda.feel.FeelEngine.Failure;
-import org.camunda.feel.context.CustomContext;
-import org.camunda.feel.context.VariableProvider;
-import org.camunda.feel.context.VariableProvider.StaticVariableProvider;
-import org.camunda.feel.impl.JavaValueMapper;
-import org.camunda.feel.valuemapper.CustomValueMapper;
-import org.camunda.feel.valuemapper.ValueMapper.CompositeValueMapper;
+
 import camundajar.impl.scala.collection.immutable.List;
 import camundajar.impl.scala.collection.immutable.Map;
 import camundajar.impl.scala.runtime.BoxesRunTime;
 import camundajar.impl.scala.util.Either;
 import camundajar.impl.scala.util.Left;
 import camundajar.impl.scala.util.Right;
-
-import java.util.Arrays;
-
-import static org.camunda.feel.context.VariableProvider.CompositeVariableProvider;
-import static camundajar.impl.scala.jdk.CollectionConverters.ListHasAsScala;
 
 public class ScalaFeelEngine implements FeelEngine {
 

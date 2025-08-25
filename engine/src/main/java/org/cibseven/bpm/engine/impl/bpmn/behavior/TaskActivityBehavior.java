@@ -16,7 +16,6 @@
  */
 package org.cibseven.bpm.engine.impl.bpmn.behavior;
 
-import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;
 
 

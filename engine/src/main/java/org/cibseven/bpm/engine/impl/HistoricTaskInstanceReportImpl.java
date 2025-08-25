@@ -25,7 +25,6 @@ import org.cibseven.bpm.engine.exception.NotValidException;
 import org.cibseven.bpm.engine.history.DurationReportResult;
 import org.cibseven.bpm.engine.history.HistoricTaskInstanceReport;
 import org.cibseven.bpm.engine.history.HistoricTaskInstanceReportResult;
-import org.cibseven.bpm.engine.impl.cfg.CommandChecker;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.db.TenantCheck;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
