@@ -16,10 +16,11 @@
  */
 package org.cibseven.bpm.run;
 
-import jakarta.servlet.Filter;
+import java.util.Arrays;
+import java.util.Collections;
+
 import org.apache.catalina.filters.CorsFilter;
 import org.cibseven.bpm.engine.rest.security.auth.ProcessEngineAuthenticationFilter;
-import org.cibseven.bpm.engine.rest.security.auth.impl.CompositeAuthenticationProvider;
 import org.cibseven.bpm.run.property.CamundaBpmRunAuthenticationProperties;
 import org.cibseven.bpm.run.property.CamundaBpmRunCorsProperty;
 import org.cibseven.bpm.run.property.CamundaBpmRunProperties;
@@ -36,8 +37,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Arrays;
-import java.util.Collections;
+import jakarta.servlet.Filter;
 
 @EnableConfigurationProperties(CamundaBpmRunProperties.class)
 @Configuration

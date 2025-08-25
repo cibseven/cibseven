@@ -22,7 +22,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.exception.NotValidException;
 import org.cibseven.bpm.engine.repository.CaseDefinition;
 import org.cibseven.bpm.engine.repository.CaseDefinitionQuery;

@@ -22,7 +22,6 @@ import java.util.concurrent.Callable;
 
 import org.cibseven.bpm.engine.delegate.VariableScope;
 import org.cibseven.bpm.engine.impl.core.model.BaseCallableElement;
-import org.cibseven.bpm.engine.impl.core.variable.scope.AbstractVariableScope;
 import org.cibseven.bpm.engine.impl.dmn.result.DecisionResultMapper;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;

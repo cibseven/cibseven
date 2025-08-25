@@ -16,9 +16,7 @@
  */
 package org.cibseven.bpm.engine.impl.jobexecutor.historycleanup;
 
-import java.util.Calendar;
 import java.util.Date;
-import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 
 /**
  * @author Svetlana Dorokhova.

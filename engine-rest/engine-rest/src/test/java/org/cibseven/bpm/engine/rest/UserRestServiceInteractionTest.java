@@ -17,29 +17,27 @@
 package org.cibseven.bpm.engine.rest;
 
 import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.authorization.Permissions.DELETE;
 import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE;
 import static org.cibseven.bpm.engine.authorization.Resources.USER;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response.Status;
 
-import java.util.List;
-
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.spi.ILoggingEvent;
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.AuthorizationService;
 import org.cibseven.bpm.engine.IdentityService;
@@ -58,12 +56,13 @@ import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.cibseven.commons.testing.WatchLogger;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import io.restassured.http.ContentType;
 
 /**

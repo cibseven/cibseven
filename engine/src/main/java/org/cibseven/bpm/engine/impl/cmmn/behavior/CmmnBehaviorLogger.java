@@ -21,7 +21,6 @@ import org.cibseven.bpm.engine.exception.cmmn.CaseIllegalStateTransitionExceptio
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.cmmn.execution.CaseExecutionState;
 import org.cibseven.bpm.engine.impl.cmmn.execution.CmmnActivityExecution;
-import org.cibseven.bpm.engine.impl.core.model.BaseCallableElement;
 import org.cibseven.bpm.engine.impl.pvm.PvmException;
 
 /**

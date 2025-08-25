@@ -16,9 +16,14 @@
  */
 package org.cibseven.bpm.engine.impl.cmd;
 
+import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotEmpty;
+import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
+
+import java.io.Serializable;
+import java.util.Arrays;
+
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.exception.NotFoundException;
-import org.cibseven.bpm.engine.exception.NullValueException;
 import org.cibseven.bpm.engine.history.UserOperationLogEntry;
 import org.cibseven.bpm.engine.impl.cfg.CommandChecker;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
@@ -26,12 +31,6 @@ import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.HistoricProcessInstanceEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.PropertyChange;
 import org.cibseven.bpm.engine.impl.repository.ResourceDefinitionEntity;
-
-import java.io.Serializable;
-import java.util.Arrays;
-
-import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotEmpty;
-import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 
 /**
  * @author Tobias Metzke

@@ -19,7 +19,6 @@ package org.cibseven.bpm.engine.impl.pvm;
 import java.util.List;
 
 import org.cibseven.bpm.engine.delegate.ExecutionListener;
-import org.cibseven.bpm.engine.impl.core.variable.mapping.IoMapping;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityBehavior;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityStartBehavior;
 

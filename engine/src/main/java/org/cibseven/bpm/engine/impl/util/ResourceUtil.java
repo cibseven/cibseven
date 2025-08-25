@@ -19,7 +19,6 @@ package org.cibseven.bpm.engine.impl.util;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
-import org.cibseven.bpm.engine.exception.NotFoundException;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.persistence.entity.DeploymentEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.ResourceEntity;

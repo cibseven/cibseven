@@ -16,14 +16,12 @@
  */
 package org.cibseven.bpm.engine.rest.exception;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import org.cibseven.bpm.engine.rest.dto.ExceptionDto;
-
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
+
+import com.fasterxml.jackson.core.JsonParseException;
 
 /**
  * @author Thorben Lindhauer

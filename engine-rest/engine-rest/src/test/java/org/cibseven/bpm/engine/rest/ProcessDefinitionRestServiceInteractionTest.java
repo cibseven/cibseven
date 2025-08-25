@@ -16,17 +16,63 @@
  */
 package org.cibseven.bpm.engine.rest;
 
-import io.restassured.http.ContentType;
-import io.restassured.response.Response;
+import static io.restassured.RestAssured.given;
+import static org.cibseven.bpm.engine.rest.helper.MockProvider.createMockSerializedVariables;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.hamcrest.MockitoHamcrest.argThat;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+
+import org.assertj.core.api.Assertions;
 import org.cibseven.bpm.ProcessApplicationService;
 import org.cibseven.bpm.application.ProcessApplicationInfo;
 import org.cibseven.bpm.container.RuntimeContainerDelegate;
-import org.cibseven.bpm.engine.*;
+import org.cibseven.bpm.engine.AuthorizationException;
+import org.cibseven.bpm.engine.BadUserRequestException;
+import org.cibseven.bpm.engine.FormService;
+import org.cibseven.bpm.engine.ManagementService;
+import org.cibseven.bpm.engine.ProcessEngineException;
+import org.cibseven.bpm.engine.RepositoryService;
+import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.exception.NotFoundException;
-import org.cibseven.bpm.engine.exception.NullValueException;
 import org.cibseven.bpm.engine.form.StartFormData;
 import org.cibseven.bpm.engine.impl.calendar.DateTimeUtil;
 import org.cibseven.bpm.engine.impl.digest._apacheCommonsCodec.Base64;
+import org.cibseven.bpm.engine.impl.form.validator.FormFieldValidationException;
 import org.cibseven.bpm.engine.impl.repository.CalledProcessDefinitionImpl;
 import org.cibseven.bpm.engine.impl.util.IoUtil;
 import org.cibseven.bpm.engine.impl.util.ReflectUtil;
@@ -38,8 +84,11 @@ import org.cibseven.bpm.engine.repository.ProcessDefinitionQuery;
 import org.cibseven.bpm.engine.rest.dto.HistoryTimeToLiveDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.exception.RestException;
-import org.cibseven.bpm.engine.impl.form.validator.FormFieldValidationException;
-import org.cibseven.bpm.engine.rest.helper.*;
+import org.cibseven.bpm.engine.rest.helper.EqualsMap;
+import org.cibseven.bpm.engine.rest.helper.EqualsVariableMap;
+import org.cibseven.bpm.engine.rest.helper.ErrorMessageHelper;
+import org.cibseven.bpm.engine.rest.helper.MockProvider;
+import org.cibseven.bpm.engine.rest.helper.VariableTypeHelper;
 import org.cibseven.bpm.engine.rest.helper.variable.EqualsObjectValue;
 import org.cibseven.bpm.engine.rest.helper.variable.EqualsPrimitiveValue;
 import org.cibseven.bpm.engine.rest.helper.variable.EqualsUntypedValue;
@@ -54,7 +103,6 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.impl.VariableMapImpl;
 import org.cibseven.bpm.engine.variable.type.ValueType;
-import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -64,24 +112,8 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-import java.io.*;
-import java.net.URISyntaxException;
-import java.util.*;
-
-import static io.restassured.RestAssured.given;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.createMockSerializedVariables;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyBoolean;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.hamcrest.MockitoHamcrest.argThat;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.isNull;
-import static org.mockito.Mockito.*;
+import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 
 public class ProcessDefinitionRestServiceInteractionTest extends AbstractRestServiceTest {
 
