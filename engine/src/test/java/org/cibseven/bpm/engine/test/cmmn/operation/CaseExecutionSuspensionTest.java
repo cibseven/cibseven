@@ -16,20 +16,14 @@
  */
 package org.cibseven.bpm.engine.test.cmmn.operation;
 
+import static org.junit.Assert.assertTrue;
+
 import org.cibseven.bpm.engine.impl.cmmn.behavior.StageActivityBehavior;
 import org.cibseven.bpm.engine.impl.cmmn.execution.CmmnActivityExecution;
 import org.cibseven.bpm.engine.impl.cmmn.execution.CmmnCaseInstance;
 import org.cibseven.bpm.engine.impl.cmmn.handler.ItemHandler;
 import org.cibseven.bpm.engine.impl.cmmn.model.CaseDefinitionBuilder;
 import org.cibseven.bpm.engine.impl.cmmn.model.CmmnCaseDefinition;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-
 import org.cibseven.bpm.engine.impl.test.TestHelper;
 import org.junit.Test;
 

@@ -23,7 +23,6 @@ import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.db.EnginePersistenceLogger;
 import org.cibseven.bpm.engine.impl.db.PersistenceSession;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
-import org.cibseven.bpm.engine.impl.persistence.entity.PropertyEntity;
 
 /**
  * @author Tom Baeyens

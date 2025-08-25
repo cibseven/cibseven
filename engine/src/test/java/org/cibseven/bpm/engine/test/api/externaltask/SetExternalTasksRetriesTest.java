@@ -34,8 +34,6 @@ import org.cibseven.bpm.engine.exception.NotFoundException;
 import org.cibseven.bpm.engine.externaltask.ExternalTask;
 import org.cibseven.bpm.engine.externaltask.ExternalTaskQuery;
 import org.cibseven.bpm.engine.history.HistoricProcessInstanceQuery;
-import org.cibseven.bpm.engine.impl.db.sql.DbSqlSessionFactory;
-import org.cibseven.bpm.engine.impl.test.RequiredDatabase;
 import org.cibseven.bpm.engine.repository.ProcessDefinitionQuery;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;

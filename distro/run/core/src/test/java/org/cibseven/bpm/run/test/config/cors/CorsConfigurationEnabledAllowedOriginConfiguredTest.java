@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.cibseven.bpm.run.property.CamundaBpmRunCorsProperty;
 import org.cibseven.bpm.run.test.AbstractRestTest;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

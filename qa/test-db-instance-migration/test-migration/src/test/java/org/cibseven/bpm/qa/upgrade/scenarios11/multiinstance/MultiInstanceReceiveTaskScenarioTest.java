@@ -29,7 +29,6 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.Ignore;
 
 @ScenarioUnderTest("MultiInstanceReceiveTaskScenario")
 @Origin("1.1.0")

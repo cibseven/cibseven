@@ -22,12 +22,9 @@ import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.persistence.deploy.Deployer;
 import org.cibseven.bpm.engine.impl.persistence.entity.DeploymentEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.ResourceEntity;
-import org.cibseven.bpm.engine.impl.repository.ResourceDefinitionEntity;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**

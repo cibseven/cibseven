@@ -16,13 +16,13 @@
  */
 package org.cibseven.bpm.engine.impl.cmd;
 
+import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
+
 import java.io.Serializable;
+
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
-import org.cibseven.bpm.engine.impl.util.EnsureUtil;
 import org.cibseven.bpm.engine.task.Comment;
-
-import static org.cibseven.bpm.engine.impl.util.EnsureUtil.*;
 
 
 /**

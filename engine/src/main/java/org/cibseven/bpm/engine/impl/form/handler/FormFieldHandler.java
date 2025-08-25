@@ -27,7 +27,6 @@ import org.cibseven.bpm.engine.form.FormField;
 import org.cibseven.bpm.engine.form.FormFieldValidationConstraint;
 import org.cibseven.bpm.engine.form.FormType;
 import org.cibseven.bpm.engine.impl.el.StartProcessVariableScope;
-import org.cibseven.bpm.engine.impl.form.FormDataImpl;
 import org.cibseven.bpm.engine.impl.form.FormFieldImpl;
 import org.cibseven.bpm.engine.impl.form.type.AbstractFormFieldType;
 import org.cibseven.bpm.engine.impl.form.validator.FormFieldValidationException;

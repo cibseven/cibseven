@@ -17,7 +17,6 @@
 package org.cibseven.bpm.engine.test.errorcode;
 
 import org.cibseven.bpm.engine.OptimisticLockingException;
-import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
 

@@ -19,13 +19,10 @@ package org.cibseven.bpm.engine.rest.sub.batch.impl;
 import javax.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.BadUserRequestException;
-import org.cibseven.bpm.engine.ManagementService;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.batch.Batch;
-import org.cibseven.bpm.engine.impl.persistence.entity.SuspensionState;
 import org.cibseven.bpm.engine.rest.dto.SuspensionStateDto;
 import org.cibseven.bpm.engine.rest.dto.batch.BatchDto;
-import org.cibseven.bpm.engine.rest.dto.management.JobDefinitionSuspensionStateDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.sub.batch.BatchResource;
 
