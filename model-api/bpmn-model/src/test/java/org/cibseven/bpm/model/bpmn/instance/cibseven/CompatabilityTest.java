@@ -41,6 +41,7 @@ import org.junit.Test;
  */
 public class CompatabilityTest {
 
+  @SuppressWarnings("deprecation")
   @Test
   public void modifyingElementWithActivitiNsKeepsIt() {
     BpmnModelInstance modelInstance = Bpmn.readModelFromStream(CamundaExtensionsTest.class.getResourceAsStream("CamundaExtensionsCompatabilityTest.xml"));
@@ -56,6 +57,7 @@ public class CompatabilityTest {
     }
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void modifyingAttributeWithActivitiNsKeepsIt() {
     BpmnModelInstance modelInstance = Bpmn.readModelFromStream(CamundaExtensionsTest.class.getResourceAsStream("CamundaExtensionsCompatabilityTest.xml"));

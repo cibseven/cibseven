@@ -1083,6 +1083,7 @@ public abstract class MockProvider {
     return mocks;
   }
 
+  @SuppressWarnings("deprecation")
   public static TaskFormData createMockTaskFormData() {
     FormProperty mockFormProperty = mock(FormProperty.class);
     when(mockFormProperty.getId()).thenReturn(EXAMPLE_FORM_PROPERTY_ID);
@@ -1106,6 +1107,7 @@ public abstract class MockProvider {
     return mockFormData;
   }
 
+  @SuppressWarnings("deprecation")
   public static TaskFormData createMockTaskFormDataUsingFormFieldsWithoutFormKey() {
     FormField mockFormField = mock(FormField.class);
     when(mockFormField.getId()).thenReturn(EXAMPLE_FORM_PROPERTY_ID);
@@ -1231,6 +1233,7 @@ public abstract class MockProvider {
 
 
   // form data
+  @SuppressWarnings("deprecation")
   public static StartFormData createMockStartFormData(ProcessDefinition definition) {
     FormProperty mockFormProperty = mock(FormProperty.class);
     when(mockFormProperty.getId()).thenReturn(EXAMPLE_FORM_PROPERTY_ID);
@@ -1255,6 +1258,7 @@ public abstract class MockProvider {
     return mockFormData;
   }
 
+  @SuppressWarnings("deprecation")
   public static StartFormData createMockStartFormDataUsingFormFieldsWithoutFormKey(ProcessDefinition definition) {
     FormField mockFormField = mock(FormField.class);
     when(mockFormField.getId()).thenReturn(EXAMPLE_FORM_PROPERTY_ID);

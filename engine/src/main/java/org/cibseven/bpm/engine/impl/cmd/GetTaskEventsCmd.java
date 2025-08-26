@@ -27,6 +27,7 @@ import org.cibseven.bpm.engine.task.Event;
 /**
  * @author Tom Baeyens
  */
+@SuppressWarnings("deprecation")
 public class GetTaskEventsCmd implements Command<List<Event>>, Serializable {  
 
   private static final long serialVersionUID = 1L;
@@ -36,6 +37,7 @@ public class GetTaskEventsCmd implements Command<List<Event>>, Serializable {
     this.taskId = taskId;
   }
 
+  @SuppressWarnings("deprecation")
   public List<Event> execute(CommandContext commandContext) {
     return commandContext
       .getCommentManager()

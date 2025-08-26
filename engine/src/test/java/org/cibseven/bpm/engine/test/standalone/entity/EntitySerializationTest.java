@@ -64,6 +64,7 @@ public class EntitySerializationTest {
     assertEquals("end", task.getEventName());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testExecutionEntitySerialization() throws Exception {
    ExecutionEntity execution = new ExecutionEntity();

@@ -398,40 +398,40 @@ public class JobQueryTest {
 
   @Test
   public void testQueryByDuedateLowerThen() {
-    JobQuery query = managementService.createJobQuery().duedateLowerThen(testStartTime);
+    JobQuery query = managementService.createJobQuery().duedateLowerThan(testStartTime);
     verifyQueryResults(query, 0);
 
-    query = managementService.createJobQuery().duedateLowerThen(new Date(timerOneFireTime.getTime() + ONE_SECOND));
+    query = managementService.createJobQuery().duedateLowerThan(new Date(timerOneFireTime.getTime() + ONE_SECOND));
     verifyQueryResults(query, 1);
 
-    query = managementService.createJobQuery().duedateLowerThen(new Date(timerTwoFireTime.getTime() + ONE_SECOND));
+    query = managementService.createJobQuery().duedateLowerThan(new Date(timerTwoFireTime.getTime() + ONE_SECOND));
     verifyQueryResults(query, 2);
 
-    query = managementService.createJobQuery().duedateLowerThen(new Date(timerThreeFireTime.getTime() + ONE_SECOND));
+    query = managementService.createJobQuery().duedateLowerThan(new Date(timerThreeFireTime.getTime() + ONE_SECOND));
     verifyQueryResults(query, 3);
 
     if (ensureJobDueDateSet) {
-      query = managementService.createJobQuery().duedateLowerThen(new Date(messageDueDate.getTime() + ONE_SECOND));
+      query = managementService.createJobQuery().duedateLowerThan(new Date(messageDueDate.getTime() + ONE_SECOND));
       verifyQueryResults(query, 4);
     }
   }
 
   @Test
   public void testQueryByDuedateLowerThenOrEqual() {
-    JobQuery query = managementService.createJobQuery().duedateLowerThenOrEquals(testStartTime);
+    JobQuery query = managementService.createJobQuery().duedateLowerThanOrEquals(testStartTime);
     verifyQueryResults(query, 0);
 
-    query = managementService.createJobQuery().duedateLowerThenOrEquals(timerOneFireTime);
+    query = managementService.createJobQuery().duedateLowerThanOrEquals(timerOneFireTime);
     verifyQueryResults(query, 1);
 
-    query = managementService.createJobQuery().duedateLowerThenOrEquals(timerTwoFireTime);
+    query = managementService.createJobQuery().duedateLowerThanOrEquals(timerTwoFireTime);
     verifyQueryResults(query, 2);
 
-    query = managementService.createJobQuery().duedateLowerThenOrEquals(timerThreeFireTime);
+    query = managementService.createJobQuery().duedateLowerThanOrEquals(timerThreeFireTime);
     verifyQueryResults(query, 3);
 
     if (ensureJobDueDateSet) {
-      query = managementService.createJobQuery().duedateLowerThenOrEquals(messageDueDate);
+      query = managementService.createJobQuery().duedateLowerThanOrEquals(messageDueDate);
       verifyQueryResults(query, 4);
     }
   }
@@ -443,20 +443,20 @@ public class JobQueryTest {
     int timerTwoExpectedCount = ensureJobDueDateSet? 2 : 1;
     int timerThreeExpectedCount = ensureJobDueDateSet? 1 : 0;
 
-    JobQuery query = managementService.createJobQuery().duedateHigherThen(testStartTime);
+    JobQuery query = managementService.createJobQuery().duedateHigherThan(testStartTime);
     verifyQueryResults(query, startTimeExpectedCount);
 
-    query = managementService.createJobQuery().duedateHigherThen(timerOneFireTime);
+    query = managementService.createJobQuery().duedateHigherThan(timerOneFireTime);
     verifyQueryResults(query, timerOneExpectedCount);
 
-    query = managementService.createJobQuery().duedateHigherThen(timerTwoFireTime);
+    query = managementService.createJobQuery().duedateHigherThan(timerTwoFireTime);
     verifyQueryResults(query, timerTwoExpectedCount);
 
-    query = managementService.createJobQuery().duedateHigherThen(timerThreeFireTime);
+    query = managementService.createJobQuery().duedateHigherThan(timerThreeFireTime);
     verifyQueryResults(query, timerThreeExpectedCount);
 
     if (ensureJobDueDateSet) {
-      query = managementService.createJobQuery().duedateHigherThen(messageDueDate);
+      query = managementService.createJobQuery().duedateHigherThan(messageDueDate);
       verifyQueryResults(query, 0);
     }
   }
@@ -468,23 +468,23 @@ public class JobQueryTest {
     int timerTwoExpectedCount = ensureJobDueDateSet? 2 : 1;
     int timerThreeExpectedCount = ensureJobDueDateSet? 1 : 0;
 
-    JobQuery query = managementService.createJobQuery().duedateHigherThenOrEquals(testStartTime);
+    JobQuery query = managementService.createJobQuery().duedateHigherThanOrEquals(testStartTime);
     verifyQueryResults(query, startTimeExpectedCount);
 
-    query = managementService.createJobQuery().duedateHigherThenOrEquals(timerOneFireTime);
+    query = managementService.createJobQuery().duedateHigherThanOrEquals(timerOneFireTime);
     verifyQueryResults(query, startTimeExpectedCount);
 
-    query = managementService.createJobQuery().duedateHigherThenOrEquals(new Date(timerOneFireTime.getTime() + ONE_SECOND));
+    query = managementService.createJobQuery().duedateHigherThanOrEquals(new Date(timerOneFireTime.getTime() + ONE_SECOND));
     verifyQueryResults(query, timerOneExpectedCount);
 
-    query = managementService.createJobQuery().duedateHigherThenOrEquals(timerThreeFireTime);
+    query = managementService.createJobQuery().duedateHigherThanOrEquals(timerThreeFireTime);
     verifyQueryResults(query, timerTwoExpectedCount);
 
-    query = managementService.createJobQuery().duedateHigherThenOrEquals(new Date(timerThreeFireTime.getTime() + ONE_SECOND));
+    query = managementService.createJobQuery().duedateHigherThanOrEquals(new Date(timerThreeFireTime.getTime() + ONE_SECOND));
     verifyQueryResults(query, timerThreeExpectedCount);
 
     if (ensureJobDueDateSet) {
-      query = managementService.createJobQuery().duedateHigherThenOrEquals(new Date(messageDueDate.getTime() + ONE_SECOND));
+      query = managementService.createJobQuery().duedateHigherThanOrEquals(new Date(messageDueDate.getTime() + ONE_SECOND));
       verifyQueryResults(query, 0);
     }
   }

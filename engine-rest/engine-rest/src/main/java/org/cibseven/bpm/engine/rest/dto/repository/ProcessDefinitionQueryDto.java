@@ -292,6 +292,7 @@ public class ProcessDefinitionQueryDto extends AbstractQueryDto<ProcessDefinitio
     return engine.getRepositoryService().createProcessDefinitionQuery();
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   protected void applyFilters(ProcessDefinitionQuery query) {
     if (processDefinitionId != null) {

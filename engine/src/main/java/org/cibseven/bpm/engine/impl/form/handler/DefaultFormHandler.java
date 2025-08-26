@@ -268,6 +268,7 @@ public class DefaultFormHandler implements FormHandler {
     }
   }
 
+  @SuppressWarnings("deprecation")
   protected void initializeFormProperties(FormDataImpl formData, ExecutionEntity execution) {
     List<FormProperty> formProperties = new ArrayList<>();
     for (FormPropertyHandler formPropertyHandler: formPropertyHandlers) {

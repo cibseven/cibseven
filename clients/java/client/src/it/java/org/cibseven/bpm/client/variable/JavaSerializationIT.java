@@ -79,10 +79,8 @@ public class JavaSerializationIT {
     return properties;
   });
 
-  protected ExpectedException thrown = ExpectedException.none();
-
   @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule).around(thrown);
+  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule);
 
   protected ExternalTaskClient client;
 

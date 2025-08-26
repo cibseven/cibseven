@@ -1081,19 +1081,19 @@ public class ExecutionQueryTest extends PluggableProcessEngineTest {
 
     // it finds subscribed instances
     Execution execution = runtimeService.createExecutionQuery()
-      .signalEventSubscription("alert")
+      .signalEventSubscriptionName("alert")
       .singleResult();
     assertNotNull(execution);
 
     // test query for nonexisting subscription
     execution = runtimeService.createExecutionQuery()
-            .signalEventSubscription("nonExisitng")
+            .signalEventSubscriptionName("nonExisitng")
             .singleResult();
     assertNull(execution);
 
     // it finds more than one
     runtimeService.startProcessInstanceByKey("catchSignal");
-    assertEquals(2, runtimeService.createExecutionQuery().signalEventSubscription("alert").count());
+    assertEquals(2, runtimeService.createExecutionQuery().signalEventSubscriptionName("alert").count());
   }
 
   @Deployment
@@ -1103,19 +1103,19 @@ public class ExecutionQueryTest extends PluggableProcessEngineTest {
 
     // it finds subscribed instances
     Execution execution = runtimeService.createExecutionQuery()
-      .signalEventSubscription("Test signal")
+      .signalEventSubscriptionName("Test signal")
       .singleResult();
     assertNotNull(execution);
 
     // test query for nonexisting subscription
     execution = runtimeService.createExecutionQuery()
-            .signalEventSubscription("nonExisitng")
+            .signalEventSubscriptionName("nonExisitng")
             .singleResult();
     assertNull(execution);
 
     // it finds more than one
     runtimeService.startProcessInstanceByKey("signalProces");
-    assertEquals(2, runtimeService.createExecutionQuery().signalEventSubscription("Test signal").count());
+    assertEquals(2, runtimeService.createExecutionQuery().signalEventSubscriptionName("Test signal").count());
   }
 
   @Test

@@ -82,20 +82,21 @@ public class CommandInvocationContext {
     }
   }
 
-  public void performOperation(AtomicOperation executionOperation, ExecutionEntity execution) {
+  public void performOperation(@SuppressWarnings("deprecation") AtomicOperation executionOperation, ExecutionEntity execution) {
     performOperation(executionOperation, execution, false);
   }
 
-  public void performOperationAsync(AtomicOperation executionOperation, ExecutionEntity execution) {
+  public void performOperationAsync(@SuppressWarnings("deprecation") AtomicOperation executionOperation, ExecutionEntity execution) {
     performOperation(executionOperation, execution, true);
   }
 
-  public void performOperation(final AtomicOperation executionOperation, final ExecutionEntity execution, final boolean performAsync) {
+  public void performOperation(@SuppressWarnings("deprecation") final AtomicOperation executionOperation, final ExecutionEntity execution, final boolean performAsync) {
     AtomicOperationInvocation invocation = new AtomicOperationInvocation(executionOperation, execution, performAsync);
     queuedInvocations.add(0, invocation);
     performNext();
   }
 
+  @SuppressWarnings("deprecation")
   protected void performNext() {
     AtomicOperationInvocation nextInvocation = queuedInvocations.get(0);
 

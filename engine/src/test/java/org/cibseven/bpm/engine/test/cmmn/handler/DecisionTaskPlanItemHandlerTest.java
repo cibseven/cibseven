@@ -130,6 +130,7 @@ public class DecisionTaskPlanItemHandlerTest extends CmmnElementHandlerTest {
     assertEquals("decisionTask", activityType);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testDescriptionProperty() {
     // given
@@ -143,6 +144,7 @@ public class DecisionTaskPlanItemHandlerTest extends CmmnElementHandlerTest {
     assertEquals(description, activity.getProperty(PROPERTY_ACTIVITY_DESCRIPTION));
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testPlanItemDescriptionProperty() {
     // given

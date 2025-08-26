@@ -51,6 +51,7 @@ public class DelegateFormFieldValidator implements FormFieldValidator {
   public DelegateFormFieldValidator() {
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public boolean validate(final Object submittedValue, final FormFieldValidatorContext validatorContext) {
 
@@ -96,6 +97,7 @@ public class DelegateFormFieldValidator implements FormFieldValidator {
       }
     } else {
       //resolve validator using expression
+      @SuppressWarnings("deprecation")
       Object validatorObject = delegateExpression.getValue(validatorContext.getExecution());
       if (validatorObject instanceof FormFieldValidator) {
         validator = (FormFieldValidator) validatorObject;
