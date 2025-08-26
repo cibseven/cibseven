@@ -392,6 +392,7 @@ public class Bpmn {
   /**
    * Register known types of the BPMN model
    */
+  @SuppressWarnings("deprecation")
   protected Bpmn() {
     bpmnModelBuilder = ModelBuilder.createInstance("BPMN Model");
     bpmnModelBuilder.alternativeNamespace(ACTIVITI_NS, CAMUNDA_NS);

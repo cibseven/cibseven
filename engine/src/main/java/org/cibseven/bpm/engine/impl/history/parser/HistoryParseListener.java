@@ -169,7 +169,7 @@ public class HistoryParseListener implements BpmnParseListener {
   public void parseIntermediateTimerEventDefinition(Element timerEventDefinition, ActivityImpl timerActivity) {
   }
 
-  public void parseProperty(Element propertyElement, VariableDeclaration variableDeclaration, ActivityImpl activity) {
+  public void parseProperty(Element propertyElement, @SuppressWarnings("deprecation") VariableDeclaration variableDeclaration, ActivityImpl activity) {
   }
 
   public void parseSequenceFlow(Element sequenceFlowElement, ScopeImpl scopeElement, TransitionImpl transition) {

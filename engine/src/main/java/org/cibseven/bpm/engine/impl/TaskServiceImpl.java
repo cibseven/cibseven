@@ -415,6 +415,7 @@ public class TaskServiceImpl extends ServiceImpl implements TaskService {
     return commandExecutor.execute(new GetTaskCommentCmd(taskId, commentId));
   }
 
+  @SuppressWarnings("deprecation")
   public List<Event> getTaskEvents(String taskId) {
     return commandExecutor.execute(new GetTaskEventsCmd(taskId));
   }

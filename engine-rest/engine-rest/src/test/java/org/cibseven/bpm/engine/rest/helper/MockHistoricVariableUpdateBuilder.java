@@ -156,7 +156,6 @@ public class MockHistoricVariableUpdateBuilder {
     when(mockVariable.getId()).thenReturn(id);
     when(mockVariable.getVariableName()).thenReturn(name);
     when(mockVariable.getVariableInstanceId()).thenReturn(variableInstanceId);
-    when(mockVariable.getVariableTypeName()).thenReturn(typedValue.getType().getName());
 
     if (ObjectValue.class.isAssignableFrom(typedValue.getClass())) {
       ObjectValue objectValue = (ObjectValue) typedValue;
@@ -187,8 +186,14 @@ public class MockHistoricVariableUpdateBuilder {
     when(mockVariable.getTenantId()).thenReturn(tenantId);
     when(mockVariable.getUserOperationId()).thenReturn(userOperationId);
     when(mockVariable.isInitial()).thenReturn(initial);
+    buildDeprecated(mockVariable);
 
     return mockVariable;
+  }
+
+  @SuppressWarnings("deprecation")
+  private void buildDeprecated(HistoricVariableUpdate mockVariable) {
+    when(mockVariable.getVariableTypeName()).thenReturn(typedValue.getType().getName());
   }
 
   public String getId() {

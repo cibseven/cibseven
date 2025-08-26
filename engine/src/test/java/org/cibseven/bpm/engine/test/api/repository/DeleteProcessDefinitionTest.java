@@ -40,6 +40,7 @@ import org.cibseven.bpm.engine.exception.NullValueException;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.history.HistoryLevel;
 import org.cibseven.bpm.engine.impl.persistence.deploy.cache.DeploymentCache;
+import org.cibseven.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.repository.DeploymentWithDefinitions;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
@@ -225,7 +226,7 @@ public class DeleteProcessDefinitionTest {
     assertTrue(procInst.getProcessDefinitionId().contains("two"));
 
     //should refill the cache
-    Cache cache = processEngineConfiguration.getDeploymentCache().getProcessDefinitionCache();
+    Cache<String, ProcessDefinitionEntity> cache = processEngineConfiguration.getDeploymentCache().getProcessDefinitionCache();
     assertNotNull(cache.get(processDefinitionTwo.getId()));
     //The deleted process definition should not be recreated after the cache is refilled
     assertNull(cache.get(processDefinitionOne.getId()));

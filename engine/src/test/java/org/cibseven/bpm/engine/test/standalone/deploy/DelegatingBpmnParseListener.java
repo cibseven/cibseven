@@ -120,7 +120,7 @@ public class DelegatingBpmnParseListener implements BpmnParseListener {
   }
 
   @Override
-  public void parseProperty(Element propertyElement, VariableDeclaration variableDeclaration,
+  public void parseProperty(Element propertyElement, @SuppressWarnings("deprecation") VariableDeclaration variableDeclaration,
       ActivityImpl activity) {
     DELEGATE.parseProperty(propertyElement, variableDeclaration, activity);
   }

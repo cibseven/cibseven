@@ -43,6 +43,7 @@ public class FormPropertyHandler {
   protected Expression variableExpression;
   protected Expression defaultExpression;
 
+  @SuppressWarnings("deprecation")
   public FormProperty createFormProperty(ExecutionEntity execution) {
     FormPropertyImpl formProperty = new FormPropertyImpl(this);
     Object modelValue = null;
@@ -69,6 +70,7 @@ public class FormPropertyHandler {
     if (modelValue instanceof String) {
       formProperty.setValue((String) modelValue);
     } else if (type != null) {
+      @SuppressWarnings("deprecation")
       String formValue = type.convertModelValueToFormValue(modelValue);
       formProperty.setValue(formValue);
     } else if (modelValue != null) {
@@ -78,6 +80,7 @@ public class FormPropertyHandler {
     return formProperty;
   }
 
+  @SuppressWarnings("deprecation")
   public void submitFormProperty(VariableScope variableScope, VariableMap variables) {
     if (!isWritable && variables.containsKey(id)) {
       throw new ProcessEngineException("form property '"+id+"' is not writable");

@@ -485,6 +485,7 @@ public class ManagementAuthorizationTest extends AuthorizationTest {
 
   // configure telemetry /////////////////////////////////////
 
+  @SuppressWarnings("deprecation")
   @Test
   public void shouldNotThrowExceptionWhenToggleTelemetry() {
     // given

@@ -57,6 +57,7 @@ public class UserTaskTest extends PluggableProcessEngineTest {
     identityService.deleteGroup("management");
   }
 
+  @SuppressWarnings("deprecation")
   @Deployment
   @Test
   public void testTaskPropertiesNotNull() {

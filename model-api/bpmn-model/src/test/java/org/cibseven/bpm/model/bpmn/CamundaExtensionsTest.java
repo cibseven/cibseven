@@ -142,6 +142,7 @@ public class CamundaExtensionsTest {
   private BpmnModelInstance modelInstance;
   private Error error;
 
+  @SuppressWarnings("deprecation")
   @Parameters(name="Namespace: {0}")
   public static Collection<Object[]> parameters(){
     return Arrays.asList(new Object[][]{
@@ -181,6 +182,7 @@ public class CamundaExtensionsTest {
     assertThat(userTask.getCamundaAssignee()).isEqualTo(TEST_STRING_API);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testAsync() {
     assertThat(startEvent.isCamundaAsync()).isFalse();
@@ -252,7 +254,7 @@ public class CamundaExtensionsTest {
 
   @Test
   public void testHistoryTimeToLive() {
-    assertThat(process.getCamundaHistoryTimeToLive()).isEqualTo(TEST_HISTORY_TIME_TO_LIVE);
+    assertThat(process.getCamundaHistoryTimeToLiveString()).isEqualTo(TEST_HISTORY_TIME_TO_LIVE);
   }
 
   @Test

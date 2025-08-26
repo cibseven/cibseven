@@ -79,6 +79,7 @@ public class ProcessEngineImpl implements ProcessEngine {
   protected TransactionContextFactory transactionContextFactory;
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
 
+  @SuppressWarnings("deprecation")
   public ProcessEngineImpl(ProcessEngineConfigurationImpl processEngineConfiguration) {
 
     this.processEngineConfiguration = processEngineConfiguration;

@@ -54,7 +54,7 @@ public interface BpmnParseListener {
   void parseBoundaryErrorEventDefinition(Element errorEventDefinition, boolean interrupting, ActivityImpl activity, ActivityImpl nestedErrorEventActivity);
   void parseSubProcess(Element subProcessElement, ScopeImpl scope, ActivityImpl activity);
   void parseCallActivity(Element callActivityElement, ScopeImpl scope, ActivityImpl activity);
-  void parseProperty(Element propertyElement, VariableDeclaration variableDeclaration, ActivityImpl activity);
+  void parseProperty(Element propertyElement, @SuppressWarnings("deprecation") VariableDeclaration variableDeclaration, ActivityImpl activity);
   void parseSequenceFlow(Element sequenceFlowElement, ScopeImpl scopeElement, TransitionImpl transition);
   void parseSendTask(Element sendTaskElement, ScopeImpl scope, ActivityImpl activity);
   void parseMultiInstanceLoopCharacteristics(Element activityElement, Element multiInstanceLoopCharacteristicsElement, ActivityImpl activity);

@@ -72,6 +72,7 @@ import org.cibseven.bpm.engine.task.Task;
 /**
  * @author Tom Baeyens
  */
+@SuppressWarnings("deprecation")
 public class TableDataManager extends AbstractManager {
 
   protected static final EnginePersistenceLogger LOG = ProcessEngineLogger.PERSISTENCE_LOGGER;
