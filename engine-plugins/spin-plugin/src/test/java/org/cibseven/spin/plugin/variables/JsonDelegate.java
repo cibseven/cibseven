@@ -18,7 +18,7 @@ package org.cibseven.spin.plugin.variables;
 
 import static org.cibseven.spin.plugin.variable.SpinValues.jsonValue;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
