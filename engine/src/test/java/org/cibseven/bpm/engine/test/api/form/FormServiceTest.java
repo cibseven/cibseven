@@ -220,6 +220,7 @@ public class FormServiceTest {
     }
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testTaskFormPropertyDefaultsAndFormRendering() {
 
@@ -273,6 +274,7 @@ public class FormServiceTest {
     assertEquals(expectedVariables, variables);
   }
 
+  @SuppressWarnings("deprecation")
   @Deployment
   @Test
   public void testFormPropertyHandlingDeprecated() {
@@ -356,6 +358,7 @@ public class FormServiceTest {
     assertEquals(expectedVariables, variables);
   }
 
+  @SuppressWarnings("deprecation")
   @Deployment
   @Test
   public void testFormPropertyHandling() {
@@ -439,7 +442,7 @@ public class FormServiceTest {
     assertEquals(expectedVariables, variables);
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "deprecation" })
   @Deployment
   @Test
   public void testFormPropertyDetails() {
@@ -506,6 +509,7 @@ public class FormServiceTest {
     properties.put("speaker", "Mike");
     String procDefId = repositoryService.createProcessDefinitionQuery().singleResult().getId();
 
+    @SuppressWarnings("deprecation")
     ProcessInstance processInstance = formService.submitStartFormData(procDefId, "123", properties);
     assertEquals("123", processInstance.getBusinessKey());
 
@@ -1351,6 +1355,7 @@ public class FormServiceTest {
     }
   }
 
+  @SuppressWarnings("deprecation")
   @Deployment(resources = {
     "org/cibseven/bpm/engine/test/api/form/util/VacationRequest_deprecated_forms.bpmn20.xml",
     "org/cibseven/bpm/engine/test/api/form/util/approve.html",

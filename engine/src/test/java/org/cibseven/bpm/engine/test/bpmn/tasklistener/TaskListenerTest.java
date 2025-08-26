@@ -567,6 +567,7 @@ public class TaskListenerTest extends AbstractTaskListenerTest {
     assertEquals(1, RecorderTaskListener.getEventCount(TaskListener.EVENTNAME_UPDATE));
   }
 
+  @SuppressWarnings("deprecation")
   @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
   @Test
   public void testUpdateTaskListenerOnCommentAdd() {

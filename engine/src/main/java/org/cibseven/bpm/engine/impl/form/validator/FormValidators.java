@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.impl.form.validator;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -92,14 +93,10 @@ public class FormValidators {
 
   protected FormFieldValidator createValidatorInstance(Class<? extends FormFieldValidator> validator) {
     try {
-      return validator.newInstance();
-
-    } catch (InstantiationException e) {
+      return validator.getDeclaredConstructor().newInstance();
+    } catch (IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException
+        | InstantiationException | IllegalAccessException e) {
       throw new ProcessEngineException("Could not instantiate validator", e);
-
-    } catch (IllegalAccessException e) {
-      throw new ProcessEngineException("Could not instantiate validator", e);
-
     }
   }
 

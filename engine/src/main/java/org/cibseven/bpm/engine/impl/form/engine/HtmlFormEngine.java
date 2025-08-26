@@ -148,6 +148,7 @@ public class HtmlFormEngine implements FormEngine {
     return renderFormData(taskForm);
   }
 
+  @SuppressWarnings("deprecation")
   protected String renderFormData(FormData formData) {
 
     if(formData == null
@@ -320,6 +321,7 @@ public class HtmlFormEngine implements FormEngine {
     inputField.attribute(TYPE_ATTRIBUTE, inputType);
 
     // add default value
+    @SuppressWarnings("deprecation")
     Object defaultValue = formField.getDefaultValue();
     if(defaultValue != null) {
       inputField.attribute(VALUE_ATTRIBUTE, defaultValue.toString());

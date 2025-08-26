@@ -69,6 +69,7 @@ public class ScalaFeelEngine implements FeelEngine {
       }
     };
 
+    @SuppressWarnings("deprecation")
     Either either = feelEngine.evalExpression(expression, context);
 
     if (either instanceof Right) {
@@ -101,6 +102,7 @@ public class ScalaFeelEngine implements FeelEngine {
       }
     };
 
+    @SuppressWarnings("deprecation")
     Either either = feelEngine.evalUnaryTests(expression, context);
 
     if (either instanceof Right) {
@@ -145,6 +147,7 @@ public class ScalaFeelEngine implements FeelEngine {
     return ListHasAsScala(list).asScala().toList();
   }
 
+  @SuppressWarnings("deprecation")
   protected org.camunda.feel.FeelEngine buildFeelEngine(CustomFunctionTransformer transformer,
                                                         CompositeValueMapper valueMapper) {
     return new Builder()
