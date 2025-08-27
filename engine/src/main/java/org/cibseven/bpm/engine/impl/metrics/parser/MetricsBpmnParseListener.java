@@ -24,7 +24,6 @@ import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.cibseven.bpm.engine.impl.util.xml.Element;
 import org.cibseven.bpm.engine.management.Metrics;
-import org.cibseven.bpm.engine.runtime.Execution;
 
 /**
  * @author Daniel Meyer

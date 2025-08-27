@@ -20,7 +20,6 @@ import org.cibseven.bpm.engine.delegate.ExecutionListener;
 import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.cibseven.bpm.engine.impl.pvm.process.TransitionImpl;
-import org.cibseven.bpm.engine.impl.pvm.runtime.ScopeInstantiationContext;
 import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
 
 

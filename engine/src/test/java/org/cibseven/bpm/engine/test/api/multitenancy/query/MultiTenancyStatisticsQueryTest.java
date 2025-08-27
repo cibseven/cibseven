@@ -17,7 +17,6 @@
 package org.cibseven.bpm.engine.test.api.multitenancy.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.hasItems;
 
 import java.util.Arrays;
 import java.util.HashSet;

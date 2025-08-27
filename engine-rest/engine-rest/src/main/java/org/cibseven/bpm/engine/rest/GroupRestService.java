@@ -34,7 +34,6 @@ import org.cibseven.bpm.engine.rest.dto.CountResultDto;
 import org.cibseven.bpm.engine.rest.dto.ResourceOptionsDto;
 import org.cibseven.bpm.engine.rest.dto.identity.GroupDto;
 import org.cibseven.bpm.engine.rest.dto.identity.GroupQueryDto;
-import org.cibseven.bpm.engine.rest.dto.task.TaskQueryDto;
 import org.cibseven.bpm.engine.rest.sub.identity.GroupResource;
 
 /**

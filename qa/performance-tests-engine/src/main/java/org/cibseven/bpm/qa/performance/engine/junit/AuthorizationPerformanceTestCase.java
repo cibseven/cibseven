@@ -19,8 +19,6 @@ package org.cibseven.bpm.qa.performance.engine.junit;
 import static org.cibseven.bpm.engine.authorization.Authorization.ANY;
 import static org.cibseven.bpm.engine.authorization.Authorization.AUTH_TYPE_GRANT;
 
-import java.util.List;
-
 import org.cibseven.bpm.engine.AuthorizationService;
 import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.ProcessEngine;
@@ -30,10 +28,8 @@ import org.cibseven.bpm.engine.TaskService;
 import org.cibseven.bpm.engine.authorization.Authorization;
 import org.cibseven.bpm.engine.authorization.Permission;
 import org.cibseven.bpm.engine.authorization.Resource;
-import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.qa.performance.engine.framework.PerfTestBuilder;
 import org.cibseven.bpm.qa.performance.engine.framework.PerfTestConfiguration;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
