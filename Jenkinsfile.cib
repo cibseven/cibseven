@@ -166,10 +166,14 @@ pipeline {
                     steps { 
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,engine-integration-jakarta" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly-domain,h2,engine-integration-jakarta" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,engine-integration-jakarta" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28-domain,h2,engine-integration-jakarta" }}
 
                         // TODO: enable chrome and chromedriver on jenkins and remove the exclusion for org.cibseven.bpm.LoginIT
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
 		                script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}
+		                script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,webapps-integration" }}
                     }
                 }
                 stage('Performance') {
