@@ -31,7 +31,6 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.el.ExpressionManager;
 import org.cibseven.bpm.engine.impl.form.FormDataImpl;
-import org.cibseven.bpm.engine.impl.form.FormDefinition;
 import org.cibseven.bpm.engine.impl.form.type.AbstractFormFieldType;
 import org.cibseven.bpm.engine.impl.form.type.FormTypes;
 import org.cibseven.bpm.engine.impl.form.validator.FormFieldValidator;

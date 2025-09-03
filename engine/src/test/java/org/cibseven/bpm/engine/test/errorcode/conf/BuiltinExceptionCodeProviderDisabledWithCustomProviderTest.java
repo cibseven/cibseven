@@ -16,6 +16,11 @@
  */
 package org.cibseven.bpm.engine.test.errorcode.conf;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.sql.SQLException;
+
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.RuntimeService;
@@ -35,13 +40,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
-
-import java.sql.SQLException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.catchThrowable;
-import static org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 
 public class BuiltinExceptionCodeProviderDisabledWithCustomProviderTest {
 
