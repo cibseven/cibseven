@@ -215,6 +215,8 @@
     <if test="taskNameCaseInsensitive">
       , lower(RES.NAME_) LOWER_NAME_
     </if>
+    <!-- probably fast check could be always used, but now it is only enabled for selectTaskCountByQueryCriteria because of bad performance -->
+	<bind name="applyAuthorizationCheckForTaskQueryFast" value="false" />
     <include refid="org.cibseven.bpm.engine.impl.persistence.entity.Commons.orderBySelection"/>
     <include refid="selectTaskByQueryCriteriaSql"/>
     ${orderBy}
@@ -222,6 +224,7 @@
   </select>
 
   <select id="selectTaskCountByQueryCriteria" parameterType="org.cibseven.bpm.engine.impl.TaskQueryImpl" resultType="long">
+    <bind name="applyAuthorizationCheckForTaskQueryFast" value="true" />
     ${countDistinctBeforeStart} RES.ID_ ${countDistinctBeforeEnd}
     <include refid="selectTaskByQueryCriteriaSql"/>
     ${countDistinctAfterEnd}
@@ -315,8 +318,11 @@
 
     <if test="authCheck.shouldPerformAuthorizatioCheck &amp;&amp; authCheck.authUserId != null">
       <if test="!authCheck.revokeAuthorizationCheckEnabled">    
-        <include refid="org.cibseven.bpm.engine.impl.persistence.entity.AuthorizationEntity.authCheckJoinWithoutOnClause" /> 
-        AUTH ON (AUTH.RESOURCE_ID_ ${authJoinStart} RES.ID_ ${authJoinSeparator} D.KEY_ ${authJoinSeparator} '*' ${authJoinEnd})
+        <!-- probably fast check could be used for any case, but now it is only enabled for selectTaskCountByQueryCriteria because of bad performance -->
+        <if test="applyAuthorizationCheckForTaskQueryFast == false">
+          <include refid="org.cibseven.bpm.engine.impl.persistence.entity.AuthorizationEntity.authCheckJoinWithoutOnClause" /> 
+          AUTH ON (AUTH.RESOURCE_ID_ ${authJoinStart} RES.ID_ ${authJoinSeparator} D.KEY_ ${authJoinSeparator} '*' ${authJoinEnd})
+        </if>
       </if>
     </if>
     
