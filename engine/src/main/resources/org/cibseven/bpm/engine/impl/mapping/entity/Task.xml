@@ -216,7 +216,7 @@
       , lower(RES.NAME_) LOWER_NAME_
     </if>
     <!-- probably fast check could be always used, but now it is only enabled for selectTaskCountByQueryCriteria because of bad performance -->
-	<bind name="applyAuthorizationCheckForTaskQueryFast" value="false" />
+    <bind name="applyAuthorizationCheckForTaskQueryFast" value="false" />
     <include refid="org.cibseven.bpm.engine.impl.persistence.entity.Commons.orderBySelection"/>
     <include refid="selectTaskByQueryCriteriaSql"/>
     ${orderBy}
