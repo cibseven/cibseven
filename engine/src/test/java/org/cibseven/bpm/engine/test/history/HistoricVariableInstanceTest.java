@@ -2653,7 +2653,7 @@ public class HistoricVariableInstanceTest extends PluggableProcessEngineTest {
     verifySorting(historicVariableInstances, propertyComparator(HistoricVariableInstance::getId));
   }
 
-  @Deployment(resources = { "org/camunda/bpm/engine/test/history/HistoricVariableInstanceTest.testCallSimpleSubProcess.bpmn20.xml", "org/camunda/bpm/engine/test/history/simpleSubProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/history/HistoricVariableInstanceTest.testCallSimpleSubProcess.bpmn20.xml", "org/cibseven/bpm/engine/test/history/simpleSubProcess.bpmn20.xml" })
   @Test
   public void shouldBeCorrectlySortedWhenSortingByVariableCreationTime() {
     // given
@@ -2673,8 +2673,8 @@ public class HistoricVariableInstanceTest extends PluggableProcessEngineTest {
   }
 
   @Deployment(resources = {
-      "org/camunda/bpm/engine/test/history/HistoricVariableInstanceTest.testCallSimpleSubProcess.bpmn20.xml",
-      "org/camunda/bpm/engine/test/history/simpleSubProcess.bpmn20.xml" })
+      "org/cibseven/bpm/engine/test/history/HistoricVariableInstanceTest.testCallSimpleSubProcess.bpmn20.xml",
+      "org/cibseven/bpm/engine/test/history/simpleSubProcess.bpmn20.xml" })
   @Test
   public void shouldQueryByCreatedAfter() {
     // given
