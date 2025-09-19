@@ -33,7 +33,7 @@ The libraries used in CIB Seven ${project.version} are licensed under the follow
 * XLTS for AngularJS – EULA
 
 GNU Lesser/Library General Public License LGPL (any version)
-Where the CIB seven binaries contain components licensed under any version of LGPL, that licence allows you to extract the object code of the LGPL component from the binary as distributed by us (this is normally distributed as a compressed .tar.gz file which contains a number of files, such as .jar files which are themselves archives containing further components, all of which can be extracted using commonly available tools such as gzip). Using the source code of the library (which we will provide on request, or you can download it from the location specified in this license book), you can make modifications or bug fixes to the library, recompile the library (again, using commonly available tools) and replace the binary of the library you extracted with the recompiled object code. Full details of this process are available on request. This will enable you to modify any LGPL-licensed library and re-integrate that modified library into the CIB seven binaries (accepting that this will only work provided you have not broken the library or the interface). 
+Where the CIB seven binaries contain components licensed under any version of LGPL, that license allows you to extract the object code of the LGPL component from the binary as distributed by us (this is normally distributed as a compressed .tar.gz file which contains a number of files, such as .jar files which are themselves archives containing further components, all of which can be extracted using commonly available tools such as gzip). Using the source code of the library (which we will provide on request, or you can download it from the location specified in this license book), you can make modifications or bug fixes to the library, recompile the library (again, using commonly available tools) and replace the binary of the library you extracted with the recompiled object code. Full details of this process are available on request. This will enable you to modify any LGPL-licensed library and re-integrate that modified library into the CIB seven binaries (accepting that this will only work provided you have not broken the library or the interface). 
 
 ===========================================================================================
 
@@ -1052,12 +1052,6 @@ url: https://github.com/FasterXML/jackson-dataformats-text
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.19.1
-name: jackson-datatype-jdk8
-description: Add-on module for Jackson (https://github.com/FasterXML/jackson) to support JDK 8 data types.
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.19.2
 name: jackson-datatype-jdk8
 description: Add-on module for Jackson (https://github.com/FasterXML/jackson) to support JDK 8 data types.
@@ -1103,7 +1097,6 @@ license url: https://opensource.org/licenses/Apache-2.0
 com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations:2.15.2
 name: jackson-module-jakarta-xmlbind-annotations
 description: Support for using Jakarta XML Bind (aka JAXB 3.0) annotations as an alternative to "native" Jackson annotations, for configuring data-binding.
-url: https://github.com/FasterXML/jackson-modules-base
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -1111,12 +1104,6 @@ com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations:2.19.2
 name: jackson-module-jakarta-xmlbind-annotations
 description: Support for using Jakarta XML Bind (aka JAXB 3.0) annotations as an alternative to "native" Jackson annotations, for configuring data-binding.
 url: https://github.com/FasterXML/jackson-modules-base
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-com.fasterxml.jackson.module:jackson-module-parameter-names:2.19.1
-name: jackson-module-parameter-names
-description: Add-on module for Jackson (https://github.com/FasterXML/jackson) to support introspection of method/constructor parameter names, without having to add explicit property name annotation.
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -1170,6 +1157,25 @@ license url: https://opensource.org/licenses/Apache-2.0
 com.github.stephenc.jcip:jcip-annotations:1.0-1
 name: jcip-annotations
 description: A clean room implementation of the JCIP Annotations based entirely on the specification provided by the javadocs.
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+com.google.code.gson:gson:2.13.1
+name: gson
+description: Gson JSON library
+url: https://github.com/google/gson
+license: Apache-2.0
+license url: https://www.apache.org/licenses/LICENSE-2.0
+========================================================================
+com.google.code.gson:gson:2.8.9
+name: gson
+description: Gson JSON library
+license: Apache-2.0
+license url: https://www.apache.org/licenses/LICENSE-2.0
+========================================================================
+com.google.errorprone:error_prone_annotations:2.38.0
+name: error_prone_annotations
+description: Error Prone is a static analysis tool for Java that catches common programming mistakes at compile-time.
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -1278,7 +1284,7 @@ license url: https://opensource.org/licenses/Apache-2.0
 commons-codec:commons-codec:1.15
 name: commons-codec
 description: The Apache Commons Codec package contains simple encoder and decoders for various formats such as Base64 and Hexadecimal. In addition to these widely used encoders and decoders, the codec package also maintains a collection of phonetic encoding utilities.
-url: https://commons.apache.org/proper/commons-codec/
+url: https://github.com/apache/commons-codec
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -1327,7 +1333,7 @@ description: JSON Web Token support for the JVM and Android
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-io.micrometer:micrometer-commons:1.14.8
+io.micrometer:micrometer-commons:1.14.9
 name: micrometer-commons
 description: Module containing common code
 url: https://github.com/micrometer-metrics/micrometer
@@ -1341,7 +1347,7 @@ url: https://github.com/micrometer-metrics/micrometer
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-io.micrometer:micrometer-observation:1.14.8
+io.micrometer:micrometer-observation:1.14.9
 name: micrometer-observation
 description: Module containing Observation related code
 url: https://github.com/micrometer-metrics/micrometer
@@ -1376,7 +1382,7 @@ url: https://smallrye.io
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-io.swagger.core.v3:swagger-annotations-jakarta:2.2.27
+io.swagger.core.v3:swagger-annotations-jakarta:2.2.28
 name: swagger-annotations-jakarta
 description: swagger-annotations-jakarta
 license: Apache-2.0
@@ -1566,7 +1572,7 @@ license url: https://opensource.org/licenses/EPL-2.0
 jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:3.0.2
 name: jakarta.servlet.jsp.jstl-api
 description: Jakarta Standard Tag Library API
-url: https://github.com/eclipse-ee4j/jstl-api
+url: https://projects.eclipse.org/projects/ee4j.jstl
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -1594,7 +1600,7 @@ license url: https://opensource.org/licenses/EPL-2.0
 jakarta.transaction:jakarta.transaction-api:2.0.1
 name: jakarta.transaction-api
 description: Jakarta Transactions
-url: https://projects.eclipse.org/projects/ee4j.jta
+url: https://github.com/eclipse-ee4j/jta-api
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -1886,13 +1892,6 @@ url: https://github.com/apache/mina-sshd/tree/sshd-2.7.0/sshd-core
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.tomcat.embed:tomcat-embed-core:10.1.42
-name: tomcat-embed-core
-description: Core Tomcat implementation
-url: https://tomcat.apache.org/
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.apache.tomcat.embed:tomcat-embed-core:10.1.43
 name: tomcat-embed-core
 description: Core Tomcat implementation
@@ -1900,22 +1899,8 @@ url: https://tomcat.apache.org/
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.tomcat.embed:tomcat-embed-el:10.1.42
-name: tomcat-embed-el
-description: Core Tomcat implementation
-url: https://tomcat.apache.org/
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.apache.tomcat.embed:tomcat-embed-el:10.1.43
 name: tomcat-embed-el
-description: Core Tomcat implementation
-url: https://tomcat.apache.org/
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.apache.tomcat.embed:tomcat-embed-websocket:10.1.42
-name: tomcat-embed-websocket
 description: Core Tomcat implementation
 url: https://tomcat.apache.org/
 license: Apache-2.0
@@ -2127,7 +2112,7 @@ license url: https://opensource.org/licenses/EPL-2.0
 org.glassfish:jakarta.enterprise.concurrent:3.0.0
 name: jakarta.enterprise.concurrent
 description: Compatible Implementation of Jakarta Concurrency
-url: https://github.com/eclipse-ee4j/concurrency-ri
+url: https://projects.eclipse.org/projects/ee4j.cu
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -2899,6 +2884,13 @@ url: http://www.jgroups.org
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
+org.json:json:20250517
+name: json
+description: JSON is a light-weight, language independent, data interchange format. See http://www.JSON.org/ The files in this package implement JSON encoders/decoders in Java. It also includes the capability to convert between JSON and XML, HTTP headers, Cookies, and CDL. This is a reference implementation. There are a large number of JSON packages in Java. Perhaps someday the Java community will standardize on one. Until then, choose carefully.
+url: https://github.com/douglascrockford/JSON-java
+license: Public Domain
+license url: https://github.com/stleary/JSON-java/blob/master/LICENSE
+========================================================================
 org.jspecify:jspecify:1.0.0
 name: jspecify
 description: An artifact of well-named and well-specified annotations to power static analysis checks
@@ -3013,13 +3005,6 @@ description: Spring openapi documentation
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-autoconfigure:3.5.1
-name: spring-boot-autoconfigure
-description: Spring Boot AutoConfigure
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework.boot:spring-boot-autoconfigure:3.5.4
 name: spring-boot-autoconfigure
 description: Spring Boot AutoConfigure
@@ -3041,23 +3026,9 @@ url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-json:3.5.1
-name: spring-boot-starter-json
-description: Starter for reading and writing json
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework.boot:spring-boot-starter-json:3.5.4
 name: spring-boot-starter-json
 description: Starter for reading and writing json
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework.boot:spring-boot-starter-logging:3.5.1
-name: spring-boot-starter-logging
-description: Starter for logging using Logback. Default logging starter
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
@@ -3083,23 +3054,9 @@ url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-tomcat:3.5.1
-name: spring-boot-starter-tomcat
-description: Starter for using Tomcat as the embedded servlet container. Default servlet container starter used by spring-boot-starter-web
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework.boot:spring-boot-starter-tomcat:3.5.4
 name: spring-boot-starter-tomcat
 description: Starter for using Tomcat as the embedded servlet container. Default servlet container starter used by spring-boot-starter-web
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework.boot:spring-boot-starter-validation:3.5.1
-name: spring-boot-starter-validation
-description: Starter for using Java Bean Validation with Hibernate Validator
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
@@ -3111,13 +3068,6 @@ url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-web:3.5.1
-name: spring-boot-starter-web
-description: Starter for building web, including RESTful, applications using Spring MVC. Uses Tomcat as the default embedded container
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework.boot:spring-boot-starter-web:3.5.4
 name: spring-boot-starter-web
 description: Starter for building web, including RESTful, applications using Spring MVC. Uses Tomcat as the default embedded container
@@ -3125,23 +3075,9 @@ url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter:3.5.1
-name: spring-boot-starter
-description: Core starter, including auto-configuration support, logging and YAML
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework.boot:spring-boot-starter:3.5.4
 name: spring-boot-starter
 description: Core starter, including auto-configuration support, logging and YAML
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework.boot:spring-boot:3.5.1
-name: spring-boot
-description: Spring Boot
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
@@ -3202,23 +3138,9 @@ url: https://github.com/spring-projects/spring-security
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-aop:6.2.8
-name: spring-aop
-description: Spring AOP
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework:spring-aop:6.2.9
 name: spring-aop
 description: Spring AOP
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework:spring-beans:6.2.8
-name: spring-beans
-description: Spring Beans
 url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
@@ -3244,13 +3166,6 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-core:6.2.8
-name: spring-core
-description: Spring Core
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework:spring-core:6.2.9
 name: spring-core
 description: Spring Core
@@ -3268,13 +3183,6 @@ license url: https://opensource.org/licenses/Apache-2.0
 org.springframework:spring-expression:6.2.9
 name: spring-expression
 description: Spring Expression Language (SpEL)
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework:spring-jcl:6.2.8
-name: spring-jcl
-description: Spring Commons Logging Bridge
 url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
@@ -3317,13 +3225,6 @@ license url: https://opensource.org/licenses/Apache-2.0
 org.springframework:spring-web:6.2.9
 name: spring-web
 description: Spring Web
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework:spring-webmvc:6.2.8
-name: spring-webmvc
-description: Spring Web MVC
 url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
@@ -4565,21 +4466,21 @@ url: https://github.com/babel/babel
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@babel:compat-data:7.27.7
+@babel:compat-data:7.28.0
 name: compat-data
 description: The compat-data to determine required Babel plugins
 url: https://github.com/babel/babel
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@babel:core:7.27.7
+@babel:core:7.28.0
 name: core
 description: Babel compiler core.
 url: https://github.com/babel/babel
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@babel:generator:7.27.5
+@babel:generator:7.28.0
 name: generator
 description: Turns an AST into code.
 url: https://github.com/babel/babel
@@ -4603,6 +4504,13 @@ license url: https://opensource.org/licenses/MIT
 @babel:helper-create-class-features-plugin:7.27.1
 name: helper-create-class-features-plugin
 description: Compile class public and private fields, private methods and decorators to ES6
+url: https://github.com/babel/babel
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+@babel:helper-globals:7.28.0
+name: helper-globals
+description: A collection of JavaScript globals for Babel internal usage
 url: https://github.com/babel/babel
 license: MIT
 license url: https://opensource.org/licenses/MIT
@@ -4677,21 +4585,21 @@ url: https://github.com/babel/babel
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@babel:helpers:7.27.6
+@babel:helpers:7.28.2
 name: helpers
 description: Collection of helper functions used by Babel transforms.
 url: https://github.com/babel/babel
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@babel:parser:7.27.7
+@babel:parser:7.28.0
 name: parser
 description: A JavaScript parser
 url: https://github.com/babel/babel
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@babel:plugin-proposal-decorators:7.27.1
+@babel:plugin-proposal-decorators:7.28.0
 name: plugin-proposal-decorators
 description: Compile class and object decorators to ES5
 url: https://github.com/babel/babel
@@ -4733,7 +4641,7 @@ url: https://github.com/babel/babel
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@babel:plugin-transform-typescript:7.27.1
+@babel:plugin-transform-typescript:7.28.0
 name: plugin-transform-typescript
 description: Transform TypeScript into ES.next
 url: https://github.com/babel/babel
@@ -4747,14 +4655,14 @@ url: https://github.com/babel/babel
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@babel:traverse:7.27.7
+@babel:traverse:7.28.0
 name: traverse
 description: The Babel Traverse module maintains the overall tree state, and is responsible for replacing, removing, and adding nodes
 url: https://github.com/babel/babel
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@babel:types:7.27.7
+@babel:types:7.28.2
 name: types
 description: Babel Types is a Lodash-esque utility library for AST nodes
 url: https://github.com/babel/babel
@@ -4814,14 +4722,14 @@ url: https://github.com/bpmn-io/draggle
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@bpmn-io:draggle:4.1.1
+@bpmn-io:draggle:4.1.2
 name: draggle
 description: Drag and drop so simple it hurts
 url: https://github.com/bpmn-io/draggle
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@bpmn-io:feel-editor:1.10.1
+@bpmn-io:feel-editor:1.11.0
 name: feel-editor
 description: Editor for FEEL expressions.
 url: https://github.com/bpmn-io/feel-editor
@@ -4849,7 +4757,7 @@ url: https://github.com/bpmn-io/feel-lint
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@bpmn-io:form-js-carbon-styles:1.15.3
+@bpmn-io:form-js-carbon-styles:1.16.0
 name: form-js-carbon-styles
 description: Custom carbon styles for form-js
 url: https://github.com/bpmn-io/form-js
@@ -4863,7 +4771,7 @@ url: https://github.com/bpmn-io/form-js
 license: MIT*
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@bpmn-io:form-js-editor:1.15.3
+@bpmn-io:form-js-editor:1.16.0
 name: form-js-editor
 description: Edit forms - powered by bpmn.io
 url: https://github.com/bpmn-io/form-js
@@ -4877,7 +4785,7 @@ url: https://github.com/bpmn-io/form-js
 license: MIT*
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@bpmn-io:form-js-playground:1.15.3
+@bpmn-io:form-js-playground:1.16.0
 name: form-js-playground
 description: A form-js playground
 url: https://github.com/bpmn-io/form-js
@@ -4891,7 +4799,7 @@ url: https://github.com/bpmn-io/form-js
 license: MIT*
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@bpmn-io:form-js-viewer:1.15.3
+@bpmn-io:form-js-viewer:1.16.0
 name: form-js-viewer
 description: View forms - powered by bpmn.io
 url: https://github.com/bpmn-io/form-js
@@ -4905,7 +4813,7 @@ url: https://github.com/bpmn-io/form-js
 license: MIT*
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@bpmn-io:form-js:1.15.3
+@bpmn-io:form-js:1.16.0
 name: form-js
 description: View and edit forms - powered by bpmn.io
 url: https://github.com/bpmn-io/form-js
@@ -4926,10 +4834,17 @@ url: https://github.com/bpmn-io/properties-panel
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@bpmn-io:properties-panel:3.30.0
+@bpmn-io:properties-panel:3.31.0
 name: properties-panel
 description: Library for creating bpmn-io properties panels.
 url: https://github.com/bpmn-io/properties-panel
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+@camunda:feel-builtins:0.2.0
+name: feel-builtins
+description: Collection of builtin Camunda extensions for FEEL
+url: https://github.com/camunda/feel-builtins
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -4940,7 +4855,7 @@ url: https://github.com/carbon-design-system/carbon
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-@carbon:grid:11.38.0
+@carbon:grid:11.39.0
 name: grid
 description: Grid for digital and software products using the Carbon Design System
 url: https://github.com/carbon-design-system/carbon
@@ -4954,7 +4869,7 @@ url: https://github.com/carbon-design-system/carbon
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-@carbon:layout:11.36.0
+@carbon:layout:11.37.0
 name: layout
 description: Layout helpers for digital and software products using the Carbon Design System
 url: https://github.com/carbon-design-system/carbon
@@ -5066,7 +4981,7 @@ url: https://github.com/codemirror/view
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@codemirror:view:6.38.0
+@codemirror:view:6.38.1
 name: view
 description: DOM view component for the CodeMirror code editor
 url: https://github.com/codemirror/view
@@ -5108,7 +5023,7 @@ url: https://github.com/csstools/postcss-plugins
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@cypress:request:3.0.8
+@cypress:request:3.0.9
 name: request
 description: Cypress's fork of a simplified HTTP request client.
 url: https://github.com/cypress-io/request
@@ -5122,9 +5037,9 @@ url: https://github.com/cypress-io/xvfb
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@esbuild:linux-x64:0.25.5
-name: linux-x64
-description: The Linux 64-bit binary for esbuild, a JavaScript bundler.
+@esbuild:darwin-arm64:0.25.8
+name: darwin-arm64
+description: The macOS ARM 64-bit binary for esbuild, a JavaScript bundler.
 url: https://github.com/evanw/esbuild
 license: MIT
 license url: https://opensource.org/licenses/MIT
@@ -5157,13 +5072,6 @@ url: https://github.com/eslint/rewrite
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-@eslint:core:0.14.0
-name: core
-description: Runtime-agnostic core of ESLint
-url: https://github.com/eslint/rewrite
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 @eslint:core:0.15.1
 name: core
 description: Runtime-agnostic core of ESLint
@@ -5178,7 +5086,7 @@ url: https://github.com/eslint/eslintrc
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@eslint:js:9.30.0
+@eslint:js:9.32.0
 name: js
 description: ESLint JavaScript language implementation
 url: https://github.com/eslint/eslint
@@ -5192,7 +5100,7 @@ url: https://github.com/eslint/rewrite
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-@eslint:plugin-kit:0.3.3
+@eslint:plugin-kit:0.3.4
 name: plugin-kit
 description: Utilities for building ESLint plugins.
 url: https://github.com/eslint/rewrite
@@ -5269,21 +5177,21 @@ url: https://github.com/ibm-telemetry/telemetry-js
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-@intlify:core-base:11.1.10
+@intlify:core-base:11.1.11
 name: core-base
 description: @intlify/core-base
 url: https://github.com/intlify/vue-i18n
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@intlify:message-compiler:11.1.10
+@intlify:message-compiler:11.1.11
 name: message-compiler
 description: @intlify/message-compiler
 url: https://github.com/intlify/vue-i18n
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@intlify:shared:11.1.10
+@intlify:shared:11.1.11
 name: shared
 description: @intlify/shared
 url: https://github.com/intlify/vue-i18n
@@ -5304,7 +5212,7 @@ url: https://github.com/istanbuljs/schema
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@jridgewell:gen-mapping:0.3.10
+@jridgewell:gen-mapping:0.3.12
 name: gen-mapping
 description: Generate source maps
 url: https://github.com/jridgewell/sourcemaps
@@ -5318,14 +5226,14 @@ url: https://github.com/jridgewell/resolve-uri
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@jridgewell:sourcemap-codec:1.5.2
+@jridgewell:sourcemap-codec:1.5.4
 name: sourcemap-codec
 description: Encode/decode sourcemap mappings
 url: https://github.com/jridgewell/sourcemaps
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@jridgewell:trace-mapping:0.3.27
+@jridgewell:trace-mapping:0.3.29
 name: trace-mapping
 description: Trace the original position through a source map
 url: https://github.com/jridgewell/sourcemaps
@@ -5472,7 +5380,7 @@ url: https://github.com/pkgjs/parseargs
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@pkgr:core:0.2.7
+@pkgr:core:0.2.9
 name: core
 description: Shared core module for `@pkgr` packages or any package else
 url: https://github.com/un-ts/pkgr
@@ -5500,15 +5408,8 @@ url: https://github.com/rollup/plugins
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@rollup:rollup-linux-x64-gnu:4.44.1
-name: rollup-linux-x64-gnu
-description: Native bindings for Rollup
-url: https://github.com/rollup/rollup
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
-@rollup:rollup-linux-x64-musl:4.44.1
-name: rollup-linux-x64-musl
+@rollup:rollup-darwin-arm64:4.46.1
+name: rollup-darwin-arm64
 description: Native bindings for Rollup
 url: https://github.com/rollup/rollup
 license: MIT
@@ -5541,6 +5442,13 @@ description: Return the filename and line number of the calling function
 url: https://github.com/sideway/pinpoint
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
+========================================================================
+@sindresorhus:merge-streams:2.3.0
+name: merge-streams
+description: Merge multiple streams into a unified stream
+url: https://github.com/sindresorhus/merge-streams
+license: MIT
+license url: https://opensource.org/licenses/MIT
 ========================================================================
 @sindresorhus:merge-streams:4.0.0
 name: merge-streams
@@ -5612,7 +5520,7 @@ url: https://github.com/DefinitelyTyped/DefinitelyTyped
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@types:node:24.0.7
+@types:node:24.1.0
 name: node
 description: TypeScript definitions for node
 url: https://github.com/DefinitelyTyped/DefinitelyTyped
@@ -5647,49 +5555,49 @@ url: https://github.com/DefinitelyTyped/DefinitelyTyped
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@typescript-eslint:project-service:8.35.0
+@typescript-eslint:project-service:8.38.0
 name: project-service
 description: Standalone TypeScript project service wrapper for linting.
 url: https://github.com/typescript-eslint/typescript-eslint
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@typescript-eslint:scope-manager:8.35.0
+@typescript-eslint:scope-manager:8.38.0
 name: scope-manager
 description: TypeScript scope analyser for ESLint
 url: https://github.com/typescript-eslint/typescript-eslint
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@typescript-eslint:tsconfig-utils:8.35.0
+@typescript-eslint:tsconfig-utils:8.38.0
 name: tsconfig-utils
 description: Utilities for collecting TSConfigs for linting scenarios.
 url: https://github.com/typescript-eslint/typescript-eslint
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@typescript-eslint:types:8.35.0
+@typescript-eslint:types:8.38.0
 name: types
 description: Types for the TypeScript-ESTree AST spec
 url: https://github.com/typescript-eslint/typescript-eslint
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@typescript-eslint:typescript-estree:8.35.0
+@typescript-eslint:typescript-estree:8.38.0
 name: typescript-estree
 description: A parser that converts TypeScript source code into an ESTree compatible form
 url: https://github.com/typescript-eslint/typescript-eslint
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@typescript-eslint:utils:8.35.0
+@typescript-eslint:utils:8.38.0
 name: utils
 description: Utilities for working with TypeScript + ESLint together
 url: https://github.com/typescript-eslint/typescript-eslint
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@typescript-eslint:visitor-keys:8.35.0
+@typescript-eslint:visitor-keys:8.38.0
 name: visitor-keys
 description: Visitor keys used to help traverse the TypeScript-ESTree AST
 url: https://github.com/typescript-eslint/typescript-eslint
@@ -5710,7 +5618,7 @@ url: https://github.com/vitest-dev/vitest
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@vitest:eslint-plugin:1.3.3
+@vitest:eslint-plugin:1.3.4
 name: eslint-plugin
 description: Eslint plugin for vitest
 url: https://github.com/vitest-dev/eslint-plugin-vitest
@@ -5787,28 +5695,28 @@ url: https://github.com/vuejs/babel-plugin-jsx
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@vue:compiler-core:3.5.17
+@vue:compiler-core:3.5.18
 name: compiler-core
 description: @vue/compiler-core
 url: https://github.com/vuejs/core
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@vue:compiler-dom:3.5.17
+@vue:compiler-dom:3.5.18
 name: compiler-dom
 description: @vue/compiler-dom
 url: https://github.com/vuejs/core
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@vue:compiler-sfc:3.5.17
+@vue:compiler-sfc:3.5.18
 name: compiler-sfc
 description: @vue/compiler-sfc
 url: https://github.com/vuejs/core
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@vue:compiler-ssr:3.5.17
+@vue:compiler-ssr:3.5.18
 name: compiler-ssr
 description: @vue/compiler-ssr
 url: https://github.com/vuejs/core
@@ -5850,35 +5758,35 @@ url: https://github.com/vuejs/eslint-config-prettier
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@vue:reactivity:3.5.17
+@vue:reactivity:3.5.18
 name: reactivity
 description: @vue/reactivity
 url: https://github.com/vuejs/core
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@vue:runtime-core:3.5.17
+@vue:runtime-core:3.5.18
 name: runtime-core
 description: @vue/runtime-core
 url: https://github.com/vuejs/core
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@vue:runtime-dom:3.5.17
+@vue:runtime-dom:3.5.18
 name: runtime-dom
 description: @vue/runtime-dom
 url: https://github.com/vuejs/core
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@vue:server-renderer:3.5.17
+@vue:server-renderer:3.5.18
 name: server-renderer
 description: @vue/server-renderer
 url: https://github.com/vuejs/core
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@vue:shared:3.5.17
+@vue:shared:3.5.18
 name: shared
 description: internal utils shared across @vue packages
 url: https://github.com/vuejs/core
@@ -5920,7 +5828,7 @@ url: https://github.com/acornjs/acorn
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-agent-base:7.1.3
+agent-base:7.1.4
 name: agent-base
 description: Turn a function into an `http.Agent` instance
 url: https://github.com/TooTallNate/proxy-agents
@@ -5928,6 +5836,13 @@ license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
 aggregate-error:3.1.0
+name: aggregate-error
+description: Create an error from multiple errors
+url: https://github.com/sindresorhus/aggregate-error
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+aggregate-error:4.0.1
 name: aggregate-error
 description: Create an error from multiple errors
 url: https://github.com/sindresorhus/aggregate-error
@@ -6109,6 +6024,13 @@ url: https://github.com/sindresorhus/array-move
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+arrify:3.0.0
+name: arrify
+description: Convert a value to an array
+url: https://github.com/sindresorhus/arrify
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 asap:2.0.6
 name: asap
 description: High-priority task queue for Node.js and browsers
@@ -6186,7 +6108,7 @@ url: https://github.com/mhart/aws4
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-axios:1.10.0
+axios:1.12.2
 name: axios
 description: Promise based HTTP client for the browser and node.js
 url: https://github.com/axios/axios
@@ -6228,7 +6150,7 @@ url: https://github.com/MikeMcl/big.js
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-birpc:2.4.0
+birpc:2.5.0
 name: birpc
 description: Message based Two-way remote procedure call
 url: https://github.com/antfu/birpc
@@ -6270,7 +6192,7 @@ url: https://github.com/twbs/bootstrap
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-bpm-sdk:2.0.2
+bpm-sdk:2.0.3
 name: bpm-sdk
 description: Camunda BPM SDK extracted as a standalone library.
 license: Apache-2.0
@@ -6427,7 +6349,7 @@ url: https://github.com/camunda/camunda-dmn-moddle
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-caniuse-lite:1.0.30001726
+caniuse-lite:1.0.30001731
 name: caniuse-lite
 description: A smaller version of caniuse-db, with only the essentials!
 url: https://github.com/browserslist/caniuse-lite
@@ -6441,7 +6363,7 @@ url: https://github.com/mikeal/caseless
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-chai:5.2.0
+chai:5.2.1
 name: chai
 description: BDD/TDD assertion library for node.js and the browser. Test framework agnostic.
 url: https://github.com/chaijs/chai
@@ -6476,18 +6398,23 @@ url: https://github.com/kensho/check-more-types
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-ci-info:4.2.0
+ci-info:4.3.0
 name: ci-info
 description: Get details about the current Continuous Integration environment
 url: https://github.com/watson/ci-info
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-cib-common-components:2.0.2
+cib-common-components:2.0.3
 name: cib-common-components
 description: Common vue components for building different web applications
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+cibseven-components:2.0.3
+name: cibseven-components
+description: This template should help get you started developing with Vue 3 in Vite.
+license: UNKNOWN
 ========================================================================
 classnames:2.5.1
 name: classnames
@@ -6497,6 +6424,13 @@ license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
 clean-stack:2.2.0
+name: clean-stack
+description: Clean up error stack traces
+url: https://github.com/sindresorhus/clean-stack
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+clean-stack:4.2.0
 name: clean-stack
 description: Clean up error stack traces
 url: https://github.com/sindresorhus/clean-stack
@@ -6727,6 +6661,13 @@ url: https://github.com/mesqueeb/copy-anything
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+copy-file:11.0.0
+name: copy-file
+description: Copy a file
+url: https://github.com/sindresorhus/copy-file
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 core-js:3.35.1
 name: core-js
 description: Standard library
@@ -6738,6 +6679,34 @@ core-util-is:1.0.2
 name: core-util-is
 description: The `util.is*` functions introduced in Node v0.12.
 url: https://github.com/isaacs/core-util-is
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+cp-file:10.0.0
+name: cp-file
+description: Copy a file
+url: https://github.com/sindresorhus/cp-file
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+cpy-cli:5.0.0
+name: cpy-cli
+description: Copy files
+url: https://github.com/sindresorhus/cpy-cli
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+cpy:10.1.0
+name: cpy
+description: Copy files
+url: https://github.com/sindresorhus/cpy
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+cpy:11.1.0
+name: cpy
+description: Copy files
+url: https://github.com/sindresorhus/cpy
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -6790,7 +6759,7 @@ url: https://github.com/frenic/csstype
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-cypress:14.5.0
+cypress:14.5.3
 name: cypress
 description: Cypress is a next generation front end testing tool built for the modern web
 url: https://github.com/cypress-io/cypress
@@ -6839,7 +6808,7 @@ url: https://github.com/debug-js/debug
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-decimal.js:10.5.0
+decimal.js:10.6.0
 name: decimal.js
 description: An arbitrary-precision Decimal type for JavaScript.
 url: https://github.com/MikeMcl/decimal.js
@@ -6993,6 +6962,13 @@ url: https://github.com/nikku/didi
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+dir-glob:3.0.1
+name: dir-glob
+description: Convert directories to glob compatible strings
+url: https://github.com/kevva/dir-glob
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 dmn-font:0.6.2
 name: dmn-font
 description: A DMN 1.1 icon font
@@ -7000,7 +6976,7 @@ url: https://github.com/bpmn-io/dmn-font
 license: MIT*
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-dmn-js-boxed-expression:17.2.1
+dmn-js-boxed-expression:17.3.0
 name: dmn-js-boxed-expression
 description: A boxed expression view for dmn-js
 url: https://github.com/bpmn-io/dmn-js
@@ -7014,7 +6990,7 @@ url: https://github.com/bpmn-io/dmn-js
 license: MIT*
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-dmn-js-decision-table:17.2.1
+dmn-js-decision-table:17.3.0
 name: dmn-js-decision-table
 description: A decision table view for dmn-js
 url: https://github.com/bpmn-io/dmn-js
@@ -7028,7 +7004,7 @@ url: https://github.com/bpmn-io/dmn-js
 license: MIT*
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-dmn-js-drd:17.2.1
+dmn-js-drd:17.3.0
 name: dmn-js-drd
 description: A decision requirements diagram view for dmn-js
 url: https://github.com/bpmn-io/dmn-js
@@ -7042,7 +7018,7 @@ url: https://github.com/bpmn-io/dmn-js
 license: MIT*
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-dmn-js-literal-expression:17.2.1
+dmn-js-literal-expression:17.3.0
 name: dmn-js-literal-expression
 description: A literal expression view for dmn-js
 url: https://github.com/bpmn-io/dmn-js
@@ -7063,7 +7039,7 @@ url: https://github.com/bpmn-io/dmn-js
 license: MIT*
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-dmn-js-shared:17.2.1
+dmn-js-shared:17.3.0
 name: dmn-js-shared
 description: Shared components used by dmn-js
 url: https://github.com/bpmn-io/dmn-js
@@ -7077,7 +7053,7 @@ url: https://github.com/bpmn-io/dmn-js
 license: MIT*
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-dmn-js:17.2.1
+dmn-js:17.3.0
 name: dmn-js
 description: A dmn toolkit and web modeler
 url: https://github.com/bpmn-io/dmn-js
@@ -7189,7 +7165,7 @@ url: https://github.com/editorconfig/editorconfig-core-js
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-electron-to-chromium:1.5.177
+electron-to-chromium:1.5.192
 name: electron-to-chromium
 description: Provides a list of electron-to-chromium version mappings
 url: https://github.com/kilian/electron-to-chromium
@@ -7280,7 +7256,7 @@ url: https://github.com/es-shims/es-set-tostringtag
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-esbuild:0.25.5
+esbuild:0.25.8
 name: esbuild
 description: An extremely fast JavaScript and CSS bundler and minifier.
 url: https://github.com/evanw/esbuild
@@ -7315,7 +7291,14 @@ url: https://github.com/sindresorhus/escape-string-regexp
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-eslint-config-prettier:10.1.5
+escape-string-regexp:5.0.0
+name: escape-string-regexp
+description: Escape RegExp special characters
+url: https://github.com/sindresorhus/escape-string-regexp
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+eslint-config-prettier:10.1.8
 name: eslint-config-prettier
 description: Turns off all rules that are unnecessary or might conflict with Prettier.
 url: https://github.com/prettier/eslint-config-prettier
@@ -7329,7 +7312,7 @@ url: https://github.com/cypress-io/eslint-plugin-cypress
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-eslint-plugin-prettier:5.5.1
+eslint-plugin-prettier:5.5.3
 name: eslint-plugin-prettier
 description: Runs prettier as an eslint rule
 url: https://github.com/prettier/eslint-plugin-prettier
@@ -7371,7 +7354,7 @@ url: https://github.com/eslint/js
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-eslint:9.30.0
+eslint:9.32.0
 name: eslint
 description: An AST-based pattern checker for JavaScript.
 url: https://github.com/eslint/eslint
@@ -7483,7 +7466,7 @@ url: https://github.com/kevva/executable
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-expect-type:1.2.1
+expect-type:1.2.2
 name: expect-type
 description: [![CI](https://github.com/mmkal/expect-type/actions/workflows/ci.yml/badge.svg)](https://github.com/mmkal/expect-type/actions/workflows/ci.yml) ![npm](https://img.shields.io/npm/dt/expect-type) [![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/mmkal)](https://x.com/mmkalmmkal)
 url: https://github.com/mmkal/expect-type
@@ -7768,6 +7751,13 @@ url: https://github.com/jprichardson/node-fs-extra
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+fsevents:2.3.3
+name: fsevents
+description: Native Access to MacOS FSEvents
+url: https://github.com/fsevents/fsevents
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 function-bind:1.1.1
 name: function-bind
 description: Implementation of Function.prototype.bind
@@ -7873,13 +7863,6 @@ url: https://github.com/sindresorhus/global-dirs
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-globals:11.12.0
-name: globals
-description: Global identifiers from different JavaScript environments
-url: https://github.com/sindresorhus/globals
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
 globals:13.24.0
 name: globals
 description: Global identifiers from different JavaScript environments
@@ -7898,6 +7881,20 @@ globals:15.15.0
 name: globals
 description: Global identifiers from different JavaScript environments
 url: https://github.com/sindresorhus/globals
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+globby:13.2.2
+name: globby
+description: User-friendly glob matching
+url: https://github.com/sindresorhus/globby
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+globby:14.1.0
+name: globby
+description: User-friendly glob matching
+url: https://github.com/sindresorhus/globby
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -8097,6 +8094,13 @@ url: https://github.com/kaelzhang/node-ignore
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+ignore:7.0.5
+name: ignore
+description: Ignore is a manager and filter for .gitignore rules, the one used by eslint, gitbook and many others.
+url: https://github.com/kaelzhang/node-ignore
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 import-fresh:3.3.1
 name: import-fresh
 description: Import a module while bypassing the cache
@@ -8112,6 +8116,13 @@ license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
 indent-string:4.0.0
+name: indent-string
+description: Indent each line in a string
+url: https://github.com/sindresorhus/indent-string
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+indent-string:5.0.0
 name: indent-string
 description: Indent each line in a string
 url: https://github.com/sindresorhus/indent-string
@@ -8509,6 +8520,13 @@ url: https://github.com/joyent/node-jsprim
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+junk:4.0.1
+name: junk
+description: Filter out system junk files like .DS_Store and Thumbs.db
+url: https://github.com/sindresorhus/junk
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 keyv:4.5.4
 name: keyv
 description: Simple key-value storage with support for multiple backends
@@ -8614,7 +8632,7 @@ url: https://github.com/sindresorhus/log-update
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-loupe:3.1.4
+loupe:3.2.0
 name: loupe
 description: Inspect utility for Node.js and browsers
 url: https://github.com/chaijs/loupe
@@ -8649,7 +8667,7 @@ url: https://github.com/moment/luxon
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-luxon:3.6.1
+luxon:3.7.1
 name: luxon
 description: Immutable date wrapper
 url: https://github.com/moment/luxon
@@ -8691,7 +8709,7 @@ url: https://github.com/markedjs/marked
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-marked:15.0.12
+marked:16.1.1
 name: marked
 description: A markdown parser built for speed
 url: https://github.com/markedjs/marked
@@ -8709,6 +8727,13 @@ math-intrinsics:1.1.0
 name: math-intrinsics
 description: ES Math-related intrinsics and helpers, robustly cached.
 url: https://github.com/es-shims/math-intrinsics
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+meow:12.1.1
+name: meow
+description: CLI app helper
+url: https://github.com/sindresorhus/meow
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -8992,6 +9017,13 @@ url: https://github.com/litejs/natural-compare-lite
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+nested-error-stacks:2.1.1
+name: nested-error-stacks
+description: An Error subclass that will chain nested Errors and dump nested stacktraces
+url: https://github.com/mdlavin/nested-error-stacks
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 node-releases:2.0.19
 name: node-releases
 description: Node.js releases data
@@ -9027,7 +9059,7 @@ url: https://github.com/fb55/nth-check
 license: BSD-2-Clause
 license url: https://opensource.org/licenses/BSD-2-Clause
 ========================================================================
-nwsapi:2.2.20
+nwsapi:2.2.21
 name: nwsapi
 description: Fast CSS Selectors API Engine
 url: https://github.com/dperini/nwsapi
@@ -9076,7 +9108,7 @@ url: https://github.com/sindresorhus/onetime
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-open:10.1.2
+open:10.2.0
 name: open
 description: Open stuff like URLs, files, executables. Cross-platform.
 url: https://github.com/sindresorhus/open
@@ -9104,6 +9136,34 @@ url: https://github.com/jprichardson/ospath
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+p-event:5.0.1
+name: p-event
+description: Promisify an event by waiting for it to be emitted
+url: https://github.com/sindresorhus/p-event
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+p-event:6.0.1
+name: p-event
+description: Promisify an event by waiting for it to be emitted
+url: https://github.com/sindresorhus/p-event
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+p-filter:3.0.0
+name: p-filter
+description: Filter promises concurrently
+url: https://github.com/sindresorhus/p-filter
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+p-filter:4.1.0
+name: p-filter
+description: Filter promises concurrently
+url: https://github.com/sindresorhus/p-filter
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 p-limit:3.1.0
 name: p-limit
 description: Run multiple promise-returning & async functions with limited concurrency
@@ -9122,6 +9182,41 @@ p-map:4.0.0
 name: p-map
 description: Map over promises concurrently
 url: https://github.com/sindresorhus/p-map
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+p-map:5.5.0
+name: p-map
+description: Map over promises concurrently
+url: https://github.com/sindresorhus/p-map
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+p-map:6.0.0
+name: p-map
+description: Map over promises concurrently
+url: https://github.com/sindresorhus/p-map
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+p-map:7.0.3
+name: p-map
+description: Map over promises concurrently
+url: https://github.com/sindresorhus/p-map
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+p-timeout:5.1.0
+name: p-timeout
+description: Timeout a promise after a specified amount of time
+url: https://github.com/sindresorhus/p-timeout
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+p-timeout:6.1.4
+name: p-timeout
+description: Timeout a promise after a specified amount of time
+url: https://github.com/sindresorhus/p-timeout
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -9209,6 +9304,20 @@ url: https://github.com/isaacs/path-scurry
 license: BlueOak-1.0.0
 license url: https://blueoakcouncil.org/license/1.0.0
 ========================================================================
+path-type:4.0.0
+name: path-type
+description: Check if a path is a file, directory, or symlink
+url: https://github.com/sindresorhus/path-type
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+path-type:6.0.0
+name: path-type
+description: Check if a path is a file, directory, or symlink
+url: https://github.com/sindresorhus/path-type
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 pathe:2.0.3
 name: pathe
 description: Universal filesystem path utils
@@ -9265,7 +9374,7 @@ url: https://github.com/micromatch/picomatch
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-picomatch:4.0.2
+picomatch:4.0.3
 name: picomatch
 description: Blazing fast and accurate glob matcher written in JavaScript, with no dependencies and full support for standard and extended Bash glob features, including braces, extglobs, POSIX brackets, and regular expressions.
 url: https://github.com/micromatch/picomatch
@@ -9314,7 +9423,7 @@ url: https://github.com/preactjs/preact
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-preact:10.26.9
+preact:10.27.0
 name: preact
 description: Fast 3kb React-compatible Virtual DOM library.
 url: https://github.com/preactjs/preact
@@ -9482,7 +9591,7 @@ url: https://github.com/davidmarkclements/rfdc
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-rollup:4.44.1
+rollup:4.46.1
 name: rollup
 description: Next-generation ES module bundler
 url: https://github.com/rollup/rollup
@@ -9678,6 +9787,20 @@ url: https://github.com/lukeed/sirv
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+slash:4.0.0
+name: slash
+description: Convert Windows backslash paths to slash paths
+url: https://github.com/sindresorhus/slash
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+slash:5.1.0
+name: slash
+description: Convert Windows backslash paths to slash paths
+url: https://github.com/sindresorhus/slash
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 slice-ansi:3.0.0
 name: slice-ansi
 description: Slice a string with ANSI escape codes
@@ -9832,7 +9955,7 @@ url: https://github.com/marijnh/style-mod
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-superagent:10.2.1
+superagent:10.2.3
 name: superagent
 description: elegant & feature rich browser / node HTTP with a fluent API
 url: https://github.com/ladjs/superagent
@@ -9874,7 +9997,7 @@ url: https://github.com/jsdom/js-symbol-tree
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-synckit:0.11.8
+synckit:0.11.11
 name: synckit
 description: Perform async work synchronously in Node.js using `worker_threads` with first-class TypeScript support.
 url: https://github.com/un-ts/synckit
@@ -10238,7 +10361,7 @@ url: https://github.com/vitest-dev/vitest
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-vue-component-type-helpers:2.2.10
+vue-component-type-helpers:2.2.12
 name: vue-component-type-helpers
 description: Some very simple type helpers used behind `vue-component-meta` for extract component props, slots, emit, exposed types.
 url: https://github.com/vuejs/language-tools
@@ -10259,7 +10382,7 @@ url: https://github.com/shentao/vue-global-events
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-vue-i18n:11.1.10
+vue-i18n:11.1.11
 name: vue-i18n
 description: Internationalization plugin for Vue.js
 url: https://github.com/intlify/vue-i18n
@@ -10279,7 +10402,7 @@ url: https://github.com/apexcharts/vue3-apexcharts
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-vue:3.5.17
+vue:3.5.18
 name: vue
 description: The progressive JavaScript framework for building modern web UI.
 url: https://github.com/vuejs/core
@@ -10395,6 +10518,13 @@ ws:8.18.3
 name: ws
 description: Simple to use, blazing fast and thoroughly tested websocket client and server for Node.js
 url: https://github.com/websockets/ws
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+wsl-utils:0.1.0
+name: wsl-utils
+description: Utilities for working with Windows Subsystem for Linux (WSL)
+url: https://github.com/sindresorhus/wsl-utils
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
