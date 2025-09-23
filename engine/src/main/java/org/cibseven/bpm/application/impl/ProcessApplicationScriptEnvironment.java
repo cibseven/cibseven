@@ -25,6 +25,7 @@ import javax.script.ScriptEngineManager;
 
 import org.cibseven.bpm.application.ProcessApplicationInterface;
 import org.cibseven.bpm.engine.impl.scripting.ExecutableScript;
+import org.cibseven.bpm.engine.impl.scripting.engine.CamundaScriptEngineManager;
 import org.cibseven.bpm.engine.impl.scripting.engine.DefaultScriptEngineResolver;
 import org.cibseven.bpm.engine.impl.scripting.engine.ScriptEngineResolver;
 
@@ -59,7 +60,7 @@ public class ProcessApplicationScriptEnvironment {
     if(processApplicationScriptEngineResolver == null) {
       synchronized (this) {
         if(processApplicationScriptEngineResolver == null) {
-          processApplicationScriptEngineResolver = new DefaultScriptEngineResolver(new ScriptEngineManager(getProcessApplicationClassloader()));
+          processApplicationScriptEngineResolver = new DefaultScriptEngineResolver(new CamundaScriptEngineManager(getProcessApplicationClassloader()));
         }
       }
     }

@@ -61,6 +61,11 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
     applyConfigOnEnginesAfterClasspathDiscovery();
   }
 
+  public CamundaScriptEngineManager(ClassLoader loader) {
+    super(loader);
+    applyConfigOnEnginesAfterClasspathDiscovery();
+  }
+
   protected void applyConfigOnEnginesAfterClasspathDiscovery() {
     var engineNames = getEngineNamesFoundInClasspath();
 
