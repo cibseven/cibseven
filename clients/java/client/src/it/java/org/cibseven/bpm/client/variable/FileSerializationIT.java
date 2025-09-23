@@ -57,8 +57,8 @@ import org.cibseven.commons.utils.IoUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.RuleChain;
+import static org.junit.Assert.assertThrows;
 
 public class FileSerializationIT {
 
@@ -572,16 +572,14 @@ public class FileSerializationIT {
     client.subscribe(EXTERNAL_TASK_TOPIC_BAR)
       .handler(handler)
       .open();
-
-    // then
-    thrown.expect(ValueMapperException.class);
-
-    // when
-    Map<String, Object> variables = new HashMap<>();
-    DeferredFileValue deferredFileValue = fooTask.getVariableTyped(VARIABLE_NAME_FILE);
-    variables.put("deferredFile", deferredFileValue);
-    variables.put(ANOTHER_VARIABLE_NAME_FILE, ANOTHER_VARIABLE_VALUE_FILE);
-    fooService.complete(fooTask, variables);
+    assertThrows(ValueMapperException.class, () -> {
+      // when
+      Map<String, Object> variables = new HashMap<>();
+      DeferredFileValue deferredFileValue = fooTask.getVariableTyped(VARIABLE_NAME_FILE);
+      variables.put("deferredFile", deferredFileValue);
+      variables.put(ANOTHER_VARIABLE_NAME_FILE, ANOTHER_VARIABLE_VALUE_FILE);
+      fooService.complete(fooTask, variables);
+    });
 
     clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
 
