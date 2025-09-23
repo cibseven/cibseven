@@ -292,7 +292,6 @@ public class ProcessDefinitionQueryDto extends AbstractQueryDto<ProcessDefinitio
     return engine.getRepositoryService().createProcessDefinitionQuery();
   }
 
-  @SuppressWarnings("deprecation")
   @Override
   protected void applyFilters(ProcessDefinitionQuery query) {
     if (processDefinitionId != null) {
@@ -330,7 +329,7 @@ public class ProcessDefinitionQueryDto extends AbstractQueryDto<ProcessDefinitio
     }
 
     if (keys != null && !keys.isEmpty()) {
-      query.processDefinitionKeysIn(keys.toArray(new String[keys.size()]));
+      query.processDefinitionKeyIn(keys.toArray(new String[keys.size()]));
     }
     if (version != null) {
       query.processDefinitionVersion(version);

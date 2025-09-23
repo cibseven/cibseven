@@ -80,10 +80,9 @@ public class FileSerializationIT {
 
   protected ClientRule clientRule = new ClientRule();
   protected EngineRule engineRule = new EngineRule();
-  protected ExpectedException thrown = ExpectedException.none();
-
+  
   @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule).around(thrown);
+  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule);
 
   protected ExternalTaskClient client;
 
