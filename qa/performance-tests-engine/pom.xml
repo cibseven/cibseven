@@ -148,7 +148,7 @@
                         <include name="**/*.png" />
                       </fileset>
                     </copy>
-                    <java classname="org.cibseven.bpm.qa.performance.engine.benchmark.BenchmarkReport" classpathref="maven.test.classpath" />
+                    <java classname="org.cibseven.bpm.qa.performance.engine.benchmark.BenchmarkReport" classpathref="maven.test.classpath" fork="true" dir="${basedir}" />
                   </tasks>
                 </configuration>
               </execution>
@@ -219,7 +219,7 @@
                         <include name="**/*.png" />
                       </fileset>
                     </copy>
-                    <java classname="org.cibseven.bpm.qa.performance.engine.benchmark.BenchmarkReport" classpathref="maven.test.classpath" />
+                    <java classname="org.cibseven.bpm.qa.performance.engine.benchmark.BenchmarkReport" classpathref="maven.test.classpath" fork="true" dir="${basedir}" />
                   </tasks>
                 </configuration>
               </execution>
@@ -287,7 +287,7 @@
                         <include name="**/*.png" />
                       </fileset>
                     </copy>
-                    <java classname="org.cibseven.bpm.qa.performance.engine.sqlstatementlog.SqlStatementLogReport" classpathref="maven.test.classpath" />
+                    <java classname="org.cibseven.bpm.qa.performance.engine.sqlstatementlog.SqlStatementLogReport" classpathref="maven.test.classpath" fork="true" dir="${basedir}" />
                   </tasks>
                 </configuration>
               </execution>
@@ -333,7 +333,7 @@
                 <configuration>
                   <tasks>
                     <echo message="Generating load" />
-                    <java classname="org.cibseven.bpm.qa.performance.engine.query.DefaultLoadGenerator" classpathref="maven.test.classpath" failonerror="true" />
+                    <java classname="org.cibseven.bpm.qa.performance.engine.query.DefaultLoadGenerator" classpathref="maven.test.classpath" failonerror="true" fork="true" dir="${basedir}" />
                   </tasks>
                 </configuration>
               </execution>
@@ -406,7 +406,7 @@
                         <include name="**/*.png" />
                       </fileset>
                     </copy>
-                    <java classname="org.cibseven.bpm.qa.performance.engine.sqlstatementlog.SqlStatementLogReport" classpathref="maven.test.classpath" />
+                    <java classname="org.cibseven.bpm.qa.performance.engine.sqlstatementlog.SqlStatementLogReport" classpathref="maven.test.classpath" fork="true" dir="${basedir}" />
                   </tasks>
                 </configuration>
               </execution>
@@ -474,7 +474,7 @@
                         <include name="**/*.png" />
                       </fileset>
                     </copy>
-                    <java classname="org.cibseven.bpm.qa.performance.engine.framework.activitylog.ActivityCountReporter" classpathref="maven.test.classpath" />
+                    <java classname="org.cibseven.bpm.qa.performance.engine.framework.activitylog.ActivityCountReporter" classpathref="maven.test.classpath" fork="true" dir="${basedir}" />
                   </tasks>
                 </configuration>
               </execution>
