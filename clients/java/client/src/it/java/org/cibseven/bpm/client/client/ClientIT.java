@@ -36,9 +36,9 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+
 import org.cibseven.bpm.client.ExternalTaskClient;
 import org.cibseven.bpm.client.ExternalTaskClientBuilder;
-import org.cibseven.bpm.client.UrlResolver;
 import org.cibseven.bpm.client.backoff.BackoffStrategy;
 import org.cibseven.bpm.client.backoff.ErrorAwareBackoffStrategy;
 import org.cibseven.bpm.client.dto.ProcessDefinitionDto;
