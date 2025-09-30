@@ -35,6 +35,7 @@ import org.cibseven.bpm.engine.task.Event;
 /**
  * @author Tom Baeyens
  */
+@SuppressWarnings("deprecation")
 public class CommentEntity implements Comment, Event, HasDbRevision, DbEntity, HistoricEntity, Serializable {
 
   private static final long serialVersionUID = 1L;

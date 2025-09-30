@@ -82,6 +82,7 @@ public class ProcessEngineAuthenticationFilter implements Filter {
   protected AuthenticationProvider authenticationProvider;
   protected String servletPathPrefix;
 
+  @SuppressWarnings("deprecation")
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {
     String authenticationProviderClassName = filterConfig.getInitParameter(AUTHENTICATION_PROVIDER_PARAM);
