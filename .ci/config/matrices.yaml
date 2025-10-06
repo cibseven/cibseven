@@ -6,7 +6,6 @@
 engine-webapp-unit:
 # engine-webapp-unit.databases should include all supported database versions
   databases:
-  - 'postgresql_142'
   - 'postgresql_150'
   - 'postgresql_160'
   - 'postgresql_170'
