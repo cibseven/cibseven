@@ -38,6 +38,10 @@
       <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
     <dependency>
+	    <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+	</dependency>
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-oauth2-client</artifactId>
     </dependency>
@@ -110,4 +114,21 @@
     <url>https://github.com/cibseven/cibseven/issues</url>
   </issueManagement>
 
+<repositories>
+  <repository>
+    <id>central</id>
+    <name>Maven Central</name>
+    <url>https://repo1.maven.org/maven2/</url>
+    <releases><enabled>true</enabled></releases>
+    <snapshots><enabled>false</enabled></snapshots>
+  </repository>
+
+  <repository>
+    <id>spring-releases</id>
+    <name>Spring Releases</name>
+    <url>https://repo.spring.io/release/</url>
+    <releases><enabled>true</enabled></releases>
+    <snapshots><enabled>false</enabled></snapshots>
+  </repository>
+</repositories>
 </project>
