@@ -25,11 +25,11 @@ import org.cibseven.bpm.spring.boot.starter.CamundaBpmAutoConfiguration;
 import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
 import org.cibseven.bpm.spring.boot.starter.property.WebappProperty;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.AuthorizeTokenFilter;
+import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.CompositeOAuth2AuthenticationProvider;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.OAuth2AuthenticationProvider;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.OAuth2GrantedAuthoritiesMapper;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.OAuth2IdentityProviderPlugin;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.SsoLogoutSuccessHandler;
-import org.cibseven.bpm.webapp.impl.security.auth.ContainerBasedAuthenticationFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -64,25 +64,25 @@ public class CamundaSpringSecurityOAuth2AutoConfiguration {
   private static final Logger logger = LoggerFactory.getLogger(CamundaSpringSecurityOAuth2AutoConfiguration.class);
   public static final int CAMUNDA_OAUTH2_ORDER = Ordered.HIGHEST_PRECEDENCE + 100;
   private final OAuth2Properties oAuth2Properties;
-  private final String webappPath;
+  private final String legacyWebappPath;
 
   public CamundaSpringSecurityOAuth2AutoConfiguration(CamundaBpmProperties properties,
                                                       OAuth2Properties oAuth2Properties) {
     this.oAuth2Properties = oAuth2Properties;
     WebappProperty webapp = properties.getWebapp();
-    this.webappPath = webapp.getLegacyApplicationPath();
+    this.legacyWebappPath = webapp.getLegacyApplicationPath();
   }
 
   @Bean
   public FilterRegistrationBean<?> webappAuthenticationFilter() {
     FilterRegistrationBean<Filter> filterRegistration = new FilterRegistrationBean<>();
     filterRegistration.setName("Container Based Authentication Filter");
-    filterRegistration.setFilter(new ContainerBasedAuthenticationFilter());
+    filterRegistration.setFilter(new ProcessEngineAuthenticationFilter());
     filterRegistration.setInitParameters(Map.of(
         ProcessEngineAuthenticationFilter.AUTHENTICATION_PROVIDER_PARAM, OAuth2AuthenticationProvider.class.getName()));
     // make sure the filter is registered after the Spring Security Filter Chain
     filterRegistration.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER + 1);
-    filterRegistration.addUrlPatterns(webappPath + "/app/*", webappPath + "/api/*");
+    filterRegistration.addUrlPatterns(legacyWebappPath + "/app/*", legacyWebappPath + "/api/*", "/engine-rest/*");
     filterRegistration.setDispatcherTypes(DispatcherType.REQUEST);
     return filterRegistration;
   }
@@ -123,14 +123,12 @@ public class CamundaSpringSecurityOAuth2AutoConfiguration {
 
     // @formatter:off
     http.authorizeHttpRequests(c -> c
-            .requestMatchers(webappPath + "/app/**").authenticated()
-            .requestMatchers(webappPath + "/api/**").authenticated()
+            .requestMatchers(legacyWebappPath + "/app/**").authenticated()
+            .requestMatchers(legacyWebappPath + "/api/**").authenticated()            
             .anyRequest().permitAll()
         )
-        .addFilterAfter(authorizeTokenFilter, OAuth2AuthorizationRequestRedirectFilter.class)
         .anonymous(AbstractHttpConfigurer::disable)
-        .oidcLogout(c -> c.backChannel(Customizer.withDefaults()))
-        .oauth2Login(Customizer.withDefaults())
+        .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
         .logout(c -> c
             .clearAuthentication(true)
             .invalidateHttpSession(true)
