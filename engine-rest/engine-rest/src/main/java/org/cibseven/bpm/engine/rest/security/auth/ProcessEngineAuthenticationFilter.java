@@ -69,7 +69,8 @@ public class ProcessEngineAuthenticationFilter implements Filter {
 
   // regexes for urls that may be accessed unauthorized
   protected static final Pattern[] WHITE_LISTED_URL_PATTERNS = new Pattern[] {
-    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/?")
+    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/?"),
+    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/(.*?)/identity/verify$")
   };
 
   protected static final Pattern ENGINE_REQUEST_URL_PATTERN = Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/(.*?)(/|$)");
