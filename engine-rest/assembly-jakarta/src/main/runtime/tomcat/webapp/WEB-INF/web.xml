@@ -97,13 +97,6 @@
   </filter-mapping>
   -->
   
-  <!-- This one should not be filtered, in order to be able to login
-  <filter-mapping>
-    <filter-name>cibseven-composite-auth</filter-name>
-    <url-pattern>/identity/verify</url-pattern>
-  </filter-mapping>
-  -->
-  
   <servlet>
     <servlet-name>Resteasy</servlet-name>
     <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
