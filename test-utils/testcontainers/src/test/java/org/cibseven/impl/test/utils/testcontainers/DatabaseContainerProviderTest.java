@@ -35,7 +35,7 @@ import org.junit.runners.Parameterized;
 /**
  * This test should not be run on our CI, as it requires a Docker-in-Docker image to run successfully.
  */
-@Ignore
+//@Ignore
 @RunWith(Parameterized.class)
 public class DatabaseContainerProviderTest {
 
