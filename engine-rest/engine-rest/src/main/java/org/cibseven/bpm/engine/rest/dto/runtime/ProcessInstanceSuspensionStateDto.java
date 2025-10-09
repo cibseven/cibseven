@@ -17,10 +17,10 @@
 package org.cibseven.bpm.engine.rest.dto.runtime;
 
 import java.util.List;
+
 import javax.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.ProcessEngine;
-import org.cibseven.bpm.engine.batch.Batch;
 import org.cibseven.bpm.engine.rest.dto.SuspensionStateDto;
 import org.cibseven.bpm.engine.rest.dto.history.HistoricProcessInstanceQueryDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;

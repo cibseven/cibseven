@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.cibseven.bpm.dmn.feel.impl.juel.FeelSyntaxException;
 import org.cibseven.bpm.engine.DecisionService;
-import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;

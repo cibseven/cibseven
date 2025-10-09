@@ -19,10 +19,8 @@ package org.cibseven.bpm.engine.test.concurrency;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
-import org.cibseven.bpm.engine.impl.db.sql.DbSqlSessionFactory;
 import org.cibseven.bpm.engine.impl.errorcode.BuiltinExceptionCode;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
-import org.cibseven.bpm.engine.impl.test.RequiredDatabase;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.junit.Test;
 
