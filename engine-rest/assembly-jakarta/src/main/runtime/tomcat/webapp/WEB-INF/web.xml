@@ -68,7 +68,7 @@
   </filter>
   <filter-mapping>
     <filter-name>cibseven-pseudo-auth</filter-name>
-    <url-pattern>/*</url-pattern>
+    <url-pattern>/filter/*</url-pattern>
   </filter-mapping>
   
   <!-- Composite Authentication Filter with Jwt Token and Http Basic -->
