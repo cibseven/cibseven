@@ -66,11 +66,11 @@
       <scope>test</scope>
     </dependency>
 
- <!--   <dependency>
+    <!-- <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
-    </dependency>  -->
+    </dependency> -->
 	
     <!-- JUnit 5 integration (version managed) -->
     <dependency>
