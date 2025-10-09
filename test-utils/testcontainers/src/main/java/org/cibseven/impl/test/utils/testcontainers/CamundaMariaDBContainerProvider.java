@@ -34,6 +34,7 @@ public class CamundaMariaDBContainerProvider extends MariaDBContainerProvider {
   public JdbcDatabaseContainer newInstance(String tag) {
     DockerImageName dockerImageName = TestcontainersHelper
       .resolveDockerImageName("mariadb", tag, "mariadb");
-    return new MariaDBContainer(dockerImageName);
+    return new MariaDBContainer<>(dockerImageName)
+        .withCommand("--transaction-isolation=READ-COMMITTED");
   }
 }
