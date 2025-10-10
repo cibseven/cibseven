@@ -178,6 +178,7 @@ public class CmmnTransform implements Transform<CaseDefinitionEntity> {
     return (CaseDefinitionEntity) definition;
   }
 
+  @SuppressWarnings("deprecation")
   protected void transformCasePlanModel(CasePlanModel casePlanModel) {
     CasePlanModelHandler transformer = (CasePlanModelHandler) getPlanItemHandler(CasePlanModel.class);
     CmmnActivity newActivity = transformer.handleElement(casePlanModel, context);
@@ -292,6 +293,7 @@ public class CmmnTransform implements Transform<CaseDefinitionEntity> {
 
         // According to the specification: A HumanTask can only contain
         // one planningTable, the XSD allows multiple planningTables!
+        @SuppressWarnings("deprecation")
         Collection<PlanningTable> planningTables = humanTask.getPlanningTables();
         for (PlanningTable planningTable : planningTables) {
           transformPlanningTable(planningTable, parent);

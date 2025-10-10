@@ -121,6 +121,7 @@ public class HistoricIdentityLinkLogTestByXml extends PluggableProcessEngineTest
         .singleResult();
     assertNotNull(latestProcessDef);
 
+    @SuppressWarnings("deprecation")
     List<IdentityLink> links = repositoryService.getIdentityLinksForProcessDefinition(latestProcessDef.getId());
     assertEquals(1, links.size());
 
@@ -143,6 +144,7 @@ public class HistoricIdentityLinkLogTestByXml extends PluggableProcessEngineTest
         .singleResult();
     assertNotNull(latestProcessDef);
 
+    @SuppressWarnings("deprecation")
     List<IdentityLink> links = repositoryService.getIdentityLinksForProcessDefinition(latestProcessDef.getId());
     assertEquals(1, links.size());
 
