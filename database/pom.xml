@@ -232,11 +232,11 @@
       <id>mariadb</id>
       <properties>
   
+        <!-- copied from nexus-settings.xml -->
         <database.port>3306</database.port>
         <database.name>process-engine</database.name>
         <database.username>camunda</database.username>
         <database.password>camunda</database.password>
-
 
         <database.type>mariadb</database.type>
         <database.driver>org.mariadb.jdbc.Driver</database.driver>
@@ -345,6 +345,13 @@
     <profile>
       <id>postgresql</id>
       <properties>
+
+        <!-- copied from nexus-settings.xml -->
+        <database.port>5432</database.port>
+        <database.name>process-engine</database.name>
+        <database.username>camunda</database.username>
+        <database.password>camunda</database.password>
+
         <database.type>postgres</database.type>
         <database.driver>org.postgresql.Driver</database.driver>
         <database.datasource.class>org.postgresql.ds.PGSimpleDataSource</database.datasource.class>
