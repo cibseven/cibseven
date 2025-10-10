@@ -71,20 +71,6 @@
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency> -->
-	
-    <!-- JUnit 5 integration (version managed) -->
-    <dependency>
-        <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter</artifactId>
-        <version>5.10.2</version>
-        <scope>test</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.testcontainers</groupId>
-        <artifactId>junit-jupiter</artifactId>
-        <version>1.19.8</version>
-        <scope>test</scope>
-    </dependency>	
 
     <dependency>
       <groupId>org.assertj</groupId>
