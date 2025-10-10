@@ -231,6 +231,13 @@
     <profile>
       <id>mariadb</id>
       <properties>
+  
+        <database.port>3306</database.port>
+        <database.name>process-engine</database.name>
+        <database.username>camunda</database.username>
+        <database.password>camunda</database.password>
+
+
         <database.type>mariadb</database.type>
         <database.driver>org.mariadb.jdbc.Driver</database.driver>
         <database.datasource.class>org.mariadb.jdbc.MySQLDataSource</database.datasource.class>
