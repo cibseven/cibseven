@@ -286,7 +286,7 @@
         <database.driver>com.mysql.cj.jdbc.Driver</database.driver>
         <database.datasource.class>com.mysql.cj.jdbc.MysqlDataSource</database.datasource.class>
         <database.tc.url>cammysql:8.0</database.tc.url>
-        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}?TC_DAEMON=true</database.tc.params>
+        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}?TC_DAEMON=true?sendFractionalSeconds=false</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
 
