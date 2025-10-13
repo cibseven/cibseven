@@ -328,7 +328,7 @@
         <database.type>oracle</database.type>
         <database.driver>oracle.jdbc.OracleDriver</database.driver>
         <database.datasource.class>oracle.jdbc.pool.OracleDataSource</database.datasource.class>
-        <database.tc.url>camonoracle:21-slim-faststart</database.tc.url>
+        <database.tc.url>camoracle:21-slim-faststart</database.tc.url>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
       <dependencies>
