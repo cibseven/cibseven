@@ -242,7 +242,7 @@
         <database.driver>org.mariadb.jdbc.Driver</database.driver>
         <database.datasource.class>org.mariadb.jdbc.MySQLDataSource</database.datasource.class>
         <database.tc.url>cammariadb:10.6</database.tc.url>
-        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}?TC_DAEMON=true</database.tc.params>
+        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
 
@@ -286,7 +286,7 @@
         <database.driver>com.mysql.cj.jdbc.Driver</database.driver>
         <database.datasource.class>com.mysql.cj.jdbc.MysqlDataSource</database.datasource.class>
         <database.tc.url>cammysql:8.0</database.tc.url>
-        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}?TC_DAEMON=true?sendFractionalSeconds=false</database.tc.params>
+        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}?sendFractionalSeconds=false</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
 
@@ -319,9 +319,17 @@
     <profile>
       <id>oracle</id>
       <properties>
+  
+        <database.port>1521</database.port>
+        <database.name>process-engine</database.name>
+        <database.username>camunda</database.username>
+        <database.password>camunda</database.password>	  
+  
         <database.type>oracle</database.type>
         <database.driver>oracle.jdbc.OracleDriver</database.driver>
         <database.datasource.class>oracle.jdbc.pool.OracleDataSource</database.datasource.class>
+        <database.tc.url>camonoracle:21-slim-faststart</database.tc.url>
+        <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
       <dependencies>
         <dependency>

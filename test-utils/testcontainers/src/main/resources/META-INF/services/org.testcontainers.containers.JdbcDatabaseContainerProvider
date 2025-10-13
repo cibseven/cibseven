@@ -2,3 +2,4 @@ org.cibseven.impl.test.utils.testcontainers.CamundaPostgreSQLContainerProvider
 org.cibseven.impl.test.utils.testcontainers.CamundaMariaDBContainerProvider
 org.cibseven.impl.test.utils.testcontainers.CamundaMySqlContainerProvider
 org.cibseven.impl.test.utils.testcontainers.CamundaMSSQLContainerProvider
+org.cibseven.impl.test.utils.testcontainers.CamundaOracleContainerProvider
