@@ -1280,6 +1280,7 @@ license url: https://opensource.org/licenses/EPL-2.0
 jakarta.jms:jakarta.jms-api:3.1.0
 name: jakarta.jms-api
 description: Jakarta Messaging describes a means for Java applications to create, send, and receive messages via loosely coupled, reliable asynchronous communication services.
+url: https://projects.eclipse.org/projects/ee4j.jms
 license: EPL-2.0
 license url: https://www.eclipse.org/legal/epl-2.0
 ========================================================================
@@ -1488,7 +1489,7 @@ url: https://github.com/apache/mina-sshd/tree/sshd-2.9.2/sshd-core
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.tomcat:tomcat:10.1.43
+org.apache.tomcat:tomcat:10.1.47
 name: tomcat
 description: Binary distribution of Apache Tomcat
 url: https://tomcat.apache.org/
@@ -1518,7 +1519,7 @@ license url: https://opensource.org/licenses/BSD-3-Clause
 org.eclipse.jgit:org.eclipse.jgit.ssh.apache:6.10.0.202406032230-r
 name: org.eclipse.jgit.ssh.apache
 description: SSH support for JGit based on Apache MINA sshd
-url: https://www.eclipse.org/jgit//org.eclipse.jgit.ssh.apache
+url: https://git.eclipse.org/r/plugins/gitiles/jgit/jgit/org.eclipse.jgit.ssh.apache
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
@@ -1539,14 +1540,14 @@ license url: https://opensource.org/licenses/BSD-3-Clause
 org.eclipse.jgit:org.eclipse.jgit:6.10.0.202406032230-r
 name: org.eclipse.jgit
 description: Repository access and algorithms
-url: https://git.eclipse.org/r/plugins/gitiles/jgit/jgit/org.eclipse.jgit
+url: https://www.eclipse.org/jgit//org.eclipse.jgit
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
 org.eclipse.jgit:org.eclipse.jgit:6.2.0.202206071550-r
 name: org.eclipse.jgit
 description: Repository access and algorithms
-url: https://www.eclipse.org/jgit//org.eclipse.jgit
+url: https://git.eclipse.org/r/plugins/gitiles/jgit/jgit/org.eclipse.jgit
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
@@ -1959,6 +1960,7 @@ license url: https://opensource.org/licenses/Apache-2.0
 org.jboss.logging:jboss-logging:3.5.0.Final
 name: jboss-logging
 description: The JBoss Logging Framework
+url: https://github.com/jboss-logging/jboss-logging
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
