@@ -50,6 +50,8 @@ public class CamundaBpmSpringSecurityDisableAutoConfiguration {
           return fullPath.startsWith(legacyWebappPath + "/app/") || fullPath.startsWith(legacyWebappPath + "/api/");
         })
         .authorizeHttpRequests(customizer -> customizer.anyRequest().permitAll())
+        // disable anonymous access to avoid accessing to OAuth2IdentityProvider
+        .anonymous(AbstractHttpConfigurer::disable)
         .cors(AbstractHttpConfigurer::disable)
         .csrf(AbstractHttpConfigurer::disable);
     // @formatter:on

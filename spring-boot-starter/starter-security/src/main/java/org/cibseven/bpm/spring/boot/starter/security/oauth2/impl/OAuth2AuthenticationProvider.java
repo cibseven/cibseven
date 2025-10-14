@@ -22,8 +22,11 @@ import org.cibseven.bpm.engine.rest.security.auth.AuthenticationResult;
 import org.cibseven.bpm.engine.rest.security.auth.impl.ContainerBasedAuthenticationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 
 public class OAuth2AuthenticationProvider extends ContainerBasedAuthenticationProvider {
@@ -39,13 +42,12 @@ public class OAuth2AuthenticationProvider extends ContainerBasedAuthenticationPr
       return AuthenticationResult.unsuccessful();
     }
 
-    /*if (!(authentication instanceof OAuth2AuthenticationToken)) {
+    if (!(authentication instanceof OAuth2AuthenticationToken) && !(authentication instanceof JwtAuthenticationToken)) {
       logger.debug("Authentication is not OAuth2, it is {}", authentication.getClass());
       return AuthenticationResult.unsuccessful();
     }
-    var oauth2 = (JwtAuthenticationToken) authentication;
-    */
-    String camundaUserId = authentication.getName();
+
+    String camundaUserId = ((AbstractAuthenticationToken) authentication).getName();
     if (camundaUserId == null || camundaUserId.isEmpty()) {
       logger.debug("UserId is empty");
       return AuthenticationResult.unsuccessful();

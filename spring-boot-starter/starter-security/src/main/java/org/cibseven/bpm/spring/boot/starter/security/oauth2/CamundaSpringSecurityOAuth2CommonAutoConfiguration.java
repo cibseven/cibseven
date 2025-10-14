@@ -3,9 +3,9 @@ package org.cibseven.bpm.spring.boot.starter.security.oauth2;
 import org.cibseven.bpm.engine.spring.SpringProcessEngineServicesConfiguration;
 import org.cibseven.bpm.spring.boot.starter.CamundaBpmAutoConfiguration;
 import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
+import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.ClientsOrResourceServerConfiguredCondition;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.OAuth2GrantedAuthoritiesMapper;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.OAuth2IdentityProviderPlugin;
-import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.SsoLogoutSuccessHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -14,6 +14,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
@@ -22,6 +23,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 @AutoConfigureOrder(CamundaSpringSecurityOAuth2CommonAutoConfiguration.CAMUNDA_OAUTH2_ORDER)
 @AutoConfigureAfter({CamundaBpmAutoConfiguration.class, SpringProcessEngineServicesConfiguration.class})
 @ConditionalOnBean(CamundaBpmProperties.class)
+@Conditional(ClientsOrResourceServerConfiguredCondition.class)
 @EnableConfigurationProperties(OAuth2Properties.class)
 @Configuration
 public class CamundaSpringSecurityOAuth2CommonAutoConfiguration {
