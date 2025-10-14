@@ -435,7 +435,7 @@
         <database.datasource.class>com.microsoft.sqlserver.jdbc.SQLServerDataSource</database.datasource.class>
         <database.tc.url>camsqlserver:2019</database.tc.url>
         <database.tc.params>;DatabaseName=${database.name};user=${database.username};password=${database.password};</database.tc.params>
-        <database.url>jdbc:tc:${database.tc.url}:///localhost:${database.port}${database.tc.params}</database.url>
+        <database.url>jdbc:tc:sqlserver://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
 
       <dependencies>
