@@ -36,7 +36,7 @@ public class CamundaMSSQLContainerProvider extends MSSQLServerContainerProvider 
       .resolveDockerImageName("mssql", tag, "mcr.microsoft.com/mssql/server");
 
     MSSQLServerContainer mssqlServerContainer = new MSSQLServerContainer(dockerImageName);
-    mssqlServerContainer.aceeptLicense();
+    mssqlServerContainer.acceptLicense();
 
     return mssqlServerContainer;
   }
