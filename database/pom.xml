@@ -110,10 +110,10 @@
     <profile>
       <id>db2</id>
       <properties>
+
         <database.type>db2</database.type>
         <database.driver>com.ibm.db2.jcc.DB2Driver</database.driver>
-        <database.datasource.class>com.ibm.db2.jcc.DB2SimpleDataSource</database.datasource.class>
-        <database.name>process-engine</database.name>
+        <database.name>engine</database.name>
         <database.port>50000</database.port>
 
         <database.tc.url>camdb2:11.5.0.0</database.tc.url>
