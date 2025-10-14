@@ -100,7 +100,8 @@ public class CamundaSpringSecurityOAuth2WebappAutoConfiguration {
       // @formatter:off
       http.securityMatcher(request -> {
             String fullPath = request.getServletPath() + (request.getPathInfo() != null ? request.getPathInfo() : "");
-            return fullPath.startsWith(legacyWebappPath + "/app/") || fullPath.startsWith(legacyWebappPath + "/api/");
+            // customized login base URIs for OIDC are not supported
+            return fullPath.startsWith(legacyWebappPath) || fullPath.startsWith(OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI);
           })
           .authorizeHttpRequests(c -> c
             .requestMatchers(legacyWebappPath + "/app/**").authenticated()
