@@ -48,11 +48,4 @@ public class CamundaSpringSecurityOAuth2CommonAutoConfiguration {
     logger.debug("Registering OAuth2GrantedAuthoritiesMapper");
     return new OAuth2GrantedAuthoritiesMapper(oAuth2Properties);
   }
-
-  @Bean
-  @ConditionalOnProperty(name = "sso-logout.enabled", havingValue = "true", prefix = OAuth2Properties.PREFIX)
-  protected SsoLogoutSuccessHandler ssoLogoutSuccessHandler(ClientRegistrationRepository clientRegistrationRepository) {
-    logger.debug("Registering SsoLogoutSuccessHandler");
-    return new SsoLogoutSuccessHandler(clientRegistrationRepository, oAuth2Properties);
-  } 
 }

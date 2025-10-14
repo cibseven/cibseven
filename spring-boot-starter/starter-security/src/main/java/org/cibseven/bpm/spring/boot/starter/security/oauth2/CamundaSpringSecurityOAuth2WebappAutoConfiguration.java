@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.client.ClientsConfiguredCondition;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -44,6 +45,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -60,18 +62,19 @@ public class CamundaSpringSecurityOAuth2WebappAutoConfiguration {
   private static final Logger logger = LoggerFactory.getLogger(CamundaSpringSecurityOAuth2WebappAutoConfiguration.class);
   private final OAuth2Properties oAuth2Properties;
   private final String legacyWebappPath;
-  private final SsoLogoutSuccessHandler ssoLogoutSuccessHandler;
 
   public CamundaSpringSecurityOAuth2WebappAutoConfiguration(CamundaBpmProperties properties,
-                                                      OAuth2Properties oAuth2Properties,
-                                                      @Nullable SsoLogoutSuccessHandler ssoLogoutSuccessHandler) {
+                                                      OAuth2Properties oAuth2Properties) {
     this.oAuth2Properties = oAuth2Properties;
-    WebappProperty webapp = properties.getWebapp();
-    this.ssoLogoutSuccessHandler = ssoLogoutSuccessHandler;
-    this.legacyWebappPath = webapp.getLegacyApplicationPath();
-    System.out.print("legacyWebappPath: ");
-    System.out.println(legacyWebappPath);
+    this.legacyWebappPath = properties.getWebapp().getLegacyApplicationPath();
   }
+
+  @Bean
+  @ConditionalOnProperty(name = "sso-logout.enabled", havingValue = "true", prefix = OAuth2Properties.PREFIX)
+  protected SsoLogoutSuccessHandler ssoLogoutSuccessHandler(ClientRegistrationRepository clientRegistrationRepository) {
+    logger.debug("Registering SsoLogoutSuccessHandler");
+    return new SsoLogoutSuccessHandler(clientRegistrationRepository, oAuth2Properties);
+  } 
 
   @Bean
   public FilterRegistrationBean<?> webappAuthenticationFilter() {
@@ -90,7 +93,8 @@ public class CamundaSpringSecurityOAuth2WebappAutoConfiguration {
   @Bean
   @Order(2)
   public SecurityFilterChain webappSecurityFilterChain(HttpSecurity http,
-                                                       OAuth2AuthorizedClientManager clientManager) throws Exception {
+                                                       OAuth2AuthorizedClientManager clientManager,
+                                                       @Nullable SsoLogoutSuccessHandler ssoLogoutSuccessHandler) throws Exception {
       logger.info("Enabling Camunda Spring Security oauth2 integration for legacy webapp");
 
       // @formatter:off
