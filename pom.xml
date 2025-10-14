@@ -295,6 +295,18 @@
       for local builds by developers on maintainance branches, jboss and maven central -->
       <url>https://artifacts.cibseven.org/repository/mvn-group</url>
     </repository>
+    <repository>
+      <!--  Required for local community+ releases and parent pom  -->
+      <id>mvn-cibseven-private</id>
+      <name>CIB seven Community+ repository</name>
+      <url>https://artifacts.cibseven.org/repository/private</url>
+    </repository>
+    <repository>
+      <!--  Required for local community+ snapshots and parent pom  -->
+      <id>mvn-cibseven-private-snapshots</id>
+      <name>CIB seven Community+ Snapshots repository</name>
+      <url>https://artifacts.cibseven.org/repository/private-snapshots</url>
+    </repository>
   </repositories>
   
   <licenses>
