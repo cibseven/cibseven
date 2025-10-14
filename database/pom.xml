@@ -422,11 +422,20 @@
     <profile>
       <id>sqlserver</id>
       <properties>
+
+        <!-- copied from nexus-settings.xml -->
+        <database.host>localhost</database.host>
+        <database.port>1433</database.port>
+        <database.name>process-engine</database.name>
+        <database.username>camunda</database.username>
+        <database.password>NotEmptyPwd-BPM123</database.password>
+	  
         <database.type>mssql</database.type>
         <database.driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</database.driver>
         <database.datasource.class>com.microsoft.sqlserver.jdbc.SQLServerDataSource</database.datasource.class>
         <database.tc.url>camsqlserver:2019</database.tc.url>
         <database.tc.params>;DatabaseName=${database.name};user=${database.username};password=${database.password};</database.tc.params>
+        <database.url>jdbc:sqlserver://localhost:${database.port}${database.params}</database.url>
       </properties>
 
       <dependencies>
