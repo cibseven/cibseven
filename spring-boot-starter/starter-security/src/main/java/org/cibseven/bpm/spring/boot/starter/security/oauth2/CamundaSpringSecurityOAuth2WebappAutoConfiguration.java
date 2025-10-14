@@ -35,6 +35,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.client.ClientsConfiguredCondition;
+import org.springframework.boot.autoconfigure.web.servlet.JerseyApplicationPath;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -94,18 +95,20 @@ public class CamundaSpringSecurityOAuth2WebappAutoConfiguration {
   @Order(2)
   public SecurityFilterChain webappSecurityFilterChain(HttpSecurity http,
                                                        OAuth2AuthorizedClientManager clientManager,
-                                                       @Nullable SsoLogoutSuccessHandler ssoLogoutSuccessHandler) throws Exception {
+                                                       @Nullable SsoLogoutSuccessHandler ssoLogoutSuccessHandler,
+                                                       @Nullable JerseyApplicationPath applicationPath) throws Exception {
       logger.info("Enabling Camunda Spring Security oauth2 integration for legacy webapp");
-
+      String engineRestPath = applicationPath != null? applicationPath.getPath() : "";
       // @formatter:off
       http.securityMatcher(request -> {
             String fullPath = request.getServletPath() + (request.getPathInfo() != null ? request.getPathInfo() : "");
-            // customized login base URIs for OIDC are not supported
-            return fullPath.startsWith(legacyWebappPath) || fullPath.startsWith(OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI);
+            // all requests that are not going to the engine-rest pass by
+            return engineRestPath.isEmpty()? true : !fullPath.startsWith(engineRestPath);
           })
           .authorizeHttpRequests(c -> c
             .requestMatchers(legacyWebappPath + "/app/**").authenticated()
-            .requestMatchers(legacyWebappPath + "/api/**").authenticated())
+            .requestMatchers(legacyWebappPath + "/api/**").authenticated()
+            .anyRequest().permitAll())
           .addFilterAfter(new AuthorizeTokenFilter(clientManager), OAuth2AuthorizationRequestRedirectFilter.class)
           .anonymous(AbstractHttpConfigurer::disable)
           .oidcLogout(c -> c.backChannel(Customizer.withDefaults()))
