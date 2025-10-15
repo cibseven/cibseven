@@ -23,6 +23,7 @@
 
     <!-- wildfly -->
     <wildfly.runtime.location>../wildfly-runtime/target/server/wildfly-${version.wildfly}</wildfly.runtime.location>
+    <wildfly28.runtime.location>../wildfly-runtime/target/server/wildfly-${version.wildfly28}</wildfly28.runtime.location>
     <wildfly26.runtime.location>../wildfly26-runtime/target/wildfly-${version.wildfly26}</wildfly26.runtime.location>
 
     <jboss.http.port>38080</jboss.http.port>
@@ -100,6 +101,19 @@
     </profile>
     <profile>
       <id>wildfly-domain</id>
+      <modules>
+        <module>wildfly-runtime</module>
+      </modules>
+    </profile>
+    
+    <profile>
+      <id>wildfly28</id>
+      <modules>
+        <module>wildfly-runtime</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>wildfly28-domain</id>
       <modules>
         <module>wildfly-runtime</module>
       </modules>

@@ -36,7 +36,6 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 @EnableConfigurationProperties(CamundaBpmRunProperties.class)
@@ -74,37 +73,14 @@ public class CamundaBpmRunRestConfiguration {
 
     String restApiPathPattern = applicationPath.getPath();
 
-	// Apply to all URLs under engine-rest except /engine-rest/identity/verify
-	String[] urlPatterns = Arrays.asList(
-        "/process-definition/*",
-        "/process-instance/*",
-        "/history/*",
-        "/execution/*",
-        "/batch/*",
-        "/decision-definition/*",
-        "/deployment/*",
-        "/filter/*",
-        "/incident/*",
-        "/job-definition/*",
-        "/job/*",
-        "/telemetry/*",
-        "/metrics/*",
-        "/authorization/*",
-        "/group/*",
-        "/user/*",
-        "/message/*",
-        "/event-subscription/*",
-        "/variable-instance/*",
-        "/task/*",
-        "/engine/*",
-        "/identity/groups"
-	).stream().map(pattern -> addUrl(restApiPathPattern, pattern)).toArray(String[]::new);
-	registration.setAsyncSupported(true);
+    // Apply to all URLs - whitelist logic in the filter handles exclusions
+    String[] urlPatterns = new String[] { addUrl(restApiPathPattern, "/*") };
+    registration.setAsyncSupported(true);
 
     // if nothing is set, use Http Basic authentication
     CamundaBpmRunAuthenticationProperties properties = camundaBpmRunProperties.getAuth();
     if (properties.getAuthentication() == null || CamundaBpmRunAuthenticationProperties.DEFAULT_AUTH.equals(properties.getAuthentication())) {
-    	urlPatterns = new String[] { addUrl(restApiPathPattern, "/filter/*") };
+      urlPatterns = new String[] { addUrl(restApiPathPattern, "/filter/*") };
     	registration.addInitParameter("authentication-provider", "org.cibseven.bpm.engine.rest.security.auth.impl.PseudoAuthenticationProvider");
     } else if (CamundaBpmRunAuthenticationProperties.COMPOSITE_AUTH.equals(properties.getAuthentication())) {
     	registration.addInitParameter("authentication-provider", "org.cibseven.bpm.engine.rest.security.auth.impl.CompositeAuthenticationProvider");
