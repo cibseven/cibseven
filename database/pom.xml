@@ -427,8 +427,8 @@
         <database.host>localhost</database.host>
         <database.port>1433</database.port>
         <database.name>process-engine</database.name>
-        <database.username>camunda</database.username>
-        <database.password>camunda</database.password>
+        <database.username>sa</database.username>
+        <database.password>StrongP@ssw0rd</database.password>
 	  
         <database.type>mssql</database.type>
         <database.driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</database.driver>
