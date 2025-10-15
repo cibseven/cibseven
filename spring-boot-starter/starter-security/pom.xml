@@ -38,6 +38,10 @@
       <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
     <dependency>
+	    <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+	</dependency>
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-oauth2-client</artifactId>
     </dependency>
@@ -109,5 +113,4 @@
     <system>GitHub Issues</system>
     <url>https://github.com/cibseven/cibseven/issues</url>
   </issueManagement>
-
 </project>
