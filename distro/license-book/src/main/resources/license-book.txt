@@ -1384,7 +1384,7 @@ license url: https://opensource.org/licenses/BSD-3-Clause
 jakarta.annotation:jakarta.annotation-api:2.1.1
 name: jakarta.annotation-api
 description: Jakarta Annotations API
-url: https://projects.eclipse.org/projects/ee4j.ca
+url: https://github.com/eclipse-ee4j/common-annotations-api
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -1527,6 +1527,7 @@ license url: https://opensource.org/licenses/EPL-2.0
 jakarta.security.enterprise:jakarta.security.enterprise-api:3.0.0
 name: jakarta.security.enterprise-api
 description: Jakarta Security defines a standard for creating secure Jakarta EE applications in modern application paradigms. It defines an overarching (end-user targeted) Security API for Jakarta EE Applications.
+url: https://github.com/eclipse-ee4j/security-api
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -1582,6 +1583,7 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 jakarta.websocket:jakarta.websocket-api:2.1.1
 name: jakarta.websocket-api
 description: Jakarta WebSocket - Server API
+url: https://projects.eclipse.org/projects/ee4j.websocket
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -1651,7 +1653,7 @@ url: https://urielch.github.io/
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.commons:commons-lang3:3.17.0
+org.apache.commons:commons-lang3:3.18.0
 name: commons-lang3
 description: Apache Commons Lang, a package of Java utility classes for the classes that are in java.lang's hierarchy, or are considered to be so standard as to justify existence in java.lang. The code is tested using the latest revision of the JDK for supported LTS releases: 8, 11, 17 and 21 currently. See https://github.com/apache/commons-lang/blob/master/.github/workflows/maven.yml Please ensure your build environment is up-to-date and kindly report any build issues.
 url: https://commons.apache.org/proper/commons-lang/
@@ -1916,6 +1918,7 @@ license url: https://opensource.org/licenses/BSD-3-Clause
 org.eclipse.jgit:org.eclipse.jgit.ssh.apache:6.10.0.202406032230-r
 name: org.eclipse.jgit.ssh.apache
 description: SSH support for JGit based on Apache MINA sshd
+url: https://www.eclipse.org/jgit//org.eclipse.jgit.ssh.apache
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
