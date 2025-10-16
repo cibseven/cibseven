@@ -1078,6 +1078,7 @@ license url: https://opensource.org/licenses/Apache-2.0
 com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations:2.15.2
 name: jackson-module-jakarta-xmlbind-annotations
 description: Support for using Jakarta XML Bind (aka JAXB 3.0) annotations as an alternative to "native" Jackson annotations, for configuring data-binding.
+url: https://github.com/FasterXML/jackson-modules-base
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -1244,7 +1245,7 @@ url: https://commons.apache.org/proper/commons-codec/
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-commons-fileupload:commons-fileupload:1.5
+commons-fileupload:commons-fileupload:1.6.0
 name: commons-fileupload
 description: The Apache Commons FileUpload component provides a simple yet flexible means of adding support for multipart file upload functionality to servlets and web applications.
 url: https://commons.apache.org/proper/commons-fileupload/
@@ -1343,13 +1344,13 @@ description: swagger-annotations-jakarta
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-io.swagger.core.v3:swagger-core-jakarta:2.2.28
+io.swagger.core.v3:swagger-core-jakarta:2.2.36
 name: swagger-core-jakarta
 description: swagger-core-jakarta
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-io.swagger.core.v3:swagger-models-jakarta:2.2.28
+io.swagger.core.v3:swagger-models-jakarta:2.2.36
 name: swagger-models-jakarta
 description: swagger-models-jakarta
 license: Apache-2.0
@@ -1418,7 +1419,7 @@ license url: https://opensource.org/licenses/EPL-2.0
 jakarta.el:jakarta.el-api:5.0.1
 name: jakarta.el-api
 description: Jakarta Expression Language defines an expression language for Java applications
-url: https://github.com/eclipse-ee4j/el-ri
+url: https://projects.eclipse.org/projects/ee4j.el
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -1547,7 +1548,7 @@ license url: https://opensource.org/licenses/EPL-2.0
 jakarta.servlet.jsp:jakarta.servlet.jsp-api:3.1.0
 name: jakarta.servlet.jsp-api
 description: Jakarta Server Pages API
-url: https://github.com/eclipse-ee4j/jsp-api
+url: https://projects.eclipse.org/projects/ee4j.jsp
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -1589,6 +1590,7 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 jakarta.websocket:jakarta.websocket-api:2.1.1
 name: jakarta.websocket-api
 description: Jakarta WebSocket - Server API
+url: https://projects.eclipse.org/projects/ee4j.websocket
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -1630,23 +1632,9 @@ name: jcip-annotations
 license: Unlicense
 license url: https://choosealicense.com/licenses/unlicense/
 ========================================================================
-net.minidev:accessors-smart:2.5.0
-name: accessors-smart
-description: Java reflect give poor performance on getter setter an constructor calls, accessors-smart use ASM to speed up those calls.
-url: https://urielch.github.io/
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 net.minidev:accessors-smart:2.5.2
 name: accessors-smart
 description: Java reflect give poor performance on getter setter an constructor calls, accessors-smart use ASM to speed up those calls.
-url: https://urielch.github.io/
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-net.minidev:json-smart:2.5.0
-name: json-smart
-description: JSON (JavaScript Object Notation) is a lightweight data-interchange format. It is easy for humans to read and write. It is easy for machines to parse and generate. It is based on a subset of the JavaScript Programming Language, Standard ECMA-262 3rd Edition - December 1999. JSON is a text format that is completely language independent but uses conventions that are familiar to programmers of the C-family of languages, including C, C++, C#, Java, JavaScript, Perl, Python, and many others. These properties make JSON an ideal data-interchange language.
 url: https://urielch.github.io/
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
@@ -1657,13 +1645,6 @@ description: JSON (JavaScript Object Notation) is a lightweight data-interchange
 url: https://urielch.github.io/
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.apache.commons:commons-lang3:3.17.0
-name: commons-lang3
-description: Apache Commons Lang, a package of Java utility classes for the classes that are in java.lang's hierarchy, or are considered to be so standard as to justify existence in java.lang. The code is tested using the latest revision of the JDK for supported LTS releases: 8, 11, 17 and 21 currently. See https://github.com/apache/commons-lang/blob/master/.github/workflows/maven.yml Please ensure your build environment is up-to-date and kindly report any build issues.
-url: https://commons.apache.org/proper/commons-lang/
-license: Apache-2.0
-license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
 org.apache.commons:commons-lang3:3.18.0
 name: commons-lang3
@@ -1923,20 +1904,19 @@ license url: https://opensource.org/licenses/BSD-3-Clause
 org.eclipse.jgit:org.eclipse.jgit.ssh.apache:5.13.0.202109080827-r
 name: org.eclipse.jgit.ssh.apache
 description: SSH support for JGit based on Apache MINA sshd
-url: https://www.eclipse.org/jgit//org.eclipse.jgit.ssh.apache
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
 org.eclipse.jgit:org.eclipse.jgit.ssh.apache:6.10.0.202406032230-r
 name: org.eclipse.jgit.ssh.apache
 description: SSH support for JGit based on Apache MINA sshd
-url: https://www.eclipse.org/jgit//org.eclipse.jgit.ssh.apache
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
 org.eclipse.jgit:org.eclipse.jgit.ssh.apache:6.2.0.202206071550-r
 name: org.eclipse.jgit.ssh.apache
 description: SSH support for JGit based on Apache MINA sshd
+url: https://www.eclipse.org/jgit//org.eclipse.jgit.ssh.apache
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
@@ -1950,6 +1930,7 @@ license url: https://opensource.org/licenses/BSD-3-Clause
 org.eclipse.jgit:org.eclipse.jgit:6.10.0.202406032230-r
 name: org.eclipse.jgit
 description: Repository access and algorithms
+url: https://www.eclipse.org/jgit//org.eclipse.jgit
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
@@ -1970,7 +1951,6 @@ license url: https://opensource.org/licenses/Apache-2.0
 org.glassfish.expressly:expressly:5.0.0
 name: expressly
 description: Jakarta Expression Language Implementation
-url: https://projects.eclipse.org/projects/ee4j.expressly
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -2105,7 +2085,7 @@ license url: https://opensource.org/licenses/EPL-2.0
 org.glassfish:jakarta.enterprise.concurrent:3.0.0
 name: jakarta.enterprise.concurrent
 description: Compatible Implementation of Jakarta Concurrency
-url: https://projects.eclipse.org/projects/ee4j.cu
+url: https://github.com/eclipse-ee4j/concurrency-ri
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -2981,6 +2961,7 @@ license url: http://repository.jboss.org/licenses/cc0-1.0.txt
 org.jboss:jboss-vfs:3.2.15.Final
 name: jboss-vfs
 description: A VFS library
+url: https://github.com/jbossas/jboss-vfs
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -3142,28 +3123,21 @@ description: SLF4J JDK14 Binding
 license: MIT
 license url: https://opensource.org/license/mit/
 ========================================================================
-org.springdoc:springdoc-openapi-starter-common:2.8.4
+org.springdoc:springdoc-openapi-starter-common:2.8.13
 name: springdoc-openapi-starter-common
 description: Spring openapi documentation
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.4
+org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.13
 name: springdoc-openapi-starter-webmvc-api
 description: Spring openapi documentation
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4
+org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13
 name: springdoc-openapi-starter-webmvc-ui
 description: Spring openapi documentation
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework.boot:spring-boot-autoconfigure:3.5.4
-name: spring-boot-autoconfigure
-description: Spring Boot AutoConfigure
-url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -3188,23 +3162,9 @@ url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-jersey:3.5.4
-name: spring-boot-starter-jersey
-description: Starter for building RESTful web applications using JAX-RS and Jersey. An alternative to spring-boot-starter-web
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework.boot:spring-boot-starter-jersey:3.5.6
 name: spring-boot-starter-jersey
 description: Starter for building RESTful web applications using JAX-RS and Jersey. An alternative to spring-boot-starter-web
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework.boot:spring-boot-starter-json:3.5.4
-name: spring-boot-starter-json
-description: Starter for reading and writing json
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
@@ -3237,23 +3197,9 @@ url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-tomcat:3.5.4
-name: spring-boot-starter-tomcat
-description: Starter for using Tomcat as the embedded servlet container. Default servlet container starter used by spring-boot-starter-web
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework.boot:spring-boot-starter-tomcat:3.5.6
 name: spring-boot-starter-tomcat
 description: Starter for using Tomcat as the embedded servlet container. Default servlet container starter used by spring-boot-starter-web
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework.boot:spring-boot-starter-validation:3.5.4
-name: spring-boot-starter-validation
-description: Starter for using Java Bean Validation with Hibernate Validator
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
@@ -3268,13 +3214,6 @@ license url: https://opensource.org/licenses/Apache-2.0
 org.springframework.boot:spring-boot-starter-web:3.5.6
 name: spring-boot-starter-web
 description: Starter for building web, including RESTful, applications using Spring MVC. Uses Tomcat as the default embedded container
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework.boot:spring-boot-starter:3.5.4
-name: spring-boot-starter
-description: Core starter, including auto-configuration support, logging and YAML
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
@@ -3349,21 +3288,7 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-aop:6.2.9
-name: spring-aop
-description: Spring AOP
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework:spring-beans:6.2.11
-name: spring-beans
-description: Spring Beans
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework:spring-beans:6.2.9
 name: spring-beans
 description: Spring Beans
 url: https://github.com/spring-projects/spring-framework
@@ -3377,21 +3302,7 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-context:6.2.9
-name: spring-context
-description: Spring Context
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework:spring-core:6.2.11
-name: spring-core
-description: Spring Core
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework:spring-core:6.2.9
 name: spring-core
 description: Spring Core
 url: https://github.com/spring-projects/spring-framework
@@ -3405,21 +3316,7 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-expression:6.2.9
-name: spring-expression
-description: Spring Expression Language (SpEL)
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework:spring-jcl:6.2.11
-name: spring-jcl
-description: Spring Commons Logging Bridge
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework:spring-jcl:6.2.9
 name: spring-jcl
 description: Spring Commons Logging Bridge
 url: https://github.com/spring-projects/spring-framework
@@ -3454,13 +3351,6 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-web:6.2.9
-name: spring-web
-description: Spring Web
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework:spring-webmvc:6.2.11
 name: spring-webmvc
 description: Spring Web MVC
@@ -3468,7 +3358,7 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.webjars:swagger-ui:5.18.2
+org.webjars:swagger-ui:5.28.1
 name: swagger-ui
 description: WebJar for Swagger UI
 url: https://www.webjars.org
