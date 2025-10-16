@@ -1,6 +1,6 @@
 #!groovy
 
-@Library('cib-pipeline-library@DEVOPS-146_high-resources') _
+@Library('cib-pipeline-library') _
 
 import de.cib.pipeline.library.Constants
 import de.cib.pipeline.library.kubernetes.BuildPodCreator
@@ -15,14 +15,23 @@ import groovy.transform.Field
     pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
     mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
     uiParamPresets: [:],
-    testMode: false
+    testMode: false,
+    buildPodConfig: [
+        (Constants.MAVEN_JDK_17_CONTAINER): [
+            resources: [
+                cpu: '4',
+                memory: '12Gi',
+                ephemeralStorage: '12Gi'
+            ]
+        ]
+    ]
 ]
 
 pipeline {
     agent {
         kubernetes {
-            yaml BuildPodCreator.cibStandardPod()
-                    .withContainerFromName(pipelineParams.mvnContainerName, [memory: "12Gi", ephemeralStorage: "12Gi"])
+            yaml BuildPodCreator.cibStandardPod(nodepool: Constants.NODEPOOL_STABLE)
+                    .withContainerFromName(pipelineParams.mvnContainerName, pipelineParams.buildPodConfig[pipelineParams.mvnContainerName])
                     .asYaml()
             defaultContainer pipelineParams.mvnContainerName
         }
@@ -336,7 +345,11 @@ pipeline {
                 script {
                     String deployment = ""
                     if (isPatchVersion()) {
-                        deployment = "-Dnexus.release.repository.id=mvn-cibseven-private -Dnexus.release.repository=https://artifacts.cibseven.de/repository/private"
+                        if (isSNAPSHOTVersion()) {
+                            deployment = "-Dnexus.snapshot.repository.id=mvn-cibseven-private -Dnexus.snapshot.repository=https://artifacts.cibseven.de/repository/private-snapshots"
+                        } else {
+                            deployment = "-Dnexus.release.repository.id=mvn-cibseven-private -Dnexus.release.repository=https://artifacts.cibseven.de/repository/private"
+                        }
                     }
 
                     withMaven(options: []) {
@@ -512,6 +525,10 @@ def isPatchVersion() {
     return version[2].tokenize('-')[0] != "0"
 }
 
+def isSNAPSHOTVersion() {
+    return mavenProjectInformation.version.endsWith("-SNAPSHOT")
+}
+
 // returns "1.2" for versions
 // - "1.2.0"
 // - "1.2.3-SNAPSHOT"
@@ -521,7 +538,7 @@ def getDocsVersion() {
 }
 
 def getDocsRepoName() {
-    if (mavenProjectInformation.version.indexOf("SNAPSHOT") > 0) {
+    if (isSNAPSHOTVersion()) {
         return "docs-staging.cibseven.org"
     }
     else {
