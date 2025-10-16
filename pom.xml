@@ -3,15 +3,15 @@
 
   <parent>
     <groupId>org.cibseven</groupId>
-	  <artifactId>release-parent-ee</artifactId>
-	  <version>1.0.0</version>
+	  <artifactId>release-parent</artifactId>
+	  <version>1.1.0</version>
     <!-- do not remove empty tag - http://jira.codehaus.org/browse/MNG-4687 -->
     <relativePath />
   </parent>
 
   <groupId>org.cibseven.bpm</groupId>
   <artifactId>cibseven-root</artifactId>
-  <version>2.1.0-ee-SNAPSHOT</version>
+  <version>2.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>CIB seven - Root Pom</name>
   <inceptionYear>2024</inceptionYear>
@@ -295,19 +295,6 @@
       for local builds by developers on maintainance branches, jboss and maven central -->
       <url>https://artifacts.cibseven.org/repository/mvn-group</url>
     </repository>
-    <repository>
-      <!-- Required for local enterprise releases and parent pom -->
-      <id>mvn-cibseven-enterprise</id>
-      <name>CIB seven Enterprise repository</name>
-      <url>https://artifacts.cibseven.org/repository/enterprise</url>
-    </repository>
-    <repository>
-      <!-- Required for local enterprise snapshots and parent pom -->
-      <id>mvn-cibseven-enterprise-snapshots</id>
-      <name>CIB seven Enterprise Snapshots repository</name>
-      <url>https://artifacts.cibseven.org/repository/enterprise-snapshots</url>
-    </repository>
-
   </repositories>
   
   <licenses>

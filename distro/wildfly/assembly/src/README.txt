@@ -5,7 +5,7 @@ This is a distribution of
 visit
        http://docs.cibseven.org/
 
-License information can be found in the LICENSE and LICENSE-ENTERPRISE files.
+License information can be found in the LICENSE file.
 
 CIB seven includes libraries developed by third
 parties. For license and attribution notices for these libraries,

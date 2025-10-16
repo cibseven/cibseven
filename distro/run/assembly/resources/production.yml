@@ -140,7 +140,7 @@ cibseven:
     
     # BPM Provider
     bpm:
-      provider: org.cibseven.webapp.providers.SevenProviderEE
+      provider: org.cibseven.webapp.providers.SevenProvider
 
     # User providers
     user:
