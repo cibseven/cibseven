@@ -1245,7 +1245,7 @@ url: https://commons.apache.org/proper/commons-codec/
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-commons-fileupload:commons-fileupload:1.5
+commons-fileupload:commons-fileupload:1.6.0
 name: commons-fileupload
 description: The Apache Commons FileUpload component provides a simple yet flexible means of adding support for multipart file upload functionality to servlets and web applications.
 url: https://commons.apache.org/proper/commons-fileupload/
@@ -1297,6 +1297,13 @@ url: https://github.com/micrometer-metrics/micrometer
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
+io.micrometer:micrometer-core:1.15.4
+name: micrometer-core
+description: Core module of Micrometer containing instrumentation API and implementation
+url: https://github.com/micrometer-metrics/micrometer
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
 io.micrometer:micrometer-observation:1.15.4
 name: micrometer-observation
 description: Module containing Observation related code
@@ -1337,13 +1344,13 @@ description: swagger-annotations-jakarta
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-io.swagger.core.v3:swagger-core-jakarta:2.2.28
+io.swagger.core.v3:swagger-core-jakarta:2.2.36
 name: swagger-core-jakarta
 description: swagger-core-jakarta
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-io.swagger.core.v3:swagger-models-jakarta:2.2.28
+io.swagger.core.v3:swagger-models-jakarta:2.2.36
 name: swagger-models-jakarta
 description: swagger-models-jakarta
 license: Apache-2.0
@@ -1384,7 +1391,7 @@ license url: https://opensource.org/licenses/BSD-3-Clause
 jakarta.annotation:jakarta.annotation-api:2.1.1
 name: jakarta.annotation-api
 description: Jakarta Annotations API
-url: https://github.com/eclipse-ee4j/common-annotations-api
+url: https://projects.eclipse.org/projects/ee4j.ca
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -1625,23 +1632,9 @@ name: jcip-annotations
 license: Unlicense
 license url: https://choosealicense.com/licenses/unlicense/
 ========================================================================
-net.minidev:accessors-smart:2.5.0
-name: accessors-smart
-description: Java reflect give poor performance on getter setter an constructor calls, accessors-smart use ASM to speed up those calls.
-url: https://urielch.github.io/
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 net.minidev:accessors-smart:2.5.2
 name: accessors-smart
 description: Java reflect give poor performance on getter setter an constructor calls, accessors-smart use ASM to speed up those calls.
-url: https://urielch.github.io/
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-net.minidev:json-smart:2.5.0
-name: json-smart
-description: JSON (JavaScript Object Notation) is a lightweight data-interchange format. It is easy for humans to read and write. It is easy for machines to parse and generate. It is based on a subset of the JavaScript Programming Language, Standard ECMA-262 3rd Edition - December 1999. JSON is a text format that is completely language independent but uses conventions that are familiar to programmers of the C-family of languages, including C, C++, C#, Java, JavaScript, Perl, Python, and many others. These properties make JSON an ideal data-interchange language.
 url: https://urielch.github.io/
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
@@ -1911,14 +1904,12 @@ license url: https://opensource.org/licenses/BSD-3-Clause
 org.eclipse.jgit:org.eclipse.jgit.ssh.apache:5.13.0.202109080827-r
 name: org.eclipse.jgit.ssh.apache
 description: SSH support for JGit based on Apache MINA sshd
-url: https://www.eclipse.org/jgit//org.eclipse.jgit.ssh.apache
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
 org.eclipse.jgit:org.eclipse.jgit.ssh.apache:6.10.0.202406032230-r
 name: org.eclipse.jgit.ssh.apache
 description: SSH support for JGit based on Apache MINA sshd
-url: https://www.eclipse.org/jgit//org.eclipse.jgit.ssh.apache
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
@@ -1960,7 +1951,6 @@ license url: https://opensource.org/licenses/Apache-2.0
 org.glassfish.expressly:expressly:5.0.0
 name: expressly
 description: Jakarta Expression Language Implementation
-url: https://projects.eclipse.org/projects/ee4j.expressly
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -2095,7 +2085,7 @@ license url: https://opensource.org/licenses/EPL-2.0
 org.glassfish:jakarta.enterprise.concurrent:3.0.0
 name: jakarta.enterprise.concurrent
 description: Compatible Implementation of Jakarta Concurrency
-url: https://projects.eclipse.org/projects/ee4j.cu
+url: https://github.com/eclipse-ee4j/concurrency-ri
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -2133,6 +2123,13 @@ description: Truffle is a multi-language framework for executing dynamic languag
 url: https://github.com/oracle/graal/tree/master/truffle
 license: UPL-1.0
 license url: https://opensource.org/licenses/UPL
+========================================================================
+org.hdrhistogram:HdrHistogram:2.2.2
+name: HdrHistogram
+description: HdrHistogram supports the recording and analyzing sampled data value counts across a configurable integer value range with configurable value precision within the range. Value precision is expressed as the number of significant digits in the value recording, and provides control over value quantization behavior across the value range and the subsequent value resolution at any given level.
+url: http://hdrhistogram.github.io/HdrHistogram/
+license: CC0-1.0
+license url: https://creativecommons.org/publicdomain/zero/1.0/
 ========================================================================
 org.hibernate.validator:hibernate-validator-cdi:6.0.22.Final
 name: hibernate-validator-cdi
@@ -3035,6 +3032,13 @@ description: Annotation-driven META-INF/services auto-generation
 license: MIT
 license url: https://opensource.org/license/mit/
 ========================================================================
+org.latencyutils:LatencyUtils:2.0.3
+name: LatencyUtils
+description: LatencyUtils is a package that provides latency recording and reporting utilities.
+url: http://latencyutils.github.io/LatencyUtils/
+license: CC0-1.0
+license url: https://creativecommons.org/publicdomain/zero/1.0/
+========================================================================
 org.mybatis:mybatis:3.5.15
 name: mybatis
 description: The MyBatis SQL mapper framework makes it easier to use a relational database with object-oriented applications. MyBatis couples objects with stored procedures or SQL statements using a XML descriptor or annotations. Simplicity is the biggest advantage of the MyBatis data mapper over object relational mapping tools.
@@ -3055,6 +3059,13 @@ description: ASM, a very small and fast Java bytecode manipulation framework
 url: https://gitlab.ow2.org/asm/asm/
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
+========================================================================
+org.projectlombok:lombok:1.18.40
+name: lombok
+description: Spice up your java: Automatic Resource Management, automatic generation of getters, setters, equals, hashCode and toString, and more!
+url: https://projectlombok.org
+license: MIT
+license url: https://opensource.org/licenses/MIT
 ========================================================================
 org.projectodd.vdx:vdx-core:1.1.6
 name: vdx-core
@@ -3112,34 +3123,34 @@ description: SLF4J JDK14 Binding
 license: MIT
 license url: https://opensource.org/license/mit/
 ========================================================================
-org.springdoc:springdoc-openapi-starter-common:2.8.4
+org.springdoc:springdoc-openapi-starter-common:2.8.13
 name: springdoc-openapi-starter-common
 description: Spring openapi documentation
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.4
+org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.13
 name: springdoc-openapi-starter-webmvc-api
 description: Spring openapi documentation
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4
+org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13
 name: springdoc-openapi-starter-webmvc-ui
 description: Spring openapi documentation
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework.boot:spring-boot-autoconfigure:3.5.4
-name: spring-boot-autoconfigure
-description: Spring Boot AutoConfigure
-url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
 org.springframework.boot:spring-boot-autoconfigure:3.5.6
 name: spring-boot-autoconfigure
 description: Spring Boot AutoConfigure
+url: https://github.com/spring-projects/spring-boot
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+org.springframework.boot:spring-boot-configuration-processor:3.5.6
+name: spring-boot-configuration-processor
+description: Spring Boot Configuration Annotation Processor
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
@@ -3151,23 +3162,9 @@ url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-jersey:3.5.4
-name: spring-boot-starter-jersey
-description: Starter for building RESTful web applications using JAX-RS and Jersey. An alternative to spring-boot-starter-web
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework.boot:spring-boot-starter-jersey:3.5.6
 name: spring-boot-starter-jersey
 description: Starter for building RESTful web applications using JAX-RS and Jersey. An alternative to spring-boot-starter-web
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework.boot:spring-boot-starter-json:3.5.4
-name: spring-boot-starter-json
-description: Starter for reading and writing json
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
@@ -3200,23 +3197,9 @@ url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-tomcat:3.5.4
-name: spring-boot-starter-tomcat
-description: Starter for using Tomcat as the embedded servlet container. Default servlet container starter used by spring-boot-starter-web
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework.boot:spring-boot-starter-tomcat:3.5.6
 name: spring-boot-starter-tomcat
 description: Starter for using Tomcat as the embedded servlet container. Default servlet container starter used by spring-boot-starter-web
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework.boot:spring-boot-starter-validation:3.5.4
-name: spring-boot-starter-validation
-description: Starter for using Java Bean Validation with Hibernate Validator
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
@@ -3231,13 +3214,6 @@ license url: https://opensource.org/licenses/Apache-2.0
 org.springframework.boot:spring-boot-starter-web:3.5.6
 name: spring-boot-starter-web
 description: Starter for building web, including RESTful, applications using Spring MVC. Uses Tomcat as the default embedded container
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework.boot:spring-boot-starter:3.5.4
-name: spring-boot-starter
-description: Core starter, including auto-configuration support, logging and YAML
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
@@ -3312,21 +3288,7 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-aop:6.2.9
-name: spring-aop
-description: Spring AOP
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework:spring-beans:6.2.11
-name: spring-beans
-description: Spring Beans
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework:spring-beans:6.2.9
 name: spring-beans
 description: Spring Beans
 url: https://github.com/spring-projects/spring-framework
@@ -3340,21 +3302,7 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-context:6.2.9
-name: spring-context
-description: Spring Context
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework:spring-core:6.2.11
-name: spring-core
-description: Spring Core
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework:spring-core:6.2.9
 name: spring-core
 description: Spring Core
 url: https://github.com/spring-projects/spring-framework
@@ -3368,21 +3316,7 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-expression:6.2.9
-name: spring-expression
-description: Spring Expression Language (SpEL)
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework:spring-jcl:6.2.11
-name: spring-jcl
-description: Spring Commons Logging Bridge
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework:spring-jcl:6.2.9
 name: spring-jcl
 description: Spring Commons Logging Bridge
 url: https://github.com/spring-projects/spring-framework
@@ -3417,13 +3351,6 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-web:6.2.9
-name: spring-web
-description: Spring Web
-url: https://github.com/spring-projects/spring-framework
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 org.springframework:spring-webmvc:6.2.11
 name: spring-webmvc
 description: Spring Web MVC
@@ -3431,7 +3358,7 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.webjars:swagger-ui:5.18.2
+org.webjars:swagger-ui:5.28.1
 name: swagger-ui
 description: WebJar for Swagger UI
 url: https://www.webjars.org
@@ -5141,9 +5068,23 @@ url: https://github.com/babel/babel
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+@bpmn-io:align-to-origin:0.7.0
+name: align-to-origin
+description: Align diagrams to the diagram origin
+url: https://github.com/bpmn-io/align-to-origin
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 @bpmn-io:cm-theme:0.1.0-alpha.2
 name: cm-theme
 description: Codemirror themes for bpmn-io
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+@bpmn-io:diagram-js-ui:0.2.2
+name: diagram-js-ui
+description: [![CI](https://github.com/bpmn-io/diagram-js-ui/actions/workflows/CI.yml/badge.svg)](https://github.com/bpmn-io/diagram-js-ui/actions/workflows/CI.yml)
+url: https://github.com/bpmn-io/diagram-js-ui
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -5154,9 +5095,29 @@ url: https://github.com/bpmn-io/diagram-js-ui
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+@bpmn-io:dmn-migrate:0.5.0
+name: dmn-migrate
+description: Migrate DMN diagrams to the latest DMN standard.
+url: https://github.com/bpmn-io/dmn-migrate
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+@bpmn-io:dmn-variable-resolver:0.4.0
+name: dmn-variable-resolver
+description: dmn-js plugin for resolving available variables
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 @bpmn-io:dmn-variable-resolver:0.7.0
 name: dmn-variable-resolver
 description: dmn-js plugin for resolving available variables
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+@bpmn-io:draggle:4.1.0
+name: draggle
+description: Drag and drop so simple it hurts
+url: https://github.com/bpmn-io/draggle
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -5174,6 +5135,20 @@ url: https://github.com/bpmn-io/feel-editor
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+@bpmn-io:feel-editor:1.4.0
+name: feel-editor
+description: Editor for FEEL expressions.
+url: https://github.com/bpmn-io/feel-editor
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+@bpmn-io:feel-lint:1.2.0
+name: feel-lint
+description: Linter for FEEL expressions.
+url: https://github.com/bpmn-io/feel-linter
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 @bpmn-io:feel-lint:1.4.0
 name: feel-lint
 description: Linter for FEEL expressions.
@@ -5188,7 +5163,21 @@ url: https://github.com/bpmn-io/form-js
 license: MIT*
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+@bpmn-io:form-js-carbon-styles:1.8.7
+name: form-js-carbon-styles
+description: Custom carbon styles for form-js
+url: https://github.com/bpmn-io/form-js
+license: MIT*
+license url: https://opensource.org/licenses/MIT
+========================================================================
 @bpmn-io:form-js-editor:1.15.3
+name: form-js-editor
+description: Edit forms - powered by bpmn.io
+url: https://github.com/bpmn-io/form-js
+license: MIT*
+license url: https://opensource.org/licenses/MIT
+========================================================================
+@bpmn-io:form-js-editor:1.8.7
 name: form-js-editor
 description: Edit forms - powered by bpmn.io
 url: https://github.com/bpmn-io/form-js
@@ -5202,7 +5191,21 @@ url: https://github.com/bpmn-io/form-js
 license: MIT*
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+@bpmn-io:form-js-playground:1.8.7
+name: form-js-playground
+description: A form-js playground
+url: https://github.com/bpmn-io/form-js
+license: MIT*
+license url: https://opensource.org/licenses/MIT
+========================================================================
 @bpmn-io:form-js-viewer:1.15.3
+name: form-js-viewer
+description: View forms - powered by bpmn.io
+url: https://github.com/bpmn-io/form-js
+license: MIT*
+license url: https://opensource.org/licenses/MIT
+========================================================================
+@bpmn-io:form-js-viewer:1.8.7
 name: form-js-viewer
 description: View forms - powered by bpmn.io
 url: https://github.com/bpmn-io/form-js
@@ -5216,6 +5219,20 @@ url: https://github.com/bpmn-io/form-js
 license: MIT*
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+@bpmn-io:form-js:1.8.7
+name: form-js
+description: View and edit forms - powered by bpmn.io
+url: https://github.com/bpmn-io/form-js
+license: MIT*
+license url: https://opensource.org/licenses/MIT
+========================================================================
+@bpmn-io:properties-panel:3.18.2
+name: properties-panel
+description: Library for creating bpmn-io properties panels.
+url: https://github.com/bpmn-io/properties-panel
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 @bpmn-io:properties-panel:3.30.0
 name: properties-panel
 description: Library for creating bpmn-io properties panels.
@@ -5223,9 +5240,23 @@ url: https://github.com/bpmn-io/properties-panel
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+@carbon:grid:11.23.0
+name: grid
+description: Grid for digital and software products using the Carbon Design System
+url: https://github.com/carbon-design-system/carbon
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
 @carbon:grid:11.38.0
 name: grid
 description: Grid for digital and software products using the Carbon Design System
+url: https://github.com/carbon-design-system/carbon
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+@carbon:layout:11.22.0
+name: layout
+description: Layout helpers for digital and software products using the Carbon Design System
 url: https://github.com/carbon-design-system/carbon
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
@@ -5237,10 +5268,24 @@ url: https://github.com/carbon-design-system/carbon
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
+@codemirror:autocomplete:6.16.0
+name: autocomplete
+description: Autocompletion for the CodeMirror code editor
+url: https://github.com/codemirror/autocomplete
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 @codemirror:autocomplete:6.18.6
 name: autocomplete
 description: Autocompletion for the CodeMirror code editor
 url: https://github.com/codemirror/autocomplete
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+@codemirror:commands:6.5.0
+name: commands
+description: Collection of editing commands for the CodeMirror code editor
+url: https://github.com/codemirror/commands
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -5251,6 +5296,13 @@ url: https://github.com/codemirror/commands
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+@codemirror:lang-json:6.0.1
+name: lang-json
+description: JSON language support for the CodeMirror code editor
+url: https://github.com/codemirror/lang-json
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 @codemirror:lang-json:6.0.2
 name: lang-json
 description: JSON language support for the CodeMirror code editor
@@ -5258,10 +5310,24 @@ url: https://github.com/codemirror/lang-json
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+@codemirror:language:6.10.1
+name: language
+description: Language support infrastructure for the CodeMirror code editor
+url: https://github.com/codemirror/language
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 @codemirror:language:6.11.2
 name: language
 description: Language support infrastructure for the CodeMirror code editor
 url: https://github.com/codemirror/language
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+@codemirror:lint:6.7.1
+name: lint
+description: Linting support for the CodeMirror code editor
+url: https://github.com/codemirror/lint
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -5279,10 +5345,31 @@ url: https://github.com/codemirror/search
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+@codemirror:search:6.5.6
+name: search
+description: Search functionality for the CodeMirror code editor
+url: https://github.com/codemirror/search
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+@codemirror:state:6.4.1
+name: state
+description: Editor state data structures for the CodeMirror code editor
+url: https://github.com/codemirror/state
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 @codemirror:state:6.5.2
 name: state
 description: Editor state data structures for the CodeMirror code editor
 url: https://github.com/codemirror/state
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+@codemirror:view:6.26.3
+name: view
+description: DOM view component for the CodeMirror code editor
+url: https://github.com/codemirror/view
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -5292,6 +5379,20 @@ description: DOM view component for the CodeMirror code editor
 url: https://github.com/codemirror/view
 license: MIT
 license url: https://opensource.org/licenses/MIT
+========================================================================
+@ibm:plex:6.4.0
+name: plex
+description: The package of IBM’s typeface, IBM Plex
+url: https://github.com/ibm/plex
+license: OFL-1.1
+license url: https://opensource.org/license/ofl-1-1
+========================================================================
+@ibm:telemetry-js:1.5.1
+name: telemetry-js
+description: JavaScript telemetry tooling for open/inner source projects
+url: https://github.com/ibm-telemetry/telemetry-js
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
 @ibm:telemetry-js:1.9.1
 name: telemetry-js
@@ -5328,10 +5429,31 @@ url: https://github.com/jridgewell/sourcemaps
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+@kurkle:color:0.3.2
+name: color
+description: css color parsing, manupulation and conversion
+url: https://github.com/kurkle/color
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+@lezer:common:1.2.1
+name: common
+description: Syntax tree data structure and parser interfaces for the lezer parser
+url: https://github.com/lezer-parser/common
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 @lezer:common:1.2.3
 name: common
 description: Syntax tree data structure and parser interfaces for the lezer parser
 url: https://github.com/lezer-parser/common
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+@lezer:highlight:1.2.0
+name: highlight
+description: Highlighting system for Lezer parse trees
+url: https://github.com/lezer-parser/highlight
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -5342,6 +5464,13 @@ url: https://github.com/lezer-parser/highlight
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+@lezer:json:1.0.2
+name: json
+description: lezer-based JSON grammar
+url: https://github.com/lezer-parser/json
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 @lezer:json:1.0.3
 name: json
 description: lezer-based JSON grammar
@@ -5349,10 +5478,24 @@ url: https://github.com/lezer-parser/json
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+@lezer:lr:1.4.0
+name: lr
+description: Incremental parser
+url: https://github.com/lezer-parser/lr
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 @lezer:lr:1.4.2
 name: lr
 description: Incremental parser
 url: https://github.com/lezer-parser/lr
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+@lezer:markdown:1.2.0
+name: markdown
+description: Incremental Markdown parser that consumes and emits Lezer trees
+url: https://github.com/lezer-parser/markdown
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -5524,10 +5667,101 @@ url: https://github.com/acornjs/acorn
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+angular-animate:1.8.2
+name: angular-animate
+description: AngularJS module for animations
+url: https://github.com/angular/angular.js
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+angular-cookies:1.8.2
+name: angular-cookies
+description: AngularJS module for cookies
+url: https://github.com/angular/angular.js
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+angular-data-depend:1.0.0
+name: angular-data-depend
+description: A toolkit for implementing complex, data heavy AngularJS applications
+url: https://github.com/Nikku/angular-data-depend
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+angular-loader:1.8.3
+name: angular-loader
+description: AngularJS module for asynchronously loading modules
+url: https://github.com/angular/angular.js
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+angular-moment:1.3.0
+name: angular-moment
+description: angular-moment ==============
+url: https://github.com/urish/angular-moment
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+angular-resource:1.8.2
+name: angular-resource
+description: AngularJS module for interacting with RESTful server-side data sources
+url: https://github.com/angular/angular.js
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+angular-route:1.8.2
+name: angular-route
+description: AngularJS router module
+url: https://github.com/angular/angular.js
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+angular-sanitize:1.8.2
+name: angular-sanitize
+description: AngularJS module for sanitizing HTML
+url: https://github.com/angular/angular.js
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+angular-touch:1.8.2
+name: angular-touch
+description: AngularJS module for touch events and helpers for touch-enabled devices
+url: https://github.com/angular/angular.js
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+angular-translate:2.19.0
+name: angular-translate
+description: A translation module for AngularJS
+url: https://github.com/angular-translate/angular-translate
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+angular-ui-bootstrap:2.5.6
+name: angular-ui-bootstrap
+description: Native AngularJS (Angular) directives for Bootstrap
+url: https://github.com/angular-ui/bootstrap
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+angular:1.8.2
+name: angular
+description: HTML enhanced for web apps
+url: https://github.com/angular/angular.js
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 apexcharts:4.7.0
 name: apexcharts
 description: A JavaScript Chart Library
 url: https://github.com/apexcharts/apexcharts.js
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+array-move:3.0.1
+name: array-move
+description: Move an array item to a different position
+url: https://github.com/sindresorhus/array-move
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -5566,10 +5800,24 @@ url: https://github.com/axios/axios
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+big.js:6.2.1
+name: big.js
+description: A small, fast, easy-to-use library for arbitrary-precision decimal arithmetic
+url: https://github.com/MikeMcl/big.js
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 big.js:6.2.2
 name: big.js
 description: A small, fast, easy-to-use library for arbitrary-precision decimal arithmetic
 url: https://github.com/MikeMcl/big.js
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+bootstrap:3.4.1
+name: bootstrap
+description: The most popular front-end framework for developing responsive, mobile first projects on the web.
+url: https://github.com/twbs/bootstrap
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -5586,11 +5834,32 @@ description: Camunda BPM SDK extracted as a standalone library.
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
+bpmn-font:0.12.1
+name: bpmn-font
+description: A BPMN 2.0 icon font
+url: https://github.com/bpmn-io/bpmn-font
+license: MIT*
+license url: https://opensource.org/licenses/MIT
+========================================================================
+bpmn-js:16.5.0
+name: bpmn-js
+description: A bpmn 2.0 toolkit and web modeler
+url: https://github.com/bpmn-io/bpmn-js
+license: MIT*
+license url: https://opensource.org/licenses/MIT
+========================================================================
 bpmn-js:18.6.2
 name: bpmn-js
 description: A bpmn 2.0 toolkit and web modeler
 url: https://github.com/bpmn-io/bpmn-js
 license: MIT*
+license url: https://opensource.org/licenses/MIT
+========================================================================
+bpmn-moddle:8.1.0
+name: bpmn-moddle
+description: A moddle wrapper for BPMN 2.0
+url: https://github.com/bpmn-io/bpmn-moddle
+license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
 bpmn-moddle:9.0.2
@@ -5607,6 +5876,13 @@ url: https://github.com/ljharb/call-bind-apply-helpers
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+call-bind:1.0.2
+name: call-bind
+description: Robustly `.call.bind()` a function
+url: https://github.com/ljharb/call-bind
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 call-bound:1.0.4
 name: call-bound
 description: Robust call-bound JavaScript intrinsics, using `call-bind` and `get-intrinsic`.
@@ -5619,6 +5895,32 @@ name: camunda-bpm-sdk-js
 url: camunda-bpm-platform/webapps/frontend/camunda-bpm-sdk-js
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+camunda-bpm-webapp:0.0.0
+name: camunda-bpm-webapp
+license: UNLICENSED
+license url: https://choosealicense.com/licenses/unlicense/
+========================================================================
+camunda-dmn-js:1.8.0
+name: camunda-dmn-js
+description: Embeddable Camunda modeling distributions based on dmn-js
+url: https://github.com/camunda/camunda-dmn-js
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+camunda-dmn-moddle:1.3.0
+name: camunda-dmn-moddle
+description: Camunda moddle extensions for DMN
+url: https://github.com/camunda/camunda-dmn-moddle
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+chart.js:4.4.1
+name: chart.js
+description: Simple HTML5 charts using the canvas element.
+url: https://github.com/chartjs/Chart.js
+license: MIT
+license url: https://opensource.org/licenses/MIT
 ========================================================================
 cib-common-components:2.0.3
 name: cib-common-components
@@ -5633,10 +5935,52 @@ url: https://github.com/JedWatson/classnames
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+clipboard:2.0.11
+name: clipboard
+description: Modern copy to clipboard. No Flash. Just 2kb
+url: https://github.com/zenorocha/clipboard.js
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+clsx:2.1.0
+name: clsx
+description: A tiny (239B) utility for constructing className strings conditionally.
+url: https://github.com/lukeed/clsx
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 clsx:2.1.1
 name: clsx
 description: A tiny (239B) utility for constructing className strings conditionally.
 url: https://github.com/lukeed/clsx
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+cmmn-font:0.5.0
+name: cmmn-font
+description: A CMMN 1.1 icon font
+url: https://github.com/bpmn-io/cmmn-font
+license: MIT*
+license url: https://opensource.org/licenses/MIT
+========================================================================
+cmmn-js:0.20.0
+name: cmmn-js
+description: A cmmn 1.1 toolkit
+url: https://github.com/bpmn-io/cmmn-js
+license: MIT*
+license url: https://opensource.org/licenses/MIT
+========================================================================
+cmmn-moddle:5.0.0
+name: cmmn-moddle
+description: A moddle wrapper for CMMN 1.1
+url: https://github.com/bpmn-io/cmmn-moddle
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+codemirror:6.0.1
+name: codemirror
+description: Basic configuration for the CodeMirror code editor
+url: https://github.com/codemirror/basic-setup
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -5654,11 +5998,25 @@ url: https://github.com/felixge/node-combined-stream
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+component-emitter:1.3.0
+name: component-emitter
+description: Event emitter
+url: https://github.com/component/emitter
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 component-emitter:1.3.1
 name: component-emitter
 description: Event emitter
 url: https://github.com/sindresorhus/component-emitter
 license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+component-event:0.1.4
+name: component-event
+description: Event binding component
+url: https://github.com/component/event
+license: MIT*
 license url: https://opensource.org/licenses/MIT
 ========================================================================
 component-event:0.2.1
@@ -5703,6 +6061,13 @@ url: https://github.com/bmeck/node-cookiejar
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+core-js:3.35.1
+name: core-js
+description: Standard library
+url: https://github.com/zloirock/core-js
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 crelt:1.0.6
 name: crelt
 description: Tiny DOM-element-creation utility
@@ -5724,6 +6089,13 @@ url: https://github.com/frenic/csstype
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+debug:4.3.4
+name: debug
+description: Lightweight debugging utility for Node.js and the browser
+url: https://github.com/debug-js/debug
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 debug:4.4.1
 name: debug
 description: Lightweight debugging utility for Node.js and the browser
@@ -5738,6 +6110,13 @@ url: https://github.com/felixge/node-delayed-stream
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+delegate:3.2.0
+name: delegate
+description: Lightweight event delegation
+url: https://github.com/zenorocha/delegate
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 dezalgo:1.0.4
 name: dezalgo
 description: Contain async insanity so that the dark pony lord doesn't eat souls
@@ -5745,10 +6124,52 @@ url: https://github.com/npm/dezalgo
 license: ISC
 license url: https://opensource.org/license/isc-license-txt
 ========================================================================
+diagram-js-direct-editing:1.8.0
+name: diagram-js-direct-editing
+description: Direct editing support for diagram-js
+url: https://github.com/bpmn-io/diagram-js-direct-editing
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+diagram-js-direct-editing:2.1.2
+name: diagram-js-direct-editing
+description: Direct editing support for diagram-js
+url: https://github.com/bpmn-io/diagram-js-direct-editing
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 diagram-js-direct-editing:3.2.0
 name: diagram-js-direct-editing
 description: Direct editing support for diagram-js
 url: https://github.com/bpmn-io/diagram-js-direct-editing
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+diagram-js-grid:0.2.0
+name: diagram-js-grid
+description: A visual grid for diagram-js
+url: https://github.com/bpmn-io/diagram-js-grid
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+diagram-js-origin:1.4.0
+name: diagram-js-origin
+description: A origin crosshair for diagram-js
+url: https://github.com/bpmn-io/diagram-js-origin
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+diagram-js:12.8.1
+name: diagram-js
+description: A toolbox for displaying and modifying diagrams on the web
+url: https://github.com/bpmn-io/diagram-js
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+diagram-js:13.4.0
+name: diagram-js
+description: A toolbox for displaying and modifying diagrams on the web
+url: https://github.com/bpmn-io/diagram-js
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -5759,6 +6180,20 @@ url: https://github.com/bpmn-io/diagram-js
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+diagram-js:4.0.3
+name: diagram-js
+description: A modeling framework for the web
+url: https://github.com/bpmn-io/diagram-js
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+didi:10.2.0
+name: didi
+description: Dependency Injection for JavaScript
+url: https://github.com/nikku/didi
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 didi:10.2.2
 name: didi
 description: Dependency Injection for JavaScript
@@ -5766,9 +6201,37 @@ url: https://github.com/nikku/didi
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+didi:4.0.0
+name: didi
+description: Dependency Injection for JavaScript
+url: https://github.com/nikku/didi
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+didi:9.0.2
+name: didi
+description: Dependency Injection for JavaScript
+url: https://github.com/nikku/didi
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+dmn-font:0.6.2
+name: dmn-font
+description: A DMN 1.1 icon font
+url: https://github.com/bpmn-io/dmn-font
+license: MIT*
+license url: https://opensource.org/licenses/MIT
+========================================================================
 dmn-js-boxed-expression:17.2.1
 name: dmn-js-boxed-expression
 description: A boxed expression view for dmn-js
+url: https://github.com/bpmn-io/dmn-js
+license: MIT*
+license url: https://opensource.org/licenses/MIT
+========================================================================
+dmn-js-decision-table:15.1.0
+name: dmn-js-decision-table
+description: A decision table view for dmn-js
 url: https://github.com/bpmn-io/dmn-js
 license: MIT*
 license url: https://opensource.org/licenses/MIT
@@ -5780,9 +6243,23 @@ url: https://github.com/bpmn-io/dmn-js
 license: MIT*
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+dmn-js-drd:15.1.0
+name: dmn-js-drd
+description: A decision requirements diagram view for dmn-js
+url: https://github.com/bpmn-io/dmn-js
+license: MIT*
+license url: https://opensource.org/licenses/MIT
+========================================================================
 dmn-js-drd:17.2.1
 name: dmn-js-drd
 description: A decision requirements diagram view for dmn-js
+url: https://github.com/bpmn-io/dmn-js
+license: MIT*
+license url: https://opensource.org/licenses/MIT
+========================================================================
+dmn-js-literal-expression:15.1.0
+name: dmn-js-literal-expression
+description: A literal expression view for dmn-js
 url: https://github.com/bpmn-io/dmn-js
 license: MIT*
 license url: https://opensource.org/licenses/MIT
@@ -5794,9 +6271,30 @@ url: https://github.com/bpmn-io/dmn-js
 license: MIT*
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+dmn-js-properties-panel:3.2.1
+name: dmn-js-properties-panel
+description: A properties panel for dmn-js
+url: https://github.com/bpmn-io/dmn-js-properties-panel
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+dmn-js-shared:15.1.0
+name: dmn-js-shared
+description: Shared components used by dmn-js
+url: https://github.com/bpmn-io/dmn-js
+license: MIT*
+license url: https://opensource.org/licenses/MIT
+========================================================================
 dmn-js-shared:17.2.1
 name: dmn-js-shared
 description: Shared components used by dmn-js
+url: https://github.com/bpmn-io/dmn-js
+license: MIT*
+license url: https://opensource.org/licenses/MIT
+========================================================================
+dmn-js:15.1.0
+name: dmn-js
+description: A dmn toolkit and web modeler
 url: https://github.com/bpmn-io/dmn-js
 license: MIT*
 license url: https://opensource.org/licenses/MIT
@@ -5815,10 +6313,31 @@ url: https://github.com/bpmn-io/dmn-moddle
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+dom-iterator:1.0.0
+name: dom-iterator
+description: iterator for mini-html-parser
+url: https://github.com/MatthewMueller/dom-iterator
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 dom-iterator:1.0.2
 name: dom-iterator
 description: iterator for mini-html-parser
 url: https://github.com/MatthewMueller/dom-iterator
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+dom4:2.1.6
+name: dom4
+description: a fully tested and covered polyfill for new DOM Level 4 entries
+url: https://github.com/WebReflection/dom4
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+domify:1.4.1
+name: domify
+description: turn HTML into DOM elements
+url: https://github.com/component/domify
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -5835,6 +6354,13 @@ description: Turn a HTML string into DOM elements, cross-platform
 url: https://github.com/sindresorhus/domify
 license: MIT
 license url: https://opensource.org/licenses/MIT
+========================================================================
+dompurify:3.2.4
+name: dompurify
+description: DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It's written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Firefox and Chrome - as well as almost anything else using Blink or WebKit). DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not.
+url: https://github.com/cure53/DOMPurify
+license: (MPL-2.0
+license url: https://www.mozilla.org/en-US/MPL/2.0/
 ========================================================================
 dompurify:3.2.6
 name: dompurify
@@ -5906,10 +6432,24 @@ url: https://github.com/Rich-Harris/estree-walker
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+events:3.3.0
+name: events
+description: Node's event emitter for all engines.
+url: https://github.com/Gozala/events
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 fast-safe-stringify:2.1.1
 name: fast-safe-stringify
 description: Safely and quickly serialize JavaScript objects
 url: https://github.com/davidmarkclements/fast-safe-stringify
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+fast-xml-parser:4.3.4
+name: fast-xml-parser
+description: Validate XML, Parse XML, Build XML without C/C++ based libraries
+url: https://github.com/NaturalIntelligence/fast-xml-parser
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -5920,9 +6460,22 @@ url: https://github.com/NaturalIntelligence/fast-xml-parser
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+feelers:1.3.1
+name: feelers
+description: FEELers grammar and editor for the Lezer parser system.
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 feelers:1.4.0
 name: feelers
 description: FEELers grammar and editor for the Lezer parser system.
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+feelin:3.1.0
+name: feelin
+description: A FEEL parser and interpreter
+url: https://github.com/nikku/feelin
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -5954,6 +6507,13 @@ url: https://github.com/chmln/flatpickr
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+focus-trap:7.5.4
+name: focus-trap
+description: Trap focus within a DOM node.
+url: https://github.com/focus-trap/focus-trap
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 focus-trap:7.6.5
 name: focus-trap
 description: Trap focus within a DOM node.
@@ -5968,10 +6528,24 @@ url: https://github.com/follow-redirects/follow-redirects
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+form-data:4.0.0
+name: form-data
+description: A library to create readable "multipart/form-data" streams. Can be used to submit forms and file uploads to other web applications.
+url: https://github.com/form-data/form-data
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 form-data:4.0.4
 name: form-data
 description: A library to create readable "multipart/form-data" streams. Can be used to submit forms and file uploads to other web applications.
 url: https://github.com/form-data/form-data
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+formidable:2.1.2
+name: formidable
+description: A node.js module for parsing form data, especially file uploads.
+url: https://github.com/node-formidable/formidable
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -5982,10 +6556,24 @@ url: https://github.com/node-formidable/formidable
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+function-bind:1.1.1
+name: function-bind
+description: Implementation of Function.prototype.bind
+url: https://github.com/Raynos/function-bind
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 function-bind:1.1.2
 name: function-bind
 description: Implementation of Function.prototype.bind
 url: https://github.com/Raynos/function-bind
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+get-intrinsic:1.2.0
+name: get-intrinsic
+description: Get and robustly cache all JS language-level intrinsics at first require time
+url: https://github.com/ljharb/get-intrinsic
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -6003,10 +6591,31 @@ url: https://github.com/ljharb/get-proto
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+good-listener:1.2.2
+name: good-listener
+description: A more versatile way of adding & removing event listeners
+url: https://github.com/zenorocha/good-listener
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 gopd:1.2.0
 name: gopd
 description: `Object.getOwnPropertyDescriptor`, but accounts for IE's broken implementation.
 url: https://github.com/ljharb/gopd
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+hammerjs:2.0.8
+name: hammerjs
+description: A javascript library for multi-touch gestures
+url: https://github.com/hammerjs/hammer.js
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+has-symbols:1.0.3
+name: has-symbols
+description: Determine if the JS environment has Symbol support. Supports spec, or shams.
+url: https://github.com/inspect-js/has-symbols
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -6024,10 +6633,31 @@ url: https://github.com/inspect-js/has-tostringtag
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+has:1.0.3
+name: has
+description: Object.prototype.hasOwnProperty.call shortcut
+url: https://github.com/tarruda/has
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 hasown:2.0.2
 name: hasown
 description: A robust, ES3 compatible, "has own property" predicate.
 url: https://github.com/inspect-js/hasOwn
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+hat:0.0.3
+name: hat
+description: generate random IDs and avoid collisions
+url: https://github.com/substack/node-hat
+license: MIT*
+license url: https://opensource.org/licenses/MIT
+========================================================================
+hexoid:1.0.0
+name: hexoid
+description: A tiny (190B) and extremely fast utility to generate random IDs of fixed length
+url: https://github.com/lukeed/hexoid
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -6038,10 +6668,30 @@ url: https://github.com/developit/htm
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
+ids:0.2.2
+name: ids
+description: Simple id generation and caching
+url: https://github.com/bpmn-io/ids
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 ids:1.0.5
 name: ids
 description: Simple id generation and caching
 url: https://github.com/bpmn-io/ids
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+indexof:0.0.1
+name: indexof
+description: Microsoft sucks
+license: MIT*
+license url: https://opensource.org/licenses/MIT
+========================================================================
+inferno-shared:5.6.1
+name: inferno-shared
+description: Helpers functions for Inferno
+url: https://github.com/infernojs/inferno
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -6052,9 +6702,23 @@ url: https://github.com/infernojs/inferno
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+inferno-vnode-flags:5.6.1
+name: inferno-vnode-flags
+description: Provides an enum of all possible VNode Flags used when calling Inferno.createVNode
+url: https://github.com/infernojs/inferno
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 inferno-vnode-flags:5.6.3
 name: inferno-vnode-flags
 description: Provides an enum of all possible VNode Flags used when calling Inferno.createVNode
+url: https://github.com/infernojs/inferno
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+inferno:5.6.2
+name: inferno
+description: An extremely fast, React-like JavaScript library for building modern user interfaces
 url: https://github.com/infernojs/inferno
 license: MIT
 license url: https://opensource.org/licenses/MIT
@@ -6073,6 +6737,20 @@ url: https://github.com/nikku/inherits-browser
 license: ISC
 license url: https://opensource.org/license/isc-license-txt
 ========================================================================
+inherits:2.0.4
+name: inherits
+description: Browser-friendly inheritance fully compatible with standard node.js inherits()
+url: https://github.com/isaacs/inherits
+license: ISC
+license url: https://opensource.org/license/isc-license-txt
+========================================================================
+jquery-ui:1.13.2
+name: jquery-ui
+description: A curated set of user interface interactions, effects, widgets, and themes built on top of the jQuery JavaScript Library.
+url: https://github.com/jquery/jquery-ui
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 jquery:3.7.1
 name: jquery
 description: JavaScript library for DOM operations
@@ -6087,10 +6765,24 @@ url: https://github.com/emn178/js-sha256
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+lang-feel:2.0.0
+name: lang-feel
+description: FEEL language support for the CodeMirror code editor
+url: https://github.com/nikku/lang-feel
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 lang-feel:2.3.0
 name: lang-feel
 description: FEEL language support for the CodeMirror code editor
 url: https://github.com/nikku/lang-feel
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+lezer-feel:1.2.8
+name: lezer-feel
+description: Lezer-based FEEL grammar
+url: https://github.com/nikku/lezer-feel
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -6108,6 +6800,20 @@ url: https://github.com/lodash/lodash
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+lru-cache:6.0.0
+name: lru-cache
+description: A cache object that deletes the least-recently-used items.
+url: https://github.com/isaacs/node-lru-cache
+license: ISC
+license url: https://opensource.org/license/isc-license-txt
+========================================================================
+luxon:3.4.4
+name: luxon
+description: Immutable date wrapper
+url: https://github.com/moment/luxon
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 luxon:3.6.1
 name: luxon
 description: Immutable date wrapper
@@ -6122,10 +6828,24 @@ url: https://github.com/rich-harris/magic-string
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+marked:12.0.2
+name: marked
+description: A markdown parser built for speed
+url: https://github.com/markedjs/marked
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 marked:15.0.12
 name: marked
 description: A markdown parser built for speed
 url: https://github.com/markedjs/marked
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+matches-selector:1.2.0
+name: matches-selector
+description: Check if a DOM element matches a given selector, with decent browser support and unit tests.
+url: https://github.com/ForbesLindesay/matches-selector
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -6171,10 +6891,45 @@ url: https://github.com/bpmn-io/min-dash
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+min-dash:4.0.0
+name: min-dash
+description: Minimum utility toolbelt
+url: https://github.com/bpmn-io/min-dash
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+min-dash:4.1.0
+name: min-dash
+description: Minimum utility toolbelt
+url: https://github.com/bpmn-io/min-dash
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+min-dash:4.2.1
+name: min-dash
+description: Minimum utility toolbelt
+url: https://github.com/bpmn-io/min-dash
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 min-dash:4.2.3
 name: min-dash
 description: Minimum utility toolbelt
 url: https://github.com/bpmn-io/min-dash
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+min-dom:3.2.1
+name: min-dom
+description: A minimal dom utility toolbelt
+url: https://github.com/bpmn-io/min-dom
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+min-dom:4.1.0
+name: min-dom
+description: A minimal dom utility toolbelt
+url: https://github.com/bpmn-io/min-dom
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -6206,7 +6961,21 @@ url: https://github.com/unjs/mlly
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+moddle-xml:10.1.0
+name: moddle-xml
+description: XML import/export for documents described with moddle
+url: https://github.com/bpmn-io/moddle-xml
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 moddle-xml:11.0.0
+name: moddle-xml
+description: XML import/export for documents described with moddle
+url: https://github.com/bpmn-io/moddle-xml
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+moddle-xml:7.5.0
 name: moddle-xml
 description: XML import/export for documents described with moddle
 url: https://github.com/bpmn-io/moddle-xml
@@ -6220,7 +6989,21 @@ url: https://github.com/bpmn-io/moddle-xml
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+moddle:4.1.0
+name: moddle
+description: A library for importing meta-model based file formats into JS
+url: https://github.com/bpmn-io/moddle
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 moddle:5.0.4
+name: moddle
+description: A library for importing meta-model based file formats into JS
+url: https://github.com/bpmn-io/moddle
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+moddle:6.2.3
 name: moddle
 description: A library for importing meta-model based file formats into JS
 url: https://github.com/bpmn-io/moddle
@@ -6241,6 +7024,20 @@ url: https://github.com/moment/moment
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+mousetrap:1.6.5
+name: mousetrap
+description: Simple library for handling keyboard shortcuts
+url: https://github.com/ccampbell/mousetrap
+license: Apache-2.0 WITH LLVM-exception
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+ms:2.1.2
+name: ms
+description: Tiny millisecond conversion utility
+url: https://github.com/zeit/ms
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 ms:2.1.3
 name: ms
 description: Tiny millisecond conversion utility
@@ -6255,10 +7052,24 @@ url: https://github.com/ai/nanoid
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+object-inspect:1.12.3
+name: object-inspect
+description: string representations of objects in node and the browser
+url: https://github.com/inspect-js/object-inspect
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 object-inspect:1.13.4
 name: object-inspect
 description: string representations of objects in node and the browser
 url: https://github.com/inspect-js/object-inspect
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+object-refs:0.3.0
+name: object-refs
+description: Minimal bi-directional object references for JavaScript
+url: https://github.com/bpmn-io/object-refs
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -6280,6 +7091,27 @@ opencollective-postinstall:2.0.3
 name: opencollective-postinstall
 description: Lightweight npm postinstall message to invite people to donate to your collective
 url: https://github.com/opencollective/opencollective-postinstall
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+path-intersection:1.1.1
+name: path-intersection
+description: Computes the intersection between two SVG paths
+url: https://github.com/bpmn-io/path-intersection
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+path-intersection:2.2.1
+name: path-intersection
+description: Computes the intersection between two SVG paths
+url: https://github.com/bpmn-io/path-intersection
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+path-intersection:3.0.0
+name: path-intersection
+description: Computes the intersection between two SVG paths
+url: https://github.com/bpmn-io/path-intersection
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -6325,6 +7157,13 @@ url: https://github.com/postcss/postcss
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+preact:10.13.0
+name: preact
+description: Fast 3kb React-compatible Virtual DOM library.
+url: https://github.com/preactjs/preact
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 preact:10.26.9
 name: preact
 description: Fast 3kb React-compatible Virtual DOM library.
@@ -6339,12 +7178,40 @@ url: https://github.com/Rob--W/proxy-from-env
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+q:1.5.1
+name: q
+description: A library for promises (CommonJS/Promises/A,B,D)
+url: https://github.com/kriskowal/q
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+qs:6.11.0
+name: qs
+description: A querystring parser that supports nesting and arrays, with a depth limit
+url: https://github.com/ljharb/qs
+license: BSD-3-Clause
+license url: https://opensource.org/licenses/BSD-3-Clause
+========================================================================
 qs:6.14.0
 name: qs
 description: A querystring parser that supports nesting and arrays, with a depth limit
 url: https://github.com/ljharb/qs
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
+========================================================================
+requirejs-angular-define:1.1.0
+name: requirejs-angular-define
+description: A friendly integration of AngularJS into RequireJS powered applications
+url: https://github.com/Nikku/requirejs-angular-define
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+requirejs:2.3.7
+name: requirejs
+description: Node adapter for RequireJS, for loading AMD modules. Includes RequireJS optimizer
+url: https://github.com/jrburke/r.js
+license: MIT
+license url: https://opensource.org/licenses/MIT
 ========================================================================
 saxen:10.0.0
 name: saxen
@@ -6357,6 +7224,13 @@ saxen:8.1.2
 name: saxen
 description: A tiny, super fast, namespace aware sax-style XML parser written in plain JavaScript
 url: https://github.com/nikku/saxen
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+select:1.1.2
+name: select
+description: Programmatically select the text of a HTML element
+url: https://github.com/zenorocha/select
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -6381,6 +7255,13 @@ url: https://github.com/nikku/selection-update
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+semver:7.5.4
+name: semver
+description: The semantic version parser used by npm.
+url: https://github.com/npm/node-semver
+license: ISC
+license url: https://opensource.org/license/isc-license-txt
+========================================================================
 side-channel-list:1.0.0
 name: side-channel-list
 description: Store information about any JS value in a side channel, using a linked list
@@ -6402,6 +7283,13 @@ url: https://github.com/ljharb/side-channel-weakmap
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+side-channel:1.0.4
+name: side-channel
+description: Store information about any JS value in a side channel. Uses WeakMap if available.
+url: https://github.com/ljharb/side-channel
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 side-channel:1.1.0
 name: side-channel
 description: Store information about any JS value in a side channel. Uses WeakMap if available.
@@ -6416,10 +7304,24 @@ url: https://github.com/7rulnik/source-map-js
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
+strnum:1.0.5
+name: strnum
+description: Parse String to Number based on configuration
+url: https://github.com/NaturalIntelligence/strnum
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 strnum:2.1.1
 name: strnum
 description: Parse String to Number based on configuration
 url: https://github.com/NaturalIntelligence/strnum
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+style-mod:4.1.0
+name: style-mod
+description: A minimal CSS module shim
+url: https://github.com/marijnh/style-mod
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -6437,10 +7339,24 @@ url: https://github.com/ladjs/superagent
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+superagent:8.1.2
+name: superagent
+description: elegant & feature rich browser / node HTTP with a fluent API
+url: https://github.com/ladjs/superagent
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 tabbable:6.2.0
 name: tabbable
 description: Returns an array of all tabbable DOM nodes within a containing node.
 url: https://github.com/focus-trap/tabbable
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+table-js:9.0.0
+name: table-js
+description: > This library exposes [ES modules](http://exploringjs.com/es6/ch_modules.html#sec_basics-of-es6-modules). Use an ES module aware bundler such as [Webpack](https://webpack.js.org) or [Rollup](https://rollupjs.org) to bundle it for the browser.
+url: https://github.com/bpmn-io/table-js
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -6455,6 +7371,27 @@ ticky:1.0.1
 name: ticky
 description: Run a callback as soon as possible
 url: https://github.com/bevacqua/ticky
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+tiny-emitter:2.1.0
+name: tiny-emitter
+description: A tiny (less than 1k) event emitter library
+url: https://github.com/scottcorgan/tiny-emitter
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+tiny-svg:2.2.4
+name: tiny-svg
+description: A minimal toolbelt for builing fast SVG-based applications
+url: https://github.com/bpmn-io/tiny-svg
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
+tiny-svg:3.0.1
+name: tiny-svg
+description: A minimal toolbelt for builing fast SVG-based applications
+url: https://github.com/bpmn-io/tiny-svg
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -6531,6 +7468,13 @@ wrappy:1.0.2
 name: wrappy
 description: Callback wrapping utility
 url: https://github.com/npm/wrappy
+license: ISC
+license url: https://opensource.org/license/isc-license-txt
+========================================================================
+yallist:4.0.0
+name: yallist
+description: Yet Another Linked List
+url: https://github.com/isaacs/yallist
 license: ISC
 license url: https://opensource.org/license/isc-license-txt
 ========================================================================
