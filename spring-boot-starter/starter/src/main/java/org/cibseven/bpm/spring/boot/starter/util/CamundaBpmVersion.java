@@ -56,7 +56,7 @@ public class CamundaBpmVersion implements Supplier<String> {
     this.version = Optional.ofNullable(pkg.getImplementationVersion())
       .map(String::trim)
       .orElse("");
-    this.isEnterprise = version.contains("-ee");
+    this.isEnterprise = version.endsWith("-ee");
     this.formattedVersion = String.format(VERSION_FORMAT, version);
   }
 

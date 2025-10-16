@@ -111,12 +111,6 @@
       <outputDirectory></outputDirectory>
     </file>
     <file>
-      <source>../../license/LICENSE-ENTERPRISE</source>
-      <filtered>true</filtered>
-      <lineEnding>crlf</lineEnding>
-      <outputDirectory></outputDirectory>
-    </file>
-    <file>
       <source>../../license/NOTICE</source>
       <filtered>true</filtered>
       <lineEnding>crlf</lineEnding>

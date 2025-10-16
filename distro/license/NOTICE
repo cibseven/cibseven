@@ -1,8 +1,7 @@
 CIB seven
 Copyright 2024-2025 CIB Software GmbH
 
-This product includes software developed at Camunda Services GmbH
-(https://camunda.com/) and is based on the Camunda Platform open source project.
+This product is a fork of the Camunda 7 Community Edition. Modifications have been made by CIB Software GmbH.
 
 This product includes software developed by The Apache Software
 Foundation (http://www.apache.org/).
