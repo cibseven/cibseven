@@ -16,13 +16,13 @@
  */
 package org.cibseven.connect.httpclient.soap.impl;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.cibseven.connect.httpclient.impl.HttpResponseImpl;
 import org.cibseven.connect.httpclient.soap.SoapHttpResponse;
 
 public class SoapHttpResponseImpl extends HttpResponseImpl implements SoapHttpResponse {
 
-  public SoapHttpResponseImpl(CloseableHttpResponse httpResponse) {
+  public SoapHttpResponseImpl(ClassicHttpResponse httpResponse) {
     super(httpResponse);
   }
 

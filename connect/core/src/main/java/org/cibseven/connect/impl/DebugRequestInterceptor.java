@@ -17,8 +17,8 @@
 package org.cibseven.connect.impl;
 
 import org.cibseven.connect.spi.ConnectorInvocation;
-import org.cibseven.connect.spi.ConnectorRequestInterceptor;
 import org.cibseven.connect.spi.ConnectorRequest;
+import org.cibseven.connect.spi.ConnectorRequestInterceptor;
 
 /**
  * <p>
@@ -60,8 +60,7 @@ public class DebugRequestInterceptor implements ConnectorRequestInterceptor {
     target = invocation.getTarget();
     if (proceed) {
       return invocation.proceed();
-    }
-    else {
+    } else {
       return response;
     }
   }
