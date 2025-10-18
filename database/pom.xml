@@ -426,7 +426,7 @@
         <!-- copied from nexus-settings.xml -->
         <database.host>localhost</database.host>
         <database.port>1433</database.port>
-        <database.name>process-engine</database.name>
+        <database.name>camengine</database.name>
         <database.username>sa</database.username>
         <database.password>StrongP@ssw0rd</database.password>
 	  
