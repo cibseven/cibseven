@@ -1,3 +1,4 @@
 CREATE DATABASE camengine collate SQL_Latin1_General_CP1_CS_AS;
 ALTER DATABASE camengine SET READ_COMMITTED_SNAPSHOT ON;
 ALTER LOGIN sa WITH DEFAULT_DATABASE = camengine;
+USE camengine;
