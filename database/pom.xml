@@ -434,7 +434,7 @@
         <database.driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</database.driver>
         <database.datasource.class>com.microsoft.sqlserver.jdbc.SQLServerDataSource</database.datasource.class>
         <database.tc.url>camsqlserver:2019-latest</database.tc.url>
-        <database.tc.params>;DatabaseName=${database.name};user=${database.username};password=${database.password};TC_INITSCRIPT=mssqlcontainerinit.sql</database.tc.params>
+        <database.tc.params>;user=${database.username};password=${database.password};TC_INITSCRIPT=mssqlcontainerinit.sql</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
 
