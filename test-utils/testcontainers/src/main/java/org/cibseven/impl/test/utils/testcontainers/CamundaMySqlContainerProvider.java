@@ -34,7 +34,7 @@ public class CamundaMySqlContainerProvider extends MySQLContainerProvider {
   public JdbcDatabaseContainer newInstance(String tag) {
     DockerImageName dockerImageName = TestcontainersHelper
       .resolveDockerImageName("mysql", tag, "mysql");
-    
+
     MySQLContainer mySqlContainer = new MySQLContainer(dockerImageName);
     mySqlContainer.setCommand("--transaction-isolation=READ-COMMITTED");
     return mySqlContainer;

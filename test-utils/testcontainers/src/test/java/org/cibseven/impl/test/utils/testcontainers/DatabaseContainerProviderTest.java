@@ -61,8 +61,8 @@ public class DatabaseContainerProviderTest {
       { "jdbc:tc:cammysql:5.7://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "5.7" },
       { "jdbc:tc:cammysql:8.0://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "8.0" },
       // The current Camunda SqlServer 2017/2019 images are compatible with Testcontainers.
-//      { "jdbc:tc:camsqlserver:2017:///process-engine", "SELECT @@VERSION", "2017" },
-//      { "jdbc:tc:camsqlserver:2019:///process-engine", "SELECT @@VERSION", "2019" },
+      { "jdbc:tc:camsqlserver:2017:///process-engine", "SELECT @@VERSION", "2017" },
+      { "jdbc:tc:camsqlserver:2019:///process-engine", "SELECT @@VERSION", "2019" },
       // The current Camunda DB2 images are not compatible with Testcontainers.
 //      { "jdbc:tc:camdb2:11.1:///engine?user=camunda&password=camunda", "SELECT * FROM SYSIBMADM.ENV_INST_INFO;", "11.1"},
       // The current Camunda Oracle images are not compatible with Testcontainers.
