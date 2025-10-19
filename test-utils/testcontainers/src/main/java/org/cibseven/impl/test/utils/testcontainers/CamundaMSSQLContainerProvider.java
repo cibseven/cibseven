@@ -37,8 +37,11 @@ public class CamundaMSSQLContainerProvider extends MSSQLServerContainerProvider 
 
     MSSQLServerContainer mssqlServerContainer = new MSSQLServerContainer(dockerImageName);
     mssqlServerContainer.acceptLicense();
-    mssqlServerContainer.setCommand("/opt/mssql-tools18/bin/sqlcmd", "-C", "-S", "localhost,1433", "-U", "sa", "-P", "A_Str0ng_Required_Password", "-Q", "CREATE DATABASE camengine; ALTER DATABASE camengine SET READ_COMMITTED_SNAPSHOT ON; ALTER LOGIN sa WITH DEFAULT_DATABASE = camengine;");
-
+    
+    //mssqlServerContainer.setCommand("/opt/mssql-tools18/bin/sqlcmd", "-C", "-S", "localhost,1433", "-U", "sa", "-P", "A_Str0ng_Required_Password", "-Q", "CREATE DATABASE camengine; ALTER DATABASE camengine SET READ_COMMITTED_SNAPSHOT ON; ALTER LOGIN sa WITH DEFAULT_DATABASE = camengine;");
+    mssqlServerContainer.withInitScript("mssqlcontainerinit.sql");
+    
+    
     return mssqlServerContainer;
   }
 }
