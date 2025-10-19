@@ -428,8 +428,8 @@
         <database.port>1433</database.port>
         <database.name>camengine</database.name>
         <database.username>sa</database.username>
-        <database.password>StrongP@ssw0rd</database.password>
-	  
+        <database.password>A_Str0ng_Required_Password</database.password>
+  
         <database.type>mssql</database.type>
         <database.driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</database.driver>
         <database.datasource.class>com.microsoft.sqlserver.jdbc.SQLServerDataSource</database.datasource.class>
