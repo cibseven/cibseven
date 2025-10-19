@@ -849,6 +849,8 @@
     <!-- The suffix above is added to handle mssql differently (with UNION instead of OR for groups) -->
   </sql>
 
+  <!-- this sql block is added for the task list query from Task.xml to use faster auth check with EXIST clause:
+  it is similar to the above block, but it disables join with useNoJoin and includes EXIST clause -->
   <sql id="authCheckForTaskQueryWithExistsClause">
     <bind name="authGroupIds" value="authCheck.authGroupIds" />
     <bind name="atomicChecks" value="authCheck.permissionChecks.atomicChecks" />
@@ -882,6 +884,7 @@
   <sql id="authCheckJoinWithoutOnClauseWithBinding_mssql">
     <choose>
       <when test="useLeftJoin != null &amp;&amp; useLeftJoin == true">left join</when>
+      <when test="useNoJoin != null &amp;&amp; useNoJoin == true"></when>
       <otherwise>inner join</otherwise>
     </choose>
     (
