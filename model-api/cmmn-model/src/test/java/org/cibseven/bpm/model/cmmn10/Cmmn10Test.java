@@ -32,7 +32,6 @@ import org.cibseven.bpm.model.cmmn.instance.ConditionExpression;
 import org.cibseven.bpm.model.cmmn.instance.Documentation;
 import org.cibseven.bpm.model.cmmn.instance.EntryCriterion;
 import org.cibseven.bpm.model.cmmn.instance.Event;
-import org.cibseven.bpm.model.cmmn.instance.EventListener;
 import org.cibseven.bpm.model.cmmn.instance.ExitCriterion;
 import org.cibseven.bpm.model.cmmn.instance.HumanTask;
 import org.cibseven.bpm.model.cmmn.instance.IfPart;

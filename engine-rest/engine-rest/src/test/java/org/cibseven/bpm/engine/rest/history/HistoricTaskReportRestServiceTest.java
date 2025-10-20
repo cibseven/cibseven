@@ -16,7 +16,41 @@
  */
 package org.cibseven.bpm.engine.rest.history;
 
-import io.restassured.http.ContentType;
+import static io.restassured.RestAssured.given;
+import static org.cibseven.bpm.engine.query.PeriodUnit.MONTH;
+import static org.cibseven.bpm.engine.query.PeriodUnit.QUARTER;
+import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_END_TIME;
+import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_INST_DURATION_REPORT_AVG;
+import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_INST_DURATION_REPORT_MAX;
+import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_INST_DURATION_REPORT_MIN;
+import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_INST_DURATION_REPORT_PERIOD;
+import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_INST_END_TIME;
+import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_INST_START_TIME;
+import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_REPORT_COUNT;
+import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_REPORT_PROC_DEFINITION;
+import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_REPORT_PROC_DEF_ID;
+import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_REPORT_PROC_DEF_NAME;
+import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_REPORT_TASK_NAME;
+import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_START_TIME;
+import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_TENANT_ID;
+import static org.cibseven.bpm.engine.rest.helper.MockProvider.createMockHistoricTaskInstanceDurationReport;
+import static org.cibseven.bpm.engine.rest.helper.MockProvider.createMockHistoricTaskInstanceReport;
+import static org.cibseven.bpm.engine.rest.helper.MockProvider.createMockHistoricTaskInstanceReportWithProcDef;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.core.Response.Status;
+
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.history.DurationReportResult;
 import org.cibseven.bpm.engine.history.HistoricTaskInstanceReport;
@@ -30,40 +64,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response.Status;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static io.restassured.RestAssured.given;
-import static org.cibseven.bpm.engine.query.PeriodUnit.MONTH;
-import static org.cibseven.bpm.engine.query.PeriodUnit.QUARTER;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_END_TIME;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_INST_DURATION_REPORT_AVG;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_INST_DURATION_REPORT_MAX;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_INST_DURATION_REPORT_MIN;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_INST_DURATION_REPORT_PERIOD;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_INST_END_TIME;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_INST_START_TIME;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_REPORT_COUNT;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_REPORT_DEFINITION;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_REPORT_PROC_DEFINITION;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_REPORT_PROC_DEF_ID;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_REPORT_PROC_DEF_NAME;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_REPORT_TASK_NAME;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_HISTORIC_TASK_START_TIME;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_TENANT_ID;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.createMockHistoricTaskInstanceDurationReport;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.createMockHistoricTaskInstanceReport;
-import static org.cibseven.bpm.engine.rest.helper.MockProvider.createMockHistoricTaskInstanceReportWithProcDef;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.containsString;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import io.restassured.http.ContentType;
 
 /**
  * @author Stefan Hentschel.

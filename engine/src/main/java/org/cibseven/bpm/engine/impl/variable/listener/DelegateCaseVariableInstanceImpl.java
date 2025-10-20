@@ -17,7 +17,6 @@
 package org.cibseven.bpm.engine.impl.variable.listener;
 
 import org.cibseven.bpm.engine.ProcessEngine;
-import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.ProcessEngineServices;
 import org.cibseven.bpm.engine.delegate.DelegateCaseExecution;
 import org.cibseven.bpm.engine.delegate.DelegateCaseVariableInstance;

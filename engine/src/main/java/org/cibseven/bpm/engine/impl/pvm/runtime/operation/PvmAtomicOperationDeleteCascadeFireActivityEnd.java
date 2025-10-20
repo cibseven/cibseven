@@ -17,7 +17,6 @@
 package org.cibseven.bpm.engine.impl.pvm.runtime.operation;
 
 import org.cibseven.bpm.engine.delegate.ExecutionListener;
-import org.cibseven.bpm.engine.impl.bpmn.behavior.EventBasedGatewayActivityBehavior;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;

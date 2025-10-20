@@ -16,7 +16,6 @@
  */
 package org.cibseven.bpm.engine.impl.cmd;
 
-import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 

@@ -16,7 +16,12 @@
  */
 package org.cibseven.bpm.engine.test.errorcode;
 
-import ch.qos.logback.classic.Level;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.cibseven.bpm.engine.authorization.Authorization.AUTH_TYPE_GRANT;
+
+import java.util.List;
+
 import org.cibseven.bpm.engine.AuthorizationService;
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.OptimisticLockingException;
@@ -27,11 +32,9 @@ import org.cibseven.bpm.engine.authorization.Permission;
 import org.cibseven.bpm.engine.authorization.Resources;
 import org.cibseven.bpm.engine.authorization.TaskPermissions;
 import org.cibseven.bpm.engine.identity.User;
-import org.cibseven.bpm.engine.impl.db.sql.DbSqlSessionFactory;
 import org.cibseven.bpm.engine.impl.errorcode.BuiltinExceptionCode;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
-import org.cibseven.bpm.engine.impl.test.RequiredDatabase;
 import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
@@ -45,11 +48,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.cibseven.bpm.engine.authorization.Authorization.AUTH_TYPE_GRANT;
+import ch.qos.logback.classic.Level;
 
 public class ExceptionBuiltinCodesTest {
 
