@@ -229,10 +229,24 @@
     </profile>
 
     <profile>
-      <id>chromedriver-osx</id>
+      <id>chromedriver-osx-arm64</id>
       <activation>
         <os>
           <family>mac</family>
+          <arch>aarch64</arch>
+        </os>
+      </activation>
+      <properties>
+        <os.type>mac-arm64</os.type>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>chromedriver-osx-x64</id>
+      <activation>
+        <os>
+          <family>mac</family>
+          <arch>x86_64</arch>
         </os>
       </activation>
       <properties>
