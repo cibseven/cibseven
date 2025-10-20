@@ -103,7 +103,7 @@ public class CamundaSpringSecurityOAuth2WebappAutoConfiguration {
       http.securityMatcher(request -> {
             String fullPath = request.getServletPath() + (request.getPathInfo() != null ? request.getPathInfo() : "");
             // all requests that are not going to the engine-rest pass by
-            return engineRestPath.isEmpty()? true : !fullPath.startsWith(engineRestPath);
+            return engineRestPath.isEmpty() || !fullPath.startsWith(engineRestPath);
           })
           .authorizeHttpRequests(c -> c
             .requestMatchers(legacyWebappPath + "/app/**").authenticated()
