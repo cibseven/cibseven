@@ -1,6 +1,9 @@
 package org.cibseven.bpm.spring.boot.starter.security.oauth2;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.cibseven.bpm.engine.rest.security.auth.ProcessEngineAuthenticationFilter;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.ResourceServerConfiguredCondition;
@@ -20,9 +23,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
 import jakarta.servlet.DispatcherType;
@@ -37,7 +46,12 @@ import jakarta.servlet.Filter;
 public class CamundaSpringSecurityOAuth2EngineAutoConfiguration {
 
   private static final Logger logger = LoggerFactory.getLogger(CamundaSpringSecurityOAuth2EngineAutoConfiguration.class);
+  private final OAuth2Properties oAuth2Properties;
 
+  public CamundaSpringSecurityOAuth2EngineAutoConfiguration(OAuth2Properties oAuth2Properties) {
+	this.oAuth2Properties = oAuth2Properties;
+	}
+  
   @Bean
   public FilterRegistrationBean<?> engineRestAuthenticationFilter(JerseyApplicationPath applicationPath) {
     FilterRegistrationBean<Filter> filterRegistration = new FilterRegistrationBean<>();
@@ -54,11 +68,30 @@ public class CamundaSpringSecurityOAuth2EngineAutoConfiguration {
 
   @Bean
   @Order(1) 
-  public SecurityFilterChain engineRestSecurityFilterChain(HttpSecurity http, JerseyApplicationPath applicationPath) throws Exception {
+  public SecurityFilterChain engineRestSecurityFilterChain(HttpSecurity http, 
+		  JerseyApplicationPath applicationPath,
+		  GrantedAuthoritiesMapper grantedAuthoritiesMapper) throws Exception {
 
     logger.info("Enabling Camunda Spring Security oauth2 integration for engine-rest");
     String engineRestPath = applicationPath.getPath();
 
+    JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+    // Fetch authorities like OAuth2GrantedAuthoritiesMapper
+    jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter((Converter<Jwt, Collection<GrantedAuthority>>) jwt -> {
+    	var identityProviderProperties = oAuth2Properties.getIdentityProvider();
+        var groupNameAttribute = identityProviderProperties.getGroupNameAttribute();
+        
+        List<String> groups = jwt.getClaimAsStringList(groupNameAttribute);
+        if (groups == null) {
+            logger.debug("Claim {} is not available", groupNameAttribute);
+            return List.of();
+        }
+        return groups
+        		.stream()
+        		.map(SimpleGrantedAuthority::new)
+        		.collect(Collectors.toList());
+    });
+    
     // @formatter:off
     http.securityMatcher(request -> {
           String fullPath = request.getServletPath() + (request.getPathInfo() != null ? request.getPathInfo() : "");
@@ -67,7 +100,7 @@ public class CamundaSpringSecurityOAuth2EngineAutoConfiguration {
         .authorizeHttpRequests(c -> c
           .requestMatchers(engineRestPath + "/**").authenticated())
         .anonymous(AbstractHttpConfigurer::disable)
-        .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+        .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)));//Customizer.withDefaults()));
     // @formatter:on
     return http.build();
   }
