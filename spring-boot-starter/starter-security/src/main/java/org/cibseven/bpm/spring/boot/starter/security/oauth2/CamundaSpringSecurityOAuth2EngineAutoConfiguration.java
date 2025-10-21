@@ -68,7 +68,7 @@ public class CamundaSpringSecurityOAuth2EngineAutoConfiguration {
 
   @Bean
   @ConditionalOnProperty(name = "identity-provider.group-name-attribute", prefix = OAuth2Properties.PREFIX)
-  protected JwtAuthenticationConverter jwtAuthenticationConverter() {
+  protected JwtAuthenticationConverter oauth2JwtAuthenticationConverter() {
       JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
       converter.setJwtGrantedAuthoritiesConverter((Converter<Jwt, Collection<GrantedAuthority>>) jwt -> {
           var identityProviderProperties = oAuth2Properties.getIdentityProvider();
