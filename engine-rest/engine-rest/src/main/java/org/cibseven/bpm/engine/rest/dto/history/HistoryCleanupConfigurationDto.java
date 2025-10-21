@@ -23,6 +23,22 @@ public class HistoryCleanupConfigurationDto {
 	protected Date batchWindowStartTime;
 	protected Date batchWindowEndTime;
 	protected boolean enabled;
+	protected String historyCleanupStrategy;
+	protected int historyCleanupBatchSize;
+	protected int historyCleanupDegreeOfParallelism;
+	protected String removalTimeStrategy;
+	protected String removalTimeProvider;
+	protected String databaseSchemaUpdate;
+	protected boolean jobExecutorActivate;
+	protected boolean jobExecutorDeploymentAware;
+	protected boolean jobExecutorPreferTimerJobs;
+	protected String historyCleanupJobLogTimeToLive;
+	protected String taskMetricsTimeToLive;
+	protected String batchOperationHistoryTimeToLive;
+	protected String historyTimeToLive;
+	protected boolean enforceHistoryTimeToLive;
+	protected int historyCleanupBatchThreshold;
+	protected boolean historyCleanupMetricsEnabled;
 
 	public Date getBatchWindowStartTime() {
 		return batchWindowStartTime;
@@ -46,6 +62,134 @@ public class HistoryCleanupConfigurationDto {
 
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
+	}
+
+	public String getHistoryCleanupStrategy() {
+		return historyCleanupStrategy;
+	}
+
+	public void setHistoryCleanupStrategy(String historyCleanupStrategy) {
+		this.historyCleanupStrategy = historyCleanupStrategy;
+	}
+
+	public int getHistoryCleanupBatchSize() {
+		return historyCleanupBatchSize;
+	}
+
+	public void setHistoryCleanupBatchSize(int historyCleanupBatchSize) {
+		this.historyCleanupBatchSize = historyCleanupBatchSize;
+	}
+
+	public int getHistoryCleanupDegreeOfParallelism() {
+		return historyCleanupDegreeOfParallelism;
+	}
+
+	public void setHistoryCleanupDegreeOfParallelism(int historyCleanupDegreeOfParallelism) {
+		this.historyCleanupDegreeOfParallelism = historyCleanupDegreeOfParallelism;
+	}
+
+	public String getRemovalTimeStrategy() {
+		return removalTimeStrategy;
+	}
+
+	public void setRemovalTimeStrategy(String removalTimeStrategy) {
+		this.removalTimeStrategy = removalTimeStrategy;
+	}
+
+	public String getRemovalTimeProvider() {
+		return removalTimeProvider;
+	}
+
+	public void setRemovalTimeProvider(String removalTimeProvider) {
+		this.removalTimeProvider = removalTimeProvider;
+	}
+
+	public String getDatabaseSchemaUpdate() {
+		return databaseSchemaUpdate;
+	}
+
+	public void setDatabaseSchemaUpdate(String databaseSchemaUpdate) {
+		this.databaseSchemaUpdate = databaseSchemaUpdate;
+	}
+
+	public boolean isJobExecutorActivate() {
+		return jobExecutorActivate;
+	}
+
+	public void setJobExecutorActivate(boolean jobExecutorActivate) {
+		this.jobExecutorActivate = jobExecutorActivate;
+	}
+
+	public boolean isJobExecutorDeploymentAware() {
+		return jobExecutorDeploymentAware;
+	}
+
+	public void setJobExecutorDeploymentAware(boolean jobExecutorDeploymentAware) {
+		this.jobExecutorDeploymentAware = jobExecutorDeploymentAware;
+	}
+
+	public boolean isJobExecutorPreferTimerJobs() {
+		return jobExecutorPreferTimerJobs;
+	}
+
+	public void setJobExecutorPreferTimerJobs(boolean jobExecutorPreferTimerJobs) {
+		this.jobExecutorPreferTimerJobs = jobExecutorPreferTimerJobs;
+	}
+
+	public String getHistoryCleanupJobLogTimeToLive() {
+		return historyCleanupJobLogTimeToLive;
+	}
+
+	public void setHistoryCleanupJobLogTimeToLive(String historyCleanupJobLogTimeToLive) {
+		this.historyCleanupJobLogTimeToLive = historyCleanupJobLogTimeToLive;
+	}
+
+	public String getTaskMetricsTimeToLive() {
+		return taskMetricsTimeToLive;
+	}
+
+	public void setTaskMetricsTimeToLive(String taskMetricsTimeToLive) {
+		this.taskMetricsTimeToLive = taskMetricsTimeToLive;
+	}
+
+	public String getBatchOperationHistoryTimeToLive() {
+		return batchOperationHistoryTimeToLive;
+	}
+
+	public void setBatchOperationHistoryTimeToLive(String batchOperationHistoryTimeToLive) {
+		this.batchOperationHistoryTimeToLive = batchOperationHistoryTimeToLive;
+	}
+
+	public String getHistoryTimeToLive() {
+		return historyTimeToLive;
+	}
+
+	public void setHistoryTimeToLive(String historyTimeToLive) {
+		this.historyTimeToLive = historyTimeToLive;
+	}
+
+	public boolean isEnforceHistoryTimeToLive() {
+		return enforceHistoryTimeToLive;
+	}
+
+	public void setEnforceHistoryTimeToLive(boolean enforceHistoryTimeToLive) {
+		this.enforceHistoryTimeToLive = enforceHistoryTimeToLive;
+	}
+
+	public int getHistoryCleanupBatchThreshold() {
+		return historyCleanupBatchThreshold;
+	}
+
+	public void setHistoryCleanupBatchThreshold(int historyCleanupBatchThreshold) {
+		this.historyCleanupBatchThreshold = historyCleanupBatchThreshold;
+	}
+
+	public boolean isHistoryCleanupMetricsEnabled() {
+		return historyCleanupMetricsEnabled;
+	}
+
+	public void setHistoryCleanupMetricsEnabled(boolean historyCleanupMetricsEnabled) {
+		this.historyCleanupMetricsEnabled = historyCleanupMetricsEnabled;
 	}
 
 }

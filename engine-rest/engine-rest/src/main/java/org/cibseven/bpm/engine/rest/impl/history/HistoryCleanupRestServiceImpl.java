@@ -76,6 +76,27 @@ public class HistoryCleanupRestServiceImpl implements HistoryCleanupRestService 
 
     HistoryCleanupConfigurationDto configurationDto = new HistoryCleanupConfigurationDto();
     configurationDto.setEnabled(engineConfiguration.isHistoryCleanupEnabled());
+    configurationDto.setHistoryCleanupStrategy(engineConfiguration.getHistoryCleanupStrategy());
+    configurationDto.setHistoryCleanupBatchSize(engineConfiguration.getHistoryCleanupBatchSize());
+    configurationDto.setHistoryCleanupDegreeOfParallelism(engineConfiguration.getHistoryCleanupDegreeOfParallelism());
+    configurationDto.setRemovalTimeStrategy(engineConfiguration.getHistoryRemovalTimeStrategy());
+    // HistoryRemovalTimeProvider may be an object; map to its class simple name if present
+    if (engineConfiguration.getHistoryRemovalTimeProvider() != null) {
+      configurationDto.setRemovalTimeProvider(engineConfiguration.getHistoryRemovalTimeProvider().getClass().getSimpleName());
+    } else {
+      configurationDto.setRemovalTimeProvider(null);
+    }
+    configurationDto.setDatabaseSchemaUpdate(engineConfiguration.getDatabaseSchemaUpdate());
+    configurationDto.setJobExecutorActivate(engineConfiguration.isJobExecutorActivate());
+    configurationDto.setJobExecutorDeploymentAware(engineConfiguration.isJobExecutorDeploymentAware());
+    configurationDto.setJobExecutorPreferTimerJobs(engineConfiguration.isJobExecutorPreferTimerJobs());
+    configurationDto.setHistoryCleanupJobLogTimeToLive(engineConfiguration.getHistoryCleanupJobLogTimeToLive());
+    configurationDto.setTaskMetricsTimeToLive(engineConfiguration.getTaskMetricsTimeToLive());
+    configurationDto.setBatchOperationHistoryTimeToLive(engineConfiguration.getBatchOperationHistoryTimeToLive());
+    configurationDto.setHistoryTimeToLive(engineConfiguration.getHistoryTimeToLive());
+    configurationDto.setEnforceHistoryTimeToLive(engineConfiguration.isEnforceHistoryTimeToLive());
+    configurationDto.setHistoryCleanupBatchThreshold(engineConfiguration.getHistoryCleanupBatchThreshold());
+    configurationDto.setHistoryCleanupMetricsEnabled(engineConfiguration.isHistoryCleanupMetricsEnabled());
 
     BatchWindow batchWindow = engineConfiguration.getBatchWindowManager()
       .getCurrentOrNextBatchWindow(ClockUtil.getCurrentTime(), engineConfiguration);
