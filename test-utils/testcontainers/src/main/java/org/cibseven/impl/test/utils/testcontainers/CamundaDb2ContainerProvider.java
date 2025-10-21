@@ -22,7 +22,7 @@ public class CamundaDb2ContainerProvider extends Db2ContainerProvider {
       .resolveDockerImageName("ibmdb2", tag, "ibmcom/db2");
 
     Db2Container db2Container = new Db2Container(dockerImageName);
-	db2Container.acceptLicense();
-	return db2Container;
+    db2Container.acceptLicense();
+    return db2Container;
   }
 }
