@@ -3,6 +3,7 @@ package org.cibseven.bpm.spring.boot.starter.security.oauth2;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.cibseven.bpm.engine.rest.security.auth.ProcessEngineAuthenticationFilter;
@@ -18,6 +19,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.autoconfigure.web.servlet.JerseyApplicationPath;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -47,10 +49,13 @@ public class CamundaSpringSecurityOAuth2EngineAutoConfiguration {
 
   private static final Logger logger = LoggerFactory.getLogger(CamundaSpringSecurityOAuth2EngineAutoConfiguration.class);
   private final OAuth2Properties oAuth2Properties;
+  private final OAuth2ResourceServerProperties oAuth2ResourceServerProperties;
 
-  public CamundaSpringSecurityOAuth2EngineAutoConfiguration(OAuth2Properties oAuth2Properties) {
-	this.oAuth2Properties = oAuth2Properties;
-	}
+  public CamundaSpringSecurityOAuth2EngineAutoConfiguration(OAuth2Properties oAuth2Properties,
+                                                            OAuth2ResourceServerProperties oAuth2ResourceServerProperties) {
+   this.oAuth2Properties = oAuth2Properties;
+   this.oAuth2ResourceServerProperties = oAuth2ResourceServerProperties;
+  }
   
   @Bean
   public FilterRegistrationBean<?> engineRestAuthenticationFilter(JerseyApplicationPath applicationPath) {
@@ -94,6 +99,13 @@ public class CamundaSpringSecurityOAuth2EngineAutoConfiguration {
                  .map(SimpleGrantedAuthority::new)
                  .collect(Collectors.toList());
       });
+      
+      String principalClaimName = Optional.ofNullable(oAuth2ResourceServerProperties.getJwt())
+                .map(OAuth2ResourceServerProperties.Jwt::getPrincipalClaimName)
+                .filter(s -> !s.isBlank())
+                .orElse("preferred_username");
+      converter.setPrincipalClaimName(principalClaimName);
+      
       return converter;
   }
 
