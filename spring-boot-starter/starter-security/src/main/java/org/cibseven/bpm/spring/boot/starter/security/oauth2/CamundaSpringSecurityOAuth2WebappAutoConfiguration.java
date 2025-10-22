@@ -103,15 +103,14 @@ public class CamundaSpringSecurityOAuth2WebappAutoConfiguration {
   @Order(2)
   public SecurityFilterChain webappSecurityFilterChain(HttpSecurity http,
                                                        OAuth2AuthorizedClientManager clientManager,
-                                                       @Nullable SsoLogoutSuccessHandler ssoLogoutSuccessHandler,
-                                                       @Nullable JerseyApplicationPath applicationPath) throws Exception {
+                                                       @Nullable SsoLogoutSuccessHandler ssoLogoutSuccessHandler) throws Exception {
       logger.info("Enabling Camunda Spring Security oauth2 integration for legacy webapp");
-      String engineRestPath = applicationPath != null? applicationPath.getPath() : "";
       // @formatter:off
       http.securityMatcher(request -> {
             String fullPath = request.getServletPath() + (request.getPathInfo() != null ? request.getPathInfo() : "");
-            // all requests that are not going to the engine-rest pass by
-            return engineRestPath.isEmpty() || !fullPath.startsWith(engineRestPath);
+            return fullPath.startsWith(legacyWebappPath) || 
+                   fullPath.startsWith(OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI) ||
+                   fullPath.startsWith("/login");
           })
           .authorizeHttpRequests(c -> c
             .requestMatchers(legacyWebappPath + "/app/**").authenticated()
