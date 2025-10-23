@@ -110,7 +110,8 @@ public class CamundaSpringSecurityOAuth2WebappAutoConfiguration {
             String fullPath = request.getServletPath() + (request.getPathInfo() != null ? request.getPathInfo() : "");
             return fullPath.startsWith(legacyWebappPath) || 
                    fullPath.startsWith(OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI) ||
-                   fullPath.startsWith("/login");
+                   fullPath.startsWith("/login") ||
+                   fullPath.startsWith("/logout");
           })
           .authorizeHttpRequests(c -> c
             .requestMatchers(legacyWebappPath + "/app/**").authenticated()
