@@ -213,18 +213,6 @@ pipeline {
             }
         }
 
-        stage('JUnit Report') {
-            when {
-                anyOf {
-                    expression { params.VERIFY == true }
-                    expression { params.QA_VERIFY == true }
-                }
-            }
-            steps {
-                script { junit allowEmptyResults: true, testResults: ConstantsInternal.MAVEN_TEST_RESULTS }
-            }
-        }
-
         stage('h2 UNIT, engine IT, webapp IT') {
             when {
                 expression { params.VERIFY != params.VERIFY } // just disable this stage temporary
@@ -324,6 +312,18 @@ pipeline {
                         }
                     }
                 }
+            }
+        }
+
+        stage('JUnit Report') {
+            when {
+                anyOf {
+                    expression { params.VERIFY == true }
+                    expression { params.QA_VERIFY == true }
+                }
+            }
+            steps {
+                script { junit allowEmptyResults: true, testResults: ConstantsInternal.MAVEN_TEST_RESULTS }
             }
         }
 
