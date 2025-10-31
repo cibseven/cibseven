@@ -14,10 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.camunda.bpm.spring.boot.starter.rest.config.fetchandlock;
+package org.cibseven.bpm.spring.boot.starter.rest.config.fetchandlock;
 
 import jakarta.servlet.ServletContext;
-import org.camunda.bpm.spring.boot.starter.rest.test.TestRestApplication;
+import org.cibseven.bpm.spring.boot.starter.rest.test.TestRestApplication;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +29,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = { TestRestApplication.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = {"camunda.bpm.rest-api.fetch-and-lock.unique-worker-request=true"})
-public class FetchAndLockHandlerConfigureUniqueWorkerRequestTrueIT {
+@TestPropertySource(properties = {"camunda.bpm.rest-api.fetch-and-lock.unique-worker-request=false"})
+public class FetchAndLockHandlerConfigureUniqueWorkerRequestFalseIT {
 
     @Autowired
     protected ServletContext servletContext;
@@ -41,7 +41,7 @@ public class FetchAndLockHandlerConfigureUniqueWorkerRequestTrueIT {
         String uniqueWorkerRequest = servletContext.getInitParameter("fetch-and-lock-unique-worker-request");
 
         // then
-        assertThat(uniqueWorkerRequest).isEqualTo("true");
+        assertThat(uniqueWorkerRequest).isNull();
     }
 
 }
