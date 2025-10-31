@@ -14,34 +14,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.camunda.bpm.spring.boot.starter.rest.config.fetchandlock;
+package org.cibseven.bpm.spring.boot.starter.rest.config.fetchandlock;
 
 import jakarta.servlet.ServletContext;
-import org.camunda.bpm.spring.boot.starter.rest.test.TestRestApplication;
+import org.cibseven.bpm.spring.boot.starter.rest.test.TestRestApplication;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = { TestRestApplication.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class FetchAndLockHandlerDefaultConfigIT {
+@TestPropertySource(properties = {"camunda.bpm.rest-api.fetch-and-lock.queue-capacity=333"})
+public class FetchAndLockHandlerConfigureQueueCapacityIT {
 
     @Autowired
     protected ServletContext servletContext;
 
     @Test
-    public void shouldReturnDefaultValues() {
+    public void shouldReturnConfiguredQueueCapacity() {
         // when
         String queueCapacity = servletContext.getInitParameter("fetch-and-lock-queue-capacity");
-        String uniqueWorkerRequest = servletContext.getInitParameter("fetch-and-lock-unique-worker-request");
 
         // then
-        assertThat(queueCapacity).isNull();
-        assertThat(uniqueWorkerRequest).isNull();
+        assertThat(queueCapacity).isEqualTo("333");
     }
-
 }
