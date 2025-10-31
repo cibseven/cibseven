@@ -110,9 +110,16 @@
     <profile>
       <id>db2</id>
       <properties>
+
         <database.type>db2</database.type>
         <database.driver>com.ibm.db2.jcc.DB2Driver</database.driver>
-        <database.datasource.class>com.ibm.db2.jcc.DB2SimpleDataSource</database.datasource.class>
+        <database.name>engine</database.name>
+        <database.port>50000</database.port>
+
+        <database.tc.url>camdb2:11.5.0.0</database.tc.url>
+        <database.tc.params>/${database.name}</database.tc.params>
+        <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
+
       </properties>
     </profile>
 
@@ -231,11 +238,19 @@
     <profile>
       <id>mariadb</id>
       <properties>
+  
+        <!-- copied from nexus-settings.xml -->
+        <database.port>3306</database.port>
+        <database.name>process-engine</database.name>
+        <database.username>camunda</database.username>
+        <database.password>camunda</database.password>
+
         <database.type>mariadb</database.type>
         <database.driver>org.mariadb.jdbc.Driver</database.driver>
         <database.datasource.class>org.mariadb.jdbc.MySQLDataSource</database.datasource.class>
-        <database.tc.url>cammariadb:10.6</database.tc.url>
+        <database.tc.url>cammariadb:11.4</database.tc.url>
         <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}</database.tc.params>
+        <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
 
       <dependencies>
@@ -267,11 +282,19 @@
     <profile>
       <id>mysql</id>
       <properties>
+
+        <!-- copied from nexus-settings.xml -->
+        <database.port>3306</database.port>
+        <database.name>process-engine</database.name>
+        <database.username>camunda</database.username>
+        <database.password>camunda</database.password>
+
         <database.type>mysql</database.type>
         <database.driver>com.mysql.cj.jdbc.Driver</database.driver>
         <database.datasource.class>com.mysql.cj.jdbc.MysqlDataSource</database.datasource.class>
         <database.tc.url>cammysql:8.0</database.tc.url>
-        <database.tc.params>/${database.name}?sendFractionalSeconds=false&amp;amp;user=${database.username}&amp;amp;password=${database.password}</database.tc.params>
+        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}?sendFractionalSeconds=false</database.tc.params>
+        <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
 
       <dependencies>
@@ -303,9 +326,17 @@
     <profile>
       <id>oracle</id>
       <properties>
+  
+        <database.port>1521</database.port>
+        <database.name>process-engine</database.name>
+        <database.username>camunda</database.username>
+        <database.password>camunda</database.password>	  
+  
         <database.type>oracle</database.type>
         <database.driver>oracle.jdbc.OracleDriver</database.driver>
         <database.datasource.class>oracle.jdbc.pool.OracleDataSource</database.datasource.class>
+        <database.tc.url>camoracle:21-slim-faststart</database.tc.url>
+        <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
       <dependencies>
         <dependency>
@@ -337,6 +368,13 @@
     <profile>
       <id>postgresql</id>
       <properties>
+
+        <!-- copied from nexus-settings.xml -->
+        <database.port>5432</database.port>
+        <database.name>process-engine</database.name>
+        <database.username>camunda</database.username>
+        <database.password>camunda</database.password>
+
         <database.type>postgres</database.type>
         <database.driver>org.postgresql.Driver</database.driver>
         <database.datasource.class>org.postgresql.ds.PGSimpleDataSource</database.datasource.class>
@@ -344,6 +382,8 @@
         <was.liberty.datasource.filename>postgresql-config.xml</was.liberty.datasource.filename>
         <hibernate.dialect>org.hibernate.dialect.PostgreSQLDialect</hibernate.dialect>
         <database.tc.url>campostgresql:13.2</database.tc.url>
+        <database.tc.params>TC_DAEMON=true</database.tc.params>
+        <database.url>jdbc:tc:${database.tc.url}:///${database.name}/${database.tc.params}</database.url>
       </properties>
 
       <dependencies>
@@ -382,11 +422,20 @@
     <profile>
       <id>sqlserver</id>
       <properties>
+
+        <!-- copied from nexus-settings.xml -->
+        <database.host>localhost</database.host>
+        <database.port>1433</database.port>
+        <database.name>camengine</database.name>
+        <database.username>sa</database.username>
+        <database.password></database.password>
+
         <database.type>mssql</database.type>
         <database.driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</database.driver>
         <database.datasource.class>com.microsoft.sqlserver.jdbc.SQLServerDataSource</database.datasource.class>
-        <database.tc.url>camsqlserver:2019</database.tc.url>
-        <database.tc.params>;DatabaseName=${database.name};user=${database.username};password=${database.password};</database.tc.params>
+        <database.tc.url>camsqlserver:2019-latest</database.tc.url>
+        <database.tc.params>;databaseName=${database.name};user=${database.username};password=${database.password}</database.tc.params>
+        <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
 
       <dependencies>
