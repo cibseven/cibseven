@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.camunda.bpm.spring.boot.starter.property;
+package org.cibseven.bpm.spring.boot.starter.property;
 
 import org.junit.Test;
 import org.springframework.test.context.TestPropertySource;
