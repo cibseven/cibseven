@@ -50,6 +50,7 @@ public class FormFieldHandler {
   protected List<FormFieldValidationConstraintHandler> validationHandlers = new ArrayList<FormFieldValidationConstraintHandler>();
   protected boolean businessKey;
 
+  @SuppressWarnings("deprecation")
   public FormField createFormField(ExecutionEntity executionEntity) {
     FormFieldImpl formField = new FormFieldImpl();
 

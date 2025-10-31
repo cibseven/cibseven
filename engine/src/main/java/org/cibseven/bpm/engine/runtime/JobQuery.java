@@ -78,8 +78,16 @@ public interface JobQuery extends Query<JobQuery, Job> {
   /** Only select jobs where the duedate is lower than the given date. */
   JobQuery duedateLowerThan(Date date);
 
-  /** Only select jobs where the duedate is higher then the given date. */
+  /** Only select jobs where the duedate is higher than the given date. */
   JobQuery duedateHigherThan(Date date);
+
+  /** Only select jobs where the duedate is lower than or equals the given date.
+   */
+  JobQuery duedateLowerThanOrEquals(Date date);
+
+  /** Only select jobs where the duedate is higher than or equals the given date.
+   */
+  JobQuery duedateHigherThanOrEquals(Date date);
 
   /** Only select jobs where the duedate is lower then the given date.
    * @deprecated

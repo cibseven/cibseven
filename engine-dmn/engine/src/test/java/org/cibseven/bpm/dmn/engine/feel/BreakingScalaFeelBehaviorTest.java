@@ -17,6 +17,8 @@
 package org.cibseven.bpm.dmn.engine.feel;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 import org.cibseven.bpm.dmn.engine.DmnDecisionResult;
@@ -32,12 +34,8 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class BreakingScalaFeelBehaviorTest extends DmnEngineTest {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   @Override
   public DmnEngineConfiguration getDmnEngineConfiguration() {
@@ -97,17 +95,15 @@ public class BreakingScalaFeelBehaviorTest extends DmnEngineTest {
   @Test
   @DecisionResource(resource = "breaking_single_quotes.dmn")
   public void shouldUseSingleQuotesInStringLiterals() {
-    // given
-    DefaultDmnEngineConfiguration configuration = (DefaultDmnEngineConfiguration) getDmnEngineConfiguration();
-    DmnEngine engine = configuration.buildEngine();
-
-    // then
-    thrown.expect(FeelException.class);
-    thrown.expectMessage("FEEL/SCALA-01008 Error while evaluating expression: failed to parse expression ''Hello World'': "
-      + "Expected (start-of-input | negation | positiveUnaryTests | anyInput):1:1, found \"'Hello Wor\"");
-
-    // when
-    engine.evaluateDecision(decision, Variables.createVariables().putValue("input", "Hello World"));
+    FeelException exception = assertThrows( FeelException.class, ()-> {
+          // given
+          DefaultDmnEngineConfiguration configuration = (DefaultDmnEngineConfiguration) getDmnEngineConfiguration();
+          DmnEngine engine = configuration.buildEngine();
+          // when
+          engine.evaluateDecision(decision, Variables.createVariables().putValue("input", "Hello World"));
+    });
+    assertTrue(exception.getMessage().contains("FEEL/SCALA-01008 Error while evaluating expression: failed to parse expression ''Hello World'': "
+        + "Expected (start-of-input | negation | positiveUnaryTests | anyInput):1:1, found \"'Hello Wor\""));
   }
 
   @Ignore("CAM-11319")

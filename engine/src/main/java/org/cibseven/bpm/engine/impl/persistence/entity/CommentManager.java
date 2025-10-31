@@ -54,7 +54,7 @@ public class CommentManager extends AbstractHistoricManager {
     return getDbEntityManager().selectList("selectCommentsByTaskId", taskId);
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "deprecation" })
   public List<Event> findEventsByTaskId(String taskId) {
     checkHistoryEnabled();
 

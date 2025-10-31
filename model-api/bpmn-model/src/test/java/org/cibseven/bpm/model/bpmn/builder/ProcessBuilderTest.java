@@ -56,6 +56,8 @@ import static org.cibseven.bpm.model.bpmn.BpmnTestConstants.TRANSACTION_ID;
 import static org.cibseven.bpm.model.bpmn.BpmnTestConstants.USER_TASK_ID;
 import static org.cibseven.bpm.model.bpmn.impl.BpmnModelConstants.BPMN20_NS;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -127,9 +129,7 @@ import org.cibseven.bpm.model.xml.instance.ModelElementInstance;
 import org.cibseven.bpm.model.xml.type.ModelElementType;
 import org.junit.After;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 
 /**
@@ -142,9 +142,6 @@ public class ProcessBuilderTest {
   public static final String TIMER_CYCLE = "R3/PT10H";
 
   public static final String FAILED_JOB_RETRY_TIME_CYCLE = "R5/PT1M";
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   private BpmnModelInstance modelInstance;
   private static ModelElementType taskType;
@@ -597,7 +594,7 @@ public class ProcessBuilderTest {
     modelInstance = Bpmn.createProcess(PROCESS_ID)
       .camundaJobPriority("${somePriority}")
       .camundaTaskPriority(TEST_PROCESS_TASK_PRIORITY)
-      .camundaHistoryTimeToLive(TEST_HISTORY_TIME_TO_LIVE)
+      .camundaHistoryTimeToLiveString(TEST_HISTORY_TIME_TO_LIVE)
       .camundaStartableInTasklist(TEST_STARTABLE_IN_TASKLIST)
       .camundaVersionTag(TEST_VERSION_TAG)
       .startEvent()
@@ -607,7 +604,7 @@ public class ProcessBuilderTest {
     Process process = modelInstance.getModelElementById(PROCESS_ID);
     assertThat(process.getCamundaJobPriority()).isEqualTo("${somePriority}");
     assertThat(process.getCamundaTaskPriority()).isEqualTo(TEST_PROCESS_TASK_PRIORITY);
-    assertThat(process.getCamundaHistoryTimeToLive()).isEqualTo(TEST_HISTORY_TIME_TO_LIVE);
+    assertThat(process.getCamundaHistoryTimeToLiveString()).isEqualTo(TEST_HISTORY_TIME_TO_LIVE);
     assertThat(process.isCamundaStartableInTasklist()).isEqualTo(TEST_STARTABLE_IN_TASKLIST);
     assertThat(process.getCamundaVersionTag()).isEqualTo(TEST_VERSION_TAG);
   }
@@ -2639,51 +2636,49 @@ public class ProcessBuilderTest {
 
   @Test
   public void testOnlyOneCompensateBoundaryEventAllowed() {
-    // given
-    UserTaskBuilder builder = Bpmn.createProcess()
-      .startEvent()
-      .userTask("task")
-      .boundaryEvent("boundary")
-      .compensateEventDefinition().compensateEventDefinitionDone()
-      .compensationStart()
-      .userTask("compensate").name("compensate");
 
-    // then
-    thrown.expect(BpmnModelException.class);
-    thrown.expectMessage("Only single compensation handler allowed. Call compensationDone() to continue main flow.");
+    BpmnModelException exception = assertThrows( BpmnModelException.class, () -> {
+      // given
+      UserTaskBuilder builder = Bpmn.createProcess()
+        .startEvent()
+        .userTask("task")
+        .boundaryEvent("boundary")
+        .compensateEventDefinition().compensateEventDefinitionDone()
+        .compensationStart()
+        .userTask("compensate").name("compensate");
 
-    // when
-    builder.userTask();
+      // when
+      builder.userTask();
+    });
+    assertTrue(exception.getMessage().contains( "Only single compensation handler allowed. Call compensationDone() to continue main flow." ));
+
   }
 
   @Test
   public void testInvalidCompensationStartCall() {
-    // given
-    StartEventBuilder builder = Bpmn.createProcess().startEvent();
-
-    // then
-    thrown.expect(BpmnModelException.class);
-    thrown.expectMessage("Compensation can only be started on a boundary event with a compensation event definition");
-
-    // when
-    builder.compensationStart();
+    BpmnModelException exception = assertThrows( BpmnModelException.class, () -> {
+      // given
+      StartEventBuilder builder = Bpmn.createProcess().startEvent();
+      // when
+      builder.compensationStart();
+    });
+    assertTrue(exception.getMessage().contains( "Compensation can only be started on a boundary event with a compensation event definition" ));
   }
 
   @Test
   public void testInvalidCompensationDoneCall() {
-    // given
-    AbstractFlowNodeBuilder builder = Bpmn.createProcess()
-      .startEvent()
-      .userTask("task")
-      .boundaryEvent("boundary")
-      .compensateEventDefinition().compensateEventDefinitionDone();
+    BpmnModelException exception = assertThrows( BpmnModelException.class, () -> {
+      // given
+      AbstractFlowNodeBuilder builder = Bpmn.createProcess()
+        .startEvent()
+        .userTask("task")
+        .boundaryEvent("boundary")
+        .compensateEventDefinition().compensateEventDefinitionDone();
 
-    // then
-    thrown.expect(BpmnModelException.class);
-    thrown.expectMessage("No compensation in progress. Call compensationStart() first.");
-
-    // when
-    builder.compensationDone();
+      // when
+      builder.compensationDone();
+    });
+    assertTrue(exception.getMessage().contains("No compensation in progress. Call compensationStart() first."));
   }
 
   @Test
