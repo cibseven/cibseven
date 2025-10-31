@@ -16,9 +16,6 @@
  */
 package org.cibseven.bpm.identity.impl.ldap.plugin;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
