@@ -77,7 +77,7 @@ public class QueryByIdAfterTest {
   }
 
   @Test
-  @Deployment(resources={"org/camunda/bpm/engine/test/api/runtime/oneFailingServiceProcess.bpmn20.xml"})
+  @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneFailingServiceProcess.bpmn20.xml"})
   public void shouldHistoricIncidentApiReturnOnlyAfterGivenId() {
     // given
     startProcessInstancesByKey("oneFailingServiceTaskProcess", 10);
@@ -98,7 +98,7 @@ public class QueryByIdAfterTest {
   }
 
   @Test
-  @Deployment(resources = { "org/camunda/bpm/engine/test/history/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/history/oneTaskProcess.bpmn20.xml" })
   public void shouldHistoricProcessInstanceApiReturnOnlyAfterGivenId() {
     // given
     startProcessInstancesByKey("oneTaskProcess", 10);
@@ -119,7 +119,7 @@ public class QueryByIdAfterTest {
   }
 
   @Test
-  @Deployment(resources = { "org/camunda/bpm/engine/test/history/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/history/oneTaskProcess.bpmn20.xml" })
   public void shouldHistoricTaskInstanceApiReturnOnlyAfterGivenId() {
     // given
     startProcessInstancesByKey("oneTaskProcess", 10);
@@ -140,7 +140,7 @@ public class QueryByIdAfterTest {
   }
 
   @Test
-  @Deployment(resources = "org/camunda/bpm/engine/test/history/HistoricActivityInstanceTest.testHistoricActivityInstanceNoop.bpmn20.xml")
+  @Deployment(resources = "org/cibseven/bpm/engine/test/history/HistoricActivityInstanceTest.testHistoricActivityInstanceNoop.bpmn20.xml")
   @Ignore // until comparison for ids (activityName:id) is handled
   public void shouldHistoricActivityInstanceApiReturnOnlyAfterGivenId() {
     // given
@@ -165,7 +165,7 @@ public class QueryByIdAfterTest {
   @Ignore // until comparison for ids (processDefinitionKey:version:id) is handled
   public void shouldProcessDefinitionApiReturnOnlyAfterGivenId() {
     // given
-    deployProcessDefinitions("org/camunda/bpm/engine/test/api/oneTaskProcess.bpmn20.xml", 10);
+    deployProcessDefinitions("org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml", 10);
 
     // when querying by idAfter then only expected results are returned
     ProcessDefinitionQueryImpl processDefinitionQuery = (ProcessDefinitionQueryImpl) repositoryService.createProcessDefinitionQuery();
@@ -183,7 +183,7 @@ public class QueryByIdAfterTest {
   }
 
   @Test
-  @Deployment(resources = { "org/camunda/bpm/engine/test/history/oneTaskProcess.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/history/oneTaskProcess.bpmn20.xml" })
   public void shouldProcessInstanceApiReturnOnlyAfterGivenId() {
     // given
     startProcessInstancesByKey("oneTaskProcess", 10);
@@ -204,7 +204,7 @@ public class QueryByIdAfterTest {
   }
 
   @Test
-  @Deployment(resources = { "org/camunda/bpm/engine/test/history/HistoricVariableInstanceTest.testSimple.bpmn20.xml" })
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/history/HistoricVariableInstanceTest.testSimple.bpmn20.xml" })
   public void shouldVariableInstanceApiReturnOnlyAfterGivenId() {
     // given
     startProcessInstancesByKey("myProc", 10);
