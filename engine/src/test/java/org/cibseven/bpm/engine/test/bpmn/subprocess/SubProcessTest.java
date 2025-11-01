@@ -497,7 +497,7 @@ public class SubProcessTest extends PluggableProcessEngineTest {
     testRule.assertProcessEnded(pi.getId());
   }
 
-  @Deployment(resources = {"org/camunda/bpm/engine/test/api/runtime/nestedSubProcess.bpmn20.xml", "org/camunda/bpm/engine/test/bpmn/callactivity/simpleSubProcess.bpmn20.xml"})
+  @Deployment(resources = {"org/cibseven/bpm/engine/test/api/runtime/nestedSubProcess.bpmn20.xml", "org/cibseven/bpm/engine/test/bpmn/callactivity/simpleSubProcess.bpmn20.xml"})
   @Test
   public void testInstanceSubProcessInstanceIdSet() {
     // given
