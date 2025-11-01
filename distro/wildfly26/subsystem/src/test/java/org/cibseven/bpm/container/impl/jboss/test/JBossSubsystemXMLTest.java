@@ -31,13 +31,14 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+
 import javax.xml.stream.XMLStreamException;
 import org.cibseven.bpm.container.impl.jboss.config.ManagedProcessEngineMetadata;
 import org.cibseven.bpm.container.impl.jboss.extension.Attribute;
@@ -478,7 +479,7 @@ public class JBossSubsystemXMLTest extends AbstractSubsystemTest {
     EnhancedQueueExecutor enhancedQueueExecutor = (EnhancedQueueExecutor) EnhancedQueueExecutorObject;
     assertEquals("Number of core threads is wrong", DEFAULT_CORE_THREADS, enhancedQueueExecutor.getCorePoolSize());
     assertEquals("Number of max threads is wrong", DEFAULT_MAX_THREADS, enhancedQueueExecutor.getMaximumPoolSize());
-    assertEquals(DEFAULT_KEEPALIVE_TIME, enhancedQueueExecutor.getKeepAliveTime().toSeconds());
+    assertEquals(DEFAULT_KEEPALIVE_TIME, enhancedQueueExecutor.getKeepAliveTime(TimeUnit.SECONDS));
 
     ServiceController<?> threadFactoryService = container.getService(ServiceNames.forThreadFactoryService(DEFAULT_JOB_EXECUTOR_THREADPOOL_NAME));
     assertNotNull(threadFactoryService);
