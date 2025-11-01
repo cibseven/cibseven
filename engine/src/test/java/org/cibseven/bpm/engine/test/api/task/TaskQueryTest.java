@@ -1159,7 +1159,7 @@ public class TaskQueryTest extends PluggableProcessEngineTest {
   }
 
   @Test
-  @Deployment(resources="org/cibsven/bpm/engine/test/api/task/taskDefinitionProcess.bpmn20.xml")
+  @Deployment(resources="org/cibseven/bpm/engine/test/api/task/taskDefinitionProcess.bpmn20.xml")
   public void testTaskDefinitionKeyNotInAllKeysProvided() {
 
     // Given
