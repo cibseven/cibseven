@@ -17,9 +17,9 @@
 package org.cibseven.bpm.engine.test.history.dmn;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.camunda.bpm.engine.test.api.runtime.TestOrderingUtil.inverted;
-import static org.camunda.bpm.engine.test.api.runtime.TestOrderingUtil.propertyComparator;
-import static org.camunda.bpm.engine.test.api.runtime.TestOrderingUtil.verifySorting;
+import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.inverted;
+import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.propertyComparator;
+import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.verifySorting;
 import static org.junit.Assert.fail;
 
 import java.util.Date;
