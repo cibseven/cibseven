@@ -13,4 +13,8 @@
     <module name="org.apache.httpcomponents.core5.httpcore5" export="true" />
 
   </dependencies>
+<<<<<<< HEAD
 </module>
+=======
+</module>
+>>>>>>> 4fbb7c9a05... fix(test): http5 module is added to wildly26, wldfly28, wildfly; test-fixture-724 is removed, JBossSubsystem is updated according to wildfly26 changes
