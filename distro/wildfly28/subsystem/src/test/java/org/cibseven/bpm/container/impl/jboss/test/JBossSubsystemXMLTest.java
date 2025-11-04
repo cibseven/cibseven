@@ -16,10 +16,6 @@
  */
 package org.cibseven.bpm.container.impl.jboss.test;
 
-import static org.cibseven.bpm.container.impl.jboss.extension.SubsystemAttributeDefinitons.DEFAULT_CORE_THREADS;
-import static org.cibseven.bpm.container.impl.jboss.extension.SubsystemAttributeDefinitons.DEFAULT_JOB_EXECUTOR_THREADPOOL_NAME;
-import static org.cibseven.bpm.container.impl.jboss.extension.SubsystemAttributeDefinitons.DEFAULT_KEEPALIVE_TIME;
-import static org.cibseven.bpm.container.impl.jboss.extension.SubsystemAttributeDefinitons.DEFAULT_MAX_THREADS;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
@@ -58,6 +54,7 @@ import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import org.jboss.as.naming.deployment.ContextNames;
 import org.jboss.as.subsystem.test.AbstractSubsystemTest;
 import org.jboss.as.subsystem.test.KernelServices;
+import org.jboss.as.threads.ManagedQueueExecutorService;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceContainer;
@@ -471,17 +468,19 @@ public class JBossSubsystemXMLTest extends AbstractSubsystemTest {
     assertEquals(3, defaultJobExecutor.getMaxJobsPerAcquisition());
 
     // ServiceName: 'org.cibseven.bpm.platform.job-executor.job-executor-tp'
-    ServiceController<?> EnhancedQueueExecutorController = container.getService(ServiceNames.forManagedThreadPool(DEFAULT_JOB_EXECUTOR_THREADPOOL_NAME));
-    assertNotNull(EnhancedQueueExecutorController);
-    Object EnhancedQueueExecutorObject = EnhancedQueueExecutorController.getValue();
-    assertNotNull(EnhancedQueueExecutorObject);
-    assertTrue(EnhancedQueueExecutorObject instanceof EnhancedQueueExecutor);
-    EnhancedQueueExecutor enhancedQueueExecutor = (EnhancedQueueExecutor) EnhancedQueueExecutorObject;
-    assertEquals("Number of core threads is wrong", DEFAULT_CORE_THREADS, enhancedQueueExecutor.getCorePoolSize());
-    assertEquals("Number of max threads is wrong", DEFAULT_MAX_THREADS, enhancedQueueExecutor.getMaximumPoolSize());
-    assertEquals(DEFAULT_KEEPALIVE_TIME, enhancedQueueExecutor.getKeepAliveTime(TimeUnit.SECONDS));
+    ServiceController<?> managedQueueExecutorServiceController = container.getService(ServiceNames.forManagedThreadPool(SubsystemAttributeDefinitons.DEFAULT_JOB_EXECUTOR_THREADPOOL_NAME));
+    assertNotNull(managedQueueExecutorServiceController);
+    Object managedQueueExecutorServiceObject = managedQueueExecutorServiceController.getValue();
+    assertNotNull(managedQueueExecutorServiceObject);
+    assertTrue(managedQueueExecutorServiceObject instanceof ManagedQueueExecutorService);
+    ManagedQueueExecutorService managedQueueExecutorService = (ManagedQueueExecutorService) managedQueueExecutorServiceObject;
+    assertEquals("Number of core threads is wrong", SubsystemAttributeDefinitons.DEFAULT_CORE_THREADS, managedQueueExecutorService.getCoreThreads());
+    assertEquals("Number of max threads is wrong", SubsystemAttributeDefinitons.DEFAULT_MAX_THREADS, managedQueueExecutorService.getMaxThreads());
+    assertEquals(SubsystemAttributeDefinitons.DEFAULT_KEEPALIVE_TIME, TimeUnit.NANOSECONDS.toSeconds(managedQueueExecutorService.getKeepAlive()));
+    assertEquals(false, managedQueueExecutorService.isBlocking());
+    assertEquals(SubsystemAttributeDefinitons.DEFAULT_ALLOW_CORE_TIMEOUT, managedQueueExecutorService.isAllowCoreTimeout());
 
-    ServiceController<?> threadFactoryService = container.getService(ServiceNames.forThreadFactoryService(DEFAULT_JOB_EXECUTOR_THREADPOOL_NAME));
+    ServiceController<?> threadFactoryService = container.getService(ServiceNames.forThreadFactoryService(SubsystemAttributeDefinitons.DEFAULT_JOB_EXECUTOR_THREADPOOL_NAME));
     assertNotNull(threadFactoryService);
     assertTrue(threadFactoryService.getValue() instanceof ThreadFactory);
 
