@@ -844,13 +844,28 @@
     <bind name="atomicChecks" value="authCheck.permissionChecks.atomicChecks" />
     <bind name="disjunctive" value="authCheck.permissionChecks.disjunctive" />
     <bind name="useLeftJoin" value="authCheck.useLeftJoin" />
+    <bind name="useNoJoin" value="false" />
     <include refid="org.cibseven.bpm.engine.impl.persistence.entity.AuthorizationEntity.authCheckJoinWithoutOnClauseWithBinding${authCheckMethodSuffix}" />
     <!-- The suffix above is added to handle mssql differently (with UNION instead of OR for groups) -->
+  </sql>
+
+  <!-- this sql block is added for the task list query from Task.xml to use faster auth check with EXIST clause:
+  it is similar to the above block, but it disables join with useNoJoin and includes EXIST clause -->
+  <sql id="authCheckForTaskQueryWithExistsClause">
+    <bind name="authGroupIds" value="authCheck.authGroupIds" />
+    <bind name="atomicChecks" value="authCheck.permissionChecks.atomicChecks" />
+    <bind name="disjunctive" value="authCheck.permissionChecks.disjunctive" />
+    <bind name="useLeftJoin" value="false" />
+    <bind name="useNoJoin" value="true" />
+    EXISTS (SELECT 1 FROM
+    <include refid="org.cibseven.bpm.engine.impl.persistence.entity.AuthorizationEntity.authCheckJoinWithoutOnClauseWithBinding${authCheckMethodSuffix}" />
+    AUTH WHERE AUTH.RESOURCE_ID_ IN (RES.ID_, D.KEY_,'*'))
   </sql>
 
   <sql id="authCheckJoinWithoutOnClauseWithBinding">
     <choose>
       <when test="useLeftJoin != null &amp;&amp; useLeftJoin == true">left join</when>
+      <when test="useNoJoin != null &amp;&amp; useNoJoin == true"></when>
       <otherwise>inner join</otherwise>
     </choose>
     (
@@ -869,6 +884,7 @@
   <sql id="authCheckJoinWithoutOnClauseWithBinding_mssql">
     <choose>
       <when test="useLeftJoin != null &amp;&amp; useLeftJoin == true">left join</when>
+      <when test="useNoJoin != null &amp;&amp; useNoJoin == true"></when>
       <otherwise>inner join</otherwise>
     </choose>
     (
@@ -1048,7 +1064,14 @@
             (RES.CASE_EXECUTION_ID_ IS NOT NULL)
             OR
           </if>
-            (AUTH.RESOURCE_ID_ IS NOT NULL)
+          <choose>
+            <when test="applyAuthorizationCheckForTaskQueryFast">
+              <include refid="org.cibseven.bpm.engine.impl.persistence.entity.AuthorizationEntity.authCheckForTaskQueryWithExistsClause" />
+            </when>
+            <otherwise>
+              (AUTH.RESOURCE_ID_ IS NOT NULL)
+            </otherwise>
+            </choose>
             <if test="authCheck.permissionChecks.compositeChecks != null &amp;&amp; authCheck.permissionChecks.compositeChecks.size > 0"> 
               AND
               <foreach item="permCheck" index="index" collection="authCheck.permissionChecks.compositeChecks" separator="AND">

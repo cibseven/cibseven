@@ -19,6 +19,7 @@ package org.cibseven.bpm.engine.impl;
 import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.cibseven.bpm.engine.history.HistoricVariableInstance;
@@ -68,12 +69,28 @@ public class HistoricVariableInstanceQueryImpl extends AbstractQuery<HistoricVar
 
   protected boolean isByteArrayFetchingEnabled = true;
   protected boolean isCustomObjectDeserializationEnabled = true;
+  protected String variableIdAfter;
+  protected Date createdAfter;
 
   public HistoricVariableInstanceQueryImpl() {
   }
 
   public HistoricVariableInstanceQueryImpl(CommandExecutor commandExecutor) {
     super(commandExecutor);
+  }
+
+  public HistoricVariableInstanceQuery idAfter(String id) {
+    variableIdAfter = id;
+    return this;
+  }
+
+  public String getVariableIdAfter() {
+    return variableIdAfter;
+  }
+
+  public HistoricVariableInstanceQuery createdAfter(Date date) {
+    createdAfter = date;
+    return this;
   }
 
   public HistoricVariableInstanceQuery variableNameIn(String... names) {
@@ -288,6 +305,16 @@ public class HistoricVariableInstanceQueryImpl extends AbstractQuery<HistoricVar
     return this;
   }
 
+  public HistoricVariableInstanceQuery orderByVariableId() {
+    orderBy(HistoricVariableInstanceQueryProperty.VARIABLE_ID);
+    return this;
+  }
+
+  public HistoricVariableInstanceQuery orderByCreationTime() {
+    orderBy(HistoricVariableInstanceQueryProperty.CREATE_TIME);
+    return this;
+  }
+
   // getters and setters //////////////////////////////////////////////////////
 
   public String getProcessInstanceId() {
@@ -362,6 +389,10 @@ public class HistoricVariableInstanceQueryImpl extends AbstractQuery<HistoricVar
 
   public List<String> getVariableNameIn() {
     return variableNameIn;
+  }
+  
+  public Date getCreatedAfter() {
+    return createdAfter;
   }
 
 }

@@ -18,8 +18,6 @@ package org.cibseven.connect.spi;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Set;
-
 import org.cibseven.connect.Connectors;
 import org.cibseven.connect.dummy.DummyConnector;
 import org.junit.Test;

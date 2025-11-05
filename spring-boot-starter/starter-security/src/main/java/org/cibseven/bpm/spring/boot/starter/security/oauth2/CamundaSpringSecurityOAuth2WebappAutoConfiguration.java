@@ -22,9 +22,9 @@ import jakarta.servlet.Filter;
 
 import org.cibseven.bpm.engine.rest.security.auth.ProcessEngineAuthenticationFilter;
 import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
-import org.cibseven.bpm.spring.boot.starter.property.WebappProperty;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.AuthorizeTokenFilter;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.OAuth2AuthenticationProvider;
+import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.OAuth2GrantedAuthoritiesMapper;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.SsoLogoutSuccessHandler;
 import org.cibseven.bpm.webapp.impl.security.auth.ContainerBasedAuthenticationFilter;
 import org.slf4j.Logger;
@@ -45,6 +45,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
@@ -92,18 +93,25 @@ public class CamundaSpringSecurityOAuth2WebappAutoConfiguration {
   }
 
   @Bean
+  @ConditionalOnProperty(name = "identity-provider.group-name-attribute", prefix = OAuth2Properties.PREFIX)
+  protected GrantedAuthoritiesMapper grantedAuthoritiesMapper() {
+    logger.debug("Registering OAuth2GrantedAuthoritiesMapper");
+    return new OAuth2GrantedAuthoritiesMapper(oAuth2Properties);
+  }
+
+  @Bean
   @Order(2)
   public SecurityFilterChain webappSecurityFilterChain(HttpSecurity http,
                                                        OAuth2AuthorizedClientManager clientManager,
-                                                       @Nullable SsoLogoutSuccessHandler ssoLogoutSuccessHandler,
-                                                       @Nullable JerseyApplicationPath applicationPath) throws Exception {
+                                                       @Nullable SsoLogoutSuccessHandler ssoLogoutSuccessHandler) throws Exception {
       logger.info("Enabling Camunda Spring Security oauth2 integration for legacy webapp");
-      String engineRestPath = applicationPath != null? applicationPath.getPath() : "";
       // @formatter:off
       http.securityMatcher(request -> {
             String fullPath = request.getServletPath() + (request.getPathInfo() != null ? request.getPathInfo() : "");
-            // all requests that are not going to the engine-rest pass by
-            return engineRestPath.isEmpty()? true : !fullPath.startsWith(engineRestPath);
+            return fullPath.startsWith(legacyWebappPath) || 
+                   fullPath.startsWith(OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI) ||
+                   fullPath.startsWith("/login") ||
+                   fullPath.startsWith("/logout");
           })
           .authorizeHttpRequests(c -> c
             .requestMatchers(legacyWebappPath + "/app/**").authenticated()
