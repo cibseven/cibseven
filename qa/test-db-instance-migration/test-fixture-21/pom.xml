@@ -138,8 +138,7 @@
               </execution>
             </executions>
           </plugin>
-          <!-- uncomment when 7.23 is released -->
-          <!--<plugin>
+          <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
             <configuration>
@@ -160,7 +159,7 @@
                 </configuration>
               </execution>
             </executions>
-          </plugin>-->
+          </plugin>
         </plugins>
       </build>
     </profile>

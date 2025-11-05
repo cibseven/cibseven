@@ -30,7 +30,7 @@
     <version.liquibase>4.8.0</version.liquibase>
 
     <!-- needed for sql script and backward compatibility checks -->
-    <camunda.version.old>7.22.0</camunda.version.old>
+    <camunda.version.old>7.23.0</camunda.version.old>
 
     <!-- Testcontainers JDBC URL parameters. By default, an empty string -->
     <database.tc.params />
@@ -206,7 +206,6 @@
         <database.driver>org.h2.Driver</database.driver>
         <database.datasource.class>org.h2.jdbcx.JdbcDataSource</database.datasource.class>
         <jboss.datasource.filename>h2-ds.xml</jboss.datasource.filename>
-        <was.liberty.datasource.filename>h2-config.xml</was.liberty.datasource.filename>
         <hibernate.dialect>org.hibernate.dialect.H2Dialect</hibernate.dialect>
       </properties>
       <dependencies>
@@ -379,7 +378,6 @@
         <database.driver>org.postgresql.Driver</database.driver>
         <database.datasource.class>org.postgresql.ds.PGSimpleDataSource</database.datasource.class>
         <jboss.datasource.filename>postgresql-ds.xml</jboss.datasource.filename>
-        <was.liberty.datasource.filename>postgresql-config.xml</was.liberty.datasource.filename>
         <hibernate.dialect>org.hibernate.dialect.PostgreSQLDialect</hibernate.dialect>
         <database.tc.url>campostgresql:13.2</database.tc.url>
         <database.tc.params>TC_DAEMON=true</database.tc.params>
@@ -416,7 +414,6 @@
       <properties>
         <database.datasource.class>org.postgresql.xa.PGXADataSource</database.datasource.class>
         <jboss.datasource.filename>postgresql-xa-ds.xml</jboss.datasource.filename>
-        <was.liberty.datasource.filename>postgresql-xa-config.xml</was.liberty.datasource.filename>
       </properties>
     </profile>
     <profile>
