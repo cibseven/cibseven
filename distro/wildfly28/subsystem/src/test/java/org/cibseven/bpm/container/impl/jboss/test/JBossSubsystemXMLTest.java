@@ -36,7 +36,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import javax.xml.stream.XMLStreamException;
-
 import org.cibseven.bpm.container.impl.jboss.config.ManagedProcessEngineMetadata;
 import org.cibseven.bpm.container.impl.jboss.extension.Attribute;
 import org.cibseven.bpm.container.impl.jboss.extension.BpmPlatformExtension;
@@ -61,8 +60,8 @@ import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceContainer;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
+import org.jboss.threads.EnhancedQueueExecutor;
 import org.junit.Test;
-
 
 /**
  *

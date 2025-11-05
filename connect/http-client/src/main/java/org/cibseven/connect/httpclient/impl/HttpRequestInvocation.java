@@ -18,17 +18,17 @@ package org.cibseven.connect.httpclient.impl;
 
 import java.util.List;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.cibseven.connect.spi.ConnectorRequest;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.cibseven.connect.impl.AbstractRequestInvocation;
+import org.cibseven.connect.spi.ConnectorRequest;
 import org.cibseven.connect.spi.ConnectorRequestInterceptor;
 
-public class HttpRequestInvocation  extends AbstractRequestInvocation<HttpRequestBase> {
+public class HttpRequestInvocation extends AbstractRequestInvocation<BasicClassicHttpRequest> {
 
   protected HttpClient client;
 
-  public HttpRequestInvocation(HttpRequestBase target, ConnectorRequest<?> request, List<ConnectorRequestInterceptor> interceptorChain, HttpClient client) {
+  public HttpRequestInvocation(BasicClassicHttpRequest target, ConnectorRequest<?> request, List<ConnectorRequestInterceptor> interceptorChain, HttpClient client) {
     super(target, request, interceptorChain);
     this.client = client;
   }

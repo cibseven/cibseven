@@ -74,11 +74,29 @@ public class JacksonConfigurator implements ContextResolver<ObjectMapper> {
     
     mapper.registerModule(new JavaTimeModule());
 
-    StreamReadConstraints streamReadConstrains = StreamReadConstraints.builder().maxStringLength(maxStringLength)
-            .build();
-    mapper.getFactory().setStreamReadConstraints(streamReadConstrains);
+    // setStreamReadConstraints was added in Jackson 2.15.0
+    // Check Jackson version before using the feature
+    configureStreamReadConstraints(mapper);
 
     return mapper;
+  }
+
+  /**
+   * Configures StreamReadConstraints on the ObjectMapper if the Jackson version supports it.
+   * StreamReadConstraints was added in Jackson 2.15.0.
+   */
+  private static void configureStreamReadConstraints(ObjectMapper mapper) {
+    try {
+      // Try to use StreamReadConstraints - available in Jackson 2.15.0+
+      StreamReadConstraints streamReadConstraints = StreamReadConstraints.builder()
+              .maxStringLength(maxStringLength)
+              .build();
+      mapper.getFactory().setStreamReadConstraints(streamReadConstraints);
+    } catch (NoSuchMethodError e) {
+      // setStreamReadConstraints method not available in Jackson < 2.15.0
+      // This can happen when WildFly's older Jackson modules are used
+      // Application will continue without this security constraint
+    }
   }
 
   @Override

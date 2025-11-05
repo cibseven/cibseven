@@ -18,6 +18,7 @@ package org.cibseven.bpm.spring.boot.starter.rest;
 
 import org.cibseven.bpm.engine.rest.impl.FetchAndLockContextListener;
 import org.cibseven.bpm.spring.boot.starter.CamundaBpmAutoConfiguration;
+import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -41,7 +42,7 @@ public class CamundaBpmRestJerseyAutoConfiguration {
   }
 
   @Bean
-  public CamundaBpmRestInitializer camundaBpmRestInitializer(JerseyApplicationPath applicationPath) {
-    return new CamundaBpmRestInitializer(applicationPath);
+  public CamundaBpmRestInitializer camundaBpmRestInitializer(JerseyApplicationPath applicationPath, CamundaBpmProperties props) {
+    return new CamundaBpmRestInitializer(applicationPath, props);
   }
 }

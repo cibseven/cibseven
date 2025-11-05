@@ -131,7 +131,7 @@ pipeline {
             }
             steps {
                 script {
-                    withMaven(options: [artifactsPublisher(fingerprintFilesDisabled: true, archiveFilesDisabled: true)]) {
+                    withMaven(options: []) {
                         sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
                     }
                 }
@@ -210,18 +210,6 @@ pipeline {
                         script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
                     }
                 }
-            }
-        }
-
-        stage('JUnit Report') {
-            when {
-                anyOf {
-                    expression { params.VERIFY == true }
-                    expression { params.QA_VERIFY == true }
-                }
-            }
-            steps {
-                script { junit allowEmptyResults: true, testResults: ConstantsInternal.MAVEN_TEST_RESULTS }
             }
         }
 
@@ -323,6 +311,21 @@ pipeline {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
                         }
                     }
+                }
+            }
+        }
+
+        stage('JUnit Report') {
+            when {
+                anyOf {
+                    expression { params.VERIFY == true }
+                    expression { params.QA_VERIFY == true }
+                }
+            }
+            steps {
+                script {
+                    junit allowEmptyResults: true, testResults: ConstantsInternal.MAVEN_TEST_RESULTS
+                    archiveArtifacts artifacts: ConstantsInternal.MAVEN_TEST_RESULTS, allowEmptyArchive: false, fingerprint: true
                 }
             }
         }
