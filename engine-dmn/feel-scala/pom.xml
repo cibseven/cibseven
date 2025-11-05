@@ -18,6 +18,34 @@
       <groupId>org.camunda.feel</groupId>
       <artifactId>feel-engine</artifactId>
       <classifier>scala-shaded</classifier>
+      <!-- excluding shaded libs, since shading relocates libs internally-->
+      <exclusions>
+        <exclusion>
+          <groupId>org.scala-lang</groupId>
+          <artifactId>scala-library</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.lihaoyi</groupId>
+          <artifactId>fastparse_2.13</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.lihaoyi</groupId>
+          <artifactId>geny_2.13</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.lihaoyi</groupId>
+          <artifactId>sourcecode_2.13</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.uuid</groupId>
+          <artifactId>java-uuid-generator</artifactId>
+        </exclusion>
+        <!-- slf4j is not shaded -->
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
