@@ -5,6 +5,7 @@
 
   <dependencies>
     <module name="javax.api"/>
+    <module name="org.slf4j" />
     <module name="org.cibseven.commons.cibseven-commons-logging" />
     <module name="org.cibseven.commons.cibseven-commons-utils" />
 
