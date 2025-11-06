@@ -47,7 +47,7 @@
     <version.httpcore5>5.3.4</version.httpcore5>
     <version.cronutils>9.2.1</version.cronutils>
 
-    <version.slf4j>2.0.16</version.slf4j>
+    <version.slf4j>1.7.26</version.slf4j>
     <version.logback>1.5.20</version.logback>
     <version.junit>4.13.1</version.junit>
     <version.assertj>2.9.1</version.assertj>
@@ -70,8 +70,8 @@
     <version.wildfly26>26.0.1.Final</version.wildfly26>
     <version.wildfly26.core>18.0.4.Final</version.wildfly26.core>
 
-   <version.tomcat9>9.0.110</version.tomcat9>
-   <version.tomcat>10.1.48</version.tomcat>
+    <version.tomcat9>9.0.110</version.tomcat9>
+    <version.tomcat>10.1.48</version.tomcat>
 
     <version.arquillian>1.1.10.Final</version.arquillian>
     <version.shrinkwrap.resolvers>2.2.2</version.shrinkwrap.resolvers>
