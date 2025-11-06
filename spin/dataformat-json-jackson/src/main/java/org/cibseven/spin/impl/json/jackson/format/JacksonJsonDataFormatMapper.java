@@ -95,6 +95,9 @@ public class JacksonJsonDataFormatMapper implements DataFormatMapper {
     try {
       validateType(type, validator);
       ObjectMapper mapper = format.getObjectMapper();
+
+      mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
       return mapper.readValue(mapper.treeAsTokens(jsonNode), type);
     } catch (IOException | SpinRuntimeException e) {
       throw LOG.unableToDeserialize(jsonNode, type, e);
