@@ -16,15 +16,14 @@
  */
 package org.cibseven.bpm.client.backoff;
 
+import java.util.List;
+
 import org.cibseven.bpm.client.exception.BadRequestException;
 import org.cibseven.bpm.client.exception.ConnectionLostException;
 import org.cibseven.bpm.client.exception.EngineException;
 import org.cibseven.bpm.client.exception.ExternalTaskClientException;
-import org.cibseven.bpm.client.exception.NotFoundException;
 import org.cibseven.bpm.client.exception.UnknownHttpErrorException;
 import org.cibseven.bpm.client.task.ExternalTask;
-
-import java.util.List;
 
 /**
  * <p>Provides a way to define a back off between fetch and lock requests.

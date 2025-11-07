@@ -33,11 +33,10 @@ import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
-import org.cibseven.bpm.engine.impl.pvm.runtime.ActivityInstanceState;
 import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
-import org.cibseven.bpm.engine.impl.tree.TreeVisitor;
 import org.cibseven.bpm.engine.impl.tree.FlowScopeWalker;
 import org.cibseven.bpm.engine.impl.tree.ReferenceWalker;
+import org.cibseven.bpm.engine.impl.tree.TreeVisitor;
 
 /**
  * @author Daniel Meyer
