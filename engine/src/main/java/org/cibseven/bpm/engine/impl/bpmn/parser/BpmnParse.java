@@ -255,6 +255,7 @@ public class BpmnParse extends Parse {
 
   public static final String PROPERTYNAME_IS_MULTI_INSTANCE = "isMultiInstance";
 
+  @SuppressWarnings("deprecation")
   public static final Namespace CAMUNDA_BPMN_EXTENSIONS_NS = new Namespace(BpmnParser.CAMUNDA_BPMN_EXTENSIONS_NS, BpmnParser.ACTIVITI_BPMN_EXTENSIONS_NS);
   public static final Namespace XSI_NS = new Namespace(BpmnParser.XSI_NS);
   public static final Namespace BPMN_DI_NS = new Namespace(BpmnParser.BPMN_DI_NS);
@@ -435,7 +436,7 @@ public class BpmnParse extends Parse {
         Class<?> wsdlImporterClass;
         try {
           wsdlImporterClass = Class.forName("org.cibseven.bpm.engine.impl.webservice.CxfWSDLImporter", true, Thread.currentThread().getContextClassLoader());
-          XMLImporter newInstance = (XMLImporter) wsdlImporterClass.newInstance();
+          XMLImporter newInstance = (XMLImporter) wsdlImporterClass.getDeclaredConstructor().newInstance();
           this.importers.put(importType, newInstance);
           return newInstance;
         } catch (Exception e) {
@@ -3749,7 +3750,7 @@ public class BpmnParse extends Parse {
     }
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "deprecation" })
   protected void addVariableDeclaration(ScopeImpl scope, VariableDeclaration variableDeclaration) {
     List<VariableDeclaration> variableDeclarations = (List<VariableDeclaration>) scope.getProperty(PROPERTYNAME_VARIABLE_DECLARATIONS);
     if (variableDeclarations == null) {
@@ -4235,6 +4236,7 @@ public class BpmnParse extends Parse {
    * @param propertyType
    *          The type of the property.
    */
+  @SuppressWarnings("deprecation")
   public void parsePropertyCustomExtensions(ActivityImpl activity, Element propertyElement, String propertyName, String propertyType) {
 
     if (propertyType == null) {
@@ -4429,6 +4431,7 @@ public class BpmnParse extends Parse {
    * @param scope
    *          the scope to add the executionListeners to.
    */
+  @SuppressWarnings("deprecation")
   public void parseExecutionListenersOnScope(Element scopeElement, ScopeImpl scope) {
     Element extentionsElement = scopeElement.element("extensionElements");
     String scopeElementId = scopeElement.attribute("id");
@@ -4463,6 +4466,7 @@ public class BpmnParse extends Parse {
     return false;
   }
 
+  @SuppressWarnings("deprecation")
   public void parseExecutionListenersOnTransition(Element activitiElement, TransitionImpl activity) {
     Element extensionElements = activitiElement.element("extensionElements");
     if (extensionElements != null) {

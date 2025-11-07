@@ -51,7 +51,7 @@ public class MessageJobDeclaration extends JobDeclaration<AtomicOperationInvocat
     return message;
   }
 
-  public boolean isApplicableForOperation(AtomicOperation operation) {
+  public boolean isApplicableForOperation(@SuppressWarnings("deprecation") AtomicOperation operation) {
     for (String identifier : operationIdentifier) {
       if (operation.getCanonicalName().equals(identifier)) {
         return true;

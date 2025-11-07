@@ -663,6 +663,7 @@ public abstract class ItemHandler extends CmmnElementHandler<CmmnElement, CmmnAc
     return new ArrayList<Sentry>();
   }
 
+  @SuppressWarnings("deprecation")
   protected String getDesciption(CmmnElement element) {
     String description = element.getDescription();
 

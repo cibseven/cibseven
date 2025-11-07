@@ -102,6 +102,7 @@ public class StartAuthorizationTest extends PluggableProcessEngineTest {
     identityService.deleteUser("user3");
   }
   
+  @SuppressWarnings("deprecation")
   @Deployment
   @Test
   public void testIdentityLinks() throws Exception {
@@ -149,6 +150,7 @@ public class StartAuthorizationTest extends PluggableProcessEngineTest {
     }
   }
   
+  @SuppressWarnings("deprecation")
   @Deployment
   @Test
   public void testAddAndRemoveIdentityLinks() throws Exception {

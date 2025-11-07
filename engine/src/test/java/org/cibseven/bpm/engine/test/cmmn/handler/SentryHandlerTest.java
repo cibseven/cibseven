@@ -197,6 +197,7 @@ public class SentryHandlerTest extends CmmnElementHandlerTest {
 
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testSentryWithOnPartReferencesSentry() {
     // given
