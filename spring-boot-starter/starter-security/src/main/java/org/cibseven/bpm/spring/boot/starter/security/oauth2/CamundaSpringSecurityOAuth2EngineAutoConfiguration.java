@@ -125,7 +125,6 @@ public class CamundaSpringSecurityOAuth2EngineAutoConfiguration {
         })
         .authorizeHttpRequests(c -> c
           .requestMatchers(engineRestPath + "/**").authenticated())
-        .anonymous(AbstractHttpConfigurer::disable)
         .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {
              if (jwtAuthenticationConverter != null) {
                jwt.jwtAuthenticationConverter(jwtAuthenticationConverter);
