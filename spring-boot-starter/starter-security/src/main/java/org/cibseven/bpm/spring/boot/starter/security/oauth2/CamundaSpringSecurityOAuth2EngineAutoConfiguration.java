@@ -120,11 +120,14 @@ public class CamundaSpringSecurityOAuth2EngineAutoConfiguration {
 
     // @formatter:off
     http.securityMatcher(request -> {
-          String fullPath = request.getServletPath() + (request.getPathInfo() != null ? request.getPathInfo() : "");
-          return fullPath.startsWith(engineRestPath);
+          String pathInfo = (request.getPathInfo() != null ? request.getPathInfo() : "");
+          String fullPath = request.getServletPath() + pathInfo;
+          return fullPath.startsWith(engineRestPath) &&
+              ProcessEngineAuthenticationFilter.requiresEngineAuthentication(pathInfo);
         })
         .authorizeHttpRequests(c -> c
           .requestMatchers(engineRestPath + "/**").authenticated())
+          .anonymous(AbstractHttpConfigurer::disable)
         .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {
              if (jwtAuthenticationConverter != null) {
                jwt.jwtAuthenticationConverter(jwtAuthenticationConverter);
