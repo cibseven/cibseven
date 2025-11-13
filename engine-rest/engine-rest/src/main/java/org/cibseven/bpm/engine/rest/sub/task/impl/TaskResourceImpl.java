@@ -21,11 +21,14 @@ import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
@@ -43,6 +46,7 @@ import org.cibseven.bpm.engine.exception.NotFoundException;
 import org.cibseven.bpm.engine.exception.NotValidException;
 import org.cibseven.bpm.engine.exception.NullValueException;
 import org.cibseven.bpm.engine.form.FormData;
+import org.cibseven.bpm.engine.impl.form.FormFieldDto;
 import org.cibseven.bpm.engine.impl.form.validator.FormFieldValidationException;
 import org.cibseven.bpm.engine.impl.identity.Authentication;
 import org.cibseven.bpm.engine.rest.dto.VariableValueDto;
@@ -62,6 +66,7 @@ import org.cibseven.bpm.engine.rest.util.EncodingUtil;
 import org.cibseven.bpm.engine.task.IdentityLink;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.variable.VariableMap;
+import org.cibseven.bpm.engine.variable.value.TypedValue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -378,9 +383,33 @@ public class TaskResourceImpl implements TaskResource {
       formVariables = stringListConverter.convertQueryParameterToType(variableNames);
     }
 
-    VariableMap startFormVariables = formService.getTaskFormVariables(taskId, formVariables, deserializeValues);
+    VariableMap startFormVariables = formService.getTaskFormVariables(taskId, formVariables, deserializeValues, false);
 
     return VariableValueDto.fromMap(startFormVariables);
+  }
+
+  public Map<String, FormFieldDto> getFormVariablesLocal(String variableNames, boolean deserializeValues) {
+	    final FormService formService = engine.getFormService();
+	    List<String> formVariables = null;
+
+	    if(variableNames != null) {
+	      StringListConverter stringListConverter = new StringListConverter();
+	      formVariables = stringListConverter.convertQueryParameterToType(variableNames);
+	    }
+	    VariableMap startFormVariables = formService.getTaskFormVariables(taskId, formVariables, deserializeValues, true);
+	    Map<String, FormFieldDto> resultMap = new HashMap<>();
+	    for (String variableName : startFormVariables.keySet()) {
+	      Object formFieldRestImpl = startFormVariables.get(variableName);
+	      if (formFieldRestImpl != null && formFieldRestImpl instanceof FormFieldDto) {
+	        FormFieldDto dto = (FormFieldDto)formFieldRestImpl;
+	        TypedValue typedValue = (TypedValue)dto.getValue();
+	        if (typedValue != null) {
+	           dto.setValue(VariableValueDto.fromTypedValue(typedValue, false));
+	          resultMap.put(variableName, dto);
+	        }
+	      }
+	    }
+	    return resultMap;
   }
 
   public void updateTask(TaskDto taskDto) {
