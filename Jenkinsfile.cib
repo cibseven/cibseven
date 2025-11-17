@@ -79,10 +79,10 @@ pipeline {
     environment {
         // allow parallel builds of a few branches without conflicts:
         // split shared local repo into the download and installation parts, use branch-dependent prefix for the installation part
-        // and redirect this part out of the shared /root/.m2/repository mount point to the container filesystem: this part will be
+        // and redirect this part out of the shared /$HOME/.m2/repository mount point to the container filesystem: this part will be
         // private for each Jenkins job and will disappear after the build; also set bigger timeout to get rid of the maven issue 
         // with file locks: https://github.com/apache/maven/issues/9049
-        MAVEN_OPTS = "-Daether.enhancedLocalRepository.split=true -Daether.enhancedLocalRepository.localPrefix=../local_install/tmp_${env.BRANCH_NAME} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
+        MAVEN_OPTS = "-Daether.enhancedLocalRepository.split=true -Daether.enhancedLocalRepository.localPrefix=../local_install/tmp_${env.BRANCH_NAME} -Daether.enhancedLocalRepository.remotePrefix=. -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
     }
 
     options {
