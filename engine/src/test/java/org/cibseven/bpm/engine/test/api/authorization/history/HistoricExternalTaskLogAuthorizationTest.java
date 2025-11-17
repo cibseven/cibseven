@@ -144,7 +144,7 @@ public class HistoricExternalTaskLogAuthorizationTest extends AuthorizationTest 
     HistoricExternalTaskLogQuery query = historyService.createHistoricExternalTaskLogQuery();
 
     // then
-    verifyQueryResults(query, 6);
+    verifyQueryResults(query, 9);
   }
 
   @Test
@@ -157,7 +157,7 @@ public class HistoricExternalTaskLogAuthorizationTest extends AuthorizationTest 
     HistoricExternalTaskLogQuery query = historyService.createHistoricExternalTaskLogQuery();
 
     // then
-    verifyQueryResults(query, 8);
+    verifyQueryResults(query, 13);
   }
 
   @Test

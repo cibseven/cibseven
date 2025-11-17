@@ -248,6 +248,7 @@ public class HistoricExternalTaskLogQueryTest {
     HistoricExternalTaskLog log = historyService
       .createHistoricExternalTaskLogQuery()
       .workerId(WORKER_ID)
+      .successLog()
       .singleResult();
 
     // then

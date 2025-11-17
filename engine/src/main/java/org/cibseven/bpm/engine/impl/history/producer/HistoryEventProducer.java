@@ -306,6 +306,16 @@ public interface HistoryEventProducer {
   HistoryEvent createHistoricExternalTaskLogCreatedEvt(ExternalTask task);
 
   /**
+   * Creates the history event when an external task has been <strong>fetched</strong>.
+   *
+   * @since 2.3
+   */
+  //TODO: compatibility, fix @since according to the release
+  default HistoryEvent createHistoricExternalTaskLogFetchedEvt(ExternalTask task) {
+    return null;
+  }
+
+  /**
    * Creates the history event when the execution of an external task has <strong>failed</strong>.
    *
    * @since 7.7

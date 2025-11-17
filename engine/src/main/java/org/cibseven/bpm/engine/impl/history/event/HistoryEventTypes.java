@@ -191,13 +191,19 @@ public enum HistoryEventTypes implements HistoryEventType {
    */
   EXTERNAL_TASK_DELETE("external-task", "delete"),
 
-
   /**
    * fired when used operation log is created.
    *
    * @since 7.10, 7.9.1, 7.8.7
    */
-  USER_OPERATION_LOG("user-operation-log", "create");
+  USER_OPERATION_LOG("user-operation-log", "create"),
+
+  /**
+   * fired when an external task is fetched.
+   *
+   * @since cibseven 2.2.0
+   */
+  EXTERNAL_TASK_FETCH("external-task", "fetch");
 
   private HistoryEventTypes(String entityType, String eventName) {
     this.entityType = entityType;

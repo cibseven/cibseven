@@ -1190,6 +1190,11 @@ public class DefaultHistoryEventProducer implements HistoryEventProducer {
     return initHistoricExternalTaskLog((ExternalTaskEntity) task, ExternalTaskState.DELETED);
   }
 
+  @Override
+  public HistoryEvent createHistoricExternalTaskLogFetchedEvt(ExternalTask task) {
+    return initHistoricExternalTaskLog((ExternalTaskEntity) task, ExternalTaskState.FETCHED);
+  }
+
   protected HistoricExternalTaskLogEntity initHistoricExternalTaskLog(ExternalTaskEntity entity, ExternalTaskState state) {
     HistoricExternalTaskLogEntity event = new HistoricExternalTaskLogEntity();
 

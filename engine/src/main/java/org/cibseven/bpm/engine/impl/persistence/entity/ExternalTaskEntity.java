@@ -29,6 +29,7 @@ import java.util.Set;
 import org.cibseven.bpm.engine.EntityTypes;
 import org.cibseven.bpm.engine.delegate.BpmnError;
 import org.cibseven.bpm.engine.externaltask.ExternalTask;
+import org.cibseven.bpm.engine.history.ExternalTaskState;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnExceptionHandler;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
@@ -472,6 +473,7 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
   public void lock(String workerId, long lockDuration) {
     this.workerId = workerId;
     this.lockExpirationTime = new Date(ClockUtil.getCurrentTime().getTime() + lockDuration);
+    this.produceHistoricExternalTaskFetchedEvent();
   }
 
   public ExecutionEntity getExecution() {
@@ -590,6 +592,11 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
   protected void produceHistoricExternalTaskCreatedEvent() {
     CommandContext commandContext = Context.getCommandContext();
     commandContext.getHistoricExternalTaskLogManager().fireExternalTaskCreatedEvent(this);
+  }
+
+  protected void produceHistoricExternalTaskFetchedEvent() {
+    CommandContext commandContext = Context.getCommandContext();
+    commandContext.getHistoricExternalTaskLogManager().fireExternalTaskFetchedEvent(this);
   }
 
   protected void produceHistoricExternalTaskFailedEvent() {
