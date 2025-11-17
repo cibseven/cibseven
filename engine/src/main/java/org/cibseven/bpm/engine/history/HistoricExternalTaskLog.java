@@ -133,6 +133,13 @@ public interface HistoricExternalTaskLog {
 
   /**
    * Returns <code>true</code> when <code>this</code> log represents
+   * the fetching of the associated external task.
+   */
+  //TODO: compatibility?
+  boolean isFetchedLog();
+
+  /**
+   * Returns <code>true</code> when <code>this</code> log represents
    * the successful execution of the associated external task.
    */
   boolean isSuccessLog();

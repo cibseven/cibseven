@@ -827,8 +827,8 @@ public class HistoryCleanupRemovalTimeTest {
 
     List<HistoricExternalTaskLog> externalTaskLogs = historyService.createHistoricExternalTaskLogQuery().list();
 
-    // assume
-    assertThat(externalTaskLogs.size()).isEqualTo(1);
+    // assume: creation log + fetched log
+    assertThat(externalTaskLogs.size()).isEqualTo(2);
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -1626,7 +1626,8 @@ public class HistoryCleanupRemovalTimeTest {
         historyService.createHistoricExternalTaskLogQuery();
 
     // assume, when & then
-    assumeWhenThenParallelizedCleanup(jobs, externalTaskLogQuery::count, 30L);
+    // 15 instances x (created + fetched + successful)
+    assumeWhenThenParallelizedCleanup(jobs, externalTaskLogQuery::count, 45L);
   }
 
   @Test

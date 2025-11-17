@@ -23,6 +23,7 @@ public interface ExternalTaskState {
   ExternalTaskState FAILED = new ExternalTaskStateImpl(1, "failed");
   ExternalTaskState SUCCESSFUL = new ExternalTaskStateImpl(2, "successful");
   ExternalTaskState DELETED = new ExternalTaskStateImpl(3, "deleted");
+  ExternalTaskState FETCHED = new ExternalTaskStateImpl(4, "fetched");
 
   int getStateCode();
 
