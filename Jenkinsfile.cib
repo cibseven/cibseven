@@ -121,7 +121,7 @@ pipeline {
                     mavenProjectInformation = new MavenProjectInformation(groupId, pom.artifactId, pom.version, pom.name, pom.description)
 
                     log.info "Build Project: ${mavenProjectInformation.groupId}:${mavenProjectInformation.artifactId}, ${mavenProjectInformation.name} with version ${mavenProjectInformation.version}"
-
+                    log.info "Jenkins job: ${JOB_NAME}" 
                     // Avoid Git "dubious ownership" error in checked out repository. Needed in
                     // build containers with newer Git versions. Originates from Jenkins running
                     // pipeline as root but repository being owned by user 1000. For more, see
