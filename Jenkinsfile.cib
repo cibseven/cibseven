@@ -81,7 +81,7 @@ pipeline {
         // split shared local repo into the download and installation parts, use branch-dependent prefix for the installation part
         // and redirect this part into a separate folder cibseven-install-dir; also set bigger timeout to get rid of the maven issue 
         // with file locks: https://github.com/apache/maven/issues/9049
-        CIBSEVEN_INSTALL_PREFIX = "cibseven-install-dir/tmp_${JOB_NAME}"
+        CIBSEVEN_INSTALL_PREFIX = "cibseven-install-dir/tmp_${JOB_BASE_NAME}"
         MAVEN_OPTS = "-Daether.enhancedLocalRepository.split=true -Daether.enhancedLocalRepository.localPrefix=${env.CIBSEVEN_INSTALL_PREFIX} -Daether.enhancedLocalRepository.remotePrefix=. -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
     }
 
@@ -121,7 +121,6 @@ pipeline {
                     mavenProjectInformation = new MavenProjectInformation(groupId, pom.artifactId, pom.version, pom.name, pom.description)
 
                     log.info "Build Project: ${mavenProjectInformation.groupId}:${mavenProjectInformation.artifactId}, ${mavenProjectInformation.name} with version ${mavenProjectInformation.version}"
-                    log.info "Jenkins job: ${JOB_NAME}" 
                     // Avoid Git "dubious ownership" error in checked out repository. Needed in
                     // build containers with newer Git versions. Originates from Jenkins running
                     // pipeline as root but repository being owned by user 1000. For more, see
