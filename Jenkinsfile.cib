@@ -79,10 +79,10 @@ pipeline {
     environment {
         // allow parallel builds of a few branches without conflicts:
         // split shared local repo into the download and installation parts, use branch-dependent prefix for the installation part
-        // and redirect this part out of the shared /$HOME/.m2/repository mount point to the container filesystem: this part will be
-        // private for each Jenkins job and will disappear after the build; also set bigger timeout to get rid of the maven issue 
+        // and redirect this part into a separate folder cibseven-install-dir; also set bigger timeout to get rid of the maven issue 
         // with file locks: https://github.com/apache/maven/issues/9049
-        MAVEN_OPTS = "-Daether.enhancedLocalRepository.split=true -Daether.enhancedLocalRepository.localPrefix=../local_install/tmp_${env.BRANCH_NAME} -Daether.enhancedLocalRepository.remotePrefix=. -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
+        CIBSEVEN_INSTALL_PREFIX = "cibseven-install-dir/tmp_${JOB_NAME}"
+        MAVEN_OPTS = "-Daether.enhancedLocalRepository.split=true -Daether.enhancedLocalRepository.localPrefix=${env.CIBSEVEN_INSTALL_PREFIX} -Daether.enhancedLocalRepository.remotePrefix=. -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
     }
 
     options {
@@ -141,18 +141,7 @@ pipeline {
             steps {
                 script {
                     withMaven(options: []) {
-                        echo "Disk usage before build: "
-                        sh "du -sh ."
                         sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
-
-                        echo "!!!!!!!!!!Disk usage after build: "
-                        echo "cibseven folder usage and free space: "
-                        sh "du -sh ."
-                        sh "df -h ."
-                        echo "local_install folder usage and free space: "
-                        sh "du -sh /root/.m2/local_install"
-                        sh "df -h /root/.m2/local_install"
-
                     }
                 }
             }
@@ -183,15 +172,6 @@ pipeline {
                                 -pl org.cibseven.bpm:cibseven-engine-spring-6,:cibseven-spin-core,:cibseven-engine-rest-core-jakarta,:cibseven-webapp-jakarta,:cibseven-engine-cdi-jakarta,:cibseven-example-invoice-jakarta,:cibseven-ejb-client-jakarta,:cibseven-sql-scripts \
                                 -fn
                         """
-
-                        echo "!!!!!!!!!!Disk usage after Unit and Integration Tests: "
-                        echo "cibseven folder usage and free space: "
-                        sh "du -sh ."
-                        sh "df -h ."
-                        echo "local_install folder usage and free space: "
-                        sh "du -sh /root/.m2/local_install"
-                        sh "df -h /root/.m2/local_install"
-
                     }
                 }
             }
@@ -212,91 +192,32 @@ pipeline {
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,webapps-integration" }}
-
-                        script {
-                            echo "!!!!!!!!!!Disk usage after Web and Engine Integration: "
-                            echo "cibseven folder usage and free space: "
-                            sh "du -sh ."
-                            sh "df -h ."
-                            echo "local_install folder usage and free space: "
-                            sh "du -sh /root/.m2/local_install"
-                            sh "df -h /root/.m2/local_install"
-                        }
-
                     }
                 }
                 stage('Performance') {
-                    steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}
-
-                        echo "!!!!!!!!!!Disk usage after Performance test: "
-                        echo "cibseven folder usage and free space: "
-                        sh "du -sh ."
-                        sh "df -h ."
-                        echo "local_install folder usage and free space: "
-                        sh "du -sh /root/.m2/local_install"
-                        sh "df -h /root/.m2/local_install"}
-
-
+                    steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}}
                 }
                 stage('Large data') {
                     steps {
                         // cleanup parent qa directory before large-data test: it can contain h2 database from previous tests
                         script { withMaven { sh "mvn -f qa/pom.xml clean" }}
                         script { withMaven { sh "mvn -f qa/large-data-tests/pom.xml clean install -Plarge-data-tests,h2" }}
-                    
-
-                        echo "!!!!!!!!!!Disk usage after Large data: "
-                        echo "cibseven folder usage and free space: "
-                        sh "du -sh ."
-                        sh "df -h ."
-                        echo "local_install folder usage and free space: "
-                        sh "du -sh /root/.m2/local_install"
-                        sh "df -h /root/.m2/local_install"}
-
+                    }
                 }
                 stage('Old engine with new schema') { // TODO: fix BpmPlatformXmlLocationTest and DbIdentityServicePGTest
-                    steps { script { withMaven { sh "mvn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}
-
-                        echo "!!!!!!!!!!Disk usage after Old engine: "
-                        echo "cibseven folder usage and free space: "
-                        sh "du -sh ."
-                        sh "df -h ."
-                        echo "local_install folder usage and free space: "
-                        sh "du -sh /root/.m2/local_install"
-                        sh "df -h /root/.m2/local_install"
-                    }
+                    steps { script { withMaven { sh "mvn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}}
                 }
                 stage('Rolling update') {
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
                         script { withMaven { sh "mvn -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}
-                    
-
-                        echo "!!!!!!!!!!Disk usage after Old engine: "
-                        echo "cibseven folder usage and free space: "
-                        sh "du -sh ."
-                        sh "df -h ."
-                        echo "local_install folder usage and free space: "
-                        sh "du -sh /root/.m2/local_install"
-                        sh "df -h /root/.m2/local_install"
-                   }
-
+                    }
                 }
                 stage('Instanse migration') {
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
                         script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
-                    
-
-                        echo "!!!!!!!!!!Disk usage after Instanse migration: "
-                        echo "cibseven folder usage and free space: "
-                        sh "du -sh ."
-                        sh "df -h ."
-                        echo "local_install folder usage and free space: "
-                        sh "du -sh /root/.m2/local_install"
-                        sh "df -h /root/.m2/local_install"
                     }
-
                 }
             }
         }
@@ -561,6 +482,11 @@ pipeline {
         always {
             script {
                 log.info 'End of the build'
+
+                // cleanup install directory for this build
+                if (env.CIBSEVEN_INSTALL_PREFIX != null) {
+                    sh "rm -rf ${HOME}/.m2/repository/${env.CIBSEVEN_INSTALL_PREFIX}"
+                }
             }
         }
 
