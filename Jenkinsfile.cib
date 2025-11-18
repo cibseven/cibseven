@@ -213,18 +213,20 @@ pipeline {
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,webapps-integration" }}
 
-                        echo "!!!!!!!!!!Disk usage after Web and Engine Integration: "
-                        echo "cibseven folder usage and free space: "
-                        sh "du -sh ."
-                        sh "df -h ."
-                        echo "local_install folder usage and free space: "
-                        sh "du -sh /root/.m2/local_install"
-                        sh "df -h /root/.m2/local_install"
+                        script {
+                            echo "!!!!!!!!!!Disk usage after Web and Engine Integration: "
+                            echo "cibseven folder usage and free space: "
+                            sh "du -sh ."
+                            sh "df -h ."
+                            echo "local_install folder usage and free space: "
+                            sh "du -sh /root/.m2/local_install"
+                            sh "df -h /root/.m2/local_install"
+                        }
 
                     }
                 }
                 stage('Performance') {
-                    steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}}
+                    steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}
 
                         echo "!!!!!!!!!!Disk usage after Performance test: "
                         echo "cibseven folder usage and free space: "
@@ -232,7 +234,7 @@ pipeline {
                         sh "df -h ."
                         echo "local_install folder usage and free space: "
                         sh "du -sh /root/.m2/local_install"
-                        sh "df -h /root/.m2/local_install"
+                        sh "df -h /root/.m2/local_install"}
 
 
                 }
@@ -241,7 +243,7 @@ pipeline {
                         // cleanup parent qa directory before large-data test: it can contain h2 database from previous tests
                         script { withMaven { sh "mvn -f qa/pom.xml clean" }}
                         script { withMaven { sh "mvn -f qa/large-data-tests/pom.xml clean install -Plarge-data-tests,h2" }}
-                    }
+                    
 
                         echo "!!!!!!!!!!Disk usage after Large data: "
                         echo "cibseven folder usage and free space: "
@@ -249,11 +251,11 @@ pipeline {
                         sh "df -h ."
                         echo "local_install folder usage and free space: "
                         sh "du -sh /root/.m2/local_install"
-                        sh "df -h /root/.m2/local_install"
+                        sh "df -h /root/.m2/local_install"}
 
                 }
                 stage('Old engine with new schema') { // TODO: fix BpmPlatformXmlLocationTest and DbIdentityServicePGTest
-                    steps { script { withMaven { sh "mvn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}}
+                    steps { script { withMaven { sh "mvn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}
 
                         echo "!!!!!!!!!!Disk usage after Old engine: "
                         echo "cibseven folder usage and free space: "
@@ -262,13 +264,13 @@ pipeline {
                         echo "local_install folder usage and free space: "
                         sh "du -sh /root/.m2/local_install"
                         sh "df -h /root/.m2/local_install"
-
+                    }
                 }
                 stage('Rolling update') {
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
                         script { withMaven { sh "mvn -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}
-                    }
+                    
 
                         echo "!!!!!!!!!!Disk usage after Old engine: "
                         echo "cibseven folder usage and free space: "
@@ -277,13 +279,14 @@ pipeline {
                         echo "local_install folder usage and free space: "
                         sh "du -sh /root/.m2/local_install"
                         sh "df -h /root/.m2/local_install"
+                   }
 
                 }
                 stage('Instanse migration') {
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
                         script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
-                    }
+                    
 
                         echo "!!!!!!!!!!Disk usage after Instanse migration: "
                         echo "cibseven folder usage and free space: "
@@ -292,6 +295,7 @@ pipeline {
                         echo "local_install folder usage and free space: "
                         sh "du -sh /root/.m2/local_install"
                         sh "df -h /root/.m2/local_install"
+                    }
 
                 }
             }
