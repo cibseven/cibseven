@@ -483,9 +483,13 @@ pipeline {
             script {
                 log.info 'End of the build'
 
-                // cleanup install directory for this build
-                if (env.CIBSEVEN_INSTALL_PREFIX != null) {
-                    sh "rm -rf ${HOME}/.m2/repository/${env.CIBSEVEN_INSTALL_PREFIX}"
+                // cleanup temporary maven install directory for this build
+                withMaven(options: []) {
+                    def localRepo = sh(script: 'mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout', returnStdout: true).trim()
+                    if (localRepo.endsWith(".m2/repository") && env.CIBSEVEN_INSTALL_PREFIX != null) {
+                        echo "cleanup cibseven install dir: '${localRepo}/${env.CIBSEVEN_INSTALL_PREFIX}'"
+                        sh "rm -rf '${localRepo}/${env.CIBSEVEN_INSTALL_PREFIX}'"
+                    }
                 }
             }
         }
