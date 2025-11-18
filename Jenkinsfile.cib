@@ -574,13 +574,13 @@ def pushToDocsRepo(String commmitMessage, Closure updateRepo) {
     // checkout repo once
     def repoDownloaded = fileExists "${docsRepoName}/README.md"
     if (!repoDownloaded) {
-        checkout changelog: false, poll: false, scm: scmGit(branches: [[name: 'main']], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: docsRepoName]], userRemoteConfigs: [[credentialsId: 'credential-github-cib-seven-access-token', url: "https://github.com/cibseven/${docsRepoName}.git"]])
+        checkout changelog: false, poll: false, scm: scmGit(branches: [[name: 'main']], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: docsRepoName]], userRemoteConfigs: [[credentialsId: 'credential-github-cibseven-access-token', url: "https://github.com/cibseven/${docsRepoName}.git"]])
     }
 
     updateRepo()
 
     // push to repo
-    withCredentials([gitUsernamePassword(credentialsId: 'credential-github-cib-seven-access-token', gitToolName: 'Default')]) {
+    withCredentials([gitUsernamePassword(credentialsId: 'credential-github-cibseven-access-token', gitToolName: 'Default')]) {
         sh """#!/bin/bash
             chown -R 1000:1000 ${docsRepoName}
             cd ${docsRepoName}
