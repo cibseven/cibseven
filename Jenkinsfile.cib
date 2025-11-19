@@ -266,7 +266,7 @@ pipeline {
                     steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}}
                 }
                 stage('Large data') {
-                    when { expression { qaList.contains("large-data") == true } }}
+                    when { expression { qaList.contains("large-data") == true }}
                     steps {
                         // cleanup parent qa directory before large-data test: it can contain h2 database from previous tests
                         script { withMaven { sh "mvn -f qa/pom.xml clean" }}
@@ -274,18 +274,18 @@ pipeline {
                     }
                 }
                 stage('Old engine with new schema') { // TODO: fix BpmPlatformXmlLocationTest and DbIdentityServicePGTest
-                    when { expression { qaList.contains("old-engine") == true } }}
+                    when { expression { qaList.contains("old-engine") == true }}
                     steps { script { withMaven { sh "mvn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}}
                 }
                 stage('Rolling update') {
-                    when { expression { qaList.contains("roll-upd") == true } }}
+                    when { expression { qaList.contains("roll-upd") == true }}
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
                         script { withMaven { sh "mvn -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}
                     }
                 }
                 stage('Instanse migration') {
-                    when { expression { qaList.contains("inst-migr") == true } }}
+                    when { expression { qaList.contains("inst-migr") == true }}
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
                         script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
