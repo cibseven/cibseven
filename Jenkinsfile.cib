@@ -56,7 +56,7 @@ pipeline {
         )
         string(
             name: 'QA_LIST',
-            defaultValue: 'engine-IT, web-IT, perf, large-data, old-engine, roll-upd, inst-migr'
+            defaultValue: 'engine-IT, web-IT, perf, large-data, old-engine, roll-upd, inst-migr',
             description: 'List of QA tests'
         )
         booleanParam(
