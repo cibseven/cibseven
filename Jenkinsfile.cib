@@ -124,7 +124,7 @@ pipeline {
                         log.info "parent groupId is used"
                     }
 
-                    testList = params.QA_TEST_LIST.split(',').collect { it.trim() }.findAll { it }
+                    testList = params.TEST_LIST.split(',').collect { it.trim() }.findAll { it }
                     mavenProjectInformation = new MavenProjectInformation(groupId, pom.artifactId, pom.version, pom.name, pom.description)
 
                     log.info "Build Project: ${mavenProjectInformation.groupId}:${mavenProjectInformation.artifactId}, ${mavenProjectInformation.name} with version ${mavenProjectInformation.version}"
