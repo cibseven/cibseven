@@ -231,12 +231,12 @@ pipeline {
                         stage('engine-UNIT-historylevel-audit') {
                             steps { script { withMaven { sh "mvn -f engine/pom.xml verify -Pcfghistoryaudit" }}}
                         }
-                        stage('engine-UNIT-database-table-prefix') {
+                        stage('engine-UNIT-historylevel-activity') {
                             steps { script { withMaven { sh "mvn -f engine/pom.xml verify -Pcfghistoryactivity" }}}
                         }
                     }
                 }
-                stage('quarkus-UNIT') {
+                stage('quarkus-UNIT') { // quarkus-UNIT is enabled under the MISC tests below
                     steps { script { withMaven { sh "mvn -f quarkus-extension/pom.xml clean install -Pquarkus-tests" }}}
                 }
                 stage('qa') {
@@ -317,6 +317,16 @@ pipeline {
                         }
                         stage('engine-IT-wildfly26-servlet') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
+                        }
+                    }
+                }
+            }
+
+            // currently added to the end since it requires to cleanup JUEL project before: https://github.com/camunda/camunda-bpm-platform/issues/3419#issuecomment-1720916174 
+            stage('quarkus-UNIT') {
+                steps { script { withMaven {
+                            sh "mvn -f juel/pom.xml clean"
+                            sh "mvn -f quarkus-extension/pom.xml clean install -Pquarkus-tests" 
                         }
                     }
                 }
