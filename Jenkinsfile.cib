@@ -109,9 +109,6 @@ pipeline {
     }
 
     stages {
-
-        def qaList = params.QA_LIST.split(',').collect { it.trim() }.findAll { it }
-
         stage('Print Settings & Checkout') {
             steps {
                 script {
@@ -240,6 +237,7 @@ pipeline {
         }
 
         stage('QA Tests') {
+            def qaList = params.QA_LIST.split(',').collect { it.trim() }.findAll { it }
             when { expression { params.QA_VERIFY == true }}
             stages {
                 stage('Engine Integration') {
