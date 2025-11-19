@@ -321,13 +321,13 @@ pipeline {
                     }
                 }
             }
+        }
 
-            // currently added to the end since it requires to cleanup JUEL project before: https://github.com/camunda/camunda-bpm-platform/issues/3419#issuecomment-1720916174 
-            stage('quarkus-UNIT') {
-                steps { script { withMaven {
-                            sh "mvn -f juel/pom.xml clean"
-                            sh "mvn -f quarkus-extension/pom.xml clean install -Pquarkus-tests" 
-                        }
+        // currently added to the end since it requires to cleanup JUEL project before: https://github.com/camunda/camunda-bpm-platform/issues/3419#issuecomment-1720916174 
+        stage('quarkus-UNIT') {
+            steps { script { withMaven {
+                        sh "mvn -f juel/pom.xml clean"
+                        sh "mvn -f quarkus-extension/pom.xml clean install -Pquarkus-tests" 
                     }
                 }
             }
