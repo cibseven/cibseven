@@ -11,7 +11,7 @@ import groovy.transform.Field
 
 @Field Logger log = new Logger(this)
 @Field MavenProjectInformation mavenProjectInformation = null
-@Field List<String> qaList = null
+@Field List<String> testList = null
 @Field Map pipelineParams = [
     pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
     mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
@@ -56,8 +56,8 @@ pipeline {
             description: 'Execute QA Tests'
         )
         string(
-            name: 'QA_TEST_LIST',
-            defaultValue: 'engine-IT, web-IT, perf, large-data, old-engine, roll-upd, inst-migr' /*,
+            name: 'TEST_LIST',
+            defaultValue: 'engine-UT, quarkus-UT, misc, qa-engine-IT, qa-web-IT, qa-perf, qa-large-data, qa-old-engine, qa-roll-upd, qa-inst-migr' /*,
             description: 'List of QA tests' */
         )
         booleanParam(
@@ -124,7 +124,7 @@ pipeline {
                         log.info "parent groupId is used"
                     }
 
-                    qaList = params.QA_TEST_LIST.split(',').collect { it.trim() }.findAll { it }
+                    testList = params.QA_TEST_LIST.split(',').collect { it.trim() }.findAll { it }
                     mavenProjectInformation = new MavenProjectInformation(groupId, pom.artifactId, pom.version, pom.name, pom.description)
 
                     log.info "Build Project: ${mavenProjectInformation.groupId}:${mavenProjectInformation.artifactId}, ${mavenProjectInformation.name} with version ${mavenProjectInformation.version}"
@@ -155,7 +155,7 @@ pipeline {
 
         stage('engine-Unit') {
             when {
-                expression { params.VERIFY == true }
+                expression { params.VERIFY == true && testList.contains("engine-UT") == true }
             }
             steps {
                 script {
@@ -185,7 +185,7 @@ pipeline {
 
         stage('quarkus-UNIT') {
             when {
-                expression { params.VERIFY == true }
+                expression { params.VERIFY == true && testList.contains("quarkus-UT") == true }
             }
             steps { script { withMaven {
                         // need to cleanup JUEL when running: https://github.com/camunda/camunda-bpm-platform/issues/3419#issuecomment-1720916174 
@@ -199,7 +199,7 @@ pipeline {
 
         stage('MISC tests') {
             when {
-                expression { params.VERIFY == true }
+                expression { params.VERIFY == true && testList.contains("quarkus-UT") == true }
             }
             parallel {
                 stage('engine') {
@@ -242,7 +242,7 @@ pipeline {
             when { expression { params.QA_VERIFY == true }}
             stages {
                 stage('Engine Integration') {
-                    when { expression { qaList.contains("engine-IT") == true }}
+                    when { expression { testList.contains("qa-engine-IT") == true }}
                     steps {
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,engine-integration-jakarta" }}
@@ -252,7 +252,7 @@ pipeline {
                     }
                 }
                 stage('Web Integration') {
-                    when { expression { qaList.contains("web-IT") == true }}
+                    when { expression { testList.contains("qa-web-IT") == true }}
                     steps {
                         // TODO: enable chrome and chromedriver on jenkins and remove the exclusion for org.cibseven.bpm.LoginIT
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
@@ -261,11 +261,11 @@ pipeline {
                     }
                 }
                 stage('Performance') {
-                    when { expression { qaList.contains("perf") == true }}
+                    when { expression { testList.contains("qa-perf") == true }}
                     steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}}
                 }
                 stage('Large data') {
-                    when { expression { qaList.contains("large-data") == true }}
+                    when { expression { testList.contains("qa-large-data") == true }}
                     steps {
                         // cleanup parent qa directory before large-data test: it can contain h2 database from previous tests
                         script { withMaven { sh "mvn -f qa/pom.xml clean" }}
@@ -273,18 +273,18 @@ pipeline {
                     }
                 }
                 stage('Old engine with new schema') { // TODO: fix BpmPlatformXmlLocationTest and DbIdentityServicePGTest
-                    when { expression { qaList.contains("old-engine") == true }}
+                    when { expression { testList.contains("qa-old-engine") == true }}
                     steps { script { withMaven { sh "mvn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}}
                 }
                 stage('Rolling update') {
-                    when { expression { qaList.contains("roll-upd") == true }}
+                    when { expression { testList.contains("qa-roll-upd") == true }}
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
                         script { withMaven { sh "mvn -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}
                     }
                 }
                 stage('Instanse migration') {
-                    when { expression { qaList.contains("inst-migr") == true }}
+                    when { expression { testList.contains("qa-inst-migr") == true }}
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
                         script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
