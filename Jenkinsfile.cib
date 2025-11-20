@@ -240,7 +240,7 @@ pipeline {
             }
             stages {
                 stage('Engine Integration') {
-                    when { expression { params.QA_ENG_IT }}
+                    when { expression { params.QA_ENG_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,engine-integration-jakarta" }}
@@ -250,7 +250,7 @@ pipeline {
                     }
                 }
                 stage('Web Integration') {
-                    when { expression { params.QA_WEB_IT }}
+                    when { expression { params.QA_WEB_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         // TODO: enable chrome and chromedriver on jenkins and remove the exclusion for org.cibseven.bpm.LoginIT
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
@@ -259,11 +259,11 @@ pipeline {
                     }
                 }
                 stage('Performance') {
-                    when {  expression { params.QA_PERF}}
+                    when {  expression { params.QA_PERF || params.QA_TEST_SUITE == 'ALL' }}
                     steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}}
                 }
                 stage('Large data') {
-                    when { expression { params.QA_LARGE_DATA }}
+                    when { expression { params.QA_LARGE_DATA || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         // cleanup parent qa directory before large-data test: it can contain h2 database from previous tests
                         script { withMaven { sh "mvn -f qa/pom.xml clean" }}
@@ -271,18 +271,18 @@ pipeline {
                     }
                 }
                 stage('Old engine with new schema') { // TODO: fix BpmPlatformXmlLocationTest and DbIdentityServicePGTest
-                    when { expression { params.QA_OLD_ENG }}
+                    when { expression { params.QA_OLD_ENG || params.QA_TEST_SUITE == 'ALL' }}
                     steps { script { withMaven { sh "mvn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}}
                 }
                 stage('Rolling update') {
-                    when { expression { params.QA_ROLL_UPD }}
+                    when { expression { params.QA_ROLL_UPD || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
                         script { withMaven { sh "mvn -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}
                     }
                 }
                 stage('Instanse migration') {
-                    when { expression { params.QA_INST_MIGR }}
+                    when { expression { params.QA_INST_MIGR || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
                         script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
