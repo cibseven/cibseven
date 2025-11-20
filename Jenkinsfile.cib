@@ -50,6 +50,7 @@ pipeline {
             defaultValue: true,
             description: 'Execute Unit and Integration Tests'
         )
+        separator(name: 'QA tests', description: 'Settings related to QA tests')
         booleanParam(
             name: 'QA_VERIFY',
             defaultValue: false,
@@ -153,7 +154,7 @@ pipeline {
             }
         }
 
-        stage('engine-Unit') {
+        stage('engine-UT') {
             when {
                 expression { params.VERIFY == true && testList.contains("engine-UT") == true }
             }
@@ -183,7 +184,7 @@ pipeline {
             }
         }
 
-        stage('quarkus-UNIT') {
+        stage('quarkus-UT') {
             when {
                 expression { params.VERIFY == true && testList.contains("quarkus-UT") == true }
             }
