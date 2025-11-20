@@ -236,7 +236,7 @@ pipeline {
 
         stage('QA Tests') {
             when { 
-                expression { params.QA_TEST_SUITE == 'ALL' || params.QA_TEST_SUITE == 'CUSTOM' }
+                expression { params.QA_TEST_SUITE == 'CUSTOM' || params.QA_TEST_SUITE == 'ALL'}
             }
             stages {
                 stage('Engine Integration') {
@@ -355,7 +355,7 @@ pipeline {
         stage('JUnit Report') {
             when { 
                 expression { 
-                    params.VERIFY || params.QA_TEST_SUITE == 'ALL' || params.QA_TEST_SUITE == 'CUSTOM'
+                    params.VERIFY || params.QA_TEST_SUITE == 'CUSTOM' || params.QA_TEST_SUITE == 'ALL'
                 }
             }
             steps {
