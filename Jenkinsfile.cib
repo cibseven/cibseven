@@ -123,13 +123,13 @@ pipeline {
         booleanParam(
         name: 'BUILD_FEATURE_BRANCH',
         defaultValue: true,
-        description: '🔨 Build feature branch'
+        description: "  └─ 🔨 Build feature branch"
         )
 
         booleanParam(
             name: 'VERIFY',
             defaultValue: true,
-            description: '✅ Execute Unit and Integration Tests'
+            description: "  └─ ✅ Execute Unit and Integration Tests"
         )
 
         choice(
@@ -142,18 +142,18 @@ pipeline {
         )
     
         // Only used when QA_TEST_SUITE = 'CUSTOM'
-        booleanParam(name: 'QA_ENG_IT', defaultValue: false, description: '  └─ Engine Integration')
-        booleanParam(name: 'QA_WEB_IT', defaultValue: false, description: '  └─ Web Integration')
-        booleanParam(name: 'QA_PERF', defaultValue: false, description: '  └─ Performance')
-        booleanParam(name: 'QA_LARGE_DATA', defaultValue: false, description: '  └─ Large Data')
-        booleanParam(name: 'QA_OLD_ENG', defaultValue: false, description: '  └─ Old Engine')
-        booleanParam(name: 'QA_ROLL_UPD', defaultValue: false, description: '  └─ Rolling Update')
-        booleanParam(name: 'QA_INST_MIGR', defaultValue: false, description: '  └─ Instance Migration')
+        booleanParam(name: 'QA_ENG_IT', defaultValue: false, description: "  └─ Engine Integration")
+        booleanParam(name: 'QA_WEB_IT', defaultValue: false, description: "  └─ Web Integration")
+        booleanParam(name: 'QA_PERF', defaultValue: false, description: "  └─ Performance")
+        booleanParam(name: 'QA_LARGE_DATA', defaultValue: false, description: "  └─ Large Data")
+        booleanParam(name: 'QA_OLD_ENG', defaultValue: false, description: "  └─ Old Engine")
+        booleanParam(name: 'QA_ROLL_UPD', defaultValue: false, description: "  └─ Rolling Update")
+        booleanParam(name: 'QA_INST_MIGR', defaultValue: false, description: "  └─ Instance Migration\n\n")
 
-        booleanParam(name: 'DEPLOY_TO_ARTIFACTS', defaultValue: false, description: '📦 Deploy to artifacts')
-        booleanParam(name: 'DEPLOY_TO_MAVEN_CENTRAL', defaultValue: false, description: '📤 Deploy to Maven Central')
-        booleanParam(name: 'OPEN_API', defaultValue: false, description: '📚 Deploy OpenAPI docs')
-        booleanParam(name: 'JAVA_DOCS', defaultValue: false, description: '📖 Deploy JavaDocs')
+        booleanParam(name: 'DEPLOY_TO_ARTIFACTS', defaultValue: false, description: "  └─ 📦 Deploy to artifacts")
+        booleanParam(name: 'DEPLOY_TO_MAVEN_CENTRAL', defaultValue: false, description: "  └─ 📤 Deploy to Maven Central")
+        booleanParam(name: 'OPEN_API', defaultValue: false, description: "  └─ 📚 Deploy OpenAPI docs")
+        booleanParam(name: 'JAVA_DOCS', defaultValue: false, description: "  └─ 📖 Deploy JavaDocs")
     }
 
     environment {
