@@ -53,8 +53,8 @@ pipeline {
 
         booleanParam(
             name: 'QA_VERIFY_ALL',
-            defaultValue: true,
-            description: 'Execute All QA Tests (regardless of the selection)'
+            defaultValue: false,
+            description: 'Execute ALL QA Tests (regardless of the selections below)'
         )
 
         /*string(
