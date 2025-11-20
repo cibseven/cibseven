@@ -287,19 +287,19 @@ pipeline {
         stage('QA Tests') {
             when { 
                 anyOf {
-                    params.QA_VERIFY_ALL
-                    params.QA_ENG_IT
-                    params.QA_WEB_IT
-                    params.QA_PERF
-                    params.QA_LARGE_DATA
-                    params.QA_OLD_ENG
-                    params.QA_ROLL_UPD
-                    params.QA_INST_MIGT
+                    expression { params.QA_VERIFY_ALL == true }
+                    expression { params.QA_ENG_IT == true }
+                    expression { params.QA_WEB_IT == true }
+                    expression { params.QA_PERF == true }
+                    expression { params.QA_LARGE_DATA == true }
+                    expression { params.QA_OLD_ENG == true }
+                    expression { params.QA_ROLL_UPD == true }
+                    expression { params.QA_INST_MIGT == true }
                 }
             }
             stages {
                 stage('Engine Integration') {
-                    when { params.QA_VERIFY_ALL || params.QA_ENG_IT }
+                    when { expression { params.QA_VERIFY_ALL == true || params.QA_ENG_IT == true }}
                     steps {
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,engine-integration-jakarta" }}
@@ -309,7 +309,7 @@ pipeline {
                     }
                 }
                 stage('Web Integration') {
-                    when { params.QA_VERIFY_ALL || params.QA_WEB_IT }
+                    when { expression { params.QA_VERIFY_ALL == true || params.QA_WEB_IT == true }}
                     steps {
                         // TODO: enable chrome and chromedriver on jenkins and remove the exclusion for org.cibseven.bpm.LoginIT
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
@@ -318,11 +318,11 @@ pipeline {
                     }
                 }
                 stage('Performance') {
-                    when { params.QA_VERIFY_ALL || params.QA_PERF }
+                    when {  expression { params.QA_VERIFY_ALL == true || params.QA_PERF == true }}
                     steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}}
                 }
                 stage('Large data') {
-                    when { params.QA_VERIFY_ALL || params.QA_LARGE_DATA }
+                    when { expression { params.QA_VERIFY_ALL == true || params.QA_LARGE_DATA == true }}
                     steps {
                         // cleanup parent qa directory before large-data test: it can contain h2 database from previous tests
                         script { withMaven { sh "mvn -f qa/pom.xml clean" }}
@@ -330,18 +330,18 @@ pipeline {
                     }
                 }
                 stage('Old engine with new schema') { // TODO: fix BpmPlatformXmlLocationTest and DbIdentityServicePGTest
-                    when { params.QA_VERIFY_ALL || params.QA_OLD_ENG }
+                    when { expression { params.QA_VERIFY_ALL == true || params.QA_OLD_ENG == true }}
                     steps { script { withMaven { sh "mvn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}}
                 }
                 stage('Rolling update') {
-                    when { params.QA_VERIFY_ALL || params.QA_ROLL_UPD }
+                    when { expression { params.QA_VERIFY_ALL == true || params.QA_ROLL_UPD == true }}
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
                         script { withMaven { sh "mvn -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}
                     }
                 }
                 stage('Instanse migration') {
-                    when { params.QA_VERIFY_ALL || params.QA_INST_MIGT }
+                    when { expression { params.QA_VERIFY_ALL == true || params.QA_INST_MIGT == true }}
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
                         script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
@@ -414,15 +414,15 @@ pipeline {
         stage('JUnit Report') {
             when {
                 anyOf {
-                    params.VERIFY
-                    params.QA_VERIFY_ALL
-                    params.QA_ENG_IT
-                    params.QA_WEB_IT
-                    params.QA_PERF
-                    params.QA_LARGE_DATA
-                    params.QA_OLD_ENG
-                    params.QA_ROLL_UPD 
-                    params.QA_INST_MIGT
+                    expression { params.VERIFY == true }
+                    expression { params.QA_VERIFY_ALL == true }
+                    expression { params.QA_ENG_IT == true }
+                    expression { params.QA_WEB_IT == true }
+                    expression { params.QA_PERF == true }
+                    expression { params.QA_LARGE_DATA == true }
+                    expression { params.QA_OLD_ENG == true }
+                    expression { params.QA_ROLL_UPD == true }
+                    expression { params.QA_INST_MIGT == true }
                 }
             }
             steps {
