@@ -50,7 +50,7 @@ pipeline {
             defaultValue: true,
             description: 'Execute Unit and Integration Tests'
         )
-        separator(name: 'QA tests', description: 'Settings related to QA tests')
+
         booleanParam(
             name: 'QA_VERIFY',
             defaultValue: false,
@@ -58,9 +58,13 @@ pipeline {
         )
         string(
             name: 'TEST_LIST',
-            defaultValue: 'engine-UT, quarkus-UT, misc, qa-engine-IT, qa-web-IT, qa-perf, qa-large-data, qa-old-engine, qa-roll-upd, qa-inst-migr' /*,
+            defaultValue: 'engine-UT, misc, qa-engine-IT, qa-web-IT, qa-perf, qa-large-data, qa-old-engine, qa-roll-upd, qa-inst-migr' /*,
             description: 'List of QA tests' */
         )
+
+
+
+
         booleanParam(
             name: 'DEPLOY_TO_ARTIFACTS',
             defaultValue: false,
@@ -184,7 +188,7 @@ pipeline {
             }
         }
 
-        stage('quarkus-UT') {
+        /*stage('quarkus-UT') {
             when {
                 expression { params.VERIFY == true && testList.contains("quarkus-UT") == true }
             }
@@ -196,7 +200,7 @@ pipeline {
                     }
                 }
             }
-        }
+        }*/
 
         stage('MISC tests') {
             when {
@@ -233,6 +237,21 @@ pipeline {
                         }
                         stage('engine-IT-wildfly26-servlet') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
+                        }
+                    }
+                }
+                stage("quarkus") { 
+                    stages {
+                        stage('quarkus-extension') {
+                            steps {
+                                script { withMaven {
+                                    // need to cleanup JUEL when running: https://github.com/camunda/camunda-bpm-platform/issues/3419#issuecomment-1720916174 
+                                    sh "mvn -f juel/pom.xml clean"
+                                    sh "mvn -f quarkus-extension/pom.xml clean install -Pquarkus-tests"
+                                    sh "mvn -f juel/pom.xml install"
+								    }
+                                }
+                            }
                         }
                     }
                 }
