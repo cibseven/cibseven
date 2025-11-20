@@ -40,85 +40,6 @@ pipeline {
 
     // Parameter that can be changed in the Jenkins UI
     parameters {
-/*        booleanParam(
-            name: 'BUILD_FEATURE_BRANCH',
-            defaultValue: true,
-            description: 'Build feature branch'
-        )
-        booleanParam(
-            name: 'VERIFY',
-            defaultValue: true,
-            description: 'Execute Unit and Integration Tests'
-        )
-
-        booleanParam(
-            name: 'QA_VERIFY_ALL',
-            defaultValue: false,
-            description: 'Execute ALL QA Tests (regardless of the selections below)'
-        )
-
-        booleanParam(
-            name: 'QA_ENG_IT',
-            defaultValue: false,
-            description: 'QA-Tests: Run Engine Integration'
-        )
-
-        booleanParam(
-            name: 'QA_WEB_IT',
-            defaultValue: false,
-            description: 'QA-Tests: Run Web Integration'
-        )
-
-        booleanParam(
-            name: 'QA_PERF',
-            defaultValue: false,
-            description: 'QA-Tests: Run Performance'
-        )
-
-        booleanParam(
-            name: 'QA_LARGE_DATA',
-            defaultValue: false,
-            description: 'QA-Tests: Run Large Data'
-        )
-		
-        booleanParam(
-            name: 'QA_OLD_ENG',
-            defaultValue: false,
-            description: 'QA-Tests: Run Old Engine & New Schema'
-        )
-		
-        booleanParam(
-            name: 'QA_ROLL_UPD',
-            defaultValue: false,
-            description: 'QA-Tests: Run Rolling Update'
-        )
-
-        booleanParam(
-            name: 'QA_INST_MIGR',
-            defaultValue: false,
-            description: 'QA-Tests: Run Instance Migration'
-        )
-
-        booleanParam(
-            name: 'DEPLOY_TO_ARTIFACTS',
-            defaultValue: false,
-            description: "Deploy artifacts to artifacts.cibseven.org. Default false, but true when main branch and SNAPSHOT version"
-        )
-        booleanParam(
-            name: 'DEPLOY_TO_MAVEN_CENTRAL',
-            defaultValue: false,
-            description: 'Deploy artifacts to Maven Central (no need to activate DEPLOY_TO_ARTIFACTS parameter above if you want just to deploy to Maven Central). If you will not change this value - you will not run deploy to Maven Central.'
-        )
-        booleanParam(
-            name: 'OPEN_API',
-            defaultValue: false,
-            description: "Deploy openAPI index.html to docs.cibseven.org (or docs-staging.cibseven.org, if it is a -SNAPSHOT version)"
-        )
-        booleanParam(
-            name: 'JAVA_DOCS',
-            defaultValue: false,
-            description: "Deploy javaDocs to docs.cibseven.org (or docs-staging.cibseven.org, if it is a -SNAPSHOT version)"
-        )*/
 
         booleanParam(
         name: 'BUILD_FEATURE_BRANCH',
@@ -361,7 +282,7 @@ pipeline {
                     }
                 }
                 stage('Instanse migration') {
-                    when { expression { params.QA_INST_MIGT }}
+                    when { expression { params.QA_INST_MIGR }}
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
                         script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
