@@ -40,7 +40,7 @@ pipeline {
 
     // Parameter that can be changed in the Jenkins UI
     parameters {
-        booleanParam(
+/*        booleanParam(
             name: 'BUILD_FEATURE_BRANCH',
             defaultValue: true,
             description: 'Build feature branch'
@@ -56,12 +56,6 @@ pipeline {
             defaultValue: false,
             description: 'Execute ALL QA Tests (regardless of the selections below)'
         )
-
-        /*string(
-            name: 'TEST_LIST',
-            defaultValue: 'engine-UT, misc, qa-engine-IT, qa-web-IT, qa-perf, qa-large-data, qa-old-engine, qa-roll-upd, qa-inst-migr',
-            //description: 'List of QA tests' 
-        )*/
 
         booleanParam(
             name: 'QA_ENG_IT',
@@ -124,7 +118,42 @@ pipeline {
             name: 'JAVA_DOCS',
             defaultValue: false,
             description: "Deploy javaDocs to docs.cibseven.org (or docs-staging.cibseven.org, if it is a -SNAPSHOT version)"
+        )*/
+
+        booleanParam(
+        name: 'BUILD_FEATURE_BRANCH',
+        defaultValue: true,
+        description: '🔨 Build feature branch'
         )
+
+        booleanParam(
+            name: 'VERIFY',
+            defaultValue: true,
+            description: '✅ Execute Unit and Integration Tests'
+        )
+
+        choice(
+            name: 'QA_TEST_SUITE',
+            choices: ['NONE', 'ALL', 'CUSTOM'],
+            description: '''🧪 QA Test Suite Selection:
+            • NONE - Skip all QA tests
+            • ALL - Run all QA tests
+            • CUSTOM - Select individual tests below'''
+        )
+    
+        // Only used when QA_TEST_SUITE = 'CUSTOM'
+        booleanParam(name: 'QA_ENG_IT', defaultValue: false, description: '  └─ Engine Integration')
+        booleanParam(name: 'QA_WEB_IT', defaultValue: false, description: '  └─ Web Integration')
+        booleanParam(name: 'QA_PERF', defaultValue: false, description: '  └─ Performance')
+        booleanParam(name: 'QA_LARGE_DATA', defaultValue: false, description: '  └─ Large Data')
+        booleanParam(name: 'QA_OLD_ENG', defaultValue: false, description: '  └─ Old Engine')
+        booleanParam(name: 'QA_ROLL_UPD', defaultValue: false, description: '  └─ Rolling Update')
+        booleanParam(name: 'QA_INST_MIGR', defaultValue: false, description: '  └─ Instance Migration')
+
+        booleanParam(name: 'DEPLOY_TO_ARTIFACTS', defaultValue: false, description: '📦 Deploy to artifacts')
+        booleanParam(name: 'DEPLOY_TO_MAVEN_CENTRAL', defaultValue: false, description: '📤 Deploy to Maven Central')
+        booleanParam(name: 'OPEN_API', defaultValue: false, description: '📚 Deploy OpenAPI docs')
+        booleanParam(name: 'JAVA_DOCS', defaultValue: false, description: '📖 Deploy JavaDocs')
     }
 
     environment {
@@ -200,7 +229,7 @@ pipeline {
 
         stage('engine-UNIT') {
             when {
-                expression { params.VERIFY == true /*&& testList.contains("engine-UT") == true*/ }
+                expression { params.VERIFY == true }
             }
             steps {
                 script {
@@ -230,7 +259,7 @@ pipeline {
 
         stage('MISC tests') {
             when {
-                expression { params.VERIFY == true /*&& testList.contains("misc") == true*/ }
+                expression { params.VERIFY == true }
             }
             parallel {
                 stage('engine') {
@@ -286,20 +315,11 @@ pipeline {
 
         stage('QA Tests') {
             when { 
-                anyOf {
-                    expression { params.QA_VERIFY_ALL == true }
-                    expression { params.QA_ENG_IT == true }
-                    expression { params.QA_WEB_IT == true }
-                    expression { params.QA_PERF == true }
-                    expression { params.QA_LARGE_DATA == true }
-                    expression { params.QA_OLD_ENG == true }
-                    expression { params.QA_ROLL_UPD == true }
-                    expression { params.QA_INST_MIGT == true }
-                }
+                expression { params.QA_TEST_SUITE == 'ALL' || params.QA_TEST_SUITE == 'CUSTOM' }
             }
             stages {
                 stage('Engine Integration') {
-                    when { expression { params.QA_VERIFY_ALL == true || params.QA_ENG_IT == true }}
+                    when { expression { params.QA_ENG_IT }}
                     steps {
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,engine-integration-jakarta" }}
@@ -309,7 +329,7 @@ pipeline {
                     }
                 }
                 stage('Web Integration') {
-                    when { expression { params.QA_VERIFY_ALL == true || params.QA_WEB_IT == true }}
+                    when { expression { params.QA_WEB_IT }}
                     steps {
                         // TODO: enable chrome and chromedriver on jenkins and remove the exclusion for org.cibseven.bpm.LoginIT
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
@@ -318,11 +338,11 @@ pipeline {
                     }
                 }
                 stage('Performance') {
-                    when {  expression { params.QA_VERIFY_ALL == true || params.QA_PERF == true }}
+                    when {  expression { params.QA_PERF}}
                     steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}}
                 }
                 stage('Large data') {
-                    when { expression { params.QA_VERIFY_ALL == true || params.QA_LARGE_DATA == true }}
+                    when { expression { params.QA_LARGE_DATA }}
                     steps {
                         // cleanup parent qa directory before large-data test: it can contain h2 database from previous tests
                         script { withMaven { sh "mvn -f qa/pom.xml clean" }}
@@ -330,18 +350,18 @@ pipeline {
                     }
                 }
                 stage('Old engine with new schema') { // TODO: fix BpmPlatformXmlLocationTest and DbIdentityServicePGTest
-                    when { expression { params.QA_VERIFY_ALL == true || params.QA_OLD_ENG == true }}
+                    when { expression { params.QA_OLD_ENG }}
                     steps { script { withMaven { sh "mvn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}}
                 }
                 stage('Rolling update') {
-                    when { expression { params.QA_VERIFY_ALL == true || params.QA_ROLL_UPD == true }}
+                    when { expression { params.QA_ROLL_UPD }}
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
                         script { withMaven { sh "mvn -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}
                     }
                 }
                 stage('Instanse migration') {
-                    when { expression { params.QA_VERIFY_ALL == true || params.QA_INST_MIGT == true }}
+                    when { expression { params.QA_INST_MIGT }}
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
                         script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
@@ -412,17 +432,9 @@ pipeline {
         }
 
         stage('JUnit Report') {
-            when {
-                anyOf {
-                    expression { params.VERIFY == true }
-                    expression { params.QA_VERIFY_ALL == true }
-                    expression { params.QA_ENG_IT == true }
-                    expression { params.QA_WEB_IT == true }
-                    expression { params.QA_PERF == true }
-                    expression { params.QA_LARGE_DATA == true }
-                    expression { params.QA_OLD_ENG == true }
-                    expression { params.QA_ROLL_UPD == true }
-                    expression { params.QA_INST_MIGT == true }
+            when { 
+                expression { 
+                    params.VERIFY || params.QA_TEST_SUITE == 'ALL' || params.QA_TEST_SUITE == 'CUSTOM'
                 }
             }
             steps {
