@@ -204,7 +204,7 @@ pipeline {
 
         stage('MISC tests') {
             when {
-                expression { params.VERIFY == true && testList.contains("quarkus-UT") == true }
+                expression { params.VERIFY == true && testList.contains("misc") == true }
             }
             parallel {
                 stage('engine') {
