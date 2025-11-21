@@ -72,7 +72,7 @@ pipeline {
         booleanParam(name: 'QA_INST_MIGR', defaultValue: false, description: "  └─ Instance Migration\n\n")
 
         booleanParam(name: 'DEPLOY_TO_ARTIFACTS', defaultValue: false, description: "  └─ 📦 Deploy to artifacts")
-        booleanParam(name: 'DEPLOY_TO_MAVEN_CENTRAL', defaultValue: false, description: "  └─ 📤 Deploy to Maven Central\n\n")
+        booleanParam(name: 'DEPLOY_TO_MAVEN_CENTRAL', defaultValue: false, description: "  └─ 📤 Deploy to Maven Central")
 
         booleanParam(name: 'OPEN_API', defaultValue: false, description: "  └─ 📚 Deploy OpenAPI docs")
         booleanParam(name: 'JAVA_DOCS', defaultValue: false, description: "  └─ 📖 Deploy JavaDocs")
