@@ -76,6 +76,15 @@ pipeline {
         )
     }
 
+    environment {
+        // allow parallel builds of a few branches without conflicts:
+        // split shared local repo into the download and installation parts, use branch-dependent prefix for the installation part
+        // and redirect this part into a separate folder cibseven-install-dir; also set bigger timeout to get rid of the maven issue 
+        // with file locks: https://github.com/apache/maven/issues/9049
+        CIBSEVEN_INSTALL_PREFIX = "cibseven-install-dir/tmp_${JOB_BASE_NAME}"
+        MAVEN_OPTS = "-Daether.enhancedLocalRepository.split=true -Daether.enhancedLocalRepository.localPrefix=${env.CIBSEVEN_INSTALL_PREFIX} -Daether.enhancedLocalRepository.remotePrefix=. -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
+    }
+
     options {
         buildDiscarder(
             logRotator(
@@ -112,7 +121,6 @@ pipeline {
                     mavenProjectInformation = new MavenProjectInformation(groupId, pom.artifactId, pom.version, pom.name, pom.description)
 
                     log.info "Build Project: ${mavenProjectInformation.groupId}:${mavenProjectInformation.artifactId}, ${mavenProjectInformation.name} with version ${mavenProjectInformation.version}"
-
                     // Avoid Git "dubious ownership" error in checked out repository. Needed in
                     // build containers with newer Git versions. Originates from Jenkins running
                     // pipeline as root but repository being owned by user 1000. For more, see
@@ -473,6 +481,15 @@ pipeline {
         always {
             script {
                 log.info 'End of the build'
+
+                // cleanup temporary maven install directory for this build
+                withMaven(options: []) {
+                    def localRepo = sh(script: 'mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout', returnStdout: true).trim()
+                    if (localRepo.endsWith(".m2/repository") && env.CIBSEVEN_INSTALL_PREFIX != null) {
+                        echo "cleanup cibseven install dir: '${localRepo}/${env.CIBSEVEN_INSTALL_PREFIX}'"
+                        sh "rm -rf '${localRepo}/${env.CIBSEVEN_INSTALL_PREFIX}'"
+                    }
+                }
             }
         }
 
@@ -565,13 +582,13 @@ def pushToDocsRepo(String commmitMessage, Closure updateRepo) {
     // checkout repo once
     def repoDownloaded = fileExists "${docsRepoName}/README.md"
     if (!repoDownloaded) {
-        checkout changelog: false, poll: false, scm: scmGit(branches: [[name: 'main']], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: docsRepoName]], userRemoteConfigs: [[credentialsId: 'credential-github-cib-seven-access-token', url: "https://github.com/cibseven/${docsRepoName}.git"]])
+        checkout changelog: false, poll: false, scm: scmGit(branches: [[name: 'main']], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: docsRepoName]], userRemoteConfigs: [[credentialsId: 'credential-github-cibseven-access-token', url: "https://github.com/cibseven/${docsRepoName}.git"]])
     }
 
     updateRepo()
 
     // push to repo
-    withCredentials([gitUsernamePassword(credentialsId: 'credential-github-cib-seven-access-token', gitToolName: 'Default')]) {
+    withCredentials([gitUsernamePassword(credentialsId: 'credential-github-cibseven-access-token', gitToolName: 'Default')]) {
         sh """#!/bin/bash
             chown -R 1000:1000 ${docsRepoName}
             cd ${docsRepoName}
