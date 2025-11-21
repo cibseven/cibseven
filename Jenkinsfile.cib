@@ -42,9 +42,9 @@ pipeline {
     parameters {
 
         booleanParam(
-        name: 'BUILD_FEATURE_BRANCH',
-        defaultValue: true,
-        description: "  └─ 🔨 Build feature branch"
+            name: 'BUILD_FEATURE_BRANCH',
+            defaultValue: true,
+            description: "  └─ 🔨 Build feature branch"
         )
 
         booleanParam(
