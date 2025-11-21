@@ -19,7 +19,6 @@ package org.cibseven.bpm.engine.rest.dto;
 import java.util.List;
 
 import org.cibseven.bpm.engine.ProcessEngine;
-import org.cibseven.bpm.engine.history.HistoricProcessInstanceQuery;
 import org.cibseven.bpm.engine.rest.dto.history.HistoricProcessInstanceQueryDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.ProcessInstanceQueryDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.modification.ProcessInstanceModificationInstructionDto;

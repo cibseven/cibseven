@@ -52,8 +52,6 @@ import org.cibseven.bpm.engine.history.NativeHistoricVariableInstanceQuery;
 import org.cibseven.bpm.engine.history.SetRemovalTimeSelectModeForHistoricBatchesBuilder;
 import org.cibseven.bpm.engine.history.SetRemovalTimeSelectModeForHistoricDecisionInstancesBuilder;
 import org.cibseven.bpm.engine.history.SetRemovalTimeSelectModeForHistoricProcessInstancesBuilder;
-import org.cibseven.bpm.engine.history.SetRemovalTimeToHistoricBatchesBuilder;
-import org.cibseven.bpm.engine.history.SetRemovalTimeToHistoricDecisionInstancesBuilder;
 import org.cibseven.bpm.engine.history.UserOperationLogQuery;
 import org.cibseven.bpm.engine.impl.batch.history.DeleteHistoricBatchCmd;
 import org.cibseven.bpm.engine.impl.batch.history.HistoricBatchQueryImpl;
@@ -73,7 +71,6 @@ import org.cibseven.bpm.engine.impl.dmn.cmd.DeleteHistoricDecisionInstanceByDefi
 import org.cibseven.bpm.engine.impl.dmn.cmd.DeleteHistoricDecisionInstanceByInstanceIdCmd;
 import org.cibseven.bpm.engine.impl.dmn.cmd.DeleteHistoricDecisionInstancesBatchCmd;
 import org.cibseven.bpm.engine.impl.dmn.cmd.DeleteHistoricDecisionInstancesBulkCmd;
-import org.cibseven.bpm.engine.history.SetRemovalTimeToHistoricProcessInstancesBuilder;
 import org.cibseven.bpm.engine.impl.history.SetRemovalTimeToHistoricBatchesBuilderImpl;
 import org.cibseven.bpm.engine.impl.history.SetRemovalTimeToHistoricDecisionInstancesBuilderImpl;
 import org.cibseven.bpm.engine.impl.history.SetRemovalTimeToHistoricProcessInstancesBuilderImpl;

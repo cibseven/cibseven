@@ -19,7 +19,6 @@ package org.cibseven.bpm.engine.impl.jobexecutor;
 import java.util.Iterator;
 import java.util.List;
 
-import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.impl.ProcessEngineImpl;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.interceptor.CommandExecutor;

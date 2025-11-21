@@ -17,7 +17,6 @@
 package org.cibseven.bpm.engine.rest.sub.task.impl;
 
 import java.util.List;
-import java.util.Map;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.impl.TaskServiceImpl;

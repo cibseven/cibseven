@@ -21,14 +21,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.cibseven.bpm.engine.history.HistoricCaseInstance;
 import org.cibseven.bpm.engine.history.CleanableHistoricCaseInstanceReportResult;
+import org.cibseven.bpm.engine.history.HistoricCaseInstance;
 import org.cibseven.bpm.engine.impl.CleanableHistoricCaseInstanceReportImpl;
-import org.cibseven.bpm.engine.impl.Direction;
 import org.cibseven.bpm.engine.impl.HistoricCaseInstanceQueryImpl;
 import org.cibseven.bpm.engine.impl.Page;
-import org.cibseven.bpm.engine.impl.QueryOrderingProperty;
-import org.cibseven.bpm.engine.impl.QueryPropertyImpl;
 import org.cibseven.bpm.engine.impl.db.ListQueryParameterObject;
 import org.cibseven.bpm.engine.impl.history.event.HistoricCaseInstanceEventEntity;
 import org.cibseven.bpm.engine.impl.persistence.AbstractHistoricManager;
