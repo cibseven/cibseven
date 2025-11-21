@@ -138,13 +138,6 @@
         <scope>import</scope>
       </dependency>
 
-      <!-- Override common transitive dependencies to ensure consistent versions -->
-      <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-lang3</artifactId>
-        <version>${version.commons-lang3}</version>
-      </dependency>
-
     </dependencies>
   </dependencyManagement>
 
