@@ -33,6 +33,7 @@ public class AtomicOperationInvocation {
 
   private final static ContextLogger LOG = ProcessEngineLogger.CONTEXT_LOGGER;
 
+  @SuppressWarnings("deprecation")
   protected AtomicOperation operation;
 
   protected ExecutionEntity execution;
@@ -44,11 +45,11 @@ public class AtomicOperationInvocation {
   protected String activityId = null;
   protected String activityName = null;
 
-  public AtomicOperationInvocation(AtomicOperation operation, ExecutionEntity execution, boolean performAsync) {
+  public AtomicOperationInvocation(@SuppressWarnings("deprecation") AtomicOperation operation, ExecutionEntity execution, boolean performAsync) {
     init(operation, execution, performAsync);
   }
 
-  protected void init(AtomicOperation operation, ExecutionEntity execution, boolean performAsync) {
+  protected void init(@SuppressWarnings("deprecation") AtomicOperation operation, ExecutionEntity execution, boolean performAsync) {
     this.operation = operation;
     this.execution = execution;
     this.performAsync = performAsync;
@@ -111,6 +112,7 @@ public class AtomicOperationInvocation {
 
   // getters / setters ////////////////////////////////////
 
+  @SuppressWarnings("deprecation")
   public AtomicOperation getOperation() {
     return operation;
   }

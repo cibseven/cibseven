@@ -93,10 +93,10 @@ public class ProcessTest extends BpmnModelElementInstanceTest {
   public void testCamundaHistoryTimeToLive() {
     //given
     Process proc = modelInstance.newInstance(Process.class);
-    assertThat(proc.getCamundaHistoryTimeToLive()).isNull();
+    assertThat(proc.getCamundaHistoryTimeToLiveString()).isNull();
     //when
-    proc.setCamundaHistoryTimeToLive(BpmnTestConstants.TEST_HISTORY_TIME_TO_LIVE);
+    proc.setCamundaHistoryTimeToLiveString(BpmnTestConstants.TEST_HISTORY_TIME_TO_LIVE);
     //then
-    assertThat(proc.getCamundaHistoryTimeToLive()).isEqualTo(BpmnTestConstants.TEST_HISTORY_TIME_TO_LIVE);
+    assertThat(proc.getCamundaHistoryTimeToLiveString()).isEqualTo(BpmnTestConstants.TEST_HISTORY_TIME_TO_LIVE);
   }
 }

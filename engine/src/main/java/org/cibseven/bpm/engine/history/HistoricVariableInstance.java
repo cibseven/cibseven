@@ -104,6 +104,7 @@ public interface HistoricVariableInstance {
 
   /**
    * Returns the corresponding activity instance id.
+   * @deprecated use {@link #getActivityInstanceId()} instead
    */
   @Deprecated
   String getActivtyInstanceId();
