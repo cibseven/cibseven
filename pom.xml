@@ -30,6 +30,7 @@
     <version.uuid-generator>4.3.0</version.uuid-generator>
     <version.feel-scala>1.19.3</version.feel-scala>
     <version.license-maven-plugin>2.4.0</version.license-maven-plugin>
+    <dependency-check-maven.version>12.1.9</dependency-check-maven.version>
     <!-- Version for cibseven-webclient-web -->
     <cibseven-webapp.version>${project.version}</cibseven-webapp.version>
   </properties>
@@ -44,6 +45,38 @@
           <acceptPomPackaging>true</acceptPomPackaging>
           <excludedScopes>test</excludedScopes>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <version>${dependency-check-maven.version}</version>
+        <!-- See https://jeremylong.github.io/DependencyCheck/dependency-check-maven/check-mojo.html -->
+        <configuration>
+          <!-- needed to configure the api key in settings.xml -->
+          <nvdApiServerId>nvd-api-server</nvdApiServerId>
+          <!-- Disabled, because auth is required https://ossindex.sonatype.org/doc/auth-required (probably with future rate limits)-->
+          <ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled>
+          <!-- Deactivated because otherwise report would not be published -->
+          <!-- <failBuildOnCVSS>7</failBuildOnCVSS> -->
+          <!-- Generate all report formats -->
+          <format>ALL</format>
+          <!-- Don't use Nexus Analyzer -->
+          <centralAnalyzerEnabled>false</centralAnalyzerEnabled>
+          <!-- Sets whether the .NET Assembly Analyzer should be used. -->
+          <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+          <!-- only check dependencies that are really packaged -->
+          <skipProvidedScope>true</skipProvidedScope>
+          <skipRuntimeScope>true</skipRuntimeScope>
+          <skipSystemScope>true</skipSystemScope>
+          <skipTestScope>true</skipTestScope>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
