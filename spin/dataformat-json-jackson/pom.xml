@@ -44,22 +44,7 @@
           <artifactId>asm</artifactId>
           <groupId>org.ow2.asm</groupId>
         </exclusion>
-        <exclusion>
-          <groupId>net.minidev</groupId>
-          <artifactId>json-smart</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>net.minidev</groupId>
-          <artifactId>accessors-smart</artifactId>
-        </exclusion>
       </exclusions>
-    </dependency>
-
-    <!-- Add explicit dependencies with desired versions -->
-    <dependency>
-      <groupId>net.minidev</groupId>
-      <artifactId>json-smart</artifactId>
-      <version>${version.json-smart}</version>
     </dependency>
     
     <dependency>
