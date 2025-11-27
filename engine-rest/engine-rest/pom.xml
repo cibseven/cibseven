@@ -361,7 +361,7 @@
     <profile>
       <id>resteasy</id>
       <properties>
-        <version.netty>4.1.124.Final</version.netty>
+        <version.netty>4.1.42.Final</version.netty>
       </properties>
       <dependencies>
         <dependency>
@@ -563,7 +563,7 @@
              Camunda-supported Wildfly/JBoss EAP version.
              Currently, this is JBoss EAP 7.2. -->
         <version.resteasy>3.6.1.SP2</version.resteasy>
-        <version.netty>4.1.124.Final</version.netty>
+        <version.netty>4.1.42.Final</version.netty>
       </properties>
 
       <dependencies>
