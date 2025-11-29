@@ -18,6 +18,7 @@ package org.cibseven.bpm.engine.rest;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.path.json.JsonPath.from;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.rest.helper.MockProvider.ANOTHER_EXAMPLE_ACTIVITY_ID;
 import static org.cibseven.bpm.engine.rest.helper.MockProvider.ANOTHER_EXAMPLE_PROCESS_DEFINITION_ID;
 import static org.cibseven.bpm.engine.rest.helper.MockProvider.ANOTHER_EXAMPLE_PROCESS_INSTANCE_ID;
@@ -34,20 +35,14 @@ import static org.cibseven.bpm.engine.rest.helper.MockProvider.NON_EXISTING_ACTI
 import static org.cibseven.bpm.engine.rest.helper.MockProvider.NON_EXISTING_PROCESS_DEFINITION_ID;
 import static org.cibseven.bpm.engine.rest.helper.MockProvider.createMockBatch;
 import static org.cibseven.bpm.engine.rest.helper.NoIntermediaryInvocation.immediatelyAfter;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.cibseven.bpm.engine.variable.impl.value.PrimitiveTypeValueImpl.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.emptyArray;
-import static org.hamcrest.Matchers.emptyCollectionOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.isNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -58,6 +53,7 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.core.Response.Status;
@@ -86,10 +82,13 @@ import org.cibseven.bpm.engine.rest.helper.MockMigrationPlanBuilder;
 import org.cibseven.bpm.engine.rest.helper.MockMigrationPlanBuilder.JoinedMigrationPlanBuilderMock;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.bpm.engine.rest.util.migration.MigrationExecutionDtoBuilder;
+import org.cibseven.bpm.engine.rest.util.migration.MigrationInstructionDtoBuilder;
 import org.cibseven.bpm.engine.rest.util.migration.MigrationPlanDtoBuilder;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
+import org.cibseven.bpm.engine.variable.impl.value.PrimitiveTypeValueImpl.LongValueImpl;
+import org.cibseven.bpm.engine.variable.impl.value.PrimitiveTypeValueImpl.StringValueImpl;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -99,8 +98,6 @@ import org.mockito.InOrder;
 import org.mockito.Mockito;
 
 import io.restassured.response.Response;
-import java.util.List;
-import org.cibseven.bpm.engine.rest.util.migration.MigrationInstructionDtoBuilder;
 
 public class MigrationRestServiceInteractionTest extends AbstractRestServiceTest {
 

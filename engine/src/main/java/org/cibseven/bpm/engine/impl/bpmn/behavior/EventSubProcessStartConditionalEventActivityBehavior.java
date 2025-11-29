@@ -18,7 +18,6 @@ package org.cibseven.bpm.engine.impl.bpmn.behavior;
 
 import org.cibseven.bpm.engine.impl.bpmn.parser.ConditionalEventDefinition;
 import org.cibseven.bpm.engine.impl.core.variable.event.VariableEvent;
-import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.EventSubscriptionEntity;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;

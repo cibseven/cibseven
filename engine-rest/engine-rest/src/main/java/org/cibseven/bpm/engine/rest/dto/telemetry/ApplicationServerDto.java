@@ -16,8 +16,6 @@
  */
 package org.cibseven.bpm.engine.rest.dto.telemetry;
 
-import static org.cibseven.bpm.engine.impl.util.ParseUtil.parseServerVendor;
-
 import org.cibseven.bpm.engine.telemetry.ApplicationServer;
 
 public class ApplicationServerDto {

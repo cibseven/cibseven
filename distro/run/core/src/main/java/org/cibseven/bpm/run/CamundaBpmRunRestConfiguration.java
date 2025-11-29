@@ -16,10 +16,10 @@
  */
 package org.cibseven.bpm.run;
 
+import java.util.Collections;
 import jakarta.servlet.Filter;
 import org.apache.catalina.filters.CorsFilter;
 import org.cibseven.bpm.engine.rest.security.auth.ProcessEngineAuthenticationFilter;
-import org.cibseven.bpm.engine.rest.security.auth.impl.CompositeAuthenticationProvider;
 import org.cibseven.bpm.run.property.CamundaBpmRunAuthenticationProperties;
 import org.cibseven.bpm.run.property.CamundaBpmRunCorsProperty;
 import org.cibseven.bpm.run.property.CamundaBpmRunProperties;

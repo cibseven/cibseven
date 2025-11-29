@@ -20,7 +20,6 @@ import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
 import org.cibseven.bpm.engine.impl.bpmn.helper.CompensationUtil;
-import org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParse;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;

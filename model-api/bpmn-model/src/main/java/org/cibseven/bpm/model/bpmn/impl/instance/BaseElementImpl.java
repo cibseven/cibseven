@@ -22,7 +22,6 @@ import org.cibseven.bpm.model.bpmn.instance.ExtensionElements;
 import org.cibseven.bpm.model.bpmn.instance.di.DiagramElement;
 import org.cibseven.bpm.model.xml.ModelBuilder;
 import org.cibseven.bpm.model.xml.impl.instance.ModelTypeInstanceContext;
-import org.cibseven.bpm.model.xml.impl.util.ModelUtil;
 import org.cibseven.bpm.model.xml.instance.ModelElementInstance;
 import org.cibseven.bpm.model.xml.type.ModelElementType;
 import org.cibseven.bpm.model.xml.type.ModelElementTypeBuilder;
