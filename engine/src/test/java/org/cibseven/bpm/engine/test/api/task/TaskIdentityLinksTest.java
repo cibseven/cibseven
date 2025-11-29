@@ -81,6 +81,7 @@ public class TaskIdentityLinksTest extends PluggableProcessEngineTest {
     assertEquals(0, taskService.getIdentityLinksForTask(taskId).size());
   }
 
+  @SuppressWarnings("deprecation")
   @Deployment(resources="org/cibseven/bpm/engine/test/api/task/IdentityLinksProcess.bpmn20.xml")
   @Test
   public void testCandidateGroupLink() {
@@ -180,6 +181,7 @@ public class TaskIdentityLinksTest extends PluggableProcessEngineTest {
     taskService.deleteTask(task.getId(), true);
   }
 
+  @SuppressWarnings("deprecation")
   private Event findTaskEvent(List<Event> taskEvents, String action) {
     for (Event event: taskEvents) {
       if (action.equals(event.getAction())) {

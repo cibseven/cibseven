@@ -49,6 +49,7 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.collection.IsIn;
+import org.hamcrest.MatcherAssert;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -345,7 +346,7 @@ public class HistoryServiceAsyncOperationsTest extends AbstractAsyncOperationsTe
 
   protected void assertNoHistoryForTasks() {
     if (!testRule.isHistoryLevelNone()) {
-      Assert.assertThat(historyService.createHistoricTaskInstanceQuery().count(), CoreMatchers.is(0L));
+      MatcherAssert.assertThat(historyService.createHistoricTaskInstanceQuery().count(), CoreMatchers.is(0L));
     }
   }
 

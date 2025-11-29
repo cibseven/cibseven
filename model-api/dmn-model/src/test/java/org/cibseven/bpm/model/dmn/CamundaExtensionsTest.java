@@ -66,9 +66,9 @@ public class CamundaExtensionsTest {
   @Test
   public void testCamundaHistoryTimeToLive() {
     Decision decision = modelInstance.getModelElementById("decision");
-    assertThat(decision.getCamundaHistoryTimeToLive()).isEqualTo(5);
-    decision.setCamundaHistoryTimeToLive(6);
-    assertThat(decision.getCamundaHistoryTimeToLive()).isEqualTo(6);
+    assertThat(decision.getCamundaHistoryTimeToLiveString()).isEqualTo("5");
+    decision.setCamundaHistoryTimeToLiveString("6");
+    assertThat(decision.getCamundaHistoryTimeToLiveString()).isEqualTo("6");
   }
 
   @Test
