@@ -172,17 +172,21 @@
                   </mapper>
                 </copy>
 
-                <delete dir="target/modules/org/cibseven/bpm/wildfly" />
-
+			    <delete dir="target/modules/org/cibseven/bpm/wildfly" />
                 <copy todir="target/modules" flatten="false">
                   <fileset refid="maven.project.dependencies" />
                   <mapper>
                     <chainedmapper>
                       <regexpmapper from="^(.*)/([^/]+)/([^/]*)$$" to="\1/main/\3" handledirsep="yes" />
-                      <regexpmapper from="^(org.cibseven.bpm.wildfly).*/((cibseven-wildfly28-[A-Za-z-]*)[0-9\.]*).*.jar$$" to="\1/cibseven-wildfly-subsystem/main/\3${project.version}.jar" handledirsep="yes" />
+                      <regexpmapper from="^(org.cibseven.bpm.wildfly.*)/((cibseven-wildfly28-[A-Za-z-]*)[0-9\.]*).*.jar$$" to="\1/\3${project.version}.jar" handledirsep="yes" />
                     </chainedmapper>
                   </mapper>
                 </copy>
+
+                <copy todir="target/modules/org/cibseven/bpm/wildfly/cibseven-wildfly-subsystem" flatten="false">
+                  <fileset dir="target/modules/org/cibseven/bpm/wildfly/cibseven-wildfly28-subsystem" includes="**/*.jar" />
+                </copy>
+                <delete dir="target/modules/org/cibseven/bpm/wildfly/cibseven-wildfly28-subsystem" />
 
                 <delete dir="target/modules/org/cibseven/spin" />
                 <copy todir="target/modules" flatten="false">
