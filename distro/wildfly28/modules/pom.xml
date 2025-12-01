@@ -139,6 +139,30 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-reactor-deps</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.cibseven.bpm.wildfly</groupId>
+                  <artifactId>cibseven-wildfly28-subsystem</artifactId>
+                  <version>${project.version}</version>
+                  <outputDirectory>${project.build.directory}/reactor-deps</outputDirectory>
+                  <destFileName>cibseven-wildfly28-subsystem.jar</destFileName>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
           <execution>
@@ -183,8 +207,16 @@
                   </mapper>
                 </copy>
 
-                <copy todir="target/modules/org/cibseven/bpm/wildfly/cibseven-wildfly-subsystem" flatten="false">
-                  <fileset dir="target/modules/org/cibseven/bpm/wildfly/cibseven-wildfly28-subsystem" includes="**/*.jar" />
+                <!-- Fix for reactor build: copy subsystem from pre-copied location -->
+                <mkdir dir="target/modules/org/cibseven/bpm/wildfly/cibseven-wildfly28-subsystem/main" />
+                <copy file="target/reactor-deps/cibseven-wildfly28-subsystem.jar" 
+                      tofile="target/modules/org/cibseven/bpm/wildfly/cibseven-wildfly28-subsystem/main/cibseven-wildfly28-subsystem-${project.version}.jar" 
+                      failonerror="false" />
+
+                <!-- Ensure target directory exists before copying -->
+                <mkdir dir="target/modules/org/cibseven/bpm/wildfly/cibseven-wildfly-subsystem" />
+                <copy todir="target/modules/org/cibseven/bpm/wildfly/cibseven-wildfly-subsystem" flatten="false" failonerror="false">
+                  <fileset dir="target/modules/org/cibseven/bpm/wildfly/cibseven-wildfly28-subsystem" includes="**/*.jar" erroronmissingdir="false" />
                 </copy>
                 <delete dir="target/modules/org/cibseven/bpm/wildfly/cibseven-wildfly28-subsystem" />
 
