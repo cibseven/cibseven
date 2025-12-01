@@ -82,7 +82,7 @@ pipeline {
         // split shared local repo into the download and installation parts, use branch-dependent prefix for the installation part
         // and redirect this part into a separate folder cibseven-install-dir; also set bigger timeout to get rid of the maven issue 
         // with file locks: https://github.com/apache/maven/issues/9049
-        CIBSEVEN_INSTALL_PREFIX = "cibseven-install-dir/tmp_${JOB_BASE_NAME}"
+        CIBSEVEN_INSTALL_PREFIX = getInstallPrefix("${JOB_NAME}")
         MAVEN_OPTS = "-Daether.enhancedLocalRepository.split=true -Daether.enhancedLocalRepository.localPrefix=${env.CIBSEVEN_INSTALL_PREFIX} -Daether.enhancedLocalRepository.remotePrefix=. -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
     }
 
@@ -591,6 +591,13 @@ def getDocsRepoName() {
     else {
         return "docs.cibseven.org"
     }
+}
+
+// creates pseudo-unique install prefix for a jobName
+def getInstallPrefix(String jobName) {
+    String baseName = jobName.split('/') ? jobName.split('/').last() : ""
+    String pathHash = String.format("#%04X", (0xFFFF & jobName.hashCode()))
+    return "cibseven-install-dir/${baseName}_${pathHash}".replaceAll(' ', '_')
 }
 
 def pushToDocsRepo(String commmitMessage, Closure updateRepo) {
