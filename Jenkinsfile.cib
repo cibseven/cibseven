@@ -77,10 +77,10 @@ pipeline {
         booleanParam(name: 'JAVA_DOCS', defaultValue: false, description: "  └─ 📖 Deploy JavaDocs")
     }
 
-    //environment {
-    //    MAVEN_OPTS = "-Dmaven.repo.local=${WORKSPACE}/.m2/repository "
+    environment {
+        MAVEN_OPTS = "-Dmaven.repo.local=${WORKSPACE}/.m2/repository "
     //    MAVEN_ARGS = "-gs ./local-m2-settings.xml"
-    //}
+    }
 
     options {
         buildDiscarder(
