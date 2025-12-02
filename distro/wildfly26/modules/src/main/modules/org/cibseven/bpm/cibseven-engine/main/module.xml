@@ -5,7 +5,8 @@
 
   <dependencies>
 
-    <module name="javax.api" />
+    <module name="javax.api" />    
+    <module name="org.slf4j" />
     <module name="javax.transaction.api"/>
     <module name="javax.enterprise.api" />
     <module name="javax.inject.api" />

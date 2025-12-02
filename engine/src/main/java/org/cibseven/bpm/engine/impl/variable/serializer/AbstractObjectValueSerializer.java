@@ -17,6 +17,7 @@
 package org.cibseven.bpm.engine.impl.variable.serializer;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
+import org.cibseven.bpm.engine.impl.util.ReflectUtil;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.impl.value.ObjectValueImpl;
 import org.cibseven.bpm.engine.variable.impl.value.UntypedValueImpl;
@@ -115,8 +116,17 @@ public abstract class AbstractObjectValueSerializer extends AbstractSerializable
   protected abstract byte[] serializeToByteArray(Object deserializedObject) throws Exception;
 
   protected Object deserializeFromByteArray(byte[] object, ValueFields valueFields) throws Exception {
-    String objectTypeName = readObjectNameFromFields(valueFields);
-    return deserializeFromByteArray(object, objectTypeName);
+    String objectTypeName = readObjectNameFromFields(valueFields);  
+    try {
+      return deserializeFromByteArray(object, objectTypeName);
+    }
+    catch(Exception e) { // one more try: check for org.camunda namespace and try with org.cibseven
+      String objectTypeNameFixed = ReflectUtil.mapCamundaToCibSevenName(objectTypeName);
+      if (!objectTypeNameFixed.equals(objectTypeName)) {
+        return deserializeFromByteArray(object, objectTypeNameFixed);
+      }
+      throw e; // not resolved
+    }
   }
 
   /**

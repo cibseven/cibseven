@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-root</artifactId>
-    <version>2.1.0-SNAPSHOT</version>
+    <version>2.2.0-SNAPSHOT</version>
     <relativePath>../</relativePath>
   </parent>
 
@@ -18,10 +18,10 @@
   </description>
 
   <properties>
-    <version.quarkus>3.20.0</version.quarkus>
+    <version.quarkus>3.27.0</version.quarkus>
     <version.spring.framework>5.3.39</version.spring.framework>
-    <version.spring.framework6>6.2.9</version.spring.framework6>
-    <version.spring-boot>3.5.4</version.spring-boot>
+    <version.spring.framework6>6.2.11</version.spring.framework6>
+    <version.spring-boot>3.5.6</version.spring-boot>
     <version.resteasy>3.15.6.Final</version.resteasy>
     <version.jersey2>2.34</version.jersey2>
     <!-- use minimum version of resteasy and jersey -->
@@ -31,9 +31,10 @@
     <version.icu.icu4j>71.1</version.icu.icu4j>
     <!-- json-smart and accessors-smart are runtime dependencies of json-path -->
     <version.json-path>2.9.0</version.json-path>
-    <version.json-smart>2.5.0</version.json-smart>
-    <version.accessors-smart>2.5.0</version.accessors-smart>
+    <version.json-smart>2.5.2</version.json-smart>
+    <version.accessors-smart>2.5.2</version.accessors-smart>
     <version.gson>2.8.9</version.gson>
+    <version.commons-lang3>3.18.0</version.commons-lang3>
     <version.openjpa>2.4.3</version.openjpa>
     <version.hibernate>5.6.5.Final</version.hibernate>
     <version.hikaricp>4.0.3</version.hikaricp>
@@ -42,24 +43,26 @@
     <version.xml.jaxb-impl>2.3.6</version.xml.jaxb-impl>
     <version.xml.jaxb-impl4>4.0.5</version.xml.jaxb-impl4>
     <version.jakarta.xml.bind-api>4.0.2</version.jakarta.xml.bind-api>
-    <version.httpclient>4.5.14</version.httpclient>
-    <version.httpclient5>5.4.1</version.httpclient5>
+    <version.httpclient5>5.5</version.httpclient5>
+    <version.httpcore5>5.3.4</version.httpcore5>
+    <version.cronutils>9.2.1</version.cronutils>
 
     <version.slf4j>1.7.26</version.slf4j>
     <version.logback>1.2.11</version.logback>
     <version.junit>4.13.1</version.junit>
     <version.assertj>2.9.1</version.assertj>
-    <version.mockito>5.10.0</version.mockito>
+    <version.mockito>5.17.0</version.mockito>
     <version.wiremock>2.27.2</version.wiremock>
-    <version.testcontainers>1.16.0</version.testcontainers>
+    <version.testcontainers>1.20.5</version.testcontainers>
     <version.surefire>3.0.0-M5</version.surefire>
+    <version.unirest-java>2.3.10</version.unirest-java>
 
     <version.commonj>1.1.0</version.commonj>
     <version.bouncycastle>1.47</version.bouncycastle>
 
     <!-- application servers -->
-    <version.wildfly>35.0.0.Final</version.wildfly>
-    <version.wildfly.core>27.0.0.Final</version.wildfly.core>
+    <version.wildfly>37.0.0.Final</version.wildfly>
+    <version.wildfly.core>29.0.0.Final</version.wildfly.core>
     
     <version.wildfly28>28.0.1.Final</version.wildfly28>
     <version.wildfly28.core>20.0.2.Final</version.wildfly28.core>
@@ -67,8 +70,8 @@
     <version.wildfly26>26.0.1.Final</version.wildfly26>
     <version.wildfly26.core>18.0.4.Final</version.wildfly26.core>
 
-    <version.tomcat9>9.0.107</version.tomcat9>
-    <version.tomcat>10.1.43</version.tomcat>
+    <version.tomcat9>9.0.110</version.tomcat9>
+    <version.tomcat>10.1.47</version.tomcat>
 
     <version.arquillian>1.1.10.Final</version.arquillian>
     <version.shrinkwrap.resolvers>2.2.2</version.shrinkwrap.resolvers>
@@ -121,7 +124,7 @@
     <camunda.osgi.embed />
     <plugin.version.maven-bundle>5.1.9</plugin.version.maven-bundle> <!-- compatible with JDK 17 -->
     <!-- Define the maximum number of JVM processes that Surefire will spawn concurrently to execute the tests. 1C equals to number of available CPU cores in system. -->
-    <surefire.forkCount>0.5C</surefire.forkCount>
+    <surefire.forkCount>1</surefire.forkCount>
   </properties>
 
   <dependencyManagement>
@@ -133,6 +136,13 @@
         <version>${project.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+
+      <!-- Override common transitive dependencies to ensure consistent versions -->
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>${version.commons-lang3}</version>
       </dependency>
 
     </dependencies>
@@ -250,7 +260,7 @@
         <plugin>
           <groupId>org.codehaus.cargo</groupId>
           <artifactId>cargo-maven3-plugin</artifactId>
-          <version>1.10.16</version>
+          <version>1.10.20</version>
         </plugin>
         <plugin>
           <groupId>net.kennychua</groupId>
