@@ -78,7 +78,8 @@ pipeline {
     }
 
     environment {
-        MAVEN_OPTS = "-Dmaven.repo.local=${WORKSPACE}/.m2/repository -s ./local-m2-settings.xml"
+        MAVEN_OPTS = "-Dmaven.repo.local=${WORKSPACE}/.m2/repository "
+        MAVEN_ARGS = "-gs ./local-m2-settings.xml"
     }
 
     options {
