@@ -34,6 +34,11 @@ public class CamundaMSSQLContainerProvider extends MSSQLServerContainerProvider 
   public JdbcDatabaseContainer newInstance(String tag) {
     DockerImageName dockerImageName = TestcontainersHelper
       .resolveDockerImageName("mssql", tag, "mcr.microsoft.com/mssql/server");
-    return new MSSQLServerContainer(dockerImageName);
+
+    MSSQLServerContainer mssqlServerContainer = new MSSQLServerContainer(dockerImageName);
+    mssqlServerContainer.acceptLicense();
+    mssqlServerContainer.withInitScript("mssqlcontainerinit.sql");
+
+    return mssqlServerContainer;
   }
 }

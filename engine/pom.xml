@@ -9,7 +9,7 @@
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-database-settings</artifactId>
     <relativePath>../database</relativePath>
-    <version>2.1.0-SNAPSHOT</version>
+    <version>2.2.0-SNAPSHOT</version>
   </parent>
 
   <dependencyManagement>
@@ -173,7 +173,7 @@
 
     <dependency>
       <groupId>org.apache.tomcat</groupId>
-      <artifactId>catalina</artifactId>
+      <artifactId>tomcat-catalina</artifactId>
       <scope>provided</scope>
     </dependency>
 
@@ -194,6 +194,12 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.cronutils</groupId>
+      <artifactId>cron-utils</artifactId>
+      <version>${version.cronutils}</version>
     </dependency>
 
     <!-- test dependencies  -->
@@ -245,6 +251,14 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
+      <version>3.18.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.ibm.db2</groupId>
+      <artifactId>jcc</artifactId>
+      <version>${version.db2}</version>
       <scope>test</scope>
     </dependency>
 
@@ -503,6 +517,10 @@
             <relocation>
               <pattern>com.google.gson</pattern>
               <shadedPattern>camundajar.impl.com.google.gson</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>com.cronutils</pattern>
+              <shadedPattern>camundajar.impl.com.cronutils</shadedPattern>
             </relocation>
           </relocations>
           <transformers>

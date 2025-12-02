@@ -112,17 +112,12 @@ public abstract class ReflectUtil {
 
    if(clazz == null) {  
      // try org.cibseven name space if name shading is enabled and className belongs to org.camunda
-     if (className.startsWith(CAMUNDA_NAMESPACE)) {      
-       ProcessEngineConfigurationImpl config = org.cibseven.bpm.engine.impl.context.Context
-           .getProcessEngineConfiguration();
-       
-       if (config != null && config.isUseCibSevenNamespaceInReflection()) {
-         String classNameCib = className.replace(CAMUNDA_NAMESPACE, CIBSEVEN_NAMESPACE);
-         return loadClass(classNameCib);
-       }
+     String classNameCib = mapCamundaToCibSevenName(className);
+     if (!classNameCib.equals(className)) {
+       clazz = loadClass(classNameCib);
+     } else {
+       throw LOG.classLoadingException(className, throwable);
      }
-     
-     throw LOG.classLoadingException(className, throwable);
    }
    return clazz;
   }
@@ -134,16 +129,10 @@ public abstract class ReflectUtil {
       } 
       catch(Exception e) {       
         // try org.cibseven name space if name shading is enabled and className belongs to org.camunda
-        if (className.startsWith(CAMUNDA_NAMESPACE)) {      
-          ProcessEngineConfigurationImpl config = org.cibseven.bpm.engine.impl.context.Context
-              .getProcessEngineConfiguration();
-          
-          if (config != null && config.isUseCibSevenNamespaceInReflection()) {
-            String classNameCib = className.replace(CAMUNDA_NAMESPACE, CIBSEVEN_NAMESPACE);
-            return (Class<? extends T>) customClassloader.loadClass(classNameCib);
-          }
+        String classNameCib = mapCamundaToCibSevenName(className);
+        if (!classNameCib.equals(className)) {
+          return (Class<? extends T>) customClassloader.loadClass(classNameCib);
         }
-        
         throw LOG.classLoadingException(className, e);
       }
     } else {
@@ -436,5 +425,23 @@ public abstract class ReflectUtil {
    */
   public static Method getMethod(Class<?> declaringType, String methodName, Class<?>... parameterTypes) {
     return findMethod(declaringType, methodName, parameterTypes);
+  }
+  
+  /**
+   * Replaces org.camunda prefix with org.cibseven prefix in the className if useCibSevenNamespaceInReflection is enabled
+   *
+   * @param className the name of the class
+   * Returns fixed className or the same className.
+   */
+  
+  public static String mapCamundaToCibSevenName(String className) {
+    if (className.startsWith(CAMUNDA_NAMESPACE)) {
+      // only when the option is enabled
+      ProcessEngineConfigurationImpl cfg = Context.getProcessEngineConfiguration();
+      if(cfg != null && cfg.isUseCibSevenNamespaceInReflection()) {
+        return className.replace(CAMUNDA_NAMESPACE, CIBSEVEN_NAMESPACE);
+      }
+    }
+    return className;
   }
 }
