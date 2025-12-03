@@ -78,8 +78,9 @@ pipeline {
     }
 
     environment {
-        MAVEN_OPTS = "-Dmaven.repo.local=${WORKSPACE}/.m2/repository -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
-        MAVEN_ARGS = "-gs ./temp/local-m2-settings.xml"
+        MAVEN_LOCAL_REPO_NEW = (getMavenRepository() + "/cibseven-install-dir/" + getJobFolder("$JOB_NAME"))
+        MAVEN_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO_NEW} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
+        MAVEN_ARGS = "-gs ./local-m2-settings.xml"
     }
 
     options {
@@ -505,14 +506,9 @@ pipeline {
             script {
                 log.info 'End of the build'
 
-                // cleanup temporary maven install directory for this build
-                withMaven(options: []) {
-                    def localRepo = sh(script: 'mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout', returnStdout: true).trim()
-                    if (localRepo.endsWith(".m2/repository") && env.CIBSEVEN_INSTALL_PREFIX != null) {
-                        echo "cleanup cibseven install dir: '${localRepo}/${env.CIBSEVEN_INSTALL_PREFIX}'"
-                        sh "rm -rf '${localRepo}/${env.CIBSEVEN_INSTALL_PREFIX}'"
-                    }
-                }
+                // cleanup temporary maven repo for this build
+                echo "cleanup cibseven install dir: '${env.MAVEN_LOCAL_REPO_NEW}'"
+                sh "rm -rf '${env.MAVEN_LOCAL_REPO_NEW}'"
             }
         }
 
@@ -587,6 +583,20 @@ def getDocsRepoName() {
     else {
         return "docs.cibseven.org"
     }
+}
+
+def getMavenRepository() { 
+    withMaven(options: []) {
+        def mavenRepo = sh(script: 'mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout', returnStdout: true).trim()
+        return mavenRepo
+    }
+}
+
+// creates pseudo-unique folder for a jobName
+def getJobFolder(String jobName) {
+    String baseName = jobName.split('/') ? jobName.split('/').last() : ""
+    String pathHash = String.format("#%04X", (0xFFFF & jobName.hashCode()))
+    return "${baseName}_${pathHash}".replaceAll(' ', '_')
 }
 
 def pushToDocsRepo(String commmitMessage, Closure updateRepo) {
