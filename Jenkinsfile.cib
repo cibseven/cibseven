@@ -508,7 +508,10 @@ pipeline {
 
                 // cleanup temporary maven repo for this build
                 echo "cleanup cibseven local repo: '${env.MAVEN_LOCAL_REPO_NEW}'"
-                sh "rm -rf '${env.MAVEN_LOCAL_REPO_NEW}'"
+                String localRepo = env.MAVEN_LOCAL_REPO_NEW
+                if (localRepo.endsWith(getLocalJobRepo("${JOB_NAME}"))) {
+                    sh "rm -rf '${env.MAVEN_LOCAL_REPO_NEW}'"
+                }
             }
         }
 
