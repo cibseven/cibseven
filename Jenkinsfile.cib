@@ -79,7 +79,7 @@ pipeline {
 
     environment {
         MAVEN_OPTS = "-Dmaven.repo.local=${WORKSPACE}/.m2/repository -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
-        MAVEN_ARGS = "-gs ./local-m2-settings.xml"
+        MAVEN_ARGS = "-gs ./temp/local-m2-settings.xml"
     }
 
     options {
