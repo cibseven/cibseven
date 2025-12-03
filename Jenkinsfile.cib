@@ -78,7 +78,7 @@ pipeline {
     }
 
     environment {
-        MAVEN_LOCAL_REPO_NEW = getMavenRepository() + "/cibseven-install-dir/" + getJobFolder("$JOB_NAME")
+        MAVEN_LOCAL_REPO_NEW = getLocalJobRepo("${JOB_NAME}")
         MAVEN_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO_NEW} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
         MAVEN_ARGS = "-gs ./local-m2-settings.xml"
     }
@@ -507,7 +507,7 @@ pipeline {
                 log.info 'End of the build'
 
                 // cleanup temporary maven repo for this build
-                echo "cleanup cibseven install dir: '${env.MAVEN_LOCAL_REPO_NEW}'"
+                echo "cleanup cibseven local repo: '${env.MAVEN_LOCAL_REPO_NEW}'"
                 sh "rm -rf '${env.MAVEN_LOCAL_REPO_NEW}'"
             }
         }
@@ -583,6 +583,11 @@ def getDocsRepoName() {
     else {
         return "docs.cibseven.org"
     }
+}
+
+def getLocalJobRepo(String jobName) {
+    String localJobRepo = getMavenRepository() + "/cibseven-install-dir/" + getJobFolder(jobName)
+	return localJobRepo
 }
 
 def getMavenRepository() { 
