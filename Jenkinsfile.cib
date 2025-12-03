@@ -79,7 +79,7 @@ pipeline {
 
     environment {
         MAVEN_OPTS = "-Dmaven.repo.local=${WORKSPACE}/.m2/repository -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
-    //    MAVEN_ARGS = "-gs ./local-m2-settings.xml"
+        MAVEN_ARGS = "-gs ./local-m2-settings.xml"
     }
 
     options {
@@ -137,7 +137,7 @@ pipeline {
             steps {
                 script {
                     withMaven(options: []) {
-                        sh "mvn -gs ./local-m2-settings.xml -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
+                        sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
                     }
                 }
             }
