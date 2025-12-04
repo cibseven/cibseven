@@ -52,7 +52,7 @@ public class CronTimer {
   public static CronTimer parse(final String text) throws ParseException {
     try {
       final var cron =
-          new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.SPRING53))
+          new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ))
               .parse(text);
       return new CronTimer(cron);
     } catch (final IllegalArgumentException | NullPointerException ex) {
