@@ -46,6 +46,7 @@ import org.cibseven.bpm.engine.rest.MigrationRestService;
 import org.cibseven.bpm.engine.rest.ModificationRestService;
 import org.cibseven.bpm.engine.rest.ProcessDefinitionRestService;
 import org.cibseven.bpm.engine.rest.ProcessInstanceRestService;
+import org.cibseven.bpm.engine.rest.SetupRestService;
 import org.cibseven.bpm.engine.rest.SchemaLogRestService;
 import org.cibseven.bpm.engine.rest.SignalRestService;
 import org.cibseven.bpm.engine.rest.TaskRestService;
@@ -310,6 +311,13 @@ public abstract class AbstractProcessEngineRestServiceImpl {
   public TelemetryRestService getTelemetryRestService(String engineName) {
     String rootResourcePath = getRelativeEngineUri(engineName).toASCIIString();
     TelemetryRestServiceImpl subResource = new TelemetryRestServiceImpl(engineName, getObjectMapper());
+    subResource.setRelativeRootResourceUri(rootResourcePath);
+    return subResource;
+  }
+
+  public SetupRestService getSetupRestService(String engineName) {
+    String rootResourcePath = getRelativeEngineUri(engineName).toASCIIString();
+    SetupRestServiceImpl subResource = new SetupRestServiceImpl(engineName, getObjectMapper());
     subResource.setRelativeRootResourceUri(rootResourcePath);
     return subResource;
   }
