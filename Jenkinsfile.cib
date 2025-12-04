@@ -507,9 +507,9 @@ pipeline {
                 log.info 'End of the build'
 
                 // cleanup temporary maven repo for this build
-                echo "cleanup cibseven local repo: '${env.MAVEN_LOCAL_REPO_NEW}'"
+                echo "cleanup cibseven local repo: '${env.MAVEN_LOCAL_REPO_NEW}' for '${env.BRANCH_NAME}' branch"
                 String localRepo = env.MAVEN_LOCAL_REPO_NEW
-                if (localRepo.endsWith(getLocalJobRepo("${JOB_NAME}"))) {
+                if (env.BRANCH_NAME != 'main' && localRepo.endsWith(getJobFolder("${JOB_NAME}"))) {
                     sh "rm -rf '${env.MAVEN_LOCAL_REPO_NEW}'"
                 }
             }
