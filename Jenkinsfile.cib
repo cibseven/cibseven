@@ -79,8 +79,9 @@ pipeline {
 
     environment {
         MAVEN_LOCAL_REPO_NEW = getLocalJobRepo("${JOB_NAME}")
+        // set bigger timeout to get rid of the maven issue with file locks: https://github.com/apache/maven/issues/9049
         MAVEN_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO_NEW} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
-        MAVEN_ARGS = "-gs ./local-m2-settings.xml"
+        MAVEN_ARGS = "-gs ./redirect-m2-settings.xml"
     }
 
     options {
@@ -506,10 +507,10 @@ pipeline {
             script {
                 log.info 'End of the build'
 
-                // cleanup temporary maven repo for this build
-                echo "cleanup cibseven local repo: '${env.MAVEN_LOCAL_REPO_NEW}' for '${env.BRANCH_NAME}' branch"
+                // cleanup temporary maven repo for this build, but keep it for the main branch
                 String localRepo = env.MAVEN_LOCAL_REPO_NEW
                 if (env.BRANCH_NAME != 'main' && localRepo.endsWith(getJobFolder("${JOB_NAME}"))) {
+                    echo "cleanup cibseven local repo: '${env.MAVEN_LOCAL_REPO_NEW}' for '${env.BRANCH_NAME}' branch"
                     sh "rm -rf '${env.MAVEN_LOCAL_REPO_NEW}'"
                 }
             }
