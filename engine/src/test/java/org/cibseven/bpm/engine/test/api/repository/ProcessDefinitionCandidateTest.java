@@ -67,6 +67,7 @@ public class ProcessDefinitionCandidateTest {
 
     // then
     ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().singleResult();
+    @SuppressWarnings("deprecation")
     List<IdentityLink> links = repositoryService.getIdentityLinksForProcessDefinition(processDefinition.getId());
     assertEquals(1, links.size());
 
@@ -85,6 +86,7 @@ public class ProcessDefinitionCandidateTest {
 
     // then
     ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().singleResult();
+    @SuppressWarnings("deprecation")
     List<IdentityLink> links = repositoryService.getIdentityLinksForProcessDefinition(processDefinition.getId());
     assertEquals(3, links.size());
 
@@ -104,6 +106,7 @@ public class ProcessDefinitionCandidateTest {
 
     // then
     ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().singleResult();
+    @SuppressWarnings("deprecation")
     List<IdentityLink> links = repositoryService.getIdentityLinksForProcessDefinition(processDefinition.getId());
     assertEquals(1, links.size());
 
@@ -122,6 +125,7 @@ public class ProcessDefinitionCandidateTest {
 
     // then
     ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().singleResult();
+    @SuppressWarnings("deprecation")
     List<IdentityLink> links = repositoryService.getIdentityLinksForProcessDefinition(processDefinition.getId());
     assertEquals(3, links.size());
 

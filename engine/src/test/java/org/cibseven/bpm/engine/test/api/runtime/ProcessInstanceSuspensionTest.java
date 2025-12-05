@@ -734,7 +734,7 @@ public class ProcessInstanceSuspensionTest extends PluggableProcessEngineTest {
     runtimeService.suspendProcessInstanceById(processInstance.getId());
 
     try {
-      formService.submitTaskFormData(taskService.createTaskQuery().processInstanceId(processInstance.getId()).singleResult().getId(), new HashMap<String, String>());
+      formService.submitTaskForm(taskService.createTaskQuery().processInstanceId(processInstance.getId()).singleResult().getId(), new HashMap<String, Object>());
       fail();
     } catch(SuspendedEntityInteractionException e) {
       // This is expected
@@ -749,7 +749,7 @@ public class ProcessInstanceSuspensionTest extends PluggableProcessEngineTest {
     runtimeService.suspendProcessInstanceByProcessDefinitionId(processDefinition.getId());
 
     try {
-      formService.submitTaskFormData(taskService.createTaskQuery().processInstanceId(processInstance.getId()).singleResult().getId(), new HashMap<String, String>());
+      formService.submitTaskForm(taskService.createTaskQuery().processInstanceId(processInstance.getId()).singleResult().getId(), new HashMap<String, Object>());
       fail();
     } catch(SuspendedEntityInteractionException e) {
       // This is expected
@@ -764,7 +764,7 @@ public class ProcessInstanceSuspensionTest extends PluggableProcessEngineTest {
     runtimeService.suspendProcessInstanceByProcessDefinitionKey(processDefinition.getKey());
 
     try {
-      formService.submitTaskFormData(taskService.createTaskQuery().processInstanceId(processInstance.getId()).singleResult().getId(), new HashMap<String, String>());
+      formService.submitTaskForm(taskService.createTaskQuery().processInstanceId(processInstance.getId()).singleResult().getId(), new HashMap<String, Object>());
       fail();
     } catch(SuspendedEntityInteractionException e) {
       // This is expected
