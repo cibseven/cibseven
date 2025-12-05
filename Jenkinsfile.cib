@@ -78,13 +78,10 @@ pipeline {
     }
 
     environment {
-        // allow parallel builds of a few branches without conflicts:
-        // split shared local repo into the download and installation parts, use branch-dependent prefix for the installation part
-        // and redirect this part into a separate folder cibseven-install-dir; also set bigger timeout to get rid of the maven issue 
-        // with file locks: https://github.com/apache/maven/issues/9049
-        CIBSEVEN_INSTALL_PREFIX = "cibseven-install-dir/tmp_${JOB_BASE_NAME}"
-        // MAVEN_OPTS = "-Daether.enhancedLocalRepository.split=true -Daether.enhancedLocalRepository.localPrefix=${env.CIBSEVEN_INSTALL_PREFIX} -Daether.enhancedLocalRepository.remotePrefix=. -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
-        MAVEN_OPTS = "-Ddependency-check.skip=true"
+        MAVEN_LOCAL_REPO_NEW = getLocalJobRepo("${JOB_NAME}")
+        // set bigger timeout to get rid of the maven issue with file locks: https://github.com/apache/maven/issues/9049
+        MAVEN_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO_NEW} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
+        MAVEN_ARGS = "-gs ./redirect-m2-settings.xml"
     }
 
     options {
@@ -510,13 +507,11 @@ pipeline {
             script {
                 log.info 'End of the build'
 
-                // cleanup temporary maven install directory for this build
-                withMaven(options: []) {
-                    def localRepo = sh(script: 'mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout', returnStdout: true).trim()
-                    if (localRepo.endsWith(".m2/repository") && env.CIBSEVEN_INSTALL_PREFIX != null) {
-                        echo "cleanup cibseven install dir: '${localRepo}/${env.CIBSEVEN_INSTALL_PREFIX}'"
-                        sh "rm -rf '${localRepo}/${env.CIBSEVEN_INSTALL_PREFIX}'"
-                    }
+                // cleanup temporary maven repo for this build, but keep it for the main branch
+                String localRepo = env.MAVEN_LOCAL_REPO_NEW
+                if (env.BRANCH_NAME != 'main' && localRepo.endsWith(getJobFolder("${JOB_NAME}"))) {
+                    echo "cleanup cibseven local repo: '${env.MAVEN_LOCAL_REPO_NEW}' for '${env.BRANCH_NAME}' branch"
+                    sh "rm -rf '${env.MAVEN_LOCAL_REPO_NEW}'"
                 }
             }
         }
@@ -594,11 +589,23 @@ def getDocsRepoName() {
     }
 }
 
-// creates pseudo-unique install prefix for a jobName
-def getInstallPrefix(String jobName) {
+def getLocalJobRepo(String jobName) {
+    String localJobRepo = getMavenRepository() + "/cibseven-install-dir/" + getJobFolder(jobName)
+	return localJobRepo
+}
+
+def getMavenRepository() { 
+    withMaven(options: []) {
+        def mavenRepo = sh(script: 'mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout', returnStdout: true).trim()
+        return mavenRepo
+    }
+}
+
+// creates pseudo-unique folder for a jobName
+def getJobFolder(String jobName) {
     String baseName = jobName.split('/') ? jobName.split('/').last() : ""
     String pathHash = String.format("#%04X", (0xFFFF & jobName.hashCode()))
-    return "cibseven-install-dir/${baseName}_${pathHash}".replaceAll(' ', '_')
+    return "${baseName}_${pathHash}".replaceAll(' ', '_')
 }
 
 def pushToDocsRepo(String commmitMessage, Closure updateRepo) {
