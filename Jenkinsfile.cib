@@ -604,7 +604,7 @@ def getMavenRepository() {
 // creates pseudo-unique folder for a jobName
 def getJobFolder(String jobName) {
     String baseName = jobName.split('/') ? jobName.split('/').last() : ""
-    String pathHash = String.format("#%04X", (0xFFFF & jobName.hashCode()))
+    String pathHash = String.format("%04X", (0xFFFF & jobName.hashCode()))
     return "${baseName}_${pathHash}".replaceAll(' ', '_')
 }
 
