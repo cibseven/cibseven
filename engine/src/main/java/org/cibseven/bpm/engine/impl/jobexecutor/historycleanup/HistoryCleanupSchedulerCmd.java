@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
-import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutorLogger;

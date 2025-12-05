@@ -16,7 +16,8 @@
  */
 package org.cibseven.bpm.engine.impl.jobexecutor;
 
-import org.cibseven.bpm.engine.ProcessEngine;
+import java.util.List;
+
 import org.cibseven.bpm.engine.impl.ProcessEngineImpl;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
@@ -26,8 +27,6 @@ import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.interceptor.CommandExecutor;
 import org.cibseven.bpm.engine.impl.interceptor.ProcessDataContext;
 import org.cibseven.bpm.engine.impl.util.ClassLoaderUtil;
-
-import java.util.List;
 
 
 /**

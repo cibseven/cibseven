@@ -16,6 +16,10 @@
  */
 package org.cibseven.bpm.engine.test.standalone.pvm;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,13 +27,6 @@ import org.cibseven.bpm.engine.impl.pvm.ProcessDefinitionBuilder;
 import org.cibseven.bpm.engine.impl.pvm.PvmExecution;
 import org.cibseven.bpm.engine.impl.pvm.PvmProcessDefinition;
 import org.cibseven.bpm.engine.impl.pvm.PvmProcessInstance;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 import org.cibseven.bpm.engine.test.standalone.pvm.activities.Automatic;
 import org.cibseven.bpm.engine.test.standalone.pvm.activities.End;
 import org.cibseven.bpm.engine.test.standalone.pvm.activities.ParallelGateway;
