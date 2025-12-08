@@ -3025,6 +3025,13 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   }
 
   public void setCronType(String cronType) {
+    if (cronType != null) {
+      try {
+        CronType.valueOf(cronType);
+      } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("Invalid cronType: " + cronType + ". Valid values are: SPRING53, QUARTZ", e);
+      }
+    }
     this.cronType = cronType;
   }
 
