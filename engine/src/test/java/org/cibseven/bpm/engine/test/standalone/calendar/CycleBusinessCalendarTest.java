@@ -205,4 +205,42 @@ public class CycleBusinessCalendarTest {
     }
   }
 
+  @Test
+  public void testLegacyCronPatching() throws Exception {
+    // Only run this test for QUARTZ with legacy support enabled
+    if (cronType.equals(QUARTZ) && supportLegacyQuartzSyntax) {
+      CycleBusinessCalendar cbc = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm");
+      Date startDate = sdf.parse("2010 02 11 17:23");
+
+      // Case 1: Both set, simple values. Default rule: clear day-of-month.
+      // "0 0 0 1 * 2" -> "0 0 0 ? * 2" (Every Monday)
+      // Feb 11 2010 is Thursday. Next Monday is Feb 15.
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1 * 2", startDate))).isEqualTo("2010 02 15 00:00");
+
+      // Case 2: day-of-month has 'W'. Rule: clear day-of-week.
+      // "0 0 0 1W * 2" -> "0 0 0 1W * ?" (Nearest weekday to 1st of month)
+      // March 1st 2010 is Monday.
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1W * 2", startDate))).isEqualTo("2010 03 01 00:00");
+
+      // Case 3: day-of-week has 'L'. Rule: clear day-of-month.
+      // "0 0 0 1 * 5L" -> "0 0 0 ? * 5L" (Last Thursday of month)
+      // Feb 2010: Last Thursday is Feb 25.
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1 * 5L", startDate))).isEqualTo("2010 02 25 00:00");
+
+      // Case 4: day-of-week has '#'. Rule: clear day-of-month.
+      // "0 0 0 1 * 6#2" -> "0 0 0 ? * 6#2" (2nd Friday of month)
+      // Feb 2010: 2nd Friday is Feb 12.
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1 * 6#2", startDate))).isEqualTo("2010 02 12 00:00");
+
+      // Case 5: DoM is *, DoW is 5L.
+      // "0 0 0 * * 5L" -> "0 0 0 ? * 5L"
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 0 * * 5L", startDate))).isEqualTo("2010 02 25 00:00");
+
+      // Case 6: DoM is 1W, DoW is *.
+      // "0 0 0 1W * *" -> "0 0 0 1W * ?"
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1W * *", startDate))).isEqualTo("2010 03 01 00:00");
+    }
+  }
+
 }
