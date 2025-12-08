@@ -60,12 +60,7 @@ public class CronTimer {
       String expression = text;
       if (cronType == CronType.QUARTZ && supportLegacyQuartzSyntax) {
         String originalExpression = expression;
-        // ================= LEGACY COMPATIBILITY PATCH =================
-        // Migrating legacy Quartz 1.8.4 cron expressions to latest cron-utils (Quartz >=2.x).
-        // Examples:
-        // "0 0 0 * * 5L" -> "0 0 0 ? * 5L" (last Friday of month)
-        // "0 0 0 1W * *" -> "0 0 0 1W * ?" (weekday nearest to 1st)
-        // "0 0 0 * * THUL" -> "0 0 0 ? * THUL" (last Thursday)
+        // Migrating legacy Quartz 1.8.4 cron expressions to Quartz 2.5.0 (cron-utils).
         expression = patchLegacyCronExpression(expression);
         if (!originalExpression.equals(expression)) {
           LOG.warnLegacyCronExpressionPatched(originalExpression, expression);
@@ -92,28 +87,59 @@ public class CronTimer {
     if (parts.length < 6) {
       return expression; // Not a valid Quartz cron expression
     }
-    // Quartz 1.8.4 allowed both day-of-month and day-of-week to be set in some cases,
-    // but modern Quartz (and cron-utils) require one to be '?'.
-    // See: https://github.com/quartz-scheduler/quartz/blob/quartz-1.8.4/core/src/main/java/org/quartz/CronExpression.java
+    
+    // Migration Guide: Quartz 1.8.4 → 2.5.0:
+    // 1. Both Day-of-Month and Day-of-Week are specified with concrete values (neither '?' nor '*')
+    // 2. Both fields are set to '*' (ambiguous scheduling - could match any day)
+    // 3. Both fields are set to '?' (no scheduling criteria specified)
     final String dayOfMonth = parts[3];
     final String dayOfWeek = parts[5];
-    boolean domSet = dayOfMonth != null && !"?".equals(dayOfMonth);
-    boolean dowSet = dayOfWeek != null && !"?".equals(dayOfWeek);
+    
+    // Check if field is set (not a wildcard '?' or '*')
+    boolean domSet = dayOfMonth != null && !"?".equals(dayOfMonth) && !"*".equals(dayOfMonth);
+    boolean dowSet = dayOfWeek != null && !"?".equals(dayOfWeek) && !"*".equals(dayOfWeek);
+    
     if (domSet && dowSet) {
-      // Only patch for legacy Quartz patterns:
-      // - If day-of-week contains 'L' (e.g. '5L', 'THUL'), clear day-of-month
-      // - If day-of-month contains 'W' (e.g. '1W'), clear day-of-week
-      // - If day-of-week contains '#', clear day-of-month
-      // - Otherwise, default to clearing day-of-month
+      // Both fields are set - this is invalid
+      // Apply migration logic based on special characters to determine which field to keep:
+
+      // Priority 1: If day-of-week has 'L' modifier (last occurrence), keep day-of-week
       if (dayOfWeek.matches(".*[0-9]L$|.*[A-Z]{3}L$")) {
-        parts[3] = "?";
-      } else if (dayOfMonth.contains("W")) {
-        parts[5] = "?";
-      } else if (dayOfWeek.contains("#")) {
-        parts[3] = "?";
-      } else {
+        parts[3] = "?"; // Clear day-of-month
+      } 
+      // Priority 2: If day-of-month has 'W' modifier (weekday), keep day-of-month  
+      else if (dayOfMonth.contains("W")) {
+        parts[5] = "?"; // Clear day-of-week
+      } 
+      // Priority 3: If day-of-week has '#' modifier (nth occurrence), keep day-of-week
+      else if (dayOfWeek.contains("#")) {
+        parts[3] = "?"; // Clear day-of-month
+      } 
+      // Default: Clear day-of-month (preserve day-of-week scheduling)
+      else {
         parts[3] = "?";
       }
+      return String.join(" ", parts);
+    }
+    
+    // Convert '*' to '?' when the other field is set
+    if ("*".equals(dayOfMonth) && dowSet) {
+      parts[3] = "?"; // Convert day-of-month from '*' to '?'
+      return String.join(" ", parts);
+    }
+    if ("*".equals(dayOfWeek) && domSet) {
+      parts[5] = "?"; // Convert day-of-week from '*' to '?'
+      return String.join(" ", parts);
+    }
+    
+    // Both fields cannot be '*' - convert day-of-week to '?'
+    if ("*".equals(dayOfMonth) && "*".equals(dayOfWeek)) {
+      parts[5] = "?";
+      return String.join(" ", parts);
+    }
+    // Both fields cannot be '?' - fix by keeping day-of-week as '?'
+    if ("?".equals(dayOfMonth) && "?".equals(dayOfWeek)) {
+      parts[5] = "?";
       return String.join(" ", parts);
     }
     return expression;
