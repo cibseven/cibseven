@@ -13,6 +13,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * Modifications Copyright 2025 CIB software GmbH
  */
 package org.cibseven.bpm.engine.impl.util;
 
@@ -258,6 +260,14 @@ public class EngineUtilLogger extends ProcessEngineLogger {
     return new ProcessEngineException(exceptionMessage(
         "047",
         "Exception while configuring XXE processing: {}", cause.getMessage()), cause);
+  }
+
+  public void warnLegacyCronExpressionPatched(String originalExpression, String patchedExpression) {
+    logWarn("048",
+        "Legacy cron expression '{}' was automatically patched to '{}' for compatibility with modern Quartz syntax. " +
+        "Consider updating your timer expressions to avoid this warning.",
+        originalExpression,
+        patchedExpression);
   }
 
 }
