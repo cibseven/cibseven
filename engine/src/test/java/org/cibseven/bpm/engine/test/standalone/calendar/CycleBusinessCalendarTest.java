@@ -131,11 +131,10 @@ public class CycleBusinessCalendarTest {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm");
     Date startDate = sdf.parse("2010 02 11 17:23");
 
-    boolean isSpring53 = cronType.equals(SPRING53);
     assertThat(sdf.format(cbc.resolveDuedate("0 0 * * * ?", startDate))).isEqualTo("2010 02 11 18:00");
-    assertThat(sdf.format(cbc.resolveDuedate(isSpring53 ? "*/10 * * * 2 ?" : "0,10,20,30,40,50 * * * 2 ?", startDate))).isEqualTo("2010 02 11 17:23");
+    assertThat(sdf.format(cbc.resolveDuedate("*/10 * * * 2 ?", startDate))).isEqualTo("2010 02 11 17:23");
     assertThat(sdf.format(cbc.resolveDuedate("0 0 8-10 * * ?", startDate))).isEqualTo("2010 02 12 08:00");
-    assertThat(sdf.format(cbc.resolveDuedate(isSpring53 ? "0 0/30 8-10 * * ?" : "0 0,30 8-10 * * ?", startDate))).isEqualTo("2010 02 12 08:00");
+    assertThat(sdf.format(cbc.resolveDuedate("0 0/30 8-10 * * ?", startDate))).isEqualTo("2010 02 12 08:00");
     assertThat(sdf.format(cbc.resolveDuedate("0 0 9-17 * * ?", startDate))).isEqualTo("2010 02 12 09:00");
     assertThat(sdf.format(cbc.resolveDuedate("0 0 0 25 12 ?", startDate))).isEqualTo("2010 12 25 00:00");
     assertThat(sdf.format(cbc.resolveDuedate("0 0 0 L 12 ?", startDate))).isEqualTo("2010 12 31 00:00");
