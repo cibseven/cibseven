@@ -13,6 +13,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * Modifications Copyright 2025 CIB software GmbH
  */
 package org.cibseven.bpm.engine.impl.cfg;
 
@@ -642,6 +644,30 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected boolean enableGracefulDegradationOnContextSwitchFailure = true;
 
   protected BusinessCalendarManager businessCalendarManager;
+
+  /**
+   * Cron type used for parsing cron expressions in timer events and other scheduled tasks.
+   * 
+   * Supported values:
+   * - SPRING53: Uses Spring Framework 5.3+ cron syntax (default, recommended for new applications)
+   * - QUARTZ: Uses Quartz Scheduler cron syntax (for compatibility with existing Quartz-based applications)
+   * 
+   * When migrating from Quartz-based applications, use QUARTZ type with supportLegacyQuartzSyntax
+   * enabled for maximum compatibility with existing process definitions.
+   */
+  protected String cronType = "SPRING53";
+
+  /**
+   * This flag enables backward compatibility for cron expressions that were valid in
+   * Quartz 1.8.4 but are rejected by newer Quartz versions due to stricter parsing rules.
+   * 
+   * Enable this when:
+   * - Existing process definitions contain legacy cron expressions
+   * - Encountering parsing errors with historical timer configurations
+   * 
+   * Default: false
+   */
+  protected boolean supportLegacyQuartzSyntax = false;
 
   protected String wsSyncFactoryClassName = DEFAULT_WS_SYNC_FACTORY;
 
@@ -2716,7 +2742,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
       MapBusinessCalendarManager mapBusinessCalendarManager = new MapBusinessCalendarManager();
       mapBusinessCalendarManager.addBusinessCalendar(DurationBusinessCalendar.NAME, new DurationBusinessCalendar());
       mapBusinessCalendarManager.addBusinessCalendar(DueDateBusinessCalendar.NAME, new DueDateBusinessCalendar());
-      mapBusinessCalendarManager.addBusinessCalendar(CycleBusinessCalendar.NAME, new CycleBusinessCalendar());
+      mapBusinessCalendarManager.addBusinessCalendar(CycleBusinessCalendar.NAME, new CycleBusinessCalendar(this.cronType, this.supportLegacyQuartzSyntax));
 
       businessCalendarManager = mapBusinessCalendarManager;
     }
@@ -2992,6 +3018,22 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   public ProcessEngineConfigurationImpl setCustomPreCommandInterceptorsTxRequired(List<CommandInterceptor> customPreCommandInterceptorsTxRequired) {
     this.customPreCommandInterceptorsTxRequired = customPreCommandInterceptorsTxRequired;
     return this;
+  }
+
+  public String getCronType() {
+    return cronType;
+  }
+
+  public void setCronType(String cronType) {
+    this.cronType = cronType;
+  }
+
+  public boolean isSupportLegacyQuartzSyntax() {
+    return supportLegacyQuartzSyntax;
+  }
+
+  public void setSupportLegacyQuartzSyntax(boolean supportLegacyQuartzSyntax) {
+    this.supportLegacyQuartzSyntax = supportLegacyQuartzSyntax;
   }
 
   public List<CommandInterceptor> getCustomPostCommandInterceptorsTxRequired() {
