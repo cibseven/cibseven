@@ -243,4 +243,47 @@ public class CycleBusinessCalendarTest {
     }
   }
 
+  @Test
+  public void testLegacyCronPatchingDisabled() throws Exception {
+    // Only run this test for QUARTZ with legacy support DISABLED
+    if (cronType.equals(QUARTZ) && !supportLegacyQuartzSyntax) {
+      CycleBusinessCalendar cbc = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm");
+      Date startDate = sdf.parse("2010 02 11 17:23");
+
+      // Legacy expressions with both day-of-month and day-of-week set should fail
+      // when supportLegacyQuartzSyntax is false
+
+      // Both day-of-month (1) and day-of-week (2) are set - should fail
+      assertThatThrownBy(() -> cbc.resolveDuedate("0 0 0 1 * 2", startDate))
+          .isInstanceOf(ProcessEngineException.class)
+          .hasMessageContaining("Exception while parsing cycle expression");
+
+      // day-of-month has 'W' but day-of-week is also set - should fail
+      assertThatThrownBy(() -> cbc.resolveDuedate("0 0 0 1W * 2", startDate))
+          .isInstanceOf(ProcessEngineException.class)
+          .hasMessageContaining("Exception while parsing cycle expression");
+
+      // day-of-month is set and day-of-week has 'L' - should fail
+      assertThatThrownBy(() -> cbc.resolveDuedate("0 0 0 1 * 5L", startDate))
+          .isInstanceOf(ProcessEngineException.class)
+          .hasMessageContaining("Exception while parsing cycle expression");
+
+      // day-of-month is set and day-of-week has '#' - should fail
+      assertThatThrownBy(() -> cbc.resolveDuedate("0 0 0 1 * 6#2", startDate))
+          .isInstanceOf(ProcessEngineException.class)
+          .hasMessageContaining("Exception while parsing cycle expression");
+
+      // DoM is *, DoW is 5L - should fail (both are set, not using ?)
+      assertThatThrownBy(() -> cbc.resolveDuedate("0 0 0 * * 5L", startDate))
+          .isInstanceOf(ProcessEngineException.class)
+          .hasMessageContaining("Exception while parsing cycle expression");
+
+      // DoM is 1W, DoW is * - should fail (both are set, not using ?)
+      assertThatThrownBy(() -> cbc.resolveDuedate("0 0 0 1W * *", startDate))
+          .isInstanceOf(ProcessEngineException.class)
+          .hasMessageContaining("Exception while parsing cycle expression");
+    }
+  }
+
 }
