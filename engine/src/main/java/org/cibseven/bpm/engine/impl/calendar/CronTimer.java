@@ -105,7 +105,7 @@ public class CronTimer {
       // - If day-of-month contains 'W' (e.g. '1W'), clear day-of-week
       // - If day-of-week contains '#', clear day-of-month
       // - Otherwise, default to clearing day-of-month
-      if (dayOfWeek.matches(".*L.*")) {
+      if (dayOfWeek.matches(".*[0-9]L$|.*[A-Z]{3}L$")) {
         parts[3] = "?";
       } else if (dayOfMonth.contains("W")) {
         parts[5] = "?";
