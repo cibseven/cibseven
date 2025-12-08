@@ -88,7 +88,8 @@ public class CronTimer {
       return expression; // Not a valid Quartz cron expression
     }
     
-    // Migration Guide: Quartz 1.8.4 → 2.5.0:
+    // Migration Guide for Quartz 1.8.4 → 2.5.0
+    // Problematic field combinations requiring migration:
     // 1. Both Day-of-Month and Day-of-Week are specified with concrete values (neither '?' nor '*')
     // 2. Both fields are set to '*' (ambiguous scheduling - could match any day)
     // 3. Both fields are set to '?' (no scheduling criteria specified)
