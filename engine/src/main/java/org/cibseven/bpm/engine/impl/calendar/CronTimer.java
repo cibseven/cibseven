@@ -139,7 +139,7 @@ public class CronTimer {
     }
     // Both fields cannot be '?' - fix by keeping day-of-week as '?'
     if ("?".equals(dayOfMonth) && "?".equals(dayOfWeek)) {
-      parts[5] = "?";
+      parts[3] = "*";
       return String.join(" ", parts);
     }
     return expression;
