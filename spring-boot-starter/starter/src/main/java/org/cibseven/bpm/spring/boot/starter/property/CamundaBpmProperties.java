@@ -232,6 +232,9 @@ public class CamundaBpmProperties {
   }
 
   public void setCronType(String cronType) {
+    if (cronType != null && !cronType.equals("SPRING53") && !cronType.equals("QUARTZ")) {
+      throw new IllegalArgumentException("Invalid cronType: " + cronType + ". Valid values are: SPRING53, QUARTZ");
+    }
     this.cronType = cronType;
   }
 
