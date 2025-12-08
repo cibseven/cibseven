@@ -206,38 +206,36 @@ public class CycleBusinessCalendarTest {
       Date startDate = sdf.parse("2010 02 11 17:23");
 
       // Basic conflict: both day-of-month and day-of-week specified
-      // Legacy: "0 0 0 1 * 2" (sec min hour day month dayOfWeek)
-      // Patched: "0 0 0 ? * 2" -> Every Monday at midnight
-      // Feb 11 2010 is Thursday, next Monday is Feb 15
+      // Legacy: "0 0 0 1 * 2" (sec min hour day month dayOfWeek) -> "0 0 0 ? * 2" -> Every Monday at midnight
       assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1 * 2", startDate))).isEqualTo("2010 02 15 00:00");
 
       // Weekday modifier (W): clear day-of-week field
-      // Legacy: "0 0 0 1W * 2" (1W = weekday nearest to 1st)
-      // Patched: "0 0 0 1W * ?" -> Weekday nearest to 1st of month
-      // March 1st 2010 is already Monday (weekday)
+      // "0 0 0 1W * 2" (1W = weekday nearest to 1st) -> "0 0 0 1W * ?" -> Weekday nearest to 1st of month
       assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1W * 2", startDate))).isEqualTo("2010 03 01 00:00");
 
       // Last day modifier (L): clear day-of-month field
-      // Legacy: "0 0 0 1 * 5L" (5L = last Thursday of month)
-      // Patched: "0 0 0 ? * 5L" -> Last Thursday at midnight
-      // Feb 2010: Last Thursday is Feb 25
+      // "0 0 0 1 * 5L" (5L = last Thursday of month) -> "0 0 0 ? * 5L" -> Last Thursday at midnight
       assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1 * 5L", startDate))).isEqualTo("2010 02 25 00:00");
 
       // Nth occurrence modifier (#): clear day-of-month field
-      // Legacy: "0 0 0 1 * 6#2" (6#2 = 2nd Friday of month)
-      // Patched: "0 0 0 ? * 6#2" -> 2nd Friday at midnight
-      // Feb 2010: 2nd Friday is Feb 12
+      // "0 0 0 1 * 6#2" (6#2 = 2nd Friday of month) -> "0 0 0 ? * 6#2" -> 2nd Friday at midnight
       assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1 * 6#2", startDate))).isEqualTo("2010 02 12 00:00");
 
       // Wildcard day-of-month with last day modifier
-      // Legacy: "0 0 0 * * 5L" (both * and 5L specified)
-      // Patched: "0 0 0 ? * 5L" -> Last Thursday at midnight
+      // "0 0 0 * * 5L" -> "0 0 0 ? * 5L" -> Last Thursday at midnight
       assertThat(sdf.format(cbc.resolveDuedate("0 0 0 * * 5L", startDate))).isEqualTo("2010 02 25 00:00");
 
       // Weekday modifier with wildcard day-of-week
-      // Legacy: "0 0 0 1W * *" (1W with wildcard day-of-week)
-      // Patched: "0 0 0 1W * ?" -> Weekday nearest to 1st
+      // "0 0 0 1W * *" -> "0 0 0 1W * ?" -> Weekday nearest to 1st
       assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1W * *", startDate))).isEqualTo("2010 03 01 00:00");
+
+      // Both day-of-month and day-of-week fields are '*' (ambiguous scheduling)
+      // "0 0 0 * * *" -> "0 0 0 * * ?" -> Every day at midnight
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 0 * * *", startDate))).isEqualTo("2010 02 12 00:00");
+
+      // Both day-of-month and day-of-week fields are '?' (no scheduling criteria)
+      // "0 0 0 ? * ?" -> "0 0 0 ? * *" -> Should change day-of-week from '?' to '*' for daily schedule
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 0 ? * ?", startDate))).isEqualTo("2010 02 12 00:00");
     }
   }
 
@@ -249,8 +247,7 @@ public class CycleBusinessCalendarTest {
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm");
       Date startDate = sdf.parse("2010 02 11 17:23");
 
-      // Legacy expressions with both day-of-month and day-of-week set should fail
-      // when supportLegacyQuartzSyntax is false
+      // Legacy expressions should fail, when supportLegacyQuartzSyntax is false
 
       // Both day-of-month (1) and day-of-week (2) are set - should fail
       assertThatThrownBy(() -> cbc.resolveDuedate("0 0 0 1 * 2", startDate))
@@ -272,13 +269,23 @@ public class CycleBusinessCalendarTest {
           .isInstanceOf(ProcessEngineException.class)
           .hasMessageContaining("Exception while parsing cycle expression");
 
-      // DoM is *, DoW is 5L - should fail (both are set, not using ?)
+      // day-of-month is '*', day-of-week is 5L - should fail (both are set, not using ?)
       assertThatThrownBy(() -> cbc.resolveDuedate("0 0 0 * * 5L", startDate))
           .isInstanceOf(ProcessEngineException.class)
           .hasMessageContaining("Exception while parsing cycle expression");
 
-      // DoM is 1W, DoW is * - should fail (both are set, not using ?)
+      // day-of-month is 1W, day-of-week is '*' - should fail (both are set, not using ?)
       assertThatThrownBy(() -> cbc.resolveDuedate("0 0 0 1W * *", startDate))
+          .isInstanceOf(ProcessEngineException.class)
+          .hasMessageContaining("Exception while parsing cycle expression");
+
+      // Both day-of-month and day-of-week fields are '*' - should fail
+      assertThatThrownBy(() -> cbc.resolveDuedate("0 0 0 * * *", startDate))
+          .isInstanceOf(ProcessEngineException.class)
+          .hasMessageContaining("Exception while parsing cycle expression");
+
+      // Both day-of-month and day-of-week fields are '?' - should fail
+      assertThatThrownBy(() -> cbc.resolveDuedate("0 0 0 ? * ?", startDate))
           .isInstanceOf(ProcessEngineException.class)
           .hasMessageContaining("Exception while parsing cycle expression");
     }
