@@ -162,7 +162,7 @@ public class CycleBusinessCalendarTest {
     assertThat(sdf.format(cbc.resolveDuedate(isSpring53 ? "@weekly" : "0 0 0 ? * SUN", startDate))).isEqualTo("2010 02 14 00:00");
     assertThat(sdf.format(cbc.resolveDuedate(isSpring53 ? "@daily" : "0 0 0 * * ?", startDate))).isEqualTo("2010 02 12 00:00");
     assertThat(sdf.format(cbc.resolveDuedate(isSpring53 ? "@midnight" : "0 0 0 * * ?", startDate))).isEqualTo("2010 02 12 00:00");
-    assertThat(sdf.format(cbc.resolveDuedate(isSpring53 ? "@hourly": "0 0 0-23 * * ?", startDate))).isEqualTo("2010 02 11 18:00");
+    assertThat(sdf.format(cbc.resolveDuedate(isSpring53 ? "@hourly" : "0 0 0-23 * * ?", startDate))).isEqualTo("2010 02 11 18:00");
   }
 
   @Test
