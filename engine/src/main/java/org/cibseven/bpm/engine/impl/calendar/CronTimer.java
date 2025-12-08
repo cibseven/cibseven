@@ -87,7 +87,7 @@ public class CronTimer {
    * @param expression the original cron expression
    * @return the patched expression, or unchanged if no conflict
    */
-  private static String patchLegacyCronExpression(final String expression) {
+  public static String patchLegacyCronExpression(final String expression) {
     final String[] parts = expression.split(" ");
     if (parts.length < 6) {
       return expression; // Not a valid Quartz cron expression
