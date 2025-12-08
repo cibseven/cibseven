@@ -13,6 +13,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * Modifications Copyright 2025 CIB software GmbH
  */
 package org.cibseven.bpm.engine.test.standalone.calendar;
 
@@ -22,6 +24,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
@@ -29,8 +33,33 @@ import org.cibseven.bpm.engine.impl.calendar.CycleBusinessCalendar;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
+@RunWith(Parameterized.class)
 public class CycleBusinessCalendarTest {
+
+  private static final String SPRING53 = "SPRING53";
+  private static final String QUARTZ = "QUARTZ";
+
+  @Parameters(name = "cronType={0}, supportLegacyQuartzSyntax={1}")
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {
+        { SPRING53, true },
+        { SPRING53, false },
+        { QUARTZ, true },
+        { QUARTZ, false }
+    });
+  }
+
+  private final String cronType;
+  private final boolean supportLegacyQuartzSyntax;
+
+  public CycleBusinessCalendarTest(String cronType, boolean supportLegacyQuartzSyntax) {
+    this.cronType = cronType;
+    this.supportLegacyQuartzSyntax = supportLegacyQuartzSyntax;
+  }
 
   @After
   public void tearDown() {
@@ -39,7 +68,7 @@ public class CycleBusinessCalendarTest {
 
   @Test
   public void testSimpleCron() throws Exception {
-    CycleBusinessCalendar businessCalendar = new CycleBusinessCalendar();
+    CycleBusinessCalendar businessCalendar = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
 
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy MM dd - HH:mm");
     Date now = simpleDateFormat.parse("2011 03 11 - 17:23");
@@ -54,7 +83,7 @@ public class CycleBusinessCalendarTest {
 
   @Test
   public void testSimpleDuration() throws Exception {
-    CycleBusinessCalendar businessCalendar = new CycleBusinessCalendar();
+    CycleBusinessCalendar businessCalendar = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
 
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy MM dd - HH:mm");
     Date now = simpleDateFormat.parse("2010 06 11 - 17:23");
@@ -69,7 +98,7 @@ public class CycleBusinessCalendarTest {
 
   @Test
   public void testSimpleCronWithStartDate() throws Exception {
-    CycleBusinessCalendar businessCalendar = new CycleBusinessCalendar();
+    CycleBusinessCalendar businessCalendar = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
 
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy MM dd - HH:mm");
     Date now = simpleDateFormat.parse("2011 03 11 - 17:23");
@@ -83,7 +112,7 @@ public class CycleBusinessCalendarTest {
 
   @Test
   public void testSimpleDurationWithStartDate() throws Exception {
-    CycleBusinessCalendar businessCalendar = new CycleBusinessCalendar();
+    CycleBusinessCalendar businessCalendar = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
 
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy MM dd - HH:mm");
     Date now = simpleDateFormat.parse("2010 06 11 - 17:23");
@@ -97,15 +126,16 @@ public class CycleBusinessCalendarTest {
 
   @Test
   public void testResolveDueDate() throws Exception {
-    CycleBusinessCalendar cbc = new CycleBusinessCalendar();
+    CycleBusinessCalendar cbc = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
 
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm");
     Date startDate = sdf.parse("2010 02 11 17:23");
 
+    boolean isSpring53 = cronType.equals(SPRING53);
     assertThat(sdf.format(cbc.resolveDuedate("0 0 * * * ?", startDate))).isEqualTo("2010 02 11 18:00");
-    assertThat(sdf.format(cbc.resolveDuedate("*/10 * * * 2 ?", startDate))).isEqualTo("2010 02 11 17:23");
+    assertThat(sdf.format(cbc.resolveDuedate(isSpring53 ? "*/10 * * * 2 ?" : "0,10,20,30,40,50 * * * 2 ?", startDate))).isEqualTo("2010 02 11 17:23");
     assertThat(sdf.format(cbc.resolveDuedate("0 0 8-10 * * ?", startDate))).isEqualTo("2010 02 12 08:00");
-    assertThat(sdf.format(cbc.resolveDuedate("0 0/30 8-10 * * ?", startDate))).isEqualTo("2010 02 12 08:00");
+    assertThat(sdf.format(cbc.resolveDuedate(isSpring53 ? "0 0/30 8-10 * * ?" : "0 0,30 8-10 * * ?", startDate))).isEqualTo("2010 02 12 08:00");
     assertThat(sdf.format(cbc.resolveDuedate("0 0 9-17 * * ?", startDate))).isEqualTo("2010 02 12 09:00");
     assertThat(sdf.format(cbc.resolveDuedate("0 0 0 25 12 ?", startDate))).isEqualTo("2010 12 25 00:00");
     assertThat(sdf.format(cbc.resolveDuedate("0 0 0 L 12 ?", startDate))).isEqualTo("2010 12 31 00:00");
@@ -115,27 +145,30 @@ public class CycleBusinessCalendarTest {
 
   @Test
   public void testSpecialCharactersResolveDueDate() throws Exception {
-    CycleBusinessCalendar cbc = new CycleBusinessCalendar();
+    CycleBusinessCalendar cbc = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
 
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm");
     Date startDate = sdf.parse("2010 02 11 17:23");
 
-    assertThat(sdf.format(cbc.resolveDuedate("0 0 0 * * THUL", startDate))).isEqualTo("2010 02 25 00:00");
-    assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1W * *", startDate))).isEqualTo("2010 03 01 00:00");
-    assertThat(sdf.format(cbc.resolveDuedate("0 0 0 ? * 5#2", startDate))).isEqualTo("2010 02 12 00:00");
-    assertThat(sdf.format(cbc.resolveDuedate("@monthly", startDate))).isEqualTo("2010 03 01 00:00");
-    assertThat(sdf.format(cbc.resolveDuedate("@annually", startDate))).isEqualTo("2011 01 01 00:00");
-    assertThat(sdf.format(cbc.resolveDuedate("@yearly", startDate))).isEqualTo("2011 01 01 00:00");
-    assertThat(sdf.format(cbc.resolveDuedate("@weekly", startDate))).isEqualTo("2010 02 14 00:00");
-    assertThat(sdf.format(cbc.resolveDuedate("@daily", startDate))).isEqualTo("2010 02 12 00:00");
-    assertThat(sdf.format(cbc.resolveDuedate("@midnight", startDate))).isEqualTo("2010 02 12 00:00");
-    assertThat(sdf.format(cbc.resolveDuedate("@hourly", startDate))).isEqualTo("2010 02 11 18:00");
+    // Test special characters with appropriate syntax for each cron type
+    assertThat(sdf.format(cbc.resolveDuedate(cronType.equals(SPRING53) ? "0 0 0 * * THUL" : "0 0 0 ? * 5L", startDate))).isEqualTo("2010 02 25 00:00");
+    assertThat(sdf.format(cbc.resolveDuedate(cronType.equals(SPRING53) ? "0 0 0 1W * *" : "0 0 0 1W * ?", startDate))).isEqualTo("2010 03 01 00:00");
+    assertThat(sdf.format(cbc.resolveDuedate(cronType.equals(SPRING53) ? "0 0 0 ? * 5#2" : "0 0 0 ? * 6#2", startDate))).isEqualTo("2010 02 12 00:00");
+    
+    boolean isSpring53 = cronType.equals(SPRING53);
+    assertThat(sdf.format(cbc.resolveDuedate(isSpring53 ? "@monthly" : "0 0 0 1 * ?", startDate))).isEqualTo("2010 03 01 00:00");
+    assertThat(sdf.format(cbc.resolveDuedate(isSpring53 ? "@annually" : "0 0 0 1 1 ?", startDate))).isEqualTo("2011 01 01 00:00");
+    assertThat(sdf.format(cbc.resolveDuedate(isSpring53 ? "@yearly" : "0 0 0 1 1 ?", startDate))).isEqualTo("2011 01 01 00:00");
+    assertThat(sdf.format(cbc.resolveDuedate(isSpring53 ? "@weekly" : "0 0 0 ? * SUN", startDate))).isEqualTo("2010 02 14 00:00");
+    assertThat(sdf.format(cbc.resolveDuedate(isSpring53 ? "@daily" : "0 0 0 * * ?", startDate))).isEqualTo("2010 02 12 00:00");
+    assertThat(sdf.format(cbc.resolveDuedate(isSpring53 ? "@midnight" : "0 0 0 * * ?", startDate))).isEqualTo("2010 02 12 00:00");
+    assertThat(sdf.format(cbc.resolveDuedate(isSpring53 ? "@hourly": "0 0 0-23 * * ?", startDate))).isEqualTo("2010 02 11 18:00");
   }
 
   @Test
   public void testEndOfMonthRelativeExpressions() throws ParseException {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm");
-    CycleBusinessCalendar cbc = new CycleBusinessCalendar();
+    CycleBusinessCalendar cbc = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
 
     Date startDate = sdf.parse("2025 02 14 12:00");
 
@@ -156,14 +189,20 @@ public class CycleBusinessCalendarTest {
   @Test
   public void testTooManyArgumentExpressions() throws ParseException {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm");
-    CycleBusinessCalendar cbc = new CycleBusinessCalendar();
+    CycleBusinessCalendar cbc = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
 
     Date startDate = sdf.parse("2025 02 14 12:00");
 
-    assertThatThrownBy(() -> cbc.resolveDuedate("0 15 10 * * ? 2025 *", startDate))
-        .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("Exception while parsing cycle expression");
-
+    if (cronType.equals(SPRING53)) {
+      assertThatThrownBy(() -> cbc.resolveDuedate("0 15 10 * * ? 2025 *", startDate))
+          .isInstanceOf(ProcessEngineException.class)
+          .hasMessageContaining("Exception while parsing cycle expression");
+    } else if (cronType.equals(QUARTZ)) {
+      // QUARTZ should also reject expressions with too many fields
+      assertThatThrownBy(() -> cbc.resolveDuedate("0 15 10 * * ? 2025 *", startDate))
+          .isInstanceOf(ProcessEngineException.class)
+          .hasMessageContaining("Exception while parsing cycle expression");
+    }
   }
 
 }
