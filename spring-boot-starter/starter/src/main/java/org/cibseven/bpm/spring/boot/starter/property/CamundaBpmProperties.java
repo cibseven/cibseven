@@ -114,7 +114,7 @@ public class CamundaBpmProperties {
   private String cronType = "SPRING53";
 
   /**
-   * support legacy Quartz 1.8.4 cron syntax
+   * enables backward compatibility for legacy Quartz 1.8.4 cron syntax
    */
   private boolean supportLegacyQuartzSyntax = false;
 
