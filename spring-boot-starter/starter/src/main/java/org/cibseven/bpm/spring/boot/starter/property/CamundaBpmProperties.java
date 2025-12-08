@@ -13,6 +13,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * Modifications Copyright 2025 CIB software GmbH
  */
 package org.cibseven.bpm.spring.boot.starter.property;
 
@@ -105,6 +107,16 @@ public class CamundaBpmProperties {
   private String defaultSerializationFormat = Defaults.INSTANCE.getDefaultSerializationFormat();
 
   private URL licenseFile;
+
+  /**
+   * cron type used for parsing cron expressions
+   */
+  private String cronType = "SPRING53";
+
+  /**
+   * support legacy Quartz 1.8.4 cron syntax
+   */
+  private boolean supportLegacyQuartzSyntax = false;
 
   /**
    * deactivate camunda auto configuration
@@ -213,6 +225,22 @@ public class CamundaBpmProperties {
 
   public void setLicenseFile(URL licenseFile) {
     this.licenseFile = licenseFile;
+  }
+
+  public String getCronType() {
+    return cronType;
+  }
+
+  public void setCronType(String cronType) {
+    this.cronType = cronType;
+  }
+
+  public boolean isSupportLegacyQuartzSyntax() {
+    return supportLegacyQuartzSyntax;
+  }
+
+  public void setSupportLegacyQuartzSyntax(boolean supportLegacyQuartzSyntax) {
+    this.supportLegacyQuartzSyntax = supportLegacyQuartzSyntax;
   }
 
   public MetricsProperty getMetrics() {

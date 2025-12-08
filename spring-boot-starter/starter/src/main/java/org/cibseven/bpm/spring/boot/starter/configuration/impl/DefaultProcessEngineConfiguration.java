@@ -13,6 +13,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * Modifications Copyright 2025 CIB software GmbH
  */
 package org.cibseven.bpm.spring.boot.starter.configuration.impl;
 
@@ -38,6 +40,7 @@ public class DefaultProcessEngineConfiguration extends AbstractCamundaConfigurat
     setIdGenerator(configuration);
     setJobExecutorAcquireByPriority(configuration);
     setDefaultNumberOfRetries(configuration);
+    setCronConfiguration(configuration);
   }
 
   private void setIdGenerator(SpringProcessEngineConfiguration configuration) {
@@ -79,5 +82,13 @@ public class DefaultProcessEngineConfiguration extends AbstractCamundaConfigurat
   private void setDefaultNumberOfRetries(SpringProcessEngineConfiguration configuration) {
     Optional.ofNullable(camundaBpmProperties.getDefaultNumberOfRetries())
       .ifPresent(configuration::setDefaultNumberOfRetries);
+  }
+
+  private void setCronConfiguration(SpringProcessEngineConfiguration configuration) {
+    String cronType = camundaBpmProperties.getCronType();
+    if (StringUtils.hasText(cronType)) {
+      configuration.setCronType(cronType);
+    }
+    configuration.setSupportLegacyQuartzSyntax(camundaBpmProperties.isSupportLegacyQuartzSyntax());
   }
 }
