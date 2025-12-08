@@ -13,6 +13,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * Modifications Copyright 2025 CIB software GmbH
  */
 package org.cibseven.bpm.engine.impl.cfg;
 
@@ -68,6 +70,22 @@ public class ProcessEngineConfigurationTest {
     ProcessEngineConfigurationImpl engineConfiguration = (ProcessEngineConfigurationImpl) ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration();
     // then
     assertThat(engineConfiguration.isImplicitVariableUpdateDetectionEnabled()).isTrue();
+  }
+
+  @Test
+  public void shouldUseSpring53CronTypeByDefault() {
+    // when
+    ProcessEngineConfigurationImpl engineConfiguration = (ProcessEngineConfigurationImpl) ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration();
+    // then
+    assertThat(engineConfiguration.getCronType()).isEqualTo("SPRING53");
+  }
+
+  @Test
+  public void shouldDisableLegacyQuartzSyntaxByDefault() {
+    // when
+    ProcessEngineConfigurationImpl engineConfiguration = (ProcessEngineConfigurationImpl) ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration();
+    // then
+    assertThat(engineConfiguration.isSupportLegacyQuartzSyntax()).isFalse();
   }
 
   @Test

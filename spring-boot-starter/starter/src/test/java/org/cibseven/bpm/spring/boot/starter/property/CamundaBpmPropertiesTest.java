@@ -13,6 +13,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * Modifications Copyright 2025 CIB software GmbH
  */
 package org.cibseven.bpm.spring.boot.starter.property;
 
@@ -50,6 +52,32 @@ public class CamundaBpmPropertiesTest {
     thrown.expectMessage("foo");
 
     new CamundaBpmProperties().getDatabase().setSchemaUpdate("foo");
+  }
+
+  @Test
+  public void cronType_default_is_spring53() {
+    CamundaBpmProperties properties = new CamundaBpmProperties();
+    assertThat(properties.getCronType()).isEqualTo("SPRING53");
+  }
+
+  @Test
+  public void cronType_can_be_set_to_quartz() {
+    CamundaBpmProperties properties = new CamundaBpmProperties();
+    properties.setCronType("QUARTZ");
+    assertThat(properties.getCronType()).isEqualTo("QUARTZ");
+  }
+
+  @Test
+  public void supportLegacyQuartzSyntax_default_is_false() {
+    CamundaBpmProperties properties = new CamundaBpmProperties();
+    assertThat(properties.isSupportLegacyQuartzSyntax()).isFalse();
+  }
+
+  @Test
+  public void supportLegacyQuartzSyntax_can_be_enabled() {
+    CamundaBpmProperties properties = new CamundaBpmProperties();
+    properties.setSupportLegacyQuartzSyntax(true);
+    assertThat(properties.isSupportLegacyQuartzSyntax()).isTrue();
   }
 
 

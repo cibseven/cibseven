@@ -13,6 +13,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * Modifications Copyright 2025 CIB software GmbH
  */
 package org.cibseven.bpm.spring.boot.starter.configuration.impl;
 
@@ -109,6 +111,46 @@ public class DefaultProcessEngineConfigurationTest {
     properties.setDefaultNumberOfRetries(1);
     instance.preInit(configuration);
     assertThat(configuration.getDefaultNumberOfRetries()).isEqualTo(1);
+  }
+
+  @Test
+  public void setCronType_default() {
+    instance.preInit(configuration);
+    assertThat(configuration.getCronType()).isEqualTo("SPRING53");
+  }
+
+  @Test
+  public void setCronType_quartz() {
+    properties.setCronType("QUARTZ");
+    instance.preInit(configuration);
+    assertThat(configuration.getCronType()).isEqualTo("QUARTZ");
+  }
+
+  @Test
+  public void setCronType_ignore_null() {
+    properties.setCronType(null);
+    instance.preInit(configuration);
+    assertThat(configuration.getCronType()).isEqualTo("SPRING53");
+  }
+
+  @Test
+  public void setCronType_ignore_empty() {
+    properties.setCronType(" ");
+    instance.preInit(configuration);
+    assertThat(configuration.getCronType()).isEqualTo("SPRING53");
+  }
+
+  @Test
+  public void setSupportLegacyQuartzSyntax_default() {
+    instance.preInit(configuration);
+    assertThat(configuration.isSupportLegacyQuartzSyntax()).isEqualTo(false);
+  }
+
+  @Test
+  public void setSupportLegacyQuartzSyntax_enabled() {
+    properties.setSupportLegacyQuartzSyntax(true);
+    instance.preInit(configuration);
+    assertThat(configuration.isSupportLegacyQuartzSyntax()).isEqualTo(true);
   }
 
   private void initIdGenerator(IdGenerator idGenerator) {
