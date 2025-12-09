@@ -648,28 +648,9 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected BusinessCalendarManager businessCalendarManager;
 
   /**
-   * Cron type used for parsing cron expressions in timer events and other scheduled tasks.
-   * 
-   * Supported values:
-   * - SPRING53: Uses Spring Framework 5.3+ cron syntax (default, recommended for new applications)
-   * - QUARTZ: Uses Quartz Scheduler cron syntax (for compatibility with existing Quartz-based applications)
-   * 
-   * When migrating from Quartz-based applications, use QUARTZ type with supportLegacyQuartzSyntax
-   * enabled for maximum compatibility with existing process definitions.
+   * Cron configuration
    */
-  protected String cronType = "SPRING53";
-
-  /**
-   * This flag enables backward compatibility for cron expressions that were valid in
-   * Quartz 1.8.4 but are rejected by newer Quartz versions due to stricter parsing rules.
-   * 
-   * Enable this when:
-   * - Existing process definitions contain legacy cron expressions
-   * - Encountering parsing errors with historical timer configurations
-   * 
-   * Default: false
-   */
-  protected boolean supportLegacyQuartzSyntax = false;
+  protected CronProperty cron = new CronProperty();
 
   protected String wsSyncFactoryClassName = DEFAULT_WS_SYNC_FACTORY;
 
@@ -2744,7 +2725,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
       MapBusinessCalendarManager mapBusinessCalendarManager = new MapBusinessCalendarManager();
       mapBusinessCalendarManager.addBusinessCalendar(DurationBusinessCalendar.NAME, new DurationBusinessCalendar());
       mapBusinessCalendarManager.addBusinessCalendar(DueDateBusinessCalendar.NAME, new DueDateBusinessCalendar());
-      mapBusinessCalendarManager.addBusinessCalendar(CycleBusinessCalendar.NAME, new CycleBusinessCalendar(this.cronType, this.supportLegacyQuartzSyntax));
+      mapBusinessCalendarManager.addBusinessCalendar(CycleBusinessCalendar.NAME, new CycleBusinessCalendar(this.cron.getType(), this.cron.isSupportLegacyQuartzSyntax()));
 
       businessCalendarManager = mapBusinessCalendarManager;
     }
@@ -3023,31 +3004,27 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   }
 
   public String getCronType() {
-    return cronType;
+    return cron.getType();
   }
 
   public void setCronType(String cronType) {
-    if (cronType != null) {
-      cronType = cronType.trim();
-      if (cronType.isEmpty()) {
-        // Ignore empty/whitespace-only values, keep existing value
-        return;
-      }
-      try {
-        CronType.valueOf(cronType);
-      } catch (IllegalArgumentException e) {
-        throw new IllegalArgumentException("Invalid cronType: " + cronType + ". Valid values are: SPRING53, QUARTZ", e);
-      }
-    }
-    this.cronType = cronType;
+    cron.setType(cronType);
   }
 
   public boolean isSupportLegacyQuartzSyntax() {
-    return supportLegacyQuartzSyntax;
+    return cron.isSupportLegacyQuartzSyntax();
   }
 
   public void setSupportLegacyQuartzSyntax(boolean supportLegacyQuartzSyntax) {
-    this.supportLegacyQuartzSyntax = supportLegacyQuartzSyntax;
+    cron.setSupportLegacyQuartzSyntax(supportLegacyQuartzSyntax);
+  }
+
+  public CronProperty getCron() {
+    return cron;
+  }
+
+  public void setCron(CronProperty cron) {
+    this.cron = cron;
   }
 
   public List<CommandInterceptor> getCustomPostCommandInterceptorsTxRequired() {

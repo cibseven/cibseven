@@ -21,6 +21,7 @@ package org.cibseven.bpm.spring.boot.starter.property;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.ProcessEngines;
+import org.cibseven.bpm.engine.impl.cfg.CronProperty;
 import org.cibseven.bpm.spring.boot.starter.configuration.id.IdGeneratorConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
@@ -109,14 +110,10 @@ public class CamundaBpmProperties {
   private URL licenseFile;
 
   /**
-   * cron type used for parsing cron expressions
+   * cron configuration
    */
-  private String cronType = "SPRING53";
-
-  /**
-   * enables backward compatibility for legacy Quartz 1.8.4 cron syntax
-   */
-  private boolean supportLegacyQuartzSyntax = false;
+  @NestedConfigurationProperty
+  private CronProperty cron = new CronProperty();
 
   /**
    * deactivate camunda auto configuration
@@ -228,28 +225,27 @@ public class CamundaBpmProperties {
   }
 
   public String getCronType() {
-    return cronType;
+    return cron.getType();
   }
 
   public void setCronType(String cronType) {
-    if (cronType != null) {
-      cronType = cronType.trim();
-      if (cronType.isEmpty()) {
-        // Ignore empty/whitespace-only values, keep existing value
-        return;
-      } else if (!cronType.equals("SPRING53") && !cronType.equals("QUARTZ")) {
-        throw new IllegalArgumentException("Invalid cronType: " + cronType + ". Valid values are: SPRING53, QUARTZ");
-      }
-    }
-    this.cronType = cronType;
+    cron.setType(cronType);
   }
 
   public boolean isSupportLegacyQuartzSyntax() {
-    return supportLegacyQuartzSyntax;
+    return cron.isSupportLegacyQuartzSyntax();
   }
 
   public void setSupportLegacyQuartzSyntax(boolean supportLegacyQuartzSyntax) {
-    this.supportLegacyQuartzSyntax = supportLegacyQuartzSyntax;
+    cron.setSupportLegacyQuartzSyntax(supportLegacyQuartzSyntax);
+  }
+
+  public CronProperty getCron() {
+    return cron;
+  }
+
+  public void setCron(CronProperty cron) {
+    this.cron = cron;
   }
 
   public MetricsProperty getMetrics() {
@@ -393,6 +389,7 @@ public class CamundaBpmProperties {
       .add("deploymentResourcePattern=" + Arrays.toString(deploymentResourcePattern))
       .add("defaultSerializationFormat=" + defaultSerializationFormat)
       .add("licenseFile=" + licenseFile)
+      .add("cron=" + cron)
       .add("metrics=" + metrics)
       .add("database=" + database)
       .add("jobExecution=" + jobExecution)
