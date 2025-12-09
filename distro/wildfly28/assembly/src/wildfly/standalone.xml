@@ -515,6 +515,14 @@
 			            <property name="authorizationEnabled">true</property>
 			            <property name="jobExecutorDeploymentAware">true</property>
 		                <property name="historyCleanupBatchWindowStartTime">00:01</property>
+		                <!-- Cron expression configuration for timer events, see https://docs.cibseven.org/manual/latest/reference/bpmn20/events/timer-events/ -->
+		                <!-- By default, the engine uses QUARTZ 2.5.0 cron syntax for timer events. -->
+		                <!-- Alternatively, SPRING53 cron syntax can also be used. -->
+		                <property name="cronType">QUARTZ</property>
+		                <!-- Provides compatibility with legacy Quartz 1.8.4 cron syntax used in CIB seven 2.0.x (and earlier) -->
+		                <!-- and Camunda 7.23 (or earlier) for older process definitions. -->
+		                <!-- This option applies only when using QUARTZ cron type. -->
+		                <property name="supportLegacyQuartzSyntax">true</property>
 		                <!-- allow to update imports in script tasks and saved serialized objects, after migration from camunda to cibseven  -->
 		                <property name="useCibSevenNamespaceInScripting">false</property>
 		                <property name="useCibSevenNamespaceInReflection">false</property>

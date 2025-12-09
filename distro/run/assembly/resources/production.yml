@@ -16,6 +16,16 @@ camunda.bpm:
 # https://docs.cibseven.org/manual/latest/user-guide/process-engine/authorization-service/
   authorization.enabled: true
 
+# https://docs.cibseven.org/manual/latest/reference/bpmn20/events/timer-events/
+  cron:
+    # By default, the engine uses QUARTZ 2.5.0 cron syntax for timer events.
+    # Alternatively, SPRING53 cron syntax can also be used.
+    type: QUARTZ
+    # Provides compatibility with legacy Quartz 1.8.4 cron syntax used in CIB seven 2.0.x (and earlier)
+    # and Camunda 7.23 (or earlier) for older process definitions.
+    # This option applies only when using QUARTZ cron type.
+    support-legacy-quartz-syntax: true
+
   generic-properties.properties:
 # https://docs.cibseven.org/manual/latest/user-guide/security/#variable-values-from-untrusted-sources
     deserialization-type-validation-enabled: true

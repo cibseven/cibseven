@@ -18,8 +18,6 @@
  */
 package org.cibseven.bpm.engine.impl.cfg;
 
-import com.cronutils.model.CronType;
-
 
 import static org.cibseven.bpm.engine.impl.cmd.HistoryCleanupCmd.MAX_THREADS_NUMBER;
 import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;

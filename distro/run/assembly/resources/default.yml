@@ -8,6 +8,17 @@ camunda.bpm:
     password: demo
   filter:
     create: All tasks
+
+# https://docs.cibseven.org/manual/latest/reference/bpmn20/events/timer-events/
+  cron:
+    # By default, the engine uses QUARTZ 2.5.0 cron syntax for timer events.
+    # Alternatively, SPRING53 cron syntax can also be used.
+    type: QUARTZ
+    # Provides compatibility with legacy Quartz 1.8.4 cron syntax used in CIB seven 2.0.x (and earlier)
+    # and Camunda 7.23 (or earlier) for older process definitions.
+    # This option applies only when using QUARTZ cron type.
+    support-legacy-quartz-syntax: true
+
   run:
 # https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#cross-origin-resource-sharing
     cors:
