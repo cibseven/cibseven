@@ -291,4 +291,22 @@ public class CycleBusinessCalendarTest {
     }
   }
 
+  @Test
+  public void testSevenFieldCronExpression() throws Exception {
+    CycleBusinessCalendar cbc = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm");
+    Date startDate = sdf.parse("2025 02 14 12:00");
+
+    // 7-field cron expression: "0 0 12 15 2 ? 2025"
+    if (cronType.equals(QUARTZ)) {
+      // Should work for QUARTZ: 15th Feb 2025 at 12:00
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 12 15 2 ? 2025", startDate))).isEqualTo("2025 02 15 12:00");
+    } else if (cronType.equals(SPRING53)) {
+      // Should throw for SPRING53: 7 fields not supported
+      assertThatThrownBy(() -> cbc.resolveDuedate("0 0 12 15 2 ? 2025", startDate))
+          .isInstanceOf(ProcessEngineException.class)
+          .hasMessageContaining("Exception while parsing cycle expression");
+    }
+  }
+
 }
