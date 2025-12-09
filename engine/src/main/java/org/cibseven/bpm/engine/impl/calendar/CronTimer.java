@@ -90,59 +90,36 @@ public class CronTimer {
     
     // Migration Guide for Quartz 1.8.4 → 2.5.0
     // Problematic field combinations requiring migration:
-    // 1. Both Day-of-Month and Day-of-Week are specified with concrete values (neither '?' nor '*')
+    // 1. Both day-of-month and day-of-week are specified with concrete values (neither '?' nor '*')
     // 2. Both fields are set to '*' (ambiguous scheduling - could match any day)
     // 3. Both fields are set to '?' (no scheduling criteria specified)
     final String dayOfMonth = parts[3];
     final String dayOfWeek = parts[5];
     
-    // Check if field is set (not a wildcard '?' or '*')
+    // Check if field is set (not a wildcard '*' or '?')
     boolean domSet = dayOfMonth != null && !"?".equals(dayOfMonth) && !"*".equals(dayOfMonth);
     boolean dowSet = dayOfWeek != null && !"?".equals(dayOfWeek) && !"*".equals(dayOfWeek);
     
-    if (domSet && dowSet) {
-      // Both fields are set - this is invalid
-      // Apply migration logic based on special characters to determine which field to keep:
-
-      // Priority 1: If day-of-week has 'L' modifier (last occurrence), keep day-of-week
-      if (dayOfWeek.matches(".*[0-9]L$|.*[A-Z]{3}L$")) {
-        parts[3] = "?"; // Clear day-of-month
-      } 
-      // Priority 2: If day-of-month has 'W' modifier (weekday), keep day-of-month  
-      else if (dayOfMonth.contains("W")) {
-        parts[5] = "?"; // Clear day-of-week
-      } 
-      // Priority 3: If day-of-week has '#' modifier (nth occurrence), keep day-of-week
-      else if (dayOfWeek.contains("#")) {
-        parts[3] = "?"; // Clear day-of-month
-      } 
-      // Default: Clear day-of-month (preserve day-of-week scheduling)
-      else {
-        parts[3] = "?";
+    if (domSet && dowSet) { // both fields are set
+      // Regex matches day-of-week values ending with 'L' (last occurrence), e.g. '5L' or 'FRIL' (last Friday of month)
+      if (dayOfWeek.matches(".*[0-9]L$|.*[A-Z]{3}L$")) { // If day-of-week has 'L' modifier (last occurrence), keep day-of-week
+        parts[3] = "?"; // clear day-of-month
+      } else if (dayOfMonth.contains("W")) { // If day-of-month has 'W' modifier (weekday), keep day-of-month  
+        parts[5] = "?"; // clear day-of-week
+      } else if (dayOfWeek.contains("#")) { // If day-of-week has '#' modifier (nth occurrence), keep day-of-week
+        parts[3] = "?"; // clear day-of-month
+      } else {
+        parts[3] = "?"; // default: clear day-of-month (preserve day-of-week scheduling)
       }
-      return String.join(" ", parts);
+    } else if ("*".equals(dayOfMonth) && dowSet) { // day-of-month is wildcard, day-of-week is set
+      parts[3] = "?"; // convert day-of-month to '?'
+    } else if ("*".equals(dayOfWeek) && domSet) { // day-of-week is wildcard, day-of-month is set
+      parts[5] = "?"; // convert day-of-week to '?'
+    } else if ("*".equals(dayOfMonth) && "*".equals(dayOfWeek)) { // both fields cannot be '*'
+      parts[5] = "?"; // convert day-of-week to '?'
+    } else if ("?".equals(dayOfMonth) && "?".equals(dayOfWeek)) { // both fields cannot be '?'
+      parts[3] = "*"; // convert day-of-month to '*'
     }
-    
-    // Convert '*' to '?' when the other field is set
-    if ("*".equals(dayOfMonth) && dowSet) {
-      parts[3] = "?"; // Convert day-of-month from '*' to '?'
-      return String.join(" ", parts);
-    }
-    if ("*".equals(dayOfWeek) && domSet) {
-      parts[5] = "?"; // Convert day-of-week from '*' to '?'
-      return String.join(" ", parts);
-    }
-    
-    // Both fields cannot be '*' - convert day-of-week to '?'
-    if ("*".equals(dayOfMonth) && "*".equals(dayOfWeek)) {
-      parts[5] = "?";
-      return String.join(" ", parts);
-    }
-    // Both fields cannot be '?' - fix by keeping day-of-week as '?'
-    if ("?".equals(dayOfMonth) && "?".equals(dayOfWeek)) {
-      parts[3] = "*";
-      return String.join(" ", parts);
-    }
-    return expression;
+    return String.join(" ", parts);
   }
 }
