@@ -3028,6 +3028,11 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public void setCronType(String cronType) {
     if (cronType != null) {
+      cronType = cronType.trim();
+      if (cronType.isEmpty()) {
+        // Ignore empty/whitespace-only values, keep existing value
+        return;
+      }
       try {
         CronType.valueOf(cronType);
       } catch (IllegalArgumentException e) {
