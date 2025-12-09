@@ -27,25 +27,22 @@ public class CronProperty {
    * Cron type used for parsing cron expressions in timer events and other scheduled tasks.
    * 
    * Supported values:
-   * - SPRING53: Uses Spring Framework 5.3+ cron syntax (default, recommended for new applications)
-   * - QUARTZ: Uses Quartz Scheduler 2.5.0 cron syntax (for compatibility with existing Quartz-based applications)
-   * 
-   * When migrating from Quartz-based applications, use QUARTZ type with supportLegacyQuartzSyntax
-   * enabled for maximum compatibility with existing process definitions.
+   * - QUARTZ: Uses Quartz Scheduler 2.5.0 cron syntax (default)
+   * - SPRING53: Uses Spring Framework 5.3+ cron syntax
    */
-  private String type = "SPRING53";
+  private String type = "QUARTZ";
 
   /**
    * This flag enables backward compatibility for cron expressions that were valid in
-   * Quartz 1.8.4 but are rejected by newer Quartz versions due to stricter parsing rules.
+   * Quartz 1.8.4 but are rejected by newer Quartz version 2.5.0 due to stricter parsing rules.
    * 
    * Enable this when:
    * - Existing process definitions contain legacy cron expressions
    * - Encountering parsing errors with historical timer configurations
    * 
-   * Default: false
+   * Default: true
    */
-  private boolean supportLegacyQuartzSyntax = false;
+  private boolean supportLegacyQuartzSyntax = true;
 
   public String getType() {
     return type;

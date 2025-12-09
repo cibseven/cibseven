@@ -133,25 +133,25 @@ public class PropertyHelperTest {
     ProcessEngineConfigurationImpl engineConfiguration = new StandaloneProcessEngineConfiguration();
 
     // Verify defaults
-    Assert.assertEquals("SPRING53", engineConfiguration.getCronType());
-    Assert.assertFalse(engineConfiguration.isSupportLegacyQuartzSyntax());
-
-    // Test setting QUARTZ cron type with legacy support enabled
-    Map<String, String> propertiesToSet = new HashMap<String, String>();
-    propertiesToSet.put(CRON_TYPE_PROP, "QUARTZ");
-    propertiesToSet.put(SUPPORT_LEGACY_QUARTZ_SYNTAX_PROP, "true");
-    PropertyHelper.applyProperties(engineConfiguration, propertiesToSet);
-
     Assert.assertEquals("QUARTZ", engineConfiguration.getCronType());
     Assert.assertTrue(engineConfiguration.isSupportLegacyQuartzSyntax());
 
-    // Test setting back to SPRING53 with legacy support disabled
+    // Test setting QUARTZ cron type with legacy support enabled
+    Map<String, String> propertiesToSet = new HashMap<String, String>();
     propertiesToSet.put(CRON_TYPE_PROP, "SPRING53");
     propertiesToSet.put(SUPPORT_LEGACY_QUARTZ_SYNTAX_PROP, "false");
     PropertyHelper.applyProperties(engineConfiguration, propertiesToSet);
 
     Assert.assertEquals("SPRING53", engineConfiguration.getCronType());
     Assert.assertFalse(engineConfiguration.isSupportLegacyQuartzSyntax());
+
+    // Test setting back to SPRING53 with legacy support disabled
+    propertiesToSet.put(CRON_TYPE_PROP, "QUARTZ");
+    propertiesToSet.put(SUPPORT_LEGACY_QUARTZ_SYNTAX_PROP, "true");
+    PropertyHelper.applyProperties(engineConfiguration, propertiesToSet);
+
+    Assert.assertEquals("QUARTZ", engineConfiguration.getCronType());
+    Assert.assertTrue(engineConfiguration.isSupportLegacyQuartzSyntax());
   }
 
   @Test

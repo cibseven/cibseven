@@ -116,41 +116,41 @@ public class DefaultProcessEngineConfigurationTest {
   @Test
   public void setCronType_default() {
     instance.preInit(configuration);
-    assertThat(configuration.getCronType()).isEqualTo("SPRING53");
+    assertThat(configuration.getCronType()).isEqualTo("QUARTZ");
   }
 
   @Test
-  public void setCronType_quartz() {
-    properties.setCronType("QUARTZ");
+  public void setCronType_spring53() {
+    properties.setCronType("SPRING53");
     instance.preInit(configuration);
-    assertThat(configuration.getCronType()).isEqualTo("QUARTZ");
+    assertThat(configuration.getCronType()).isEqualTo("SPRING53");
   }
 
   @Test
   public void setCronType_ignore_null() {
     properties.setCronType(null);
     instance.preInit(configuration);
-    assertThat(configuration.getCronType()).isEqualTo("SPRING53");
+    assertThat(configuration.getCronType()).isEqualTo("QUARTZ");
   }
 
   @Test
   public void setCronType_ignore_empty() {
     properties.setCronType(" ");
     instance.preInit(configuration);
-    assertThat(configuration.getCronType()).isEqualTo("SPRING53");
+    assertThat(configuration.getCronType()).isEqualTo("QUARTZ");
   }
 
   @Test
   public void setSupportLegacyQuartzSyntax_default() {
     instance.preInit(configuration);
-    assertThat(configuration.isSupportLegacyQuartzSyntax()).isEqualTo(false);
+    assertThat(configuration.isSupportLegacyQuartzSyntax()).isEqualTo(true);
   }
 
   @Test
-  public void setSupportLegacyQuartzSyntax_enabled() {
-    properties.setSupportLegacyQuartzSyntax(true);
+  public void setSupportLegacyQuartzSyntax_disabled() {
+    properties.setSupportLegacyQuartzSyntax(false);
     instance.preInit(configuration);
-    assertThat(configuration.isSupportLegacyQuartzSyntax()).isEqualTo(true);
+    assertThat(configuration.isSupportLegacyQuartzSyntax()).isEqualTo(false);
   }
 
   private void initIdGenerator(IdGenerator idGenerator) {

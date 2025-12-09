@@ -55,30 +55,29 @@ public class CamundaBpmPropertiesTest {
   }
 
   @Test
-  public void cronType_default_is_spring53() {
+  public void cronType_default_is_quartz() {
     CamundaBpmProperties properties = new CamundaBpmProperties();
-    assertThat(properties.getCronType()).isEqualTo("SPRING53");
-  }
-
-  @Test
-  public void cronType_can_be_set_to_quartz() {
-    CamundaBpmProperties properties = new CamundaBpmProperties();
-    properties.setCronType("QUARTZ");
     assertThat(properties.getCronType()).isEqualTo("QUARTZ");
   }
 
   @Test
-  public void supportLegacyQuartzSyntax_default_is_false() {
+  public void cronType_can_be_set_to_spring53() {
     CamundaBpmProperties properties = new CamundaBpmProperties();
-    assertThat(properties.isSupportLegacyQuartzSyntax()).isFalse();
+    properties.setCronType("SPRING53");
+    assertThat(properties.getCronType()).isEqualTo("SPRING53");
   }
 
   @Test
-  public void supportLegacyQuartzSyntax_can_be_enabled() {
+  public void supportLegacyQuartzSyntax_default_is_true() {
     CamundaBpmProperties properties = new CamundaBpmProperties();
-    properties.setSupportLegacyQuartzSyntax(true);
     assertThat(properties.isSupportLegacyQuartzSyntax()).isTrue();
   }
 
+  @Test
+  public void supportLegacyQuartzSyntax_can_be_disabled() {
+    CamundaBpmProperties properties = new CamundaBpmProperties();
+    properties.setSupportLegacyQuartzSyntax(false);
+    assertThat(properties.isSupportLegacyQuartzSyntax()).isFalse();
+  }
 
 }
