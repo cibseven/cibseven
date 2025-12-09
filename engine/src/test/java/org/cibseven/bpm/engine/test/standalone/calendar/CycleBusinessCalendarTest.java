@@ -205,36 +205,36 @@ public class CycleBusinessCalendarTest {
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm");
       Date startDate = sdf.parse("2010 02 11 17:23");
 
-      // Basic conflict: both day-of-month and day-of-week specified
-      // Legacy: "0 0 0 1 * 2" (sec min hour day month dayOfWeek) -> "0 0 0 ? * 2" -> Every Monday at midnight
+      // Both day-of-month and day-of-week fields are set, which is not allowed in Quartz; day-of-month must be replaced with '?'
+      // "0 0 0 1 * 2" -> "0 0 0 ? * 2"
       assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1 * 2", startDate))).isEqualTo("2010 02 15 00:00");
 
-      // Weekday modifier (W): clear day-of-week field
-      // "0 0 0 1W * 2" (1W = weekday nearest to 1st) -> "0 0 0 1W * ?" -> Weekday nearest to 1st of month
+      // If the day-of-month uses the weekday modifier (W), the day-of-week field must be cleared (set to '?')
+      // "0 0 0 1W * 2" -> "0 0 0 1W * ?"
       assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1W * 2", startDate))).isEqualTo("2010 03 01 00:00");
 
-      // Last day modifier (L): clear day-of-month field
-      // "0 0 0 1 * 5L" (5L = last Thursday of month) -> "0 0 0 ? * 5L" -> Last Thursday at midnight
+      // If the day-of-week uses the last day modifier (L), the day-of-month field must be cleared (set to '?')
+      // "0 0 0 1 * 5L" (5L = last Thursday of month) -> "0 0 0 ? * 5L"
       assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1 * 5L", startDate))).isEqualTo("2010 02 25 00:00");
 
-      // Nth occurrence modifier (#): clear day-of-month field
-      // "0 0 0 1 * 6#2" (6#2 = 2nd Friday of month) -> "0 0 0 ? * 6#2" -> 2nd Friday at midnight
+      // If the day-of-week uses the Nth occurrence modifier (#), the day-of-month field must be cleared (set to '?')
+      // "0 0 0 1 * 6#2" -> "0 0 0 ? * 6#2"
       assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1 * 6#2", startDate))).isEqualTo("2010 02 12 00:00");
 
-      // Wildcard day-of-month with last day modifier
-      // "0 0 0 * * 5L" -> "0 0 0 ? * 5L" -> Last Thursday at midnight
+      // When day-of-month is a wildcard ('*') and day-of-week uses the last day modifier (L), day-of-month must be set to '?'
+      // "0 0 0 * * 5L" -> "0 0 0 ? * 5L"
       assertThat(sdf.format(cbc.resolveDuedate("0 0 0 * * 5L", startDate))).isEqualTo("2010 02 25 00:00");
 
-      // Weekday modifier with wildcard day-of-week
-      // "0 0 0 1W * *" -> "0 0 0 1W * ?" -> Weekday nearest to 1st
+      // If the day-of-month uses the weekday modifier (W) and day-of-week is a wildcard ('*'), day-of-week must be set to '?'
+      // "0 0 0 1W * *" -> "0 0 0 1W * ?"
       assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1W * *", startDate))).isEqualTo("2010 03 01 00:00");
 
       // Both day-of-month and day-of-week fields are '*' (ambiguous scheduling)
-      // "0 0 0 * * *" -> "0 0 0 * * ?" -> Every day at midnight
+      // "0 0 0 * * *" -> "0 0 0 * * ?"
       assertThat(sdf.format(cbc.resolveDuedate("0 0 0 * * *", startDate))).isEqualTo("2010 02 12 00:00");
 
       // Both day-of-month and day-of-week fields are '?' (no scheduling criteria)
-      // "0 0 0 ? * ?" -> "0 0 0 ? * *" -> Should change day-of-week from '?' to '*' for daily schedule
+      // "0 0 0 ? * ?" -> "0 0 0 ? * *"
       assertThat(sdf.format(cbc.resolveDuedate("0 0 0 ? * ?", startDate))).isEqualTo("2010 02 12 00:00");
     }
   }
