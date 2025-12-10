@@ -155,7 +155,7 @@ pipeline {
                         sh """
                             mvn -f ${pipelineParams.pom} \
                                 -Dbuild.number=${BUILD_NUMBER} \
-                                verify \
+                                verify -T4 \
                                 -Dmaven.test.failure.ignore=true \
                                 -DOPTIONAL_PGTEST_EXCLUDE=org/cibseven/bpm/engine/impl/identity/db/DbIdentityServicePGTest.java \
                                 -pl !org.cibseven.bpm:cibseven-engine-spring-6,!:cibseven-spin-core,!:cibseven-engine-rest-core-jakarta,!:cibseven-webapp-jakarta,!:cibseven-engine-cdi-jakarta,!:cibseven-example-invoice-jakarta,!:cibseven-ejb-client-jakarta,!:cibseven-sql-scripts
@@ -164,7 +164,7 @@ pipeline {
                         sh """
                             mvn -f ${pipelineParams.pom} \
                                 -Dbuild.number=${BUILD_NUMBER} \
-                                verify \
+                                verify -T4 \
                                 -Dmaven.test.failure.ignore=true \
                                 -DOPTIONAL_PGTEST_EXCLUDE=org/cibseven/bpm/engine/impl/identity/db/DbIdentityServicePGTest.java \
                                 -pl org.cibseven.bpm:cibseven-engine-spring-6,:cibseven-spin-core,:cibseven-engine-rest-core-jakarta,:cibseven-webapp-jakarta,:cibseven-engine-cdi-jakarta,:cibseven-example-invoice-jakarta,:cibseven-ejb-client-jakarta,:cibseven-sql-scripts \
@@ -183,16 +183,16 @@ pipeline {
                 stage('engine') {
                     stages {
                         stage('engine-api-compatibility') {
-                            steps { script { withMaven { sh "mvn -f engine/pom.xml verify -Pcheck-api-compatibility" }}}
+                            steps { script { withMaven { sh "mvn -f engine/pom.xml verify -T4 -Pcheck-api-compatibility" }}}
                         }
                         stage('engine-UNIT-database-table-prefix') {
                             // Temporary disable postgres test because of access issue for tmp dir on Jenkins
-                            steps { script { withMaven { sh "mvn -f engine/pom.xml test -Pdb-table-prefix -DOPTIONAL_PGTEST_EXCLUDE=**/DbIdentityServicePGTest.java" }}}
+                            steps { script { withMaven { sh "mvn -f engine/pom.xml test -T4 -Pdb-table-prefix -DOPTIONAL_PGTEST_EXCLUDE=**/DbIdentityServicePGTest.java" }}}
                         }
                     }
                 }
                 stage('webapp-UNIT-database-table-prefix') {
-                    steps { script { withMaven { sh "mvn -f webapps/assembly/pom.xml test -Pdb-table-prefix -Dskip.frontend.build=true" }}}
+                    steps { script { withMaven { sh "mvn -f webapps/assembly/pom.xml test -T4 -Pdb-table-prefix -Dskip.frontend.build=true" }}}
                 }
                 stage('engine-IT-wildfly') {
                     when {
@@ -200,16 +200,16 @@ pipeline {
                     }
                     stages {
                         stage('engine-IT-wildfly-domain') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly-domain,h2,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -T4 -Pwildfly-domain,h2,engine-integration-jakarta" }}}
                         }
                         stage('engine-IT-wildfly-servlet') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly,wildfly-servlet,h2,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -T4 -Pwildfly,wildfly-servlet,h2,engine-integration-jakarta" }}}
                         }
                         stage('engine-IT-wildfly26-domain') {
                             steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly26-domain,h2,engine-integration" }}}
                         }
                         stage('engine-IT-wildfly26-servlet') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean verify -T4 -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
                         }
                     }
                 }
@@ -220,7 +220,7 @@ pipeline {
                                 script { withMaven {
                                     // need to cleanup JUEL when running: https://github.com/camunda/camunda-bpm-platform/issues/3419#issuecomment-1720916174 
                                     sh "mvn -f juel/pom.xml clean"
-                                    sh "mvn -f quarkus-extension/pom.xml clean install -Pquarkus-tests"
+                                    sh "mvn -f quarkus-extension/pom.xml clean install -T4 -Pquarkus-tests"
                                     sh "mvn -f juel/pom.xml install"
                                     }
                                 }
@@ -239,50 +239,50 @@ pipeline {
                 stage('Engine Integration') {
                     when { expression { params.QA_ENG_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,engine-integration-jakarta" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly-domain,h2,engine-integration-jakarta" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,engine-integration-jakarta" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28-domain,h2,engine-integration-jakarta" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -T4 -Ptomcat,h2,engine-integration-jakarta" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -T4 -Pwildfly,h2,engine-integration-jakarta" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -T4 -Pwildfly-domain,h2,engine-integration-jakarta" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -T4 -Pwildfly28,h2,engine-integration-jakarta" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -T4 -Pwildfly28-domain,h2,engine-integration-jakarta" }}
                     }
                 }
                 stage('Web Integration') {
                     when { expression { params.QA_WEB_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         // TODO: enable chrome and chromedriver on jenkins and remove the exclusion for org.cibseven.bpm.LoginIT
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,webapps-integration" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -T4 -Ptomcat,h2,webapps-integration" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -T4 -Pwildfly,h2,webapps-integration" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -T4 -Pwildfly28,h2,webapps-integration" }}
                     }
                 }
                 stage('Performance') {
                     when {  expression { params.QA_PERF || params.QA_TEST_SUITE == 'ALL' }}
-                    steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}}
+                    steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -T4 -Pbenchmark,h2" }}}
                 }
                 stage('Large data') {
                     when { expression { params.QA_LARGE_DATA || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         // cleanup parent qa directory before large-data test: it can contain h2 database from previous tests
                         script { withMaven { sh "mvn -f qa/pom.xml clean" }}
-                        script { withMaven { sh "mvn -f qa/large-data-tests/pom.xml clean install -Plarge-data-tests,h2" }}
+                        script { withMaven { sh "mvn -f qa/large-data-tests/pom.xml clean install -T4 -Plarge-data-tests,h2" }}
                     }
                 }
                 stage('Old engine with new schema') { // TODO: fix BpmPlatformXmlLocationTest and DbIdentityServicePGTest
                     when { expression { params.QA_OLD_ENG || params.QA_TEST_SUITE == 'ALL' }}
-                    steps { script { withMaven { sh "mvn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}}
+                    steps { script { withMaven { sh "mvn -f qa/test-old-engine/pom.xml clean install -T4 -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}}
                 }
                 stage('Rolling update') {
                     when { expression { params.QA_ROLL_UPD || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
-                        script { withMaven { sh "mvn -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}
+                        script { withMaven { sh "mvn -f qa/test-db-rolling-update/pom.xml clean install -T4 -Prolling-update,h2" }}
                     }
                 }
                 stage('Instanse migration') {
                     when { expression { params.QA_INST_MIGR || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
-                        script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
+                        script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -T4 -Pinstance-migration,h2" }}
                     }
                 }
             }
@@ -296,55 +296,55 @@ pipeline {
                 stage('engine') {
                     stages {
                         stage('engine-UNIT-historylevel-audit') {
-                            steps { script { withMaven { sh "mvn -f engine/pom.xml verify -Pcfghistoryaudit" }}}
+                            steps { script { withMaven { sh "mvn -f engine/pom.xml verify -T4 -Pcfghistoryaudit" }}}
                         }
                         stage('engine-UNIT-historylevel-activity') {
-                            steps { script { withMaven { sh "mvn -f engine/pom.xml verify -Pcfghistoryactivity" }}}
+                            steps { script { withMaven { sh "mvn -f engine/pom.xml verify -T4 -Pcfghistoryactivity" }}}
                         }
                     }
                 }
                 stage('quarkus-UNIT') { // quarkus-UNIT is enabled under the UNIT tests above
-                    steps { script { withMaven { sh "mvn -f quarkus-extension/pom.xml clean install -Pquarkus-tests" }}}
+                    steps { script { withMaven { sh "mvn -f quarkus-extension/pom.xml clean install -T4 -Pquarkus-tests" }}}
                 }
                 stage('qa') {
                     stages {
                         stage('engine-IT-tomcat-9-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat9,postgresql,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -T4 -Ptomcat9,postgresql,engine-integration" }}}
                         }
                         stage('engine-IT-tomcat-10-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat,postgresql,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -T4 -Ptomcat,postgresql,engine-integration-jakarta" }}}
                         }
                         stage('engine-IT-wildfly-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -T4 -Pwildfly,postgresql,engine-integration-jakarta" }}}
                         }
                         stage('engine-IT-wildfly26-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly26,postgresql,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -T4 -Pwildfly26,postgresql,engine-integration" }}}
                         }
                         stage('engine-IT-XA-wildfly-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,postgresql-xa,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -T4 -Pwildfly,postgresql,postgresql-xa,engine-integration-jakarta" }}}
                         }
                         stage('engine-IT-XA-wildfly26-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly26,postgresql,postgresql-xa,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -T4 -Pwildfly26,postgresql,postgresql-xa,engine-integration" }}}
                         }
                         stage('webapp-IT-tomcat-9-h2') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat9,h2,webapps-integration" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -T4 -Ptomcat9,h2,webapps-integration" }}}
                         }
                         stage('webapp-IT-tomcat-10-h2') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -T4 -Ptomcat,h2,webapps-integration" }}}
                         }
                         stage('webapp-IT-wildfly-h2') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration -pl '!integration-tests-engine-jakarta'" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -T4 -Pwildfly,h2,webapps-integration -pl '!integration-tests-engine-jakarta'" }}}
                         }
                         stage('webapp-IT-wildfly26-h2') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly26,h2,webapps-integration" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -T4 -Pwildfly26,h2,webapps-integration" }}}
                         }
                     }
                 }
                 stage('camunda-run-IT') {
-                    steps { script { withMaven { sh "mvn -fn -f distro/run/pom.xml install -Pintegration-test-camunda-run" }}}
+                    steps { script { withMaven { sh "mvn -fn -f distro/run/pom.xml install -T4 -Pintegration-test-camunda-run" }}}
                 }
                 stage('spring-boot-starter-IT') {
-                    steps { script { withMaven { sh "mvn -fn -f spring-boot-starter/pom.xml install -Pintegration-test-spring-boot-starter" }}}
+                    steps { script { withMaven { sh "mvn -fn -f spring-boot-starter/pom.xml install -T4 -Pintegration-test-spring-boot-starter" }}}
                 }
             }
         }
