@@ -17,33 +17,19 @@
 package org.cibseven.bpm.engine.rest.impl;
 
 import static org.cibseven.bpm.engine.authorization.Authorization.ANY;
-import static org.cibseven.bpm.engine.authorization.Authorization.AUTH_TYPE_GRANT;
-import static org.cibseven.bpm.engine.authorization.Permissions.ALL;
 import static org.cibseven.bpm.engine.authorization.Permissions.CREATE;
 import static org.cibseven.bpm.engine.authorization.Resources.USER;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.util.List;
-import java.util.function.Supplier;
-
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-
-import org.cibseven.bpm.engine.AuthorizationService;
 import org.cibseven.bpm.engine.IdentityService;
-import org.cibseven.bpm.engine.ProcessEngine;
-import org.cibseven.bpm.engine.authorization.Groups;
-import org.cibseven.bpm.engine.authorization.Resource;
-import org.cibseven.bpm.engine.authorization.Resources;
-import org.cibseven.bpm.engine.identity.Group;
 import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.identity.UserQuery;
-import org.cibseven.bpm.engine.impl.identity.Authentication;
-import org.cibseven.bpm.engine.impl.persistence.entity.AuthorizationEntity;
 import org.cibseven.bpm.engine.rest.UserRestService;
 import org.cibseven.bpm.engine.rest.dto.CountResultDto;
 import org.cibseven.bpm.engine.rest.dto.ResourceOptionsDto;
@@ -121,87 +107,7 @@ public class UserRestServiceImpl extends AbstractAuthorizedRestResource implemen
       newUser.setPassword(userDto.getCredentials().getPassword());
     }
 
-    Boolean done = runWithoutAuthorization(() -> {
-        Boolean result = hasNoCamundaAdminGroup(getProcessEngine());
-        if (result)
-          createInitialUserInternal(userDto);
-        return result;
-    });
-
-    if (!done)
-      identityService.saveUser(newUser);
-  }
-
-  private <V extends Object> V runWithoutAuthorization(Supplier<V> action) {
-    IdentityService identityService = getIdentityService();
-    Authentication currentAuthentication = identityService.getCurrentAuthentication();
-    try {
-      identityService.clearAuthentication();
-      return action.get();
-    } catch (Exception e) {
-      throw e;
-    } finally {
-      identityService.setAuthentication(currentAuthentication);
-    }
-  }
-
-  private boolean hasNoCamundaAdminGroup(ProcessEngine processEngine) {
-    final IdentityService identityService = processEngine.getIdentityService();
-    long groupCount = identityService.createGroupQuery().groupId(Groups.CAMUNDA_ADMIN).count();
-    return groupCount == 0;
-  }
-
-  private void createInitialUserInternal(UserDto userDto) {
-
-    ProcessEngine processEngine = getProcessEngine();
-    IdentityService identityService = getIdentityService();
-
-    UserProfileDto profile = userDto.getProfile();
-    if(profile == null || profile.getId() == null) {
-      throw new InvalidRequestException(Status.BAD_REQUEST, "request object must provide profile information with valid id.");
-    }
-
-    User newUser = identityService.newUser(profile.getId());
-    profile.update(newUser);
-
-    if(userDto.getCredentials() != null) {
-      newUser.setPassword(userDto.getCredentials().getPassword());
-    }
-
-    // crate the camunda admin group
-    ensureCamundaAdminGroupExists(processEngine);
-
     identityService.saveUser(newUser);
-    // create group membership (add new user to admin group)
-    processEngine.getIdentityService()
-      .createMembership(userDto.getProfile().getId(), Groups.CAMUNDA_ADMIN);
-  }
-
-  private void ensureCamundaAdminGroupExists(ProcessEngine processEngine) {
-
-    final IdentityService identityService = processEngine.getIdentityService();
-    final AuthorizationService authorizationService = processEngine.getAuthorizationService();
-
-    // create group
-    long groupCount = identityService.createGroupQuery().groupId(Groups.CAMUNDA_ADMIN).count();
-    if(groupCount == 0) {
-      Group camundaAdminGroup = identityService.newGroup(Groups.CAMUNDA_ADMIN);
-      camundaAdminGroup.setName("camunda BPM Administrators");
-      camundaAdminGroup.setType(Groups.GROUP_TYPE_SYSTEM);
-      identityService.saveGroup(camundaAdminGroup);
-    }
-
-    // create ADMIN authorizations on all built-in resources
-    for (Resource resource : Resources.values()) {
-      if(authorizationService.createAuthorizationQuery().groupIdIn(Groups.CAMUNDA_ADMIN).resourceType(resource).resourceId(ANY).count() == 0) {
-        AuthorizationEntity userAdminAuth = new AuthorizationEntity(AUTH_TYPE_GRANT);
-        userAdminAuth.setGroupId(Groups.CAMUNDA_ADMIN);
-        userAdminAuth.setResource(resource);
-        userAdminAuth.setResourceId(ANY);
-        userAdminAuth.addPermission(ALL);
-        authorizationService.saveAuthorization(userAdminAuth);
-      }
-    }
 
   }
 
