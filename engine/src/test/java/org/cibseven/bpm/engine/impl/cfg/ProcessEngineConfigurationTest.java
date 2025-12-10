@@ -71,19 +71,19 @@ public class ProcessEngineConfigurationTest {
   }
 
   @Test
-  public void shouldUseSpring53CronTypeByDefault() {
+  public void shouldUseQuartzCronTypeByDefault() {
     // when
     ProcessEngineConfigurationImpl engineConfiguration = (ProcessEngineConfigurationImpl) ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration();
     // then
-    assertThat(engineConfiguration.getCronType()).isEqualTo("SPRING53");
+    assertThat(engineConfiguration.getCronType()).isEqualTo("QUARTZ");
   }
 
   @Test
-  public void shouldDisableLegacyQuartzSyntaxByDefault() {
+  public void shouldEnableLegacyQuartzSyntaxByDefault() {
     // when
     ProcessEngineConfigurationImpl engineConfiguration = (ProcessEngineConfigurationImpl) ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration();
     // then
-    assertThat(engineConfiguration.isSupportLegacyQuartzSyntax()).isFalse();
+    assertThat(engineConfiguration.isSupportLegacyQuartzSyntax()).isTrue();
   }
 
   @Test
