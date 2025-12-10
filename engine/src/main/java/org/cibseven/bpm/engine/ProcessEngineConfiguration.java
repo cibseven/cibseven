@@ -267,7 +267,7 @@ public abstract class ProcessEngineConfiguration {
 
   /**
    * switch for controlling whether the process engine performs authorization checks.
-   * The default value is false.
+   * The default value is true.
    */
   protected boolean authorizationEnabled = true;
 
