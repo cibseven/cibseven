@@ -108,9 +108,9 @@ public class CallActivityBehavior extends CallableElementActivityBehavior implem
         if (targetProcessKey.equals(currentProcessKey)) {
           throw new ProcessEngineException(
             String.format("Recursive Call Activity detected: Process '%s' is already present in the call hierarchy. " +
-                "Current call chain: %s (cycle detected at depth %d). " +
+                "Current call chain: %s -> %s (cycle detected at depth %d). " +
                 "Configure 'maxCallActivityRecursionDepth' in ProcessEngineConfiguration to adjust the limit.",
-                targetProcessKey, buildCallChainString(callChain, targetProcessKey), depth));
+                targetProcessKey, buildCallChainString(callChain, null), targetProcessKey, depth));
         }
       }
       
@@ -118,13 +118,15 @@ public class CallActivityBehavior extends CallableElementActivityBehavior implem
       currentExecution = currentExecution.getSuperExecution();
     }
     
-    // Check if depth would exceed the limit after adding the new process
-    if (depth >= maxDepth) {
+    // Check if adding the new process would exceed the limit
+    // depth represents the current number of processes in the hierarchy
+    // Adding one more would make it depth + 1 processes
+    if (depth + 1 > maxDepth) {
       throw new ProcessEngineException(
         String.format("Call Activity recursion depth limit exceeded: Maximum depth is %d, current depth is %d. " +
-            "Current call chain: %s -> %s. " +
+            "Attempting to call: %s. Current call chain: %s. " +
             "Configure 'maxCallActivityRecursionDepth' in ProcessEngineConfiguration to adjust the limit.",
-            maxDepth, depth, buildCallChainString(callChain, null), targetProcessKey));
+            maxDepth, depth, targetProcessKey, buildCallChainString(callChain, null)));
     }
   }
   

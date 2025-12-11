@@ -92,13 +92,15 @@ public class CaseCallActivityBehavior extends CallableElementActivityBehavior im
       currentExecution = currentExecution.getSuperExecution();
     }
     
-    // Check if depth would exceed the limit after adding the new case
-    if (depth >= maxDepth) {
+    // Check if adding the new case would exceed the limit
+    // depth represents the current number of processes in the hierarchy
+    // Adding one more would make it depth + 1 processes
+    if (depth + 1 > maxDepth) {
       throw new ProcessEngineException(
         String.format("Case Call Activity recursion depth limit exceeded: Maximum depth is %d, current depth is %d. " +
-            "Current call chain: %s -> case '%s'. " +
+            "Attempting to call case: %s. Current call chain: %s. " +
             "Configure 'maxCallActivityRecursionDepth' in ProcessEngineConfiguration to adjust the limit.",
-            maxDepth, depth, buildCallChainString(callChain), targetDefinition.getKey()));
+            maxDepth, depth, targetDefinition.getKey(), buildCallChainString(callChain)));
     }
   }
   
