@@ -126,7 +126,9 @@ public class ScimIdentityProviderSession implements ReadOnlyIdentityProvider {
       JsonNode resources = response.get("Resources");
       for (JsonNode resource : resources) {
         ScimUserEntity user = transformUser(resource);
-        if (user.getId() != null && isAuthenticatedAndAuthorized(user.getId())) {
+        if (user.getId() == null) {
+          ScimPluginLogger.INSTANCE.invalidScimEntityReturned("user", getJsonValue(resource, "id"));
+        } else if (isAuthenticatedAndAuthorized(user.getId())) {
           users.add(user);
         }
       }
@@ -281,7 +283,9 @@ public class ScimIdentityProviderSession implements ReadOnlyIdentityProvider {
       JsonNode resources = response.get("Resources");
       for (JsonNode resource : resources) {
         ScimGroupEntity group = transformGroup(resource);
-        if (group.getId() != null && isAuthorizedToReadGroup(group.getId())) {
+        if (group.getId() == null) {
+          ScimPluginLogger.INSTANCE.invalidScimEntityReturned("group", getJsonValue(resource, "id"));
+        } else if (isAuthorizedToReadGroup(group.getId())) {
           groups.add(group);
         }
       }

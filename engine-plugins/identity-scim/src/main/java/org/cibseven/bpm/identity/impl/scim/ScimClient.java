@@ -159,6 +159,10 @@ public class ScimClient {
   }
 
   protected JsonNode executeGet(String url) {
+    return executeGet(url, false);
+  }
+
+  protected JsonNode executeGet(String url, boolean isRetry) {
     HttpGet request = new HttpGet(url);
     addAuthenticationHeader(request);
     addCustomHeaders(request);
@@ -169,10 +173,10 @@ public class ScimClient {
 
       if (statusCode == 200) {
         return objectMapper.readTree(responseBody);
-      } else if (statusCode == 401 && isOAuth2Authentication()) {
+      } else if (statusCode == 401 && isOAuth2Authentication() && !isRetry) {
         // Try to refresh OAuth2 token and retry once
         refreshOAuth2Token();
-        return executeGet(url);
+        return executeGet(url, true);
       } else {
         ScimPluginLogger.INSTANCE.scimRequestError(statusCode, responseBody);
         throw new IdentityProviderException("SCIM request failed with status: " + statusCode);

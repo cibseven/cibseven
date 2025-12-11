@@ -41,8 +41,8 @@ public class ScimPluginLogger extends BaseLogger {
     logError("003", "HTTP client exception during {}: {}", operation, e.getMessage(), e);
   }
 
-  public <E extends DbEntity> void invalidScimEntityReturned(E entity, String resourceId) {
-    logError("004", "SCIM query returned an entity with id null. Resource ID: {}. This entity will be ignored.", resourceId);
+  public void invalidScimEntityReturned(String entityType, String resourceId) {
+    logError("004", "SCIM query returned a {} with id null. Resource ID: {}. This entity will be ignored.", entityType, resourceId);
   }
 
   public void queryResult(String result) {
