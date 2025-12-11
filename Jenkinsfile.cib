@@ -275,14 +275,14 @@ pipeline {
                     when { expression { params.QA_ROLL_UPD || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
-                        script { withMaven { sh "mvn -f qa/test-db-rolling-update/pom.xml clean install -T4 -Prolling-update,h2" }}
+                        script { withMaven { sh "mvn -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}
                     }
                 }
                 stage('Instanse migration') {
                     when { expression { params.QA_INST_MIGR || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
-                        script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -T4 -Pinstance-migration,h2" }}
+                        script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
                     }
                 }
             }
