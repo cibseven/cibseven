@@ -871,6 +871,17 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   protected boolean disableStrictCallActivityValidation = false;
 
+  /**
+   * Maximum recursion depth for Call Activities to prevent infinite loops.
+   * When a Call Activity attempts to start a subprocess, the engine checks:
+   * 1. If the target process definition key already exists in the call hierarchy (cycle detection)
+   * 2. If the current call depth exceeds this limit
+   * <p>
+   * Set to 0 or -1 to disable the check.
+   * Default value: 10
+   */
+  protected int maxCallActivityRecursionDepth = 10;
+
   protected boolean isBpmnStacktraceVerbose = false;
 
   protected boolean forceCloseMybatisConnectionPool = true;
@@ -4776,6 +4787,14 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public void setDisableStrictCallActivityValidation(boolean disableStrictCallActivityValidation) {
     this.disableStrictCallActivityValidation = disableStrictCallActivityValidation;
+  }
+
+  public int getMaxCallActivityRecursionDepth() {
+    return maxCallActivityRecursionDepth;
+  }
+
+  public void setMaxCallActivityRecursionDepth(int maxCallActivityRecursionDepth) {
+    this.maxCallActivityRecursionDepth = maxCallActivityRecursionDepth;
   }
 
   public String getHistoryCleanupBatchWindowStartTime() {
