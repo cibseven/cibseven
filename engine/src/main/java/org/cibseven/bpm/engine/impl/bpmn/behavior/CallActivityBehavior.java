@@ -110,7 +110,7 @@ public class CallActivityBehavior extends CallableElementActivityBehavior implem
             String.format("Recursive Call Activity detected: Process '%s' is already present in the call hierarchy. " +
                 "Current call chain: %s -> %s (cycle detected at depth %d). " +
                 "Configure 'maxCallActivityRecursionDepth' in ProcessEngineConfiguration to adjust the limit.",
-                targetProcessKey, buildCallChainString(callChain, null), targetProcessKey, depth));
+                targetProcessKey, buildCallChainString(callChain), targetProcessKey, depth));
         }
       }
       
@@ -126,7 +126,7 @@ public class CallActivityBehavior extends CallableElementActivityBehavior implem
         String.format("Call Activity recursion depth limit exceeded: Maximum depth is %d, current depth is %d. " +
             "Attempting to call: %s. Current call chain: %s. " +
             "Configure 'maxCallActivityRecursionDepth' in ProcessEngineConfiguration to adjust the limit.",
-            maxDepth, depth, targetProcessKey, buildCallChainString(callChain, null)));
+            maxDepth, depth, targetProcessKey, buildCallChainString(callChain)));
     }
   }
   
@@ -134,10 +134,9 @@ public class CallActivityBehavior extends CallableElementActivityBehavior implem
    * Builds a string representation of the call chain for error messages.
    * 
    * @param callChain the list of process definition keys in the call chain
-   * @param cyclePoint the process key where the cycle was detected, or null if no cycle
-   * @return a formatted string like "processC -> processB -> processA" or with cycle indicator
+   * @return a formatted string like "processC -> processB -> processA"
    */
-  private String buildCallChainString(List<String> callChain, String cyclePoint) {
+  private String buildCallChainString(List<String> callChain) {
     if (callChain.isEmpty()) {
       return "";
     }
@@ -149,10 +148,6 @@ public class CallActivityBehavior extends CallableElementActivityBehavior implem
       if (i > 0) {
         sb.append(" -> ");
       }
-    }
-    
-    if (cyclePoint != null) {
-      sb.append(" -> ").append(cyclePoint);
     }
     
     return sb.toString();

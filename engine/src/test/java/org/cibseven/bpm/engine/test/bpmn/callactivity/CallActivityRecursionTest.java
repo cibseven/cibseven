@@ -33,7 +33,7 @@ import org.junit.Test;
 
 /**
  * Tests for Call Activity recursion detection and depth limiting.
- * 
+ *
  * @author CIB Seven Team
  */
 public class CallActivityRecursionTest {
