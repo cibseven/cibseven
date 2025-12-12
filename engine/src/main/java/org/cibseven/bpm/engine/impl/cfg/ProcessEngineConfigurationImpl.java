@@ -1067,6 +1067,12 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
    * This has been patched up to fetch the correct counter value.
    */
   protected boolean legacyJobRetryBehaviorEnabled = false;
+  
+  /**
+   * This property extends https://jira.camunda.com/browse/CAM-5364 performance fix 
+   * Defines min number of groups when a pre-scan of the act_ru_auth table is enabled
+   */
+  protected int authGroupFilterThreshold = 0;
 
   /**
    * @return {@code true} if the exception code feature is disabled and vice-versa.
@@ -5355,6 +5361,15 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   
   public ProcessEngineConfiguration setLegacyJobRetryBehaviorEnabled(boolean legacyJobRetryBehaviorEnabled) {
     this.legacyJobRetryBehaviorEnabled = legacyJobRetryBehaviorEnabled;
+    return this;
+  }
+  
+  public int getAuthGroupFilterThreshold() {
+    return authGroupFilterThreshold;
+  }
+  
+  public ProcessEngineConfiguration setAuthGroupFilterThreshold(int authGroupFilterThreshold) {
+    this.authGroupFilterThreshold = authGroupFilterThreshold;
     return this;
   }
 }
