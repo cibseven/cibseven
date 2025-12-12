@@ -1,0 +1,177 @@
+# This repository adheres to the publiccode.yml standard by including this 
+# metadata file that makes public software easily discoverable.
+# More info at https://github.com/publiccodeyml/publiccode.yml
+
+publiccodeYmlVersion: '0.2'
+name: CIB seven
+url: 'https://github.com/cibseven/cibseven'
+landingURL: 'https://cibseven.org'
+softwareVersion: 2.1.0
+releaseDate: '2025-11-07'
+logo: 'https://cibseven.org/wp-content/uploads/2023/08/CIB-seven-logo.svg'
+platforms:
+  - web
+  - linux
+  - windows
+  - mac
+usedBy:
+  - über 1.000 Unternehmen weltweit
+categories:
+  - business-process-management
+  - workflow-management
+  - task-management
+  - application-development
+  - compliance-management
+  - business-intelligence
+  - document-management
+  - productivity-suite
+developmentStatus: stable
+softwareType: standalone/web
+roadmap: 'https://cibseven.org/enterprise-features-release'
+isBasedOn: 'https://github.com/camunda/camunda-bpm-platform'
+maintenance:
+  type: internal
+  contacts:
+    - name: Oleg Skrypnyuk
+      email: oleg.skrypnyuk@cib.de
+  contractors:
+    - name: CIB software GmbH
+      email: info@cib.de
+      website: 'https://cibseven.org'
+      until: '2050-07-11'
+legal:
+  license: Apache-2.0
+  repoOwner: CIB software GmbH
+intendedAudience:
+  countries:
+    - de
+  scope:
+    - central-government
+    - local-authorities
+localisation:
+  localisationReady: true
+  availableLanguages:
+    - de
+    - en
+    - es
+    - ua
+    - ru
+description:
+  de:
+    genericName: BPM Plattform
+    shortDescription: >-
+      Open-Source-Plattform für Workflow- und Prozessautomatisierung. Als
+      Camunda 7 Fork sichert CIB seven langfristigen Betrieb und digitale
+      Souveränität.
+    longDescription: >2
+       
+
+      **CIB seven** ist eine leistungsstarke, in Java entwickelte Process
+      Engine, die Unternehmen und Behörden ermöglicht, Geschäftsprozesse zu
+      modellieren, auszuführen und zu überwachen. Sie entstand als Fork der
+      weltweit verbreiteten **Camunda Platform 7** und positioniert sich als
+      deren langfristige Open-Source-Alternative.
+
+
+      Da der Herstellersupport für die Camunda 7 Community Edition abgekündigt
+      wurde, füllt CIB seven eine kritische Lücke für die öffentliche
+      Verwaltung: Sie bietet eine **garantierte Weiterentwicklung** und Wartung
+      der bewährten Architektur über das Jahr 2025 hinaus. Dies macht sie zur
+      idealen Lösung für Institutionen, die auf die Stabilität der
+      Camunda-7-Technologie setzen, aber Migrationsaufwände zu proprietären
+      Cloud-Lösungen oder kompletten Architekturwechseln (z. B. Camunda 8)
+      vermeiden wollen.
+
+
+      Die Plattform umfasst nicht nur die Core-Engine für **BPMN** (Business
+      Process Model and Notation), **DMN** (Decision Model and Notation) und
+      **CMMN** (Case Management Model and Notation), sondern auch modernisierte
+      Webanwendungen für die Administration, das Aufgabenmanagement (Tasklist)
+      und das operative Monitoring (Cockpit).
+
+
+      Zusätzlich erweitert CIB seven den klassischen Funktionsumfang durch neue
+      Module wie **CIB ins7ght** für Prozessanalysen und **CIB easyForm** für
+      Low-Code-Formulare, um die Digitalisierung von Verwaltungsakten zu
+      beschleunigen.
+
+
+      ### **Warum CIB seven für die öffentliche Verwaltung?**
+
+
+      - **Investitionsschutz:** Bestehende Camunda-7-Anwendungen können ohne
+      Code-Änderungen weiterbetrieben werden (Drop-in Replacement).
+
+      - **Datenschutz & On-Premises:** Die Software kann vollständig im eigenen
+      Rechenzentrum oder in einer souveränen Cloud betrieben werden. Es besteht
+      kein Zwang zu SaaS-Lösungen.
+
+      - **Rechtssicherheit:** Veröffentlicht unter der permissiven
+      **Apache-2.0-Lizenz**.
+
+
+      ## **Kernfunktionen**
+
+
+      - **Prozess-Engine:** Hochperformante Ausführung von BPMN 2.0 Workflows
+      und DMN 1.3 Entscheidungstabellen.
+
+      - **Web-Apps:**
+          - **Cockpit:** Überwachung laufender Prozesse, Eingreifen bei Fehlern und administrative Kontrolle.
+          - **Tasklist:** Benutzeroberfläche für Sachbearbeiter zur Abarbeitung manueller Aufgaben.
+          - **Admin:** Verwaltung von Benutzern, Gruppen und Berechtigungen.
+      - **Nahtlose Integration:** Native Unterstützung für Java, Spring Boot,
+      Jakarta EE und Quarkus.
+
+      - **REST API:** Vollständige API-Abdeckung zur Integration in bestehende
+      Fachverfahren.
+
+      - **CIB easyForm:** Integrierter Formular-Editor für schnelle
+      UI-Erstellung ohne tiefgehende Programmierkenntnisse.
+
+      - **Erweiterbarkeit:** Plugin-Architektur ermöglicht die Anpassung an
+      spezifische behördliche Anforderungen.
+
+
+      ## **Technische Daten & Voraussetzungen**
+
+
+      - **Lizenz:** Apache License 2.0
+
+      - **Programmiersprache:** Java (Hauptteil), JavaScript (Vue 3)
+
+      - **Architektur:** Embeddable Engine, Shared Engine oder Remote Engine
+      (via REST) 
+
+      - **Datenbanken:** Unterstützung gängiger relationaler Datenbanken
+      (PostgreSQL, Oracle, MS SQL Server, MySQL, MariaDB, H2, etc.) 
+
+      - **Container:** Docker-Images verfügbar, Helm Charts
+
+      - **Kompatibilität:** 100% kompatibel zu Camunda Platform 7
+    features:
+      - Prozessautomatisierung: Führt komplexe Verwaltungsprozesse automatisch und fehlerfrei aus.
+      - Aufgabenmanagement: Zentrale Aufgabenliste (Tasklist) für effiziente Sachbearbeitung.
+      - Prozessüberwachung: Echtzeit-Einblick in alle laufenden Vorgänge über das Cockpit-Dashboard.
+      - Digitale Formulare: Einfache Erstellung von Web-Formularen ohne Programmieraufwand (Low-Code).
+      - Entscheidungslogik: Automatisiert Geschäftsregeln und Prüfungen durch Entscheidungstabellen.
+      - Langzeitarchivierung: Sichere Speicherung historischer Prozessdaten für Audits und Revisionen.
+      - Benutzerverwaltung: Granulare Steuerung von Zugriffsrechten, Gruppen und Rollen.
+      - Barrierefreiheit: Webbasiertes Arbeiten im Browser ohne lokale Installation.
+      - Reporting: Visuelle Auswertungen und Statistiken zur Prozessoptimierung.
+      - Fallmanagement: Flexible Bearbeitung von unstrukturierten Fällen und Ad-hoc-Aufgaben.
+      - Interoperabilität: Nahtlose Verbindung mit bestehenden Fachverfahren und Datenbanken.
+      - Skalierbarkeit: Bewältigt zuverlässig hohe Mengen an Anträgen und Transaktionen.
+      - Datenschutz: Volle Kontrolle über Daten im eigenen Rechenzentrum (On-Premises).
+      - LTS-Garantie: Langfristige Wartung und Sicherheitsupdates für Investitionsschutz.
+      - Kostenfreiheit: Dauerhaft lizenzkostenfreie Nutzung durch Open-Source-Modell.
+    screenshots:
+      - https://docs.cibseven.org/manual/latest/webapps/cockpit/img/cockpit-processes-start-view.png
+      - https://docs.cibseven.org/manual/latest/webapps/tasklist/img/tasklist-dashboard.png
+      - https://docs.cibseven.org/manual/latest/webapps/cockpit/img/dashboard-hover.png
+      - https://docs.cibseven.org/manual/latest/webapps/admin/img/admin-start-page-view.png
+      - https://docs.cibseven.org/manual/latest/webapps/cockpit/img/cockpit-process-definitions-view.png
+    documentation: 'https://docs.cibseven.org'
+    apiDocumentation: 'https://docs.cibseven.org/manual/latest/reference/rest/specification'
+    videos:
+      - 'https://youtu.be/4-R4qB9rH1U'
