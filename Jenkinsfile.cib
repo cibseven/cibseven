@@ -39,41 +39,48 @@ pipeline {
 
     // Parameter that can be changed in the Jenkins UI
     parameters {
+
         booleanParam(
             name: 'BUILD_FEATURE_BRANCH',
             defaultValue: true,
-            description: 'Build feature branch'
+            description: "  └─ 🔨 Build feature branch"
         )
+
         booleanParam(
             name: 'VERIFY',
             defaultValue: true,
-            description: 'Execute Unit and Integration Tests'
+            description: "  └─ ✅ Execute Unit and Integration Tests"
         )
-        booleanParam(
-            name: 'QA_VERIFY',
-            defaultValue: false,
-            description: 'Execute QA Tests'
+
+        choice(
+            name: 'QA_TEST_SUITE',
+            choices: ['CUSTOM', 'ALL'],
+            description: '''🧪 QA Test Suite Selection:
+            • ALL - Run all QA tests
+            • CUSTOM - Select individual tests below'''
         )
-        booleanParam(
-            name: 'DEPLOY_TO_ARTIFACTS',
-            defaultValue: false,
-            description: "Deploy artifacts to artifacts.cibseven.org. Default false, but true when main branch and SNAPSHOT version"
-        )
-        booleanParam(
-            name: 'DEPLOY_TO_MAVEN_CENTRAL',
-            defaultValue: false,
-            description: 'Deploy artifacts to Maven Central (no need to activate DEPLOY_TO_ARTIFACTS parameter above if you want just to deploy to Maven Central). If you will not change this value - you will not run deploy to Maven Central.'
-        )
-        booleanParam(
-            name: 'OPEN_API',
-            defaultValue: false,
-            description: "Deploy openAPI index.html to docs.cibseven.org (or docs-staging.cibseven.org, if it is a -SNAPSHOT version)"
-        )
-        booleanParam(
-            name: 'JAVA_DOCS',
-            defaultValue: false,
-            description: "Deploy javaDocs to docs.cibseven.org (or docs-staging.cibseven.org, if it is a -SNAPSHOT version)"
-        )
+    
+        // Only used when QA_TEST_SUITE = 'CUSTOM'
+        booleanParam(name: 'QA_ENG_IT', defaultValue: false, description: "  └─ Engine Integration")
+        booleanParam(name: 'QA_WEB_IT', defaultValue: false, description: "  └─ Web Integration")
+        booleanParam(name: 'QA_PERF', defaultValue: false, description: "  └─ Performance")
+        booleanParam(name: 'QA_LARGE_DATA', defaultValue: false, description: "  └─ Large Data")
+        booleanParam(name: 'QA_OLD_ENG', defaultValue: false, description: "  └─ Old Engine")
+        booleanParam(name: 'QA_ROLL_UPD', defaultValue: false, description: "  └─ Rolling Update")
+        booleanParam(name: 'QA_INST_MIGR', defaultValue: false, description: "  └─ Instance Migration\n\n")
+
+        booleanParam(name: 'DEPLOY_TO_ARTIFACTS', defaultValue: false, description: "  └─ 📦 Deploy to artifacts")
+        booleanParam(name: 'DEPLOY_TO_MAVEN_CENTRAL', defaultValue: false, description: "  └─ 📤 Deploy to Maven Central\n\n")
+
+        booleanParam(name: 'OPEN_API', defaultValue: false, description: "  └─ 📚 Deploy OpenAPI docs")
+        booleanParam(name: 'JAVA_DOCS', defaultValue: false, description: "  └─ 📖 Deploy JavaDocs")
+    }
+
+    environment {
+        MAVEN_LOCAL_REPO_NEW = getLocalJobRepo("${JOB_NAME}")
+        // set bigger timeout to get rid of the maven issue with file locks: https://github.com/apache/maven/issues/9049
+        MAVEN_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO_NEW} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
+        MAVEN_ARGS = "-gs ./redirect-m2-settings.xml"
     }
 
     options {
@@ -112,7 +119,6 @@ pipeline {
                     mavenProjectInformation = new MavenProjectInformation(groupId, pom.artifactId, pom.version, pom.name, pom.description)
 
                     log.info "Build Project: ${mavenProjectInformation.groupId}:${mavenProjectInformation.artifactId}, ${mavenProjectInformation.name} with version ${mavenProjectInformation.version}"
-
                     // Avoid Git "dubious ownership" error in checked out repository. Needed in
                     // build containers with newer Git versions. Originates from Jenkins running
                     // pipeline as root but repository being owned by user 1000. For more, see
@@ -138,7 +144,7 @@ pipeline {
             }
         }
 
-        stage('Unit and Integration Tests') {
+        stage('engine UNIT & IT') {
             when {
                 expression { params.VERIFY == true }
             }
@@ -168,17 +174,80 @@ pipeline {
             }
         }
 
+        stage('MISC tests') {
+            when {
+                expression { params.VERIFY == true }
+            }
+            parallel {
+                stage('engine') {
+                    stages {
+                        stage('engine-api-compatibility') {
+                            steps { script { withMaven { sh "mvn -f engine/pom.xml verify -Pcheck-api-compatibility" }}}
+                        }
+                        stage('engine-UNIT-database-table-prefix') {
+                            // Temporary disable postgres test because of access issue for tmp dir on Jenkins
+                            steps { script { withMaven { sh "mvn -f engine/pom.xml test -Pdb-table-prefix -DOPTIONAL_PGTEST_EXCLUDE=**/DbIdentityServicePGTest.java" }}}
+                        }
+                    }
+                }
+                stage('webapp-UNIT-database-table-prefix') {
+                    steps { script { withMaven { sh "mvn -f webapps/assembly/pom.xml test -Pdb-table-prefix -Dskip.frontend.build=true" }}}
+                }
+                stage('engine-IT-wildfly') {
+                    when {
+                        expression { params.VERIFY != params.VERIFY } // just disable this stage temporary
+                    }
+                    stages {
+                        stage('engine-IT-wildfly-domain') {
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly-domain,h2,engine-integration-jakarta" }}}
+                        }
+                        stage('engine-IT-wildfly-servlet') {
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly,wildfly-servlet,h2,engine-integration-jakarta" }}}
+                        }
+                        stage('engine-IT-wildfly26-domain') {
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly26-domain,h2,engine-integration" }}}
+                        }
+                        stage('engine-IT-wildfly26-servlet') {
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
+                        }
+                    }
+                }
+                stage("quarkus") { 
+                    stages {
+                        stage('quarkus-extension') {
+                            steps {
+                                script { withMaven {
+                                    // need to cleanup JUEL when running: https://github.com/camunda/camunda-bpm-platform/issues/3419#issuecomment-1720916174 
+                                    sh "mvn -f juel/pom.xml clean"
+                                    sh "mvn -f quarkus-extension/pom.xml clean install -Pquarkus-tests"
+                                    sh "mvn -f juel/pom.xml install"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         stage('QA Tests') {
-            when { expression { params.QA_VERIFY == true }}
+            when { 
+                expression { params.QA_TEST_SUITE == 'CUSTOM' || params.QA_TEST_SUITE == 'ALL'}
+            }
             stages {
-                stage('Web and Engine Integration') {
-                    steps { 
+                stage('Engine Integration') {
+                    when { expression { params.QA_ENG_IT || params.QA_TEST_SUITE == 'ALL' }}
+                    steps {
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,engine-integration-jakarta" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly-domain,h2,engine-integration-jakarta" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,engine-integration-jakarta" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28-domain,h2,engine-integration-jakarta" }}
-
+                    }
+                }
+                stage('Web Integration') {
+                    when { expression { params.QA_WEB_IT || params.QA_TEST_SUITE == 'ALL' }}
+                    steps {
                         // TODO: enable chrome and chromedriver on jenkins and remove the exclusion for org.cibseven.bpm.LoginIT
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}
@@ -186,9 +255,30 @@ pipeline {
                     }
                 }
                 stage('Performance') {
-                    steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}}
+                    when {  expression { params.QA_PERF || params.QA_TEST_SUITE == 'ALL' }}
+                    steps { 
+                        script { 
+                            withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }
+                            sh "mkdir ./qa/performance-tests-engine/target/perf_benchmark; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_benchmark/"
+                            zip zipFile: 'perf_benchmark.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_benchmark'
+                            archiveArtifacts artifacts: 'perf_benchmark.zip', fingerprint: true
+                        }
+                        script { 
+                            withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Psql-statementlog,h2" }
+                            sh "mkdir ./qa/performance-tests-engine/target/perf_sql_statementlog; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_sql_statementlog/"
+                            zip zipFile: 'perf_sql_statementlog.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_sql_statementlog'
+                            archiveArtifacts artifacts: 'perf_sql_statementlog.zip', fingerprint: true
+                        }
+                        script { 
+                            withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pactivity-count,h2 -DwatchActivities=start,timer,end -Dtest=AsyncStartAndTimerPerformanceTest" }
+                            sh "mkdir ./qa/performance-tests-engine/target/perf_activity_count; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_activity_count/"
+                            zip zipFile: 'perf_activity_count.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_activity_count'
+                            archiveArtifacts artifacts: 'perf_activity_count.zip', fingerprint: true
+                        }
+                    }
                 }
                 stage('Large data') {
+                    when { expression { params.QA_LARGE_DATA || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         // cleanup parent qa directory before large-data test: it can contain h2 database from previous tests
                         script { withMaven { sh "mvn -f qa/pom.xml clean" }}
@@ -196,15 +286,18 @@ pipeline {
                     }
                 }
                 stage('Old engine with new schema') { // TODO: fix BpmPlatformXmlLocationTest and DbIdentityServicePGTest
+                    when { expression { params.QA_OLD_ENG || params.QA_TEST_SUITE == 'ALL' }}
                     steps { script { withMaven { sh "mvn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}}
                 }
                 stage('Rolling update') {
+                    when { expression { params.QA_ROLL_UPD || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
                         script { withMaven { sh "mvn -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}
                     }
                 }
                 stage('Instanse migration') {
+                    when { expression { params.QA_INST_MIGR || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
                         script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
@@ -223,12 +316,12 @@ pipeline {
                         stage('engine-UNIT-historylevel-audit') {
                             steps { script { withMaven { sh "mvn -f engine/pom.xml verify -Pcfghistoryaudit" }}}
                         }
-                        stage('engine-UNIT-database-table-prefix') {
+                        stage('engine-UNIT-historylevel-activity') {
                             steps { script { withMaven { sh "mvn -f engine/pom.xml verify -Pcfghistoryactivity" }}}
                         }
                     }
                 }
-                stage('quarkus-UNIT') {
+                stage('quarkus-UNIT') { // quarkus-UNIT is enabled under the UNIT tests above
                     steps { script { withMaven { sh "mvn -f quarkus-extension/pom.xml clean install -Pquarkus-tests" }}}
                 }
                 stage('qa') {
@@ -274,52 +367,10 @@ pipeline {
             }
         }
 
-        stage('MISC tests') {
-            when {
-                expression { params.VERIFY == true }
-            }
-            parallel {
-                stage('engine') {
-                    stages {
-                        stage('engine-api-compatibility') {
-                            steps { script { withMaven { sh "mvn -f engine/pom.xml verify -Pcheck-api-compatibility" }}}
-                        }
-                        stage('engine-UNIT-database-table-prefix') {
-                            // Temporary disable postgres test because of access issue for tmp dir on Jenkins
-                            steps { script { withMaven { sh "mvn -f engine/pom.xml test -Pdb-table-prefix -DOPTIONAL_PGTEST_EXCLUDE=**/DbIdentityServicePGTest.java" }}}
-                        }
-                    }
-                }
-                stage('webapp-UNIT-database-table-prefix') {
-                    steps { script { withMaven { sh "mvn -f webapps/assembly/pom.xml test -Pdb-table-prefix -Dskip.frontend.build=true" }}}
-                }
-                stage('engine-IT-wildfly') {
-                    when {
-                        expression { params.VERIFY != params.VERIFY } // just disable this stage temporary
-                    }
-                    stages {
-                        stage('engine-IT-wildfly-domain') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly-domain,h2,engine-integration-jakarta" }}}
-                        }
-                        stage('engine-IT-wildfly-servlet') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly,wildfly-servlet,h2,engine-integration-jakarta" }}}
-                        }
-                        stage('engine-IT-wildfly26-domain') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly26-domain,h2,engine-integration" }}}
-                        }
-                        stage('engine-IT-wildfly26-servlet') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
-                        }
-                    }
-                }
-            }
-        }
-
         stage('JUnit Report') {
-            when {
-                anyOf {
-                    expression { params.VERIFY == true }
-                    expression { params.QA_VERIFY == true }
+            when { 
+                expression { 
+                    params.VERIFY || params.QA_TEST_SUITE == 'CUSTOM' || params.QA_TEST_SUITE == 'ALL'
                 }
             }
             steps {
@@ -473,6 +524,13 @@ pipeline {
         always {
             script {
                 log.info 'End of the build'
+
+                // cleanup temporary maven repo for this build, but keep it for the main branch
+                String localRepo = env.MAVEN_LOCAL_REPO_NEW
+                if (env.BRANCH_NAME != 'main' && localRepo.endsWith(getJobFolder("${JOB_NAME}"))) {
+                    echo "cleanup cibseven local repo: '${env.MAVEN_LOCAL_REPO_NEW}' for '${env.BRANCH_NAME}' branch"
+                    sh "rm -rf '${env.MAVEN_LOCAL_REPO_NEW}'"
+                }
             }
         }
 
@@ -549,6 +607,25 @@ def getDocsRepoName() {
     }
 }
 
+def getLocalJobRepo(String jobName) {
+    String localJobRepo = getMavenRepository() + "/cibseven-install-dir/" + getJobFolder(jobName)
+	return localJobRepo
+}
+
+def getMavenRepository() { 
+    withMaven(options: []) {
+        def mavenRepo = sh(script: 'mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout', returnStdout: true).trim()
+        return mavenRepo
+    }
+}
+
+// creates pseudo-unique folder for a jobName
+def getJobFolder(String jobName) {
+    String baseName = jobName.split('/') ? jobName.split('/').last() : ""
+    String pathHash = String.format("%04X", (0xFFFF & jobName.hashCode()))
+    return "${baseName}_${pathHash}".replaceAll(' ', '_')
+}
+
 def pushToDocsRepo(String commmitMessage, Closure updateRepo) {
     String docsRepoName = getDocsRepoName()
 
@@ -565,13 +642,13 @@ def pushToDocsRepo(String commmitMessage, Closure updateRepo) {
     // checkout repo once
     def repoDownloaded = fileExists "${docsRepoName}/README.md"
     if (!repoDownloaded) {
-        checkout changelog: false, poll: false, scm: scmGit(branches: [[name: 'main']], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: docsRepoName]], userRemoteConfigs: [[credentialsId: 'credential-github-cib-seven-access-token', url: "https://github.com/cibseven/${docsRepoName}.git"]])
+        checkout changelog: false, poll: false, scm: scmGit(branches: [[name: 'main']], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: docsRepoName]], userRemoteConfigs: [[credentialsId: 'credential-github-cibseven-access-token', url: "https://github.com/cibseven/${docsRepoName}.git"]])
     }
 
     updateRepo()
 
     // push to repo
-    withCredentials([gitUsernamePassword(credentialsId: 'credential-github-cib-seven-access-token', gitToolName: 'Default')]) {
+    withCredentials([gitUsernamePassword(credentialsId: 'credential-github-cibseven-access-token', gitToolName: 'Default')]) {
         sh """#!/bin/bash
             chown -R 1000:1000 ${docsRepoName}
             cd ${docsRepoName}
