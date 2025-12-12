@@ -76,12 +76,12 @@ pipeline {
         booleanParam(name: 'JAVA_DOCS', defaultValue: false, description: "  └─ 📖 Deploy JavaDocs")
     }
 
-    environment {
+    // environment {
         //MAVEN_LOCAL_REPO_NEW = getLocalJobRepo("${JOB_NAME}")
         // set bigger timeout to get rid of the maven issue with file locks: https://github.com/apache/maven/issues/9049
         //MAVEN_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO_NEW} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
         //MAVEN_ARGS = "-gs ./redirect-m2-settings.xml"
-    }
+    // }
 
     options {
         buildDiscarder(
