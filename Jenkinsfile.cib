@@ -138,7 +138,7 @@ pipeline {
             steps {
                 script {
                     withMaven(options: []) {
-                        sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean package -DskipTests -Pwebapps-integration"
+                        sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
                     }
                 }
             }
