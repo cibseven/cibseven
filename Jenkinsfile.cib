@@ -526,11 +526,11 @@ pipeline {
                 log.info 'End of the build'
 
                 // cleanup temporary maven repo for this build, but keep it for the main branch
-                //String localRepo = env.MAVEN_LOCAL_REPO_NEW
-                //if (env.BRANCH_NAME != 'main' && localRepo.endsWith(getJobFolder("${JOB_NAME}"))) {
-                //    echo "cleanup cibseven local repo: '${env.MAVEN_LOCAL_REPO_NEW}' for '${env.BRANCH_NAME}' branch"
-                //    sh "rm -rf '${env.MAVEN_LOCAL_REPO_NEW}'"
-                //}
+                String localRepo = env.MAVEN_LOCAL_REPO_NEW
+                if (env.BRANCH_NAME != 'main' && localRepo.endsWith(getJobFolder("${JOB_NAME}"))) {
+                    echo "cleanup cibseven local repo: '${env.MAVEN_LOCAL_REPO_NEW}' for '${env.BRANCH_NAME}' branch"
+                    sh "rm -rf '${env.MAVEN_LOCAL_REPO_NEW}'"
+                }
             }
         }
 
