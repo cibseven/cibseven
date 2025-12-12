@@ -20,8 +20,6 @@ import static org.cibseven.bpm.engine.delegate.CaseExecutionListener.COMPLETE;
 import static org.cibseven.bpm.engine.impl.cmmn.execution.CaseExecutionState.COMPLETED;
 import static org.cibseven.bpm.engine.impl.util.ActivityBehaviorUtil.getActivityBehavior;
 
-import java.util.List;
-
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.cmmn.behavior.CmmnActivityBehavior;
 import org.cibseven.bpm.engine.impl.cmmn.behavior.CmmnCompositeActivityBehavior;

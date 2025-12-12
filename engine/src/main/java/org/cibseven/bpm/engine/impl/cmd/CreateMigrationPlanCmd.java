@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.exception.NotFoundException;
-import org.cibseven.bpm.engine.exception.NullValueException;
 import org.cibseven.bpm.engine.impl.cfg.CommandChecker;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.core.variable.VariableUtil;
