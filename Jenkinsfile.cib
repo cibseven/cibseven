@@ -54,9 +54,8 @@ pipeline {
 
         choice(
             name: 'QA_TEST_SUITE',
-            choices: ['NONE', 'ALL', 'CUSTOM'],
+            choices: ['CUSTOM', 'ALL'],
             description: '''🧪 QA Test Suite Selection:
-            • NONE - Skip all QA tests
             • ALL - Run all QA tests
             • CUSTOM - Select individual tests below'''
         )
@@ -145,7 +144,7 @@ pipeline {
             }
         }
 
-        stage('engine-UNIT') {
+        stage('engine UNIT & IT') {
             when {
                 expression { params.VERIFY == true }
             }
@@ -257,7 +256,26 @@ pipeline {
                 }
                 stage('Performance') {
                     when {  expression { params.QA_PERF || params.QA_TEST_SUITE == 'ALL' }}
-                    steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -T4 -Pbenchmark,h2" }}}
+                    steps { 
+                        script { 
+                            withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }
+                            sh "mkdir ./qa/performance-tests-engine/target/perf_benchmark; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_benchmark/"
+                            zip zipFile: 'perf_benchmark.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_benchmark'
+                            archiveArtifacts artifacts: 'perf_benchmark.zip', fingerprint: true
+                        }
+                        script { 
+                            withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Psql-statementlog,h2" }
+                            sh "mkdir ./qa/performance-tests-engine/target/perf_sql_statementlog; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_sql_statementlog/"
+                            zip zipFile: 'perf_sql_statementlog.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_sql_statementlog'
+                            archiveArtifacts artifacts: 'perf_sql_statementlog.zip', fingerprint: true
+                        }
+                        script { 
+                            withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pactivity-count,h2 -DwatchActivities=start,timer,end -Dtest=AsyncStartAndTimerPerformanceTest" }
+                            sh "mkdir ./qa/performance-tests-engine/target/perf_activity_count; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_activity_count/"
+                            zip zipFile: 'perf_activity_count.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_activity_count'
+                            archiveArtifacts artifacts: 'perf_activity_count.zip', fingerprint: true
+                        }
+                    }
                 }
                 stage('Large data') {
                     when { expression { params.QA_LARGE_DATA || params.QA_TEST_SUITE == 'ALL' }}
