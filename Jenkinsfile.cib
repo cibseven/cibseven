@@ -47,6 +47,12 @@ pipeline {
         )
 
         booleanParam(
+            name: 'USE_PRIVATE_REPO',
+            defaultValue: true,
+            description: "  └─ Use private local repository"
+        )
+
+        booleanParam(
             name: 'VERIFY',
             defaultValue: true,
             description: "  └─ ✅ Execute Unit and Integration Tests"
@@ -77,10 +83,9 @@ pipeline {
     }
 
     environment {
-        MAVEN_LOCAL_REPO_NEW = getLocalJobRepo("${JOB_NAME}")
+        MAVEN_LOCAL_REPO_NEW = params.USE_PRIVATE_REPO ? getLocalJobRepo("${JOB_NAME}") : ""
         // set bigger timeout to get rid of the maven issue with file locks: https://github.com/apache/maven/issues/9049
-        MAVEN_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO_NEW} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
-        MAVEN_ARGS = "-gs ./redirect-m2-settings.xml"
+        MAVEN_OPTS = params.USE_PRIVATE_REPO ? "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO_NEW} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120" : ""    
     }
 
     options {
@@ -137,6 +142,11 @@ pipeline {
             }
             steps {
                 script {
+                    // if use private repo then try to get it from the pool if possible
+                    if (params.USE_PRIVATE_REPO) {
+                        moveMavenRepoFromPool("${env.MAVEN_LOCAL_REPO_NEW}")
+                    }
+
                     withMaven(options: []) {
                         sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
                     }
@@ -525,11 +535,9 @@ pipeline {
             script {
                 log.info 'End of the build'
 
-                // cleanup temporary maven repo for this build, but keep it for the main branch
-                String localRepo = env.MAVEN_LOCAL_REPO_NEW
-                if (env.BRANCH_NAME != 'main' && localRepo.endsWith(getJobFolder("${JOB_NAME}"))) {
-                    echo "cleanup cibseven local repo: '${env.MAVEN_LOCAL_REPO_NEW}' for '${env.BRANCH_NAME}' branch"
-                    sh "rm -rf '${env.MAVEN_LOCAL_REPO_NEW}'"
+                // move back to the repo pool to reuse
+                if (params.USE_PRIVATE_REPO) {
+                    moveMavenRepoToPool("${env.MAVEN_LOCAL_REPO_NEW}")
                 }
             }
         }
@@ -624,6 +632,39 @@ def getJobFolder(String jobName) {
     String baseName = jobName.split('/') ? jobName.split('/').last() : ""
     String pathHash = String.format("%04X", (0xFFFF & jobName.hashCode()))
     return "${baseName}_${pathHash}".replaceAll(' ', '_')
+}
+
+def moveMavenRepoFromPool(String localRepoPath) {
+    if (!localRepoPath.isEmpty()) {
+        String baseName = localRepoPath.split('/').last()
+        String poolDir = localRepoPath.substring(0, localRepoPath.lastIndexOf('/')) + "/.pool"
+        String srcDir = sh(script: "find ${poolDir} -maxdepth 1 -type d -name '${baseName}' | head -n 1", returnStdout: true).trim()
+        if (srcDir == null || srcDir.isEmpty()) {
+            echo "Repo ${baseName} is not found in the pool: try to find a prepared repo template ..."
+            baseName = "cib_repo_*"
+            srcDir = sh(script: "find ${poolDir} -maxdepth 1 -type d -name '${baseName}' | head -n 1", returnStdout: true).trim()
+            if (srcDir == null || srcDir.isEmpty()) {
+               echo "No any repo template is found in the pool: try to find any repo ..."
+               baseName = "*_*"
+               srcDir = sh(script: "find ${poolDir} -maxdepth 1 -type d -name '${baseName}' | head -n 1", returnStdout: true).trim()
+            }
+        }
+        
+        if (srcDir != null && !srcDir.isEmpty()) {
+            echo "Try to move found ${srcDir} or use already existing own repo"
+            sh " if [ ! -e '${localRepoPath}' ]; then mv -vn '${srcDir}' '${localRepoPath}'; fi "			
+        }
+        else {
+            echo "No suitable repo is not found in the pool: create and use own repo"
+        }
+    }
+}
+
+def moveMavenRepoToPool(String localRepoPath) {
+	echo "Move local repo {$localRepoPath} back to the pool"
+    if (!localRepoPath.isEmpty()) {
+        sh "if [ -e '${localRepoPath}' ]; then rm -rf '${localRepoPath}/org/cibseven'; mv -vn '${localRepoPath}' '${localRepoPath}/../.pool/'; fi"
+    }
 }
 
 def pushToDocsRepo(String commmitMessage, Closure updateRepo) {
