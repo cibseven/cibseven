@@ -66,6 +66,7 @@ public class HostnameProviderTest {
   public String hostname;
   @Parameterized.Parameter(1)
   public HostnameProvider hostnameProvider;
+  @SuppressWarnings("deprecation")
   @Parameterized.Parameter(2)
   public MetricsReporterIdProvider reporterProvider;
   @Parameterized.Parameter(3)
@@ -77,6 +78,7 @@ public class HostnameProviderTest {
   protected ProcessEngine engine;
   protected ManagementService managementService;
 
+  @SuppressWarnings("deprecation")
   @Before
   public void setUp() {
     configuration =
@@ -135,6 +137,7 @@ public class HostnameProviderTest {
     }
   }
 
+  @SuppressWarnings("deprecation")
   public static class CustomMetricsReporterIdProvider implements MetricsReporterIdProvider {
     @Override
     public String provideId(ProcessEngine processEngine) {

@@ -40,6 +40,7 @@ public class AuthorizationExceptionDto extends ExceptionDto {
   
   // transformer /////////////////////////////
   
+  @SuppressWarnings("deprecation")
   public static AuthorizationExceptionDto fromException(AuthorizationException e) {
     AuthorizationExceptionDto dto = new AuthorizationExceptionDto();
     
