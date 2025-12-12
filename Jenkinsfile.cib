@@ -83,9 +83,9 @@ pipeline {
     }
 
     environment {
-        MAVEN_LOCAL_REPO_NEW = params.USE_PRIVATE_REPO ? getLocalJobRepo("${JOB_NAME}") : ""
+        MAVEN_LOCAL_REPO_NEW = (params.USE_PRIVATE_REPO == true) ? getLocalJobRepo("${JOB_NAME}") : ""
         // set bigger timeout to get rid of the maven issue with file locks: https://github.com/apache/maven/issues/9049
-        MAVEN_OPTS = params.USE_PRIVATE_REPO ? "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO_NEW} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120" : ""    
+        MAVEN_OPTS = (params.USE_PRIVATE_REPO == true) ? "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO_NEW} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120" : ""    
     }
 
     options {
