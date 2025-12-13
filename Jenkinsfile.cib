@@ -49,7 +49,7 @@ pipeline {
         booleanParam(
             name: 'USE_PRIVATE_REPO',
             defaultValue: true,
-            description: "  └─ Use private local repository"
+            description: "  └─ 🧰 Use private local repository"
         )
 
         booleanParam(
