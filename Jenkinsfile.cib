@@ -83,9 +83,11 @@ pipeline {
     }
 
     environment {
-        MAVEN_LOCAL_REPO_NEW = getLocalJobRepo("${JOB_NAME}")
+        MAVEN_LOCAL_REPO = getLocalJobRepo("${JOB_NAME}", params.USE_PRIVATE_REPO)
         // set bigger timeout to get rid of the maven issue with file locks: https://github.com/apache/maven/issues/9049
-        MAVEN_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO_NEW} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"  
+        MAVEN_LOCAL_REPO_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
+        // set maven options only if params.USE_PRIVATE_REPO is true, otherwise use old method
+        MAVEN_OPTS = "${params.USE_PRIVATE_REPO == true ? env.MAVEN_LOCAL_REPO_OPTS : ""}"
     }
 
     options {
@@ -144,7 +146,7 @@ pipeline {
                 script {
                     // if use private repo then try to get it from the pool if possible
                     if (params.USE_PRIVATE_REPO) {
-                        moveMavenRepoFromPool("${env.MAVEN_LOCAL_REPO_NEW}")
+                        moveMavenRepoFromPool("${env.MAVEN_LOCAL_REPO}")
                     }
 
                     withMaven(options: []) {
@@ -386,7 +388,7 @@ pipeline {
             steps {
                 script {
                     junit allowEmptyResults: true, testResults: ConstantsInternal.MAVEN_TEST_RESULTS
-                    archiveArtifacts artifacts: ConstantsInternal.MAVEN_TEST_RESULTS, allowEmptyArchive: false, fingerprint: true
+                    archiveArtifacts artifacts: ConstantsInternal.MAVEN_TEST_RESULTS, allowEmptyArchive: true, fingerprint: true
                 }
             }
         }
@@ -537,7 +539,7 @@ pipeline {
 
                 // move back to the repo pool to reuse
                 if (params.USE_PRIVATE_REPO) {
-                    moveMavenRepoToPool("${env.MAVEN_LOCAL_REPO_NEW}")
+                    moveMavenRepoToPool("${env.MAVEN_LOCAL_REPO}")
                 }
             }
         }
@@ -615,9 +617,12 @@ def getDocsRepoName() {
     }
 }
 
-def getLocalJobRepo(String jobName) {
-    String localJobRepo = getMavenRepository() + "/cibseven-install-dir/" + getJobFolder(jobName)
-	return localJobRepo
+def getLocalJobRepo(String jobName, boolean usePrivate) {
+    String localJobRepo = getMavenRepository()
+    if (usePrivate) {
+        localJobRepo = + localJobRepo + "/cibseven-install-dir/" + getJobFolder(jobName)
+    }
+    return localJobRepo
 }
 
 def getMavenRepository() { 
