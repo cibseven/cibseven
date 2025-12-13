@@ -640,23 +640,11 @@ def getJobFolder(String jobName) {
 }
 
 def moveMavenRepoFromPool(String localRepoPath) {
+    echo "Try to get a repo from the pool"
     if (!localRepoPath.isEmpty()) {
-        String baseName = localRepoPath.split('/').last()
         String poolDir = localRepoPath.substring(0, localRepoPath.lastIndexOf('/')) + "/.pool"
-        String srcDir = sh(script: "find ${poolDir} -maxdepth 1 -type d -name '${baseName}' | head -n 1", returnStdout: true).trim()
-        if (srcDir == null || srcDir.isEmpty()) {
-            echo "Repo ${baseName} is not found in the pool: try to find a prepared repo template ..."
-            baseName = "cib_repo_*"
-            srcDir = sh(script: "find ${poolDir} -maxdepth 1 -type d -name '${baseName}' | head -n 1", returnStdout: true).trim()
-            if (srcDir == null || srcDir.isEmpty()) {
-               echo "No any repo template is found in the pool: try to find any repo ..."
-               baseName = "*_*"
-               srcDir = sh(script: "find ${poolDir} -maxdepth 1 -type d -name '${baseName}' | head -n 1", returnStdout: true).trim()
-            }
-        }
-        
+        String srcDir = sh(script: "find ${poolDir} -maxdepth 1 -mindepth 1 -type d | head -n 1", returnStdout: true).trim()
         if (srcDir != null && !srcDir.isEmpty()) {
-            echo "Try to move found ${srcDir} or use already existing own repo"
             sh " if [ ! -e '${localRepoPath}' ]; then mv -vn '${srcDir}' '${localRepoPath}'; fi "			
         }
         else {
