@@ -645,7 +645,7 @@ def getJobFolder(String jobName) {
 }
 
 def moveMavenRepoFromPool(String localRepoPath) {
-    // try to find n the pool: a folder with the same name as the local repo or any existing
+    // try to find in the pool: a folder with the same name as the local repo or any existing
     if (localRepoPath != null && localRepoPath.endsWith(getJobFolder("${JOB_NAME}"))) {
         String poolDir = localRepoPath.substring(0, localRepoPath.lastIndexOf('/')) + "/.pool"
         String baseDir = localRepoPath.split('/').last()
@@ -655,10 +655,10 @@ def moveMavenRepoFromPool(String localRepoPath) {
         }
         // move from the pool, but only if not already exist
         if (srcPath != null && !srcPath.isEmpty()) {
-            sh "[ ! -e '${localRepoPath}' ] && mv -vn '${srcPath}' '${localRepoPath}'"
+            sh "[ ! -e '${localRepoPath}' ] && mv -vn '${srcPath}' '${localRepoPath}' || true"
         }
         else {
-            echo "No suitable repo is not found in the pool: will create and use own repo"
+            echo "No suitable repo is found in the pool: will create and use own repo"
         }
     }
 }
@@ -668,8 +668,7 @@ def moveMavenRepoToPool(String localRepoPath) {
     if (localRepoPath != null && localRepoPath.endsWith(getJobFolder("${JOB_NAME}"))) {
         String poolDir = localRepoPath.substring(0, localRepoPath.lastIndexOf('/')) + "/.pool"
         String baseDir = localRepoPath.split('/').last()
-        String destPath = poolDir + "/" + baseDir
-        sh "[ -e '${localRepoPath}' ] && [ ! -e '${destDir}' ] && rm -rf '${localRepoPath}/org/cibseven' && mv -vn '${localRepoPath}' '${destPath}'"
+        sh "[ -e '${localRepoPath}' ] && rm -rf '${localRepoPath}/org/cibseven' && mv -v '${localRepoPath}' '${poolDir}/' || true"
     }
 }
 
