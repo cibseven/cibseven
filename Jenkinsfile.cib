@@ -620,7 +620,7 @@ def getDocsRepoName() {
 def getLocalJobRepo(String jobName, boolean usePrivate) {
     String localJobRepo = getMavenRepository()
     if (usePrivate) {
-        localJobRepo = + localJobRepo + "/cibseven-install-dir/" + getJobFolder(jobName)
+        localJobRepo = localJobRepo + "/cibseven-install-dir/" + getJobFolder(jobName)
     }
     return localJobRepo
 }
