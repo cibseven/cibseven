@@ -653,12 +653,12 @@ def moveMavenRepoFromPool(String localRepoPath) {
         if (srcPath == null || srcPath.isEmpty()) {
             srcPath = sh(script: "find ${poolDir} -maxdepth 1 -mindepth 1 -type d | head -n 1", returnStdout: true).trim()
         }
-        // move from the pool, but only if not already exist
+        // use already existing repo or move a repo template from the pool, fail if not successful
         if (srcPath != null && !srcPath.isEmpty()) {
-            sh "[ ! -e '${localRepoPath}' ] && mv -v '${srcPath}' '${localRepoPath}' || true"
+            sh "[ -e '${localRepoPath}' ] || mv -v '${srcPath}' '${localRepoPath}'"
         }
         else {
-            echo "No suitable repo is found in the pool: will create and use own repo"
+            echo "WARNING: no suitable repo is found in the pool: will create a new one from scratch. A very long build is expected !!!"
         }
     }
 }
