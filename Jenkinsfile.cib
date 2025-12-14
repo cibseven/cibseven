@@ -86,7 +86,7 @@ pipeline {
         MAVEN_LOCAL_REPO = getLocalJobRepo("${JOB_NAME}", params.USE_PRIVATE_REPO)
         // set bigger timeout to get rid of the maven issue with file locks: https://github.com/apache/maven/issues/9049
         MAVEN_LOCAL_REPO_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
-        // set maven options only if params.USE_PRIVATE_REPO is true, otherwise use old method
+        // set maven options only if params.USE_PRIVATE_REPO is true, otherwise use shared repo as usual
         MAVEN_OPTS = "${params.USE_PRIVATE_REPO == true ? env.MAVEN_LOCAL_REPO_OPTS : ""}"
     }
 
@@ -144,7 +144,7 @@ pipeline {
             }
             steps {
                 script {
-                    // if use private repo then try to get it from the pool if possible
+                    // if use private repo then try to get a repo template from the pool if possible
                     if (params.USE_PRIVATE_REPO) {
                         moveMavenRepoFromPool("${env.MAVEN_LOCAL_REPO}")
                     }
@@ -653,7 +653,7 @@ def moveMavenRepoFromPool(String localRepoPath) {
         if (srcPath == null || srcPath.isEmpty()) {
             srcPath = sh(script: "find ${poolDir} -maxdepth 1 -mindepth 1 -type d | head -n 1", returnStdout: true).trim()
         }
-        // use already existing repo or move a repo template from the pool, fail if not successful
+        // use already existing repo or move a repo template from the pool, fail if not successful: don't fall to the long-time repo creation
         if (srcPath != null && !srcPath.isEmpty()) {
             sh "[ -e '${localRepoPath}' ] || mv -v '${srcPath}' '${localRepoPath}'"
         }
