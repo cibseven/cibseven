@@ -82,6 +82,10 @@ public class SetupRestServiceImpl extends AbstractRestProcessEngineAware  implem
       throw new InvalidRequestException(Status.FORBIDDEN, "Identity service implementation is read-only.");
     }
 
+    if (!requiresSetup())  {
+      throw new InvalidRequestException(Status.FORBIDDEN, "User creation not allowed - already initialized.");
+    }
+
     runWithoutAuthorization(() -> {
       createUserImpl(userDto);
       return true;
