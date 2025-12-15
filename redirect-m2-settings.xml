@@ -1,0 +1,38 @@
+<settings>
+  
+  <profiles>
+    <profile>
+      <id>public</id>
+      <repositories>
+        <repository>
+          <id>mirrored-artifacts</id>
+          <url>https://artifacts.cibseven.org/repository/public/</url>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>mirrored-plugins</id>
+          <url>https://repo.maven.apache.org/maven2/</url>
+          <releases>
+            <checksumPolicy>ignore</checksumPolicy>
+          </releases>
+          <snapshots>
+            <checksumPolicy>ignore</checksumPolicy>
+          </snapshots>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
+  
+  <activeProfiles>
+    <activeProfile>public</activeProfile>
+  </activeProfiles>
+  
+  <mirrors>
+    <mirror>
+      <id>shared-local-cache</id>
+      <url>file:///root/.m2/repository</url>
+      <mirrorOf>mirrored-artifacts,mirrored-plugins</mirrorOf>
+    </mirror>
+  </mirrors>
+</settings>
