@@ -55,6 +55,7 @@ import org.cibseven.bpm.engine.rest.ModificationRestService;
 import org.cibseven.bpm.engine.rest.ProcessDefinitionRestService;
 import org.cibseven.bpm.engine.rest.ProcessInstanceRestService;
 import org.cibseven.bpm.engine.rest.SchemaLogRestService;
+import org.cibseven.bpm.engine.rest.SetupRestService;
 import org.cibseven.bpm.engine.rest.SignalRestService;
 import org.cibseven.bpm.engine.rest.TaskRestService;
 import org.cibseven.bpm.engine.rest.TelemetryRestService;
@@ -272,6 +273,13 @@ public class NamedProcessEngineRestServiceImpl extends AbstractProcessEngineRest
   public TelemetryRestService getTelemetryRestService(@PathParam("name") String engineName) {
     return super.getTelemetryRestService(engineName);
   }
+
+  @Override
+  @Path("/{name}" + SetupRestService.PATH)
+  public SetupRestService getSetupRestService(@PathParam("name") String engineName) {
+    return super.getSetupRestService(engineName);
+  }
+
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)

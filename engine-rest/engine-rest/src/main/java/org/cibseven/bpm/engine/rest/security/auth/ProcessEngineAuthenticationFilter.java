@@ -71,6 +71,8 @@ public class ProcessEngineAuthenticationFilter implements Filter {
   protected static final Pattern[] WHITE_LISTED_URL_PATTERNS = new Pattern[] {
     Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/?"),
     Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/identity/verify$"),
+    Pattern.compile("^\\/setup\\/status$"),
+    Pattern.compile("^\\/setup\\/user\\/create$"),
     Pattern.compile("^/identity/verify$")
   };
 
