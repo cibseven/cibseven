@@ -47,6 +47,12 @@ pipeline {
         )
 
         booleanParam(
+            name: 'USE_PRIVATE_REPO',
+            defaultValue: true,
+            description: "  └─ 🧰 Use private local repository"
+        )
+
+        booleanParam(
             name: 'VERIFY',
             defaultValue: true,
             description: "  └─ ✅ Execute Unit and Integration Tests"
@@ -54,9 +60,8 @@ pipeline {
 
         choice(
             name: 'QA_TEST_SUITE',
-            choices: ['NONE', 'ALL', 'CUSTOM'],
+            choices: ['CUSTOM', 'ALL'],
             description: '''🧪 QA Test Suite Selection:
-            • NONE - Skip all QA tests
             • ALL - Run all QA tests
             • CUSTOM - Select individual tests below'''
         )
@@ -78,12 +83,11 @@ pipeline {
     }
 
     environment {
-        // allow parallel builds of a few branches without conflicts:
-        // split shared local repo into the download and installation parts, use branch-dependent prefix for the installation part
-        // and redirect this part into a separate folder cibseven-install-dir; also set bigger timeout to get rid of the maven issue 
-        // with file locks: https://github.com/apache/maven/issues/9049
-        CIBSEVEN_INSTALL_PREFIX = "cibseven-install-dir/tmp_${JOB_BASE_NAME}"
-        MAVEN_OPTS = "-Daether.enhancedLocalRepository.split=true -Daether.enhancedLocalRepository.localPrefix=${env.CIBSEVEN_INSTALL_PREFIX} -Daether.enhancedLocalRepository.remotePrefix=. -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
+        MAVEN_LOCAL_REPO = getLocalJobRepo("${JOB_NAME}", params.USE_PRIVATE_REPO)
+        // set bigger timeout to get rid of the maven issue with file locks: https://github.com/apache/maven/issues/9049
+        MAVEN_LOCAL_REPO_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
+        // set maven options only if params.USE_PRIVATE_REPO is true, otherwise use shared repo as usual
+        MAVEN_OPTS = "${params.USE_PRIVATE_REPO == true ? env.MAVEN_LOCAL_REPO_OPTS : ""}"
     }
 
     options {
@@ -140,6 +144,11 @@ pipeline {
             }
             steps {
                 script {
+                    // if use private repo then try to get a repo template from the pool if possible
+                    if (params.USE_PRIVATE_REPO) {
+                        moveMavenRepoFromPool("${env.MAVEN_LOCAL_REPO}")
+                    }
+
                     withMaven(options: []) {
                         sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
                     }
@@ -147,7 +156,7 @@ pipeline {
             }
         }
 
-        stage('engine-UNIT') {
+        stage('engine UNIT & IT') {
             when {
                 expression { params.VERIFY == true }
             }
@@ -259,7 +268,26 @@ pipeline {
                 }
                 stage('Performance') {
                     when {  expression { params.QA_PERF || params.QA_TEST_SUITE == 'ALL' }}
-                    steps { script { withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }}}
+                    steps { 
+                        script { 
+                            withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }
+                            sh "mkdir ./qa/performance-tests-engine/target/perf_benchmark; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_benchmark/"
+                            zip zipFile: 'perf_benchmark.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_benchmark'
+                            archiveArtifacts artifacts: 'perf_benchmark.zip', fingerprint: true
+                        }
+                        script { 
+                            withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Psql-statementlog,h2" }
+                            sh "mkdir ./qa/performance-tests-engine/target/perf_sql_statementlog; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_sql_statementlog/"
+                            zip zipFile: 'perf_sql_statementlog.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_sql_statementlog'
+                            archiveArtifacts artifacts: 'perf_sql_statementlog.zip', fingerprint: true
+                        }
+                        script { 
+                            withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pactivity-count,h2 -DwatchActivities=start,timer,end -Dtest=AsyncStartAndTimerPerformanceTest" }
+                            sh "mkdir ./qa/performance-tests-engine/target/perf_activity_count; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_activity_count/"
+                            zip zipFile: 'perf_activity_count.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_activity_count'
+                            archiveArtifacts artifacts: 'perf_activity_count.zip', fingerprint: true
+                        }
+                    }
                 }
                 stage('Large data') {
                     when { expression { params.QA_LARGE_DATA || params.QA_TEST_SUITE == 'ALL' }}
@@ -360,7 +388,7 @@ pipeline {
             steps {
                 script {
                     junit allowEmptyResults: true, testResults: ConstantsInternal.MAVEN_TEST_RESULTS
-                    archiveArtifacts artifacts: ConstantsInternal.MAVEN_TEST_RESULTS, allowEmptyArchive: false, fingerprint: true
+                    archiveArtifacts artifacts: ConstantsInternal.MAVEN_TEST_RESULTS, allowEmptyArchive: true, fingerprint: true
                 }
             }
         }
@@ -509,13 +537,9 @@ pipeline {
             script {
                 log.info 'End of the build'
 
-                // cleanup temporary maven install directory for this build
-                withMaven(options: []) {
-                    def localRepo = sh(script: 'mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout', returnStdout: true).trim()
-                    if (localRepo.endsWith(".m2/repository") && env.CIBSEVEN_INSTALL_PREFIX != null) {
-                        echo "cleanup cibseven install dir: '${localRepo}/${env.CIBSEVEN_INSTALL_PREFIX}'"
-                        sh "rm -rf '${localRepo}/${env.CIBSEVEN_INSTALL_PREFIX}'"
-                    }
+                // move back to the repo pool to reuse
+                if (params.USE_PRIVATE_REPO) {
+                    moveMavenRepoToPool("${env.MAVEN_LOCAL_REPO}")
                 }
             }
         }
@@ -590,6 +614,61 @@ def getDocsRepoName() {
     }
     else {
         return "docs.cibseven.org"
+    }
+}
+
+def getLocalJobRepo(String jobName, boolean usePrivate) {
+    // don't call if env.MAVEN_LOCAL_REPO is already set
+    if (env.MAVEN_LOCAL_REPO != null && env.MAVEN_LOCAL_REPO.endsWith(getJobFolder(jobName))) {
+        return env.MAVEN_LOCAL_REPO
+    }
+
+    String localJobRepo = getMavenRepository()
+    if (usePrivate) {
+        localJobRepo = localJobRepo + "/cibseven-install-dir/" + getJobFolder(jobName)
+    }
+    return localJobRepo
+}
+
+def getMavenRepository() { 
+    withMaven(options: []) {
+        def mavenRepo = sh(script: 'mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout', returnStdout: true).trim()
+        return mavenRepo
+    }
+}
+
+// creates pseudo-unique folder for a jobName
+def getJobFolder(String jobName) {
+    String baseName = jobName.split('/') ? jobName.split('/').last() : ""
+    String pathHash = String.format("%04X", (0xFFFF & jobName.hashCode()))
+    return "${baseName}_${pathHash}".replaceAll(' ', '_')
+}
+
+def moveMavenRepoFromPool(String localRepoPath) {
+    // try to find in the pool: a folder with the same name as the local repo or any existing
+    if (localRepoPath != null && localRepoPath.endsWith(getJobFolder("${JOB_NAME}"))) {
+        String poolDir = localRepoPath.substring(0, localRepoPath.lastIndexOf('/')) + "/.pool"
+        String baseDir = localRepoPath.split('/').last()
+        String srcPath = sh(script: "find ${poolDir} -maxdepth 1 -mindepth 1 -type d -name '${baseDir}' | head -n 1", returnStdout: true).trim()
+        if (srcPath == null || srcPath.isEmpty()) {
+            srcPath = sh(script: "find ${poolDir} -maxdepth 1 -mindepth 1 -type d | head -n 1", returnStdout: true).trim()
+        }
+        // use already existing repo or move a repo template from the pool, fail if not successful: don't fall to the long-time repo creation
+        if (srcPath != null && !srcPath.isEmpty()) {
+            sh "[ -e '${localRepoPath}' ] || mv -v '${srcPath}' '${localRepoPath}'"
+        }
+        else {
+            echo "WARNING: no suitable repo is found in the pool: will create a new one from scratch. A very long build is expected !!!"
+        }
+    }
+}
+
+def moveMavenRepoToPool(String localRepoPath) {
+	echo "Move local repo {$localRepoPath} back to the pool"
+    if (localRepoPath != null && localRepoPath.endsWith(getJobFolder("${JOB_NAME}"))) {
+        String poolDir = localRepoPath.substring(0, localRepoPath.lastIndexOf('/')) + "/.pool"
+        String baseDir = localRepoPath.split('/').last()
+        sh "[ -e '${localRepoPath}' ] && rm -rf '${localRepoPath}/org/cibseven' && mv -v '${localRepoPath}' '${poolDir}/' || rm -rf '${localRepoPath}'"
     }
 }
 
