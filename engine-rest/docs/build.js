@@ -4,12 +4,12 @@ const {createElement} = require("react");
 const {renderToString} = require("react-dom/server");
 
 const {ServerStyleSheet} = require("styled-components");
-const {dirname, join} = require("path");
+const {dirname, join} = require("node:path");
 
 const {
     readFileSync,
     writeFileSync
-} = require("fs");
+} = require("node:fs");
 
 const {Redoc, createStore, loadAndBundleSpec} = require("redoc");
 

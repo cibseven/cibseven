@@ -71,6 +71,22 @@ public class ProcessEngineConfigurationTest {
   }
 
   @Test
+  public void shouldUseQuartzCronTypeByDefault() {
+    // when
+    ProcessEngineConfigurationImpl engineConfiguration = (ProcessEngineConfigurationImpl) ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration();
+    // then
+    assertThat(engineConfiguration.getCronType()).isEqualTo("QUARTZ");
+  }
+
+  @Test
+  public void shouldEnableLegacyQuartzSyntaxByDefault() {
+    // when
+    ProcessEngineConfigurationImpl engineConfiguration = (ProcessEngineConfigurationImpl) ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration();
+    // then
+    assertThat(engineConfiguration.isSupportLegacyQuartzSyntax()).isTrue();
+  }
+
+  @Test
   public void validIsolationLevel() {
     // given
     ((PooledDataSource) engineConfiguration.getDataSource()).setDefaultTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED);

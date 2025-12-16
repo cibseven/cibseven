@@ -19,6 +19,7 @@ package org.cibseven.bpm.spring.boot.starter.property;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.ProcessEngines;
+import org.cibseven.bpm.engine.impl.cfg.CronProperty;
 import org.cibseven.bpm.spring.boot.starter.configuration.id.IdGeneratorConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
@@ -105,6 +106,12 @@ public class CamundaBpmProperties {
   private String defaultSerializationFormat = Defaults.INSTANCE.getDefaultSerializationFormat();
 
   private URL licenseFile;
+
+  /**
+   * cron configuration
+   */
+  @NestedConfigurationProperty
+  private CronProperty cron = new CronProperty();
 
   /**
    * deactivate camunda auto configuration
@@ -213,6 +220,30 @@ public class CamundaBpmProperties {
 
   public void setLicenseFile(URL licenseFile) {
     this.licenseFile = licenseFile;
+  }
+
+  public String getCronType() {
+    return cron.getType();
+  }
+
+  public void setCronType(String cronType) {
+    cron.setType(cronType);
+  }
+
+  public boolean isSupportLegacyQuartzSyntax() {
+    return cron.isSupportLegacyQuartzSyntax();
+  }
+
+  public void setSupportLegacyQuartzSyntax(boolean supportLegacyQuartzSyntax) {
+    cron.setSupportLegacyQuartzSyntax(supportLegacyQuartzSyntax);
+  }
+
+  public CronProperty getCron() {
+    return cron;
+  }
+
+  public void setCron(CronProperty cron) {
+    this.cron = cron;
   }
 
   public MetricsProperty getMetrics() {
@@ -356,6 +387,7 @@ public class CamundaBpmProperties {
       .add("deploymentResourcePattern=" + Arrays.toString(deploymentResourcePattern))
       .add("defaultSerializationFormat=" + defaultSerializationFormat)
       .add("licenseFile=" + licenseFile)
+      .add("cron=" + cron)
       .add("metrics=" + metrics)
       .add("database=" + database)
       .add("jobExecution=" + jobExecution)
