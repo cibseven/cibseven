@@ -643,6 +643,11 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   protected BusinessCalendarManager businessCalendarManager;
 
+  /**
+   * Cron configuration
+   */
+  protected CronProperty cron = new CronProperty();
+
   protected String wsSyncFactoryClassName = DEFAULT_WS_SYNC_FACTORY;
 
   protected CommandContextFactory commandContextFactory;
@@ -2716,7 +2721,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
       MapBusinessCalendarManager mapBusinessCalendarManager = new MapBusinessCalendarManager();
       mapBusinessCalendarManager.addBusinessCalendar(DurationBusinessCalendar.NAME, new DurationBusinessCalendar());
       mapBusinessCalendarManager.addBusinessCalendar(DueDateBusinessCalendar.NAME, new DueDateBusinessCalendar());
-      mapBusinessCalendarManager.addBusinessCalendar(CycleBusinessCalendar.NAME, new CycleBusinessCalendar());
+      mapBusinessCalendarManager.addBusinessCalendar(CycleBusinessCalendar.NAME, new CycleBusinessCalendar(this.cron.getType(), this.cron.isSupportLegacyQuartzSyntax()));
 
       businessCalendarManager = mapBusinessCalendarManager;
     }
@@ -2992,6 +2997,30 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   public ProcessEngineConfigurationImpl setCustomPreCommandInterceptorsTxRequired(List<CommandInterceptor> customPreCommandInterceptorsTxRequired) {
     this.customPreCommandInterceptorsTxRequired = customPreCommandInterceptorsTxRequired;
     return this;
+  }
+
+  public String getCronType() {
+    return cron.getType();
+  }
+
+  public void setCronType(String cronType) {
+    cron.setType(cronType);
+  }
+
+  public boolean isSupportLegacyQuartzSyntax() {
+    return cron.isSupportLegacyQuartzSyntax();
+  }
+
+  public void setSupportLegacyQuartzSyntax(boolean supportLegacyQuartzSyntax) {
+    cron.setSupportLegacyQuartzSyntax(supportLegacyQuartzSyntax);
+  }
+
+  public CronProperty getCron() {
+    return cron;
+  }
+
+  public void setCron(CronProperty cron) {
+    this.cron = cron;
   }
 
   public List<CommandInterceptor> getCustomPostCommandInterceptorsTxRequired() {

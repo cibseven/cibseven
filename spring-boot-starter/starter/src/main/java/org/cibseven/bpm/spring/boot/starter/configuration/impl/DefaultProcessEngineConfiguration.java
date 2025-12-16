@@ -38,6 +38,7 @@ public class DefaultProcessEngineConfiguration extends AbstractCamundaConfigurat
     setIdGenerator(configuration);
     setJobExecutorAcquireByPriority(configuration);
     setDefaultNumberOfRetries(configuration);
+    setCronConfiguration(configuration);
   }
 
   private void setIdGenerator(SpringProcessEngineConfiguration configuration) {
@@ -79,5 +80,13 @@ public class DefaultProcessEngineConfiguration extends AbstractCamundaConfigurat
   private void setDefaultNumberOfRetries(SpringProcessEngineConfiguration configuration) {
     Optional.ofNullable(camundaBpmProperties.getDefaultNumberOfRetries())
       .ifPresent(configuration::setDefaultNumberOfRetries);
+  }
+
+  private void setCronConfiguration(SpringProcessEngineConfiguration configuration) {
+    String cronType = camundaBpmProperties.getCronType();
+    if (StringUtils.hasText(cronType)) {
+      configuration.setCronType(cronType);
+    }
+    configuration.setSupportLegacyQuartzSyntax(camundaBpmProperties.isSupportLegacyQuartzSyntax());
   }
 }
