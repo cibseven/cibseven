@@ -169,7 +169,7 @@
         <executions>
           <execution>
             <id>reserve-ports</id>
-            <phase>initialize</phase>
+            <phase>pre-integration-test</phase>
             <goals>
               <goal>reserve-network-port</goal>
             </goals>
