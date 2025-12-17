@@ -19,7 +19,6 @@
 
     <tomcat.connector.http.port>0</tomcat.connector.http.port>
     <tomcat.connector.ajp.port>0</tomcat.connector.ajp.port>
-    <tomcat.server.port>0</tomcat.server.port>
 
     <cargo.timeout>240000</cargo.timeout>
     <cargo.deploy.timeout>60000</cargo.deploy.timeout>
@@ -178,7 +177,6 @@
               <portNames>
                 <portName>tomcat.connector.http.port</portName>
                 <portName>tomcat.connector.ajp.port</portName>
-                <portName>tomcat.server.port</portName>
               </portNames>
             </configuration>
           </execution>
