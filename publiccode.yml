@@ -4,18 +4,16 @@
 
 publiccodeYmlVersion: '0.2'
 name: CIB seven
-url: 'https://github.com/cibseven/cibseven'
-landingURL: 'https://cibseven.org'
+url: 'https://cibseven.org'
+landingURL: 'https://github.com/cibseven/cibseven'
 softwareVersion: 2.1.0
 releaseDate: '2025-11-07'
-logo: 'https://cibseven.org/wp-content/uploads/2023/08/CIB-seven-logo.svg'
+logo: publiccode_logo.svg
 platforms:
   - web
   - linux
   - windows
   - mac
-usedBy:
-  - über 1.000 Unternehmen weltweit
 categories:
   - business-process-management
   - workflow-management
@@ -150,27 +148,27 @@ description:
 
       - **Kompatibilität:** 100% kompatibel zu Camunda Platform 7
     features:
-      - Prozessautomatisierung: Führt komplexe Verwaltungsprozesse automatisch und fehlerfrei aus.
-      - Aufgabenmanagement: Zentrale Aufgabenliste (Tasklist) für effiziente Sachbearbeitung.
-      - Prozessüberwachung: Echtzeit-Einblick in alle laufenden Vorgänge über das Cockpit-Dashboard.
-      - Digitale Formulare: Einfache Erstellung von Web-Formularen ohne Programmieraufwand (Low-Code).
-      - Entscheidungslogik: Automatisiert Geschäftsregeln und Prüfungen durch Entscheidungstabellen.
-      - Langzeitarchivierung: Sichere Speicherung historischer Prozessdaten für Audits und Revisionen.
-      - Benutzerverwaltung: Granulare Steuerung von Zugriffsrechten, Gruppen und Rollen.
-      - Barrierefreiheit: Webbasiertes Arbeiten im Browser ohne lokale Installation.
-      - Reporting: Visuelle Auswertungen und Statistiken zur Prozessoptimierung.
-      - Fallmanagement: Flexible Bearbeitung von unstrukturierten Fällen und Ad-hoc-Aufgaben.
-      - Interoperabilität: Nahtlose Verbindung mit bestehenden Fachverfahren und Datenbanken.
-      - Skalierbarkeit: Bewältigt zuverlässig hohe Mengen an Anträgen und Transaktionen.
-      - Datenschutz: Volle Kontrolle über Daten im eigenen Rechenzentrum (On-Premises).
-      - LTS-Garantie: Langfristige Wartung und Sicherheitsupdates für Investitionsschutz.
-      - Kostenfreiheit: Dauerhaft lizenzkostenfreie Nutzung durch Open-Source-Modell.
+      - "Prozessautomatisierung: Führt komplexe Verwaltungsprozesse automatisch und fehlerfrei aus."
+      - "Aufgabenmanagement: Zentrale Aufgabenliste (Tasklist) für effiziente Sachbearbeitung."
+      - "Prozessüberwachung: Echtzeit-Einblick in alle laufenden Vorgänge über das Cockpit-Dashboard."
+      - "Digitale Formulare: Einfache Erstellung von Web-Formularen ohne Programmieraufwand (Low-Code)."
+      - "Entscheidungslogik: Automatisiert Geschäftsregeln und Prüfungen durch Entscheidungstabellen."
+      - "Langzeitarchivierung: Sichere Speicherung historischer Prozessdaten für Audits und Revisionen."
+      - "Benutzerverwaltung: Granulare Steuerung von Zugriffsrechten, Gruppen und Rollen."
+      - "Barrierefreiheit: Webbasiertes Arbeiten im Browser ohne lokale Installation."
+      - "Reporting: Visuelle Auswertungen und Statistiken zur Prozessoptimierung."
+      - "Fallmanagement: Flexible Bearbeitung von unstrukturierten Fällen und Ad-hoc-Aufgaben."
+      - "Interoperabilität: Nahtlose Verbindung mit bestehenden Fachverfahren und Datenbanken."
+      - "Skalierbarkeit: Bewältigt zuverlässig hohe Mengen an Anträgen und Transaktionen."
+      - "Datenschutz: Volle Kontrolle über Daten im eigenen Rechenzentrum (On-Premises)."
+      - "LTS-Garantie: Langfristige Wartung und Sicherheitsupdates für Investitionsschutz."
+      - "Kostenfreiheit: Dauerhaft lizenzkostenfreie Nutzung durch Open-Source-Modell."
     screenshots:
-      - https://docs.cibseven.org/manual/latest/webapps/cockpit/img/cockpit-processes-start-view.png
-      - https://docs.cibseven.org/manual/latest/webapps/tasklist/img/tasklist-dashboard.png
-      - https://docs.cibseven.org/manual/latest/webapps/cockpit/img/dashboard-hover.png
-      - https://docs.cibseven.org/manual/latest/webapps/admin/img/admin-start-page-view.png
-      - https://docs.cibseven.org/manual/latest/webapps/cockpit/img/cockpit-process-definitions-view.png
+      - https://gitlab.opencode.de/regierung-von-oberbayern/cibseven-software-directory/-/raw/main/publiccode_images/cockpit-processes-start-view.png
+      - https://gitlab.opencode.de/regierung-von-oberbayern/cibseven-software-directory/-/raw/main/publiccode_images/tasklist-dashboard.png
+      - https://gitlab.opencode.de/regierung-von-oberbayern/cibseven-software-directory/-/raw/main/publiccode_images/dashboard-hover.png
+      - https://gitlab.opencode.de/regierung-von-oberbayern/cibseven-software-directory/-/raw/main/publiccode_images/admin-start-page-view.png
+      - https://gitlab.opencode.de/regierung-von-oberbayern/cibseven-software-directory/-/raw/main/publiccode_images/cockpit-process-definitions-view.png
     documentation: 'https://docs.cibseven.org'
     apiDocumentation: 'https://docs.cibseven.org/manual/latest/reference/rest/specification'
     videos:
