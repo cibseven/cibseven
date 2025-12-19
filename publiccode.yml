@@ -88,12 +88,6 @@ description:
       und das operative Monitoring (Cockpit).
 
 
-      Zusätzlich erweitert CIB seven den klassischen Funktionsumfang durch neue
-      Module wie **CIB ins7ght** für Prozessanalysen und **CIB easyForm** für
-      Low-Code-Formulare, um die Digitalisierung von Verwaltungsakten zu
-      beschleunigen.
-
-
       ### **Warum CIB seven für die öffentliche Verwaltung?**
 
 
@@ -123,9 +117,6 @@ description:
 
       - **REST API:** Vollständige API-Abdeckung zur Integration in bestehende
       Fachverfahren.
-
-      - **CIB easyForm:** Integrierter Formular-Editor für schnelle
-      UI-Erstellung ohne tiefgehende Programmierkenntnisse.
 
       - **Erweiterbarkeit:** Plugin-Architektur ermöglicht die Anpassung an
       spezifische behördliche Anforderungen.
@@ -163,6 +154,113 @@ description:
       - "Datenschutz: Volle Kontrolle über Daten im eigenen Rechenzentrum (On-Premises)."
       - "LTS-Garantie: Langfristige Wartung und Sicherheitsupdates für Investitionsschutz."
       - "Kostenfreiheit: Dauerhaft lizenzkostenfreie Nutzung durch Open-Source-Modell."
+    screenshots:
+      - https://gitlab.opencode.de/regierung-von-oberbayern/cibseven-software-directory/-/raw/main/publiccode_images/cockpit-processes-start-view.png
+      - https://gitlab.opencode.de/regierung-von-oberbayern/cibseven-software-directory/-/raw/main/publiccode_images/tasklist-dashboard.png
+      - https://gitlab.opencode.de/regierung-von-oberbayern/cibseven-software-directory/-/raw/main/publiccode_images/dashboard-hover.png
+      - https://gitlab.opencode.de/regierung-von-oberbayern/cibseven-software-directory/-/raw/main/publiccode_images/admin-start-page-view.png
+      - https://gitlab.opencode.de/regierung-von-oberbayern/cibseven-software-directory/-/raw/main/publiccode_images/cockpit-process-definitions-view.png
+    documentation: 'https://docs.cibseven.org'
+    apiDocumentation: 'https://docs.cibseven.org/manual/latest/reference/rest/specification'
+    videos:
+      - 'https://youtu.be/4-R4qB9rH1U'
+  en:
+    genericName: BPM Platform
+    shortDescription: >-
+      Open-source platform for workflow and process automation. As a Camunda 7
+      fork, CIB seven ensures long-term operation and digital sovereignty.
+    longDescription: >2
+       
+
+      **CIB seven** is a powerful process engine developed in Java that enables
+      companies and public authorities to model, execute, and monitor business
+      processes. It was created as a fork of the globally widespread **Camunda
+      Platform 7** and positions itself as its long-term open-source
+      alternative.
+
+
+      Since manufacturer support for the Camunda 7 Community Edition has been
+      discontinued, CIB seven fills a critical gap for public administration:
+      It offers **guaranteed further development** and maintenance of the
+      proven architecture beyond 2025. This makes it the ideal solution for
+      institutions that rely on the stability of Camunda 7 technology but want
+      to avoid migration efforts to proprietary cloud solutions or complete
+      architecture changes (e.g., Camunda 8).
+
+
+      The platform includes not only the core engine for **BPMN** (Business
+      Process Model and Notation), **DMN** (Decision Model and Notation), and
+      **CMMN** (Case Management Model and Notation), but also modernized web
+      applications for administration, task management (Tasklist), and
+      operational monitoring (Cockpit).
+
+
+      ### **Why CIB seven for Public Administration?**
+
+
+      - **Investment Protection:** Existing Camunda 7 applications can continue
+      to operate without code changes (drop-in replacement).
+
+      - **Data Protection & On-Premises:** The software can be operated
+      entirely in your own data center or in a sovereign cloud. There is no
+      obligation to use SaaS solutions.
+
+      - **Legal Certainty:** Published under the permissive **Apache 2.0
+      License**.
+
+
+      ## **Core Features**
+
+
+      - **Process Engine:** High-performance execution of BPMN 2.0 workflows
+      and DMN 1.3 decision tables.
+
+      - **Web Apps:**
+          - **Cockpit:** Monitoring running processes, intervening in case of errors, and administrative control.
+          - **Tasklist:** User interface for case workers to process manual tasks.
+          - **Admin:** Management of users, groups, and permissions.
+      - **Seamless Integration:** Native support for Java, Spring Boot, Jakarta
+      EE, and Quarkus.
+
+      - **REST API:** Complete API coverage for integration into existing
+      specialized applications.
+
+      - **Extensibility:** Plugin architecture enables adaptation to specific
+      administrative requirements.
+
+
+      ## **Technical Specifications & Requirements**
+
+
+      - **License:** Apache License 2.0
+
+      - **Programming Language:** Java (main), JavaScript (Vue 3)
+
+      - **Architecture:** Embeddable Engine, Shared Engine, or Remote Engine
+      (via REST)
+
+      - **Databases:** Support for common relational databases (PostgreSQL,
+      Oracle, MS SQL Server, MySQL, MariaDB, H2, etc.)
+
+      - **Container:** Docker images available, Helm Charts
+
+      - **Compatibility:** 100% compatible with Camunda Platform 7
+    features:
+      - "Process Automation: Executes complex administrative processes automatically and error-free."
+      - "Task Management: Central task list (Tasklist) for efficient case processing."
+      - "Process Monitoring: Real-time insight into all running operations via the Cockpit dashboard."
+      - "Digital Forms: Easy creation of web forms without programming effort (low-code)."
+      - "Decision Logic: Automates business rules and checks through decision tables."
+      - "Long-term Archiving: Secure storage of historical process data for audits and reviews."
+      - "User Management: Granular control of access rights, groups, and roles."
+      - "Accessibility: Web-based work in the browser without local installation."
+      - "Reporting: Visual evaluations and statistics for process optimization."
+      - "Case Management: Flexible handling of unstructured cases and ad-hoc tasks."
+      - "Interoperability: Seamless connection with existing specialized applications and databases."
+      - "Scalability: Reliably handles high volumes of applications and transactions."
+      - "Data Protection: Full control over data in your own data center (on-premises)."
+      - "LTS Guarantee: Long-term maintenance and security updates for investment protection."
+      - "Cost-free: Permanently license-free use through open-source model."
     screenshots:
       - https://gitlab.opencode.de/regierung-von-oberbayern/cibseven-software-directory/-/raw/main/publiccode_images/cockpit-processes-start-view.png
       - https://gitlab.opencode.de/regierung-von-oberbayern/cibseven-software-directory/-/raw/main/publiccode_images/tasklist-dashboard.png
