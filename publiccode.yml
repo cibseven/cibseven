@@ -118,9 +118,6 @@ description:
       - **REST API:** Vollständige API-Abdeckung zur Integration in bestehende
       Fachverfahren.
 
-      - **CIB easyForm:** Integrierter Formular-Editor für schnelle
-      UI-Erstellung ohne tiefgehende Programmierkenntnisse.
-
       - **Erweiterbarkeit:** Plugin-Architektur ermöglicht die Anpassung an
       spezifische behördliche Anforderungen.
 
