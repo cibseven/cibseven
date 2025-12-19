@@ -228,9 +228,6 @@ description:
       - **REST API:** Complete API coverage for integration into existing
       specialized applications.
 
-      - **CIB easyForm:** Integrated form editor for rapid UI creation without
-      deep programming knowledge.
-
       - **Extensibility:** Plugin architecture enables adaptation to specific
       administrative requirements.
 
