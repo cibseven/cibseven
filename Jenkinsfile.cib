@@ -651,7 +651,7 @@ def moveMavenRepoFromPool(String localRepoPath) {
     if (localRepoPath != null && localRepoPath.endsWith(getJobFolder("${JOB_NAME}"))) {
         String baseDir = localRepoPath.split('/').last()
         String poolDir = localRepoPath.substring(0, localRepoPath.lastIndexOf('/')) + "/.pool"
-        String poolItemOwn = poolDir + "/" + baseDir;	
+        String poolItemOwn = poolDir + "/" + baseDir	
         String poolItemAny = sh(script: "find ${poolDir} -maxdepth 1 -mindepth 1 -type d -printf '%T+\\t%p\\n' | sort | head -n 1 | cut -f2-", returnStdout: true).trim()
         // use already existing repo or move a repo template from the pool, prefer own, fail if not successful: don't fall to the long-time repo creation
         if (poolItemAny != null && !poolItemAny.isEmpty()) {
