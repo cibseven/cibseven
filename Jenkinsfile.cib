@@ -653,7 +653,7 @@ def moveMavenRepoFromPool(String localRepoPath) {
         String poolItemOwn = poolDir + "/" + baseDir;	
         String poolItemAny = sh(script: "find ${poolDir} -maxdepth 1 -mindepth 1 -type d -printf '%T+\\t%p\\n' | sort | head -n 1 | cut -f2-", returnStdout: true).trim()
         // use already existing repo or move a repo template from the pool, prefer own, fail if not successful: don't fall to the long-time repo creation
-        if (srcPath != null && !srcPath.isEmpty()) {
+        if (poolItemAny != null && !poolItemAny.isEmpty()) {
             sh "[ -e '${localRepoPath}' ] || mv -v '${poolItemOwn}' '${localRepoPath}' || mv -v '${poolItemAny}' '${localRepoPath}'"
         }
         else {
