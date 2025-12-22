@@ -643,7 +643,7 @@ def getMavenRepository() {
 def getJobFolder(String jobName) {
     String baseName = jobName.split('/') ? jobName.split('/').last() : ""
     String pathHash = String.format("%04X", (0xFFFF & jobName.hashCode()))
-    return "${baseName}_${pathHash}".replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
+    return "${baseName}_${pathHash}".replaceAll("[^a-zA-Z0-9._-]", "_");
 }
 
 def moveMavenRepoFromPool(String localRepoPath) {
