@@ -620,7 +620,7 @@ def getDocsRepoName() {
 }
 
 def getLocalJobRepo(String jobName, boolean usePrivate) {
-    // don't call if env.MAVEN_LOCAL_REPO is already set
+    // return existing value if it is already set
     if (mavenLocalRepoRedirected != null && mavenLocalRepoRedirected.endsWith(getJobFolder(jobName))) {
         return mavenLocalRepoRedirected
     }
