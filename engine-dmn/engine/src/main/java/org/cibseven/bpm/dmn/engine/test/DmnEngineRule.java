@@ -18,7 +18,6 @@ package org.cibseven.bpm.dmn.engine.test;
 
 import org.cibseven.bpm.dmn.engine.DmnEngine;
 import org.cibseven.bpm.dmn.engine.DmnEngineConfiguration;
-import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 

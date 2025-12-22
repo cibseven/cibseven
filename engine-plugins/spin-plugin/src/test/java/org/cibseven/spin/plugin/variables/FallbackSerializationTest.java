@@ -18,13 +18,10 @@ package org.cibseven.spin.plugin.variables;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.test.PluggableProcessEngineTestCase;
-import org.cibseven.bpm.engine.impl.variable.serializer.VariableSerializerFactory;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
-import org.cibseven.bpm.engine.variable.value.TypedValue;
-import org.junit.Test;
 
 /**
  * @author Thorben Lindhauer
