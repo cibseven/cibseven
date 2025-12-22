@@ -647,7 +647,7 @@ def getJobFolder(String jobName) {
 }
 
 def moveMavenRepoFromPool(String localRepoPath) {
-    // try to find and move from the pool: a folder with the same name as the local repo or any existing oldest folder
+    // Try to find and move from the pool: preferably a folder with the same name as the local repo, otherwise the oldest existing folder
     if (localRepoPath != null && localRepoPath.endsWith(getJobFolder("${JOB_NAME}"))) {
         String baseDir = localRepoPath.split('/').last()
         String poolDir = localRepoPath.substring(0, localRepoPath.lastIndexOf('/')) + "/.pool"
