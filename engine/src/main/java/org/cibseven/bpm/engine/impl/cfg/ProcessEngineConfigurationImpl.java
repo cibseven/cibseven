@@ -643,6 +643,11 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   protected BusinessCalendarManager businessCalendarManager;
 
+  /**
+   * Cron configuration
+   */
+  protected CronProperty cron = new CronProperty();
+
   protected String wsSyncFactoryClassName = DEFAULT_WS_SYNC_FACTORY;
 
   protected CommandContextFactory commandContextFactory;
@@ -1061,6 +1066,12 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
    * Size of batch in which removal time data will be updated. {@link ProcessSetRemovalTimeJobHandler#MAX_CHUNK_SIZE} must be respected.
    */
   protected int removalTimeUpdateChunkSize = 500;
+
+  /**
+   * This legacy behavior sets the retry counter to 3 in the context when running a the job for the first time.
+   * This has been patched up to fetch the correct counter value.
+   */
+  protected boolean legacyJobRetryBehaviorEnabled = false;
 
   /**
    * @return {@code true} if the exception code feature is disabled and vice-versa.
@@ -2710,7 +2721,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
       MapBusinessCalendarManager mapBusinessCalendarManager = new MapBusinessCalendarManager();
       mapBusinessCalendarManager.addBusinessCalendar(DurationBusinessCalendar.NAME, new DurationBusinessCalendar());
       mapBusinessCalendarManager.addBusinessCalendar(DueDateBusinessCalendar.NAME, new DueDateBusinessCalendar());
-      mapBusinessCalendarManager.addBusinessCalendar(CycleBusinessCalendar.NAME, new CycleBusinessCalendar());
+      mapBusinessCalendarManager.addBusinessCalendar(CycleBusinessCalendar.NAME, new CycleBusinessCalendar(this.cron.getType(), this.cron.isSupportLegacyQuartzSyntax()));
 
       businessCalendarManager = mapBusinessCalendarManager;
     }
@@ -2986,6 +2997,30 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   public ProcessEngineConfigurationImpl setCustomPreCommandInterceptorsTxRequired(List<CommandInterceptor> customPreCommandInterceptorsTxRequired) {
     this.customPreCommandInterceptorsTxRequired = customPreCommandInterceptorsTxRequired;
     return this;
+  }
+
+  public String getCronType() {
+    return cron.getType();
+  }
+
+  public void setCronType(String cronType) {
+    cron.setType(cronType);
+  }
+
+  public boolean isSupportLegacyQuartzSyntax() {
+    return cron.isSupportLegacyQuartzSyntax();
+  }
+
+  public void setSupportLegacyQuartzSyntax(boolean supportLegacyQuartzSyntax) {
+    cron.setSupportLegacyQuartzSyntax(supportLegacyQuartzSyntax);
+  }
+
+  public CronProperty getCron() {
+    return cron;
+  }
+
+  public void setCron(CronProperty cron) {
+    this.cron = cron;
   }
 
   public List<CommandInterceptor> getCustomPostCommandInterceptorsTxRequired() {
@@ -5340,6 +5375,15 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public ProcessEngineConfiguration setDiagnosticsRegistry(DiagnosticsRegistry diagnosticsRegistry) {
     this.diagnosticsRegistry = diagnosticsRegistry;
+    return this;
+  }
+
+  public boolean isLegacyJobRetryBehaviorEnabled() {
+    return legacyJobRetryBehaviorEnabled;
+  }
+  
+  public ProcessEngineConfiguration setLegacyJobRetryBehaviorEnabled(boolean legacyJobRetryBehaviorEnabled) {
+    this.legacyJobRetryBehaviorEnabled = legacyJobRetryBehaviorEnabled;
     return this;
   }
 }

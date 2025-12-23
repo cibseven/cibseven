@@ -829,7 +829,7 @@ public class TestOrderingUtil {
     };
   }
 
-  protected interface PropertyAccessor<T, P extends Comparable<P>> {
+  public interface PropertyAccessor<T, P extends Comparable<P>> {
     P getProperty(T obj);
   }
 

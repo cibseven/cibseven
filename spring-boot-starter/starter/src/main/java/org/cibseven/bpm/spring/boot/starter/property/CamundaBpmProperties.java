@@ -19,6 +19,7 @@ package org.cibseven.bpm.spring.boot.starter.property;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.ProcessEngines;
+import org.cibseven.bpm.engine.impl.cfg.CronProperty;
 import org.cibseven.bpm.spring.boot.starter.configuration.id.IdGeneratorConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
@@ -107,6 +108,12 @@ public class CamundaBpmProperties {
   private URL licenseFile;
 
   /**
+   * cron configuration
+   */
+  @NestedConfigurationProperty
+  private CronProperty cron = new CronProperty();
+
+  /**
    * deactivate camunda auto configuration
    */
   private boolean enabled = true;
@@ -140,6 +147,12 @@ public class CamundaBpmProperties {
    */
   @NestedConfigurationProperty
   private WebappProperty webapp = new WebappProperty();
+
+  /**
+   * REST API configuration
+   */
+  @NestedConfigurationProperty
+  private RestApiProperty restApi = new RestApiProperty();
 
   @NestedConfigurationProperty
   private AuthorizationProperty authorization = new AuthorizationProperty();
@@ -209,6 +222,30 @@ public class CamundaBpmProperties {
     this.licenseFile = licenseFile;
   }
 
+  public String getCronType() {
+    return cron.getType();
+  }
+
+  public void setCronType(String cronType) {
+    cron.setType(cronType);
+  }
+
+  public boolean isSupportLegacyQuartzSyntax() {
+    return cron.isSupportLegacyQuartzSyntax();
+  }
+
+  public void setSupportLegacyQuartzSyntax(boolean supportLegacyQuartzSyntax) {
+    cron.setSupportLegacyQuartzSyntax(supportLegacyQuartzSyntax);
+  }
+
+  public CronProperty getCron() {
+    return cron;
+  }
+
+  public void setCron(CronProperty cron) {
+    this.cron = cron;
+  }
+
   public MetricsProperty getMetrics() {
     return metrics;
   }
@@ -247,6 +284,14 @@ public class CamundaBpmProperties {
 
   public void setWebapp(WebappProperty webapp) {
     this.webapp = webapp;
+  }
+
+  public RestApiProperty getRestApi() {
+    return restApi;
+  }
+
+  public void setRestApi(RestApiProperty restApi) {
+    this.restApi = restApi;
   }
 
   public AuthorizationProperty getAuthorization() {
@@ -342,10 +387,12 @@ public class CamundaBpmProperties {
       .add("deploymentResourcePattern=" + Arrays.toString(deploymentResourcePattern))
       .add("defaultSerializationFormat=" + defaultSerializationFormat)
       .add("licenseFile=" + licenseFile)
+      .add("cron=" + cron)
       .add("metrics=" + metrics)
       .add("database=" + database)
       .add("jobExecution=" + jobExecution)
       .add("webapp=" + webapp)
+      .add("restApi=" + restApi)
       .add("authorization=" + authorization)
       .add("genericProperties=" + genericProperties)
       .add("adminUser=" + adminUser)

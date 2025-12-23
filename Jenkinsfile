@@ -59,10 +59,10 @@ pipeline {
               cambpmRunMaven('.',
                   'clean source:jar deploy source:test-jar com.mycila:license-maven-plugin:check -Pdistro,distro-wildfly,distro-webjar,h2-in-memory -DaltStagingDirectory=${WORKSPACE}/staging -DskipRemoteStaging=true '+ skipTests,
                   withCatch: false,
-                  withNpm: true,
                   // we use JDK 17 to build the artifacts, as it is required for supporting Spring Boot 3
                   // the compiler source and target is set to JDK 11 in the release parents
-                  jdkVersion: 'jdk-17-latest')
+                  jdkVersion: 'jdk-17-latest',
+                  withPodSpec: true)
             }
 
             // archive all .jar, .pom, .xml, .txt runtime artifacts + required .war/.zip/.tar.gz for EE pipeline
@@ -104,7 +104,7 @@ pipeline {
               upstreamProjectName = "/" + env.JOB_NAME
               upstreamBuildNumber = env.BUILD_NUMBER
 
-              if (env.BRANCH_NAME == cambpmDefaultBranch() || cambpmWithLabels('webapp-integration', 'all-as', 'h2', 'websphere', 'weblogic', 'jbosseap', 'run', 'spring-boot', 'e2e')) {
+              if (env.BRANCH_NAME == cambpmDefaultBranch() || cambpmWithLabels('all','webapp-integration', 'all-as', 'h2', 'weblogic', 'jbosseap', 'run', 'spring-boot', 'e2e')) {
                 cambpmTriggerDownstream(
                   platformVersionDir + "/cambpm-ee/" + eeMainProjectBranch,
                   [string(name: 'UPSTREAM_PROJECT_NAME', value: upstreamProjectName),
@@ -117,7 +117,7 @@ pipeline {
               // or PR builds only, master builds should be excluded.
               // The Sidetrack pipeline contains Azure DB stages,
               // triggered with the sqlserver PR labels.
-              if (env.BRANCH_NAME != cambpmDefaultBranch() && cambpmWithLabels('all-db', 'sqlserver')) {
+              if (env.BRANCH_NAME != cambpmDefaultBranch() && cambpmWithLabels('all','all-db', 'sqlserver')) {
                 cambpmTriggerDownstream(
                   platformVersionDir + "/cambpm-ce/cambpm-sidetrack/${env.BRANCH_NAME}",
                   [string(name: 'UPSTREAM_PROJECT_NAME', value: upstreamProjectName),
@@ -127,7 +127,7 @@ pipeline {
 
               // don't trigger the daily pipeline from a master branch build
               // or if a PR has no relevant labels
-              if (env.BRANCH_NAME != cambpmDefaultBranch() && cambpmWithLabels('default-build', 'jdk', 'rolling-update', 'migration', 'all-db', 'h2', 'db2', 'mysql', 'oracle', 'mariadb', 'sqlserver', 'postgresql')) {
+              if (env.BRANCH_NAME != cambpmDefaultBranch() && cambpmWithLabels('all','default-build', 'jdk', 'rolling-update', 'migration', 'all-db', 'h2', 'db2', 'mysql', 'oracle', 'mariadb', 'sqlserver', 'postgresql')) {
                 cambpmTriggerDownstream(
                   platformVersionDir + "/cambpm-ce/cambpm-daily/${env.BRANCH_NAME}",
                   [string(name: 'UPSTREAM_PROJECT_NAME', value: upstreamProjectName),
@@ -140,7 +140,7 @@ pipeline {
                 cambpmRunMaven('.',
                     'org.sonatype.plugins:nexus-staging-maven-plugin:deploy-staged -DaltStagingDirectory=${WORKSPACE}/staging -DskipStaging=true',
                     withCatch: false,
-                    withNpm: true)
+                    withPodSpec: true)
               }
             }
           },
@@ -160,7 +160,7 @@ pipeline {
         stage('db-UNIT-h2') {
           when {
             expression {
-              cambpmWithLabels('h2', 'rolling-update', 'migration', 'all-db', 'default-build')
+              cambpmWithLabels('all','h2', 'rolling-update', 'migration', 'all-db', 'default-build')
             }
           }
           steps {
@@ -179,7 +179,7 @@ pipeline {
         stage('engine-UNIT-historylevel-audit') {
           when {
             expression {
-              cambpmWithLabels('default-build')
+              cambpmWithLabels('all','default-build')
             }
           }
           steps {
@@ -197,7 +197,7 @@ pipeline {
         stage('engine-UNIT-historylevel-activity') {
           when {
             expression {
-              cambpmWithLabels('default-build')
+              cambpmWithLabels('all', 'default-build')
             }
           }
           steps {
@@ -215,7 +215,7 @@ pipeline {
         stage('quarkus-UNIT') {
           when {
             expression {
-              cambpmWithLabels('h2', 'default-build')
+              cambpmWithLabels('all', 'h2', 'default-build')
             }
           }
           steps {
@@ -230,39 +230,50 @@ pipeline {
             ])
           }
         }
-        stage('engine-IT-tomcat-9-postgresql-142') {
+      //stage('engine-IT-tomcat-9-postgresql-170') {
+      //  when {
+      //    expression {
+      //      cambpmWithLabels('all', 'all-as', 'tomcat')
+      //    }
+      //  }
+      //  steps {
+      //    cambpmConditionalRetry([
+      //      podSpec: [
+      //        cpu: 4,
+      //        images: ['maven:3.9.7-eclipse-temurin-11', 'postgres:17.0']
+      //      ],
+      //      runSteps: {
+      //        cambpmRunMaven('qa/',
+      //          'clean install -Ptomcat9,postgresql,engine-integration',
+      //          runtimeStash: true,
+      //          archiveStash: true,
+      //          jdkVersion: 'jdk-11-latest',
+      //          withPodSpec: true)
+      //      },
+      //      postFailure: {
+      //        cambpmPublishTestResult()
+      //      }
+      //    ])
+      //  }
+      //}
+        stage('engine-IT-tomcat-10-postgresql-170') {
           when {
             expression {
-              cambpmWithLabels('all-as', 'tomcat')
+              cambpmWithLabels('all', 'all-as', 'tomcat')
             }
           }
           steps {
             cambpmConditionalRetry([
-              agentLabel: 'postgresql_142',
+              podSpec: [
+                cpu: 4,
+                images: ['maven:3.9.7-eclipse-temurin-17', 'postgres:17.0']
+              ],
               runSteps: {
-                cambpmRunMaven('qa/',
-                'clean install -Ptomcat9,postgresql,engine-integration',
-                runtimeStash: true,
-                archiveStash: true,
-                jdkVersion: 'jdk-11-latest')
-              },
-              postFailure: {
-                cambpmPublishTestResult()
-              }
-            ])
-          }
-        }
-        stage('engine-IT-tomcat-10-postgresql-142') {
-          when {
-            expression {
-              cambpmWithLabels('all-as', 'tomcat')
-            }
-          }
-          steps {
-            cambpmConditionalRetry([
-              agentLabel: 'postgresql_142',
-              runSteps: {
-                cambpmRunMaven('qa/', 'clean install -Ptomcat,postgresql,engine-integration-jakarta', runtimeStash: true, archiveStash: true, jdkVersion: 'jdk-17-latest')
+                cambpmRunMaven('qa/', 'clean install -Ptomcat,postgresql,engine-integration-jakarta',
+                  runtimeStash: true,
+                  archiveStash: true,
+                  jdkVersion: 'jdk-17-latest',
+                  withPodSpec: true)
               },
               postFailure: {
                 cambpmPublishTestResult()
@@ -271,22 +282,26 @@ pipeline {
             ])
           }
         }
-        stage('engine-IT-wildfly-postgresql-142') {
+        stage('engine-IT-wildfly-postgresql-170') {
           when {
             expression {
-              cambpmWithLabels('all-as', 'wildfly')
+              cambpmWithLabels('all', 'all-as', 'wildfly')
             }
           }
           steps {
             cambpmConditionalRetry([
-              agentLabel: 'postgresql_142',
+              podSpec: [
+                cpu: 4,
+                images: ['maven:3.9.7-eclipse-temurin-17', 'postgres:17.0']
+              ],
               runSteps: {
                 cambpmRunMaven('qa/', 
                   'clean install -Pwildfly,postgresql,engine-integration-jakarta', 
                   runtimeStash: true, 
                   archiveStash: true,
                   // we need to use JDK 17 for Spring 6
-                  jdkVersion: 'jdk-17-latest')
+                  jdkVersion: 'jdk-17-latest',
+                  withPodSpec: true)
               },
               postFailure: {
                 cambpmPublishTestResult()
@@ -296,22 +311,26 @@ pipeline {
             ])
           }
         }
-        stage('engine-IT-XA-wildfly-postgresql-142') {
+        stage('engine-IT-XA-wildfly-postgresql-170') {
           when {
             expression {
-              cambpmWithLabels('wildfly')
+              cambpmWithLabels('all', 'all-as', 'wildfly')
             }
           }
           steps {
             cambpmConditionalRetry([
-              agentLabel: 'postgresql_142',
+              podSpec: [
+                cpu: 4,
+                images: ['maven:3.9.7-eclipse-temurin-17', 'postgres:17.0']
+              ],
               runSteps: {
                 cambpmRunMaven('qa/', 
                   'clean install -Pwildfly,postgresql,postgresql-xa,engine-integration-jakarta', 
                   runtimeStash: true, 
                   archiveStash: true,
                   // we need to use JDK 17 for Spring 6
-                  jdkVersion: 'jdk-17-latest')
+                  jdkVersion: 'jdk-17-latest',
+                  withPodSpec: true)
               },
               postFailure: {
                 cambpmPublishTestResult()
@@ -320,33 +339,33 @@ pipeline {
             ])
           }
         }
-        stage('webapp-IT-tomcat-9-h2') {
-          when {
-            expression {
-              cambpmWithLabels('webapp-integration', 'h2')
-            }
-          }
-          steps {
-            cambpmConditionalRetry([
-              agentLabel: 'chrome_112',
-              runSteps: {
-                cambpmRunMaven('qa/',
-                'clean install -Ptomcat9,h2,webapps-integration',
-                runtimeStash: true,
-                archiveStash: true,
-                jdkVersion: 'jdk-17-latest')
-              },
-              postFailure: {
-                cambpmPublishTestResult()
-                cambpmArchiveArtifacts('qa/integration-tests-webapps/shared-engine/target/selenium-screenshots/*')
-              }
-            ])
-          }
-        }
+       // stage('webapp-IT-tomcat-9-h2') {
+       //   when {
+       //     expression {
+       //       cambpmWithLabels('all', 'webapp-integration', 'h2')
+       //     }
+       //   }
+       //   steps {
+       //     cambpmConditionalRetry([
+       //       agentLabel: 'chrome_112',
+       //       runSteps: {
+       //         cambpmRunMaven('qa/',
+       //         'clean install -Ptomcat9,h2,webapps-integration',
+       //         runtimeStash: true,
+       //         archiveStash: true,
+       //         jdkVersion: 'jdk-17-latest')
+       //       },
+       //       postFailure: {
+       //         cambpmPublishTestResult()
+       //         cambpmArchiveArtifacts('qa/integration-tests-webapps/shared-engine/target/selenium-screenshots/*')
+       //       }
+       //     ])
+       //   }
+       // }
         stage('webapp-IT-tomcat-10-h2') {
           when {
             expression {
-              cambpmWithLabels('webapp-integration', 'h2')
+              cambpmWithLabels('all', 'webapp-integration', 'h2', 'tomcat')
             }
           }
           steps {
@@ -370,7 +389,7 @@ pipeline {
         stage('webapp-IT-wildfly-h2') {
           when {
             expression {
-              cambpmWithLabels('webapp-integration', 'h2', 'wildfly')
+              cambpmWithLabels('all', 'webapp-integration', 'h2', 'wildfly')
             }
           }
           steps {
@@ -393,7 +412,7 @@ pipeline {
         stage('camunda-run-IT') {
           when {
             expression {
-              cambpmWithLabels('run', 'spring-boot', 'tomcat', 'all-as')
+              cambpmWithLabels('all', 'run', 'spring-boot', 'tomcat', 'all-as')
             }
           }
           steps {
@@ -413,7 +432,7 @@ pipeline {
         stage('spring-boot-starter-IT') {
           when {
             expression {
-              cambpmWithLabels('spring-boot', 'tomcat', 'all-as')
+              cambpmWithLabels('all', 'spring-boot', 'tomcat', 'all-as')
             }
           }
           steps {
@@ -460,7 +479,7 @@ pipeline {
         stage('engine-api-compatibility') {
           when {
             expression {
-              cambpmIsNotFailedStageType(failedStageTypes, 'engine-unit') && cambpmWithLabels('default-build')
+              cambpmIsNotFailedStageType(failedStageTypes, 'engine-unit') && cambpmWithLabels('all', 'default-build')
             }
           }
           steps {
@@ -475,7 +494,7 @@ pipeline {
         stage('engine-UNIT-database-table-prefix') {
           when {
             expression {
-              cambpmIsNotFailedStageType(failedStageTypes, 'engine-unit') && cambpmWithLabels('all-db','h2','db2','mysql','oracle','mariadb','sqlserver','postgresql')
+              cambpmIsNotFailedStageType(failedStageTypes, 'engine-unit') && cambpmWithLabels('all-db','h2','db2','mysql','oracle','sqlserver','postgresql')
             }
           }
           steps {
@@ -493,7 +512,7 @@ pipeline {
         stage('webapp-UNIT-database-table-prefix') {
           when {
             expression {
-              cambpmIsNotFailedStageType(failedStageTypes, 'webapp-unit') && cambpmWithLabels()
+              cambpmIsNotFailedStageType(failedStageTypes, 'webapp-unit') && cambpmWithLabels('all', 'h2')
             }
           }
           steps {
@@ -511,7 +530,7 @@ pipeline {
         stage('engine-IT-wildfly-domain') {
           when {
             expression {
-              cambpmIsNotFailedStageType(failedStageTypes, 'engine-IT-wildfly') && cambpmWithLabels('wildfly')
+              cambpmIsNotFailedStageType(failedStageTypes, 'engine-IT-wildfly') && cambpmWithLabels('all', 'wildfly')
             }
           }
           steps {
@@ -534,7 +553,7 @@ pipeline {
         stage('engine-IT-wildfly-servlet') {
           when {
             expression {
-              cambpmIsNotFailedStageType(failedStageTypes, 'engine-IT-wildfly') && cambpmWithLabels('wildfly')
+              cambpmIsNotFailedStageType(failedStageTypes, 'engine-IT-wildfly') && cambpmWithLabels('all', 'all-as', 'wildfly')
             }
           }
           steps {

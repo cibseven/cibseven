@@ -21,6 +21,8 @@ assignees:
 
 ### Solution Ideas
 
+### Workarounds
+
 ### Hints
 
 ### Links
@@ -32,7 +34,9 @@ assignees:
 - [ ] Step X
 -->
 
-```[tasklist]
 ### Pull Requests
-```
+
+<!--
+- PR links here
+-->
 

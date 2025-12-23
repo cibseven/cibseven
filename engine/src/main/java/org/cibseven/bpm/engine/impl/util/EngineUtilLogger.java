@@ -260,4 +260,12 @@ public class EngineUtilLogger extends ProcessEngineLogger {
         "Exception while configuring XXE processing: {}", cause.getMessage()), cause);
   }
 
+  public void warnLegacyCronExpressionPatched(String originalExpression, String patchedExpression) {
+    logWarn("048",
+        "Legacy cron expression '{}' was automatically patched to '{}' for compatibility with modern Quartz syntax. " +
+        "Consider updating your timer expressions to avoid this warning.",
+        originalExpression,
+        patchedExpression);
+  }
+
 }
