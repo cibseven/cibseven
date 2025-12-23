@@ -654,12 +654,18 @@ def moveMavenRepoFromPool(String localRepoPath) {
         String poolItemOwn = poolDir + "/" + baseDir	
         String poolItemAny = sh(script: "find ${poolDir} -maxdepth 1 -mindepth 1 -type d -printf '%T+\\t%p\\n' | sort | head -n 1 | cut -f2-", returnStdout: true).trim()
         // use already existing repo or move a repo template from the pool, prefer own, fail if not successful: don't fall to the long-time repo creation
-        if (poolItemAny != null && !poolItemAny.isEmpty()) {
+        if (true == false && poolItemAny != null && !poolItemAny.isEmpty()) {
             sh "[ -e '${localRepoPath}' ] || mv -v '${poolItemOwn}' '${localRepoPath}' || mv -v '${poolItemAny}' '${localRepoPath}'"
             sh "touch -c '${localRepoPath}'"
         }
         else {
-            echo "WARNING: no suitable repo is found in the pool: will create a new one from scratch. A very long build is expected !!!"
+            String poolItemBackup = sh(script: "find ${poolDir} -maxdepth 1 -mindepth 1 -type f -name '*.tar.gz' | head -n 1", returnStdout: true).trim()
+            if (poolItemBackup != null && !poolItemBackup.isEmpty()) {
+                sh "[ -e '${localRepoPath}' ] || mkdir '${localRepoPath}' && tar -xzf '${poolItemBackup}' -C '${localRepoPath} --strip-components=1"
+            }
+            else {
+                echo "WARNING: no suitable repo is found in the pool: will create a new one from scratch. A very long build is expected !!!"
+            }
         }
     }
 }
