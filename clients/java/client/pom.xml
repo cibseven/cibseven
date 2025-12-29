@@ -17,8 +17,9 @@
     <engine.runtime>${project.build.directory}/camunda-tomcat</engine.runtime>
     <tomcat.runtime>${engine.runtime}/server/apache-tomcat-${version.tomcat}</tomcat.runtime>
 
-    <tomcat.connector.http.port>50080</tomcat.connector.http.port>
-    <tomcat.connector.ajp.port>0</tomcat.connector.ajp.port>
+    <!-- Do not declare any default values for
+      `tomcat.connector.http.port` and `tomcat.connector.ajp.port`
+      elsewhere these values will be used for Cargo regardless of the `reserve-network-port` run -->
 
     <cargo.timeout>240000</cargo.timeout>
     <cargo.deploy.timeout>60000</cargo.deploy.timeout>
@@ -168,7 +169,7 @@
         <executions>
           <execution>
             <id>reserve-ports</id>
-            <phase>pre-integration-test</phase>
+            <phase>initialize</phase>
             <goals>
               <goal>reserve-network-port</goal>
             </goals>
@@ -190,6 +191,34 @@
               <sources>
                 <source>src/it/java</source>
               </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.2.0</version>
+        <executions>
+          <execution>
+            <id>filter-properties</id>
+            <phase>process-test-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <skip>${skipTests}</skip>
+              <propertiesEncoding>ISO-8859-1</propertiesEncoding>
+              <outputDirectory>target/test-classes/</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/it/resources</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>integration-rules.properties</include>
+                  </includes>
+                </resource>
+              </resources>
             </configuration>
           </execution>
         </executions>
@@ -230,6 +259,7 @@
       </plugin>
 
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
