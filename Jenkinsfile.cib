@@ -660,14 +660,7 @@ def moveMavenRepoFromPool(String localRepoPath) {
             sh "touch -c '${localRepoPath}'"
         }
         else {
-            String poolItemBackup = sh(script: "find ${poolDir} -maxdepth 1 -mindepth 1 -type f -name '*.tar.gz' | head -n 1", returnStdout: true).trim()
-            if (poolItemBackup != null && !poolItemBackup.isEmpty()) {
-                echo "There are no suitable repositories in the pool: try to extract from the backup, can take a few minutes..."
-                sh "[ -e '${localRepoPath}' ] || mkdir '${localRepoPath}' && tar -xzf '${poolItemBackup}' -C '${localRepoPath}' --strip-components=1"
-            }
-            else {
-                echo "WARNING: no suitable repo is found in the pool: will create a new one from scratch. A very long build is expected !!!"
-            }
+            echo "WARNING: no suitable repo is found in the pool: will create a new one from scratch. A very long build is expected !!!"
         }
     }
 }
