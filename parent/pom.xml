@@ -49,6 +49,7 @@
 
     <version.slf4j>1.7.26</version.slf4j>
     <version.logback>1.2.13</version.logback>
+    <log4j2.version>2.25.3</log4j2.version>
     <version.junit>4.13.1</version.junit>
     <version.assertj>2.9.1</version.assertj>
     <version.mockito>5.17.0</version.mockito>
@@ -143,6 +144,28 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
         <version>${version.commons-lang3}</version>
+      </dependency>
+
+      <!-- Override Log4j version to fix CVE-2025-68161 -->
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-api</artifactId>
+        <version>${log4j2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
+        <version>${log4j2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-slf4j-impl</artifactId>
+        <version>${log4j2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-to-slf4j</artifactId>
+        <version>${log4j2.version}</version>
       </dependency>
 
     </dependencies>
