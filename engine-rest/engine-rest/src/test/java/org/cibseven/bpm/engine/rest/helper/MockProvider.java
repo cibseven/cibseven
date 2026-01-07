@@ -1006,9 +1006,7 @@ public abstract class MockProvider {
   public static final String EXAMPLE_TELEMETRY_IS_TELEMETRY_ENABLED_CMD = "IsTelemetryEnabledCmd";
   public static final String EXAMPLE_TELEMETRY_GET_TELEMETRY_DATA_CMD = "GetTelemetryDataCmd";
   public static final String EXAMPLE_TELEMETRY_LICENSE_CUSTOMER_NAME = "customer name";
-  public static final String EXAMPLE_TELEMETRY_LICENSE_TYPE = "UNIFIED";
   public static final String EXAMPLE_TELEMETRY_LICENSE_VALID_UNTIL = "2022-09-30";
-  public static final boolean EXAMPLE_TELEMETRY_LICENSE_UNLIMITED = false;
   public static final Map<String, String> EXAMPLE_TELEMETRY_LICENSE_FEATURES = Collections.singletonMap("camundaBPM", "true");
   public static final String EXAMPLE_TELEMETRY_LICENSE_RAW = "customer=customer name;expiryDate=2022-09-30;camundaBPM=true;optimize=false;cawemo=false";
   public static final String EXAMPLE_TELEMETRY_JDK_VERSION = "14.0.2";
@@ -1024,8 +1022,8 @@ public abstract class MockProvider {
   public static final ApplicationServerImpl EXAMPLE_TELEMETRY_SERVER = new ApplicationServerImpl(
       EXAMPLE_TELEMETRY_APP_SERVER_VENDOR, EXAMPLE_TELEMETRY_APP_SERVER_VERSION);
   public static final LicenseKeyDataImpl EXAMPLE_TELEMETRY_LICENSE = new LicenseKeyDataImpl(
-      EXAMPLE_TELEMETRY_LICENSE_CUSTOMER_NAME, EXAMPLE_TELEMETRY_LICENSE_TYPE, EXAMPLE_TELEMETRY_LICENSE_VALID_UNTIL,
-      EXAMPLE_TELEMETRY_LICENSE_UNLIMITED, EXAMPLE_TELEMETRY_LICENSE_FEATURES, EXAMPLE_TELEMETRY_LICENSE_RAW);
+      EXAMPLE_TELEMETRY_LICENSE_CUSTOMER_NAME, EXAMPLE_TELEMETRY_LICENSE_VALID_UNTIL,
+      EXAMPLE_TELEMETRY_LICENSE_FEATURES, EXAMPLE_TELEMETRY_LICENSE_RAW);
   public static final JdkImpl EXAMPLE_TELEMETRY_JDK = new JdkImpl(EXAMPLE_TELEMETRY_JDK_VERSION, EXAMPLE_TELEMETRY_JDK_VENDOR);
   public static final InternalsImpl EXAMPLE_TELEMETRY_INTERNALS = new InternalsImpl(EXAMPLE_TELEMETRY_DATABASE,
       EXAMPLE_TELEMETRY_SERVER, EXAMPLE_TELEMETRY_LICENSE, EXAMPLE_TELEMETRY_JDK);

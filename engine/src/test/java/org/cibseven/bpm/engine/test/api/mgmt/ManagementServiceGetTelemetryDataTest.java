@@ -98,24 +98,22 @@ public class ManagementServiceGetTelemetryDataTest {
   @Test
   public void shouldReturnLicenseKey() {
     // given
-    managementService.setLicenseKeyForDiagnostics(new LicenseKeyDataImpl("customer a", "UNIFIED", "2029-09-01", false, Collections.singletonMap("camundaBPM", "true"), "raw license"));
+    managementService.setLicenseKeyForDiagnostics(new LicenseKeyDataImpl("customer a", "2029-09-01", Collections.singletonMap("camundaBPM", "true"), "raw license"));
 
     // when
     TelemetryData telemetryData = managementService.getTelemetryData();
 
     // then
     assertThat(telemetryData.getProduct().getInternals().getLicenseKey().getCustomer()).isEqualTo("customer a");
-    assertThat(telemetryData.getProduct().getInternals().getLicenseKey().getType()).isEqualTo("UNIFIED");
     assertThat(telemetryData.getProduct().getInternals().getLicenseKey().getValidUntil()).isEqualTo("2029-09-01");
     assertThat(telemetryData.getProduct().getInternals().getLicenseKey().getFeatures()).isEqualTo(Collections.singletonMap("camundaBPM", "true"));
     assertThat(telemetryData.getProduct().getInternals().getLicenseKey().getRaw()).isEqualTo("raw license");
-    assertThat(telemetryData.getProduct().getInternals().getLicenseKey().isUnlimited()).isFalse();
   }
 
   @Test
   public void shouldReturnLicenseKeyRaw() {
     // given
-    managementService.setLicenseKeyForDiagnostics(new LicenseKeyDataImpl(null, null, null, null, null, "test license"));
+    managementService.setLicenseKeyForDiagnostics(new LicenseKeyDataImpl(null, null, null, "test license"));
 
     // when
     TelemetryData telemetryData = managementService.getTelemetryData();
