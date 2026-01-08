@@ -48,6 +48,7 @@ import org.cibseven.bpm.engine.rest.IdentityRestService;
 import org.cibseven.bpm.engine.rest.IncidentRestService;
 import org.cibseven.bpm.engine.rest.JobDefinitionRestService;
 import org.cibseven.bpm.engine.rest.JobRestService;
+import org.cibseven.bpm.engine.rest.LicenseRestService;
 import org.cibseven.bpm.engine.rest.MessageRestService;
 import org.cibseven.bpm.engine.rest.MetricsRestService;
 import org.cibseven.bpm.engine.rest.MigrationRestService;
@@ -278,6 +279,11 @@ public class NamedProcessEngineRestServiceImpl extends AbstractProcessEngineRest
   @Path("/{name}" + SetupRestService.PATH)
   public SetupRestService getSetupRestService(@PathParam("name") String engineName) {
     return super.getSetupRestService(engineName);
+  }
+
+  @Path("/{name}" + LicenseRestService.PATH)
+  public LicenseRestService getLicenseRestService(@PathParam("name") String engineName) {
+    return super.getLicenseRestService(engineName);
   }
 
 

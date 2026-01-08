@@ -74,7 +74,7 @@ public class LicenseKeyTelemetryTest {
   public void shouldNotOverrideSameLicenseKeyInTelemetryRegistry() {
     // given
     String licenseKey = "testLicenseKey";
-    LicenseKeyDataImpl licenseKeyData = new LicenseKeyDataImpl("customer", null, null, null, null, licenseKey);
+    LicenseKeyDataImpl licenseKeyData = new LicenseKeyDataImpl("customer", null, null, licenseKey);
     telemetryRegistry.setLicenseKey(licenseKeyData);
 
     // when
@@ -88,7 +88,7 @@ public class LicenseKeyTelemetryTest {
   public void shouldNotOverrideSameMultipartLicenseKeyInTelemetryRegistry() {
     // given
     String licenseKey = "signature;testLicenseKey;more;data";
-    LicenseKeyDataImpl licenseKeyData = new LicenseKeyDataImpl("customer", null, null, null, null, "testLicenseKey;more;data");
+    LicenseKeyDataImpl licenseKeyData = new LicenseKeyDataImpl("customer", null, null, "testLicenseKey;more;data");
     telemetryRegistry.setLicenseKey(licenseKeyData);
 
     // when
@@ -101,7 +101,7 @@ public class LicenseKeyTelemetryTest {
   @Test
   public void shouldRemoveLicenseKeyFromTelemetryRegistry() {
     // given
-    LicenseKeyDataImpl licenseKeyData = new LicenseKeyDataImpl("customer", null, null, null, null, "testLicenseKey");
+    LicenseKeyDataImpl licenseKeyData = new LicenseKeyDataImpl("customer", null, null, "testLicenseKey");
     telemetryRegistry.setLicenseKey(licenseKeyData);
 
     // when
