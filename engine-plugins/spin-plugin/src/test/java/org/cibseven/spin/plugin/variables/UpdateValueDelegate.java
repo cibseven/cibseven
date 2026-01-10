@@ -17,12 +17,10 @@
 package org.cibseven.spin.plugin.variables;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
-import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 
 /**

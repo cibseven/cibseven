@@ -16,13 +16,12 @@
  */
 package org.cibseven.bpm.engine.rest.dto.migration;
 
-import org.cibseven.bpm.engine.migration.MigrationVariableValidationReport;
-import org.cibseven.bpm.engine.rest.dto.VariableValueDto;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.cibseven.bpm.engine.migration.MigrationVariableValidationReport;
+import org.cibseven.bpm.engine.rest.dto.VariableValueDto;
 
 public class MigrationVariableValidationReportDto extends VariableValueDto {
 

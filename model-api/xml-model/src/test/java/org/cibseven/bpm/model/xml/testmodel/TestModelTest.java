@@ -17,7 +17,6 @@
 package org.cibseven.bpm.model.xml.testmodel;
 
 import org.cibseven.bpm.model.xml.ModelInstance;
-import org.cibseven.bpm.model.xml.impl.ModelInstanceImpl;
 import org.cibseven.bpm.model.xml.impl.parser.AbstractModelParser;
 import org.cibseven.bpm.model.xml.testmodel.instance.*;
 import org.junit.After;

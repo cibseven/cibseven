@@ -16,22 +16,21 @@
  */
 package org.cibseven.bpm.dmn.engine.feel;
 
-import org.cibseven.bpm.dmn.engine.DmnEngineException;
-import org.cibseven.bpm.dmn.engine.test.DecisionResource;
-import org.cibseven.bpm.dmn.engine.test.DmnEngineTest;
-import org.cibseven.bpm.dmn.feel.impl.FeelException;
-import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Date;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.cibseven.bpm.dmn.engine.DmnEngineException;
+import org.cibseven.bpm.dmn.engine.test.DecisionResource;
+import org.cibseven.bpm.dmn.engine.test.DmnEngineTest;
+import org.cibseven.bpm.engine.variable.Variables;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public abstract class FeelBehavior extends DmnEngineTest {
 
