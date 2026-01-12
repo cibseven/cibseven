@@ -71,6 +71,8 @@ public class ProcessEngineAuthenticationFilter implements Filter {
   protected static final Pattern[] WHITE_LISTED_URL_PATTERNS = new Pattern[] {
     Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/?"),
     Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/identity/verify$"),
+    Pattern.compile("^\\/setup\\/status$"),
+    Pattern.compile("^\\/setup\\/user\\/create$"),
     Pattern.compile("^/identity/verify$")
   };
 
@@ -211,7 +213,7 @@ public class ProcessEngineAuthenticationFilter implements Filter {
     engine.getIdentityService().clearAuthentication();
   }
 
-  protected boolean requiresEngineAuthentication(String requestUrl) {
+  public static boolean requiresEngineAuthentication(String requestUrl) {
     for (Pattern whiteListedUrlPattern : WHITE_LISTED_URL_PATTERNS) {
       Matcher matcher = whiteListedUrlPattern.matcher(requestUrl);
       if (matcher.matches()) {

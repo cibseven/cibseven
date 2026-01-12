@@ -17,6 +17,7 @@
 package org.cibseven.bpm.engine.impl.calendar;
 
 import java.util.Date;
+import com.cronutils.model.CronType;
 
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
@@ -28,6 +29,14 @@ public class CycleBusinessCalendar implements BusinessCalendar {
   private final static EngineUtilLogger LOG = ProcessEngineLogger.UTIL_LOGGER;
 
   public static String NAME = "cycle";
+
+  protected final String cronType;
+  protected final boolean supportLegacyQuartzSyntax;
+
+  public CycleBusinessCalendar(final String cronType, final boolean supportLegacyQuartzSyntax) {
+    this.cronType = cronType;
+    this.supportLegacyQuartzSyntax = supportLegacyQuartzSyntax;
+  }
 
   public Date resolveDuedate(String duedateDescription, Task task) {
     return resolveDuedate(duedateDescription);
@@ -48,7 +57,7 @@ public class CycleBusinessCalendar implements BusinessCalendar {
         durationHelper.setRepeatOffset(repeatOffset);
         return durationHelper.getDateAfter(startDate);
       } else {
-        CronTimer cronTimer = CronTimer.parse(duedateDescription);
+        CronTimer cronTimer = CronTimer.parse(duedateDescription, CronType.valueOf(cronType), supportLegacyQuartzSyntax);
         return cronTimer.getDueDate(startDate == null ? ClockUtil.getCurrentTime() : startDate);
       }
 

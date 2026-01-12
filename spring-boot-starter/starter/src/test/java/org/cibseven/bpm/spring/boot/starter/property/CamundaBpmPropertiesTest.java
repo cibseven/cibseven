@@ -52,5 +52,30 @@ public class CamundaBpmPropertiesTest {
     new CamundaBpmProperties().getDatabase().setSchemaUpdate("foo");
   }
 
+  @Test
+  public void cronType_default_is_quartz() {
+    CamundaBpmProperties properties = new CamundaBpmProperties();
+    assertThat(properties.getCronType()).isEqualTo("QUARTZ");
+  }
+
+  @Test
+  public void cronType_can_be_set_to_spring53() {
+    CamundaBpmProperties properties = new CamundaBpmProperties();
+    properties.setCronType("SPRING53");
+    assertThat(properties.getCronType()).isEqualTo("SPRING53");
+  }
+
+  @Test
+  public void supportLegacyQuartzSyntax_default_is_true() {
+    CamundaBpmProperties properties = new CamundaBpmProperties();
+    assertThat(properties.isSupportLegacyQuartzSyntax()).isTrue();
+  }
+
+  @Test
+  public void supportLegacyQuartzSyntax_can_be_disabled() {
+    CamundaBpmProperties properties = new CamundaBpmProperties();
+    properties.setSupportLegacyQuartzSyntax(false);
+    assertThat(properties.isSupportLegacyQuartzSyntax()).isFalse();
+  }
 
 }
