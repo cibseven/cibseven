@@ -21,7 +21,7 @@ public class LicenseKeyDto {
 
   public LicenseKeyDto() {
   }
-  
+
   public String getLicenseKey() {
     return licenseKey;
   }
