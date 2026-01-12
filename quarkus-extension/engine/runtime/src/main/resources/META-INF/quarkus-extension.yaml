@@ -10,6 +10,6 @@ metadata:
     - "decisions"
     - "bpmn"
     - "dmn"
-  guide: "https://docs.cibseven.org/manual/1.1/user-guide/quarkus-integration/"
+  guide: "https://docs.cibseven.org/manual/latest/user-guide/quarkus-integration/"
   categories:
     - "business-automation"
