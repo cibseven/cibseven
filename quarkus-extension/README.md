@@ -1,11 +1,12 @@
-# CIB seven Quarkus Extensions
+# CIB seven Engine Quarkus Extensions
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.cibseven.bpm.quarkus/camunda-bpm-quarkus-engine/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.cibseven.bpm.quarkus/camunda-bpm-quarkus-engine) [![camunda manual latest](https://img.shields.io/badge/manual-latest-brown.svg)](https://docs.camunda.org/manual/develop/user-guide/quarkus-integration/)
+[![Maven Central](https://img.shields.io/maven-central/v/org.cibseven.bpm.quarkus/cibseven-bpm-quarkus-engine
+)](https://mvnrepository.com/artifact/org.cibseven.bpm.quarkus/cibseven-bpm-quarkus-engine) [![cibseven manual latest](https://img.shields.io/badge/manual-latest-brown.svg)](https://docs.cibseven.org/manual/latest/user-guide/quarkus-integration/)
 
-This sub-project provides CIB seven Quarkus Extensions that allow you to add behavior to your Quarkus 
+This sub-project provides CIB seven Engine Quarkus Extensions that allow you to add behavior to your Quarkus 
 application by adding dependencies to the classpath.
 
-You can find the documentation on the CIB seven Quarkus Extensions 
+You can find the documentation on the CIB seven Engine Quarkus Extensions 
 [here](https://docs.cibseven.org/manual/latest/user-guide/quarkus-integration/).
 
 We also provide some useful examples at our 
@@ -21,7 +22,7 @@ We also provide some useful examples at our
 </dependency>
 ```
 
-To configure a CIB seven Quarkus extension, you can use an `application.properties` file. It
+To configure a CIB seven Engine Quarkus extension, you can use an `application.properties` file. It
 can look like the following:
 
 ```properties
