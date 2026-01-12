@@ -1,6 +1,6 @@
-# CIB seven Quarkus Extension
+# CIB seven Engine Quarkus Extension
 
-You can add the CIB seven Quarkus Extension into your Quarkus application by adding
+You can add the CIB seven Engine Quarkus Extension into your Quarkus application by adding
 the following dependency into your `pom.xml` file.
 
 ```xml
