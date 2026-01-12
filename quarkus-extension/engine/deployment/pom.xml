@@ -15,7 +15,7 @@
 
   <dependencies>
 
-    <!-- Camunda dependencies -->
+    <!-- CIB seven dependencies -->
     <dependency>
       <groupId>org.cibseven.bpm.quarkus</groupId>
       <artifactId>cibseven-bpm-quarkus-engine</artifactId>
