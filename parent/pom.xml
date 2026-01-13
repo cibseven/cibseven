@@ -62,6 +62,7 @@
 
     <!-- application servers -->
     <version.wildfly>37.0.0.Final</version.wildfly>
+    <version.galleon-maven-plugin>6.1.1.Final</version.galleon-maven-plugin>
     <version.wildfly.core>29.0.0.Final</version.wildfly.core>
     
     <version.wildfly28>28.0.1.Final</version.wildfly28>
