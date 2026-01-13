@@ -28,14 +28,19 @@ public class LicenseKeyDataDto {
   public static final String SERIALIZED_IS_UNLIMITED = "unlimited";
 
   protected String customer;
+  protected String type;
   @JsonProperty(value = SERIALIZED_VALID_UNTIL)
   protected String validUntil;
+  @JsonProperty(value = SERIALIZED_IS_UNLIMITED)
+  protected Boolean isUnlimited;
   protected Map<String, String> features;
   protected String raw;
 
-  public LicenseKeyDataDto(String customer, String validUntil, Map<String, String> features, String raw) {
+  public LicenseKeyDataDto(String customer, String type, String validUntil, Boolean isUnlimited, Map<String, String> features, String raw) {
     this.customer = customer;
+    this.type = type;
     this.validUntil = validUntil;
+    this.isUnlimited = isUnlimited;
     this.features = features;
     this.raw = raw;
   }
@@ -48,12 +53,28 @@ public class LicenseKeyDataDto {
     this.customer = customer;
   }
 
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
+
   public String getValidUntil() {
     return validUntil;
   }
 
   public void setValidUntil(String validUntil) {
     this.validUntil = validUntil;
+  }
+
+  public Boolean isUnlimited() {
+    return isUnlimited;
+  }
+
+  public void setUnlimited(Boolean isUnlimited) {
+    this.isUnlimited = isUnlimited;
   }
 
   public Map<String, String> getFeatures() {
@@ -75,7 +96,9 @@ public class LicenseKeyDataDto {
   public static LicenseKeyDataDto fromEngineDto(LicenseKeyData other) {
     return new LicenseKeyDataDto(
         other.getCustomer(),
+        other.getType(),
         other.getValidUntil(),
+        other.isUnlimited(),
         other.getFeatures(),
         other.getRaw());
   }

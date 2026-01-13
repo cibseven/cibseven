@@ -36,9 +36,21 @@ public interface LicenseKeyData {
   public String getCustomer();
 
   /**
+   * Camunda uses different license types e.g., when one license includes usage
+   * of Cawemo enterprise.
+   */
+  public String getType();
+
+  /**
    * The expiry date of the license in the format 'YYYY-MM-DD'.
    */
   public String getValidUntil();
+
+  /**
+   * A flag indicating if the license is unlimited or expires.
+   */
+  public Boolean isUnlimited();
+
 
   /**
    * A collection of features that are enabled through this license. Features
