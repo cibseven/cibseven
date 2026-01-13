@@ -38,3 +38,4 @@ public interface LicenseRestService {
   @Path("/status")
   String getLicenseKey();
 }
+
