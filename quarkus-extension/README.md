@@ -1,27 +1,28 @@
-# Camunda Platform Quarkus Extensions
+# CIB seven Engine Quarkus Extensions
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.cibseven.bpm.quarkus/camunda-bpm-quarkus-engine/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.cibseven.bpm.quarkus/camunda-bpm-quarkus-engine) [![camunda manual latest](https://img.shields.io/badge/manual-latest-brown.svg)](https://docs.camunda.org/manual/develop/user-guide/quarkus-integration/)
+[![Maven Central](https://img.shields.io/maven-central/v/org.cibseven.bpm.quarkus/cibseven-bpm-quarkus-engine
+)](https://mvnrepository.com/artifact/org.cibseven.bpm.quarkus/cibseven-bpm-quarkus-engine) [![cibseven manual latest](https://img.shields.io/badge/manual-latest-brown.svg)](https://docs.cibseven.org/manual/latest/user-guide/quarkus-integration/)
 
-This sub-project provides Camunda Platform Quarkus Extensions that allow you to add behavior to your Quarkus 
+This sub-project provides CIB seven Engine Quarkus Extensions that allow you to add behavior to your Quarkus 
 application by adding dependencies to the classpath.
 
-You can find the documentation on the Camunda Platform Quarkus Extensions 
-[here](https://docs.camunda.org/manual/develop/user-guide/quarkus-integration/).
+You can find the documentation on the CIB seven Engine Quarkus Extensions 
+[here](https://docs.cibseven.org/manual/latest/user-guide/quarkus-integration/).
 
 We also provide some useful examples at our 
-[camunda-bpm-examples](https://github.com/camunda/camunda-bpm-examples/tree/master/quarkus-extension) repository.
+[cibseven-quarkus-examples](https://github.com/cibseven/cibseven-quarkus-examples) repository.
 
 ```xml
 <dependency>
   <dependency>
     <groupId>org.cibseven.bpm.quarkus</groupId>
-    <artifactId>camunda-bpm-quarkus-engine</artifactId>
-    <version>${version.camunda}</version><!-- place Camunda version here -->
+    <artifactId>cibseven-bpm-quarkus-engine</artifactId>
+    <version>${version.cibseven}</version><!-- place CIB seven version here -->
   </dependency>
 </dependency>
 ```
 
-To configure a Camunda Platform Quarkus extension, you can use an `application.properties` file. It
+To configure a CIB seven Engine Quarkus extension, you can use an `application.properties` file. It
 can look like the following:
 
 ```properties
