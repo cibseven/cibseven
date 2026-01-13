@@ -25,11 +25,12 @@
   </properties>
 
   <dependencies>
+    <!-- Galleon feature pack dependency to provision Wildfly distro -->
     <dependency>
       <groupId>org.wildfly</groupId>
-      <artifactId>wildfly-dist</artifactId>
+      <artifactId>wildfly-galleon-pack</artifactId>
       <version>${version.wildfly}</version>
-      <type>tar.gz</type>
+      <type>zip</type>
     </dependency>
 
     <dependency>
@@ -126,6 +127,60 @@
 
   <build>
     <plugins>
+      <!-- Galleon Maven Plugin to provision WildFly -->
+      <plugin>
+        <groupId>org.jboss.galleon</groupId>
+        <artifactId>galleon-maven-plugin</artifactId>
+        <version>6.1.1.Final</version>
+        <executions>
+          <execution>
+            <id>provision-wildfly</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>provision</goal>
+            </goals>
+            <configuration>
+              <install-dir>${project.build.directory}/wildfly-provisioned</install-dir>
+              <!-- Create .galleon/ state directory to be able to provision Wildfly-->
+              <record-state>true</record-state>
+              <log-time>true</log-time>
+              <offline>false</offline>
+              <plugin-options>
+                <jboss-maven-dist/> <!-- Use Maven dependency resolution -->
+                <jboss-fork-embedded>true</jboss-fork-embedded> <!-- Run in separate JVM -->
+              </plugin-options>
+              <!-- Feature pack to provision -->
+              <feature-packs>
+                <feature-pack>
+                  <location>org.wildfly:wildfly-galleon-pack:${version.wildfly}</location>
+                  <inherit-configs>false</inherit-configs>
+                  <inherit-packages>false</inherit-packages>
+                </feature-pack>
+              </feature-packs>
+              <!-- Server configuration -->
+              <configurations>
+                <config>
+                  <model>standalone</model>
+                  <name>standalone.xml</name>
+                  <layers>
+                    <!-- Minimal CIB seven layers -->
+                    <layer>core-tools</layer>
+                    <layer>core-server</layer>
+                    <layer>datasources</layer>
+                    <layer>cdi</layer>
+                    <layer>deployment-scanner</layer>
+                    <layer>servlet</layer>
+                    <layer>jaxrs-core</layer>
+                    <layer>ejb</layer>
+                    <layer>jpa</layer>
+                  </layers>
+                </config>
+              </configurations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>

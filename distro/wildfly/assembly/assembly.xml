@@ -19,23 +19,6 @@
       <unpack>true</unpack>
     </dependencySet>
     <dependencySet>
-      <outputDirectory>server</outputDirectory>
-      <includes>
-        <include>org.wildfly:wildfly-dist:tar.gz:${version.wildfly}</include>
-      </includes>
-      <unpack>true</unpack>      
-      <unpackOptions>
-        <excludes>
-          <exclude>**/standalone/configuration/standalone.xml</exclude>        
-          <exclude>**/standalone/configuration/standalone-full.xml</exclude> 
-          <exclude>**/bin/standalone.conf</exclude>
-          <exclude>**/bin/standalone.conf.bat</exclude>
-          <!-- exclude wildfly's shipped version of h2database -->
-          <exclude>**/h2database/**</exclude>
-        </excludes>        
-      </unpackOptions>      
-    </dependencySet>
-    <dependencySet>
       <outputDirectory>lib</outputDirectory>
       <includes>
         <include>org.cibseven.bpm.javaee:cibseven-ejb-client-jakarta:jar:${project.version}</include>
@@ -62,6 +45,18 @@
     </dependencySet>
   </dependencySets>
   <fileSets>
+    <!-- Copy Galleon-provisioned WildFly -->
+    <fileSet>
+      <directory>${project.build.directory}/wildfly-provisioned</directory>
+      <outputDirectory>server/wildfly-${version.wildfly}</outputDirectory>
+      <excludes>
+        <exclude>standalone/configuration/standalone.xml</exclude>
+        <exclude>standalone/configuration/standalone-full.xml</exclude>
+        <exclude>bin/standalone.conf</exclude>
+        <exclude>bin/standalone.conf.bat</exclude>
+      </excludes>
+    </fileSet>
+    
     <fileSet>
       <directory>../modules/target/modules</directory>
       <outputDirectory>modules</outputDirectory>
