@@ -6,7 +6,6 @@
   <dependencies>
     <module name="java.base" />
     <module name="java.scripting" />
-    <module name="sun.jdk" />
     <module name="org.cibseven.spin.cibseven-spin-core" />
     <module name="org.graalvm.js.js" services="export" export="true" />
     <module name="org.graalvm.regex.regex" services="export" export="true" />
