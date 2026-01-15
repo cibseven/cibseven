@@ -19,6 +19,10 @@
     <skip-third-party-bom>false</skip-third-party-bom>
     <!-- json-smart and accessors-smart are runtime dependencies of json-path -->
     <third-party-bom-scopes>compile|runtime</third-party-bom-scopes>
+    
+    <!-- versions to fix CVE-2025-66566-->
+    <version.lz4-java>1.10.1</version.lz4-java>
+    <version.kafka-clients>3.9.1</version.kafka-clients>
   </properties>
   
   <dependencies>
@@ -130,6 +134,20 @@
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
+    </dependency>
+    
+    <!-- Kafka client -->
+    <dependency>
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka-clients</artifactId>
+      <version>3.9.1</version>
+    </dependency>
+
+    <!-- LZ4 (at.yawk) -->
+    <dependency>
+      <groupId>at.yawk.lz4</groupId>
+      <artifactId>lz4-java</artifactId>
+      <version>1.10.1</version>
     </dependency>
 
   </dependencies>
@@ -246,6 +264,24 @@
                   </mapper>
                 </copy>
 
+                <!-- copy Kafka dependencies to module slot -->
+                <delete dir="target/modules/org/apache/kafka/kafka-clients" />
+                <copy todir="target/modules" flatten="false">
+                    <fileset refid="maven.project.dependencies" />
+                    <mapper>
+                        <chainedmapper>
+                            <regexpmapper from="^(.*)/([^/]+)/([^/]*)$$" to="\1/main/\3" handledirsep="yes" />
+                            <regexpmapper 
+                                from="^(org.apache.kafka.*)/((kafka-clients-)[0-9\.]*).*.jar$$" 
+                                to="org/apache/kafka/client/main/\3${version.kafka-clients}.jar" 
+                                handledirsep="yes" />
+                        </chainedmapper>
+                    </mapper>
+                </copy>
+
+                <!-- remove org.lz4 dependency in favor of at.yawk.lz4 -->
+                <delete dir="target/modules/org/lz4" />
+
                 <!-- copy groovy dependencies to single dir -->
                 <delete dir="target/modules/org/apache/groovy" />
                 <copy todir="target/modules" flatten="false">
@@ -299,6 +335,14 @@
                 </replace>
 
                 <replace dir="target/modules" token="@version.jackson@" value="${version.jackson}">
+                  <include name="**/module.xml" />
+                </replace>
+                
+                <replace dir="target/modules" token="@version.lz4-java@" value="${version.lz4-java}">
+                  <include name="**/module.xml" />
+                </replace>
+                
+                <replace dir="target/modules" token="@version.kafka-clients@" value="${version.kafka-clients}">
                   <include name="**/module.xml" />
                 </replace>
 
