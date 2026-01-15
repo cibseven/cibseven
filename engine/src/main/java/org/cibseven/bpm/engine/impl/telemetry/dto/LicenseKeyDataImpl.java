@@ -21,7 +21,9 @@ import java.util.Map;
 import org.cibseven.bpm.engine.telemetry.LicenseKeyData;
 
 import com.google.gson.annotations.SerializedName;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 public class LicenseKeyDataImpl implements LicenseKeyData {
 
   public static final String SERIALIZED_VALID_UNTIL = "valid-until";
@@ -36,6 +38,9 @@ public class LicenseKeyDataImpl implements LicenseKeyData {
   protected Map<String, String> features;
   protected String raw;
 
+  public LicenseKeyDataImpl() {
+  }
+
   public LicenseKeyDataImpl(String customer, String type, String validUntil, Boolean isUnlimited, Map<String, String> features, String raw) {
     this.customer = customer;
     this.type = type;
@@ -46,10 +51,28 @@ public class LicenseKeyDataImpl implements LicenseKeyData {
   }
 
   public static LicenseKeyDataImpl fromRawString(String rawLicense) {
+    ObjectMapper objectMapper = new ObjectMapper();
     String licenseKeyRawString = rawLicense.contains(";") ? rawLicense.split(";", 2)[1] : rawLicense;
-    return new LicenseKeyDataImpl(null, null, null, null, null, licenseKeyRawString);
+    try {
+      return objectMapper.readValue(rawLicense, LicenseKeyDataImpl.class);
+    } catch (JsonProcessingException e) {
+      // no message required?
+      throw new RuntimeException(e.getMessage(), e);
+    }
+    //return new LicenseKeyDataImpl();
   }
 
+  public boolean equals(LicenseKeyDataImpl other) {
+    if (this == other) return true;
+    if (other == null) return false;
+    return java.util.Objects.equals(customer, other.customer)
+        && java.util.Objects.equals(type, other.type)
+        && java.util.Objects.equals(validUntil, other.validUntil)
+        && java.util.Objects.equals(isUnlimited, other.isUnlimited)
+        && java.util.Objects.equals(features, other.features)
+        && java.util.Objects.equals(raw, other.raw);
+  }
+  
   public String getCustomer() {
     return customer;
   }
