@@ -15,7 +15,7 @@
 
   <dependencies>
 
-    <!-- Camunda dependencies -->
+    <!-- CIB seven dependencies -->
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-engine</artifactId>

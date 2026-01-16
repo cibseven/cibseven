@@ -52,7 +52,7 @@
           </systemPropertyVariables>
 
           <dependenciesToScan>
-            <dependency>org.cibseven.bpm:camunda-engine-cdi-jakarta</dependency>
+            <dependency>org.cibseven.bpm:cibseven-engine-cdi-jakarta</dependency>
           </dependenciesToScan>
 
           <excludes>
@@ -70,7 +70,7 @@
   </build>
 
   <dependencies>
-    <!-- Camunda dependencies -->
+    <!-- CIB seven dependencies -->
 
     <dependency>
       <groupId>org.cibseven.bpm.quarkus</groupId>

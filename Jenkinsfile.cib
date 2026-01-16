@@ -11,6 +11,7 @@ import groovy.transform.Field
 
 @Field Logger log = new Logger(this)
 @Field MavenProjectInformation mavenProjectInformation = null
+@Field String mavenLocalRepoRedirected = null
 @Field Map pipelineParams = [
     pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
     mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
@@ -83,7 +84,7 @@ pipeline {
     }
 
     environment {
-        MAVEN_LOCAL_REPO = getLocalJobRepo("${JOB_NAME}", params.USE_PRIVATE_REPO)
+        MAVEN_LOCAL_REPO = getLocalJobRepo(env.JOB_NAME, params.USE_PRIVATE_REPO)
         // set bigger timeout to get rid of the maven issue with file locks: https://github.com/apache/maven/issues/9049
         MAVEN_LOCAL_REPO_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
         // set maven options only if params.USE_PRIVATE_REPO is true, otherwise use shared repo as usual
@@ -132,6 +133,12 @@ pipeline {
                     // https://stackoverflow.com/questions/72978485/git-submodule-update-failed-with-fatal-detected-dubious-ownership-in-repositor
                     sh "git config --global --add safe.directory \$(pwd)"
                 }
+                script {
+                    // if use private repo then try to get a repo template from the pool if possible
+                    if (params.USE_PRIVATE_REPO) {
+                        moveMavenRepoFromPool("${env.MAVEN_LOCAL_REPO}")
+                    }
+                }
             }
         }
 
@@ -144,11 +151,6 @@ pipeline {
             }
             steps {
                 script {
-                    // if use private repo then try to get a repo template from the pool if possible
-                    if (params.USE_PRIVATE_REPO) {
-                        moveMavenRepoFromPool("${env.MAVEN_LOCAL_REPO}")
-                    }
-
                     withMaven(options: []) {
                         sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
                     }
@@ -618,16 +620,16 @@ def getDocsRepoName() {
 }
 
 def getLocalJobRepo(String jobName, boolean usePrivate) {
-    // don't call if env.MAVEN_LOCAL_REPO is already set
-    if (env.MAVEN_LOCAL_REPO != null && env.MAVEN_LOCAL_REPO.endsWith(getJobFolder(jobName))) {
-        return env.MAVEN_LOCAL_REPO
+    // return existing value if it is already set
+    if (mavenLocalRepoRedirected != null && mavenLocalRepoRedirected.endsWith(getJobFolder(jobName))) {
+        return mavenLocalRepoRedirected
     }
 
-    String localJobRepo = getMavenRepository()
+    mavenLocalRepoRedirected = getMavenRepository()
     if (usePrivate) {
-        localJobRepo = localJobRepo + "/cibseven-install-dir/" + getJobFolder(jobName)
+       mavenLocalRepoRedirected = mavenLocalRepoRedirected + "/cibseven-install-dir/" + getJobFolder(jobName)
     }
-    return localJobRepo
+    return mavenLocalRepoRedirected
 }
 
 def getMavenRepository() { 
@@ -641,21 +643,21 @@ def getMavenRepository() {
 def getJobFolder(String jobName) {
     String baseName = jobName.split('/') ? jobName.split('/').last() : ""
     String pathHash = String.format("%04X", (0xFFFF & jobName.hashCode()))
-    return "${baseName}_${pathHash}".replaceAll(' ', '_')
+    return "${baseName}_${pathHash}".replaceAll("[^a-zA-Z0-9._-]", "_")
 }
 
 def moveMavenRepoFromPool(String localRepoPath) {
-    // try to find in the pool: a folder with the same name as the local repo or any existing
+    // Try to find and move from the pool: preferably a folder with the same name as the local repo, otherwise the oldest existing folder
+    echo "Find a suitable template in the pool and move it to the local repo path: '${localRepoPath}'"
     if (localRepoPath != null && localRepoPath.endsWith(getJobFolder("${JOB_NAME}"))) {
-        String poolDir = localRepoPath.substring(0, localRepoPath.lastIndexOf('/')) + "/.pool"
         String baseDir = localRepoPath.split('/').last()
-        String srcPath = sh(script: "find ${poolDir} -maxdepth 1 -mindepth 1 -type d -name '${baseDir}' | head -n 1", returnStdout: true).trim()
-        if (srcPath == null || srcPath.isEmpty()) {
-            srcPath = sh(script: "find ${poolDir} -maxdepth 1 -mindepth 1 -type d | head -n 1", returnStdout: true).trim()
-        }
-        // use already existing repo or move a repo template from the pool, fail if not successful: don't fall to the long-time repo creation
-        if (srcPath != null && !srcPath.isEmpty()) {
-            sh "[ -e '${localRepoPath}' ] || mv -v '${srcPath}' '${localRepoPath}'"
+        String poolDir = localRepoPath.substring(0, localRepoPath.lastIndexOf('/')) + "/.pool"
+        String poolItemOwn = poolDir + "/" + baseDir	
+        String poolItemAny = sh(script: "find ${poolDir} -maxdepth 1 -mindepth 1 -type d -printf '%T+\\t%p\\n' | sort | head -n 1 | cut -f2-", returnStdout: true).trim()
+        // use already existing repo or move a repo template from the pool, prefer own, fail if not successful: don't fall to the long-time repo creation
+        if (poolItemAny != null && !poolItemAny.isEmpty()) {
+            sh "[ -e '${localRepoPath}' ] || mv -v '${poolItemOwn}' '${localRepoPath}' || mv -v '${poolItemAny}' '${localRepoPath}'"
+            sh "touch -c '${localRepoPath}'"
         }
         else {
             echo "WARNING: no suitable repo is found in the pool: will create a new one from scratch. A very long build is expected !!!"
@@ -664,10 +666,9 @@ def moveMavenRepoFromPool(String localRepoPath) {
 }
 
 def moveMavenRepoToPool(String localRepoPath) {
-	echo "Move local repo {$localRepoPath} back to the pool"
+    echo "Move local repo '${localRepoPath}' back to the pool or delete it if the movement fails"
     if (localRepoPath != null && localRepoPath.endsWith(getJobFolder("${JOB_NAME}"))) {
         String poolDir = localRepoPath.substring(0, localRepoPath.lastIndexOf('/')) + "/.pool"
-        String baseDir = localRepoPath.split('/').last()
         sh "[ -e '${localRepoPath}' ] && rm -rf '${localRepoPath}/org/cibseven' && mv -v '${localRepoPath}' '${poolDir}/' || rm -rf '${localRepoPath}'"
     }
 }
