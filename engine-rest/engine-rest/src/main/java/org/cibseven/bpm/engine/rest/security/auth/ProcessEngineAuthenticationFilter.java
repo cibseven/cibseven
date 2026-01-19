@@ -161,8 +161,6 @@ public class ProcessEngineAuthenticationFilter implements Filter {
         }
 
         chain.doFilter(request, response);
-      } catch (Exception e) {
-        e.printStackTrace();
       } finally {
         clearAuthentication(engine);
       }

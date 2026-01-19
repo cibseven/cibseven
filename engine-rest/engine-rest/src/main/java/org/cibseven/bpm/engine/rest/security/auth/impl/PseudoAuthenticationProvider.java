@@ -16,12 +16,11 @@
 */
 package org.cibseven.bpm.engine.rest.security.auth.impl;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.rest.security.auth.AuthenticationProvider;
 import org.cibseven.bpm.engine.rest.security.auth.AuthenticationResult;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
@@ -41,7 +40,6 @@ public class PseudoAuthenticationProvider implements AuthenticationProvider {
     if (userIdHeader == null || userIdHeader.isEmpty()) {
       return AuthenticationResult.successful(null);
     }
-    
     return AuthenticationResult.successful(userIdHeader);
   }
 
