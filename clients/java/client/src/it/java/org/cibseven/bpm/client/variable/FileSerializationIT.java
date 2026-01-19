@@ -16,23 +16,9 @@
  */
 package org.cibseven.bpm.client.variable;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.cibseven.bpm.client.util.ProcessModels.EXTERNAL_TASK_TOPIC_BAR;
-import static org.cibseven.bpm.client.util.ProcessModels.EXTERNAL_TASK_TOPIC_FOO;
-import static org.cibseven.bpm.client.util.ProcessModels.PROCESS_KEY_2;
-import static org.cibseven.bpm.client.util.ProcessModels.TWO_EXTERNAL_TASK_PROCESS;
-import static org.cibseven.bpm.client.util.ProcessModels.USER_TASK_ID;
-import static org.cibseven.bpm.client.util.ProcessModels.createProcessWithExclusiveGateway;
-import static org.cibseven.bpm.engine.variable.type.ValueType.FILE;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.cibseven.bpm.client.ExternalTaskClient;
 import org.cibseven.bpm.client.dto.ProcessDefinitionDto;
 import org.cibseven.bpm.client.dto.ProcessInstanceDto;
@@ -54,12 +40,27 @@ import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.utils.IoUtil;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.RuleChain;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.cibseven.bpm.client.util.ProcessModels.EXTERNAL_TASK_TOPIC_BAR;
+import static org.cibseven.bpm.client.util.ProcessModels.EXTERNAL_TASK_TOPIC_FOO;
+import static org.cibseven.bpm.client.util.ProcessModels.PROCESS_KEY_2;
+import static org.cibseven.bpm.client.util.ProcessModels.TWO_EXTERNAL_TASK_PROCESS;
+import static org.cibseven.bpm.client.util.ProcessModels.USER_TASK_ID;
+import static org.cibseven.bpm.client.util.ProcessModels.createProcessWithExclusiveGateway;
+import static org.cibseven.bpm.engine.variable.type.ValueType.FILE;
+
+@ExtendWith(EngineRule.class)
+@ExtendWith(ClientRule.class)
 public class FileSerializationIT {
 
   protected static final String VARIABLE_NAME_FILE = "fileVariable";
@@ -80,10 +81,6 @@ public class FileSerializationIT {
 
   protected ClientRule clientRule = new ClientRule();
   protected EngineRule engineRule = new EngineRule();
-  protected ExpectedException thrown = ExpectedException.none();
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule).around(thrown);
 
   protected ExternalTaskClient client;
 
@@ -92,7 +89,7 @@ public class FileSerializationIT {
   protected RecordingExternalTaskHandler handler = new RecordingExternalTaskHandler();
   protected RecordingInvocationHandler invocationHandler = new RecordingInvocationHandler();
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     client = clientRule.client();
     processDefinition = engineRule.deploy(TWO_EXTERNAL_TASK_PROCESS).get(0);
@@ -570,12 +567,12 @@ public class FileSerializationIT {
     ExternalTask fooTask = invocation.getExternalTask();
     ExternalTaskService fooService = invocation.getExternalTaskService();
 
-    client.subscribe(EXTERNAL_TASK_TOPIC_BAR)
-      .handler(handler)
-      .open();
 
     // then
-    thrown.expect(ValueMapperException.class);
+    assertThatThrownBy(() ->
+            client.subscribe(EXTERNAL_TASK_TOPIC_BAR)
+                    .handler(handler)
+                    .open()).isInstanceOf(ValueMapperException.class);
 
     // when
     Map<String, Object> variables = new HashMap<>();

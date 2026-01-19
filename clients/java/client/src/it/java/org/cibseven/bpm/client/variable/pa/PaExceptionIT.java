@@ -16,6 +16,10 @@
  */
 package org.cibseven.bpm.client.variable.pa;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.cibseven.bpm.client.ExternalTaskClient;
 import org.cibseven.bpm.client.dto.HistoricProcessInstanceDto;
 import org.cibseven.bpm.client.dto.ProcessInstanceDto;
@@ -31,11 +35,6 @@ import org.cibseven.bpm.client.task.impl.ExternalTaskImpl;
 import org.cibseven.bpm.client.util.RecordingExternalTaskHandler;
 import org.cibseven.bpm.client.util.RecordingInvocationHandler;
 import org.cibseven.bpm.client.util.RecordingInvocationHandler.RecordedInvocation;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +47,8 @@ import static org.cibseven.bpm.client.util.PropertyUtil.CAMUNDA_ENGINE_REST;
 import static org.cibseven.bpm.client.util.PropertyUtil.DEFAULT_PROPERTIES_PATH;
 import static org.cibseven.bpm.client.util.PropertyUtil.loadProperties;
 
+@ExtendWith(EngineRule.class)
+@ExtendWith(ClientRule.class)
 public class PaExceptionIT {
 
   protected static final String ENGINE_NAME = "/engine/another-engine";
@@ -69,9 +70,6 @@ public class PaExceptionIT {
     return properties;
   });
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule);
-
   protected ExternalTaskClient client;
 
   protected List<ProcessInstanceDto> processInstances = new ArrayList<>();
@@ -79,7 +77,7 @@ public class PaExceptionIT {
   protected RecordingExternalTaskHandler handler = new RecordingExternalTaskHandler();
   protected RecordingInvocationHandler invocationHandler = new RecordingInvocationHandler();
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     client = clientRule.client();
 
@@ -90,7 +88,7 @@ public class PaExceptionIT {
     invocationHandler.clear();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processInstances.forEach(processInstance -> {
       String processInstanceId = processInstance.getId();

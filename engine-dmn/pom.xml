@@ -20,7 +20,6 @@
 
   <dependencyManagement>
     <dependencies>
-
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-core-internal-dependencies</artifactId>

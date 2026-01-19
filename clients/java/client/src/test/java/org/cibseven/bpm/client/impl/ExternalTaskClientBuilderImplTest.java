@@ -23,10 +23,10 @@ import static org.mockito.Mockito.verify;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.core5.util.Timeout;
+import org.junit.jupiter.api.Test;
 import org.cibseven.bpm.client.ExternalTaskClient;
 import org.cibseven.bpm.client.UrlResolver;
 import org.cibseven.bpm.engine.impl.util.ReflectUtil;
-import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 public class ExternalTaskClientBuilderImplTest {
