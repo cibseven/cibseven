@@ -82,7 +82,6 @@ public class CamundaBpmRunRestConfiguration {
     // if nothing is set, use Http Basic authentication
     CamundaBpmRunAuthenticationProperties properties = camundaBpmRunProperties.getAuth();
     if (properties.getAuthentication() == null || CamundaBpmRunAuthenticationProperties.DEFAULT_AUTH.equals(properties.getAuthentication())) {
-      urlPatterns = new String[] { addUrl(restApiPathPattern, "/*") };
     	registration.addInitParameter("authentication-provider", PseudoAuthenticationProvider.class.getName());
     } else if (CamundaBpmRunAuthenticationProperties.COMPOSITE_AUTH.equals(properties.getAuthentication())) {
     	registration.addInitParameter("authentication-provider", CompositeAuthenticationProvider.class.getName());
