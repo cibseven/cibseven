@@ -42,10 +42,10 @@ public class PseudoAuthenticationProvider implements AuthenticationProvider {
 
    // regexes for urls that should be pseudo-authenticated
   protected static final Pattern[] PSEUDO_AUTHENTICATED_URL_PATTERNS = new Pattern[] {
-    Pattern.compile("^" + FilterRestService.PATH + "/?"),
+    Pattern.compile("^" + FilterRestService.PATH + "/?.*"),
     Pattern.compile("^" + ProcessDefinitionRestService.PATH + "/key/?/start"),
     Pattern.compile("^" + ProcessDefinitionRestService.PATH + "/key/?/submit-form"),
-    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/?" + FilterRestService.PATH + "/?"),
+    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/?" + FilterRestService.PATH + "/?.*"),
     Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/?" + ProcessDefinitionRestService.PATH + "/key/?/start"),
     Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/?" + ProcessDefinitionRestService.PATH + "/key/?/submit-form"),
   };
