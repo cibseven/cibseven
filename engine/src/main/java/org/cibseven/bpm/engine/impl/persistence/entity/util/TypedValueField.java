@@ -24,7 +24,6 @@ import org.cibseven.bpm.application.AbstractProcessApplication;
 import org.cibseven.bpm.application.ProcessApplicationInterface;
 import org.cibseven.bpm.application.ProcessApplicationReference;
 import org.cibseven.bpm.application.ProcessApplicationUnavailableException;
-import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.db.DbEntityLifecycleAware;

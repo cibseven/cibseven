@@ -19,8 +19,6 @@ package org.cibseven.bpm.engine.test.api.multitenancy.cmmn;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.delegate.DelegateCaseExecution;
-import org.cibseven.bpm.engine.repository.CaseDefinition;
-import org.cibseven.bpm.engine.runtime.CaseInstance;
 import org.cibseven.bpm.engine.test.api.multitenancy.listener.AssertingCaseExecutionListener;
 import org.cibseven.bpm.engine.test.api.multitenancy.listener.AssertingCaseExecutionListener.DelegateCaseExecutionAsserter;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;

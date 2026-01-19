@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.errorcode.conf;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import org.assertj.core.api.ThrowableAssert;
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.RuntimeService;
@@ -34,10 +36,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.catchThrowable;
 
 public class ExceptionCodeDisabledTest {
 

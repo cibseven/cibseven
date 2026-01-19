@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.Condition;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParse;

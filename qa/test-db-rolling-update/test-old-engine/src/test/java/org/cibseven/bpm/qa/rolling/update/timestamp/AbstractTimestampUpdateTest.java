@@ -16,17 +16,10 @@
  */
 package org.cibseven.bpm.qa.rolling.update.timestamp;
 
-import org.cibseven.bpm.engine.ExternalTaskService;
-import org.cibseven.bpm.engine.HistoryService;
-import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.ManagementService;
-import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.RuntimeService;
-import org.cibseven.bpm.engine.TaskService;
-import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.junit.Before;
-import org.junit.Rule;
 
 import java.util.Date;
 

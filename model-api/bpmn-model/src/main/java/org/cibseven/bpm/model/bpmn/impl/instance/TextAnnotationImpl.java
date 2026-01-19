@@ -21,7 +21,6 @@ import static org.cibseven.bpm.model.bpmn.impl.BpmnModelConstants.BPMN_ATTRIBUTE
 import static org.cibseven.bpm.model.bpmn.impl.BpmnModelConstants.BPMN_ELEMENT_TEXT_ANNOTATION;
 
 import org.cibseven.bpm.model.bpmn.instance.Artifact;
-import org.cibseven.bpm.model.bpmn.instance.Script;
 import org.cibseven.bpm.model.bpmn.instance.Text;
 import org.cibseven.bpm.model.bpmn.instance.TextAnnotation;
 import org.cibseven.bpm.model.xml.ModelBuilder;

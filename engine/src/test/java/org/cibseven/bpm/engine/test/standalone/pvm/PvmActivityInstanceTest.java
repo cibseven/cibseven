@@ -27,8 +27,6 @@ import org.cibseven.bpm.engine.impl.pvm.ProcessDefinitionBuilder;
 import org.cibseven.bpm.engine.impl.pvm.PvmExecution;
 import org.cibseven.bpm.engine.impl.pvm.PvmProcessDefinition;
 import org.cibseven.bpm.engine.impl.pvm.PvmProcessInstance;
-import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
-import org.cibseven.bpm.engine.impl.pvm.process.ProcessDefinitionImpl;
 import org.cibseven.bpm.engine.impl.pvm.runtime.ExecutionImpl;
 import org.cibseven.bpm.engine.test.standalone.pvm.activities.Automatic;
 import org.cibseven.bpm.engine.test.standalone.pvm.activities.EmbeddedSubProcess;

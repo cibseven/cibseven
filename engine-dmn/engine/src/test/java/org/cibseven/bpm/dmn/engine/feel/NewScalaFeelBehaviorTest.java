@@ -28,7 +28,6 @@ import org.cibseven.bpm.dmn.engine.test.DecisionResource;
 import org.cibseven.bpm.dmn.engine.test.DmnEngineTest;
 import org.cibseven.bpm.dmn.feel.impl.scala.ScalaFeelEngineFactory;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

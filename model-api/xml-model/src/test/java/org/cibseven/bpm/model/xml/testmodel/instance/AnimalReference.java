@@ -21,7 +21,6 @@ import static org.cibseven.bpm.model.xml.testmodel.TestModelConstants.*;
 import org.cibseven.bpm.model.xml.ModelBuilder;
 import org.cibseven.bpm.model.xml.impl.instance.ModelElementInstanceImpl;
 import org.cibseven.bpm.model.xml.impl.instance.ModelTypeInstanceContext;
-import org.cibseven.bpm.model.xml.testmodel.TestModelConstants;
 import org.cibseven.bpm.model.xml.type.ModelElementTypeBuilder;
 import org.cibseven.bpm.model.xml.type.ModelElementTypeBuilder.ModelTypeInstanceProvider;
 import org.cibseven.bpm.model.xml.type.attribute.Attribute;

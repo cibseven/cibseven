@@ -20,7 +20,6 @@ import static org.cibseven.bpm.engine.impl.util.DecisionEvaluationUtil.evaluateD
 
 import org.cibseven.bpm.engine.impl.cmmn.entity.runtime.CaseExecutionEntity;
 import org.cibseven.bpm.engine.impl.cmmn.execution.CmmnActivityExecution;
-import org.cibseven.bpm.engine.impl.core.variable.scope.AbstractVariableScope;
 import org.cibseven.bpm.engine.impl.dmn.result.DecisionResultMapper;
 
 /**

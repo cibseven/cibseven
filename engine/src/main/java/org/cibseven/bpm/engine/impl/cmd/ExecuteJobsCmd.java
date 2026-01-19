@@ -29,7 +29,6 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
-import org.cibseven.bpm.engine.impl.interceptor.ProcessDataContext;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutorContext;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutorLogger;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobFailureCollector;
