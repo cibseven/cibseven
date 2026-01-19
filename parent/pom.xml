@@ -55,6 +55,8 @@
     <version.mockito>5.17.0</version.mockito>
     <version.wiremock>2.27.2</version.wiremock>
     <version.testcontainers>1.20.5</version.testcontainers>
+    <!-- TODO: update to 3.1.2?  
+		<version>3.1.2</version> -->
     <version.surefire>3.0.0-M5</version.surefire>
     <version.unirest-java>2.3.10</version.unirest-java>
 
