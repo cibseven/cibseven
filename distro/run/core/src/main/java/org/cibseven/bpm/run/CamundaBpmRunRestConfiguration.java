@@ -79,7 +79,7 @@ public class CamundaBpmRunRestConfiguration {
     String[] urlPatterns = new String[] { addUrl(restApiPathPattern, "/*") };
     registration.setAsyncSupported(true);
 
-    // if nothing is set, use Http Basic authentication
+    // if nothing is set or DEFAULT_AUTH is configured, use pseudo (header-based) authentication
     CamundaBpmRunAuthenticationProperties properties = camundaBpmRunProperties.getAuth();
     if (properties.getAuthentication() == null || CamundaBpmRunAuthenticationProperties.DEFAULT_AUTH.equals(properties.getAuthentication())) {
     	registration.addInitParameter("authentication-provider", PseudoAuthenticationProvider.class.getName());
