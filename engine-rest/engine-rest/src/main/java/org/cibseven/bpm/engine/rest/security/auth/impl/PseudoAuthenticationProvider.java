@@ -16,16 +16,10 @@
 */
 package org.cibseven.bpm.engine.rest.security.auth.impl;
 
-import java.util.Arrays;
-import java.util.regex.Pattern;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.cibseven.bpm.engine.ProcessEngine;
-import org.cibseven.bpm.engine.rest.impl.NamedProcessEngineRestServiceImpl;
-import org.cibseven.bpm.engine.rest.ProcessDefinitionRestService;
-import org.cibseven.bpm.engine.rest.FilterRestService;
 import org.cibseven.bpm.engine.rest.security.auth.AuthenticationProvider;
 import org.cibseven.bpm.engine.rest.security.auth.AuthenticationResult;
 
@@ -40,45 +34,15 @@ public class PseudoAuthenticationProvider implements AuthenticationProvider {
 
   protected static final String USER_ID_HEADER = "Context-User-ID";
 
-   // regexes for urls that should be pseudo-authenticated
-  protected static final Pattern[] PSEUDO_AUTHENTICATED_URL_PATTERNS = new Pattern[] {
-    Pattern.compile("^" + FilterRestService.PATH + "/?.*"),
-    Pattern.compile("^" + ProcessDefinitionRestService.PATH + "/key/?/start"),
-    Pattern.compile("^" + ProcessDefinitionRestService.PATH + "/key/?/submit-form"),
-    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/?" + FilterRestService.PATH + "/?.*"),
-    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/?" + ProcessDefinitionRestService.PATH + "/key/?/start"),
-    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/?" + ProcessDefinitionRestService.PATH + "/key/?/submit-form"),
-  };
-
   @Override
   public AuthenticationResult extractAuthenticatedUser(HttpServletRequest request,
       ProcessEngine engine) {
-        
     String userIdHeader = request.getHeader(USER_ID_HEADER);
     if (userIdHeader == null || userIdHeader.isEmpty()) {
-      System.out.println("No user id header present, skipping pseudo-authentication");
       return AuthenticationResult.successful(null);
     }
     
-    String path = request.getRequestURI().substring(request.getContextPath().length());
-    
-    if (requiresPseudoAuthentication(path)) {
-      System.out.println("Pseudo-authenticating user from header: " + userIdHeader);
-      return AuthenticationResult.successful(userIdHeader);
-    }
-
-    System.out.println("Request URL does not require pseudo-authentication: " + path);
-    return AuthenticationResult.successful(null);
-
-  }
-
-  public static boolean requiresPseudoAuthentication(String requestUrl) {
-    return Arrays.stream(PSEUDO_AUTHENTICATED_URL_PATTERNS)
-        .anyMatch(pattern -> {
-          boolean matches = pattern.matcher(requestUrl).matches();
-          System.out.println("Checking pseudo-authentication for pattern " + pattern.pattern() + " and requestUrl " + requestUrl + ": " + matches);
-          return matches;
-        });
+    return AuthenticationResult.successful(userIdHeader);
   }
 
   @Override
