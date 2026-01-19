@@ -9,7 +9,7 @@
     </properties>
 
     <resources>
-        <resource-root path="kafka-clients-3.9.1.jar"/>
+        <resource-root path="kafka-clients-@version.kafka-clients@.jar"/>
     </resources>
 
     <dependencies>
