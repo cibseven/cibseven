@@ -155,8 +155,17 @@ public class ProcessEngineAuthenticationFilter implements Filter {
         String authenticatedUser = authenticationResult.getAuthenticatedUser();
         List<String> groups = authenticationResult.getGroups();
         List<String> tenants = authenticationResult.getTenants();
-        setAuthenticatedUser(engine, authenticatedUser, groups, tenants);
+
+        System.out.println("Authenticating user: " + authenticatedUser + " for engine " + engineName);
+
+        if (authenticatedUser != null) {
+          System.out.println("User " + authenticatedUser + " authenticated for engine " + engineName);
+          setAuthenticatedUser(engine, authenticatedUser, groups, tenants);
+        }
+
         chain.doFilter(request, response);
+      } catch (Exception e) {
+        e.printStackTrace();
       } finally {
         clearAuthentication(engine);
       }
