@@ -16,7 +16,6 @@
  */
 package org.cibseven.bpm.identity.impl.scim.util;
 
-import org.cibseven.bpm.engine.impl.db.DbEntity;
 import org.cibseven.commons.logging.BaseLogger;
 
 /**

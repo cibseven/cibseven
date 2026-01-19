@@ -20,17 +20,25 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.Timeout;
 import org.cibseven.bpm.engine.impl.identity.IdentityProviderException;
 import org.cibseven.bpm.identity.impl.scim.util.ScimPluginLogger;
+import org.cibseven.bpm.identity.impl.scim.ScimConfiguration;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -43,6 +51,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * HTTP client for SCIM API operations.
@@ -63,17 +72,23 @@ public class ScimClient {
 
   protected void initializeHttpClient() {
     try {
-      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+      PoolingHttpClientConnectionManagerBuilder connectionManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create();
+      if (configuration.isAcceptUntrustedCertificates()) {
+          SSLContext sslContext = createTrustAllSSLContext();
+          SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(
+              sslContext, NoopHostnameVerifier.INSTANCE);
+          connectionManagerBuilder.setSSLSocketFactory(sslSocketFactory);       
+      }
+      
+      ConnectionConfig connectionConfig = ConnectionConfig.custom()
+        .setConnectTimeout(configuration.getConnectionTimeout(), TimeUnit.MILLISECONDS)
+        .setSocketTimeout(configuration.getSocketTimeout(), TimeUnit.MILLISECONDS)
+        .build();
+      
+      PoolingHttpClientConnectionManager connectionManager = connectionManagerBuilder.build();
+      connectionManager.setDefaultConnectionConfig(connectionConfig);
       connectionManager.setMaxTotal(configuration.getMaxConnections());
       connectionManager.setDefaultMaxPerRoute(configuration.getMaxConnections());
-
-      if (configuration.isAcceptUntrustedCertificates()) {
-        SSLContext sslContext = createTrustAllSSLContext();
-        SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(
-            sslContext, NoopHostnameVerifier.INSTANCE);
-        connectionManager.setSSLSocketFactory(sslSocketFactory);
-      }
-
       httpClient = HttpClients.custom()
           .setConnectionManager(connectionManager)
           .build();
@@ -162,6 +177,7 @@ public class ScimClient {
     return executeGet(url, false);
   }
 
+  @SuppressWarnings("deprecation")
   protected JsonNode executeGet(String url, boolean isRetry) {
     HttpGet request = new HttpGet(url);
     addAuthenticationHeader(request);
@@ -231,6 +247,7 @@ public class ScimClient {
     }
   }
 
+  @SuppressWarnings("deprecation")
   protected void refreshOAuth2Token() {
     if (configuration.getOauth2TokenUrl() == null) {
       throw new IdentityProviderException("OAuth2 token URL not configured");
