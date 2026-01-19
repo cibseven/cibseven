@@ -32,8 +32,6 @@
     <module name="org.graalvm.sdk.graal-sdk" services="import"/>
     <module name="org.graalvm.truffle.truffle-api" services="import"/>
 
-    <module name="sun.jdk" services="import"/>
-
     <module name="org.cibseven.bpm.model.cibseven-xml-model" />
     <module name="org.cibseven.bpm.model.cibseven-bpmn-model" />
     <module name="org.cibseven.bpm.model.cibseven-cmmn-model" />
