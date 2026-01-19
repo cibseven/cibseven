@@ -82,12 +82,12 @@ public class CamundaBpmRunRestConfiguration {
     // if nothing is set or DEFAULT_AUTH is configured, use pseudo (header-based) authentication
     CamundaBpmRunAuthenticationProperties properties = camundaBpmRunProperties.getAuth();
     if (properties.getAuthentication() == null || CamundaBpmRunAuthenticationProperties.DEFAULT_AUTH.equals(properties.getAuthentication())) {
-    	registration.addInitParameter("authentication-provider", PseudoAuthenticationProvider.class.getName());
+      registration.addInitParameter("authentication-provider", PseudoAuthenticationProvider.class.getName());
     } else if (CamundaBpmRunAuthenticationProperties.COMPOSITE_AUTH.equals(properties.getAuthentication())) {
-    	registration.addInitParameter("authentication-provider", CompositeAuthenticationProvider.class.getName());
+      registration.addInitParameter("authentication-provider", CompositeAuthenticationProvider.class.getName());
     } else if (CamundaBpmRunAuthenticationProperties.BASIC_AUTH.equals(properties.getAuthentication())) {
-    	registration.addInitParameter("authentication-provider", HttpBasicAuthenticationProvider.class.getName());
-	}
+      registration.addInitParameter("authentication-provider", HttpBasicAuthenticationProvider.class.getName());
+    }
     
     registration.addUrlPatterns(urlPatterns);
     return registration;
