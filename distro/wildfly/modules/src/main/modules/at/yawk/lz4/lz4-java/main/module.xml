@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ~ Copyright The WildFly Authors
-  ~ SPDX-License-Identifier: Apache-2.0
-  -->
+<!-- custom module to fix CVE-2025-66566 -->
 <module name="at.yawk.lz4.lz4-java" xmlns="urn:jboss:module:1.9">
 
     <properties>
