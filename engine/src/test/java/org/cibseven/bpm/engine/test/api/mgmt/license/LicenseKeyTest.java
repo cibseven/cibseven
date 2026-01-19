@@ -69,7 +69,7 @@ public class LicenseKeyTest {
   @Test
   public void shouldSetLicenseKey() {
     // given
-    String licenseKey = "testLicenseKey";
+    String licenseKey = "{\"customer\":\"testCompany\"}";
 
     // when
     managementService.setLicenseKey(licenseKey);
@@ -90,7 +90,7 @@ public class LicenseKeyTest {
   @Test
   public void shouldGetLicenseKey() {
     // given
-    String licenseKey = "testLicenseKey";
+    String licenseKey = "{\"customer\":\"testCompany\"}";
 
     // when
     managementService.setLicenseKey(licenseKey);
@@ -128,7 +128,7 @@ public class LicenseKeyTest {
   @Test
   public void shouldDeleteLicenseKey() {
     // given
-    String licenseKey = "testLicenseKey";
+    String licenseKey = "{\"customer\":\"testCompany\"}";
 
     // when
     managementService.setLicenseKey(licenseKey);
@@ -146,7 +146,7 @@ public class LicenseKeyTest {
   @Test
   public void shouldDeleteLegacyLicenseKey() {
     // given
-    String legacyLicenseKey = "testLegacyLicenseKey";
+    String legacyLicenseKey = "{\"customer\":\"legacy testCompany\"}";
     managementService.setProperty(LicenseCmd.LICENSE_KEY_PROPERTY_NAME, legacyLicenseKey);
 
     // when
@@ -178,8 +178,8 @@ public class LicenseKeyTest {
   @Test
   public void shouldUpdateLicenseKey() {
     // given
-    String licenseKey = "testLicenseKey";
-    String licenseKey2 = "testLicenseKey2";
+    String licenseKey = "{\"customer\":\"testCompany\"}";
+    String licenseKey2 = "{\"customer\":\"testCompany2\"}";
 
     // when
     managementService.setLicenseKey(licenseKey);
@@ -196,8 +196,8 @@ public class LicenseKeyTest {
   @Test
   public void shouldUpdateLegacyLicenseKey() {
     // given
-    String legacyLicenseKey = "testLegacyLicenseKey";
-    String licenseKey = "testLicenseKey";
+    String legacyLicenseKey = "{\"customer\":\"legacy testCompany\"}";
+    String licenseKey = "{\"customer\":\"testCompany\"}";
     managementService.setProperty(LicenseCmd.LICENSE_KEY_PROPERTY_NAME, legacyLicenseKey);
 
     // when
@@ -221,7 +221,7 @@ public class LicenseKeyTest {
   @Test
   public void shouldUpdateDuplicateLicenseKey() {
     // given
-    String licenseKey = "testLicenseKey";
+    String licenseKey = "{\"customer\":\"testCompany\"}";
 
     // when
     managementService.setLicenseKey(licenseKey);

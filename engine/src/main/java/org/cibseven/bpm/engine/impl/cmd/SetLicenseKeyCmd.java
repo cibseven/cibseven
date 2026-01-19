@@ -63,7 +63,7 @@ public class SetLicenseKeyCmd extends LicenseCmd implements Command<Object> {
     LicenseKeyDataImpl currentLicenseData = managementService.getLicenseKeyFromDiagnostics();
     // only report license body without signature
     LicenseKeyDataImpl licenseKeyData = LicenseKeyDataImpl.fromRawString(licenseKey);
-    if (currentLicenseData == null || !licenseKeyData.getRaw().equals(currentLicenseData.getRaw())) {
+    if (currentLicenseData == null || !licenseKeyData.equals(currentLicenseData)) {
       managementService.setLicenseKeyForDiagnostics(licenseKeyData);
     }
 

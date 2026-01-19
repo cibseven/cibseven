@@ -21,8 +21,8 @@ import java.util.Map;
 import org.cibseven.bpm.engine.telemetry.LicenseKeyData;
 
 import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 public class LicenseKeyDataImpl implements LicenseKeyData {
 
@@ -32,10 +32,12 @@ public class LicenseKeyDataImpl implements LicenseKeyData {
   protected String customer;
   protected String type;
   @SerializedName(value = SERIALIZED_VALID_UNTIL)
+  @JsonProperty("expires")
   protected String validUntil;
   @SerializedName(value = SERIALIZED_IS_UNLIMITED)
   protected Boolean isUnlimited;
   protected Map<String, String> features;
+  @JsonProperty("signature")
   protected String raw;
 
   public LicenseKeyDataImpl() {
@@ -52,9 +54,10 @@ public class LicenseKeyDataImpl implements LicenseKeyData {
 
   public static LicenseKeyDataImpl fromRawString(String rawLicense) {
     ObjectMapper objectMapper = new ObjectMapper();
-    String licenseKeyRawString = rawLicense.contains(";") ? rawLicense.split(";", 2)[1] : rawLicense;
     try {
-      return objectMapper.readValue(rawLicense, LicenseKeyDataImpl.class);
+      LicenseKeyDataImpl resultLicense = objectMapper.readValue(rawLicense, LicenseKeyDataImpl.class);
+      resultLicense.setRaw(null);
+      return resultLicense;
     } catch (JsonProcessingException e) {
       // no message required?
       throw new RuntimeException(e.getMessage(), e);
