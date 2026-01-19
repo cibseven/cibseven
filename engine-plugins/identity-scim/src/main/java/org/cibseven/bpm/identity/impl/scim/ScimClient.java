@@ -34,6 +34,7 @@ import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.Timeout;
 import org.cibseven.bpm.engine.impl.identity.IdentityProviderException;
@@ -74,10 +75,15 @@ public class ScimClient {
     try {
       PoolingHttpClientConnectionManagerBuilder connectionManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create();
       if (configuration.isAcceptUntrustedCertificates()) {
-          SSLContext sslContext = createTrustAllSSLContext();
-          SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(
-              sslContext, NoopHostnameVerifier.INSTANCE);
-          connectionManagerBuilder.setSSLSocketFactory(sslSocketFactory);       
+        try {
+            SSLContext sslContext = createTrustAllSSLContext();
+            SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(
+                sslContext, NoopHostnameVerifier.INSTANCE);
+            connectionManagerBuilder.setSSLSocketFactory(sslSocketFactory);
+        }
+        catch (KeyManagementException | NoSuchAlgorithmException e) {
+          throw new Exception("Failed to initialize trust-all ssl context", e);
+        }
       }
       
       ConnectionConfig connectionConfig = ConnectionConfig.custom()
@@ -197,7 +203,7 @@ public class ScimClient {
         ScimPluginLogger.INSTANCE.scimRequestError(statusCode, responseBody);
         throw new IdentityProviderException("SCIM request failed with status: " + statusCode);
       }
-    } catch (IOException e) {
+    } catch (IOException | ParseException e) {
       ScimPluginLogger.INSTANCE.httpClientException("GET " + url, e);
       throw new IdentityProviderException("SCIM HTTP request failed", e);
     }
@@ -281,7 +287,7 @@ public class ScimClient {
         ScimPluginLogger.INSTANCE.authenticationFailure("OAuth2 token request failed with status: " + statusCode);
         throw new IdentityProviderException("OAuth2 token request failed");
       }
-    } catch (IOException e) {
+    } catch (IOException | ParseException e) {
       ScimPluginLogger.INSTANCE.httpClientException("OAuth2 token refresh", e);
       throw new IdentityProviderException("OAuth2 token refresh failed", e);
     }
