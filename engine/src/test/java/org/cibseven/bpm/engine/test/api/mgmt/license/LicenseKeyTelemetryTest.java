@@ -67,7 +67,6 @@ public class LicenseKeyTelemetryTest {
     managementService.setLicenseKey(licenseKey);
 
     // then
-    assertThat(telemetryRegistry.getLicenseKey().getRaw()).isEqualTo("signature_code");
     assertThat(telemetryRegistry.getLicenseKey().getCustomer()).isEqualTo("Licensed company");
     assertThat(telemetryRegistry.getLicenseKey().getValidUntil()).isEqualTo("2026-12-31");
   }
@@ -76,7 +75,7 @@ public class LicenseKeyTelemetryTest {
   public void shouldNotOverrideSameLicenseKeyInTelemetryRegistry() {
     // given
 	String licenseKey = "{\"expires\":\"2026-12-31\",\"signature\":\"signature_code\",\"customer\":\"Licensed company\"}";
-	LicenseKeyDataImpl licenseKeyData = new LicenseKeyDataImpl("Licensed company", null, "2026-12-31",  null, null, "signature_code");
+	LicenseKeyDataImpl licenseKeyData = new LicenseKeyDataImpl("Licensed company", null, "2026-12-31",  null, null, null);
     telemetryRegistry.setLicenseKey(licenseKeyData);
 
     // when
@@ -90,7 +89,7 @@ public class LicenseKeyTelemetryTest {
   public void shouldNotOverrideSameMultipartLicenseKeyInTelemetryRegistry() {
     // given
 	String licenseKey = "{\"expires\":\"2026-12-31\",\"signature\":\"signature_code\",\"customer\":\"Licensed company\"}";
-	LicenseKeyDataImpl licenseKeyData = new LicenseKeyDataImpl("Licensed company", null, "2026-12-31",  null, null, "signature_code");
+	LicenseKeyDataImpl licenseKeyData = new LicenseKeyDataImpl("Licensed company", null, "2026-12-31",  null, null, null);
     telemetryRegistry.setLicenseKey(licenseKeyData);
 
     // when

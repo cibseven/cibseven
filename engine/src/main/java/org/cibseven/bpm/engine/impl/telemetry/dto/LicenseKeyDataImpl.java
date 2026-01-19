@@ -20,24 +20,23 @@ import java.util.Map;
 
 import org.cibseven.bpm.engine.telemetry.LicenseKeyData;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 public class LicenseKeyDataImpl implements LicenseKeyData {
 
-  public static final String SERIALIZED_VALID_UNTIL = "valid-until";
+  public static final String SERIALIZED_EXPIRES = "expires";
   public static final String SERIALIZED_IS_UNLIMITED = "unlimited";
+  public static final String SERIALIZED_SIGNATURE = "signature";
 
   protected String customer;
   protected String type;
-  @SerializedName(value = SERIALIZED_VALID_UNTIL)
-  @JsonProperty("expires")
+  @SerializedName(value = SERIALIZED_EXPIRES)
   protected String validUntil;
   @SerializedName(value = SERIALIZED_IS_UNLIMITED)
   protected Boolean isUnlimited;
   protected Map<String, String> features;
-  @JsonProperty("signature")
+  @SerializedName(value = SERIALIZED_SIGNATURE)
   protected String raw;
 
   public LicenseKeyDataImpl() {
@@ -53,16 +52,14 @@ public class LicenseKeyDataImpl implements LicenseKeyData {
   }
 
   public static LicenseKeyDataImpl fromRawString(String rawLicense) {
-    ObjectMapper objectMapper = new ObjectMapper();
     try {
-      LicenseKeyDataImpl resultLicense = objectMapper.readValue(rawLicense, LicenseKeyDataImpl.class);
+      LicenseKeyDataImpl resultLicense = new Gson().fromJson(rawLicense, LicenseKeyDataImpl.class);
       resultLicense.setRaw(null);
       return resultLicense;
-    } catch (JsonProcessingException e) {
+    } catch (JsonSyntaxException e) {
       // no message required?
       throw new RuntimeException(e.getMessage(), e);
     }
-    //return new LicenseKeyDataImpl();
   }
 
   public boolean equals(LicenseKeyDataImpl other) {
