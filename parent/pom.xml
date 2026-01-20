@@ -68,9 +68,6 @@
     <version.wildfly28>28.0.1.Final</version.wildfly28>
     <version.wildfly28.core>20.0.2.Final</version.wildfly28.core>
 
-    <version.wildfly26>26.0.1.Final</version.wildfly26>
-    <version.wildfly26.core>18.0.4.Final</version.wildfly26.core>
-
     <version.tomcat9>9.0.110</version.tomcat9>
     <version.tomcat>10.1.49</version.tomcat>
 
