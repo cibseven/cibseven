@@ -1,16 +1,15 @@
 ---
 artifact: ${project.groupId}:${project.artifactId}:${project.version}
-name: "Camunda Platform 7 Engine"
-description: "Quarkus Extension for the Camunda Platform 7 Engine"
+name: "CIB seven Engine"
+description: "Quarkus Extension for the CIB seven Engine"
 metadata:
   keywords:
-    - "camunda"
-    - "camunda-7"
-    - "camunda-platform-7"
+    - "cibseven"
+    - "cibseven-bpm-engine"
     - "processes"
     - "decisions"
     - "bpmn"
     - "dmn"
-  guide: "https://docs.camunda.org/manual/latest/user-guide/quarkus-integration/"
+  guide: "https://docs.cibseven.org/manual/latest/user-guide/quarkus-integration/"
   categories:
     - "business-automation"
