@@ -49,6 +49,7 @@
 
     <version.slf4j>1.7.26</version.slf4j>
     <version.logback>1.2.13</version.logback>
+    <version.log4j2>2.25.3</version.log4j2>
     <version.junit>4.13.1</version.junit>
     <version.assertj>2.9.1</version.assertj>
     <version.mockito>5.17.0</version.mockito>
@@ -61,8 +62,8 @@
     <version.bouncycastle>1.47</version.bouncycastle>
 
     <!-- application servers -->
-    <version.wildfly>37.0.0.Final</version.wildfly>
-    <version.wildfly.core>29.0.0.Final</version.wildfly.core>
+    <version.wildfly>37.0.1.Final</version.wildfly>
+    <version.wildfly.core>29.0.1.Final</version.wildfly.core>
     
     <version.wildfly28>28.0.1.Final</version.wildfly28>
     <version.wildfly28.core>20.0.2.Final</version.wildfly28.core>
@@ -143,6 +144,28 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
         <version>${version.commons-lang3}</version>
+      </dependency>
+
+      <!-- Override Log4j version to fix CVE-2025-68161 -->
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-api</artifactId>
+        <version>${version.log4j2}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
+        <version>${version.log4j2}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-slf4j-impl</artifactId>
+        <version>${version.log4j2}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-to-slf4j</artifactId>
+        <version>${version.log4j2}</version>
       </dependency>
 
     </dependencies>

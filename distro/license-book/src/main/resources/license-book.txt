@@ -1778,28 +1778,28 @@ url: https://hc.apache.org/httpcomponents-core-5.3.x/5.3.5/httpcore5/
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.logging.log4j:log4j-api:2.24.3
+org.apache.logging.log4j:log4j-api:2.25.3
 name: log4j-api
 description: The logging API of the Log4j project. Library and application code can log through this API. It contains a simple built-in implementation (`SimpleLogger`) for trivial use cases. Production applications are recommended to use Log4j API in combination with a fully-fledged implementation, such as Log4j Core.
 url: https://github.com/apache/logging-log4j2
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.apache.logging.log4j:log4j-core:2.24.3
+org.apache.logging.log4j:log4j-core:2.25.3
 name: log4j-core
 description: A versatile, industrial-grade, and reference implementation of the Log4j API. It bundles a rich set of components to assist various use cases: Appenders targeting files, network sockets, databases, SMTP servers; Layouts that can render CSV, HTML, JSON, Syslog, etc. formatted outputs; Filters that can be configured using log event rates, regular expressions, scripts, time, etc. It contains several extension points to introduce custom components, if needed.
 url: https://github.com/apache/logging-log4j2
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.apache.logging.log4j:log4j-slf4j-impl:2.24.3
+org.apache.logging.log4j:log4j-slf4j-impl:2.25.3
 name: log4j-slf4j-impl
 description: SLF4J 1 binding (provider) for the Log4j API. It forwards SLF4J 1 calls to the Log4j API. (Refer to the `log4j-to-slf4j` artifact for forwarding the Log4j API to SLF4J.)
 url: https://github.com/apache/logging-log4j2
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.apache.logging.log4j:log4j-to-slf4j:2.24.3
+org.apache.logging.log4j:log4j-to-slf4j:2.25.3
 name: log4j-to-slf4j
 description: Forwards the Log4j API calls to SLF4J. (Refer to the `log4j-slf4j[2]-impl` artifacts for forwarding SLF4J to the Log4j API.)
 url: https://github.com/apache/logging-log4j2
