@@ -38,6 +38,10 @@
           <exclude>**/modules/system/layers/base/org/apache/kafka/**</exclude>
           <!-- Excluding due to CVE-2025-58057 CVE-2025-67735 CVE-2025-58056  -->
           <exclude>**/modules/system/layers/base/io/netty/**</exclude>
+          <!-- Excluding due to CVE-2025-12543  -->
+          <exclude>**/modules/system/layers/base/io/undertow/core/**</exclude>
+          <exclude>**/modules/system/layers/base/io/undertow/servlet/**</exclude>
+          <exclude>**/modules/system/layers/base/io/undertow/websocket/**</exclude>
         </excludes>
       </unpackOptions>
     </dependencySet>

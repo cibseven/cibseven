@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright The WildFly Authors
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+<module name="io.undertow.servlet" xmlns="urn:jboss:module:1.9">
+    <resources>
+        <resource-root path="undertow-servlet-@version.undertow@.jar"/>
+    </resources>
+
+    <dependencies>
+        <module name="io.undertow.core"/>
+        <module name="jakarta.annotation.api"/>
+        <module name="jakarta.servlet.api"/>
+        <module name="jakarta.servlet.jsp.api"/>
+        <module name="jakarta.servlet.jstl.api"/>
+        <module name="jdk.unsupported"/>
+        <module name="org.jboss.logging"/>
+        <module name="org.jboss.xnio"/>
+    </dependencies>
+
+</module>

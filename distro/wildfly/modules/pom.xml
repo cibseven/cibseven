@@ -24,6 +24,7 @@
     <version.lz4-java>1.10.1</version.lz4-java>
     <version.kafka-clients>3.9.1</version.kafka-clients>
     <version.netty>4.1.130.Final</version.netty>
+    <version.undertow>2.3.22.Final</version.undertow>
   </properties>
   
   <dependencies>
@@ -149,6 +150,41 @@
       <groupId>at.yawk.lz4</groupId>
       <artifactId>lz4-java</artifactId>
       <version>${version.lz4-java}</version>
+    </dependency>
+
+    <!-- Undertow -->
+    <dependency>
+      <groupId>io.undertow</groupId>
+      <artifactId>undertow-core</artifactId>
+      <version>${version.undertow}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>io.smallrye</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.undertow</groupId>
+      <artifactId>undertow-servlet</artifactId>
+      <version>${version.undertow}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>jakarta.websocket</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.undertow</groupId>
+      <artifactId>undertow-websockets-jsr</artifactId>
+      <version>${version.undertow}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>jakarta.websocket</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Netty deps (exclusions to adapt it to wildfly modules)-->
@@ -386,6 +422,45 @@
                 <!-- remove org.lz4 dependency in favor of at.yawk.lz4 -->
                 <delete dir="target/modules/org/lz4" />
 
+                <!-- copy Undertow dependencies to custom modules -->
+                <delete dir="target/modules/io/undertow" />
+                <copy todir="target/modules" flatten="false">
+                  <fileset refid="maven.project.dependencies" />
+                  <mapper>
+                    <chainedmapper>
+                      <regexpmapper from="^(.*)/([^/]+)/([^/]*)$$" to="\1/main/\3" handledirsep="yes" />
+                     <regexpmapper 
+                        from="^(io.undertow.*)/((undertow-core-)[0-9\.]*).*.jar$$" 
+                        to="io/undertow/core/main/\3${version.undertow}.jar" 
+                        handledirsep="yes" />
+                    </chainedmapper>
+                  </mapper>
+                </copy>
+                <copy todir="target/modules" flatten="false">
+                  <fileset refid="maven.project.dependencies" />
+                  <mapper>
+                    <chainedmapper>
+                      <regexpmapper from="^(.*)/([^/]+)/([^/]*)$$" to="\1/main/\3" handledirsep="yes" />
+                      <regexpmapper 
+                        from="^(io.undertow.*)/((undertow-servlet-)[0-9\.]*).*.jar$$" 
+                        to="io/undertow/servlet/main/\3${version.undertow}.jar" 
+                        handledirsep="yes" />
+                    </chainedmapper>
+                  </mapper>
+                </copy>
+                <copy todir="target/modules" flatten="false">
+                  <fileset refid="maven.project.dependencies" />
+                  <mapper>
+                    <chainedmapper>
+                      <regexpmapper from="^(.*)/([^/]+)/([^/]*)$$" to="\1/main/\3" handledirsep="yes" />
+                      <regexpmapper 
+                        from="^(io.undertow.*)/((undertow-websockets-jsr-)[0-9\.]*).*.jar$$" 
+                        to="io/undertow/websocket/main/\3${version.undertow}.jar" 
+                        handledirsep="yes" />
+                    </chainedmapper>
+                  </mapper>
+                </copy>
+
                 <!-- move netty-transport-classes-epoll to netty-transport-native-epoll -->
                 <copy todir="target/modules" flatten="false">
                   <fileset dir="target/modules">
@@ -522,6 +597,10 @@
                 </replace>
 
                 <replace dir="target/modules" token="@version.kafka-clients@" value="${version.kafka-clients}">
+                  <include name="**/module.xml" />
+                </replace>
+
+                <replace dir="target/modules" token="@version.undertow@" value="${version.undertow}">
                   <include name="**/module.xml" />
                 </replace>
 
