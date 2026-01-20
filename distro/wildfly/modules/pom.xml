@@ -354,6 +354,20 @@
                   </mapper>
                 </copy>
 
+                <!-- httpcore5-h2 along with httpcore5 -->
+                <copy todir="target/modules" flatten="false">
+                  <fileset dir="target/modules">
+                    <include name="org/apache/httpcomponents/core5/httpcore5-h2/main/*.jar"/>
+                  </fileset>
+                  <chainedmapper>
+                    <regexpmapper 
+                      from="^org/apache/httpcomponents/core5/httpcore5-h2/main/(.*)$$" 
+                      to="org/apache/httpcomponents/core5/httpcore5/main/\1" 
+                      handledirsep="yes" />
+                  </chainedmapper>
+                </copy>
+                <delete dir="target/modules/org/apache/httpcomponents/core5/httpcore5-h2" />
+
                 <!-- copy Kafka dependencies to module slot -->
                 <delete dir="target/modules/org/apache/kafka/kafka-clients" />
                 <copy todir="target/modules" flatten="false">
