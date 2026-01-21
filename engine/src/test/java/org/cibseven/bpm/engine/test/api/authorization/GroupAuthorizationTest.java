@@ -177,6 +177,36 @@ public class GroupAuthorizationTest extends AuthorizationTest {
       }
     });
   }
+  
+  // the same as previous test but without auxiliary group filtering
+  @Test
+  public void testCheckAuthorizationWithoutGroupAuthorizationsSkipGroupFiltering() {
+    // set threshold to skip preliminary group filtering
+    int filterThreshold = processEngineConfiguration.getAuthGroupFilterThreshold();
+    processEngineConfiguration.setAuthGroupFilterThreshold(testGroupIds.size() + 1);
+    
+    processEngineConfiguration.getCommandExecutorTxRequired().execute(new Command<Void>() {
+      public Void execute(CommandContext commandContext) {
+        AuthorizationManager authorizationManager = spyOnSession(commandContext, AuthorizationManager.class);
+        DbEntityManager dbEntityManager = spyOnSession(commandContext, DbEntityManager.class);
+
+        authorizationService.isUserAuthorized(testUserId, testGroupIds, Permissions.READ, Resources.TASK);
+
+        verify(authorizationManager, atLeastOnce()).filterAuthenticatedGroupIds(eq(testGroupIds));
+
+        ArgumentCaptor<AuthorizationCheck> authorizationCheckArgument = ArgumentCaptor.forClass(AuthorizationCheck.class);
+        verify(dbEntityManager).selectBoolean(eq("isUserAuthorizedForResource"), authorizationCheckArgument.capture());
+
+        AuthorizationCheck authorizationCheck = authorizationCheckArgument.getValue();
+        assertTrue(authorizationCheck.getAuthGroupIds().size() == testGroupIds.size());
+
+        return null;
+      }
+    });
+    
+    // restore threshold
+    processEngineConfiguration.setAuthGroupFilterThreshold(filterThreshold);
+  }
 
   @Test
   public void testCheckAuthorizationWithOneGroupAuthorizations() {
@@ -200,6 +230,37 @@ public class GroupAuthorizationTest extends AuthorizationTest {
         return null;
       }
     });
+  }
+  
+  // the same as previous test but without auxiliary group filtering
+  @Test
+  public void testCheckAuthorizationWithOneGroupAuthorizationsSkipGroupFiltering() {
+    createGroupGrantAuthorization(Resources.TASK, Authorization.ANY, testGroupIds.get(0));
+    // set threshold to skip preliminary group filtering
+    int filterThreshold = processEngineConfiguration.getAuthGroupFilterThreshold();
+    processEngineConfiguration.setAuthGroupFilterThreshold(testGroupIds.size() + 1);
+
+    processEngineConfiguration.getCommandExecutorTxRequired().execute(new Command<Void>() {
+      public Void execute(CommandContext commandContext) {
+        AuthorizationManager authorizationManager = spyOnSession(commandContext, AuthorizationManager.class);
+        DbEntityManager dbEntityManager = spyOnSession(commandContext, DbEntityManager.class);
+
+        authorizationService.isUserAuthorized(testUserId, testGroupIds, Permissions.READ, Resources.TASK);
+
+        verify(authorizationManager, atLeastOnce()).filterAuthenticatedGroupIds(eq(testGroupIds));
+
+        ArgumentCaptor<AuthorizationCheck> authorizationCheckArgument = ArgumentCaptor.forClass(AuthorizationCheck.class);
+        verify(dbEntityManager).selectBoolean(eq("isUserAuthorizedForResource"), authorizationCheckArgument.capture());
+
+        AuthorizationCheck authorizationCheck = authorizationCheckArgument.getValue();
+        assertEquals(testGroupIds.subList(0, testGroupIds.size()), authorizationCheck.getAuthGroupIds());
+
+        return null;
+      }
+    });
+    
+    // restore threshold
+    processEngineConfiguration.setAuthGroupFilterThreshold(filterThreshold);
   }
 
   @Test
@@ -227,6 +288,39 @@ public class GroupAuthorizationTest extends AuthorizationTest {
       }
     });
   }
+  
+  // the same as previous test but without auxiliary group filtering
+  @Test
+  public void testCheckAuthorizationWithGroupAuthorizationsSkipGroupFiltering() {
+    for (String testGroupId : testGroupIds) {
+      createGroupGrantAuthorization(Resources.TASK, Authorization.ANY, testGroupId);
+    }
+    // set threshold to skip preliminary group filtering
+    int filterThreshold = processEngineConfiguration.getAuthGroupFilterThreshold();
+    processEngineConfiguration.setAuthGroupFilterThreshold(testGroupIds.size() + 1);
+
+    processEngineConfiguration.getCommandExecutorTxRequired().execute(new Command<Void>() {
+      public Void execute(CommandContext commandContext) {
+        AuthorizationManager authorizationManager = spyOnSession(commandContext, AuthorizationManager.class);
+        DbEntityManager dbEntityManager = spyOnSession(commandContext, DbEntityManager.class);
+
+        authorizationService.isUserAuthorized(testUserId, testGroupIds, Permissions.READ, Resources.TASK);
+
+        verify(authorizationManager, atLeastOnce()).filterAuthenticatedGroupIds(eq(testGroupIds));
+
+        ArgumentCaptor<AuthorizationCheck> authorizationCheckArgument = ArgumentCaptor.forClass(AuthorizationCheck.class);
+        verify(dbEntityManager).selectBoolean(eq("isUserAuthorizedForResource"), authorizationCheckArgument.capture());
+
+        AuthorizationCheck authorizationCheck = authorizationCheckArgument.getValue();
+        assertThat(authorizationCheck.getAuthGroupIds()).containsExactlyInAnyOrderElementsOf(testGroupIds);
+
+        return null;
+      }
+    });
+    
+    // restore threshold
+    processEngineConfiguration.setAuthGroupFilterThreshold(filterThreshold);
+  }
 
   @Test
   public void testCheckAuthorizationWithUserWithoutGroups() {
@@ -248,6 +342,36 @@ public class GroupAuthorizationTest extends AuthorizationTest {
         return null;
       }
     });
+  }
+  
+  // the same as previous test but without auxiliary group filtering
+  @Test
+  public void testCheckAuthorizationWithUserWithoutGroupsSkipGroupFiltering() {
+    // set threshold to skip preliminary group filtering
+    int filterThreshold = processEngineConfiguration.getAuthGroupFilterThreshold();
+    processEngineConfiguration.setAuthGroupFilterThreshold(testGroupIds.size() + 1);
+    
+    processEngineConfiguration.getCommandExecutorTxRequired().execute(new Command<Void>() {
+      public Void execute(CommandContext commandContext) {
+        AuthorizationManager authorizationManager = spyOnSession(commandContext, AuthorizationManager.class);
+        DbEntityManager dbEntityManager = spyOnSession(commandContext, DbEntityManager.class);
+
+        authorizationService.isUserAuthorized(testUserId, null, Permissions.READ, Resources.TASK);
+
+        verify(authorizationManager, atLeastOnce()).filterAuthenticatedGroupIds(eq((List<String>) null));
+
+        ArgumentCaptor<AuthorizationCheck> authorizationCheckArgument = ArgumentCaptor.forClass(AuthorizationCheck.class);
+        verify(dbEntityManager).selectBoolean(eq("isUserAuthorizedForResource"), authorizationCheckArgument.capture());
+
+        AuthorizationCheck authorizationCheck = authorizationCheckArgument.getValue();
+        assertTrue(authorizationCheck.getAuthGroupIds().isEmpty());
+
+        return null;
+      }
+    });
+    
+    // restore threshold
+    processEngineConfiguration.setAuthGroupFilterThreshold(filterThreshold);
   }
 
   @Test
@@ -278,6 +402,43 @@ public class GroupAuthorizationTest extends AuthorizationTest {
 
     // then
     assertThat(isAuthorized).isTrue();
+  }
+  
+  // the same as previous test but without auxiliary group filtering
+  @Test
+  public void testCheckAuthorizationForNullHostileListOfGroupsSkipGroupFiltering() {
+    // given
+    identityService.clearAuthentication();
+    // set threshold to skip preliminary group filtering
+    int filterThreshold = processEngineConfiguration.getAuthGroupFilterThreshold();
+    processEngineConfiguration.setAuthGroupFilterThreshold(testGroupIds.size() + 1);
+
+    BpmnModelInstance process = Bpmn.createExecutableProcess("process").startEvent()
+      .userTask("foo")
+      .endEvent()
+      .done();
+
+    testRule.deploy(process);
+
+    runtimeService.startProcessInstanceByKey("process");
+
+    // a group authorization
+    createGroupGrantAuthorization(Resources.TASK, Authorization.ANY, testGroupIds.get(0));
+
+    // a user authorization (i.e. no group id set)
+    // this authorization is important to reproduce the bug in CAM-14306
+    createGrantAuthorization(Resources.TASK, Authorization.ANY, testUserId, Permissions.READ);
+
+    List<String> groupIds = new NullHostileList<>(testGroupIds);
+
+    // when
+    boolean isAuthorized = authorizationService.isUserAuthorized(testUserId, groupIds, Permissions.READ, Resources.TASK);
+
+    // then
+    assertThat(isAuthorized).isTrue();
+    
+    // restore threshold
+    processEngineConfiguration.setAuthGroupFilterThreshold(filterThreshold);
   }
 
   protected class NullHostileList<E> extends ArrayList<E> {
