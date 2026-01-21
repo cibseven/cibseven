@@ -28,7 +28,7 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
   }
 
   @Override
-  public void setLicense(LicenseKeyDto licenseKey) {
+  public void setLicenseKey(LicenseKeyDto licenseKey) {
     getProcessEngine().getManagementService().setLicenseKey(licenseKey.getLicenseKey());
   }
 

@@ -29,13 +29,21 @@ public interface LicenseRestService {
 
   public static final String PATH = "/license";
 
+  /**
+   * Set a new license key
+   * @param licenseKey
+   */
   @Consumes(MediaType.APPLICATION_JSON)
   @POST
-  void setLicense(LicenseKeyDto licenseKey);
+  void setLicenseKey(LicenseKeyDto licenseKey);
 
+/**
+ * 
+ * @return the current license key
+ */
   @Produces(MediaType.APPLICATION_JSON)
   @GET
-  @Path("/status")
+  @Path("/key")
   String getLicenseKey();
 }
 
