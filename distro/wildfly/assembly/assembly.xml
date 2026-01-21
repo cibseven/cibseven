@@ -23,17 +23,23 @@
       <includes>
         <include>org.wildfly:wildfly-dist:tar.gz:${version.wildfly}</include>
       </includes>
-      <unpack>true</unpack>      
+      <unpack>true</unpack>
       <unpackOptions>
         <excludes>
-          <exclude>**/standalone/configuration/standalone.xml</exclude>        
+          <exclude>**/standalone/configuration/standalone.xml</exclude>
           <exclude>**/standalone/configuration/standalone-full.xml</exclude> 
           <exclude>**/bin/standalone.conf</exclude>
           <exclude>**/bin/standalone.conf.bat</exclude>
           <!-- exclude wildfly's shipped version of h2database -->
           <exclude>**/h2database/**</exclude>
-        </excludes>        
-      </unpackOptions>      
+          
+          <!-- Excluding due to CVE-2025-66566: Wildfly39Beta approach -->
+          <exclude>**/modules/system/layers/base/org/lz4/**</exclude>
+          <exclude>**/modules/system/layers/base/org/apache/kafka/**</exclude>
+          <!-- Excluding due to CVE-2025-58057 CVE-2025-67735 CVE-2025-58056  -->
+          <exclude>**/modules/system/layers/base/io/netty/**</exclude>
+        </excludes>
+      </unpackOptions>
     </dependencySet>
     <dependencySet>
       <outputDirectory>lib</outputDirectory>

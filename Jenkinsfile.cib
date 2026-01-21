@@ -349,14 +349,8 @@ pipeline {
                         stage('engine-IT-wildfly-postgresql-142') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,engine-integration-jakarta" }}}
                         }
-                        stage('engine-IT-wildfly26-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly26,postgresql,engine-integration" }}}
-                        }
                         stage('engine-IT-XA-wildfly-postgresql-142') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,postgresql-xa,engine-integration-jakarta" }}}
-                        }
-                        stage('engine-IT-XA-wildfly26-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly26,postgresql,postgresql-xa,engine-integration" }}}
                         }
                         stage('webapp-IT-tomcat-9-h2') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat9,h2,webapps-integration" }}}
@@ -366,9 +360,6 @@ pipeline {
                         }
                         stage('webapp-IT-wildfly-h2') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration -pl '!integration-tests-engine-jakarta'" }}}
-                        }
-                        stage('webapp-IT-wildfly26-h2') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly26,h2,webapps-integration" }}}
                         }
                     }
                 }
