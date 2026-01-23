@@ -19,19 +19,19 @@ package org.cibseven.connect.httpclient.soap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.cibseven.connect.Connectors;
 import org.cibseven.connect.httpclient.soap.impl.SoapHttpConnectorImpl;
 import org.cibseven.connect.impl.DebugRequestInterceptor;
 import org.cibseven.connect.spi.Connector;
 
-import org.junit.Before;
-import org.junit.Test;
 
 public class SoapHttpConnectorTest {
 
   public SoapHttpConnector connector;
 
-  @Before
+  @BeforeEach
   public void createConnector() {
     connector = new SoapHttpConnectorImpl();
   }

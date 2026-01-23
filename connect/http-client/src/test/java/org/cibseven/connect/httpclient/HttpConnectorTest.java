@@ -17,7 +17,7 @@
 package org.cibseven.connect.httpclient;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 
@@ -37,8 +37,8 @@ import org.cibseven.connect.Connectors;
 import org.cibseven.connect.httpclient.impl.HttpConnectorImpl;
 import org.cibseven.connect.impl.DebugRequestInterceptor;
 import org.cibseven.connect.spi.Connector;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class HttpConnectorTest {
 
@@ -49,21 +49,21 @@ public class HttpConnectorTest {
   protected HttpConnector connector;
   protected DebugRequestInterceptor interceptor;
 
-  @Before
-  public void createConnector() {
+  @BeforeEach
+  void createConnector() {
     connector = new HttpConnectorImpl();
     interceptor = new DebugRequestInterceptor(false);
     connector.addRequestInterceptor(interceptor);
   }
 
   @Test
-  public void shouldDiscoverConnector() {
+  void shouldDiscoverConnector() {
     Connector http = Connectors.getConnector(HttpConnector.ID);
     assertThat(http).isNotNull();
   }
 
   @Test
-  public void shouldFailWithoutMethod() {
+  void shouldFailWithoutMethod() {
     try {
       connector.createRequest().url("localhost").execute();
       fail("No method specified");
@@ -74,7 +74,7 @@ public class HttpConnectorTest {
   }
 
   @Test
-  public void shouldFailWithoutUrl() {
+  void shouldFailWithoutUrl() {
     try {
       connector.createRequest().execute();
       fail("No url specified");
@@ -150,7 +150,7 @@ public class HttpConnectorTest {
   }
 
   @Test
-  public void shouldSetHeadersOnHttpRequest() {
+  void shouldSetHeadersOnHttpRequest() {
     connector.createRequest().url(EXAMPLE_URL).header("foo", "bar").header("hello", "world").get().execute();
     HttpGet request = interceptor.getTarget();
     Header[] headers = request.getHeaders();
@@ -158,7 +158,7 @@ public class HttpConnectorTest {
   }
 
   @Test
-  public void shouldSetPayloadOnHttpRequest() throws IOException {
+  void shouldSetPayloadOnHttpRequest() throws IOException {
     connector.createRequest().url(EXAMPLE_URL).payload(EXAMPLE_PAYLOAD).post().execute();
     HttpPost request = interceptor.getTarget();
     String content = IoUtil.inputStreamAsString(request.getEntity().getContent());
@@ -166,7 +166,7 @@ public class HttpConnectorTest {
   }
 
   @Test
-  public void shouldSetContentLength() {
+  void shouldSetContentLength() {
     connector.createRequest().url(EXAMPLE_URL).payload(EXAMPLE_PAYLOAD).post().execute();
     HttpPost request = interceptor.getTarget();
     long contentLength = request.getEntity().getContentLength();

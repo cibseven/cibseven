@@ -16,21 +16,23 @@
  */
 package org.cibseven.connect.httpclient;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.assertj.core.api.Assertions;
 import org.cibseven.connect.ConnectorRequestException;
 import org.cibseven.connect.httpclient.impl.HttpConnectorImpl;
 import org.cibseven.connect.impl.DebugRequestInterceptor;
-import org.junit.Before;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 
 public class HttpResponseTest {
 
   protected HttpConnector connector;
   protected TestResponse testResponse;
 
-  @Before
+  @BeforeEach
   public void getConnector() {
     testResponse = new TestResponse();
     connector = new HttpConnectorImpl();
@@ -125,14 +127,12 @@ public class HttpResponseTest {
   public void testServerErrorResponseWithConfigOptionSet() {
     // given
     testResponse.code(500);
-    try {
-      // when
-      connector.createRequest().configOption("throw-http-error", "TRUE").url("http://camunda.com").get().execute();
-      Assertions.fail("ConnectorRequestException should be thrown");
-    } catch (ConnectorRequestException e) {
-      // then
-      assertThat(e).hasMessageContaining("HTTP request failed with Status Code: 500");
-    }
+
+    HttpRequest httpRequest = connector.createRequest().configOption("throw-http-error", "TRUE").url("http://camunda.com").get();
+  // when & then
+    assertThatThrownBy(httpRequest::execute)
+      .isInstanceOf(ConnectorRequestException.class)
+      .hasMessageContaining("HTTP request failed with Status Code: 500");
   }
 
   @Test
