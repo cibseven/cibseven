@@ -25,6 +25,17 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <!-- Explicit JUnit version overrides to ensure alignment and prevent BOM conflicts -->
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-api</artifactId>
+        <version>${version.junit}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-engine</artifactId>
+        <version>${version.junit}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
