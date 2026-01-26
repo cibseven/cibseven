@@ -97,8 +97,9 @@ public class CallActivityBehavior extends CallableElementActivityBehavior implem
     String targetProcessKey = ((ProcessDefinition) targetDefinition).getKey();
     List<String> callChain = new ArrayList<>();
     
-    // Traverse up the superExecution chain to collect process definition keys
-    ExecutionEntity currentExecution = execution;
+    // Traverse up the execution chain to collect process definition keys
+    // Always start from root execution: only process instances have superExecution links to parent processes
+    ExecutionEntity currentExecution = execution.getProcessInstance();
     int depth = 0;
     
     while (currentExecution != null) {
@@ -118,8 +119,10 @@ public class CallActivityBehavior extends CallableElementActivityBehavior implem
         }
       }
       
-      // Move to the parent execution
-      currentExecution = currentExecution.getSuperExecution();
+      // Traverse to parent's root: getSuperExecution() returns the execution that made the call
+      // (might be a child execution), so we need getProcessInstance() to get its root for next traversal
+      ExecutionEntity superExecution = currentExecution.getSuperExecution();
+      currentExecution = (superExecution != null) ? superExecution.getProcessInstance() : null;
     }
     
     // Check if adding the new process would exceed the limit
