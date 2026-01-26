@@ -44,6 +44,7 @@ import org.cibseven.bpm.engine.authorization.SystemPermissions;
 import org.cibseven.bpm.engine.authorization.TaskPermissions;
 import org.cibseven.bpm.engine.authorization.UserOperationLogCategoryPermissions;
 
+@SuppressWarnings("deprecation")
 public class ResourceTypeUtil {
 
   /**
