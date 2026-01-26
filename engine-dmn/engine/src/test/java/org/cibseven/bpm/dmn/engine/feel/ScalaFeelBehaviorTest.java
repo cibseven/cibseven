@@ -16,21 +16,23 @@
  */
 package org.cibseven.bpm.dmn.engine.feel;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Date;
 import org.cibseven.bpm.dmn.engine.DmnDecisionResult;
 import org.cibseven.bpm.dmn.engine.DmnDecisionResultEntries;
 import org.cibseven.bpm.dmn.engine.DmnEngineConfiguration;
 import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
 import org.cibseven.bpm.dmn.engine.test.DecisionResource;
 import org.cibseven.bpm.dmn.feel.impl.scala.ScalaFeelEngineFactory;
-import org.junit.Test;
 
-public class ScalaFeelBehaviorTest extends FeelBehavior {
+import java.util.Date;
+
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class ScalaFeelBehaviorTest extends FeelBehavior {
 
   @Override
-  public DmnEngineConfiguration getDmnEngineConfiguration() {
+  protected DmnEngineConfiguration getDmnEngineConfiguration() {
     DefaultDmnEngineConfiguration configuration = new DefaultDmnEngineConfiguration();
     configuration.setFeelEngineFactory(new ScalaFeelEngineFactory());
     configuration.init();

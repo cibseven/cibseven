@@ -104,7 +104,7 @@ public class BuiltinExceptionCodeProviderDisabledWithCustomProviderTest {
     // when/then
     assertThatThrownBy(() -> runtimeService.startProcessInstanceByKey("process", businessKey))
         .extracting("code")
-        .contains(PROVIDED_CUSTOM_CODE);
+        .isEqualTo(PROVIDED_CUSTOM_CODE);
   }
 
   @Test
@@ -124,7 +124,7 @@ public class BuiltinExceptionCodeProviderDisabledWithCustomProviderTest {
     // when/then
     assertThatThrownBy(() -> identityService.saveUser(user2))
         .extracting("code")
-        .contains(PROVIDED_CUSTOM_CODE);
+        .isEqualTo(PROVIDED_CUSTOM_CODE);
   }
 
   @Test
@@ -147,7 +147,7 @@ public class BuiltinExceptionCodeProviderDisabledWithCustomProviderTest {
     // then
     assertThatThrownBy(callable)
         .extracting("code")
-        .contains(999_999);
+        .isEqualTo(999_999);
   }
 
   @Test
@@ -170,7 +170,7 @@ public class BuiltinExceptionCodeProviderDisabledWithCustomProviderTest {
     // then
     assertThatThrownBy(callable)
         .extracting("code")
-        .contains(1000);
+        .isEqualTo(1000);
   }
 
   // helper ////////////////////////////////////////////////////////////////////////////////////////

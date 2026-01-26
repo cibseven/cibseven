@@ -84,7 +84,7 @@ class DateValueMapperTest {
 
     // then
     assertThat(dateValue.getType()).isInstanceOf(PrimitiveValueTypeImpl.DateTypeImpl.class);
-    assertThat(dateValue.getValue()).isEqualTo(null);
+    assertThat(dateValue.getValue()).isNull();
   }
 
   @Test

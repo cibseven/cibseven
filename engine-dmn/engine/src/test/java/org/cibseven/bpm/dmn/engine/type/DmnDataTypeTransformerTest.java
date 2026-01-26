@@ -24,25 +24,20 @@ import org.cibseven.bpm.dmn.engine.impl.spi.type.DmnDataTypeTransformerRegistry;
 import org.cibseven.bpm.dmn.engine.test.DmnEngineTest;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
-import org.camunda.feel.syntaxtree.ZonedTime;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Period;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.Date;
 import java.util.TimeZone;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import org.camunda.feel.syntaxtree.ZonedTime;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests the build-in {@link DmnDataTypeTransformer}s.
@@ -51,12 +46,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 public class DmnDataTypeTransformerTest extends DmnEngineTest {
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   protected DmnDataTypeTransformerRegistry registry;
 
-  @Before
+  @BeforeEach
   public void initRegistry() {
     DmnEngineConfiguration configuration = dmnEngine.getConfiguration();
     registry = ((DefaultDmnEngineConfiguration) configuration).getTransformer().getDataTypeTransformerRegistry();
@@ -66,160 +58,131 @@ public class DmnDataTypeTransformerTest extends DmnEngineTest {
   public void customType() {
     // by default, the factory should return a transformer for unsupported type
     // that just box the value into an untyped value
-    assertThat(registry.getTransformer("custom").transform("42"), is(Variables.untypedValue("42")));
+    assertThat(registry.getTransformer("custom").transform("42")).isEqualTo(Variables.untypedValue("42"));
+
   }
 
   @Test
   public void stringType() {
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("string");
 
-    assertThat(typeTransformer.transform("abc"), is((TypedValue) Variables.stringValue("abc")));
-    assertThat(typeTransformer.transform(true), is((TypedValue) Variables.stringValue("true")));
-    assertThat(typeTransformer.transform(4), is((TypedValue) Variables.stringValue("4")));
-    assertThat(typeTransformer.transform(2L), is((TypedValue) Variables.stringValue("2")));
-    assertThat(typeTransformer.transform(4.2), is((TypedValue) Variables.stringValue("4.2")));
+    assertThat(typeTransformer.transform("abc")).isEqualTo((TypedValue) Variables.stringValue("abc"));
+    assertThat(typeTransformer.transform(true)).isEqualTo((TypedValue) Variables.stringValue("true"));
+    assertThat(typeTransformer.transform(4)).isEqualTo((TypedValue) Variables.stringValue("4"));
+    assertThat(typeTransformer.transform(2L)).isEqualTo((TypedValue) Variables.stringValue("2"));
+    assertThat(typeTransformer.transform(4.2)).isEqualTo((TypedValue) Variables.stringValue("4.2"));
   }
 
   @Test
-  public void booleanType() {
+  void booleanType() {
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("boolean");
 
-    assertThat(typeTransformer.transform(true), is((TypedValue) Variables.booleanValue(true)));
-    assertThat(typeTransformer.transform(false), is((TypedValue) Variables.booleanValue(false)));
+    assertThat(typeTransformer.transform(true)).isEqualTo((TypedValue) Variables.booleanValue(true));
+    assertThat(typeTransformer.transform(false)).isEqualTo((TypedValue) Variables.booleanValue(false));
 
-    assertThat(typeTransformer.transform("true"), is((TypedValue) Variables.booleanValue(true)));
-    assertThat(typeTransformer.transform("false"), is((TypedValue) Variables.booleanValue(false)));
+    assertThat(typeTransformer.transform("true")).isEqualTo((TypedValue) Variables.booleanValue(true));
+    assertThat(typeTransformer.transform("false")).isEqualTo((TypedValue) Variables.booleanValue(false));
   }
 
   @Test
-  public void invalidStringValueForBooleanType() {
+  void invalidStringValueForBooleanType() {
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("boolean");
-
-    thrown.expect(IllegalArgumentException.class);
-
-    typeTransformer.transform("NaB");
+    assertThrows(IllegalArgumentException.class, () -> typeTransformer.transform("NaB"));
   }
 
   @Test
-  public void integerType() {
+  void integerType() {
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("integer");
 
-    assertThat(typeTransformer.transform(4), is((TypedValue) Variables.integerValue(4)));
-    assertThat(typeTransformer.transform("4"), is((TypedValue) Variables.integerValue(4)));
-    assertThat(typeTransformer.transform(2L), is((TypedValue) Variables.integerValue(2)));
-    assertThat(typeTransformer.transform(4.0), is((TypedValue) Variables.integerValue(4)));
+    assertThat(typeTransformer.transform(4)).isEqualTo((TypedValue) Variables.integerValue(4));
+    assertThat(typeTransformer.transform("4")).isEqualTo((TypedValue) Variables.integerValue(4));
+    assertThat(typeTransformer.transform(2L)).isEqualTo((TypedValue) Variables.integerValue(2));
+    assertThat(typeTransformer.transform(4.0)).isEqualTo((TypedValue) Variables.integerValue(4));
 
-    assertThat(typeTransformer.transform(Integer.MIN_VALUE), is((TypedValue) Variables.integerValue(Integer.MIN_VALUE)));
-    assertThat(typeTransformer.transform(Integer.MAX_VALUE), is((TypedValue) Variables.integerValue(Integer.MAX_VALUE)));
+    assertThat(typeTransformer.transform(Integer.MIN_VALUE)).isEqualTo((TypedValue) Variables.integerValue(Integer.MIN_VALUE));
+    assertThat(typeTransformer.transform(Integer.MAX_VALUE)).isEqualTo((TypedValue) Variables.integerValue(Integer.MAX_VALUE));
   }
 
   @Test
-  public void invalidStringValueForIntegerType() {
+  void invalidStringValueForIntegerType() {
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("integer");
-
-    thrown.expect(IllegalArgumentException.class);
-
-    typeTransformer.transform("4.2");
+    assertThrows(IllegalArgumentException.class, () -> typeTransformer.transform("4.2"));
   }
 
   @Test
-  public void invalidDoubleValueForIntegerType() {
+  void invalidDoubleValueForIntegerType() {
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("integer");
-
-    thrown.expect(IllegalArgumentException.class);
-
-    typeTransformer.transform(4.2);
+    assertThrows(IllegalArgumentException.class, () -> typeTransformer.transform(4.2));
   }
 
   @Test
-  public void invalidLongValueForIntegerType() {
+  void invalidLongValueForIntegerType() {
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("integer");
-
-    thrown.expect(IllegalArgumentException.class);
-
-    typeTransformer.transform(Long.MAX_VALUE);
+    assertThrows(IllegalArgumentException.class, () -> typeTransformer.transform(Long.MAX_VALUE));
   }
 
   @Test
-  public void invalidIntegerMinValueForIntegerType() {
+  void invalidIntegerMinValueForIntegerType() {
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("integer");
-
-    thrown.expect(IllegalArgumentException.class);
-
-    typeTransformer.transform(Integer.MIN_VALUE - 1L);
+    assertThrows(IllegalArgumentException.class, () -> typeTransformer.transform(Integer.MIN_VALUE - 1L));
   }
 
   @Test
-  public void invalidIntegerMaxValueForIntegerType() {
+  void invalidIntegerMaxValueForIntegerType() {
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("integer");
-
-    thrown.expect(IllegalArgumentException.class);
-
-    typeTransformer.transform(Integer.MAX_VALUE + 1L);
+    assertThrows(IllegalArgumentException.class, () -> typeTransformer.transform(Integer.MAX_VALUE + 1L));
   }
 
   @Test
-  public void longType() {
+  void longType() {
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("long");
 
-    assertThat(typeTransformer.transform(2L), is((TypedValue) Variables.longValue(2L)));
-    assertThat(typeTransformer.transform("2"), is((TypedValue) Variables.longValue(2L)));
-    assertThat(typeTransformer.transform(4), is((TypedValue) Variables.longValue(4L)));
-    assertThat(typeTransformer.transform(4.0), is((TypedValue) Variables.longValue(4L)));
+    assertThat(typeTransformer.transform(2L)).isEqualTo((TypedValue) Variables.longValue(2L));
+    assertThat(typeTransformer.transform("2")).isEqualTo((TypedValue) Variables.longValue(2L));
+    assertThat(typeTransformer.transform(4)).isEqualTo((TypedValue) Variables.longValue(4L));
+    assertThat(typeTransformer.transform(4.0)).isEqualTo((TypedValue) Variables.longValue(4L));
 
-    assertThat(typeTransformer.transform(Long.MIN_VALUE), is((TypedValue) Variables.longValue(Long.MIN_VALUE)));
-    assertThat(typeTransformer.transform(Long.MAX_VALUE), is((TypedValue) Variables.longValue(Long.MAX_VALUE)));
+    assertThat(typeTransformer.transform(Long.MIN_VALUE)).isEqualTo((TypedValue) Variables.longValue(Long.MIN_VALUE));
+    assertThat(typeTransformer.transform(Long.MAX_VALUE)).isEqualTo((TypedValue) Variables.longValue(Long.MAX_VALUE));
   }
 
   @Test
-  public void invalidStringValueForLongType() {
+  void invalidStringValueForLongType() {
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("long");
-
-    thrown.expect(IllegalArgumentException.class);
-
-    typeTransformer.transform("4.2");
+    assertThrows(IllegalArgumentException.class, () -> typeTransformer.transform("4.2"));
   }
 
   @Test
-  public void invalidDoubleValueForLongType() {
+  void invalidDoubleValueForLongType() {
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("long");
-
-    thrown.expect(IllegalArgumentException.class);
-
-    typeTransformer.transform(4.2);
+    assertThrows(IllegalArgumentException.class, () -> typeTransformer.transform(4.2));
   }
 
   @Test
-  public void invalidDoubleMinValueForLongType() {
+  void invalidDoubleMinValueForLongType() {
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("long");
-
-    thrown.expect(IllegalArgumentException.class);
-
-    typeTransformer.transform(Double.MIN_VALUE);
+    assertThrows(IllegalArgumentException.class, () -> typeTransformer.transform(Double.MIN_VALUE));
   }
 
   @Test
-  public void doubleType() {
+  void doubleType() {
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("double");
 
-    assertThat(typeTransformer.transform(4.2), is((TypedValue) Variables.doubleValue(4.2)));
-    assertThat(typeTransformer.transform("4.2"), is((TypedValue) Variables.doubleValue(4.2)));
-    assertThat(typeTransformer.transform(4), is((TypedValue) Variables.doubleValue(4.0)));
-    assertThat(typeTransformer.transform(4L), is((TypedValue) Variables.doubleValue(4.0)));
+    assertThat(typeTransformer.transform(4.2)).isEqualTo((TypedValue) Variables.doubleValue(4.2));
+    assertThat(typeTransformer.transform("4.2")).isEqualTo((TypedValue) Variables.doubleValue(4.2));
+    assertThat(typeTransformer.transform(4)).isEqualTo((TypedValue) Variables.doubleValue(4.0));
+    assertThat(typeTransformer.transform(4L)).isEqualTo((TypedValue) Variables.doubleValue(4.0));
 
-    assertThat(typeTransformer.transform(Double.MIN_VALUE), is((TypedValue) Variables.doubleValue(Double.MIN_VALUE)));
-    assertThat(typeTransformer.transform(Double.MAX_VALUE), is((TypedValue) Variables.doubleValue(Double.MAX_VALUE)));
-    assertThat(typeTransformer.transform(-Double.MAX_VALUE), is((TypedValue) Variables.doubleValue(-Double.MAX_VALUE)));
-    assertThat(typeTransformer.transform(Long.MAX_VALUE), is((TypedValue) Variables.doubleValue((double) Long.MAX_VALUE)));
+    assertThat(typeTransformer.transform(Double.MIN_VALUE)).isEqualTo((TypedValue) Variables.doubleValue(Double.MIN_VALUE));
+    assertThat(typeTransformer.transform(Double.MAX_VALUE)).isEqualTo((TypedValue) Variables.doubleValue(Double.MAX_VALUE));
+    assertThat(typeTransformer.transform(-Double.MAX_VALUE)).isEqualTo((TypedValue) Variables.doubleValue(-Double.MAX_VALUE));
+    assertThat(typeTransformer.transform(Long.MAX_VALUE)).isEqualTo((TypedValue) Variables.doubleValue((double) Long.MAX_VALUE));
   }
 
   @Test
   public void invalidStringValueForDoubleType() {
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("double");
-
-    thrown.expect(IllegalArgumentException.class);
-
-    typeTransformer.transform("NaD");
+    assertThrows(IllegalArgumentException.class, () -> typeTransformer.transform("NaD"));
   }
 
   @Test
@@ -229,12 +192,12 @@ public class DmnDataTypeTransformerTest extends DmnEngineTest {
     Date date = toDate("2015-09-18T12:00:00", null);
     TypedValue dateValue = Variables.dateValue(date);
 
-    assertThat(typeTransformer.transform("2015-09-18T12:00:00"), is(dateValue));
-    assertThat(typeTransformer.transform(date), is(dateValue));
+    assertThat(typeTransformer.transform("2015-09-18T12:00:00")).isEqualTo(dateValue);
+    assertThat(typeTransformer.transform(date)).isEqualTo(dateValue);
   }
 
   @Test
-  public void shouldTransformZonedDateTime() {
+  void shouldTransformZonedDateTime() {
     // given
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("date");
 
@@ -246,11 +209,11 @@ public class DmnDataTypeTransformerTest extends DmnEngineTest {
     TypedValue transformedFromZonedDateTime = typeTransformer.transform(zonedDateTime);
 
     // then
-    assertThat(transformedFromZonedDateTime, is(dateValue));
+    assertThat(transformedFromZonedDateTime).isEqualTo(dateValue);
   }
 
   @Test
-  public void shouldTransformLocalDateTime() {
+  void shouldTransformLocalDateTime() {
     // given
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("date");
 
@@ -262,96 +225,76 @@ public class DmnDataTypeTransformerTest extends DmnEngineTest {
     TypedValue transformedFromLocalDateTime = typeTransformer.transform(localDateTime);
 
     // then
-    assertThat(transformedFromLocalDateTime, is(dateValue));
+    assertThat(transformedFromLocalDateTime).isEqualTo(dateValue);
   }
 
   @Test
-  public void shouldThrowExceptionDueToUnsupportedType_LocalTime() {
+  void shouldThrowExceptionDueToUnsupportedType_LocalTime() {
     // given
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("date");
 
     java.time.LocalTime localTime = java.time.LocalTime.now();
 
-    // then
-    thrown.expect(DmnEngineException.class);
-    thrown.expectMessage("Unsupported type: 'java.time.LocalTime' " +
-      "cannot be converted to 'java.util.Date'");
-
     // when
-    typeTransformer.transform(localTime);
+    assertThatThrownBy(() -> typeTransformer.transform(localTime))
+      .isInstanceOf(DmnEngineException.class)
+      .hasMessageContaining("Unsupported type: 'java.time.LocalTime' cannot be converted to 'java.util.Date'");
   }
 
   @Test
-  public void shouldThrowExceptionDueToUnsupportedType_LocalDate() {
+  void shouldThrowExceptionDueToUnsupportedType_LocalDate() {
     // given
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("date");
 
     LocalDate localDate = LocalDate.now();
 
-    // then
-    thrown.expect(DmnEngineException.class);
-    thrown.expectMessage("Unsupported type: 'java.time.LocalDate' " +
-      "cannot be converted to 'java.util.Date'");
-
     // when
-    typeTransformer.transform(localDate);
-  }
+      assertThatThrownBy(() -> typeTransformer.transform(localDate))
+        .isInstanceOf(DmnEngineException.class)
+        .hasMessageContaining("Unsupported type: 'java.time.LocalDate' cannot be converted to 'java.util.Date'");  }
 
   @Test
-  public void shouldThrowExceptionDueToUnsupportedType_ZonedTime() {
+  void shouldThrowExceptionDueToUnsupportedType_ZonedTime() {
     // given
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("date");
 
     ZonedTime zonedTime = ZonedTime.parse("22:22:22@Europe/Berlin");
 
-    // then
-    thrown.expect(DmnEngineException.class);
-    thrown.expectMessage("Unsupported type: 'org.camunda.feel.syntaxtree.ZonedTime' " +
-                           "cannot be converted to 'java.util.Date'");
-
     // when
-    typeTransformer.transform(zonedTime);
-  }
+    assertThatThrownBy(() -> typeTransformer.transform(zonedTime))
+      .isInstanceOf(DmnEngineException.class)
+      .hasMessageContaining("Unsupported type: 'org.camunda.feel.syntaxtree.ZonedTime' cannot be converted to 'java.util.Date'");  }
 
   @Test
-  public void shouldThrowExceptionDueToUnsupportedType_Duration() {
+  void shouldThrowExceptionDueToUnsupportedType_Duration() {
     // given
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("date");
 
     Duration duration = Duration.ofMillis(5);
 
-    // then
-    thrown.expect(DmnEngineException.class);
-    thrown.expectMessage("Unsupported type: 'java.time.Duration' " +
-      "cannot be converted to 'java.util.Date'");
-
     // when
-    typeTransformer.transform(duration);
+    assertThatThrownBy(() -> typeTransformer.transform(duration))
+      .isInstanceOf(DmnEngineException.class)
+      .hasMessageContaining("Unsupported type: 'java.time.Duration' cannot be converted to 'java.util.Date'");
   }
 
   @Test
-  public void shouldThrowExceptionDueToUnsupportedType_Period() {
+  void shouldThrowExceptionDueToUnsupportedType_Period() {
     // given
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("date");
 
     Period period = Period.ofDays(5);
 
-    // then
-    thrown.expect(DmnEngineException.class);
-    thrown.expectMessage("Unsupported type: 'java.time.Period' " +
-      "cannot be converted to 'java.util.Date'");
-
     // when
-    typeTransformer.transform(period);
+    assertThatThrownBy(() -> typeTransformer.transform(period))
+      .isInstanceOf(DmnEngineException.class)
+      .hasMessageContaining("Unsupported type: 'java.time.Period' cannot be converted to 'java.util.Date'");
   }
 
   @Test
-  public void invalidStringForDateType() {
+  void invalidStringForDateType() {
     DmnDataTypeTransformer typeTransformer = registry.getTransformer("date");
-
-    thrown.expect(IllegalArgumentException.class);
-
-    typeTransformer.transform("18.09.2015 12:00:00");
+    assertThrows(IllegalArgumentException.class, () -> typeTransformer.transform("18.09.2015 12:00:00"));
   }
 
   protected Date toDate(String date, String timeZone) {
@@ -365,7 +308,6 @@ public class DmnDataTypeTransformerTest extends DmnEngineTest {
 
     } catch (ParseException e) {
       throw new RuntimeException(e);
-
     }
   }
 

@@ -24,8 +24,8 @@ import static org.mockito.Mockito.when;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 
+import org.junit.jupiter.api.Test;
 import org.cibseven.bpm.dmn.engine.impl.el.DefaultScriptEngineResolver;
-import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
 
 /**

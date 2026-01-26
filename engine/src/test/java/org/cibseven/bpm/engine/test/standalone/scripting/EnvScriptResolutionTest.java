@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.cibseven.bpm.engine.impl.scripting.ExecutableScript;
 import org.cibseven.bpm.engine.impl.scripting.env.ScriptEnvResolver;
 import org.cibseven.bpm.engine.repository.ProcessApplicationDeployment;
@@ -55,11 +57,12 @@ public class EnvScriptResolutionTest extends AbstractScriptEnvironmentTest {
 
     // then
     Map<String, List<ExecutableScript>> environmentScripts = processApplication.getEnvironmentScripts();
+
     assertThat(environmentScripts)
-      .hasSize(1)
-      .containsKey(ECMASCRIPT_LANGUAGE)
-      .extracting(ECMASCRIPT_LANGUAGE)
-        .hasSize(1);
+    .hasSize(1)
+    .containsKey(ECMASCRIPT_LANGUAGE)
+    .extracting(ECMASCRIPT_LANGUAGE).asInstanceOf(InstanceOfAssertFactories.LIST)
+    .hasSize(1);
 
     repositoryService.deleteDeployment(deployment.getId(), true);
   }
@@ -80,7 +83,7 @@ public class EnvScriptResolutionTest extends AbstractScriptEnvironmentTest {
       .hasSize(2)
       .containsKeys(ECMASCRIPT_LANGUAGE, SCRIPT_LANGUAGE)
       .containsEntry(SCRIPT_LANGUAGE, Collections.emptyList())
-      .extracting(ECMASCRIPT_LANGUAGE)
+      .extracting(ECMASCRIPT_LANGUAGE).asInstanceOf(InstanceOfAssertFactories.LIST)
         .hasSize(1);
 
     repositoryService.deleteDeployment(deployment.getId(), true);

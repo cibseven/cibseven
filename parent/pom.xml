@@ -51,7 +51,7 @@
     <version.logback>1.2.13</version.logback>
     <version.junit>5.12.2</version.junit>
     <version.junit4>4.13.1</version.junit4>
-    <version.assertj>2.9.1</version.assertj>
+    <version.assertj>3.25.3</version.assertj>
     <version.mockito>5.17.0</version.mockito>
     <version.wiremock>2.27.2</version.wiremock>
     <version.testcontainers>1.20.5</version.testcontainers>
@@ -122,10 +122,12 @@
     <camunda.osgi.exclude.dependencies>false</camunda.osgi.exclude.dependencies>
     <camunda.osgi.remove.headers>Ignore-Package,Include-Resource,Private-Package,Bundle-DocURL</camunda.osgi.remove.headers>
     <camunda.osgi.include.resource>{maven-resources}</camunda.osgi.include.resource>
-    <camunda.osgi.embed />
     <plugin.version.maven-bundle>5.1.9</plugin.version.maven-bundle> <!-- compatible with JDK 17 -->
     <!-- Define the maximum number of JVM processes that Surefire will spawn concurrently to execute the tests. 1C equals to number of available CPU cores in system. -->
     <surefire.forkCount>1</surefire.forkCount>
+    <!-- Set Java 17 as default source/target for all modules -->
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
   </properties>
 
   <dependencyManagement>

@@ -16,9 +16,13 @@
  */
 package org.cibseven.bpm.dmn.engine.test.asserts;
 
+import java.util.ArrayList;
+
 import org.assertj.core.api.AbstractListAssert;
 import org.cibseven.bpm.dmn.engine.DmnDecisionRuleResult;
 import org.cibseven.bpm.dmn.engine.DmnDecisionTableResult;
+import org.cibseven.bpm.dmn.engine.impl.DmnDecisionTableResultImpl;
+import org.junit.jupiter.api.Test;
 
 public class DmnDecisionTableResultAssert extends AbstractListAssert<DmnDecisionTableResultAssert, DmnDecisionTableResult, DmnDecisionRuleResult, DmnDecisionRuleResultAssert> {
 
@@ -39,5 +43,14 @@ public class DmnDecisionTableResultAssert extends AbstractListAssert<DmnDecision
     info.description(description, "");
 
     return new DmnDecisionRuleResultAssert(value);
+  }
+
+  @Override
+  protected DmnDecisionTableResultAssert newAbstractIterableAssert(Iterable<? extends DmnDecisionRuleResult> iterable) {
+    DmnDecisionTableResult decisionTableResult = new DmnDecisionTableResultImpl(new ArrayList<>());
+
+    iterable.forEach(decisionTableResult::add);
+
+    return new DmnDecisionTableResultAssert(decisionTableResult);  
   }
 }

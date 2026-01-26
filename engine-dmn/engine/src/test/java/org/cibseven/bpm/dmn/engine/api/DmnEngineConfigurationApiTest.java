@@ -16,11 +16,6 @@
  */
 package org.cibseven.bpm.dmn.engine.api;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.Collections;
-
 import org.cibseven.bpm.dmn.engine.DmnEngine;
 import org.cibseven.bpm.dmn.engine.DmnEngineConfiguration;
 import org.cibseven.bpm.dmn.engine.delegate.DmnDecisionEvaluationEvent;
@@ -28,14 +23,19 @@ import org.cibseven.bpm.dmn.engine.delegate.DmnDecisionEvaluationListener;
 import org.cibseven.bpm.dmn.engine.delegate.DmnDecisionTableEvaluationListener;
 import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
 import org.cibseven.bpm.dmn.engine.impl.metrics.DefaultEngineMetricCollector;
-import org.junit.Before;
-import org.junit.Test;
+import java.util.ArrayList;
+import java.util.Collections;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DmnEngineConfigurationApiTest {
 
   protected DmnEngineConfiguration configuration;
 
-  @Before
+  @BeforeEach
   public void initConfiguration() {
     configuration = DmnEngineConfiguration.createDefaultDmnEngineConfiguration();
   }
@@ -249,20 +249,16 @@ public class DmnEngineConfigurationApiTest {
       .buildEngine();
 
     DmnEngineConfiguration configuration = engine.getConfiguration();
-    assertThat(configuration.getEngineMetricCollector())
-      .isEqualTo(metricCollector);
-    assertThat(configuration.getCustomPreDecisionTableEvaluationListeners())
-      .containsExactlyElementsOf(preListeners);
-    assertThat(configuration.getCustomPostDecisionTableEvaluationListeners())
-      .containsExactlyElementsOf(postListeners);
-    assertThat(configuration.getCustomPreDecisionEvaluationListeners())
-      .containsExactlyElementsOf(preDecisionListeners);
-    assertThat(configuration.getCustomPostDecisionEvaluationListeners())
-      .containsExactlyElementsOf(postDecisionListeners);
+    assertThat(configuration.getEngineMetricCollector()).isEqualTo(metricCollector);
+    assertThat(configuration.getCustomPreDecisionTableEvaluationListeners()).containsExactlyElementsOf(preListeners);
+    assertThat(configuration.getCustomPostDecisionTableEvaluationListeners()).containsExactlyElementsOf(postListeners);
+    assertThat(configuration.getCustomPreDecisionEvaluationListeners()).containsExactlyElementsOf(preDecisionListeners);
+    assertThat(configuration.getCustomPostDecisionEvaluationListeners()).containsExactlyElementsOf(
+      postDecisionListeners);
   }
 
   @Test
-  public void shouldBuildEngine() {
+  void shouldBuildEngine() {
     DmnEngine engine = configuration.buildEngine();
     assertThat(engine).isNotNull();
   }
@@ -276,6 +272,7 @@ public class DmnEngineConfigurationApiTest {
       this.evaluationEvent = evaluationEvent;
     }
     
+    @SuppressWarnings("unused")
     public DmnDecisionEvaluationEvent getEvaluationEvent() {
       return evaluationEvent;
     }

@@ -16,9 +16,6 @@
  */
 package org.cibseven.bpm.dmn.engine.feel.function;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
@@ -28,29 +25,25 @@ import java.util.List;
 import java.util.Map;
 import org.cibseven.bpm.dmn.engine.feel.function.helper.FunctionProvider;
 import org.cibseven.bpm.dmn.engine.feel.function.helper.MyPojo;
-import org.cibseven.bpm.dmn.engine.feel.helper.FeelRule;
+import org.cibseven.bpm.dmn.engine.feel.helper.FeelExtension;
 import org.cibseven.bpm.dmn.feel.impl.FeelException;
 import org.cibseven.bpm.dmn.feel.impl.scala.function.CustomFunction;
 import org.cibseven.bpm.dmn.feel.impl.scala.function.builder.CustomFunctionBuilder;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import static org.assertj.core.api.Assertions.*;
 
 public class CustomFunctionTest {
 
-  protected FeelRule feelRule = FeelRule.buildWithFunctionProvider();
-  protected ExpectedException thrown = ExpectedException.none();
+  @RegisterExtension
+  FeelExtension feelExtension = FeelExtension.buildWithFunctionProvider();
+  
+  private FunctionProvider functionProvider;
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(feelRule).around(thrown);
-
-  protected FunctionProvider functionProvider;
-
-  @Before
+  @BeforeEach
   public void assign() {
-    functionProvider = feelRule.getFunctionProvider();
+    functionProvider = feelExtension.getFunctionProvider();
   }
 
   @Test
@@ -61,15 +54,14 @@ public class CustomFunctionTest {
       .setFunction(args -> "")
       .setReturnValue("foo");
 
-    // then
-    thrown.expect(FeelException.class);
-    thrown.expectMessage("Only set one return value or a function.");
-
-    // when
-    myFunctionBuilder.build();
+    // when, then
+    assertThatThrownBy(myFunctionBuilder::build)
+      .isInstanceOf(FeelException.class)
+      .hasMessageContaining("Only set one return value or a function.");
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void shouldSetMultipleArgs() {
     // given
     CustomFunction myFunction = CustomFunction.create()
@@ -86,14 +78,14 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    String result = feelRule.evaluateExpression("myFunction(\"foo\", true, [\"elem\"])");
+    String result = feelExtension.evaluateExpression("myFunction(\"foo\", true, [\"elem\"])");
 
     // then
     assertThat(result).isEqualTo("foo-true-[elem]");
   }
 
   @Test
-  public void shouldRegisterMultipleFunctions() {
+  void shouldRegisterMultipleFunctions() {
     // given
     CustomFunction myFunctionA = CustomFunction.create()
       .setReturnValue("A")
@@ -112,14 +104,14 @@ public class CustomFunctionTest {
     functionProvider.register("myFunctionC", myFunctionC);
 
     // when
-    String result = feelRule.evaluateExpression("myFunctionA()+myFunctionB()+myFunctionC()");
+    String result = feelExtension.evaluateExpression("myFunctionA()+myFunctionB()+myFunctionC()");
 
     // then
     assertThat(result).isEqualTo("ABC");
   }
 
   @Test
-  public void shouldCallBean() {
+  void shouldCallBean() {
     // given
     MyPojo testBean = new MyPojo(3);
     CustomFunction myFunction = CustomFunction.create()
@@ -129,14 +121,14 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    long result = feelRule.evaluateExpression("myFunction()");
+    long result = feelExtension.evaluateExpression("myFunction()");
 
     // then
     assertThat(result).isEqualTo(6);
   }
 
   @Test
-  public void shouldPassInteger() {
+  void shouldPassInteger() {
     // given
     CustomFunction myFunction = CustomFunction.create()
       .setParams("x")
@@ -153,11 +145,11 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    feelRule.evaluateExpression("myFunction(variable)", 12);
+    feelExtension.evaluateExpression("myFunction(variable)", 12);
   }
 
   @Test
-  public void shouldPassDouble() {
+  void shouldPassDouble() {
     // given
     CustomFunction myFunction = CustomFunction.create()
       .setParams("x")
@@ -174,11 +166,11 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    feelRule.evaluateExpression("myFunction(variable)", 12.1);
+    feelExtension.evaluateExpression("myFunction(variable)", 12.1);
   }
 
   @Test
-  public void shouldPassString() {
+  void shouldPassString() {
     // given
     CustomFunction myFunction = CustomFunction.create()
       .setParams("x")
@@ -195,11 +187,11 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    feelRule.evaluateExpression("myFunction(variable)", "foo");
+    feelExtension.evaluateExpression("myFunction(variable)", "foo");
   }
 
   @Test
-  public void shouldPassNull() {
+  void shouldPassNull() {
     // given
     CustomFunction myFunction = CustomFunction.create()
       .setParams("x")
@@ -216,11 +208,11 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    feelRule.evaluateExpression("myFunction(variable)", null);
+    feelExtension.evaluateExpression("myFunction(variable)", null);
   }
 
   @Test
-  public void shouldPassTrue() {
+  void shouldPassTrue() {
     // given
     CustomFunction myFunction = CustomFunction.create()
       .setParams("x")
@@ -237,11 +229,11 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    feelRule.evaluateExpression("myFunction(variable)", true);
+    feelExtension.evaluateExpression("myFunction(variable)", true);
   }
 
   @Test
-  public void shouldPassDate() {
+  void shouldPassDate() {
     // given
     Date now = new Date();
     LocalDateTime localDateTime = LocalDateTime.ofInstant(now.toInstant(), ZoneId.systemDefault());
@@ -261,11 +253,11 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    feelRule.evaluateExpression("myFunction(variable)", now);
+    feelExtension.evaluateExpression("myFunction(variable)", now);
   }
 
   @Test
-  public void shouldPassList() {
+  void shouldPassList() {
     // given
     List<String> list = Arrays.asList("foo", "bar", "bazz");
 
@@ -284,11 +276,11 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    feelRule.evaluateExpression("myFunction(variable)", list);
+    feelExtension.evaluateExpression("myFunction(variable)", list);
   }
 
   @Test
-  public void shouldPassMap() {
+  void shouldPassMap() {
     // given
     Map<String, String> map = Collections.singletonMap("foo", "bar");
 
@@ -307,11 +299,11 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    feelRule.evaluateExpression("myFunction(variable)", map);
+    feelExtension.evaluateExpression("myFunction(variable)", map);
   }
 
   @Test
-  public void shouldReturnString() {
+  void shouldReturnString() {
     // given
     CustomFunction myFunction = CustomFunction.create()
       .setReturnValue("foo")
@@ -320,14 +312,14 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    String result = feelRule.evaluateExpression("myFunction()");
+    String result = feelExtension.evaluateExpression("myFunction()");
 
     // then
     assertThat(result).isEqualTo("foo");
   }
 
   @Test
-  public void shouldReturnDouble() {
+  void shouldReturnDouble() {
     // given
     CustomFunction myFunction = CustomFunction.create()
       .setReturnValue(1.7976931348623157)
@@ -336,14 +328,14 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    double result = feelRule.evaluateExpression("myFunction()");
+    double result = feelExtension.evaluateExpression("myFunction()");
 
     // then
     assertThat(result).isEqualTo(1.7976931348623157);
   }
 
   @Test
-  public void shouldReturnNull() {
+  void shouldReturnNull() {
     // given
     CustomFunction myFunction = CustomFunction.create()
       .setReturnValue(null)
@@ -352,14 +344,14 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    Object result = feelRule.evaluateExpression("myFunction()");
+    Object result = feelExtension.evaluateExpression("myFunction()");
 
     // then
     assertThat(result).isNull();
   }
 
   @Test
-  public void shouldReturnTrue() {
+  void shouldReturnTrue() {
     // given
     CustomFunction myFunction = CustomFunction.create()
       .setReturnValue(true)
@@ -368,14 +360,14 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    boolean result = feelRule.evaluateExpression("myFunction()");
+    boolean result = feelExtension.evaluateExpression("myFunction()");
 
     // then
     assertThat(result).isTrue();
   }
 
   @Test
-  public void shouldReturnDate() {
+  void shouldReturnDate() {
     // given
     Date now = new Date();
 
@@ -386,7 +378,7 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    LocalDateTime result = feelRule.evaluateExpression("myFunction()");
+    LocalDateTime result = feelExtension.evaluateExpression("myFunction()");
 
     LocalDateTime localDateTime = LocalDateTime.ofInstant(now.toInstant(), ZoneId.systemDefault());
 
@@ -395,7 +387,7 @@ public class CustomFunctionTest {
   }
 
   @Test
-  public void shouldReturnList() {
+  void shouldReturnList() {
     // given
     List<String> list = Arrays.asList("foo", "bar", "bazz");
 
@@ -406,14 +398,14 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    List<String> result = feelRule.evaluateExpression("myFunction()");
+    List<String> result = feelExtension.evaluateExpression("myFunction()");
 
     // then
     assertThat(result).containsExactly("foo", "bar", "bazz");
   }
 
   @Test
-  public void shouldReturnList_Nested() {
+  void shouldReturnList_Nested() {
     // given
     List<Object> list = Arrays.asList("foo", Arrays.asList("bar", "bazz"));
 
@@ -424,14 +416,14 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    List<Object> result = feelRule.evaluateExpression("myFunction()");
+    List<Object> result = feelExtension.evaluateExpression("myFunction()");
 
     // then
     assertThat(result).containsExactly("foo", Arrays.asList("bar", "bazz"));
   }
 
   @Test
-  public void shouldReturnMap() {
+  void shouldReturnMap() {
     // given
     Map<String, String> map = Collections.singletonMap("foo", "bar");
 
@@ -442,14 +434,14 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    Map<String, String> result = feelRule.evaluateExpression("myFunction()");
+    Map<String, String> result = feelExtension.evaluateExpression("myFunction()");
 
     // then
     assertThat(result).containsExactly(entry("foo", "bar"));
   }
 
   @Test
-  public void shouldReturnMap_Nested() {
+  void shouldReturnMap_Nested() {
     // given
     Map<String, Object> map = Collections.singletonMap("foo",
       Collections.singletonMap("bar", "bazz"));
@@ -461,14 +453,14 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    Map<String, Object> result = feelRule.evaluateExpression("myFunction()");
+    Map<String, Object> result = feelExtension.evaluateExpression("myFunction()");
 
     // then
     assertThat(result).containsExactly(entry("foo", Collections.singletonMap("bar", "bazz")));
   }
 
   @Test
-  public void shouldPassVarargs() {
+  void shouldPassVarargs() {
     // given
     CustomFunction myFunction = CustomFunction.create()
       .enableVarargs()
@@ -478,14 +470,14 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    List<String> result = feelRule.evaluateExpression("myFunction(\"foo\", \"bar\", \"baz\")");
+    List<String> result = feelExtension.evaluateExpression("myFunction(\"foo\", \"bar\", \"baz\")");
 
     // then
     assertThat(result).containsExactly("foo", "bar", "baz");
   }
 
   @Test
-  public void shouldThrowExceptionDueToDisabledVarargs() {
+  void shouldThrowExceptionDueToDisabledVarargs() {
     // given
     CustomFunction myFunction = CustomFunction.create()
       .setFunction(args -> args)
@@ -494,14 +486,14 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", myFunction);
 
     // when
-    var result = feelRule.evaluateExpression("myFunction(\"foo\", \"bar\", \"baz\")");
+    var result = feelExtension.evaluateExpression("myFunction(\"foo\", \"bar\", \"baz\")");
 
     // then
     assertThat(result).isNull();
   }
 
   @Test
-  public void shouldPassExplicitParamsAndVarargs() {
+  void shouldPassExplicitParamsAndVarargs() {
     // given
     CustomFunction customFunction = CustomFunction.create()
       .enableVarargs()
@@ -512,14 +504,14 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", customFunction);
 
     // when
-    List<Object> result = feelRule.evaluateExpression("myFunction(\"foo\", \"bar\", \"baz\")");
+    List<Object> result = feelExtension.evaluateExpression("myFunction(\"foo\", \"bar\", \"baz\")");
 
     // then
     assertThat(result).containsExactly("foo", Arrays.asList("bar", "baz"));
   }
 
   @Test
-  public void shouldPassExplicitParamsWithVarargsEnabled() {
+  void shouldPassExplicitParamsWithVarargsEnabled() {
     // given
     CustomFunction customFunction = CustomFunction.create()
       .enableVarargs()
@@ -530,7 +522,7 @@ public class CustomFunctionTest {
     functionProvider.register("myFunction", customFunction);
 
     // when
-    List<Object> result = feelRule.evaluateExpression("myFunction(y: \"bar\", x: \"foo\")");
+    List<Object> result = feelExtension.evaluateExpression("myFunction(y: \"bar\", x: \"foo\")");
 
     // then
     assertThat(result).containsExactly("foo", "bar");

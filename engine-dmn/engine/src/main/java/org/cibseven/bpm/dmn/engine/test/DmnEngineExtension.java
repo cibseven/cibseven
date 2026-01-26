@@ -19,8 +19,10 @@ package org.cibseven.bpm.dmn.engine.test;
 import org.cibseven.bpm.dmn.engine.DmnEngine;
 import org.cibseven.bpm.dmn.engine.DmnEngineConfiguration;
 import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import java.util.Objects;
+
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * JUnit rule for {@link DmnEngine} initialization.
@@ -32,7 +34,7 @@ import org.junit.runner.Description;
  * public class YourDmnTest {
  *
  *   &#64;Rule
- *   public DmnEngineRule dmnEngineRule = new DmnEngineRule();
+ *   public static DmnEngineExtension dmnEngineExtension = new DmnEngineExtension();
  *
  *   ...
  * }
@@ -40,13 +42,13 @@ import org.junit.runner.Description;
  *
  * <p>
  * The DMN engine will be made available to the test class
- * through the getters of the {@code dmnEngineRule} (see {@link #getDmnEngine()}).
+ * through the getters of the {@code dmnEngineExtension} (see {@link #getDmnEngine()}).
  * The DMN engine will be initialized with the default DMN engine configuration.
  * To specify a different configuration, pass the configuration to the
- * {@link #DmnEngineRule(DmnEngineConfiguration)} constructor.
+ * {@link #dmnEngineExtension(DmnEngineConfiguration)} constructor.
  * </p>
  */
-public class DmnEngineRule extends TestWatcher {
+public class DmnEngineExtension implements BeforeEachCallback {
 
   protected DmnEngine dmnEngine;
   protected DmnEngineConfiguration dmnEngineConfiguration;
@@ -54,20 +56,16 @@ public class DmnEngineRule extends TestWatcher {
   /**
    * Creates a {@link DmnEngine} with the default {@link DmnEngineConfiguration}
    */
-  public DmnEngineRule() {
+  public DmnEngineExtension() {
     this(null);
   }
 
   /**
    * Creates a {@link DmnEngine} with the given {@link DmnEngineConfiguration}
    */
-  public DmnEngineRule(DmnEngineConfiguration dmnEngineConfiguration) {
-    if (dmnEngineConfiguration != null) {
-      this.dmnEngineConfiguration = dmnEngineConfiguration;
-    }
-    else {
-      this.dmnEngineConfiguration = DmnEngineConfiguration.createDefaultDmnEngineConfiguration();
-    }
+  public DmnEngineExtension(DmnEngineConfiguration dmnEngineConfiguration) {
+    this.dmnEngineConfiguration = Objects.requireNonNullElseGet(dmnEngineConfiguration,
+        DmnEngineConfiguration::createDefaultDmnEngineConfiguration);
   }
 
   /**
@@ -78,7 +76,7 @@ public class DmnEngineRule extends TestWatcher {
   }
 
   @Override
-  protected void starting(Description description) {
+  public void beforeEach(ExtensionContext context) {
     if (dmnEngine == null) {
       dmnEngine = dmnEngineConfiguration.buildEngine();
     }

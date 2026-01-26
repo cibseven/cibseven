@@ -16,18 +16,22 @@
  */
 package org.cibseven.bpm.dmn.engine.feel;
 
-import java.util.Date;
 import org.cibseven.bpm.dmn.engine.DmnEngineConfiguration;
 import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
 import org.cibseven.bpm.dmn.engine.test.DecisionResource;
 import org.cibseven.bpm.dmn.feel.impl.FeelException;
 import org.cibseven.bpm.dmn.feel.impl.juel.FeelEngineFactoryImpl;
-import org.junit.Test;
 
-public class JuelFeelBehaviorTest extends FeelBehavior {
+import java.util.Date;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+class JuelFeelBehaviorTest extends FeelBehavior {
 
   @Override
-  public DmnEngineConfiguration getDmnEngineConfiguration() {
+  protected DmnEngineConfiguration getDmnEngineConfiguration() {
     DefaultDmnEngineConfiguration configuration = new DefaultDmnEngineConfiguration();
     configuration.setFeelEngineFactory(new FeelEngineFactoryImpl());
     configuration.init();
@@ -48,11 +52,8 @@ public class JuelFeelBehaviorTest extends FeelBehavior {
     // given
     getVariables().putValue("myDate", new Date());
 
-    // then
-    thrown.expect(FeelException.class);
-
     // when
-    evaluateDecision().getSingleEntry();
+    assertThrows(FeelException.class, this::evaluateDecision);
   }
 
 }

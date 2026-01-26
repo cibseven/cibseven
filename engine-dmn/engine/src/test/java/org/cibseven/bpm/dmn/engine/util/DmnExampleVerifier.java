@@ -16,18 +16,19 @@
  */
 package org.cibseven.bpm.dmn.engine.util;
 
-import java.io.InputStream;
-import static org.cibseven.bpm.dmn.engine.test.asserts.DmnEngineTestAssertions.assertThat;
 import org.cibseven.bpm.dmn.engine.DmnDecision;
 import org.cibseven.bpm.dmn.engine.DmnDecisionTableResult;
 import org.cibseven.bpm.dmn.engine.DmnEngine;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.commons.utils.IoUtil;
+import static org.cibseven.bpm.dmn.engine.test.asserts.DmnEngineTestAssertions.assertThat;
+
+import java.io.InputStream;
 
 public final class DmnExampleVerifier {
 
-  public static final String EXAMPLE_DMN = "org/cibseven/bpm/dmn/engine/api/Example.dmn";
+  private static final String EXAMPLE_DMN = "org/cibseven/bpm/dmn/engine/api/Example.dmn";
 
   public static void assertExample(DmnEngine engine) {
     InputStream inputStream = IoUtil.fileAsStream(EXAMPLE_DMN);
