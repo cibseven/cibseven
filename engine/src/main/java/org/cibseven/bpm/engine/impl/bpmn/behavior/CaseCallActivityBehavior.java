@@ -18,14 +18,9 @@ package org.cibseven.bpm.engine.impl.bpmn.behavior;
 
 import static org.cibseven.bpm.engine.impl.util.CallableElementUtil.getCaseDefinitionToCall;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.cmmn.entity.runtime.CaseExecutionEntity;
 import org.cibseven.bpm.engine.impl.cmmn.execution.CmmnCaseInstance;
 import org.cibseven.bpm.engine.impl.cmmn.model.CmmnCaseDefinition;
-import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.migration.instance.MigratingActivityInstance;
 import org.cibseven.bpm.engine.impl.migration.instance.MigratingCalledCaseInstance;
 import org.cibseven.bpm.engine.impl.migration.instance.parser.MigratingInstanceParseContext;
@@ -50,81 +45,8 @@ public class CaseCallActivityBehavior extends CallableElementActivityBehavior im
     CmmnCaseDefinition definition = getCaseDefinitionToCall(executionEntity,
         executionEntity.getProcessDefinitionTenantId(),
         getCallableElement());
-    
-    // Check for recursion before starting the case
-    checkCaseCallActivityRecursion(executionEntity, definition);
-    
     CmmnCaseInstance caseInstance = execution.createSubCaseInstance(definition, businessKey);
     caseInstance.create(variables);
-  }
-  
-  /**
-   * Checks for recursive Case Call Activity invocations by traversing the superExecution chain.
-   * This prevents processes from calling cases that create processes in an infinite loop.
-   * 
-   * @param execution the current execution entity
-   * @param targetDefinition the case definition being called
-   * @throws ProcessEngineException if recursion depth limit is exceeded
-   */
-  protected void checkCaseCallActivityRecursion(ExecutionEntity execution, CmmnCaseDefinition targetDefinition) {
-    int maxDepth = Context.getProcessEngineConfiguration().getMaxCallActivityRecursionDepth();
-    
-    // Skip check if disabled (0 or negative value)
-    if (maxDepth <= 0) {
-      return;
-    }
-    
-    List<String> callChain = new ArrayList<>();
-    
-    // Traverse up the superExecution chain to count depth
-    ExecutionEntity currentExecution = execution;
-    int depth = 0;
-    
-    while (currentExecution != null) {
-      String currentProcessKey = currentExecution.getProcessDefinitionKey();
-      
-      if (currentProcessKey != null) {
-        callChain.add(currentProcessKey);
-        depth++;
-      }
-      
-      // Move to the parent execution
-      currentExecution = currentExecution.getSuperExecution();
-    }
-    
-    // Check if adding the new case would exceed the limit
-    // depth represents the current number of processes in the hierarchy
-    // Adding one more would make it depth + 1 processes
-    if (depth + 1 > maxDepth) {
-      throw new ProcessEngineException(
-        String.format("Case Call Activity recursion depth limit exceeded: Maximum depth is %d, current depth is %d. " +
-            "Attempting to call case: %s. Current call chain: %s. " +
-            "Configure 'maxCallActivityRecursionDepth' in ProcessEngineConfiguration to adjust the limit.",
-            maxDepth, depth, targetDefinition.getKey(), buildCallChainString(callChain)));
-    }
-  }
-  
-  /**
-   * Builds a string representation of the call chain for error messages.
-   * 
-   * @param callChain the list of process definition keys in the call chain
-   * @return a formatted string like "processC -> processB -> processA"
-   */
-  private String buildCallChainString(List<String> callChain) {
-    if (callChain.isEmpty()) {
-      return "";
-    }
-    
-    StringBuilder sb = new StringBuilder();
-    // Reverse the chain to show root -> ... -> current
-    for (int i = callChain.size() - 1; i >= 0; i--) {
-      sb.append(callChain.get(i));
-      if (i > 0) {
-        sb.append(" -> ");
-      }
-    }
-    
-    return sb.toString();
   }
 
   @Override
