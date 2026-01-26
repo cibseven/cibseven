@@ -79,12 +79,12 @@ public class CallActivityRecursionTest {
         .deploy();
     rule.manageDeployment(deployment);
 
-    // Starting the process should fail with a recursion error
+    // Starting the process should fail with a recursion depth limit error
     assertThatThrownBy(() -> rule.getRuntimeService().startProcessInstanceByKey("processA"))
         .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("Recursive Call Activity detected")
-        .hasMessageContaining("processA")
-        .hasMessageContaining("cycle detected");
+        .hasMessageContaining("Call Activity recursion depth limit exceeded")
+        .hasMessageContaining("Maximum depth is 5")
+        .hasMessageContaining("processA");
   }
 
   /**
@@ -118,12 +118,12 @@ public class CallActivityRecursionTest {
         .deploy();
     rule.manageDeployment(deployment);
 
-    // Starting Process A should fail when B tries to call A again
+    // Starting Process A should fail when depth limit is exceeded
     assertThatThrownBy(() -> rule.getRuntimeService().startProcessInstanceByKey("processA"))
         .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("Recursive Call Activity detected")
-        .hasMessageContaining("processA")
-        .hasMessageContaining("cycle detected");
+        .hasMessageContaining("Call Activity recursion depth limit exceeded")
+        .hasMessageContaining("Maximum depth is 5")
+        .hasMessageContaining("processA");
   }
 
   /**
@@ -166,12 +166,12 @@ public class CallActivityRecursionTest {
         .deploy();
     rule.manageDeployment(deployment);
 
-    // Starting Process A should fail when C tries to call A again
+    // Starting Process A should fail when depth limit is exceeded
     assertThatThrownBy(() -> rule.getRuntimeService().startProcessInstanceByKey("processA"))
         .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("Recursive Call Activity detected")
-        .hasMessageContaining("processA")
-        .hasMessageContaining("cycle detected");
+        .hasMessageContaining("Call Activity recursion depth limit exceeded")
+        .hasMessageContaining("Maximum depth is 10")
+        .hasMessageContaining("processA");
   }
 
   /**
@@ -426,10 +426,10 @@ public class CallActivityRecursionTest {
 
     assertThatThrownBy(() -> rule.getRuntimeService().startProcessInstanceByKey("processA"))
         .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("Recursive Call Activity detected")
+        .hasMessageContaining("Call Activity recursion depth limit exceeded")
+        .hasMessageContaining("Maximum depth is 10")
         .hasMessageContaining("processA")
-        .hasMessageContaining("already present in the call hierarchy")
-        .hasMessageContaining("call chain")
+        .hasMessageContaining("Current call chain")
         .hasMessageContaining("maxCallActivityRecursionDepth");
   }
 }
