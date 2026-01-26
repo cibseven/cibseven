@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
@@ -72,10 +73,11 @@ public class CallActivityRecursionTest {
         .endEvent()
         .done();
 
-    rule.getRepositoryService()
+    Deployment deployment = rule.getRepositoryService()
         .createDeployment()
         .addModelInstance("processA.bpmn", processA)
         .deploy();
+    rule.manageDeployment(deployment);
 
     // Starting the process should fail with a recursion error
     assertThatThrownBy(() -> rule.getRuntimeService().startProcessInstanceByKey("processA"))
@@ -109,11 +111,12 @@ public class CallActivityRecursionTest {
         .endEvent()
         .done();
 
-    rule.getRepositoryService()
+    Deployment deployment = rule.getRepositoryService()
         .createDeployment()
         .addModelInstance("processA.bpmn", processA)
         .addModelInstance("processB.bpmn", processB)
         .deploy();
+    rule.manageDeployment(deployment);
 
     // Starting Process A should fail when B tries to call A again
     assertThatThrownBy(() -> rule.getRuntimeService().startProcessInstanceByKey("processA"))
@@ -155,12 +158,13 @@ public class CallActivityRecursionTest {
         .endEvent()
         .done();
 
-    rule.getRepositoryService()
+    Deployment deployment = rule.getRepositoryService()
         .createDeployment()
         .addModelInstance("processA.bpmn", processA)
         .addModelInstance("processB.bpmn", processB)
         .addModelInstance("processC.bpmn", processC)
         .deploy();
+    rule.manageDeployment(deployment);
 
     // Starting Process A should fail when C tries to call A again
     assertThatThrownBy(() -> rule.getRuntimeService().startProcessInstanceByKey("processA"))
@@ -206,13 +210,14 @@ public class CallActivityRecursionTest {
         .endEvent()
         .done();
 
-    rule.getRepositoryService()
+    Deployment deployment = rule.getRepositoryService()
         .createDeployment()
         .addModelInstance("processA.bpmn", processA)
         .addModelInstance("processB.bpmn", processB)
         .addModelInstance("processC.bpmn", processC)
         .addModelInstance("processD.bpmn", processD)
         .deploy();
+    rule.manageDeployment(deployment);
 
     // Starting Process A should fail when trying to call D at depth 4
     assertThatThrownBy(() -> rule.getRuntimeService().startProcessInstanceByKey("processA"))
@@ -250,12 +255,13 @@ public class CallActivityRecursionTest {
         .endEvent()
         .done();
 
-    rule.getRepositoryService()
+    Deployment deployment = rule.getRepositoryService()
         .createDeployment()
         .addModelInstance("processA.bpmn", processA)
         .addModelInstance("processB.bpmn", processB)
         .addModelInstance("processC.bpmn", processC)
         .deploy();
+    rule.manageDeployment(deployment);
 
     // This should succeed
     ProcessInstance processInstance = rule.getRuntimeService().startProcessInstanceByKey("processA");
@@ -287,10 +293,11 @@ public class CallActivityRecursionTest {
         .endEvent()
         .done();
 
-    rule.getRepositoryService()
+    Deployment deployment = rule.getRepositoryService()
         .createDeployment()
         .addModelInstance("processA.bpmn", processA)
         .deploy();
+    rule.manageDeployment(deployment);
 
     // Starting the process should succeed (check is disabled)
     ProcessInstance processInstance = rule.getRuntimeService().startProcessInstanceByKey("processA");
@@ -322,10 +329,11 @@ public class CallActivityRecursionTest {
         .endEvent()
         .done();
 
-    rule.getRepositoryService()
+    Deployment deployment = rule.getRepositoryService()
         .createDeployment()
         .addModelInstance("processA.bpmn", processA)
         .deploy();
+    rule.manageDeployment(deployment);
 
     // Starting the process should succeed (check is disabled)
     ProcessInstance processInstance = rule.getRuntimeService().startProcessInstanceByKey("processA");
@@ -369,12 +377,13 @@ public class CallActivityRecursionTest {
         .endEvent()
         .done();
 
-    rule.getRepositoryService()
+    Deployment deployment = rule.getRepositoryService()
         .createDeployment()
         .addModelInstance("processA.bpmn", processA)
         .addModelInstance("processB.bpmn", processB)
         .addModelInstance("processC.bpmn", processC)
         .deploy();
+    rule.manageDeployment(deployment);
 
     // This should succeed at exactly the limit
     ProcessInstance processInstance = rule.getRuntimeService().startProcessInstanceByKey("processA");
@@ -408,11 +417,12 @@ public class CallActivityRecursionTest {
         .endEvent()
         .done();
 
-    rule.getRepositoryService()
+    Deployment deployment = rule.getRepositoryService()
         .createDeployment()
         .addModelInstance("processA.bpmn", processA)
         .addModelInstance("processB.bpmn", processB)
         .deploy();
+    rule.manageDeployment(deployment);
 
     assertThatThrownBy(() -> rule.getRuntimeService().startProcessInstanceByKey("processA"))
         .isInstanceOf(ProcessEngineException.class)
