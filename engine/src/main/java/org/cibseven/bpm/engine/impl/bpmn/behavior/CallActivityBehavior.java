@@ -31,6 +31,7 @@ import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;
 import org.cibseven.bpm.engine.impl.pvm.delegate.MigrationObserverBehavior;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.cibseven.bpm.engine.impl.pvm.process.ProcessDefinitionImpl;
+import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.variable.VariableMap;
 
 import static org.cibseven.bpm.engine.impl.util.CallableElementUtil.getProcessDefinitionToCall;
@@ -90,7 +91,10 @@ public class CallActivityBehavior extends CallableElementActivityBehavior implem
       return;
     }
     
-    String targetProcessKey = targetDefinition.getKey();
+    // Cast to ProcessDefinition to access getKey() method
+    // This is safe because getProcessDefinitionToCall() returns ProcessDefinitionEntity at runtime
+    // (from DeploymentCache), which extends ProcessDefinitionImpl and implements ProcessDefinition
+    String targetProcessKey = ((ProcessDefinition) targetDefinition).getKey();
     List<String> callChain = new ArrayList<>();
     
     // Traverse up the superExecution chain to collect process definition keys
