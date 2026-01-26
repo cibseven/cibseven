@@ -108,15 +108,6 @@ public class CallActivityBehavior extends CallableElementActivityBehavior implem
       if (currentProcessKey != null) {
         callChain.add(currentProcessKey);
         depth++;
-        
-        // Check for cycle: target process is already in the call chain
-        if (targetProcessKey.equals(currentProcessKey)) {
-          throw new ProcessEngineException(
-            String.format("Recursive Call Activity detected: Process '%s' is already present in the call hierarchy. " +
-                "Current call chain: %s -> %s (cycle detected at depth %d). " +
-                "Configure 'maxCallActivityRecursionDepth' in ProcessEngineConfiguration to adjust the limit.",
-                targetProcessKey, buildCallChainString(callChain), targetProcessKey, depth));
-        }
       }
       
       // Traverse to parent's root: getSuperExecution() returns the execution that made the call
