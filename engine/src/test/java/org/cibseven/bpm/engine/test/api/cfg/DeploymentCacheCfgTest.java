@@ -65,6 +65,8 @@ public class DeploymentCacheCfgTest {
       configuration.setCacheCapacity(2);
       configuration.setCacheFactory(new MyCacheFactory());
       configuration.setEnableFetchProcessDefinitionDescription(false);
+      // Disable recursion check because these tests intentionally create cycles (0->1->2->0->3)
+      configuration.setMaxCallActivityRecursionDepth(0);
   });
 
   protected ProvidedProcessEngineRule cacheFactoryEngineRule = new ProvidedProcessEngineRule(cacheFactoryBootstrapRule);
