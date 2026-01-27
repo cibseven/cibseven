@@ -886,7 +886,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
    * Set to 0 or -1 to disable the check.
    * Default value: 10
    */
-  protected int maxCallActivityRecursionDepth = 10;
+  protected int maxCallActivityRecursionDepth = 0;
 
   protected boolean isBpmnStacktraceVerbose = false;
 

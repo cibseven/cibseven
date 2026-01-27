@@ -58,6 +58,17 @@ public class CallActivityRecursionTest {
   }
 
   /**
+   * Test that maxCallActivityRecursionDepth is disabled by default (set to 0)
+   */
+  @Test
+  public void testRecursionCheckDisabledByDefault() {
+    // Verify the default value is 0 (disabled)
+    assertThat(configuration.getMaxCallActivityRecursionDepth())
+        .as("maxCallActivityRecursionDepth should be disabled by default")
+        .isEqualTo(0);
+  }
+
+  /**
    * Test direct recursion: Process A calls itself
    */
   @Test
