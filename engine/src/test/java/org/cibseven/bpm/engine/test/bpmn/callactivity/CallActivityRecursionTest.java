@@ -48,23 +48,23 @@ public class CallActivityRecursionTest {
   @Before
   public void setUp() {
     configuration = (ProcessEngineConfigurationImpl) rule.getProcessEngine().getProcessEngineConfiguration();
-    originalMaxDepth = configuration.getMaxCallActivityRecursionDepth();
+    originalMaxDepth = configuration.getMaxRecursiveCallIterations();
   }
 
   @After
   public void tearDown() {
     // Restore original configuration
-    configuration.setMaxCallActivityRecursionDepth(originalMaxDepth);
+    configuration.setMaxRecursiveCallIterations(originalMaxDepth);
   }
 
   /**
-   * Test that maxCallActivityRecursionDepth is disabled by default (set to 0)
+   * Test that maxRecursiveCallIterations is disabled by default (set to 0)
    */
   @Test
-  public void testRecursionCheckDisabledByDefault() {
-    // Verify the default value is 0 (disabled)
-    assertThat(configuration.getMaxCallActivityRecursionDepth())
-        .as("maxCallActivityRecursionDepth should be disabled by default")
+  public void testRecursionCheckDefaultValue() {
+    // Verify the default value is 0
+    assertThat(configuration.getMaxRecursiveCallIterations())
+        .as("maxRecursiveCallIterations should have default value of 0")
         .isEqualTo(0);
   }
 
@@ -74,7 +74,7 @@ public class CallActivityRecursionTest {
   @Test
   public void testDirectRecursionDetected() {
     // Set a reasonable limit
-    configuration.setMaxCallActivityRecursionDepth(5);
+    configuration.setMaxRecursiveCallIterations(5);
 
     // Create a process that calls itself
     BpmnModelInstance processA = Bpmn.createExecutableProcess("processA")
@@ -90,11 +90,13 @@ public class CallActivityRecursionTest {
         .deploy();
     rule.manageDeployment(deployment);
 
-    // Starting the process should fail with a recursion depth limit error
+    // Starting the process should fail with a recursion cycle detected error
+    // Process A calls itself, so on the first recursive call, A appears 1 time in chain
+    // A further calls would surpass the allowed limit (5)
     assertThatThrownBy(() -> rule.getRuntimeService().startProcessInstanceByKey("processA"))
         .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("Call Activity recursion depth limit exceeded")
-        .hasMessageContaining("Maximum depth is 5")
+        .hasMessageContaining("Call Activity recursion cycle detected")
+        .hasMessageContaining("Maximum allowed cycle iterations is 5")
         .hasMessageContaining("processA");
   }
 
@@ -104,7 +106,7 @@ public class CallActivityRecursionTest {
   @Test
   public void testIndirectRecursionDetected() {
     // Set a reasonable limit
-    configuration.setMaxCallActivityRecursionDepth(5);
+    configuration.setMaxRecursiveCallIterations(5);
 
     // Create Process A that calls Process B
     BpmnModelInstance processA = Bpmn.createExecutableProcess("processA")
@@ -129,11 +131,12 @@ public class CallActivityRecursionTest {
         .deploy();
     rule.manageDeployment(deployment);
 
-    // Starting Process A should fail when depth limit is exceeded
+    // Starting Process A should fail when cycle iteration limit is exceeded
+    // A→B→A: When C calls A, A already appears 6 times, exceeding the allowed limit of 5
     assertThatThrownBy(() -> rule.getRuntimeService().startProcessInstanceByKey("processA"))
         .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("Call Activity recursion depth limit exceeded")
-        .hasMessageContaining("Maximum depth is 5")
+        .hasMessageContaining("Call Activity recursion cycle detected")
+        .hasMessageContaining("Maximum allowed cycle iterations is 5")
         .hasMessageContaining("processA");
   }
 
@@ -143,7 +146,7 @@ public class CallActivityRecursionTest {
   @Test
   public void testThreeWayRecursionDetected() {
     // Set a reasonable limit
-    configuration.setMaxCallActivityRecursionDepth(10);
+    configuration.setMaxRecursiveCallIterations(10);
 
     // Create Process A that calls Process B
     BpmnModelInstance processA = Bpmn.createExecutableProcess("processA")
@@ -177,23 +180,25 @@ public class CallActivityRecursionTest {
         .deploy();
     rule.manageDeployment(deployment);
 
-    // Starting Process A should fail when depth limit is exceeded
+    // Starting Process A should fail when cycle iteration limit is exceeded
+    // A→B→C→A: When C tries to call A, A already appears 11 time, exceeds limit of 10
     assertThatThrownBy(() -> rule.getRuntimeService().startProcessInstanceByKey("processA"))
         .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("Call Activity recursion depth limit exceeded")
-        .hasMessageContaining("Maximum depth is 10")
+        .hasMessageContaining("Call Activity recursion cycle detected")
+        .hasMessageContaining("Maximum allowed cycle iterations is 10")
         .hasMessageContaining("processA");
   }
 
   /**
-   * Test maximum depth limit for non-cyclic calls
+   * Test that non-cyclic calls are allowed regardless of depth
+   * (depth limit only applies to cyclic calls)
    */
   @Test
-  public void testMaxDepthExceeded() {
-    // Set a low limit for testing
-    configuration.setMaxCallActivityRecursionDepth(3);
+  public void testNonCyclicDeepCallsAllowed() {
+    // Set a low limit for testing - but it shouldn't matter for non-cyclic calls
+    configuration.setMaxRecursiveCallIterations(3);
 
-    // Create a chain: Process A -> B -> C -> D (depth 4, exceeds limit of 3)
+    // Create a chain: Process A -> B -> C -> D (depth 4, exceeds limit of 3, but no cycle)
     BpmnModelInstance processA = Bpmn.createExecutableProcess("processA")
         .startEvent()
         .callActivity()
@@ -217,7 +222,7 @@ public class CallActivityRecursionTest {
 
     BpmnModelInstance processD = Bpmn.createExecutableProcess("processD")
         .startEvent()
-        .userTask()
+        .userTask("task")
         .endEvent()
         .done();
 
@@ -230,11 +235,17 @@ public class CallActivityRecursionTest {
         .deploy();
     rule.manageDeployment(deployment);
 
-    // Starting Process A should fail when trying to call D at depth 4
-    assertThatThrownBy(() -> rule.getRuntimeService().startProcessInstanceByKey("processA"))
-        .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("recursion depth limit exceeded")
-        .hasMessageContaining("Maximum depth is 3");
+    // Starting Process A should succeed even though depth > limit, because there's no cycle
+    ProcessInstance processInstance = rule.getRuntimeService().startProcessInstanceByKey("processA");
+    assertThat(processInstance).isNotNull();
+
+    // There should be a task from processD
+    Task task = rule.getTaskService().createTaskQuery().singleResult();
+    assertThat(task).isNotNull();
+    assertThat(task.getTaskDefinitionKey()).isEqualTo("task");
+
+    // Clean up
+    rule.getTaskService().complete(task.getId());
   }
 
   /**
@@ -243,7 +254,7 @@ public class CallActivityRecursionTest {
   @Test
   public void testNonCyclicCallsWithinLimitSucceed() {
     // Set a reasonable limit
-    configuration.setMaxCallActivityRecursionDepth(5);
+    configuration.setMaxRecursiveCallIterations(5);
 
     // Create a chain: Process A -> B -> C (depth 3, within limit of 5)
     BpmnModelInstance processA = Bpmn.createExecutableProcess("processA")
@@ -293,7 +304,7 @@ public class CallActivityRecursionTest {
   @Test
   public void testRecursionCheckDisabledWithZero() {
     // Disable the check
-    configuration.setMaxCallActivityRecursionDepth(0);
+    configuration.setMaxRecursiveCallIterations(0);
 
     // Create a process that calls itself - this would normally fail
     BpmnModelInstance processA = Bpmn.createExecutableProcess("processA")
@@ -329,7 +340,7 @@ public class CallActivityRecursionTest {
   @Test
   public void testRecursionCheckDisabledWithNegative() {
     // Disable the check
-    configuration.setMaxCallActivityRecursionDepth(-1);
+    configuration.setMaxRecursiveCallIterations(-1);
 
     // Create a process that calls itself - this would normally fail
     BpmnModelInstance processA = Bpmn.createExecutableProcess("processA")
@@ -365,7 +376,7 @@ public class CallActivityRecursionTest {
   @Test
   public void testDeepNonCyclicCallsAtLimit() {
     // Set limit to exactly 3
-    configuration.setMaxCallActivityRecursionDepth(3);
+    configuration.setMaxRecursiveCallIterations(3);
 
     // Create a chain at exactly the limit: A -> B -> C (depth 3)
     BpmnModelInstance processA = Bpmn.createExecutableProcess("processA")
@@ -408,11 +419,70 @@ public class CallActivityRecursionTest {
   }
 
   /**
+   * Test that cycle counting allows multiple iterations through a cycle
+   * up to the specified limit
+   */
+  @Test
+  public void testMultipleCycleIterationsAllowed() {
+    // Set limit to 2 - allows process to appear twice in chain
+    configuration.setMaxRecursiveCallIterations(2);
+
+    // Create Process A with a conditional path that can complete after N iterations
+    // For this test, we'll use a simple cycle A -> A with a user task
+    BpmnModelInstance processA = Bpmn.createExecutableProcess("processA")
+        .startEvent()
+        .userTask("task")
+        .callActivity()
+          .calledElement("processA")
+        .endEvent()
+        .done();
+
+    Deployment deployment = rule.getRepositoryService()
+        .createDeployment()
+        .addModelInstance("processA.bpmn", processA)
+        .deploy();
+    rule.manageDeployment(deployment);
+
+    // First call - Process A starts (cycle count = 0)
+    ProcessInstance processInstance = rule.getRuntimeService().startProcessInstanceByKey("processA");
+    assertThat(processInstance).isNotNull();
+    
+    // There should be a task from the first A instance
+    Task task1 = rule.getTaskService().createTaskQuery().taskDefinitionKey("task").singleResult();
+    assertThat(task1).isNotNull();
+    
+    // Complete task1 - triggers first recursive call (cycleCount = 1, allowed with limit 2)
+    rule.getTaskService().complete(task1.getId());
+    
+    // There should be a task from the second A instance (1st iteration)
+    Task task2 = rule.getTaskService().createTaskQuery().taskDefinitionKey("task").singleResult();
+    assertThat(task2).isNotNull();
+    
+    // Complete task2 - triggers second recursive call (cycleCount = 2, allowed, at limit)
+    rule.getTaskService().complete(task2.getId());
+    
+    // There should be a task from the third A instance (2nd iteration)
+    Task task3 = rule.getTaskService().createTaskQuery().taskDefinitionKey("task").singleResult();
+    assertThat(task3).isNotNull();
+    
+    // Complete task3 - would trigger third recursive call (cycleCount = 3, exceeds limit of 2)
+    // This should fail because cycleCount = 3 > maxCycles (2)
+    assertThatThrownBy(() -> rule.getTaskService().complete(task3.getId()))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("Call Activity recursion cycle detected")
+        .hasMessageContaining("appears 3 time(s)")
+        .hasMessageContaining("Maximum allowed cycle iterations is 2");
+    
+    // Clean up
+    rule.getRuntimeService().deleteProcessInstance(processInstance.getId(), "test cleanup");
+  }
+
+  /**
    * Test error message format for cycle detection
    */
   @Test
   public void testCycleDetectionErrorMessage() {
-    configuration.setMaxCallActivityRecursionDepth(10);
+    configuration.setMaxRecursiveCallIterations(10);
 
     BpmnModelInstance processA = Bpmn.createExecutableProcess("processA")
         .startEvent()
@@ -437,10 +507,10 @@ public class CallActivityRecursionTest {
 
     assertThatThrownBy(() -> rule.getRuntimeService().startProcessInstanceByKey("processA"))
         .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("Call Activity recursion depth limit exceeded")
-        .hasMessageContaining("Maximum depth is 10")
+        .hasMessageContaining("Call Activity recursion cycle detected")
+        .hasMessageContaining("Maximum allowed cycle iterations is 10")
         .hasMessageContaining("processA")
         .hasMessageContaining("Current call chain")
-        .hasMessageContaining("maxCallActivityRecursionDepth");
+        .hasMessageContaining("maxRecursiveCallIterations");
   }
 }

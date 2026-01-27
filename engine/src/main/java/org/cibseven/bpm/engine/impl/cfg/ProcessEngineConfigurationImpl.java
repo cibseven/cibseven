@@ -872,21 +872,17 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected boolean disableStrictCallActivityValidation = false;
 
   /**
-   * Maximum recursion depth for Call Activities to prevent infinite loops.
-   * This value represents the maximum number of processes allowed in a call hierarchy.
+   * Maximum number of cycle iterations allowed for Call Activities to prevent infinite loops.
+   * This limit only applies to CYCLIC calls - non-cyclic call chains are allowed regardless of depth.
    * <p>
-   * When a Call Activity attempts to start a subprocess, the engine checks:
-   * 1. If the target process definition key already exists in the call hierarchy (cycle detection)
-   * 2. If adding the new process would exceed this depth limit
+   * When a Call Activity attempts to start a subprocess, the engine checks if the target process
+   * already exists in the call hierarchy (cycle detection). If a cycle is detected, this limit
+   * restricts how many times the same process can appear in the chain.
    * <p>
-   * For example, with maxCallActivityRecursionDepth = 3:
-   * - Process A → Process B → Process C is allowed (3 processes)
-   * - Process A → Process B → Process C → Process D is rejected (would be 4 processes)
-   * <p>
-   * Set to 0 or -1 to disable the check.
-   * Default value: 10
+   * Set to 0 or negative value to disable the check completely (allows infinite recursion - use with caution).
+   * Default value: 0 (disabled)
    */
-  protected int maxCallActivityRecursionDepth = 0;
+  protected int maxRecursiveCallIterations = 0;
 
   protected boolean isBpmnStacktraceVerbose = false;
 
@@ -4795,12 +4791,12 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     this.disableStrictCallActivityValidation = disableStrictCallActivityValidation;
   }
 
-  public int getMaxCallActivityRecursionDepth() {
-    return maxCallActivityRecursionDepth;
+  public int getMaxRecursiveCallIterations() {
+    return maxRecursiveCallIterations;
   }
 
-  public void setMaxCallActivityRecursionDepth(int maxCallActivityRecursionDepth) {
-    this.maxCallActivityRecursionDepth = maxCallActivityRecursionDepth;
+  public void setMaxRecursiveCallIterations(int maxRecursiveCallIterations) {
+    this.maxRecursiveCallIterations = maxRecursiveCallIterations;
   }
 
   public String getHistoryCleanupBatchWindowStartTime() {

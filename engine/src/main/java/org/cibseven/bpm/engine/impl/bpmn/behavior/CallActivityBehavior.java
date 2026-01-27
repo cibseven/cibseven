@@ -75,19 +75,21 @@ public class CallActivityBehavior extends CallableElementActivityBehavior implem
   
   /**
    * Checks for recursive Call Activity invocations by traversing the superExecution chain.
-   * Throws a ProcessEngineException if:
-   * - The target process definition key already exists in the call hierarchy (cycle detected)
-   * - The maximum recursion depth is exceeded
+   * Throws a ProcessEngineException if a cycle is detected AND the cycle count limit would be exceeded.
+   * 
+   * A cycle occurs when the target process key already exists in the call hierarchy.
+   * The limit counts how many times the same process appears in the chain (cycle iterations).
+   * Non-cyclic call chains are allowed regardless of depth.
    * 
    * @param execution the current execution entity
    * @param targetDefinition the process definition being called
-   * @throws ProcessEngineException if recursion is detected or depth limit is exceeded
+   * @throws ProcessEngineException if cycle iterations exceed the limit
    */
   protected void checkCallActivityRecursion(ExecutionEntity execution, ProcessDefinitionImpl targetDefinition) {
-    int maxDepth = Context.getProcessEngineConfiguration().getMaxCallActivityRecursionDepth();
+    int maxCycles = Context.getProcessEngineConfiguration().getMaxRecursiveCallIterations();
     
     // Skip check if disabled (0 or negative value)
-    if (maxDepth <= 0) {
+    if (maxCycles <= 0) {
       return;
     }
     
@@ -100,14 +102,19 @@ public class CallActivityBehavior extends CallableElementActivityBehavior implem
     // Traverse up the execution chain to collect process definition keys
     // Always start from root execution: only process instances have superExecution links to parent processes
     ExecutionEntity currentExecution = execution.getProcessInstance();
-    int depth = 0;
+    int cycleCount = 0;
     
     while (currentExecution != null) {
       String currentProcessKey = currentExecution.getProcessDefinitionKey();
       
       if (currentProcessKey != null) {
         callChain.add(currentProcessKey);
-        depth++;
+        
+        // Count how many times the target process key appears in the call chain
+        // This represents the number of times we've already entered this cycle
+        if (currentProcessKey.equals(targetProcessKey)) {
+          cycleCount++;
+        }
       }
       
       // Traverse to parent's root: getSuperExecution() returns the execution that made the call
@@ -116,15 +123,15 @@ public class CallActivityBehavior extends CallableElementActivityBehavior implem
       currentExecution = (superExecution != null) ? superExecution.getProcessInstance() : null;
     }
     
-    // Check if adding the new process would exceed the limit
-    // depth represents the current number of processes in the hierarchy
-    // Adding one more would make it depth + 1 processes
-    if (depth + 1 > maxDepth) {
+    // Only enforce limit if a cycle is detected (cycleCount > 0)
+    // This allows deep non-cyclic call chains while preventing infinite recursion from cycles
+    if (cycleCount > 0 && cycleCount > maxCycles) {
       throw new ProcessEngineException(
-        String.format("Call Activity recursion depth limit exceeded: Maximum depth is %d, current depth is %d. " +
-            "Attempting to call: %s. Current call chain: %s. " +
-            "Configure 'maxCallActivityRecursionDepth' in ProcessEngineConfiguration to adjust the limit.",
-            maxDepth, depth, targetProcessKey, buildCallChainString(callChain)));
+        String.format("Call Activity recursion cycle detected: Process '%s' appears %d time(s) in the call chain. " +
+            "Maximum allowed cycle iterations is %d. " +
+            "Current call chain: %s. " +
+            "Configure 'maxRecursiveCallIterations' in ProcessEngineConfiguration to adjust the limit.",
+            targetProcessKey, cycleCount, maxCycles, buildCallChainString(callChain)));
     }
   }
   
