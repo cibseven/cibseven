@@ -18,12 +18,16 @@ package org.cibseven.bpm.engine.impl.telemetry.dto;
 
 import java.util.Map;
 
+import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
+import org.cibseven.bpm.engine.impl.telemetry.TelemetryLogger;
 import org.cibseven.bpm.engine.telemetry.LicenseKeyData;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
 public class LicenseKeyDataImpl implements LicenseKeyData {
+
+  private final static TelemetryLogger LOG = ProcessEngineLogger.TELEMETRY_LOGGER;
 
   public static final String SERIALIZED_EXPIRES = "expires";
   public static final String SERIALIZED_IS_UNLIMITED = "unlimited";
@@ -57,8 +61,8 @@ public class LicenseKeyDataImpl implements LicenseKeyData {
       resultLicense.setRaw(null);
       return resultLicense;
     } catch (JsonSyntaxException e) {
-      // no message required?
-      throw new RuntimeException(e.getMessage(), e);
+      LOG.exceptionWhileReadingLicenseKey(e);
+      return null;
     }
   }
 
