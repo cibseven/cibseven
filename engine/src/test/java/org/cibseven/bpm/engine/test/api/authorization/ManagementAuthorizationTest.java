@@ -48,6 +48,7 @@ public class ManagementAuthorizationTest extends AuthorizationTest {
   protected static final String DUMMY_PROPERTY = "dummy-property";
   protected static final String DUMMY_VALUE = "aPropertyValue";
   protected static final String DUMMY_METRIC = "dummyMetric";
+  private static final String LICENSE_KEY = "{\"customer\":\"testCompany\"}";
 
   @Override
   @After
@@ -554,7 +555,7 @@ public class ManagementAuthorizationTest extends AuthorizationTest {
   public void shouldGetLicenseKeyAsCamundaAdmin() {
     // given
     identityService.setAuthentication(userId, Collections.singletonList(Groups.CAMUNDA_ADMIN));
-    managementService.setLicenseKey("testLicenseKey");
+    managementService.setLicenseKey(LICENSE_KEY);
 
     // when
     String licenseKey = managementService.getLicenseKey();
@@ -569,7 +570,7 @@ public class ManagementAuthorizationTest extends AuthorizationTest {
     createGrantAuthorization(Resources.SYSTEM, "*", userId, SystemPermissions.READ);
 
     disableAuthorization();
-    managementService.setLicenseKey("testLicenseKey");
+    managementService.setLicenseKey(LICENSE_KEY);
     enableAuthorization();
 
     // when
@@ -584,13 +585,13 @@ public class ManagementAuthorizationTest extends AuthorizationTest {
     // given
     identityService.setAuthentication(userId, Collections.singletonList(Groups.CAMUNDA_ADMIN));
     createGrantAuthorization(Resources.SYSTEM, "*", userId, SystemPermissions.READ);
-    managementService.setLicenseKey("testLicenseKey");
+    managementService.setLicenseKey(LICENSE_KEY);
 
     // when
     String licenseKey = managementService.getLicenseKey();
 
     // then
-    assertThat(licenseKey).isEqualTo("testLicenseKey");
+    assertThat(licenseKey).isEqualTo(LICENSE_KEY);
   }
 
   @Test
@@ -613,7 +614,7 @@ public class ManagementAuthorizationTest extends AuthorizationTest {
     identityService.setAuthentication(userId, Collections.singletonList(Groups.CAMUNDA_ADMIN));
 
     // when
-    managementService.setLicenseKey("testLicenseKey");
+    managementService.setLicenseKey(LICENSE_KEY);
 
     // then
     assertThat(managementService.getLicenseKey()).isNotNull();
@@ -625,7 +626,7 @@ public class ManagementAuthorizationTest extends AuthorizationTest {
     createGrantAuthorization(Resources.SYSTEM, "*", userId, SystemPermissions.SET);
 
     // when
-    managementService.setLicenseKey("testLicenseKey");
+    managementService.setLicenseKey(LICENSE_KEY);
 
     // then
     disableAuthorization();
@@ -640,10 +641,10 @@ public class ManagementAuthorizationTest extends AuthorizationTest {
     createGrantAuthorization(Resources.SYSTEM, "*", userId, SystemPermissions.SET);
 
     // when
-    managementService.setLicenseKey("testLicenseKey");
+    managementService.setLicenseKey(LICENSE_KEY);
 
     // then
-    assertThat(managementService.getLicenseKey()).isEqualTo("testLicenseKey");
+    assertThat(managementService.getLicenseKey()).isEqualTo(LICENSE_KEY);
   }
 
   @Test
@@ -652,7 +653,7 @@ public class ManagementAuthorizationTest extends AuthorizationTest {
 
     assertThatThrownBy(() -> {
       // when
-      managementService.setLicenseKey("testLicenseKey");
+      managementService.setLicenseKey(LICENSE_KEY);
     })
         // then
         .hasMessageContaining(permissionException(Resources.SYSTEM, SystemPermissions.SET));
@@ -664,7 +665,7 @@ public class ManagementAuthorizationTest extends AuthorizationTest {
   public void shouldDeleteLicenseKeyAsCamundaAdmin() {
     // given
     identityService.setAuthentication(userId, Collections.singletonList(Groups.CAMUNDA_ADMIN));
-    managementService.setLicenseKey("testLicenseKey");
+    managementService.setLicenseKey(LICENSE_KEY);
 
     // when
     managementService.deleteLicenseKey();
@@ -679,7 +680,7 @@ public class ManagementAuthorizationTest extends AuthorizationTest {
     createGrantAuthorization(Resources.SYSTEM, "*", userId, SystemPermissions.DELETE);
 
     disableAuthorization();
-    managementService.setLicenseKey("testLicenseKey");
+    managementService.setLicenseKey(LICENSE_KEY);
     enableAuthorization();
 
     // when
@@ -696,7 +697,7 @@ public class ManagementAuthorizationTest extends AuthorizationTest {
     // given
     identityService.setAuthentication(userId, Collections.singletonList(Groups.CAMUNDA_ADMIN));
     createGrantAuthorization(Resources.SYSTEM, "*", userId, SystemPermissions.DELETE);
-    managementService.setLicenseKey("testLicenseKey");
+    managementService.setLicenseKey(LICENSE_KEY);;
 
     // when
     managementService.deleteLicenseKey();
