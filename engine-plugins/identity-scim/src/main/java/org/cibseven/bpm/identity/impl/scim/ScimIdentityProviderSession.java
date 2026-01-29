@@ -183,10 +183,10 @@ public class ScimIdentityProviderSession implements ReadOnlyIdentityProvider {
       filters.add("(" + String.join(" or ", idFilters) + ")");
     }
     if (query.getEmail() != null) {
-      filters.add(buildEmailFilter(query.getEmail(), "eq"));
+      filters.add(scimConfiguration.getUserEmailAttribute() + " eq \"" + escapeScimFilter(query.getEmail()) + "\"");
     }
     if (query.getEmailLike() != null) {
-      filters.add(buildEmailFilter(query.getEmailLike(), "sw"));
+      filters.add(scimConfiguration.getUserEmailAttribute() + " sw \"" + escapeScimFilter(query.getEmail()) + "\"");
     }
     if (query.getFirstName() != null) {
       filters.add(scimConfiguration.getUserFirstnameAttribute() + " eq \"" + escapeScimFilter(query.getFirstName()) + "\"");

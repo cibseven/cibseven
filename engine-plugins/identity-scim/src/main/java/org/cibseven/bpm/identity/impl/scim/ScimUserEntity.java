@@ -37,7 +37,7 @@ public class ScimUserEntity extends UserEntity {
 
   @Override
   public String toString() {
-    return "ScimUserEntity [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName
+    return this.getClass().getSimpleName() + " [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName
         + ", email=" + email + ", scimId=" + scimId + "]";
   }
 }

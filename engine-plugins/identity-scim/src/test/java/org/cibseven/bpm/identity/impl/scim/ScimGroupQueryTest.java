@@ -43,7 +43,7 @@ public class ScimGroupQueryTest {
   public static ScimTestEnvironmentRule scimRule = new ScimTestEnvironmentRule();
 
   @Rule
-  public ProcessEngineRule engineRule = new ProcessEngineRule(buildProcessEngineConfiguration());
+  public ProcessEngineRule engineRule = new ProcessEngineRule();
 
   ProcessEngineConfiguration processEngineConfiguration;
   IdentityService identityService;
@@ -100,11 +100,11 @@ public class ScimGroupQueryTest {
   @Test
   public void testFilterByGroupId() {
     // when
-    Group group = identityService.createGroupQuery().groupId("development").singleResult();
+    Group group = identityService.createGroupQuery().groupId("group-development").singleResult();
 
     // then
     assertThat(group).isNotNull();
-    assertThat(group.getId()).isEqualTo("development");
+    assertThat(group.getId()).isEqualTo("group-development");
     assertThat(group.getName()).isEqualTo("development");
   }
 
@@ -124,7 +124,7 @@ public class ScimGroupQueryTest {
 
     // then
     assertThat(group).isNotNull();
-    assertThat(group.getId()).isEqualTo("management");
+    assertThat(group.getId()).isEqualTo("group-management");
     assertThat(group.getName()).isEqualTo("management");
   }
 
@@ -135,7 +135,7 @@ public class ScimGroupQueryTest {
 
     // then
     assertThat(groups).hasSize(1);
-    assertThat(groups.get(0).getId()).isEqualTo("development");
+    assertThat(groups.get(0).getId()).isEqualTo("group-development");
   }
 
   @Test
@@ -145,17 +145,28 @@ public class ScimGroupQueryTest {
 
     // then
     assertThat(groups).hasSize(2);
-    assertThat(groups).extracting("id").containsOnly("development", "management");
+    assertThat(groups).extracting("id").containsOnly("group-development", "group-management");
   }
 
   @Test
   public void testFindGroupById() {
     // when
-    Group group = identityService.findGroupById("development");
+    Group group = identityService.createGroupQuery().groupId("group-development").singleResult();
 
     // then
     assertThat(group).isNotNull();
-    assertThat(group.getId()).isEqualTo("development");
+    assertThat(group.getId()).isEqualTo("group-development");
+    assertThat(group.getName()).isEqualTo("development");
+  }
+
+  @Test
+  public void testFindGroupByName() {
+    // when
+    Group group = identityService.createGroupQuery().groupName("development").singleResult();
+
+    // then
+    assertThat(group).isNotNull();
+    assertThat(group.getId()).isEqualTo("group-development");
     assertThat(group.getName()).isEqualTo("development");
   }
 }

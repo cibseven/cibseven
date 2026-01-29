@@ -43,7 +43,7 @@ public class ScimUserQueryTest {
   public static ScimTestEnvironmentRule scimRule = new ScimTestEnvironmentRule();
 
   @Rule
-  public ProcessEngineRule engineRule = new ProcessEngineRule(buildProcessEngineConfiguration());
+  public ProcessEngineRule engineRule = new ProcessEngineRule();
 
   ProcessEngineConfiguration processEngineConfiguration;
   IdentityService identityService;
@@ -52,7 +52,7 @@ public class ScimUserQueryTest {
   protected static ProcessEngineConfigurationImpl buildProcessEngineConfiguration() {
     ProcessEngineConfigurationImpl config = (ProcessEngineConfigurationImpl) ProcessEngineConfiguration
         .createStandaloneInMemProcessEngineConfiguration()
-        .setJdbcUrl("jdbc:h2:mem:scim-test;DB_CLOSE_DELAY=-1")
+        .setJdbcUrl("jdbc:h2:mem:ScimIdentityServiceTest;DB_CLOSE_DELAY=-1")
         .setDatabaseSchemaUpdate("true");
 
     // Note: The SCIM plugin will be configured in setup() using the actual server URL
@@ -70,7 +70,8 @@ public class ScimUserQueryTest {
     scimPlugin.setServerUrl(scimTestEnvironment.getServerUrl());
     scimPlugin.setAuthenticationType("bearer");
     scimPlugin.setBearerToken("test-token");
-    scimPlugin.setUserIdAttribute("userName");
+    scimPlugin.setUserIdAttribute("id");
+    scimPlugin.setUserNameAttribute("userName");
     scimPlugin.setUserFirstnameAttribute("name.givenName");
     scimPlugin.setUserLastnameAttribute("name.familyName");
     scimPlugin.setUserEmailAttribute("emails[type eq \"work\"].value");
@@ -103,11 +104,11 @@ public class ScimUserQueryTest {
   @Test
   public void testFilterByUserId() {
     // when
-    User user = identityService.createUserQuery().userId("oscar").singleResult();
+    User user = identityService.createUserQuery().userId("user-oscar").singleResult();
 
     // then
     assertThat(user).isNotNull();
-    assertThat(user.getId()).isEqualTo("oscar");
+    assertThat(user.getId()).isEqualTo("user-oscar");
     assertThat(user.getFirstName()).isEqualTo("Oscar");
     assertThat(user.getLastName()).isEqualTo("The Crouch");
     assertThat(user.getEmail()).isEqualTo("oscar@camunda.org");
@@ -125,11 +126,11 @@ public class ScimUserQueryTest {
   @Test
   public void testFilterByUserIdIn() {
     // when
-    List<User> users = identityService.createUserQuery().userIdIn("oscar", "monster").list();
+    List<User> users = identityService.createUserQuery().userIdIn("user-oscar", "user-monster").list();
 
     // then
     assertThat(users).hasSize(2);
-    assertThat(users).extracting("id").containsOnly("oscar", "monster");
+    assertThat(users).extracting("id").containsOnly("user-oscar", "user-monster");
   }
 
   @Test
@@ -139,7 +140,7 @@ public class ScimUserQueryTest {
 
     // then
     assertThat(users).hasSize(1);
-    assertThat(users.get(0).getId()).isEqualTo("oscar");
+    assertThat(users.get(0).getId()).isEqualTo("user-oscar");
     assertThat(users.get(0).getFirstName()).isEqualTo("Oscar");
   }
 
@@ -150,7 +151,7 @@ public class ScimUserQueryTest {
 
     // then
     assertThat(users).hasSize(1);
-    assertThat(users.get(0).getId()).isEqualTo("monster");
+    assertThat(users.get(0).getId()).isEqualTo("user-monster");
     assertThat(users.get(0).getLastName()).isEqualTo("Monster");
   }
 
@@ -161,7 +162,7 @@ public class ScimUserQueryTest {
 
     // then
     assertThat(users).hasSize(1);
-    assertThat(users.get(0).getId()).isEqualTo("oscar");
+    assertThat(users.get(0).getId()).isEqualTo("user-oscar");
     assertThat(users.get(0).getEmail()).isEqualTo("oscar@camunda.org");
   }
 
@@ -185,11 +186,11 @@ public class ScimUserQueryTest {
   @Test
   public void testFindUserById() {
     // when
-    User user = identityService.findUserById("oscar");
+    User user = identityService.createUserQuery().userId("user-oscar").singleResult();
 
     // then
     assertThat(user).isNotNull();
-    assertThat(user.getId()).isEqualTo("oscar");
+    assertThat(user.getId()).isEqualTo("user-oscar");
     assertThat(user.getFirstName()).isEqualTo("Oscar");
   }
 }

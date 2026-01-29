@@ -61,9 +61,16 @@ public class ScimClient {
   public ScimClient(ScimConfiguration configuration) {
     this.configuration = configuration;
     this.objectMapper = new ObjectMapper();
+    checkConfiguration();
     initializeHttpClient();
   }
 
+  protected void checkConfiguration() {
+    if (configuration.getServerUrl() == null || configuration.getServerUrl().isEmpty()) {
+      throw new IdentityProviderException("Failed to check SCIM configuration: serverUrl is not set");
+    }  
+  }
+  
   protected void initializeHttpClient() {
     try {
       PoolingHttpClientConnectionManagerBuilder connectionManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create();

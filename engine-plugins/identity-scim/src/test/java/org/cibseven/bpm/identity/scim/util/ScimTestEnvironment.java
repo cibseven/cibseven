@@ -34,7 +34,7 @@ public class ScimTestEnvironment {
   private int numberOfGroupsCreated = 0;
 
   public ScimTestEnvironment() {
-    this(0); // Use dynamic port
+    this.port = 8443;
   }
 
   public ScimTestEnvironment(int port) {
@@ -66,79 +66,147 @@ public class ScimTestEnvironment {
 
   protected void setupUsers() {
     // User 1: Oscar
+    String oscarBody = "{\n" +
+            "  \"schemas\": [\"urn:ietf:params:scim:api:messages:2.0:ListResponse\"],\n" +
+            "  \"totalResults\": 1,\n" +
+            "  \"Resources\": [{\n" +
+            "    \"id\": \"user-oscar\",\n" +
+            "    \"userName\": \"oscar\",\n" +
+            "    \"name\": {\n" +
+            "      \"givenName\": \"Oscar\",\n" +
+            "      \"familyName\": \"The Crouch\"\n" +
+            "    },\n" +
+            "    \"emails\": [{\n" +
+            "      \"value\": \"oscar@camunda.org\",\n" +
+            "      \"type\": \"work\"\n" +
+            "    }],\n" +
+            "    \"displayName\": \"Oscar The Crouch\"\n" +
+            "  }]\n" +
+            "}";
+    
     wireMockServer.stubFor(get(urlPathEqualTo("/Users"))
         .withQueryParam("filter", equalTo("userName eq \"oscar\""))
+        .withQueryParam("startIndex", equalTo("1"))
+        .withQueryParam("count", matching(".*"))
         .willReturn(aResponse()
             .withStatus(200)
             .withHeader("Content-Type", "application/scim+json")
-            .withBody("{\n" +
-                "  \"schemas\": [\"urn:ietf:params:scim:api:messages:2.0:ListResponse\"],\n" +
-                "  \"totalResults\": 1,\n" +
-                "  \"Resources\": [{\n" +
-                "    \"id\": \"user-oscar\",\n" +
-                "    \"userName\": \"oscar\",\n" +
-                "    \"name\": {\n" +
-                "      \"givenName\": \"Oscar\",\n" +
-                "      \"familyName\": \"The Crouch\"\n" +
-                "    },\n" +
-                "    \"emails\": [{\n" +
-                "      \"value\": \"oscar@camunda.org\",\n" +
-                "      \"type\": \"work\"\n" +
-                "    }],\n" +
-                "    \"displayName\": \"Oscar The Crouch\"\n" +
-                "  }]\n" +
-                "}")));
+            .withBody(oscarBody)));
 
+    wireMockServer.stubFor(get(urlPathEqualTo("/Users"))
+            .withQueryParam("filter", equalTo("id eq \"user-oscar\""))
+            .withQueryParam("startIndex", equalTo("1"))
+            .withQueryParam("count", matching(".*"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/scim+json")
+                .withBody(oscarBody)));  
+    
+    wireMockServer.stubFor(get(urlPathEqualTo("/Users"))
+            .withQueryParam("filter", equalTo("name.givenName eq \"Oscar\""))
+            .withQueryParam("startIndex", equalTo("1"))
+            .withQueryParam("count", matching(".*"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/scim+json")
+                .withBody(oscarBody)));
+    
+    wireMockServer.stubFor(get(urlPathEqualTo("/Users"))
+            .withQueryParam("filter", equalTo("emails[type eq \"work\"].value eq \"oscar@camunda.org\""))
+            .withQueryParam("startIndex", equalTo("1"))
+            .withQueryParam("count", matching(".*"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/scim+json")
+                .withBody(oscarBody)));    
+    
     // User 2: Monster
+    String monsterBody = "{\n" +
+            "  \"schemas\": [\"urn:ietf:params:scim:api:messages:2.0:ListResponse\"],\n" +
+            "  \"totalResults\": 1,\n" +
+            "  \"Resources\": [{\n" +
+            "    \"id\": \"user-monster\",\n" +
+            "    \"userName\": \"monster\",\n" +
+            "    \"name\": {\n" +
+            "      \"givenName\": \"Cookie\",\n" +
+            "      \"familyName\": \"Monster\"\n" +
+            "    },\n" +
+            "    \"emails\": [{\n" +
+            "      \"value\": \"monster@camunda.org\",\n" +
+            "      \"type\": \"work\"\n" +
+            "    }],\n" +
+            "    \"displayName\": \"Cookie Monster\"\n" +
+            "  }]\n" +
+            "}";
+    
     wireMockServer.stubFor(get(urlPathEqualTo("/Users"))
         .withQueryParam("filter", equalTo("userName eq \"monster\""))
+        .withQueryParam("startIndex", equalTo("1"))
+        .withQueryParam("count", matching(".*"))
         .willReturn(aResponse()
             .withStatus(200)
             .withHeader("Content-Type", "application/scim+json")
-            .withBody("{\n" +
-                "  \"schemas\": [\"urn:ietf:params:scim:api:messages:2.0:ListResponse\"],\n" +
-                "  \"totalResults\": 1,\n" +
-                "  \"Resources\": [{\n" +
-                "    \"id\": \"user-monster\",\n" +
-                "    \"userName\": \"monster\",\n" +
-                "    \"name\": {\n" +
-                "      \"givenName\": \"Cookie\",\n" +
-                "      \"familyName\": \"Monster\"\n" +
-                "    },\n" +
-                "    \"emails\": [{\n" +
-                "      \"value\": \"monster@camunda.org\",\n" +
-                "      \"type\": \"work\"\n" +
-                "    }],\n" +
-                "    \"displayName\": \"Cookie Monster\"\n" +
-                "  }]\n" +
-                "}")));
+            .withBody(monsterBody)));
+    
+    wireMockServer.stubFor(get(urlPathEqualTo("/Users"))
+            .withQueryParam("filter", equalTo("id eq \"user-monster\""))
+            .withQueryParam("startIndex", equalTo("1"))
+            .withQueryParam("count", matching(".*"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/scim+json")
+                .withBody(monsterBody)));
 
+    wireMockServer.stubFor(get(urlPathEqualTo("/Users"))
+            .withQueryParam("filter", equalTo("name.givenName eq \"Cookie\""))
+            .withQueryParam("startIndex", equalTo("1"))
+            .withQueryParam("count", matching(".*"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/scim+json")
+                .withBody(monsterBody)));
+
+    wireMockServer.stubFor(get(urlPathEqualTo("/Users"))
+            .withQueryParam("filter", equalTo("name.familyName eq \"Monster\""))
+            .withQueryParam("startIndex", equalTo("1"))
+            .withQueryParam("count", matching(".*"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/scim+json")
+                .withBody(monsterBody)));
+    
+   
     // User 3: Daniel
+    String danielBody = "{\n" +
+            "  \"schemas\": [\"urn:ietf:params:scim:api:messages:2.0:ListResponse\"],\n" +
+            "  \"totalResults\": 1,\n" +
+            "  \"Resources\": [{\n" +
+            "    \"id\": \"user-daniel\",\n" +
+            "    \"userName\": \"daniel\",\n" +
+            "    \"name\": {\n" +
+            "      \"givenName\": \"Daniel\",\n" +
+            "      \"familyName\": \"Meyer\"\n" +
+            "    },\n" +
+            "    \"emails\": [{\n" +
+            "      \"value\": \"daniel@camunda.org\",\n" +
+            "      \"type\": \"work\"\n" +
+            "    }],\n" +
+            "    \"displayName\": \"Daniel Meyer\"\n" +
+            "  }]\n" +
+            "}";
+    
     wireMockServer.stubFor(get(urlPathEqualTo("/Users"))
         .withQueryParam("filter", equalTo("userName eq \"daniel\""))
+        .withQueryParam("startIndex", equalTo("1"))
+        .withQueryParam("count", matching(".*"))
         .willReturn(aResponse()
             .withStatus(200)
             .withHeader("Content-Type", "application/scim+json")
-            .withBody("{\n" +
-                "  \"schemas\": [\"urn:ietf:params:scim:api:messages:2.0:ListResponse\"],\n" +
-                "  \"totalResults\": 1,\n" +
-                "  \"Resources\": [{\n" +
-                "    \"id\": \"user-daniel\",\n" +
-                "    \"userName\": \"daniel\",\n" +
-                "    \"name\": {\n" +
-                "      \"givenName\": \"Daniel\",\n" +
-                "      \"familyName\": \"Meyer\"\n" +
-                "    },\n" +
-                "    \"emails\": [{\n" +
-                "      \"value\": \"daniel@camunda.org\",\n" +
-                "      \"type\": \"work\"\n" +
-                "    }],\n" +
-                "    \"displayName\": \"Daniel Meyer\"\n" +
-                "  }]\n" +
-                "}")));
+            .withBody(danielBody)));
 
     // All users query (no filter or empty filter)
     wireMockServer.stubFor(get(urlPathEqualTo("/Users"))
+        .withQueryParam("filter", absent())
         .withQueryParam("startIndex", equalTo("1"))
         .withQueryParam("count", matching(".*"))
         .willReturn(aResponse()
@@ -195,6 +263,8 @@ public class ScimTestEnvironment {
     // Non-existing user
     wireMockServer.stubFor(get(urlPathEqualTo("/Users"))
         .withQueryParam("filter", equalTo("userName eq \"non-existing\""))
+        .withQueryParam("startIndex", equalTo("1"))
+        .withQueryParam("count", matching(".*"))
         .willReturn(aResponse()
             .withStatus(200)
             .withHeader("Content-Type", "application/scim+json")
@@ -204,45 +274,139 @@ public class ScimTestEnvironment {
                 "  \"Resources\": []\n" +
                 "}")));
 
+    wireMockServer.stubFor(get(urlPathEqualTo("/Users"))
+            .withQueryParam("filter", equalTo("id eq \"non-existing\""))
+            .withQueryParam("startIndex", equalTo("1"))
+            .withQueryParam("count", matching(".*"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/scim+json")
+                .withBody("{\n" +
+                    "  \"schemas\": [\"urn:ietf:params:scim:api:messages:2.0:ListResponse\"],\n" +
+                    "  \"totalResults\": 0,\n" +
+                    "  \"Resources\": []\n" +
+                    "}")));
+
     // Multiple user IDs (OR query)
+    String oscarAndMonsterBody = "{\n" +
+            "  \"schemas\": [\"urn:ietf:params:scim:api:messages:2.0:ListResponse\"],\n" +
+            "  \"totalResults\": 2,\n" +
+            "  \"Resources\": [\n" +
+            "    {\n" +
+            "      \"id\": \"user-oscar\",\n" +
+            "      \"userName\": \"oscar\",\n" +
+            "      \"name\": {\n" +
+            "        \"givenName\": \"Oscar\",\n" +
+            "        \"familyName\": \"The Crouch\"\n" +
+            "      },\n" +
+            "      \"emails\": [{\n" +
+            "        \"value\": \"oscar@camunda.org\",\n" +
+            "        \"type\": \"work\"\n" +
+            "      }],\n" +
+            "      \"displayName\": \"Oscar The Crouch\"\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"id\": \"user-monster\",\n" +
+            "      \"userName\": \"monster\",\n" +
+            "      \"name\": {\n" +
+            "        \"givenName\": \"Cookie\",\n" +
+            "        \"familyName\": \"Monster\"\n" +
+            "      },\n" +
+            "      \"emails\": [{\n" +
+            "        \"value\": \"monster@camunda.org\",\n" +
+            "        \"type\": \"work\"\n" +
+            "      }],\n" +
+            "      \"displayName\": \"Cookie Monster\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    
+ // Multiple user IDs (OR query)
     wireMockServer.stubFor(get(urlPathEqualTo("/Users"))
         .withQueryParam("filter", equalTo("(userName eq \"oscar\" or userName eq \"monster\")"))
+        .withQueryParam("startIndex", equalTo("1"))
+        .withQueryParam("count", matching(".*"))
         .willReturn(aResponse()
             .withStatus(200)
             .withHeader("Content-Type", "application/scim+json")
-            .withBody("{\n" +
-                "  \"schemas\": [\"urn:ietf:params:scim:api:messages:2.0:ListResponse\"],\n" +
-                "  \"totalResults\": 2,\n" +
-                "  \"Resources\": [\n" +
-                "    {\n" +
-                "      \"id\": \"user-oscar\",\n" +
-                "      \"userName\": \"oscar\",\n" +
-                "      \"name\": {\n" +
-                "        \"givenName\": \"Oscar\",\n" +
-                "        \"familyName\": \"The Crouch\"\n" +
-                "      },\n" +
-                "      \"emails\": [{\n" +
-                "        \"value\": \"oscar@camunda.org\",\n" +
-                "        \"type\": \"work\"\n" +
-                "      }],\n" +
-                "      \"displayName\": \"Oscar The Crouch\"\n" +
-                "    },\n" +
-                "    {\n" +
-                "      \"id\": \"user-monster\",\n" +
-                "      \"userName\": \"monster\",\n" +
-                "      \"name\": {\n" +
-                "        \"givenName\": \"Cookie\",\n" +
-                "        \"familyName\": \"Monster\"\n" +
-                "      },\n" +
-                "      \"emails\": [{\n" +
-                "        \"value\": \"monster@camunda.org\",\n" +
-                "        \"type\": \"work\"\n" +
-                "      }],\n" +
-                "      \"displayName\": \"Cookie Monster\"\n" +
-                "    }\n" +
-                "  ]\n" +
-                "}")));
+            .withBody(oscarAndMonsterBody)));
 
+    wireMockServer.stubFor(get(urlPathEqualTo("/Users"))
+            .withQueryParam("filter", equalTo("(id eq \"user-oscar\" or id eq \"user-monster\")"))
+            .withQueryParam("startIndex", equalTo("1"))
+            .withQueryParam("count", matching(".*"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/scim+json")
+                .withBody(oscarAndMonsterBody)));
+
+    // Pagination sub-query 1
+    wireMockServer.stubFor(get(urlPathEqualTo("/Users"))
+            .withQueryParam("filter", absent())
+            .withQueryParam("startIndex", equalTo("1"))
+            .withQueryParam("count", equalTo("2"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/scim+json")
+                .withBody("{\n" +
+                        "  \"schemas\": [\"urn:ietf:params:scim:api:messages:2.0:ListResponse\"],\n" +
+                        "  \"totalResults\": 3,\n" +
+                        "  \"Resources\": [\n" +
+                        "    {\n" +
+                        "      \"id\": \"user-oscar\",\n" +
+                        "      \"userName\": \"oscar\",\n" +
+                        "      \"name\": {\n" +
+                        "        \"givenName\": \"Oscar\",\n" +
+                        "        \"familyName\": \"The Crouch\"\n" +
+                        "      },\n" +
+                        "      \"emails\": [{\n" +
+                        "        \"value\": \"oscar@camunda.org\",\n" +
+                        "        \"type\": \"work\"\n" +
+                        "      }],\n" +
+                        "      \"displayName\": \"Oscar The Crouch\"\n" +
+                        "    },\n" +
+                        "    {\n" +
+                        "      \"id\": \"user-monster\",\n" +
+                        "      \"userName\": \"monster\",\n" +
+                        "      \"name\": {\n" +
+                        "        \"givenName\": \"Cookie\",\n" +
+                        "        \"familyName\": \"Monster\"\n" +
+                        "      },\n" +
+                        "      \"emails\": [{\n" +
+                        "        \"value\": \"monster@camunda.org\",\n" +
+                        "        \"type\": \"work\"\n" +
+                        "      }],\n" +
+                        "      \"displayName\": \"Cookie Monster\"\n" +
+                        "    }\n" +
+                        "  ]\n" +
+                        "}")));
+    
+    // Pagination sub-query 2
+    wireMockServer.stubFor(get(urlPathEqualTo("/Users"))
+            .withQueryParam("filter", absent())
+            .withQueryParam("startIndex", equalTo("3"))
+            .withQueryParam("count", equalTo("2"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/scim+json")
+                .withBody("{\n" +
+                	    "  \"schemas\": [\"urn:ietf:params:scim:api:messages:2.0:ListResponse\"],\n" +
+                	    "  \"totalResults\": 1,\n" +
+                	    "  \"Resources\": [{\n" +
+                	    "    \"id\": \"user-daniel\",\n" +
+                	    "    \"userName\": \"daniel\",\n" +
+                	    "    \"name\": {\n" +
+                	    "      \"givenName\": \"Daniel\",\n" +
+                	    "      \"familyName\": \"Meyer\"\n" +
+                	    "    },\n" +
+                	    "    \"emails\": [{\n" +
+                	    "      \"value\": \"daniel@camunda.org\",\n" +
+                	    "      \"type\": \"work\"\n" +
+                	    "    }],\n" +
+                	    "    \"displayName\": \"Daniel Meyer\"\n" +
+                	    "  }]\n" +
+                	    "}")));    
+    
     numberOfUsersCreated = 3;
   }
 
@@ -250,6 +414,8 @@ public class ScimTestEnvironment {
     // Group 1: development
     wireMockServer.stubFor(get(urlPathEqualTo("/Groups"))
         .withQueryParam("filter", equalTo("displayName eq \"development\""))
+        .withQueryParam("startIndex", equalTo("1"))
+        .withQueryParam("count", matching(".*"))
         .willReturn(aResponse()
             .withStatus(200)
             .withHeader("Content-Type", "application/scim+json")
@@ -266,9 +432,31 @@ public class ScimTestEnvironment {
                 "  }]\n" +
                 "}")));
 
+    wireMockServer.stubFor(get(urlPathEqualTo("/Groups"))
+            .withQueryParam("filter", equalTo("id eq \"group-development\""))
+            .withQueryParam("startIndex", equalTo("1"))
+            .withQueryParam("count", matching(".*"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/scim+json")
+                .withBody("{\n" +
+                    "  \"schemas\": [\"urn:ietf:params:scim:api:messages:2.0:ListResponse\"],\n" +
+                    "  \"totalResults\": 1,\n" +
+                    "  \"Resources\": [{\n" +
+                    "    \"id\": \"group-development\",\n" +
+                    "    \"displayName\": \"development\",\n" +
+                    "    \"members\": [\n" +
+                    "      {\"value\": \"oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
+                    "      {\"value\": \"daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
+                    "    ]\n" +
+                    "  }]\n" +
+                    "}")));
+
     // Group 2: management
     wireMockServer.stubFor(get(urlPathEqualTo("/Groups"))
         .withQueryParam("filter", equalTo("displayName eq \"management\""))
+        .withQueryParam("startIndex", equalTo("1"))
+        .withQueryParam("count", matching(".*"))
         .willReturn(aResponse()
             .withStatus(200)
             .withHeader("Content-Type", "application/scim+json")
@@ -284,8 +472,44 @@ public class ScimTestEnvironment {
                 "  }]\n" +
                 "}")));
 
+    wireMockServer.stubFor(get(urlPathEqualTo("/Groups"))
+            .withQueryParam("filter", equalTo("id eq \"management\""))
+            .withQueryParam("startIndex", equalTo("1"))
+            .withQueryParam("count", matching(".*"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/scim+json")
+                .withBody("{\n" +
+                    "  \"schemas\": [\"urn:ietf:params:scim:api:messages:2.0:ListResponse\"],\n" +
+                    "  \"totalResults\": 1,\n" +
+                    "  \"Resources\": [{\n" +
+                    "    \"id\": \"group-management\",\n" +
+                    "    \"displayName\": \"management\",\n" +
+                    "    \"members\": [\n" +
+                    "      {\"value\": \"daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
+                    "    ]\n" +
+                    "  }]\n" +
+                    "}")));
+
+
     // All groups query
     wireMockServer.stubFor(get(urlPathEqualTo("/Groups"))
+            .withQueryParam("filter", equalTo("id eq \"non-existing\""))
+            .withQueryParam("startIndex", equalTo("1"))
+            .withQueryParam("count", matching(".*"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/scim+json")
+                .withBody("{\n" +
+                        "  \"schemas\": [\"urn:ietf:params:scim:api:messages:2.0:ListResponse\"],\n" +
+                        "  \"totalResults\": 0,\n" +
+                        "  \"Resources\": []\n" +
+                        "}")));
+ 
+    
+    
+    wireMockServer.stubFor(get(urlPathEqualTo("/Groups"))
+        .withQueryParam("filter", absent())
         .withQueryParam("startIndex", equalTo("1"))
         .withQueryParam("count", matching(".*"))
         .willReturn(aResponse()
@@ -318,6 +542,8 @@ public class ScimTestEnvironment {
     // Groups by user filter - oscar
     wireMockServer.stubFor(get(urlPathEqualTo("/Groups"))
         .withQueryParam("filter", equalTo("members[value eq \"oscar\"]"))
+        .withQueryParam("startIndex", equalTo("1"))
+        .withQueryParam("count", matching(".*"))
         .willReturn(aResponse()
             .withStatus(200)
             .withHeader("Content-Type", "application/scim+json")
@@ -337,6 +563,8 @@ public class ScimTestEnvironment {
     // Groups by user filter - daniel (member of both)
     wireMockServer.stubFor(get(urlPathEqualTo("/Groups"))
         .withQueryParam("filter", equalTo("members[value eq \"daniel\"]"))
+        .withQueryParam("startIndex", equalTo("1"))
+        .withQueryParam("count", matching(".*"))        
         .willReturn(aResponse()
             .withStatus(200)
             .withHeader("Content-Type", "application/scim+json")
@@ -362,8 +590,37 @@ public class ScimTestEnvironment {
                 "  ]\n" +
                 "}")));
 
+    wireMockServer.stubFor(get(urlPathEqualTo("/Groups"))
+            .withQueryParam("filter", equalTo("members[value eq \"daniel\"]"))
+            .withQueryParam("startIndex", equalTo("1"))
+            .withQueryParam("count", matching(".*"))        
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/scim+json")
+                .withBody("{\n" +
+                    "  \"schemas\": [\"urn:ietf:params:scim:api:messages:2.0:ListResponse\"],\n" +
+                    "  \"totalResults\": 2,\n" +
+                    "  \"Resources\": [\n" +
+                    "    {\n" +
+                    "      \"id\": \"group-development\",\n" +
+                    "      \"displayName\": \"development\",\n" +
+                    "      \"members\": [\n" +
+                    "        {\"value\": \"oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
+                    "        {\"value\": \"daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
+                    "      ]\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"id\": \"group-management\",\n" +
+                    "      \"displayName\": \"management\",\n" +
+                    "      \"members\": [\n" +
+                    "        {\"value\": \"daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
+                    "      ]\n" +
+                    "    }\n" +
+                    "  ]\n" +
+                    "}")));
+
     // Get group by ID
-    wireMockServer.stubFor(get(urlPathEqualTo("/Groups/development"))
+    /*wireMockServer.stubFor(get(urlPathEqualTo("/Groups/development"))
         .willReturn(aResponse()
             .withStatus(200)
             .withHeader("Content-Type", "application/scim+json")
@@ -374,7 +631,7 @@ public class ScimTestEnvironment {
                 "    {\"value\": \"oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
                 "    {\"value\": \"daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
                 "  ]\n" +
-                "}")));
+                "}")));*/
 
     numberOfGroupsCreated = 2;
   }

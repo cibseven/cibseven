@@ -46,14 +46,15 @@ public class ScimConfiguration {
   protected String groupsEndpoint = "/Groups";
   
   // User attribute mapping
-  protected String userIdAttribute = "userName";
+  protected String userIdAttribute = "id";
+  protected String userNameAttribute = "userName";
   protected String userFirstnameAttribute = "name.givenName";
   protected String userLastnameAttribute = "name.familyName";
   protected String userEmailAttribute = "emails[type eq \"work\"].value";
   protected String userDisplayNameAttribute = "displayName";
   
   // Group attribute mapping
-  protected String groupIdAttribute = "displayName";
+  protected String groupIdAttribute = "id";
   protected String groupNameAttribute = "displayName";
   protected String groupMemberAttribute = "members";
   
@@ -179,6 +180,14 @@ public class ScimConfiguration {
 
   public void setUserIdAttribute(String userIdAttribute) {
     this.userIdAttribute = userIdAttribute;
+  }
+  
+  public String getUserNameAttribute() {
+    return userNameAttribute;
+  }
+
+  public void setUserNameAttribute(String userIdAttribute) {
+    this.userNameAttribute = userIdAttribute;
   }
 
   public String getUserFirstnameAttribute() {
