@@ -29,8 +29,7 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.assertions.helpers.Failure;
 import org.cibseven.bpm.engine.test.assertions.helpers.ProcessAssertTestCase;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ProcessTaskAssertVariablesTest extends ProcessAssertTestCase {
 
@@ -38,8 +37,6 @@ public class ProcessTaskAssertVariablesTest extends ProcessAssertTestCase {
   public static final String USER_TASK = "UserTask_1";
   public static final String CASE_KEY = "Case_ProcessTaskAssert-variables";
 
-  @Rule
-  public ProcessEngineRule processEngineRule = new ProcessEngineRule();
 
   @Test
   @Deployment(resources = { "cmmn/ProcessTaskAssert-variables.cmmn", "cmmn/ProcessTaskAssert-calledProcess.bpmn" })

@@ -18,7 +18,7 @@ package org.cibseven.bpm.dmn.engine.el;
 
 import org.cibseven.bpm.dmn.engine.test.DecisionResource;
 import org.cibseven.bpm.dmn.engine.test.DmnEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class FeelTest extends DmnEngineTest {
 

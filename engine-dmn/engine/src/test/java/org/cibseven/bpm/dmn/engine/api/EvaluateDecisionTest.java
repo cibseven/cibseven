@@ -22,7 +22,7 @@ import org.cibseven.bpm.dmn.engine.DmnEngineConfiguration;
 import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
 import org.cibseven.bpm.dmn.engine.test.DecisionResource;
 import org.cibseven.bpm.dmn.engine.test.DmnEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class EvaluateDecisionTest extends DmnEngineTest {
 

@@ -17,6 +17,7 @@
 package org.cibseven.bpm.dmn.engine.feel;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
@@ -28,15 +29,9 @@ import org.cibseven.bpm.dmn.engine.test.DecisionResource;
 import org.cibseven.bpm.dmn.engine.test.DmnEngineTest;
 import org.cibseven.bpm.dmn.feel.impl.scala.ScalaFeelEngineFactory;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 public class NewScalaFeelBehaviorTest extends DmnEngineTest {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   @Override
   public DmnEngineConfiguration getDmnEngineConfiguration() {

@@ -27,13 +27,12 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.assertions.helpers.ProcessAssertTestCase;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 public class ProcessInstanceAssertIsWaitingAtActivityTreeTests extends ProcessAssertTestCase {
 
-  @Rule
-  public ProcessEngineRule processEngineRule = new ProcessEngineRule();
+
 
   @Test
   @Deployment(resources = {"bpmn/ProcessInstanceAssert-isWaitingAt-ActivityTreeTests.bpmn"

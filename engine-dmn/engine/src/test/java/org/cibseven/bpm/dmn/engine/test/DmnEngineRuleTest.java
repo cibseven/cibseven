@@ -23,7 +23,7 @@ import org.cibseven.bpm.dmn.engine.DmnEngineConfiguration;
 import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngine;
 import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DmnEngineRuleTest {
 

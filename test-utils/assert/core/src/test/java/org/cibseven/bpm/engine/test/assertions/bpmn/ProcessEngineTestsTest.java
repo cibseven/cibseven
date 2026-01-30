@@ -17,6 +17,7 @@
 package org.cibseven.bpm.engine.test.assertions.bpmn;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.engine.test.assertions.bpmn.AbstractAssertions.init;
 import static org.cibseven.bpm.engine.test.assertions.bpmn.AbstractAssertions.processEngine;
 import static org.cibseven.bpm.engine.test.assertions.bpmn.AbstractAssertions.reset;
@@ -35,7 +36,6 @@ import static org.cibseven.bpm.engine.test.assertions.bpmn.BpmnAwareTests.runtim
 import static org.cibseven.bpm.engine.test.assertions.bpmn.BpmnAwareTests.taskQuery;
 import static org.cibseven.bpm.engine.test.assertions.bpmn.BpmnAwareTests.taskService;
 import static org.cibseven.bpm.engine.test.assertions.cmmn.CmmnAwareTests.assertThat;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -72,28 +72,25 @@ import org.cibseven.bpm.engine.task.TaskQuery;
 import org.cibseven.bpm.engine.test.assertions.cmmn.CaseDefinitionAssert;
 import org.cibseven.bpm.engine.test.assertions.cmmn.CaseExecutionAssert;
 import org.cibseven.bpm.engine.test.assertions.cmmn.CaseInstanceAssert;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
 
-@RunWith(MockitoJUnitRunner.class)
 public class ProcessEngineTestsTest {
 
   ProcessEngine processEngine;
   MockedStatic<ProcessEngines> processEnginesMockedStatic;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     processEngine = mock(ProcessEngine.class);
     processEnginesMockedStatic = mockStatic(ProcessEngines.class, CALLS_REAL_METHODS);
     init(processEngine);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     reset();
     processEnginesMockedStatic.close();

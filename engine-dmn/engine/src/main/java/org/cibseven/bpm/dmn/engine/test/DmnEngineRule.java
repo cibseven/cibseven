@@ -18,9 +18,6 @@ package org.cibseven.bpm.dmn.engine.test;
 
 import org.cibseven.bpm.dmn.engine.DmnEngine;
 import org.cibseven.bpm.dmn.engine.DmnEngineConfiguration;
-import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
 
 /**
  * JUnit rule for {@link DmnEngine} initialization.
@@ -46,7 +43,7 @@ import org.junit.runner.Description;
  * {@link #DmnEngineRule(DmnEngineConfiguration)} constructor.
  * </p>
  */
-public class DmnEngineRule extends TestWatcher {
+public class DmnEngineRule {
 
   protected DmnEngine dmnEngine;
   protected DmnEngineConfiguration dmnEngineConfiguration;
@@ -68,6 +65,8 @@ public class DmnEngineRule extends TestWatcher {
     else {
       this.dmnEngineConfiguration = DmnEngineConfiguration.createDefaultDmnEngineConfiguration();
     }
+    // Initialize dmnEngine directly for JUnit 5
+    this.dmnEngine = this.dmnEngineConfiguration.buildEngine();
   }
 
   /**
@@ -75,13 +74,6 @@ public class DmnEngineRule extends TestWatcher {
    */
   public DmnEngine getDmnEngine() {
     return dmnEngine;
-  }
-
-  @Override
-  protected void starting(Description description) {
-    if (dmnEngine == null) {
-      dmnEngine = dmnEngineConfiguration.buildEngine();
-    }
   }
 
 }

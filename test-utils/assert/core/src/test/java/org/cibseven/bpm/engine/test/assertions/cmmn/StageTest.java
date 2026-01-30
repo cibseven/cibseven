@@ -33,8 +33,7 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.assertions.helpers.ProcessAssertTestCase;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class StageTest extends ProcessAssertTestCase {
 
@@ -46,8 +45,6 @@ public class StageTest extends ProcessAssertTestCase {
   public static final String STAGE_S3  = "PI_S_S3";
   public static final String USER_TASK = "UserTask_1";
 
-  @Rule
-  public ProcessEngineRule processEngineRule = new ProcessEngineRule();
 
   @Test
   @Deployment(resources = { "cmmn/StageTest.cmmn" })
