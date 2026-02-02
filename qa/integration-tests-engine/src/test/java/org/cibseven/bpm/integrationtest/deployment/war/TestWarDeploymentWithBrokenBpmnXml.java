@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.war;
 
+import static org.assertj.core.api.Assertions.fail;
+
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -23,8 +25,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -55,12 +56,12 @@ public class TestWarDeploymentWithBrokenBpmnXml {
     
     return deployment;
   }
-  
+
   @Test
-  public void testXmlInvalid() {
+  void xmlInvalid() {
     try {
       deployer.deploy(DEPLOYMENT);
-      Assert.fail("exception expected");
+      fail("exception expected");
     }catch (Exception e) {
       // expected
     } 

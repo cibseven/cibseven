@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.jar;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.application.impl.ejb.DefaultEjbProcessApplication;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
@@ -24,8 +26,7 @@ import org.jboss.arquillian.container.test.api.OverProtocol;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -48,16 +49,16 @@ public class TestJarDeployment extends AbstractFoxPlatformIntegrationTest {
       .addAsResource("META-INF/processes.xml", "META-INF/processes.xml")
       .addAsResource("org/cibseven/bpm/integrationtest/testDeployProcessArchive.bpmn20.xml");
   }
-  
+
   @Test
-  public void testDeployProcessArchive() {
-    Assert.assertNotNull(processEngine);
+  void deployProcessArchive() {
+    assertThat(processEngine).isNotNull();
     RepositoryService repositoryService = processEngine.getRepositoryService();
     long count = repositoryService.createProcessDefinitionQuery()
       .processDefinitionKey("testDeployProcessArchive")
       .count();
-    
-    Assert.assertEquals(1, count);
+
+    assertThat(count).isEqualTo(1);
   }
 
 }

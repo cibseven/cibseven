@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.service;
 
-import org.junit.Assert;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.BpmPlatform;
 import org.cibseven.bpm.ProcessEngineService;
@@ -26,7 +26,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -39,13 +39,13 @@ public class ProcessEngineServiceTest extends AbstractFoxPlatformIntegrationTest
   public static WebArchive app1() {    
     return initWebArchiveDeployment("test1.war");
   }
-  
+
   @Test
   @OperateOnDeployment("test1")
-  public void testNonExistingEngineRetrieval() {
+  void nonExistingEngineRetrieval() {
     
     ProcessEngineService engineService = BpmPlatform.getProcessEngineService();
     ProcessEngine engine = engineService.getProcessEngine("aNonExistingEngineName");
-    Assert.assertNull(engine);
+    assertThat(engine).isNull();
   }
 }

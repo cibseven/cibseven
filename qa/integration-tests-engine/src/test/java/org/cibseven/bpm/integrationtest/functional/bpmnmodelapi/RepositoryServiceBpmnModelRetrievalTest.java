@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.bpmnmodelapi;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.model.bpmn.Bpmn;
@@ -24,8 +26,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -44,14 +45,14 @@ public class RepositoryServiceBpmnModelRetrievalTest extends AbstractFoxPlatform
   }
 
   @Test
-  public void shouldReturnBpmnModelInstance() {
+  void shouldReturnBpmnModelInstance() {
 
     ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery()
       .processDefinitionKey(TEST_PROCESS)
       .singleResult();
 
     BpmnModelInstance bpmnModelInstance = repositoryService.getBpmnModelInstance(processDefinition.getId());
-    Assert.assertNotNull(bpmnModelInstance);
+    assertThat(bpmnModelInstance).isNotNull();
 
   }
 }

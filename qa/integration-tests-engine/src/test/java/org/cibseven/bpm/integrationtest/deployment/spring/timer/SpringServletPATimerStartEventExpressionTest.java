@@ -22,7 +22,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(Arquillian.class)
@@ -41,7 +41,7 @@ public class SpringServletPATimerStartEventExpressionTest extends AbstractFoxPla
   }
 
   @Test
-  public void shouldStartProcessInstance() {
+  void shouldStartProcessInstance() {
     runtimeService.startProcessInstanceByKey("timer-start-event-process");
   }
 

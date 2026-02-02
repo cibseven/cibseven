@@ -16,10 +16,10 @@
  */
 package org.cibseven.bpm.integrationtest.functional.spin;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.variable.Variables.serializedObjectValue;
 import static org.cibseven.spin.Spin.JSON;
 import static org.cibseven.spin.Spin.XML;
-import static org.junit.Assert.assertEquals;
 
 import java.io.InputStream;
 import java.util.HashMap;
@@ -35,8 +35,7 @@ import org.cibseven.spin.json.SpinJsonNode;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -55,12 +54,12 @@ public class PaSpinSupportTest extends AbstractFoxPlatformIntegrationTest {
   }
 
   @Test
-  public void spinShouldBeAvailable() {
-    Assert.assertEquals("someXml", XML("<someXml />").xPath("/someXml").element().name());
+  void spinShouldBeAvailable() {
+    assertThat(XML("<someXml />").xPath("/someXml").element().name()).isEqualTo("someXml");
   }
 
   @Test
-  public void spinCanBeUsedForVariableSerialization() {
+  void spinCanBeUsedForVariableSerialization() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("testProcess", Variables.createVariables()
         .putValue("serializedObject", serializedObjectValue("{\"foo\": \"bar\"}").serializationDataFormat("application/json").objectTypeName(HashMap.class.getName())));
 
@@ -69,11 +68,11 @@ public class PaSpinSupportTest extends AbstractFoxPlatformIntegrationTest {
     HashMap<String, String> expected = new HashMap<String, String>();
     expected.put("foo", "bar");
 
-    Assert.assertEquals(expected, objectValue.getValue());
+    assertThat(objectValue.getValue()).isEqualTo(expected);
   }
 
   @Test
-  public void spinPluginShouldBeRegistered() {
+  void spinPluginShouldBeRegistered() {
 
     List<ProcessEnginePlugin> processEnginePlugins = processEngineConfiguration.getProcessEnginePlugins();
 
@@ -86,11 +85,11 @@ public class PaSpinSupportTest extends AbstractFoxPlatformIntegrationTest {
       }
     }
 
-    Assert.assertTrue(spinPluginFound);
+    assertThat(spinPluginFound).isTrue();
   }
 
   @Test
-  public void testJacksonBug146() {
+  void jacksonBug146() {
     InputStream resourceAsStream = getClass().getClassLoader().getResourceAsStream("org/cibseven/bpm/integrationtest/functional/spin/jackson146.json");
     String jackson146 = SpinIoUtil.inputStreamAsString(resourceAsStream);
 
@@ -99,11 +98,11 @@ public class PaSpinSupportTest extends AbstractFoxPlatformIntegrationTest {
 
     // file has 4000 characters in length a
     // 20 characters per repeated JSON object
-    assertEquals(200, node.prop("abcdef").elements().size());
+    assertThat(node.prop("abcdef").elements()).hasSize(200);
   }
 
   @Test
-  public void testJacksonBug146AsVariable() {
+  void jacksonBug146AsVariable() {
     InputStream resourceAsStream = getClass().getClassLoader().getResourceAsStream("org/cibseven/bpm/integrationtest/functional/spin/jackson146.json");
     String jackson146 = SpinIoUtil.inputStreamAsString(resourceAsStream);
 
@@ -115,7 +114,7 @@ public class PaSpinSupportTest extends AbstractFoxPlatformIntegrationTest {
     ObjectValue objectValue = runtimeService.getVariableTyped(pi.getId(), "jackson146", true);
     HashMap<String, List<Object>> map = (HashMap<String, List<Object>>) objectValue.getValue();
 
-    assertEquals(200, map.get("abcdef").size());
+    assertThat(map.get("abcdef")).hasSize(200);
   }
 
 }

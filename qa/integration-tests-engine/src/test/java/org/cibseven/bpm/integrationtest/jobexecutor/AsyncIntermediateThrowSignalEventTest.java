@@ -16,14 +16,14 @@
  */
 package org.cibseven.bpm.integrationtest.jobexecutor;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -38,22 +38,22 @@ public class AsyncIntermediateThrowSignalEventTest extends AbstractFoxPlatformIn
   }
 
   @Test
-  public void testAsyncSignalEvent() throws InterruptedException {
+  void asyncSignalEvent() throws InterruptedException {
     ProcessInstance piCatchSignal = runtimeService.startProcessInstanceByKey("catchSignal");
 
     ProcessInstance piThrowSignal = runtimeService.startProcessInstanceByKey("throwSignal");
 
     waitForJobExecutorToProcessAllJobs();
 
-    assertEquals(1, runtimeService.createExecutionQuery().processInstanceId(piCatchSignal.getProcessInstanceId()).activityId("receiveTask").count());
-    assertEquals(1, runtimeService.createExecutionQuery().processInstanceId(piThrowSignal.getProcessInstanceId()).activityId("receiveTask").count());
+    assertThat(runtimeService.createExecutionQuery().processInstanceId(piCatchSignal.getProcessInstanceId()).activityId("receiveTask").count()).isEqualTo(1);
+    assertThat(runtimeService.createExecutionQuery().processInstanceId(piThrowSignal.getProcessInstanceId()).activityId("receiveTask").count()).isEqualTo(1);
 
     // clean up
     runtimeService.signal(piCatchSignal.getId());
     runtimeService.signal(piThrowSignal.getId());
 
-    assertEquals(0, runtimeService.createExecutionQuery().processInstanceId(piCatchSignal.getProcessInstanceId()).count());
-    assertEquals(0, runtimeService.createExecutionQuery().processInstanceId(piThrowSignal.getProcessInstanceId()).count());
+    assertThat(runtimeService.createExecutionQuery().processInstanceId(piCatchSignal.getProcessInstanceId()).count()).isEqualTo(0);
+    assertThat(runtimeService.createExecutionQuery().processInstanceId(piThrowSignal.getProcessInstanceId()).count()).isEqualTo(0);
   }
 
 

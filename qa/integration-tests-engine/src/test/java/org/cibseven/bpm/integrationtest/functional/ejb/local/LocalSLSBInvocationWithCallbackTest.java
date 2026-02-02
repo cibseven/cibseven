@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.ejb.local;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.integrationtest.functional.ejb.local.bean.CallbackBean;
 import org.cibseven.bpm.integrationtest.functional.ejb.local.bean.InvokeStartProcessDelegateSLSB;
@@ -29,8 +31,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -98,11 +99,11 @@ public class LocalSLSBInvocationWithCallbackTest extends AbstractFoxPlatformInte
 
   @Test
   @OperateOnDeployment("pa")
-  public void testInvokeBean() throws Exception{
+  void invokeBean() throws Exception{
 
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("testInvokeBean");
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), "result"));
+    assertThat(runtimeService.getVariable(pi.getId(), "result")).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(pi.getId()).singleResult().getId());
   }

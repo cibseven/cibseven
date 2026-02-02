@@ -33,10 +33,11 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.application.ProcessApplicationContext.withProcessApplicationContext;
-import static org.junit.Assert.assertEquals;
 
 @RunWith(Arquillian.class)
 public class PaContextSwitchCustomSerializerTest extends AbstractFoxPlatformIntegrationTest {
@@ -78,7 +79,7 @@ public class PaContextSwitchCustomSerializerTest extends AbstractFoxPlatformInte
    */
   @Test
   @OperateOnDeployment("pa3")
-  public void test() throws Exception {
+  void test() throws Exception {
 
     final ProcessInstance processInstance = withProcessApplicationContext(new Callable<ProcessInstance>() {
 
@@ -103,7 +104,7 @@ public class PaContextSwitchCustomSerializerTest extends AbstractFoxPlatformInte
 
     }, "pa4");
 
-    assertEquals(1, historyService.createHistoricActivityInstanceQuery().activityId("exclusiveGateway").finished().count());
+    assertThat(historyService.createHistoricActivityInstanceQuery().activityId("exclusiveGateway").finished().count()).isEqualTo(1);
 
   }
 

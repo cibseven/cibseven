@@ -23,11 +23,10 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Sebastian Menski
@@ -63,8 +62,8 @@ public abstract class AbstractTemplateScriptEngineSupportTest extends AbstractFo
     processInstanceId = runtimeService.startProcessInstanceByKey(PROCESS_ID, variables).getId();
 
     Object result = runtimeService.getVariable(processInstanceId, RESULT_VARIABLE);
-    assertNotNull(result);
-    assertEquals(EXPECTED_RESULT, result);
+    assertThat(result).isNotNull();
+    assertThat(result).isEqualTo(EXPECTED_RESULT);
   }
 
 }

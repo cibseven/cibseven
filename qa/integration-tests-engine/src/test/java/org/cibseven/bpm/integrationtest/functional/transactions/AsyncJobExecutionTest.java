@@ -16,8 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.transactions;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 
@@ -33,8 +32,8 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(Arquillian.class)
@@ -54,15 +53,15 @@ public class AsyncJobExecutionTest extends AbstractFoxPlatformIntegrationTest {
   @Inject
   private RuntimeService runtimeService;
 
-  @After
-  public void cleanUp() {
+  @AfterEach
+  void cleanUp() {
     for (ProcessInstance processInstance : runtimeService.createProcessInstanceQuery().list()) {
       runtimeService.deleteProcessInstance(processInstance.getId(), "test ended", true);
     }
   }
 
   @Test
-  public void shouldExecuteAsyncServiceTasks() {
+  void shouldExecuteAsyncServiceTasks() {
     // given
     HashMap<String, Object> variables = new HashMap<>();
     variables.put("serialnumber", "23");
@@ -77,7 +76,7 @@ public class AsyncJobExecutionTest extends AbstractFoxPlatformIntegrationTest {
   }
 
   @Test
-  public void shouldFailJobWithFailingTransactionListener() throws Exception {
+  void shouldFailJobWithFailingTransactionListener() throws Exception {
     // given
     runtimeService.startProcessInstanceByKey("failingTransactionListener");
 
@@ -88,10 +87,10 @@ public class AsyncJobExecutionTest extends AbstractFoxPlatformIntegrationTest {
     // the job exists with no retries, and an incident is raised
     Job job = managementService.createJobQuery().singleResult();
 
-    assertNotNull(job);
-    assertEquals(0, job.getRetries());
-    assertNotNull(job.getExceptionMessage());
-    assertNotNull(managementService.getJobExceptionStacktrace(job.getId()));
+    assertThat(job).isNotNull();
+    assertThat(job.getRetries()).isEqualTo(0);
+    assertThat(job.getExceptionMessage()).isNotNull();
+    assertThat(managementService.getJobExceptionStacktrace(job.getId())).isNotNull();
   }
 
 }

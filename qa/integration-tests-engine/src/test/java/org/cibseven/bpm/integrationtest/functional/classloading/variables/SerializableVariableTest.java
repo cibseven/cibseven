@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 package org.cibseven.bpm.integrationtest.functional.classloading.variables;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.integrationtest.functional.classloading.variables.beans.GetVariableDelegate;
 import org.cibseven.bpm.integrationtest.functional.classloading.variables.beans.SerializableVariable;
 import org.cibseven.bpm.integrationtest.functional.classloading.variables.beans.SetVariableDelegate;
@@ -22,8 +24,7 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -46,13 +47,13 @@ public class SerializableVariableTest extends AbstractFoxPlatformIntegrationTest
   }
 
   @Test
-  public void testResolveClass() {
+  void resolveClass() {
 
     String pid = runtimeService.startProcessInstanceByKey("testResolveVariable").getId();
 
     waitForJobExecutorToProcessAllJobs();
 
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processInstanceId(pid).singleResult());
+    assertThat(runtimeService.createProcessInstanceQuery().processInstanceId(pid).singleResult()).isNull();
 
   }
 

@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.cfg;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
@@ -23,8 +25,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -50,16 +51,16 @@ public class TestCustomProcessesXmlFileLocation extends AbstractFoxPlatformInteg
     return archive;
     
   }
-  
+
   @Test
-  public void testDeployProcessArchive() {
-    Assert.assertNotNull(processEngine);
+  void deployProcessArchive() {
+    assertThat(processEngine).isNotNull();
     RepositoryService repositoryService = processEngine.getRepositoryService();
     long count = repositoryService.createProcessDefinitionQuery()
       .processDefinitionKey("invoice-it")
       .count();
-    
-    Assert.assertEquals(1, count);
+
+    assertThat(count).isEqualTo(1);
   }
   
   

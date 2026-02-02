@@ -16,7 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.context;
 
-import org.cibseven.bpm.engine.ProcessEngineException;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.migration.MigrationPlan;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.Job;
@@ -33,15 +34,13 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.asset.ByteArrayAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Collections;
 import java.util.List;
-
-import static org.junit.Assert.fail;
 
 @RunWith(Arquillian.class)
 public class SetVariablesMigrationContextSwitchTest extends AbstractFoxPlatformIntegrationTest {
@@ -81,7 +80,7 @@ public class SetVariablesMigrationContextSwitchTest extends AbstractFoxPlatformI
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void shouldDeserializeObjectVariable_Async() {
+  void shouldDeserializeObjectVariable_Async() {
     // given
     ProcessDefinition sourceDefinition = repositoryService
         .createProcessDefinitionQuery()
@@ -118,20 +117,18 @@ public class SetVariablesMigrationContextSwitchTest extends AbstractFoxPlatformI
     // when: execute remaining batch jobs
     jobs = managementService.createJobQuery().list();
     for (Job job : jobs) {
-      try {
+      Assertions.assertDoesNotThrow(() -> {
         managementService.executeJob(job.getId());
-      } catch (ProcessEngineException ex) {
-        fail("No exception expected: " + ex.getMessage());
-      }
+      }, "No exception expected: ");
     }
 
     // then
-    Assert.assertNotNull(runtimeService.getVariableTyped(pi, "foo", false));
+    assertThat(runtimeService.getVariableTyped(pi, "foo", false)).isNotNull();
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void shouldDeserializeObjectVariable_Sync() {
+  void shouldDeserializeObjectVariable_Sync() {
     // given
     ProcessDefinition sourceDefinition = repositoryService
         .createProcessDefinitionQuery()
@@ -161,7 +158,7 @@ public class SetVariablesMigrationContextSwitchTest extends AbstractFoxPlatformI
         .execute();
 
     // then
-    Assert.assertNotNull(runtimeService.getVariableTyped(pi, "foo", false));
+    assertThat(runtimeService.getVariableTyped(pi, "foo", false)).isNotNull();
   }
 
   protected static Asset modelAsAsset(BpmnModelInstance modelInstance) {

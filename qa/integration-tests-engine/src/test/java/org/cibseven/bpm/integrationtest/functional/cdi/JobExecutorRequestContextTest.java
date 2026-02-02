@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.cdi;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.integrationtest.functional.cdi.beans.RequestScopedDelegateBean;
@@ -23,8 +25,7 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -54,7 +55,7 @@ public class JobExecutorRequestContextTest extends AbstractFoxPlatformIntegratio
 
 
   @Test
-  public void testResolveBean() {
+  void resolveBean() {
 
     // verifies that @RequestScoped Beans can be resolved
 
@@ -63,11 +64,11 @@ public class JobExecutorRequestContextTest extends AbstractFoxPlatformIntegratio
     waitForJobExecutorToProcessAllJobs();
 
     Object variable = runtimeService.getVariable(pi.getId(), "invocationCounter");
-    Assert.assertEquals(1, variable);
+    assertThat(variable).isEqualTo(1);
   }
 
   @Test
-  public void testScoping() {
+  void scoping() {
 
     // verifies that if the same @RequestScoped Bean is invoked multiple times
     // in the context of the same job, we get the same instance
@@ -78,7 +79,7 @@ public class JobExecutorRequestContextTest extends AbstractFoxPlatformIntegratio
 
     Object variable = runtimeService.getVariable(pi.getId(), "invocationCounter");
     // -> the same bean instance was invoked 2 times!
-    Assert.assertEquals(2, variable);
+    assertThat(variable).isEqualTo(2);
 
     Task task = taskService.createTaskQuery()
       .processInstanceId(pi.getProcessInstanceId())
@@ -89,12 +90,12 @@ public class JobExecutorRequestContextTest extends AbstractFoxPlatformIntegratio
 
     variable = runtimeService.getVariable(pi.getId(), "invocationCounter");
     // now it's '1' again! -> new instance of the bean
-    Assert.assertEquals(1, variable);
+    assertThat(variable).isEqualTo(1);
 
   }
 
   @Test
-  public void testScopingExclusiveJobs() {
+  void scopingExclusiveJobs() {
 
     // verifies that if the same @RequestScoped Bean is invoked
     // in the context of two subsequent exclusive jobs, we have
@@ -107,7 +108,7 @@ public class JobExecutorRequestContextTest extends AbstractFoxPlatformIntegratio
 
     Object variable = runtimeService.getVariable(pi.getId(), "invocationCounter");
     // -> seperate requests
-    Assert.assertEquals(1, variable);
+    assertThat(variable).isEqualTo(1);
 
     Task task = taskService.createTaskQuery()
       .processInstanceId(pi.getProcessInstanceId())
@@ -117,7 +118,7 @@ public class JobExecutorRequestContextTest extends AbstractFoxPlatformIntegratio
     waitForJobExecutorToProcessAllJobs();
 
     variable = runtimeService.getVariable(pi.getId(), "invocationCounter");
-    Assert.assertEquals(1, variable);
+    assertThat(variable).isEqualTo(1);
 
   }
 

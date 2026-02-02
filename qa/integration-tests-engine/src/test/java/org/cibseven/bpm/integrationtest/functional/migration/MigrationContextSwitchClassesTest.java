@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.migration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.delegate.ExecutionListener;
 import org.cibseven.bpm.engine.migration.MigrationPlan;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
@@ -32,8 +34,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.asset.ByteArrayAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 import java.io.ByteArrayOutputStream;
@@ -111,7 +112,7 @@ public class MigrationContextSwitchClassesTest extends AbstractFoxPlatformIntegr
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testCallStartListenerInTargetContext() {
+  void callStartListenerInTargetContext() {
     // given
     ProcessDefinition sourceDefinition = repositoryService
         .createProcessDefinitionQuery()
@@ -135,13 +136,13 @@ public class MigrationContextSwitchClassesTest extends AbstractFoxPlatformIntegr
       .execute();
 
     // then
-    Assert.assertTrue((Boolean)runtimeService.getVariable(pi, InstantiationListener.VARIABLE_NAME));
+    assertThat((Boolean) runtimeService.getVariable(pi, InstantiationListener.VARIABLE_NAME)).isTrue();
   }
 
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testCallEndListenerInTargetContext() {
+  void callEndListenerInTargetContext() {
     // given
     ProcessDefinition sourceDefinition = repositoryService
         .createProcessDefinitionQuery()
@@ -169,7 +170,7 @@ public class MigrationContextSwitchClassesTest extends AbstractFoxPlatformIntegr
       .execute();
 
     // then
-    Assert.assertTrue((Boolean)runtimeService.getVariable(pi, RemovalListener.VARIABLE_NAME));
+    assertThat((Boolean) runtimeService.getVariable(pi, RemovalListener.VARIABLE_NAME)).isTrue();
   }
 
   protected static Asset modelAsAsset(BpmnModelInstance modelInstance) {

@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.classloading.deployment;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.integrationtest.functional.classloading.deployment.beans.MyCustomDelegate;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
@@ -24,8 +26,7 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -55,7 +56,7 @@ public class RedeployProcessClassloadingTest extends AbstractFoxPlatformIntegrat
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testRedeployClassloading() {
+  void redeployClassloading() {
     // given
     org.cibseven.bpm.engine.repository.Deployment deployment = repositoryService.createDeploymentQuery().singleResult();
 
@@ -69,7 +70,7 @@ public class RedeployProcessClassloadingTest extends AbstractFoxPlatformIntegrat
     String id = runtimeService.startProcessInstanceByKey("process").getId();
 
     // then
-    Assert.assertTrue((Boolean) runtimeService.getVariable(id, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(id, "executed")).isTrue();
 
     repositoryService.deleteDeployment(deployment2.getId(), true);
   }

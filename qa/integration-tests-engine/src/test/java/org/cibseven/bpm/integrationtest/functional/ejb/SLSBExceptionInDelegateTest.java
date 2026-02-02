@@ -16,8 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.ejb;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.runtime.Incident;
 import org.cibseven.bpm.engine.runtime.Job;
@@ -27,7 +26,7 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -48,7 +47,7 @@ public class SLSBExceptionInDelegateTest extends AbstractFoxPlatformIntegrationT
   }
 
   @Test
-  public void testOriginalExceptionFromEjbReachesCaller() {
+  void originalExceptionFromEjbReachesCaller() {
       runtimeService.startProcessInstanceByKey("callProcessWithExceptionFromEjb");
       Job job = managementService.createJobQuery().singleResult();
       managementService.setJobRetries(job.getId(), 1);
@@ -56,7 +55,7 @@ public class SLSBExceptionInDelegateTest extends AbstractFoxPlatformIntegrationT
       waitForJobExecutorToProcessAllJobs();
       
       Incident incident = runtimeService.createIncidentQuery().activityId("servicetask1").singleResult();
-      assertThat(incident.getIncidentMessage(), is("error"));
+    assertThat(incident.getIncidentMessage()).isEqualTo("error");
   }
 
 }

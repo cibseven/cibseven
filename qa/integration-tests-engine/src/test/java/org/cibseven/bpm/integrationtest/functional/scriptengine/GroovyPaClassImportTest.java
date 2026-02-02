@@ -16,8 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.scriptengine;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.integrationtest.functional.scriptengine.classes.CustomClass;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
@@ -28,7 +27,7 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -82,15 +81,15 @@ public class GroovyPaClassImportTest extends AbstractFoxPlatformIntegrationTest 
 
   @Test
   @OperateOnDeployment("pa1")
-  public void shouldSetVariable() {
+  void shouldSetVariable() {
     // first start process 1 (this creates and caches the groovy engine)
     runtimeService.startProcessInstanceByKey("process1").getId();
 
     // then start process 2
     String processInstanceId = runtimeService.startProcessInstanceByKey("process2").getId();
     Object foo = runtimeService.getVariable(processInstanceId, "greeting");
-    assertNotNull(foo);
-    assertEquals("Hi Ho", foo);
+    assertThat(foo).isNotNull();
+    assertThat(foo).isEqualTo("Hi Ho");
   }
 
 }

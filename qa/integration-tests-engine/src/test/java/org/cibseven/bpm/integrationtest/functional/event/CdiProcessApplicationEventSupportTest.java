@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.event;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.integrationtest.functional.event.beans.CdiEventSupportProcessApplication;
@@ -31,8 +33,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -60,19 +61,19 @@ public class CdiProcessApplicationEventSupportTest extends AbstractFoxPlatformIn
   }
 
   @Test
-  public void testEventListener() {
+  void eventListener() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testProcess");
 
     Integer listenerInvocationCount = (Integer) runtimeService.getVariable(processInstance.getId(), ExecutionListenerProcessApplication.LISTENER_INVOCATION_COUNT);
-    Assert.assertNotNull(listenerInvocationCount);
-    Assert.assertEquals(6, listenerInvocationCount.intValue());
+    assertThat(listenerInvocationCount).isNotNull();
+    assertThat(listenerInvocationCount.intValue()).isEqualTo(6);
 
     Task task = taskService.createTaskQuery().processInstanceId(processInstance.getId()).singleResult();
     taskService.setAssignee(task.getId(), "demo");
     listenerInvocationCount = (Integer) runtimeService.getVariable(processInstance.getId(), ExecutionListenerProcessApplication.LISTENER_INVOCATION_COUNT);
 
     // assignment & update events fired
-    Assert.assertEquals(8, listenerInvocationCount.intValue());
+    assertThat(listenerInvocationCount.intValue()).isEqualTo(8);
   }
 
 }

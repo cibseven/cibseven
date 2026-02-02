@@ -25,11 +25,12 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 
 import org.cibseven.bpm.application.PostDeploy;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.cibseven.bpm.application.PreUndeploy;
 import org.cibseven.bpm.application.ProcessApplication;
 import org.cibseven.bpm.application.ProcessApplicationInterface;
 import org.cibseven.bpm.engine.ProcessEngine;
-import org.junit.Assert;
 
 /**
  * Custom {@link org.cibseven.bpm.application.impl.EjbProcessApplication} with PA lifecycle callbacks
@@ -48,12 +49,12 @@ public class CustomEjbProcessApplication extends org.cibseven.bpm.application.im
 
   @PostDeploy
   public void postDeploy(ProcessEngine processEngine) {
-    Assert.assertNotNull(processEngine);
+    assertThat(processEngine).isNotNull();
   }
 
   @PreUndeploy
   public void preUnDeploy(ProcessEngine processEngine) {
-    Assert.assertNotNull(processEngine);
+    assertThat(processEngine).isNotNull();
   }
 
 }

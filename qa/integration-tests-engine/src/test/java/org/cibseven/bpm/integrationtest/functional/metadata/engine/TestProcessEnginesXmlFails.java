@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.metadata.engine;
 
+import static org.assertj.core.api.Assertions.fail;
+
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -25,8 +27,7 @@ import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -56,13 +57,13 @@ public class TestProcessEnginesXmlFails {
                    .addAsResource("singleEngine.xml", "META-INF/processes.xml")
          );
   }
-  
+
   @Test
   @RunAsClient
-  public void testDeployProcessArchive() {
+  void deployProcessArchive() {
     try {
       deployer.deploy("deployment");
-      Assert.fail("exception expected");
+      fail("exception expected");
     }catch (Exception e) {
       // expected
     }

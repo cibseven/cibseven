@@ -16,11 +16,12 @@
  */
 package org.cibseven.bpm.integrationtest.jobexecutor;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.Timer;
 import java.util.TimerTask;
+
 import org.cibseven.bpm.engine.ManagementService;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.RuntimeService;
@@ -34,9 +35,9 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(Arquillian.class)
@@ -60,22 +61,22 @@ public class ManagedJobExecutorTest {
   protected ManagementService managementService;
   protected RuntimeService runtimeService;
 
-  @Before
-  public void setUpCdiProcessEngineTestCase() throws Exception {
+  @BeforeEach
+  void setUpCdiProcessEngineTestCase() throws Exception {
     processEngine = (ProgrammaticBeanLookup.lookup(ManagedJobExecutorBean.class)).getProcessEngine();
     managementService = processEngine.getManagementService();
     runtimeService = processEngine.getRuntimeService();
   }
 
-  @After
-  public void tearDownCdiProcessEngineTestCase() throws Exception {
+  @AfterEach
+  void tearDownCdiProcessEngineTestCase() throws Exception {
     processEngine = null;
     managementService = null;
     runtimeService = null;
   }
 
   @Test
-  public void testManagedExecutorUsed() throws InterruptedException {
+  void managedExecutorUsed() throws InterruptedException {
     org.cibseven.bpm.engine.repository.Deployment deployment = processEngine.getRepositoryService().createDeployment()
       .addClasspathResource("org/cibseven/bpm/integrationtest/jobexecutor/ManagedJobExecutorTest.testManagedExecutorUsed.bpmn20.xml")
       .deploy();
@@ -83,13 +84,13 @@ public class ManagedJobExecutorTest {
     try {
       String pid = runtimeService.startProcessInstanceByKey("testBusinessProcessScopedWithJobExecutor").getId();
 
-      assertEquals(1L, managementService.createJobQuery().processInstanceId(pid).count());
+      assertThat(managementService.createJobQuery().processInstanceId(pid).count()).isEqualTo(1L);
 
       waitForJobExecutorToProcessAllJobs(pid, 5000l, 25l);
 
-      assertEquals(0L, managementService.createJobQuery().processInstanceId(pid).count());
+      assertThat(managementService.createJobQuery().processInstanceId(pid).count()).isEqualTo(0L);
 
-      assertEquals("bar", runtimeService.createVariableInstanceQuery().processInstanceIdIn(pid).variableName("foo").singleResult().getValue());
+      assertThat(runtimeService.createVariableInstanceQuery().processInstanceIdIn(pid).variableName("foo").singleResult().getValue()).isEqualTo("bar");
     } finally {
       processEngine.getRepositoryService().deleteDeployment(deployment.getId(), true);
     }

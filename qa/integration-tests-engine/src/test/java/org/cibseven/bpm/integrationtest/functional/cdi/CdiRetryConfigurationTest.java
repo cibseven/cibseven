@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.cdi;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.JobQuery;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
@@ -30,8 +32,7 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(Arquillian.class)
@@ -60,7 +61,7 @@ public class CdiRetryConfigurationTest extends AbstractFoxPlatformIntegrationTes
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testResolveBean() {
+  void resolveBean() {
     // given
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testRetry");
 
@@ -79,6 +80,6 @@ public class CdiRetryConfigurationTest extends AbstractFoxPlatformIntegrationTes
 
      // then
      job = query.singleResult();
-     Assert.assertEquals(6, job.getRetries());
+    assertThat(job.getRetries()).isEqualTo(6);
   }
 }

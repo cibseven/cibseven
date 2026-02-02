@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.spin;
 
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.application.PostDeploy;
 import org.cibseven.bpm.application.ProcessApplication;
@@ -36,7 +36,7 @@ public class PaDataformatAndPostDeployApp extends org.cibseven.bpm.application.i
   @PostDeploy
   public void onPaDeployed(ProcessEngine e) throws Exception {
 
-    assertNotNull(getVariableSerializers());
+    assertThat(getVariableSerializers()).isNotNull();
 
   }
 

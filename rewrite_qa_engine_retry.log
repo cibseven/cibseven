@@ -1,0 +1,2156 @@
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ------< org.cibseven.bpm.qa:cibseven-qa-integration-tests-engine >------
+[INFO] Building CIB seven - QA Integration Tests - Engine 2.2.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] >>> rewrite:5.43.0:run (default-cli) > process-test-classes @ cibseven-qa-integration-tests-engine >>>
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ cibseven-qa-integration-tests-engine ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /app/qa/integration-tests-engine/src/main/resources
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ cibseven-qa-integration-tests-engine ---
+[INFO] No sources to compile
+[INFO]
+[INFO] --- build-helper:1.9.1:add-test-source (add-test-source) @ cibseven-qa-integration-tests-engine ---
+[INFO] Test Source directory: /app/qa/integration-tests-engine/src/test/java-wildfly26 added.
+[INFO]
+[INFO] --- build-helper:1.9.1:add-test-resource (add-test-resource) @ cibseven-qa-integration-tests-engine ---
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ cibseven-qa-integration-tests-engine ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 159 resources
+[INFO] Copying 32 resources
+[INFO] Copying 13 resources
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ cibseven-qa-integration-tests-engine ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 331 source files to /app/qa/integration-tests-engine/target/test-classes
+[INFO] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentResumePreviousOnDeploymentName.java: Some input files use or override a deprecated API.
+[INFO] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentResumePreviousOnDeploymentName.java: Recompile with -Xlint:deprecation for details.
+[INFO] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaSpinSupportTest.java: Some input files use unchecked or unsafe operations.
+[INFO] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaSpinSupportTest.java: Recompile with -Xlint:unchecked for details.
+[INFO]
+[INFO] <<< rewrite:5.43.0:run (default-cli) < process-test-classes @ cibseven-qa-integration-tests-engine <<<
+[INFO]
+[INFO]
+[INFO] --- rewrite:5.43.0:run (default-cli) @ cibseven-qa-integration-tests-engine ---
+[INFO] Using active recipe(s) [org.openrewrite.java.testing.junit5.JUnit5BestPractices, org.openrewrite.java.testing.assertj.Assertj]
+[INFO] Using active styles(s) []
+[INFO] Validating active recipes...
+[INFO] Project [CIB seven - QA Integration Tests - Engine] Resolving Poms...
+[INFO] Project [CIB seven - QA Integration Tests - Engine] Parsing source files
+[INFO] Running recipe(s)...
+[WARNING] Changes have been made to qa/integration-tests-engine/pom.xml by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.dependencies.RemoveDependency: {groupId=junit, artifactId=junit}
+[WARNING]                 org.openrewrite.maven.RemoveDependency: {groupId=junit, artifactId=junit}
+[WARNING]             org.openrewrite.java.testing.junit5.AddJupiterDependencies
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/metadata/engine/TestProcessEnginesXmlFails.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/metadata/engine/TestProcessEnginesXmlInLibrary.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/metadata/engine/TestMultipleProcessEnginesXmlsInLibrary.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/metadata/engine/TestProcessEnginesXmlInProcessApplication.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/context/SetVariablesMigrationContextSwitchTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.junit5.RemoveTryCatchFailBlocks
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/context/CallActivityContextSwitchTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/context/InvocationContextTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UseHamcrestAssertThat
+[WARNING]                 org.openrewrite.java.ChangeMethodTargetToStatic: {methodPattern=org.junit.Assert assertThat(..), fullyQualifiedTargetTypeName=org.hamcrest.MatcherAssert}
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.hamcrest.MigrateHamcrestToAssertJ
+[WARNING]                 org.openrewrite.java.testing.hamcrest.RemoveIsMatcher
+[WARNING]                 org.openrewrite.java.testing.hamcrest.HamcrestIsMatcherToAssertJ
+[WARNING]                 org.openrewrite.java.testing.hamcrest.HamcrestMatcherToAssertJ: {matcher=notNullValue, assertion=isNotNull}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/jpa/PersistenceDelegateBean.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/jpa/JPAIntegrationTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/jpa/AsyncPersistenceDelegateBean.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertFalseToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/el/ElResolverLookupTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/el/ResolveBeanFromDmnTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/el/DecisionContextSwitchTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=get, assertToReplace=isEqualTo, dedicatedAssertion=containsEntry, requiredType=java.util.Map}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/el/ElResolveTaskFormDataTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/el/ElResolveStartFormDataTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/slf4j/Slf4jClassloadingTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/modification/ModificationContextSwitchTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/message/IntermediateMessageCatchEventTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/error/CatchErrorFromProcessApplicationTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/variables/DeserializableVariableTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/variables/SerializableVariableTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/variables/beans/GetVariableDelegate.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/ear/TestJavaDelegateResolution_ClientAsLibInWebModule.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/jobexecution/ClassloadingDuringJobExecutionTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertFalseToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=contains, assertToReplace=isTrue, dedicatedAssertion=contains, requiredType=java.lang.String}
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=contains, assertToReplace=isFalse, dedicatedAssertion=doesNotContain, requiredType=java.lang.String}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/jobexecution/ClassloadingByJobPriorityTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=isEmpty, assertToReplace=isTrue, dedicatedAssertion=isEmpty, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/deployment/RedeployCaseClassloadingTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/deployment/RedeployProcessClassloadingTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/war/TaskListenerResolutionTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/war/CaseVariableListenerResolutionTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/war/JavaDelegateResolutionTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/war/CaseExecutionListenerResolutionTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/war/SignallableActivityBehaviorResolutionTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/database/PurgeDatabaseTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING]             org.openrewrite.java.testing.assertj.StaticImports
+[WARNING]                 org.openrewrite.java.UseStaticImport: {methodPattern=org.assertj.core.api.Assertions *(..)}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/bpmnmodelapi/RepositoryServiceBpmnModelRetrievalTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/bpmnmodelapi/DelegationCodeBpmnModelRetrievalTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringExpressionResolvingTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringRetryConfigurationTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringPAExpressionResolvingTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/drools/TestDeploymentWithDroolsTaskFails.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/PythonPaClassImportTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractPaLocalScriptEngineTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]         org.openrewrite.java.testing.junit5.RemoveTryCatchFailBlocks
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/PaLocalScriptEngineCallActivityConditionTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/GroovyAsyncScriptExecutionTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/PaLocalScriptEngineSupportTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/PaLocalScriptEngineEnabledCacheTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractScriptEngineSupportTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractTemplateScriptEngineSupportTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/GroovyPaClassImportTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/PaLocalScriptEngineDisabledCacheTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/CamundaScriptResourceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/event/ProcessApplicationTaskListenerTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertFalseToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/event/ProcessApplicationExecutionListenerTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/event/CdiProcessApplicationEventSupportTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/jodatime/JodaTimeClassloadingTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/transactions/AsyncJobExecutionWithRollbackTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/transactions/AsyncJobExecutionTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/transactions/TransactionIntegrationTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/transactions/TransactionIsolationLevelTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/transactions/TransactionListenerTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertFalseToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=contains, assertToReplace=isTrue, dedicatedAssertion=contains, requiredType=java.lang.String}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaDataFormatConfiguratorFailingTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=isEmpty, assertToReplace=isTrue, dedicatedAssertion=isEmpty, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaDataFormatConfiguratorTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaDataFormatProviderTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/SpinClassloadingTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaSpinSupportTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaContextSwitchTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/SpinJsonPathTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.junit5.RemoveTryCatchFailBlocks
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaDataFormatConfiguratorJodaTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/SpinVariableDelegate.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaDataformatAndPostDeployApp.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaDataFormatAndPostDeployTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/FeelEngineTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.hamcrest.MigrateHamcrestToAssertJ
+[WARNING]                 org.openrewrite.java.ChangeMethodTargetToStatic: {methodPattern=org.hamcrest.core.* *(..), fullyQualifiedTargetTypeName=org.hamcrest.Matchers}
+[WARNING]                 org.openrewrite.java.testing.hamcrest.HamcrestIsMatcherToAssertJ
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaContextSwitchCustomSerializerTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/condition/ConditionalStartEventTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/JobExecutorRequestContextTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiCallActivityVersionTagTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiBeanCaseTaskResolutionTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiDelegateBeanResolutionTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiBeanSignallableActivityBehaviorResolutionTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiBeanDependentScopedSyncTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiBeanResolutionOnDeploymentTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiRetryConfigurationTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiBeanResolutionTwoEnginesTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiBeanDependentScopedAsyncTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiBeanCallActivityResolutionTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiBeanResolutionTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/connect/PaConnectSupportTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/dmn/DmnHistoryTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UseHamcrestAssertThat
+[WARNING]                 org.openrewrite.java.ChangeMethodTargetToStatic: {methodPattern=org.junit.Assert assertThat(..), fullyQualifiedTargetTypeName=org.hamcrest.MatcherAssert}
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.hamcrest.MigrateHamcrestToAssertJ
+[WARNING]                 org.openrewrite.java.testing.hamcrest.RemoveIsMatcher
+[WARNING]                 org.openrewrite.java.testing.hamcrest.HamcrestIsMatcherToAssertJ
+[WARNING]                 org.openrewrite.java.testing.hamcrest.HamcrestMatcherToAssertJ: {matcher=notNullValue, assertion=isNotNull}
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/dmn/BusinessRuleTaskVersionTagTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/migration/MigrationContextSwitchBeansTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/migration/MigrationContextSwitchClassesTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/delegation/DelegatedVariableMappingTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.MigrateJUnitTestCase
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/ejb/SFSBDelegateTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/ejb/SLSBDelegateTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/ejb/request/JobExecutorRequestContextSFSBDelegateTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/ejb/request/JobExecutorRequestContextLocalInvocationTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/ejb/request/JobExecutorRequestContextRemoteInvocationTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/ejb/remote/RemoteSLSBInvocationTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/ejb/remote/RemoteSFSBInvocationTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/ejb/remote/RemoteSingletonBeanInvocationTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/ejb/local/LocalSLSBInvocationWithCallbackTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/ejb/local/LocalSLSBInvocationTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.junit5.CleanupAssertions
+[WARNING]             org.openrewrite.java.testing.cleanup.AssertionsArgumentOrder
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/ejb/local/LocalSingletonBeanInvocationTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.junit5.CleanupAssertions
+[WARNING]             org.openrewrite.java.testing.cleanup.AssertionsArgumentOrder
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/ejb/local/LocalSFSBInvocationTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.junit5.CleanupAssertions
+[WARNING]             org.openrewrite.java.testing.cleanup.AssertionsArgumentOrder
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/ejb/SingletonBeanDelegateTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/ejb/SLSBExceptionInDelegateTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UseHamcrestAssertThat
+[WARNING]                 org.openrewrite.java.ChangeMethodTargetToStatic: {methodPattern=org.junit.Assert assertThat(..), fullyQualifiedTargetTypeName=org.hamcrest.MatcherAssert}
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.hamcrest.MigrateHamcrestToAssertJ
+[WARNING]                 org.openrewrite.java.testing.hamcrest.HamcrestIsMatcherToAssertJ
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/util/AbstractFoxPlatformIntegrationTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/util/TestHelper.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/jobexecutor/FailingJobBoundaryTimerWithDelegateVariablesTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/jobexecutor/TimerRecalculationTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/jobexecutor/SetVariablesAsyncTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/jobexecutor/TimeoutTaskListenerExecutionTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/jobexecutor/AsyncIntermediateThrowSignalEventTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/jobexecutor/TimerExecutionTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/jobexecutor/IndependentJobExecutionTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertFalseToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=contains, assertToReplace=isTrue, dedicatedAssertion=contains, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/jobexecutor/JobPrioritizationFailureJavaSerializationTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/jobexecutor/SignalEventCatchBoundaryWithVariablesTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/jobexecutor/JobPrioritizationFailureTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/jobexecutor/JobPrioritizationTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/jobexecutor/ManagedJobExecutorTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/jobexecutor/JobPrioritizationDuringDeploymentTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]             org.openrewrite.java.testing.junit5.AddMissingTestBeforeAfterAnnotations
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/jobexecutor/FailedJobCommandTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/callbacks/apps/CustomEjbProcessApplication.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/callbacks/PostDeployInjectDefaultEngineTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/callbacks/TestPostDeployFailure_JBOSS.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/callbacks/EjbPALifecycleCallbacksTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/callbacks/TestPostDeployFailure_OTHERS.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/spring/SpringLookupManagedProcessEngineTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/spring/CustomSpringServletProcessApplication.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertFalseToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/spring/timer/SpringServletPATimerStartEventExpressionTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/spring/SpringServletPALifecycleTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/ear/TestFoxPlatformClientAsEjbModule_twoPasAsLib.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/ear/TestFoxPlatformClientAsEjbModule_pasAsEjbModule.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/ear/TestPaAsEjbJar.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/ear/TestFoxPlatformClientAsLibInWebModule.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/ear/TestPaAnnotatedEjb.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/ear/TestFoxPlatformClientAsEjbModule_onePaAsLib.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestDeploymentSource.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestDeploymentTenantId.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UseHamcrestAssertThat
+[WARNING]                 org.openrewrite.java.ChangeMethodTargetToStatic: {methodPattern=org.junit.Assert assertThat(..), fullyQualifiedTargetTypeName=org.hamcrest.MatcherAssert}
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.hamcrest.MigrateHamcrestToAssertJ
+[WARNING]                 org.openrewrite.java.testing.hamcrest.RemoveIsMatcher
+[WARNING]                 org.openrewrite.java.testing.hamcrest.HamcrestIsMatcherToAssertJ
+[WARNING]                 org.openrewrite.java.testing.hamcrest.HamcrestMatcherToAssertJ: {matcher=notNullValue, assertion=isNotNull}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestCustomProcessesXmlFileLocation.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestAdditionalResourceSuffixes.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/jar/TestJarDeployment.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentEmptyProcessesXml.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithMultiplePasAsSubdeployment2.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithDiagram.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithMultiplePasAsSubdeployment1.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentDeployChangedOnlyWithJarAsLib.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentDuplicateFiltering.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestResourceName.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentResumePrevious.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentResumePreviousOnDeploymentName.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UseHamcrestAssertThat
+[WARNING]                 org.openrewrite.java.ChangeMethodTargetToStatic: {methodPattern=org.junit.Assert assertThat(..), fullyQualifiedTargetTypeName=org.hamcrest.MatcherAssert}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.hamcrest.MigrateHamcrestToAssertJ
+[WARNING]                 org.openrewrite.java.testing.hamcrest.RemoveIsMatcher
+[WARNING]                 org.openrewrite.java.testing.hamcrest.HamcrestIsMatcherToAssertJ
+[WARNING]                 org.openrewrite.java.testing.hamcrest.HamcrestMatcherToAssertJ: {matcher=notNullValue, assertion=isNotNull}
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithProcessEnginePlugin.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithMultiplePasAsSubdeployment4.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentDeployChangedOnly.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithoutDiagram.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithoutProcessDefinitions.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentDeployAllOnSingleChange.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithDmn.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentIsDeployChangedOnly.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentCustomPAName.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=contains, assertToReplace=isTrue, dedicatedAssertion=contains, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithMultiplePasAsSubdeployment5.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentResumePreviousOnProcessDefinitionKey.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UseHamcrestAssertThat
+[WARNING]                 org.openrewrite.java.ChangeMethodTargetToStatic: {methodPattern=org.junit.Assert assertThat(..), fullyQualifiedTargetTypeName=org.hamcrest.MatcherAssert}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.hamcrest.MigrateHamcrestToAssertJ
+[WARNING]                 org.openrewrite.java.testing.hamcrest.RemoveIsMatcher
+[WARNING]                 org.openrewrite.java.testing.hamcrest.HamcrestIsMatcherToAssertJ
+[WARNING]                 org.openrewrite.java.testing.hamcrest.HamcrestMatcherToAssertJ: {matcher=notNullValue, assertion=isNotNull}
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithBrokenBpmnXml.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeployment.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithoutProcessesXml.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithNonExistingDS_JBOSS.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestMultipleClasspathRoots.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithMultiplePasAsSubdeployment3.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithCmmn.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentResumePreviousOff.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/service/ProcessApplicationServiceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/service/PlatformServicesJndiBindingTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/service/TestProcessEngineJndiBinding_JBOSS.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.junit5.RemoveTryCatchFailBlocks
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/service/ProcessEngineServiceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNullToAssertThat
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/jboss/TestManagedDomain_JBOSS.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.junit5.RemoveTryCatchFailBlocks
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/jboss/TestJobExecutorActivateFalse_JBOSS.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertFalseToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING] Please review and commit the results.
+[WARNING] Estimate time saved: 14h 40m
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  03:08 min
+[INFO] Finished at: 2026-02-02T13:09:42Z
+[INFO] ------------------------------------------------------------------------

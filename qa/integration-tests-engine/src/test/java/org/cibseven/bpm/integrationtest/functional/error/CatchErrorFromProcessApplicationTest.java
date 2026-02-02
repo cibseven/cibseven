@@ -16,10 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.error;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 import java.util.Map;
@@ -34,7 +31,7 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(Arquillian.class)
@@ -67,119 +64,119 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowExceptionInExecute() {
+  void throwExceptionInExecute() {
     String pi = runtimeService.startProcessInstanceByKey("testProcess", throwException()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowErrorInExecute() {
+  void throwErrorInExecute() {
     String pi = runtimeService.startProcessInstanceByKey("testProcess", throwError()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowExceptionInSignal() {
+  void throwExceptionInSignal() {
     String pi = runtimeService.startProcessInstanceByKey("testProcess").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").singleResult();
-    assertNotNull(serviceTask);
+    assertThat(serviceTask).isNotNull();
 
     runtimeService.setVariables(pi, throwException());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowErrorInSignal() {
+  void throwErrorInSignal() {
     String pi = runtimeService.startProcessInstanceByKey("testProcess").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").singleResult();
-    assertNotNull(serviceTask);
+    assertThat(serviceTask).isNotNull();
 
     runtimeService.setVariables(pi, throwError());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowExceptionInExecuteSequentialMultiInstance() {
+  void throwExceptionInExecuteSequentialMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessSequentialMI", throwException()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowErrorInExecuteSequentialMultiInstance() {
+  void throwErrorInExecuteSequentialMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessSequentialMI", throwError()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowExceptionInSignalSequentialMultiInstance() {
+  void throwExceptionInSignalSequentialMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessSequentialMI").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     // signal 2 times to execute first sequential behaviors
     runtimeService.setVariables(pi, leaveExecution());
@@ -187,28 +184,28 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
     runtimeService.setVariables(pi, leaveExecution());
 
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").singleResult();
-    assertNotNull(serviceTask);
+    assertThat(serviceTask).isNotNull();
 
     runtimeService.setVariables(pi, throwException());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowErrorInSignalSequentialMultiInstance() {
+  void throwErrorInSignalSequentialMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessSequentialMI").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     // signal 2 times to execute first sequential behaviors
     runtimeService.setVariables(pi, leaveExecution());
@@ -217,214 +214,214 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
 
     runtimeService.signal(runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").singleResult().getId());
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").singleResult();
-    assertNotNull(serviceTask);
+    assertThat(serviceTask).isNotNull();
 
     runtimeService.setVariables(pi, throwError());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowExceptionInExecuteParallelMultiInstance() {
+  void throwExceptionInExecuteParallelMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessParallelMI", throwException()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowErrorInExecuteParallelMultiInstance() {
+  void throwErrorInExecuteParallelMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessParallelMI", throwError()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowExceptionInSignalParallelMultiInstance() {
+  void throwExceptionInSignalParallelMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessParallelMI").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").list().get(3);
-    assertNotNull(serviceTask);
+    assertThat(serviceTask).isNotNull();
 
     runtimeService.setVariables(pi, throwException());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowErrorInSignalParallelMultiInstance() {
+  void throwErrorInSignalParallelMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessParallelMI").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").list().get(3);
-    assertNotNull(serviceTask);
+    assertThat(serviceTask).isNotNull();
 
     runtimeService.setVariables(pi, throwError());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowExceptionInDelegateExpressionExecute() {
+  void throwExceptionInDelegateExpressionExecute() {
     String pi = runtimeService.startProcessInstanceByKey("testProcess", throwException()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowErrorInDelegateExpressionExecute() {
+  void throwErrorInDelegateExpressionExecute() {
     String pi = runtimeService.startProcessInstanceByKey("testProcess", throwError()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowExceptionInDelegateExpressionSignal() {
+  void throwExceptionInDelegateExpressionSignal() {
     String pi = runtimeService.startProcessInstanceByKey("testProcess").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").singleResult();
-    assertNotNull(serviceTask);
+    assertThat(serviceTask).isNotNull();
 
     runtimeService.setVariables(pi, throwException());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowErrorInDelegateExpressionSignal() {
+  void throwErrorInDelegateExpressionSignal() {
     String pi = runtimeService.startProcessInstanceByKey("testProcess").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").singleResult();
-    assertNotNull(serviceTask);
+    assertThat(serviceTask).isNotNull();
 
     runtimeService.setVariables(pi, throwError());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowExceptionInDelegateExpressionExecuteSequentialMultiInstance() {
+  void throwExceptionInDelegateExpressionExecuteSequentialMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessSequentialMI", throwException()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowErrorInDelegateExpressionExecuteSequentialMultiInstance() {
+  void throwErrorInDelegateExpressionExecuteSequentialMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessSequentialMI", throwError()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowExceptionInDelegateExpressionSignalSequentialMultiInstance() {
+  void throwExceptionInDelegateExpressionSignalSequentialMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessSequentialMI").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     // signal 2 times to execute first sequential behaviors
     runtimeService.setVariables(pi, leaveExecution());
@@ -432,28 +429,28 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
     runtimeService.setVariables(pi, leaveExecution());
 
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").singleResult();
-    assertNotNull(serviceTask);
+    assertThat(serviceTask).isNotNull();
 
     runtimeService.setVariables(pi, throwException());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowErrorInDelegateExpressionSignalSequentialMultiInstance() {
+  void throwErrorInDelegateExpressionSignalSequentialMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessSequentialMI").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     // signal 2 times to execute first sequential behaviors
     runtimeService.setVariables(pi, leaveExecution());
@@ -462,95 +459,95 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
 
     runtimeService.signal(runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").singleResult().getId());
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").singleResult();
-    assertNotNull(serviceTask);
+    assertThat(serviceTask).isNotNull();
 
     runtimeService.setVariables(pi, throwError());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowExceptionInDelegateExpressionExecuteParallelMultiInstance() {
+  void throwExceptionInDelegateExpressionExecuteParallelMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessParallelMI", throwException()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowErrorInDelegateExpressionExecuteParallelMultiInstance() {
+  void throwErrorInDelegateExpressionExecuteParallelMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessParallelMI", throwError()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowExceptionInDelegateExpressionSignalParallelMultiInstance() {
+  void throwExceptionInDelegateExpressionSignalParallelMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessParallelMI").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").list().get(3);
-    assertNotNull(serviceTask);
+    assertThat(serviceTask).isNotNull();
 
     runtimeService.setVariables(pi, throwException());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testThrowErrorInDelegateExpressionSignalParallelMultiInstance() {
+  void throwErrorInDelegateExpressionSignalParallelMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessParallelMI").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertNull(runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat(runtimeService.getVariable(pi, "signaled")).isNull();
 
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").list().get(3);
-    assertNotNull(serviceTask);
+    assertThat(serviceTask).isNotNull();
 
     runtimeService.setVariables(pi, throwError());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
-    assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask).isNotNull();
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }

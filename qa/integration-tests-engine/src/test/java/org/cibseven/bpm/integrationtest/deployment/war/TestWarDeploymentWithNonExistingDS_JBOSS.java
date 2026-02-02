@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.war;
 
+import static org.assertj.core.api.Assertions.fail;
 
 import org.cibseven.bpm.integrationtest.deployment.war.apps.CustomServletPA;
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
@@ -27,8 +28,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -73,21 +73,21 @@ public class TestWarDeploymentWithNonExistingDS_JBOSS {
     
     return archive;
   }
-  
+
   @Test
   @RunAsClient
-  public void testDeploymentFails(){
+  void deploymentFails(){
 
     try {
       deployer.deploy(DEPLOYMENT_WITH_EJB_PA);
-      Assert.fail("Deployment exception expected");
+      fail("Deployment exception expected");
     } catch(Exception e) {
       // expected
     }
     
     try {
       deployer.deploy(DEPLOYMENT_WITH_SERVLET_PA);
-      Assert.fail("Deployment exception expected");
+      fail("Deployment exception expected");
     } catch(Exception e) {
       // expected
     }

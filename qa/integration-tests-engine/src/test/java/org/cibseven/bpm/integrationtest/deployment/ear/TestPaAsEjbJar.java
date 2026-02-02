@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.ear;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.application.impl.ejb.DefaultEjbProcessApplication;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
@@ -27,8 +29,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -73,15 +74,15 @@ public class TestPaAsEjbJar extends AbstractFoxPlatformIntegrationTest {
   }
 
   @Test
-  public void testPaAsEjbModule() {
+  void testPaAsEjbModule() {
     ProcessEngine processEngine = ProgrammaticBeanLookup.lookup(ProcessEngine.class);
-    Assert.assertNotNull(processEngine);
+    assertThat(processEngine).isNotNull();
 
     runtimeService.startProcessInstanceByKey("paAsEjbJar-process");
-    Assert.assertEquals(1, runtimeService.createProcessInstanceQuery().count());
+    assertThat(runtimeService.createProcessInstanceQuery().count()).isEqualTo(1);
     waitForJobExecutorToProcessAllJobs();
 
-    Assert.assertEquals(0, runtimeService.createProcessInstanceQuery().count());
+    assertThat(runtimeService.createProcessInstanceQuery().count()).isEqualTo(0);
   }
 
 }

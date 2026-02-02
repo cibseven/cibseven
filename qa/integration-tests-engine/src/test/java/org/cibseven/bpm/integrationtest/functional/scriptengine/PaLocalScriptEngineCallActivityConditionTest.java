@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.scriptengine;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.integrationtest.functional.scriptengine.engine.AbstractScriptEngineFactory;
 import org.cibseven.bpm.integrationtest.functional.scriptengine.engine.AlwaysTrueScriptEngineFactory;
@@ -27,8 +29,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -66,7 +67,7 @@ public class PaLocalScriptEngineCallActivityConditionTest extends AbstractFoxPla
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void shouldEvaluateCondition() {
+  void shouldEvaluateCondition() {
     // given
     runtimeService.startProcessInstanceByKey("callingProcessScriptConditionalFlow").getId();
 
@@ -77,8 +78,8 @@ public class PaLocalScriptEngineCallActivityConditionTest extends AbstractFoxPla
 
     // then the conditional flow leaving the call activity has been taken
     Task afterCallActivityTask = taskService.createTaskQuery().singleResult();
-    Assert.assertNotNull(afterCallActivityTask);
-    Assert.assertEquals("afterCallActivityTask", afterCallActivityTask.getTaskDefinitionKey());
+    assertThat(afterCallActivityTask).isNotNull();
+    assertThat(afterCallActivityTask.getTaskDefinitionKey()).isEqualTo("afterCallActivityTask");
   }
 
 }

@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.database;
 
+import static org.assertj.core.api.Assertions.fail;
+
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.impl.HistoryLevelSetupCommand;
 import org.cibseven.bpm.engine.impl.ManagementServiceImpl;
@@ -30,8 +32,7 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Arrays;
@@ -56,8 +57,8 @@ public class PurgeDatabaseTest extends AbstractFoxPlatformIntegrationTest {
   }
 
   @Test
-  public void testPurgeDatabase() {
-    Assert.assertNotNull(processEngine);
+  void purgeDatabase() {
+    assertThat(processEngine).isNotNull();
     VariableMap variableMap = Variables.putValue("var", "value");
     runtimeService.startProcessInstanceByKey("testDeployProcessArchive", variableMap);
     runtimeService.startProcessInstanceByKey("testDeployProcessArchive", variableMap);
@@ -111,7 +112,7 @@ public class PurgeDatabaseTest extends AbstractFoxPlatformIntegrationTest {
             }
           });
       }
-      Assert.fail(outputMessage.toString());
+      fail(outputMessage.toString());
     }
   }
 

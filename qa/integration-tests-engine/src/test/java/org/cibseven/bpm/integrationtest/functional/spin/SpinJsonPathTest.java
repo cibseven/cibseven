@@ -16,16 +16,14 @@
  */
 package org.cibseven.bpm.integrationtest.functional.spin;
 
-import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
-
-import static org.junit.Assert.fail;
 
 @RunWith(Arquillian.class)
 public class SpinJsonPathTest extends AbstractFoxPlatformIntegrationTest {
@@ -37,7 +35,7 @@ public class SpinJsonPathTest extends AbstractFoxPlatformIntegrationTest {
   }
 
   @Test
-  public void shouldEvaluateJsonPath() {
+  void shouldEvaluateJsonPath() {
     // given
     String json = "{ " +
         "   \"foo\":[ " +
@@ -56,15 +54,12 @@ public class SpinJsonPathTest extends AbstractFoxPlatformIntegrationTest {
         "   ]" +
         "}";
 
-    try {
+    Assertions.assertDoesNotThrow(() -> {
       // when
       runtimeService.startProcessInstanceByKey("jsonpath-process",
-          Variables.createVariables().putValue("data", json));
+        Variables.createVariables().putValue("data", json));
 
-    } catch (ProcessEngineException e) {
-      fail(e.getMessage());
-
-    } // then: no exception thrown
+    }); // then: no exception thrown
   }
 
 }

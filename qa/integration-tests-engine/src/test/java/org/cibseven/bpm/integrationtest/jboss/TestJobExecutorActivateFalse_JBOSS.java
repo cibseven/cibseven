@@ -24,10 +24,10 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Daniel Meyer
@@ -42,17 +42,17 @@ public class TestJobExecutorActivateFalse_JBOSS extends AbstractFoxPlatformInteg
   }
 
   @Test
-  public void shouldNotActiateJobExecutor() {
+  void shouldNotActiateJobExecutor() {
 
     ProcessEngine processEngine = processEngineService.getProcessEngine("jobExecutorActivate-FALSE-engine");
     ProcessEngineConfiguration configuration = processEngine.getProcessEngineConfiguration();
     JobExecutor jobExecutor = ((ProcessEngineConfigurationImpl)configuration).getJobExecutor();
-    assertFalse(jobExecutor.isActive());
+    assertThat(jobExecutor.isActive()).isFalse();
 
     processEngine = processEngineService.getProcessEngine("jobExecutorActivate-UNDEFINED-engine");
     configuration = processEngine.getProcessEngineConfiguration();
     jobExecutor = ((ProcessEngineConfigurationImpl)configuration).getJobExecutor();
-    assertTrue(jobExecutor.isActive());
+    assertThat(jobExecutor.isActive()).isTrue();
 
   }
 }

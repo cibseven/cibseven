@@ -16,8 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.scriptengine;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
@@ -27,7 +26,7 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(Arquillian.class)
@@ -64,7 +63,7 @@ public class GroovyAsyncScriptExecutionTest extends AbstractFoxPlatformIntegrati
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void shouldSetVariable() {
+  void shouldSetVariable() {
     String deploymentId = repositoryService.createDeployment()
         .addString("process.bpmn", process)
         .deploy()
@@ -74,8 +73,8 @@ public class GroovyAsyncScriptExecutionTest extends AbstractFoxPlatformIntegrati
     waitForJobExecutorToProcessAllJobs(30000);
 
     Object foo = runtimeService.getVariable(processInstanceId, "foo");
-    assertNotNull(foo);
-    assertEquals("bar", foo);
+    assertThat(foo).isNotNull();
+    assertThat(foo).isEqualTo("bar");
 
     repositoryService.deleteDeployment(deploymentId, true);
   }

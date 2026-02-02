@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.cdi;
 
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.integrationtest.functional.cdi.beans.VersionTagBean;
@@ -28,7 +28,7 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(Arquillian.class)
@@ -56,12 +56,12 @@ public class CdiCallActivityVersionTagTest extends AbstractFoxPlatformIntegratio
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testStartInstanceWithBeanCondition() {
+  void startInstanceWithBeanCondition() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("process");
 
     // then
     ProcessInstance subInstance = runtimeService.createProcessInstanceQuery().processDefinitionKey("subProcess").superProcessInstanceId(processInstance.getId()).singleResult();
-    assertNotNull(subInstance);
+    assertThat(subInstance).isNotNull();
 
   }
 }

@@ -16,14 +16,15 @@
  */
 package org.cibseven.bpm.integrationtest.functional.metadata.engine;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -47,12 +48,12 @@ public class TestMultipleProcessEnginesXmlsInLibrary extends AbstractFoxPlatform
                    .addAsResource("twoEngines.xml", "META-INF/processes.xml")
          );
   }
-  
+
   @Test
-  public void testDeployProcessArchive() {
-    Assert.assertNotNull(processEngineService.getProcessEngine("engine1"));
-    Assert.assertNotNull(processEngineService.getProcessEngine("engine2"));
-    Assert.assertNotNull(processEngineService.getProcessEngine("engine3"));
+  void deployProcessArchive() {
+    assertThat(processEngineService.getProcessEngine("engine1")).isNotNull();
+    assertThat(processEngineService.getProcessEngine("engine2")).isNotNull();
+    assertThat(processEngineService.getProcessEngine("engine3")).isNotNull();
   }
 
 }

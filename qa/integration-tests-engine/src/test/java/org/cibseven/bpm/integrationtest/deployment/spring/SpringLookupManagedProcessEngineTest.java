@@ -16,14 +16,15 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.spring;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -45,11 +46,11 @@ public class SpringLookupManagedProcessEngineTest extends AbstractFoxPlatformInt
       .addAsManifestResource("org/cibseven/bpm/integrationtest/deployment/spring/jboss-deployment-structure.xml", "jboss-deployment-structure.xml")
       .addAsWebInfResource("org/cibseven/bpm/integrationtest/deployment/spring/web.xml", "web.xml");
   }
-  
-    
+
+
   @Test
-  public void testDeployProcessArchive() {
-    Assert.assertNotNull(processEngine);   
+  void deployProcessArchive() {
+    assertThat(processEngine).isNotNull();
   }
   
 }

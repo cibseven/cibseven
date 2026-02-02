@@ -16,8 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.connect;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
@@ -25,7 +24,7 @@ import org.cibseven.connect.Connectors;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -47,25 +46,25 @@ public class PaConnectSupportTest extends AbstractFoxPlatformIntegrationTest {
   }
 
   @Test
-  public void httpConnectorShouldBeAvailable() {
-    assertNotNull(Connectors.http());
+  void httpConnectorShouldBeAvailable() {
+    assertThat(Connectors.http()).isNotNull();
   }
 
   @Test
-  public void soapConnectorShouldBeAvailable() {
-    assertNotNull(Connectors.soap());
+  void soapConnectorShouldBeAvailable() {
+    assertThat(Connectors.soap()).isNotNull();
   }
 
   @Test
-  public void connectorServiceTask() {
+  void connectorServiceTask() {
     TestConnector connector = new TestConnector();
     TestConnectors.registerConnector(connector);
 
     runtimeService.startProcessInstanceByKey("testProcess");
     Task task = taskService.createTaskQuery().singleResult();
-    assertNotNull(task);
+    assertThat(task).isNotNull();
     String payload = (String) taskService.getVariable(task.getId(), "payload");
-    assertEquals("Hello world!", payload);
+    assertThat(payload).isEqualTo("Hello world!");
 
     TestConnectors.unregisterConnector(connector.getId());
   }

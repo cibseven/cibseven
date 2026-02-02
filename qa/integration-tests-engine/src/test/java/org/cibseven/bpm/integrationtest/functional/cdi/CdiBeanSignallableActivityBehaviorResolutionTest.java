@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.cdi;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.integrationtest.functional.cdi.beans.ExampleSignallableActivityBehaviorBean;
@@ -27,8 +29,7 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -61,9 +62,9 @@ public class CdiBeanSignallableActivityBehaviorResolutionTest extends AbstractFo
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testResolveClass() {
+  void resolveClass() {
     // assert that we cannot resolve the bean here:
-    Assert.assertNull(ProgrammaticBeanLookup.lookup("exampleSignallableActivityBehaviorBean"));
+    assertThat(ProgrammaticBeanLookup.lookup("exampleSignallableActivityBehaviorBean")).isNull();
 
     // but the process can since it performs context switch to the process archive for execution
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testResolveBean");

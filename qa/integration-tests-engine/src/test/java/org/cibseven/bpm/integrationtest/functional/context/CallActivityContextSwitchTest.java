@@ -24,9 +24,11 @@ import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.inject.Inject;
 
-import org.junit.Assert;
-
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
 import org.cibseven.bpm.integrationtest.functional.context.beans.CalledProcessDelegate;
 import org.cibseven.bpm.integrationtest.functional.context.beans.DelegateAfter;
 import org.cibseven.bpm.integrationtest.functional.context.beans.DelegateBefore;
@@ -35,7 +37,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -76,21 +78,21 @@ public class CallActivityContextSwitchTest extends AbstractFoxPlatformIntegratio
 
   @Test
   @OperateOnDeployment("mainDeployment")
-  public void testNoWaitState() {
+  void noWaitState() {
 
     // this test makes sure the delegate invoked by the called process can be resolved (context switch necessary).
 
     // we cannot load the class
     try {
       new CalledProcessDelegate();
-      Assert.fail("exception expected");
+      fail("exception expected");
     }catch (NoClassDefFoundError e) {
       // expected
     }
 
     // our bean manager does not know this bean
     Set<Bean< ? >> beans = beanManager.getBeans("calledProcessDelegate");
-    Assert.assertEquals(0, beans.size());
+    assertThat(beans).hasSize(0);
 
     // but when we execute the process, we perform the context switch to the corresponding deployment
     // and there the class can be resolved and the bean is known.
@@ -98,66 +100,66 @@ public class CallActivityContextSwitchTest extends AbstractFoxPlatformIntegratio
     processVariables.put("calledElement", "calledProcessSyncNoWait");
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("mainProcessSyncNoWait", processVariables);
 
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processDefinitionId(pi.getId()).singleResult());
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionId(pi.getId()).singleResult()).isNull();
   }
 
   @Test
   @OperateOnDeployment("mainDeployment")
-  public void testMainSyncCalledSync() {
+  void mainSyncCalledSync() {
 
     Map<String, Object> processVariables = new HashMap<String, Object>();
     processVariables.put("calledElement", "calledProcessSync");
 
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("mainProcessSync", processVariables);
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), DelegateBefore.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), DelegateBefore.class.getName())).isEqualTo(true);
 
     ProcessInstance calledPi = runtimeService.createProcessInstanceQuery()
       .processDefinitionKey("calledProcessSync")
       .singleResult();
-    Assert.assertEquals(true, runtimeService.getVariable(calledPi.getId(), "calledDelegate"));
+    assertThat(runtimeService.getVariable(calledPi.getId(), "calledDelegate")).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(calledPi.getId()).singleResult().getId());
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), DelegateAfter.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), DelegateAfter.class.getName())).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(pi.getId()).singleResult().getId());
 
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processDefinitionId(pi.getId()).singleResult());
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processDefinitionId(calledPi.getId()).singleResult());
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionId(pi.getId()).singleResult()).isNull();
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionId(calledPi.getId()).singleResult()).isNull();
   }
 
   @Test
   @OperateOnDeployment("mainDeployment")
-  public void testMainASyncCalledSync() {
+  void mainASyncCalledSync() {
 
     Map<String, Object> processVariables = new HashMap<String, Object>();
     processVariables.put("calledElement", "calledProcessSync");
 
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("mainProcessASync", processVariables);
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), DelegateBefore.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), DelegateBefore.class.getName())).isEqualTo(true);
 
     waitForJobExecutorToProcessAllJobs();
 
     ProcessInstance calledPi = runtimeService.createProcessInstanceQuery()
       .processDefinitionKey("calledProcessSync")
       .singleResult();
-    Assert.assertEquals(true, runtimeService.getVariable(calledPi.getId(), "calledDelegate"));
+    assertThat(runtimeService.getVariable(calledPi.getId(), "calledDelegate")).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(calledPi.getId()).singleResult().getId());
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), DelegateAfter.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), DelegateAfter.class.getName())).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(pi.getId()).singleResult().getId());
 
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processDefinitionId(pi.getId()).singleResult());
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processDefinitionId(calledPi.getId()).singleResult());
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionId(pi.getId()).singleResult()).isNull();
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionId(calledPi.getId()).singleResult()).isNull();
   }
 
   @Test
   @OperateOnDeployment("mainDeployment")
-  public void testMainASyncBeforeCalledSync() {
+  void mainASyncBeforeCalledSync() {
 
     Map<String, Object> processVariables = new HashMap<String, Object>();
     processVariables.put("calledElement", "calledProcessSync");
@@ -166,116 +168,116 @@ public class CallActivityContextSwitchTest extends AbstractFoxPlatformIntegratio
 
     waitForJobExecutorToProcessAllJobs();
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), DelegateBefore.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), DelegateBefore.class.getName())).isEqualTo(true);
 
     ProcessInstance calledPi = runtimeService.createProcessInstanceQuery()
       .processDefinitionKey("calledProcessSync")
       .singleResult();
-    Assert.assertEquals(true, runtimeService.getVariable(calledPi.getId(), "calledDelegate"));
+    assertThat(runtimeService.getVariable(calledPi.getId(), "calledDelegate")).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(calledPi.getId()).singleResult().getId());
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), DelegateAfter.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), DelegateAfter.class.getName())).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(pi.getId()).singleResult().getId());
 
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processDefinitionId(pi.getId()).singleResult());
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processDefinitionId(calledPi.getId()).singleResult());
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionId(pi.getId()).singleResult()).isNull();
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionId(calledPi.getId()).singleResult()).isNull();
   }
 
   @Test
   @OperateOnDeployment("mainDeployment")
-  public void testMainASyncAfterCalledSync() {
+  void mainASyncAfterCalledSync() {
 
     Map<String, Object> processVariables = new HashMap<String, Object>();
     processVariables.put("calledElement", "calledProcessSync");
 
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("mainProcessASyncAfter", processVariables);
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), DelegateBefore.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), DelegateBefore.class.getName())).isEqualTo(true);
 
     ProcessInstance calledPi = runtimeService.createProcessInstanceQuery()
       .processDefinitionKey("calledProcessSync")
       .singleResult();
-    Assert.assertEquals(true, runtimeService.getVariable(calledPi.getId(), "calledDelegate"));
+    assertThat(runtimeService.getVariable(calledPi.getId(), "calledDelegate")).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(calledPi.getId()).singleResult().getId());
 
     waitForJobExecutorToProcessAllJobs();
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), DelegateAfter.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), DelegateAfter.class.getName())).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(pi.getId()).singleResult().getId());
 
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processDefinitionId(pi.getId()).singleResult());
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processDefinitionId(calledPi.getId()).singleResult());
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionId(pi.getId()).singleResult()).isNull();
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionId(calledPi.getId()).singleResult()).isNull();
   }
 
   // the same in main process but called process async
 
   @Test
   @OperateOnDeployment("mainDeployment")
-  public void testMainSyncCalledASync() {
+  void mainSyncCalledASync() {
 
     Map<String, Object> processVariables = new HashMap<String, Object>();
     processVariables.put("calledElement", "calledProcessASync");
 
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("mainProcessSync", processVariables);
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), DelegateBefore.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), DelegateBefore.class.getName())).isEqualTo(true);
 
     ProcessInstance calledPi = runtimeService.createProcessInstanceQuery()
       .processDefinitionKey("calledProcessASync")
       .singleResult();
 
-    Assert.assertNotNull(calledPi);
-    Assert.assertNull(runtimeService.getVariable(calledPi.getId(), "calledDelegate"));
+    assertThat(calledPi).isNotNull();
+    assertThat(runtimeService.getVariable(calledPi.getId(), "calledDelegate")).isNull();
 
     waitForJobExecutorToProcessAllJobs();
 
-    Assert.assertEquals(true, runtimeService.getVariable(calledPi.getId(), "calledDelegate"));
+    assertThat(runtimeService.getVariable(calledPi.getId(), "calledDelegate")).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(calledPi.getId()).singleResult().getId());
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), DelegateAfter.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), DelegateAfter.class.getName())).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(pi.getId()).singleResult().getId());
 
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processDefinitionId(pi.getId()).singleResult());
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processDefinitionId(calledPi.getId()).singleResult());
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionId(pi.getId()).singleResult()).isNull();
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionId(calledPi.getId()).singleResult()).isNull();
   }
 
   @Test
   @OperateOnDeployment("mainDeployment")
-  public void testMainASyncCalledASync() {
+  void mainASyncCalledASync() {
 
     Map<String, Object> processVariables = new HashMap<String, Object>();
     processVariables.put("calledElement", "calledProcessASync");
 
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("mainProcessASync", processVariables);
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), DelegateBefore.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), DelegateBefore.class.getName())).isEqualTo(true);
 
     waitForJobExecutorToProcessAllJobs();
 
     ProcessInstance calledPi = runtimeService.createProcessInstanceQuery()
       .processDefinitionKey("calledProcessASync")
       .singleResult();
-    Assert.assertEquals(true, runtimeService.getVariable(calledPi.getId(), "calledDelegate"));
+    assertThat(runtimeService.getVariable(calledPi.getId(), "calledDelegate")).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(calledPi.getId()).singleResult().getId());
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), DelegateAfter.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), DelegateAfter.class.getName())).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(pi.getId()).singleResult().getId());
 
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processDefinitionId(pi.getId()).singleResult());
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processDefinitionId(calledPi.getId()).singleResult());
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionId(pi.getId()).singleResult()).isNull();
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionId(calledPi.getId()).singleResult()).isNull();
   }
 
   @Test
   @OperateOnDeployment("mainDeployment")
-  public void testMainASyncBeforeCalledASync() {
+  void mainASyncBeforeCalledASync() {
 
     Map<String, Object> processVariables = new HashMap<String, Object>();
     processVariables.put("calledElement", "calledProcessASync");
@@ -284,51 +286,51 @@ public class CallActivityContextSwitchTest extends AbstractFoxPlatformIntegratio
 
     waitForJobExecutorToProcessAllJobs();
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), DelegateBefore.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), DelegateBefore.class.getName())).isEqualTo(true);
 
     ProcessInstance calledPi = runtimeService.createProcessInstanceQuery()
       .processDefinitionKey("calledProcessASync")
       .singleResult();
-    Assert.assertEquals(true, runtimeService.getVariable(calledPi.getId(), "calledDelegate"));
+    assertThat(runtimeService.getVariable(calledPi.getId(), "calledDelegate")).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(calledPi.getId()).singleResult().getId());
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), DelegateAfter.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), DelegateAfter.class.getName())).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(pi.getId()).singleResult().getId());
 
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processDefinitionId(pi.getId()).singleResult());
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processDefinitionId(calledPi.getId()).singleResult());
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionId(pi.getId()).singleResult()).isNull();
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionId(calledPi.getId()).singleResult()).isNull();
   }
 
   @Test
   @OperateOnDeployment("mainDeployment")
-  public void testMainASyncAfterCalledASync() {
+  void mainASyncAfterCalledASync() {
 
     Map<String, Object> processVariables = new HashMap<String, Object>();
     processVariables.put("calledElement", "calledProcessASync");
 
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("mainProcessASyncAfter", processVariables);
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), DelegateBefore.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), DelegateBefore.class.getName())).isEqualTo(true);
 
     waitForJobExecutorToProcessAllJobs();
 
     ProcessInstance calledPi = runtimeService.createProcessInstanceQuery()
       .processDefinitionKey("calledProcessASync")
       .singleResult();
-    Assert.assertEquals(true, runtimeService.getVariable(calledPi.getId(), "calledDelegate"));
+    assertThat(runtimeService.getVariable(calledPi.getId(), "calledDelegate")).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(calledPi.getId()).singleResult().getId());
 
     waitForJobExecutorToProcessAllJobs();
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), DelegateAfter.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), DelegateAfter.class.getName())).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(pi.getId()).singleResult().getId());
 
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processDefinitionId(pi.getId()).singleResult());
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processDefinitionId(calledPi.getId()).singleResult());
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionId(pi.getId()).singleResult()).isNull();
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionId(calledPi.getId()).singleResult()).isNull();
   }
 
 

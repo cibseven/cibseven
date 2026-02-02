@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.ejb.local;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.integrationtest.functional.ejb.local.bean.BusinessInterface;
 import org.cibseven.bpm.integrationtest.functional.ejb.local.bean.LocalSLSBClientDelegateBean;
@@ -28,8 +30,7 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -71,13 +72,13 @@ public class LocalSLSBInvocationTest extends AbstractFoxPlatformIntegrationTest 
 
   @Test
   @OperateOnDeployment("pa")
-  public void testInvokeBean() throws Exception{
+  void invokeBean() throws Exception{
 
     // this testcase first resolves the Bean synchronously and then from the JobExecutor
 
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("testInvokeBean");
 
-    Assert.assertEquals(runtimeService.getVariable(pi.getId(), "result"), true);
+    assertThat(runtimeService.getVariable(pi.getId(), "result")).isEqualTo(true);
 
     runtimeService.setVariable(pi.getId(), "result", false);
 
@@ -85,13 +86,13 @@ public class LocalSLSBInvocationTest extends AbstractFoxPlatformIntegrationTest 
 
     waitForJobExecutorToProcessAllJobs();
 
-    Assert.assertEquals(runtimeService.getVariable(pi.getId(), "result"), true);
+    assertThat(runtimeService.getVariable(pi.getId(), "result")).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(pi.getId()).singleResult().getId());
   }
 
   @Test
-  public void testMultipleInvocations() {
+  void multipleInvocations() {
 
     // this is greater than any Datasource / EJB / Thread Pool size -> make sure all resources are released properly.
     int instances = 100;
@@ -99,7 +100,7 @@ public class LocalSLSBInvocationTest extends AbstractFoxPlatformIntegrationTest 
 
     for(int i=0; i<instances; i++) {
       ids[i] = runtimeService.startProcessInstanceByKey("testInvokeBean").getId();
-      Assert.assertEquals(runtimeService.getVariable(ids[i], "result"), true);
+      assertThat(runtimeService.getVariable(ids[i], "result")).isEqualTo(true);
       runtimeService.setVariable(ids[i], "result", false);
       taskService.complete(taskService.createTaskQuery().processInstanceId(ids[i]).singleResult().getId());
     }
@@ -107,7 +108,7 @@ public class LocalSLSBInvocationTest extends AbstractFoxPlatformIntegrationTest 
     waitForJobExecutorToProcessAllJobs(60*1000);
 
     for(int i=0; i<instances; i++) {
-      Assert.assertEquals(runtimeService.getVariable(ids[i], "result"), true);
+      assertThat(runtimeService.getVariable(ids[i], "result")).isEqualTo(true);
       taskService.complete(taskService.createTaskQuery().processInstanceId(ids[i]).singleResult().getId());
     }
 

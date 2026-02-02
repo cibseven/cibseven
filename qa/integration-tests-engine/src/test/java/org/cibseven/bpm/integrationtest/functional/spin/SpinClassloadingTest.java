@@ -23,7 +23,7 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 import static org.cibseven.bpm.engine.variable.Variables.*;
@@ -57,7 +57,7 @@ public class SpinClassloadingTest extends AbstractFoxPlatformIntegrationTest {
 
   @Test
   @OperateOnDeployment("client-app")
-  public void testDeserialization() {
+  void deserialization() {
 
     String serializedValue = "<?xml version=\"1.0\" encoding=\"utf-8\"?><xmlserializable><property>value</property></xmlserializable>";
 

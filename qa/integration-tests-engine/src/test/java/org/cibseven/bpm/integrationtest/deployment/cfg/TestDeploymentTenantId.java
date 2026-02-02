@@ -16,9 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.cfg;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
@@ -26,7 +24,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(Arquillian.class)
@@ -44,16 +42,16 @@ public class TestDeploymentTenantId extends AbstractFoxPlatformIntegrationTest {
   }
 
   @Test
-  public void testDeployProcessArchiveWithTenantId() {
-    assertThat(processEngine, is(notNullValue()));
+  void deployProcessArchiveWithTenantId() {
+    assertThat(processEngine).isNotNull();
 
     org.cibseven.bpm.engine.repository.Deployment deployment = processEngine
         .getRepositoryService()
         .createDeploymentQuery()
         .singleResult();
 
-    assertThat(deployment, is(notNullValue()));
-    assertThat(deployment.getTenantId(), is("tenant1"));
+    assertThat(deployment).isNotNull();
+    assertThat(deployment.getTenantId()).isEqualTo("tenant1");
   }
 
 }

@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.jobexecutor;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.Job;
@@ -32,15 +34,12 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.asset.ByteArrayAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Collections;
 import java.util.List;
-
-import static org.junit.Assert.fail;
 
 @RunWith(Arquillian.class)
 public class SetVariablesAsyncTest extends AbstractFoxPlatformIntegrationTest {
@@ -74,7 +73,7 @@ public class SetVariablesAsyncTest extends AbstractFoxPlatformIntegrationTest {
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void shouldDeserializeObjectVariable() {
+  void shouldDeserializeObjectVariable() {
     // given
     ProcessDefinition processDefinition = repositoryService
         .createProcessDefinitionQuery()
@@ -99,15 +98,11 @@ public class SetVariablesAsyncTest extends AbstractFoxPlatformIntegrationTest {
     // when: execute remaining batch jobs
     jobs = managementService.createJobQuery().list();
     for (Job job : jobs) {
-      try {
-        managementService.executeJob(job.getId());
-      } catch (ProcessEngineException ex) {
-        fail("No exception expected: " + ex.getMessage());
-      }
+      managementService.executeJob(job.getId());
     }
 
     // then
-    Assert.assertNotNull(runtimeService.getVariableTyped(pi, "foo", false));
+    assertThat(runtimeService.getVariableTyped(pi, "foo", false)).isNotNull();
   }
 
   protected static Asset modelAsAsset(BpmnModelInstance modelInstance) {

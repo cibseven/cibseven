@@ -23,7 +23,7 @@ import org.cibseven.bpm.integrationtest.util.TestHelper;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -39,9 +39,9 @@ public class TestWarDeploymentWithoutDiagram extends AbstractFoxPlatformIntegrat
             .addClass(TestHelper.class)
             .addAsResource("org/cibseven/bpm/integrationtest/testDeployProcessArchive.bpmn20.xml");
   }
-  
+
   @Test
-  public void testDeployProcessArchiveDiagramCreationDisabled() throws IOException {
+  void deployProcessArchiveDiagramCreationDisabled() throws IOException {
     String expectedDiagramResource = "/org/cibseven/bpm/integrationtest/testDeployProcessArchive.png";
     String processDefinitionKey = "testDeployProcessArchive";
     TestHelper.assertDiagramIsDeployed(false, getClass(), expectedDiagramResource, processDefinitionKey);

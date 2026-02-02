@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.Set;
 
 import org.cibseven.bpm.BpmPlatform;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.ProcessApplicationService;
 import org.cibseven.bpm.application.ProcessApplicationInfo;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
@@ -27,8 +30,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -50,10 +52,10 @@ public class ProcessApplicationServiceTest extends AbstractFoxPlatformIntegratio
     return initWebArchiveDeployment("test2.war")
             .addAsResource("org/cibseven/bpm/integrationtest/testDeployProcessArchiveWithoutActivitiCdi.bpmn20.xml");
   }
-  
+
   @Test
   @OperateOnDeployment("test1")
-  public void testProcessApplicationsDeployed() {
+  void processApplicationsDeployed() {
     
     ProcessApplicationService processApplicationService = BpmPlatform.getProcessApplicationService();
     
@@ -62,14 +64,14 @@ public class ProcessApplicationServiceTest extends AbstractFoxPlatformIntegratio
     // check if the new applications are deployed with allowed names
     processApplicationNames.retainAll(Arrays.asList(new String [] {"test1", "test2", "/test1", "/test2"}));
 
-    Assert.assertEquals(2, processApplicationNames.size());
+    assertThat(processApplicationNames).hasSize(2);
 
     for (String appName : processApplicationNames) {
       ProcessApplicationInfo processApplicationInfo = processApplicationService.getProcessApplicationInfo(appName);
-      
-      Assert.assertNotNull(processApplicationInfo);
-      Assert.assertNotNull(processApplicationInfo.getName());
-      Assert.assertEquals(1, processApplicationInfo.getDeploymentInfo().size());      
+
+      assertThat(processApplicationInfo).isNotNull();
+      assertThat(processApplicationInfo.getName()).isNotNull();
+      assertThat(processApplicationInfo.getDeploymentInfo()).hasSize(1);
     }
     
   }

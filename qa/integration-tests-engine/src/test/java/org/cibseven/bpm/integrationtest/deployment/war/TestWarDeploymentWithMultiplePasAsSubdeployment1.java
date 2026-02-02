@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.war;
 
-import org.junit.Assert;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.repository.DeploymentQuery;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
@@ -30,7 +30,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -127,9 +127,9 @@ public class TestWarDeploymentWithMultiplePasAsSubdeployment1 extends AbstractFo
     return deployment;
     
   }
-  
+
   @Test
-  public void testDeployProcessArchive() {
+  void deployProcessArchive() {
     
     assertProcessDeployed("process-0", "PA1");
     assertProcessDeployed("process-1", "PA1");
@@ -156,8 +156,8 @@ public class TestWarDeploymentWithMultiplePasAsSubdeployment1 extends AbstractFo
     DeploymentQuery deploymentQuery = repositoryService
         .createDeploymentQuery()
         .deploymentId(processDefinition.getDeploymentId());
-    
-    Assert.assertEquals(expectedDeploymentName, deploymentQuery.singleResult().getName());
+
+    assertThat(deploymentQuery.singleResult().getName()).isEqualTo(expectedDeploymentName);
     
   }
 

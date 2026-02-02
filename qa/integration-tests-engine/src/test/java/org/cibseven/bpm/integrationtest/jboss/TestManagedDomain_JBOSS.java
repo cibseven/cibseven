@@ -20,12 +20,17 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
 import org.jboss.arquillian.container.test.api.Deployment;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -44,16 +49,14 @@ public class TestManagedDomain_JBOSS {
   }
 
   @Test
-  public void shouldBeAbleToLookupDefaultProcessEngine() {
-    try {
-    	Assert.assertNotNull(InitialContext.doLookup("java:global/camunda-bpm-platform/process-engine/default"));
-    } catch (NamingException e) {
-      Assert.fail("Could not lookup default process engine");
-    }
+  void shouldBeAbleToLookupDefaultProcessEngine() {
+    Assertions.assertDoesNotThrow(() -> {
+      assertNotNull(InitialContext.doLookup("java:global/camunda-bpm-platform/process-engine/default"));
+    }, "Could not lookup default process engine");
 
     try {
-      Assert.assertNotNull(InitialContext.doLookup("java:global/camunda-bpm-platform/process-engine/someNonExistingEngine"));
-      Assert.fail("Should not be able to lookup someNonExistingEngine process engine");
+      assertThat(InitialContext.doLookup("java:global/camunda-bpm-platform/process-engine/someNonExistingEngine")).isNotNull();
+      fail("Should not be able to lookup someNonExistingEngine process engine");
     } catch (NamingException e) {
       // expected
     }

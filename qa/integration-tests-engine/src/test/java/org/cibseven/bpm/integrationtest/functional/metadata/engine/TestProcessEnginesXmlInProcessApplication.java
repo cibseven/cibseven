@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.metadata.engine;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
@@ -23,8 +25,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -49,10 +50,10 @@ public class TestProcessEnginesXmlInProcessApplication extends AbstractFoxPlatfo
       
       return archive;
   }
-  
+
   @Test
-  public void testDeployProcessArchive() {
-   Assert.assertNotNull(processEngineService.getProcessEngine("engine1"));
+  void deployProcessArchive() {
+    assertThat(processEngineService.getProcessEngine("engine1")).isNotNull();
   }
 
 }

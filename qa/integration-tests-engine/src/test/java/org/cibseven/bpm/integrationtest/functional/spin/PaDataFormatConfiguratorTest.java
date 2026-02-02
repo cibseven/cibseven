@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.spin;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,8 +38,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -75,7 +76,7 @@ public class PaDataFormatConfiguratorTest extends AbstractFoxPlatformIntegration
    * the context of it
    */
   @Test
-  public void testPaLocalFormatApplies() throws JsonProcessingException, IOException {
+  void paLocalFormatApplies() throws JsonProcessingException, IOException {
 
     // given a process instance
     final ProcessInstance pi = runtimeService.startProcessInstanceByKey("testProcess");
@@ -103,7 +104,7 @@ public class PaDataFormatConfiguratorTest extends AbstractFoxPlatformIntegration
     JsonNode actualJsonTree = objectMapper.readTree(serializedValue);
     JsonNode expectedJsonTree = objectMapper.readTree(expectedSerializedValue);
     // JsonNode#equals makes a deep comparison
-    Assert.assertEquals(expectedJsonTree, actualJsonTree);
+    assertThat(actualJsonTree).isEqualTo(expectedJsonTree);
   }
 
   /**
@@ -111,7 +112,7 @@ public class PaDataFormatConfiguratorTest extends AbstractFoxPlatformIntegration
    * of the process application
    */
   @Test
-  public void testPaLocalFormatDoesNotApply() throws JsonProcessingException, IOException {
+  void paLocalFormatDoesNotApply() throws JsonProcessingException, IOException {
 
     // given a process instance
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("testProcess");
@@ -134,7 +135,7 @@ public class PaDataFormatConfiguratorTest extends AbstractFoxPlatformIntegration
     JsonNode actualJsonTree = objectMapper.readTree(serializedValue);
     JsonNode expectedJsonTree = objectMapper.readTree(expectedSerializedValue);
     // JsonNode#equals makes a deep comparison
-    Assert.assertEquals(expectedJsonTree, actualJsonTree);
+    assertThat(actualJsonTree).isEqualTo(expectedJsonTree);
   }
 
   /**
@@ -142,7 +143,7 @@ public class PaDataFormatConfiguratorTest extends AbstractFoxPlatformIntegration
    * process application.
    */
   @Test
-  public void testExecutionVariableImplicitObjectValueUpdate() throws JsonProcessingException, IOException {
+  void executionVariableImplicitObjectValueUpdate() throws JsonProcessingException, IOException {
 
     // given a process instance and a task
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("implicitProcessVariableUpdate");
@@ -177,7 +178,7 @@ public class PaDataFormatConfiguratorTest extends AbstractFoxPlatformIntegration
     JsonNode actualJsonTree = objectMapper.readTree(serializedValue);
     JsonNode expectedJsonTree = objectMapper.readTree(expectedSerializedValue);
     // JsonNode#equals makes a deep comparison
-    Assert.assertEquals(expectedJsonTree, actualJsonTree);
+    assertThat(actualJsonTree).isEqualTo(expectedJsonTree);
 
     // and it is also correct in the history
     HistoricVariableInstance historicObjectValue = historyService
@@ -189,11 +190,11 @@ public class PaDataFormatConfiguratorTest extends AbstractFoxPlatformIntegration
 
     serializedValue = ((ObjectValue) historicObjectValue.getTypedValue()).getValueSerialized();
     actualJsonTree = objectMapper.readTree(serializedValue);
-    Assert.assertEquals(expectedJsonTree, actualJsonTree);
+    assertThat(actualJsonTree).isEqualTo(expectedJsonTree);
   }
 
   @Test
-  public void testTaskVariableImplicitObjectValueUpdate() throws JsonProcessingException, IOException {
+  void taskVariableImplicitObjectValueUpdate() throws JsonProcessingException, IOException {
 
     // given a process instance
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("implicitTaskVariableUpdate");
@@ -227,7 +228,7 @@ public class PaDataFormatConfiguratorTest extends AbstractFoxPlatformIntegration
     JsonNode actualJsonTree = objectMapper.readTree(serializedValue);
     JsonNode expectedJsonTree = objectMapper.readTree(expectedSerializedValue);
     // JsonNode#equals makes a deep comparison
-    Assert.assertEquals(expectedJsonTree, actualJsonTree);
+    assertThat(actualJsonTree).isEqualTo(expectedJsonTree);
 
     // and it is also correct in the history
     HistoricVariableInstance historicObjectValue = historyService
@@ -239,6 +240,6 @@ public class PaDataFormatConfiguratorTest extends AbstractFoxPlatformIntegration
 
     serializedValue = ((ObjectValue) historicObjectValue.getTypedValue()).getValueSerialized();
     actualJsonTree = objectMapper.readTree(serializedValue);
-    Assert.assertEquals(expectedJsonTree, actualJsonTree);
+    assertThat(actualJsonTree).isEqualTo(expectedJsonTree);
   }
 }

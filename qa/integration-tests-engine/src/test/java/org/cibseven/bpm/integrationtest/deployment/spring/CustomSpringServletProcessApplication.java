@@ -16,10 +16,12 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.spring;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.cibseven.bpm.application.PostDeploy;
 import org.cibseven.bpm.application.PreUndeploy;
 import org.cibseven.bpm.engine.spring.application.SpringServletProcessApplication;
-import org.junit.Assert;
 
 /**
  * @author Daniel Meyer
@@ -42,16 +44,16 @@ public class CustomSpringServletProcessApplication extends SpringServletProcessA
 
   @Override
   public void start() {
-    Assert.assertFalse(isPostDeployInvoked);
+    assertThat(isPostDeployInvoked).isFalse();
     super.start();
-    Assert.assertTrue("@PostDeploy Method not invoked", isPostDeployInvoked);
+    assertTrue(isPostDeployInvoked, "@PostDeploy Method not invoked");
   }
 
   @Override
   public void stop() {
-    Assert.assertFalse(isPreUndeployInvoked);
+    assertThat(isPreUndeployInvoked).isFalse();
     super.stop();
-    Assert.assertTrue("@PreUndeploy Method not invoked", isPreUndeployInvoked);
+    assertTrue(isPreUndeployInvoked, "@PreUndeploy Method not invoked");
   }
 
 }

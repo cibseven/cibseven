@@ -20,7 +20,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Map;
+
 import org.cibseven.bpm.engine.impl.jobexecutor.DefaultJobPriorityProvider;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.variable.Variables;
@@ -32,10 +35,9 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.asset.ByteArrayAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -50,8 +52,8 @@ public class JobPrioritizationFailureTest extends AbstractFoxPlatformIntegration
   public static final String VARIABLE_CLASS_NAME = "org.cibseven.bpm.integrationtest.jobexecutor.beans.PriorityBean";
   public static final String PRIORITY_BEAN_INSTANCE_FILE = "priorityBean.instance";
 
-  @Before
-  public void setEngines() {
+  @BeforeEach
+  void setEngines() {
 
     // unregister process application so that context switch cannot be performed
     unregisterProcessApplication();
@@ -77,8 +79,8 @@ public class JobPrioritizationFailureTest extends AbstractFoxPlatformIntegration
        .addAsResource(new ByteArrayAsset(serializeJavaObjectValue(new PriorityBean())), PRIORITY_BEAN_INSTANCE_FILE);
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     if (processInstance != null) {
       runtimeService.deleteProcessInstance(processInstance.getId(), "");
     }
@@ -87,18 +89,18 @@ public class JobPrioritizationFailureTest extends AbstractFoxPlatformIntegration
 
   @Test
   @OperateOnDeployment("dummy-client")
-  public void testGracefulDegradationOnMissingBean() {
+  void gracefulDegradationOnMissingBean() {
     // when
     processInstance = runtimeService.startProcessInstanceByKey("priorityProcess");
 
     // then the job was created successfully and has the default priority on bean evaluation failure
     Job job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(DefaultJobPriorityProvider.DEFAULT_PRIORITY_ON_RESOLUTION_FAILURE, job.getPriority());
+    assertThat(job.getPriority()).isEqualTo(DefaultJobPriorityProvider.DEFAULT_PRIORITY_ON_RESOLUTION_FAILURE);
   }
 
   @Test
   @OperateOnDeployment("dummy-client")
-  public void testGracefulDegradationOnMissingClassSpinJson() {
+  void gracefulDegradationOnMissingClassSpinJson() {
     // given
     Map<String, Object> variables = Variables.createVariables().putValue(
         "priorityBean",
@@ -113,12 +115,12 @@ public class JobPrioritizationFailureTest extends AbstractFoxPlatformIntegration
     // then the job was created successfully and has the default priority although
     // the bean could not be resolved due to a missing class
     Job job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(DefaultJobPriorityProvider.DEFAULT_PRIORITY_ON_RESOLUTION_FAILURE, job.getPriority());
+    assertThat(job.getPriority()).isEqualTo(DefaultJobPriorityProvider.DEFAULT_PRIORITY_ON_RESOLUTION_FAILURE);
   }
 
   @Test
   @OperateOnDeployment("dummy-client")
-  public void testGracefulDegradationOnMissingClassSpinXml() {
+  void gracefulDegradationOnMissingClassSpinXml() {
     // given
     Map<String, Object> variables = Variables.createVariables().putValue(
         "priorityBean",
@@ -133,7 +135,7 @@ public class JobPrioritizationFailureTest extends AbstractFoxPlatformIntegration
     // then the job was created successfully and has the default priority although
     // the bean could not be resolved due to a missing class
     Job job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(DefaultJobPriorityProvider.DEFAULT_PRIORITY_ON_RESOLUTION_FAILURE, job.getPriority());
+    assertThat(job.getPriority()).isEqualTo(DefaultJobPriorityProvider.DEFAULT_PRIORITY_ON_RESOLUTION_FAILURE);
   }
 
   protected static byte[] serializeJavaObjectValue(Serializable object) {

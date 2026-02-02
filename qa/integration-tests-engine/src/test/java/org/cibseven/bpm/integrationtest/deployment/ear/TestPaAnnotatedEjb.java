@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.ear;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.integrationtest.deployment.ear.beans.AnnotatedEjbPa;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
@@ -26,8 +28,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -69,10 +70,10 @@ public class TestPaAnnotatedEjb extends AbstractFoxPlatformIntegrationTest {
   }
 
   @Test
-  public void testPaAnnotatedEjb() {
+  void paAnnotatedEjb() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("process1");
 
-    Assert.assertNotNull(processInstance);
+    assertThat(processInstance).isNotNull();
   }
 
 }
