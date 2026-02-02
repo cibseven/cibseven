@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.qa.upgrade.scenarios11.eventsubprocess;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.assertThat;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.describeActivityInstanceTree;
 
@@ -27,10 +29,9 @@ import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate.ThrowBpmnErrorDelegateException;
-import org.junit.Assert;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 @ScenarioUnderTest("NestedNonInterruptingEventSubprocessScenario")
 @Origin("1.1.0")
@@ -41,7 +42,7 @@ public class NestedNonInterruptingEventSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.1")
-  public void testInitCompletionCase1() {
+  void initCompletionCase1() {
     // given
     Task innerTask = rule.taskQuery().taskDefinitionKey("innerTask").singleResult();
     Task eventSubprocessTask = rule.taskQuery().taskDefinitionKey("eventSubProcessTask").singleResult();
@@ -56,7 +57,7 @@ public class NestedNonInterruptingEventSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.2")
-  public void testInitCompletionCase2() {
+  void initCompletionCase2() {
     // given
     Task innerTask = rule.taskQuery().taskDefinitionKey("innerTask").singleResult();
     Task eventSubprocessTask = rule.taskQuery().taskDefinitionKey("eventSubProcessTask").singleResult();
@@ -70,10 +71,10 @@ public class NestedNonInterruptingEventSubprocessScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("init.3")
-  public void testInitActivityInstanceTree() {
+  void initActivityInstanceTree() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -81,7 +82,7 @@ public class NestedNonInterruptingEventSubprocessScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    assertThat(activityInstance).isNotNull();
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
           .beginScope("subProcess")
@@ -93,7 +94,7 @@ public class NestedNonInterruptingEventSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.4")
-  public void testInitDeletion() {
+  void initDeletion() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -106,7 +107,7 @@ public class NestedNonInterruptingEventSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.5")
-  public void testInitThrowError() {
+  void initThrowError() {
     // given
     ProcessInstance instance = rule.processInstance();
     Task eventSubprocessTask = rule.taskQuery().taskDefinitionKey("eventSubProcessTask").singleResult();
@@ -117,8 +118,8 @@ public class NestedNonInterruptingEventSubprocessScenarioTest {
 
     // then
     Task escalatedTask = rule.taskQuery().singleResult();
-    Assert.assertEquals("escalatedTask", escalatedTask.getTaskDefinitionKey());
-    Assert.assertNotNull(escalatedTask);
+    assertThat(escalatedTask.getTaskDefinitionKey()).isEqualTo("escalatedTask");
+    assertThat(escalatedTask).isNotNull();
 
     rule.getTaskService().complete(escalatedTask.getId());
     rule.assertScenarioEnded();
@@ -126,7 +127,7 @@ public class NestedNonInterruptingEventSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.6")
-  public void testInitThrowUnhandledException() {
+  void initThrowUnhandledException() {
     // given
     ProcessInstance instance = rule.processInstance();
     Task eventSubprocessTask = rule.taskQuery().taskDefinitionKey("eventSubProcessTask").singleResult();
@@ -138,16 +139,16 @@ public class NestedNonInterruptingEventSubprocessScenarioTest {
     // then
     try {
       rule.getTaskService().complete(eventSubprocessTask.getId());
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      assertThat(e.getMessage()).isEqualTo("unhandledException");
     }
   }
 
   @Test
   @ScenarioUnderTest("init.innerTask.1")
-  public void testInitTask1Completion() {
+  void initTask1Completion() {
     // given
     Task eventSubprocessTask = rule.taskQuery().taskDefinitionKey("eventSubProcessTask").singleResult();
 
@@ -159,10 +160,10 @@ public class NestedNonInterruptingEventSubprocessScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("init.innerTask.2")
-  public void testInitTask1ActivityInstanceTree() {
+  void initTask1ActivityInstanceTree() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -170,7 +171,7 @@ public class NestedNonInterruptingEventSubprocessScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    assertThat(activityInstance).isNotNull();
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
           .beginScope("subProcess")
@@ -181,7 +182,7 @@ public class NestedNonInterruptingEventSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.innerTask.3")
-  public void testInitTask1Deletion() {
+  void initTask1Deletion() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -194,7 +195,7 @@ public class NestedNonInterruptingEventSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.innerTask.4")
-  public void testInitTask1ThrowError() {
+  void initTask1ThrowError() {
     // given
     ProcessInstance instance = rule.processInstance();
     Task eventSubprocessTask = rule.taskQuery().singleResult();
@@ -205,8 +206,8 @@ public class NestedNonInterruptingEventSubprocessScenarioTest {
 
     // then
     Task escalatedTask = rule.taskQuery().singleResult();
-    Assert.assertEquals("escalatedTask", escalatedTask.getTaskDefinitionKey());
-    Assert.assertNotNull(escalatedTask);
+    assertThat(escalatedTask.getTaskDefinitionKey()).isEqualTo("escalatedTask");
+    assertThat(escalatedTask).isNotNull();
 
     rule.getTaskService().complete(escalatedTask.getId());
     rule.assertScenarioEnded();
@@ -214,7 +215,7 @@ public class NestedNonInterruptingEventSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.innerTask.5")
-  public void testInitTask1ThrowUnhandledException() {
+  void initTask1ThrowUnhandledException() {
     // given
     ProcessInstance instance = rule.processInstance();
     Task eventSubprocessTask = rule.taskQuery().singleResult();
@@ -226,10 +227,10 @@ public class NestedNonInterruptingEventSubprocessScenarioTest {
     // then
     try {
       rule.getTaskService().complete(eventSubprocessTask.getId());
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      assertThat(e.getMessage()).isEqualTo("unhandledException");
     }
   }
 

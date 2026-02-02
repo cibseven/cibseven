@@ -31,3 +31,4 @@ qa_engine_build.log
 qa_webapps_build.log
 rewrite_qa_large_data.log
 rewrite_qa_perf.log
+rewrite_qa_db_inst_mig.log

@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.qa.upgrade.scenarios11.boundary;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.assertThat;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.describeActivityInstanceTree;
 
@@ -30,10 +32,9 @@ import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate.ThrowBpmnErrorDelegateException;
-import org.junit.Assert;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 @ScenarioUnderTest("NestedNonInterruptingBoundaryEventOnOuterSubprocessScenario")
 @Origin("1.1.0")
@@ -44,7 +45,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("initTimer.1")
-  public void testInitTimerCompletionCase1() {
+  void initTimerCompletionCase1() {
     // given
     Task afterBoundaryTask = rule.taskQuery().taskDefinitionKey("afterBoundaryTask").singleResult();
 
@@ -58,7 +59,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("initTimer.2")
-  public void testInitTimerCompletionCase2() {
+  void initTimerCompletionCase2() {
     // given
     Task afterBoundaryTask = rule.taskQuery().taskDefinitionKey("afterBoundaryTask").singleResult();
 
@@ -72,7 +73,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("initTimer.3")
-  public void testInitTimerActivityInstanceTree() {
+  void initTimerActivityInstanceTree() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -80,7 +81,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    assertThat(activityInstance).isNotNull();
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
         .activity("afterBoundaryTask")
@@ -92,7 +93,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("initTimer.4")
-  public void testInitTimerDeletion() {
+  void initTimerDeletion() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -105,7 +106,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("initTimer.5")
-  public void testInitTimerTriggerBoundary() {
+  void initTimerTriggerBoundary() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -118,7 +119,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
     // and the tasks are completed
     List<Task> afterBoundaryTasks = rule.taskQuery().list();
-    Assert.assertEquals(3, afterBoundaryTasks.size());
+    assertThat(afterBoundaryTasks).hasSize(3);
 
     for (Task afterBoundaryTask : afterBoundaryTasks) {
       rule.getTaskService().complete(afterBoundaryTask.getId());
@@ -131,10 +132,10 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
   }
 
   // TODO: fix the test for CIB seven migration and enable it 
-  @Ignore("Error with CIB seven engine: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("Error with CIB seven engine: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("initTimer.6")
-  public void testInitTimerThrowError() {
+  void initTimerThrowError() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -144,10 +145,10 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
     // then
     // there is only one task since the task after the message boundary event has been cancelled due to bug CAM-3727 in 7.2.0
-	Assert.assertEquals(1, rule.taskQuery().count());
+  assertThat(rule.taskQuery().count()).isEqualTo(1);
 
     Task afterErrorTask = rule.taskQuery().taskDefinitionKey("escalatedTask").singleResult();
-    Assert.assertNotNull(afterErrorTask);
+    assertThat(afterErrorTask).isNotNull();
 
     // and
     rule.getTaskService().complete(afterErrorTask.getId());
@@ -156,7 +157,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("initTimer.7")
-  public void testInitTimerThrowUnhandledException() {
+  void initTimerThrowUnhandledException() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -167,16 +168,16 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
     // then
     try {
       rule.messageCorrelation("ReceiveTaskMessage").correlate();
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      assertThat(e.getMessage()).isEqualTo("unhandledException");
     }
   }
 
   @Test
   @ScenarioUnderTest("initMessage.1")
-  public void testInitMessageCompletionCase1() {
+  void initMessageCompletionCase1() {
     // given
     Task afterBoundaryTask = rule.taskQuery().taskDefinitionKey("afterBoundaryTask").singleResult();
 
@@ -190,7 +191,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("initMessage.2")
-  public void testInitMessageCompletionCase2() {
+  void initMessageCompletionCase2() {
     // given
     Task afterBoundaryTask = rule.taskQuery().taskDefinitionKey("afterBoundaryTask").singleResult();
 
@@ -204,7 +205,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("initMessage.3")
-  public void testInitMessageActivityInstanceTree() {
+  void initMessageActivityInstanceTree() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -212,7 +213,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    assertThat(activityInstance).isNotNull();
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
         .activity("afterBoundaryTask")
@@ -224,7 +225,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("initMessage.4")
-  public void testInitMessageDeletion() {
+  void initMessageDeletion() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -237,7 +238,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("initMessage.5")
-  public void testInitMessageTriggerBoundary() {
+  void initMessageTriggerBoundary() {
     // when the boundary event is triggered another 2 times
     for (int i = 0; i < 2; i++) {
       rule.messageCorrelation("BoundaryEventMessage").correlate();
@@ -245,7 +246,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
     // and the tasks are completed
     List<Task> afterBoundaryTasks = rule.taskQuery().list();
-    Assert.assertEquals(3, afterBoundaryTasks.size());
+    assertThat(afterBoundaryTasks).hasSize(3);
 
     for (Task afterBoundaryTask : afterBoundaryTasks) {
       rule.getTaskService().complete(afterBoundaryTask.getId());
@@ -258,10 +259,10 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
   }
 
   // TODO: fix the test for CIB seven migration and enable it 
-  @Ignore("Error with CIB seven engine: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("Error with CIB seven engine: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("initMessage.6")
-  public void testInitMessageThrowError() {
+  void initMessageThrowError() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -271,10 +272,10 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
     // then
     // there is only one task since the task after the message boundary event has been cancelled due to bug CAM-3727 in 7.2.0
-    Assert.assertEquals(1, rule.taskQuery().count());
+    assertThat(rule.taskQuery().count()).isEqualTo(1);
 
     Task afterErrorTask = rule.taskQuery().taskDefinitionKey("escalatedTask").singleResult();
-    Assert.assertNotNull(afterErrorTask);
+    assertThat(afterErrorTask).isNotNull();
 
     // and
     rule.getTaskService().complete(afterErrorTask.getId());
@@ -283,7 +284,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("initMessage.7")
-  public void testInitMessageThrowUnhandledException() {
+  void initMessageThrowUnhandledException() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -294,10 +295,10 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
     // then
     try {
       rule.messageCorrelation("ReceiveTaskMessage").correlate();
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      assertThat(e.getMessage()).isEqualTo("unhandledException");
     }
   }
 

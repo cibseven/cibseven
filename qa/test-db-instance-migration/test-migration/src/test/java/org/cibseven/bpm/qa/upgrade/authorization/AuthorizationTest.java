@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.qa.upgrade.authorization;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 
@@ -29,11 +29,11 @@ import org.cibseven.bpm.engine.authorization.Resources;
 import org.cibseven.bpm.engine.impl.db.sql.DbSqlSessionFactory;
 import org.cibseven.bpm.engine.impl.test.RequiredDatabase;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 public class AuthorizationTest {
 
@@ -48,40 +48,40 @@ public class AuthorizationTest {
   @Rule
   public ProcessEngineRule rule = new ProcessEngineRule();
 
-  @Before
-  public void init() {
+  @BeforeEach
+  void init() {
     authorizationService = rule.getAuthorizationService();
     identityService = rule.getIdentityService();
     processEngineConfiguration = rule.getProcessEngineConfiguration();
     defaultAuthorizationEnabled = processEngineConfiguration.isAuthorizationEnabled();
   }
 
-  @After
-  public void restoreAuthorization() {
+  @AfterEach
+  void restoreAuthorization() {
     processEngineConfiguration.setAuthorizationEnabled(defaultAuthorizationEnabled);
   }
 
   // TODO: fix and enable for CIB seven migration test
-  @Ignore
+  @Disabled
   @Test
-  public void testDefaultAuthorizationQueryForCamundaAdminOnUpgrade() {
+  void defaultAuthorizationQueryForCamundaAdminOnUpgrade() {
 
     processEngineConfiguration.setAuthorizationEnabled(true);
 
-    assertEquals(1, authorizationService.createAuthorizationQuery()
+    assertThat(authorizationService.createAuthorizationQuery()
       .resourceType(Resources.TENANT)
       .groupIdIn(Groups.CAMUNDA_ADMIN)
-      .hasPermission(Permissions.ALL).count());
+      .hasPermission(Permissions.ALL).count()).isEqualTo(1);
 
-    assertEquals(1, authorizationService.createAuthorizationQuery()
+    assertThat(authorizationService.createAuthorizationQuery()
       .resourceType(Resources.TENANT_MEMBERSHIP)
       .groupIdIn(Groups.CAMUNDA_ADMIN)
-      .hasPermission(Permissions.ALL).count());
+      .hasPermission(Permissions.ALL).count()).isEqualTo(1);
 
-    assertEquals(1, authorizationService.createAuthorizationQuery()
+    assertThat(authorizationService.createAuthorizationQuery()
       .resourceType(Resources.BATCH)
       .groupIdIn(Groups.CAMUNDA_ADMIN)
-      .hasPermission(Permissions.ALL).count());
+      .hasPermission(Permissions.ALL).count()).isEqualTo(1);
 
   }
 
@@ -90,11 +90,11 @@ public class AuthorizationTest {
   // Update: Upgrading to 1.4.190 did not help, still failing
   @Test
   @RequiredDatabase(excludes = DbSqlSessionFactory.H2)
-  public void testDefaultAuthorizationForCamundaAdminOnUpgrade() {
+  void defaultAuthorizationForCamundaAdminOnUpgrade() {
 
     processEngineConfiguration.setAuthorizationEnabled(true);
-    assertEquals(true,authorizationService.isUserAuthorized(null, Collections.singletonList(Groups.CAMUNDA_ADMIN), Permissions.ALL, Resources.TENANT));
-    assertEquals(true,authorizationService.isUserAuthorized(null, Collections.singletonList(Groups.CAMUNDA_ADMIN), Permissions.ALL, Resources.TENANT_MEMBERSHIP));
-    assertEquals(true,authorizationService.isUserAuthorized(null, Collections.singletonList(Groups.CAMUNDA_ADMIN), Permissions.ALL, Resources.BATCH));
+    assertThat(authorizationService.isUserAuthorized(null, Collections.singletonList(Groups.CAMUNDA_ADMIN), Permissions.ALL, Resources.TENANT)).isTrue();
+    assertThat(authorizationService.isUserAuthorized(null, Collections.singletonList(Groups.CAMUNDA_ADMIN), Permissions.ALL, Resources.TENANT_MEMBERSHIP)).isTrue();
+    assertThat(authorizationService.isUserAuthorized(null, Collections.singletonList(Groups.CAMUNDA_ADMIN), Permissions.ALL, Resources.BATCH)).isTrue();
   }
 }

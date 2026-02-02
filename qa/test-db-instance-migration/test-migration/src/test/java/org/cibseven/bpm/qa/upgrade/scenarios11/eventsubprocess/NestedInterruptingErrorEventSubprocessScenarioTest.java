@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.qa.upgrade.scenarios11.eventsubprocess;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.assertThat;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.describeActivityInstanceTree;
 
@@ -27,10 +29,9 @@ import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate.ThrowBpmnErrorDelegateException;
-import org.junit.Assert;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -44,10 +45,10 @@ public class NestedInterruptingErrorEventSubprocessScenarioTest {
   public UpgradeTestRule rule = new UpgradeTestRule();
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("init.1")
-  public void testInitActivityInstanceTree() {
+  void initActivityInstanceTree() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -55,7 +56,7 @@ public class NestedInterruptingErrorEventSubprocessScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    assertThat(activityInstance).isNotNull();
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
           .beginScope("subProcess")
@@ -67,7 +68,7 @@ public class NestedInterruptingErrorEventSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.2")
-  public void testInitDeletion() {
+  void initDeletion() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -80,7 +81,7 @@ public class NestedInterruptingErrorEventSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.3")
-  public void testInitThrowError() {
+  void initThrowError() {
     // given
     ProcessInstance instance = rule.processInstance();
     Task innerEventSubProcessTask = rule.taskQuery().taskDefinitionKey("innerEventSubProcessTask").singleResult();
@@ -91,8 +92,8 @@ public class NestedInterruptingErrorEventSubprocessScenarioTest {
 
     // then
     Task outerEventSubProcessTask = rule.taskQuery().singleResult();
-    Assert.assertNotNull(outerEventSubProcessTask);
-    Assert.assertEquals("outerEventSubProcessTask", outerEventSubProcessTask.getTaskDefinitionKey());
+    assertThat(outerEventSubProcessTask).isNotNull();
+    assertThat(outerEventSubProcessTask.getTaskDefinitionKey()).isEqualTo("outerEventSubProcessTask");
 
     // and
     rule.getTaskService().complete(outerEventSubProcessTask.getId());
@@ -102,7 +103,7 @@ public class NestedInterruptingErrorEventSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.4")
-  public void testInitThrowErrorActivityInstanceTree() {
+  void initThrowErrorActivityInstanceTree() {
     // given
     ProcessInstance instance = rule.processInstance();
     Task innerEventSubProcessTask = rule.taskQuery().taskDefinitionKey("innerEventSubProcessTask").singleResult();
@@ -113,7 +114,7 @@ public class NestedInterruptingErrorEventSubprocessScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    assertThat(activityInstance).isNotNull();
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
         // eventSubProcess was previously no scope so it misses here
@@ -125,7 +126,7 @@ public class NestedInterruptingErrorEventSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.5")
-  public void testInitThrowUnhandledException() {
+  void initThrowUnhandledException() {
     // given
     ProcessInstance instance = rule.processInstance();
     Task innerEventSubProcessTask = rule.taskQuery().taskDefinitionKey("innerEventSubProcessTask").singleResult();
@@ -137,10 +138,10 @@ public class NestedInterruptingErrorEventSubprocessScenarioTest {
     // then
     try {
       rule.getTaskService().complete(innerEventSubProcessTask.getId());
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      assertThat(e.getMessage()).isEqualTo("unhandledException");
     }
   }
 }

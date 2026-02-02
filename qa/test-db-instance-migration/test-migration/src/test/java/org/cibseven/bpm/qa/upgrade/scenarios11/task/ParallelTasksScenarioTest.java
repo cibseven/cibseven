@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.qa.upgrade.scenarios11.task;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.assertThat;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.describeActivityInstanceTree;
 
@@ -24,9 +25,8 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
-import org.junit.Assert;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -41,7 +41,7 @@ public class ParallelTasksScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.plain.1")
-  public void testInitPlainActivityInstance() {
+  void initPlainActivityInstance() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -49,7 +49,7 @@ public class ParallelTasksScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    assertThat(activityInstance).isNotNull();
     assertThat(activityInstance).hasStructure(
       describeActivityInstanceTree(instance.getProcessDefinitionId())
         .activity("task1")
@@ -59,7 +59,7 @@ public class ParallelTasksScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.nested.1")
-  public void testInitNestedActivityInstance() {
+  void initNestedActivityInstance() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -67,7 +67,7 @@ public class ParallelTasksScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    assertThat(activityInstance).isNotNull();
     assertThat(activityInstance).hasStructure(
       describeActivityInstanceTree(instance.getProcessDefinitionId())
         .beginScope("subProcess")

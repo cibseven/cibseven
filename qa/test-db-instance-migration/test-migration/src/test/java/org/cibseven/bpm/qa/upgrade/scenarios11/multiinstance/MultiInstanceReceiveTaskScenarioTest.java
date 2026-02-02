@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.qa.upgrade.scenarios11.multiinstance;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.assertThat;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.describeActivityInstanceTree;
 
@@ -25,11 +26,9 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
-import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 @ScenarioUnderTest("MultiInstanceReceiveTaskScenario")
 @Origin("1.1.0")
@@ -40,7 +39,7 @@ public class MultiInstanceReceiveTaskScenarioTest {
 
   @Test
   @ScenarioUnderTest("initParallel.1")
-  public void testInitParallelCompletion() {
+  void initParallelCompletion() {
     // when the receive task messages are correlated
     rule.messageCorrelation("Message").correlateAll();
 
@@ -49,10 +48,10 @@ public class MultiInstanceReceiveTaskScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("initParallel.2")
-  public void testInitParallelActivityInstanceTree() {
+  void initParallelActivityInstanceTree() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -60,7 +59,7 @@ public class MultiInstanceReceiveTaskScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    assertThat(activityInstance).isNotNull();
     assertThat(activityInstance).hasStructure(
       describeActivityInstanceTree(instance.getProcessDefinitionId())
         // no mi body due to missing execution
@@ -72,7 +71,7 @@ public class MultiInstanceReceiveTaskScenarioTest {
 
   @Test
   @ScenarioUnderTest("initParallel.3")
-  public void testInitParallelDeletion() {
+  void initParallelDeletion() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -84,9 +83,9 @@ public class MultiInstanceReceiveTaskScenarioTest {
   }
 
   @Test
-  @Ignore("CAM-6408")
+  @Disabled("CAM-6408")
   @ScenarioUnderTest("initParallel.4")
-  public void testInitParallelMigration() {
+  void initParallelMigration() {
     // given
     ProcessInstance instance = rule.processInstance();
     MigrationPlan migrationPlan = rule.getRuntimeService()
@@ -106,7 +105,7 @@ public class MultiInstanceReceiveTaskScenarioTest {
 
   @Test
   @ScenarioUnderTest("initSequential.1")
-  public void testInitSequentialCompletion() {
+  void initSequentialCompletion() {
     // when the receive task messages are correlated
     for (int i = 0; i < 3; i++) {
       rule.messageCorrelation("Message").correlate();
@@ -117,10 +116,10 @@ public class MultiInstanceReceiveTaskScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("initSequential.2")
-  public void testInitSequentialActivityInstanceTree() {
+  void initSequentialActivityInstanceTree() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -128,7 +127,7 @@ public class MultiInstanceReceiveTaskScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    assertThat(activityInstance).isNotNull();
     assertThat(activityInstance).hasStructure(
       describeActivityInstanceTree(instance.getProcessDefinitionId())
         .activity("miReceiveTask")
@@ -137,7 +136,7 @@ public class MultiInstanceReceiveTaskScenarioTest {
 
   @Test
   @ScenarioUnderTest("initSequential.3")
-  public void testInitSequentialDeletion() {
+  void initSequentialDeletion() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -149,9 +148,9 @@ public class MultiInstanceReceiveTaskScenarioTest {
   }
 
   @Test
-  @Ignore("CAM-6408")
+  @Disabled("CAM-6408")
   @ScenarioUnderTest("initSequential.4")
-  public void testInitSequentialMigration() {
+  void initSequentialMigration() {
     // given
     ProcessInstance instance = rule.processInstance();
     MigrationPlan migrationPlan = rule.getRuntimeService()

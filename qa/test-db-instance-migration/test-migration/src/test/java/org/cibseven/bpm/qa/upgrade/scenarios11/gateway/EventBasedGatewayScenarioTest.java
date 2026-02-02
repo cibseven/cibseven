@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.qa.upgrade.scenarios11.gateway;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.assertThat;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.describeActivityInstanceTree;
 
@@ -26,9 +27,8 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
-import org.junit.Assert;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -43,7 +43,7 @@ public class EventBasedGatewayScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.1")
-  public void testInitActivityInstance() {
+  void initActivityInstance() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -51,7 +51,7 @@ public class EventBasedGatewayScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    assertThat(activityInstance).isNotNull();
     assertThat(activityInstance).hasStructure(
       describeActivityInstanceTree(instance.getProcessDefinitionId())
         .activity("gateway")
@@ -60,7 +60,7 @@ public class EventBasedGatewayScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.2")
-  public void testInitComplete() {
+  void initComplete() {
     // given
     Job timerJob1 = rule.jobQuery().activityId("timerEvent1").singleResult();
 
@@ -69,8 +69,8 @@ public class EventBasedGatewayScenarioTest {
 
     // then the follow-up task is reached and can be completed
     Task task1 = rule.taskQuery().singleResult();
-    Assert.assertNotNull(task1);
-    Assert.assertEquals("task1", task1.getTaskDefinitionKey());
+    assertThat(task1).isNotNull();
+    assertThat(task1.getTaskDefinitionKey()).isEqualTo("task1");
 
     rule.getTaskService().complete(task1.getId());
 
@@ -79,7 +79,7 @@ public class EventBasedGatewayScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.3")
-  public void testInitDelete() {
+  void initDelete() {
     // given
     ProcessInstance instance = rule.processInstance();
 
