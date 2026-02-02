@@ -65,6 +65,14 @@
       <artifactId>logback-classic</artifactId>
     </dependency>
 
+    <!-- JUnit 4 is provided for performance test utilities in main sources -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${version.junit}</version>
+      <scope>provided</scope>
+    </dependency>
+
   </dependencies>
 
   <profiles>
