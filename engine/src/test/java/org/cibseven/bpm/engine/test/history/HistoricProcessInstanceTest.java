@@ -1790,16 +1790,16 @@ public class HistoricProcessInstanceTest {
 
     // then
     HistoricProcessInstanceQuery query = historyService.createHistoricProcessInstanceQuery().activityIdIn("start");
-    assertThat(query.singleResult()).extracting("id").asList().containsExactly(instanceBeforeStart);
+    assertThat(query.singleResult()).extracting("id").isEqualTo(instanceBeforeStart);
 
     query = historyService.createHistoricProcessInstanceQuery().activityIdIn("subProcess");
-    assertThat(query.singleResult()).extracting("id").asList().containsExactly(instanceBeforeSubProcess);
+    assertThat(query.singleResult()).extracting("id").isEqualTo(instanceBeforeSubProcess);
 
     query = historyService.createHistoricProcessInstanceQuery().activityIdIn("task");
-    assertThat(query.singleResult()).extracting("id").asList().containsExactly(instanceBeforeTask);
+    assertThat(query.singleResult()).extracting("id").isEqualTo(instanceBeforeTask);
 
     query = historyService.createHistoricProcessInstanceQuery().activityIdIn("end");
-    assertThat(query.singleResult()).extracting("id").asList().containsExactly(instanceBeforeEnd);
+    assertThat(query.singleResult()).extracting("id").isEqualTo(instanceBeforeEnd);
   }
 
   @Test
@@ -1835,16 +1835,16 @@ public class HistoricProcessInstanceTest {
 
     // then
     HistoricProcessInstanceQuery query = historyService.createHistoricProcessInstanceQuery().activityIdIn("start");
-    assertThat(query.singleResult()).extracting("id").asList().containsExactly(instanceAfterStart);
+    assertThat(query.singleResult()).extracting("id").isEqualTo(instanceAfterStart);
 
     query = historyService.createHistoricProcessInstanceQuery().activityIdIn("task");
-    assertThat(query.singleResult()).extracting("id").asList().containsExactly(instanceAfterTask);
+    assertThat(query.singleResult()).extracting("id").isEqualTo(instanceAfterTask);
 
     query = historyService.createHistoricProcessInstanceQuery().activityIdIn("subProcess");
-    assertThat(query.singleResult()).extracting("id").asList().containsExactly(instanceAfterSubProcess);
+    assertThat(query.singleResult()).extracting("id").isEqualTo(instanceAfterSubProcess);
 
     query = historyService.createHistoricProcessInstanceQuery().activityIdIn("end");
-    assertThat(query.singleResult()).extracting("id").asList().containsExactly(instanceAfterEnd);
+    assertThat(query.singleResult()).extracting("id").isEqualTo(instanceAfterEnd);
   }
 
   @Test
@@ -1875,13 +1875,13 @@ public class HistoricProcessInstanceTest {
 
     // then
     HistoricProcessInstanceQuery query = historyService.createHistoricProcessInstanceQuery().activityIdIn("subProcess");
-    assertThat(query.singleResult()).extracting("id").asList().containsExactly(processInstance.getId());
+    assertThat(query.singleResult()).extracting("id").isEqualTo(processInstance.getId());
 
     query = historyService.createHistoricProcessInstanceQuery().activityIdIn("compensationEvent");
-    assertThat(query.singleResult()).extracting("id").asList().containsExactly(processInstance.getId());
+    assertThat(query.singleResult()).extracting("id").isEqualTo(processInstance.getId());
 
     query = historyService.createHistoricProcessInstanceQuery().activityIdIn("compensationHandler");
-    assertThat(query.singleResult()).extracting("id").asList().containsExactly(processInstance.getId());
+    assertThat(query.singleResult()).extracting("id").isEqualTo(processInstance.getId());
   }
 
   @Test
