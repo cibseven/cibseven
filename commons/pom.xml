@@ -39,6 +39,18 @@
       </dependency>
 
       <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>${version.junit-jupiter}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.junit.vintage</groupId>
+        <artifactId>junit-vintage-engine</artifactId>
+        <version>${version.junit-jupiter}</version>
+      </dependency>
+
+      <dependency>
         <groupId>org.assertj</groupId>
         <artifactId>assertj-core</artifactId>
         <version>${version.assertj}</version>
