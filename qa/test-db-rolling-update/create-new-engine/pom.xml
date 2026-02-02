@@ -28,6 +28,12 @@
       <groupId>org.cibseven.bpm.qa.upgrade</groupId>
       <artifactId>cibseven-qa-db-rolling-update-util</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 

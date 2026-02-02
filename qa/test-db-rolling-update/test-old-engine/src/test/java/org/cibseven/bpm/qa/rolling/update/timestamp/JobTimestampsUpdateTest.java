@@ -20,26 +20,24 @@ import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.Test;
-
+import org.junit.jupiter.api.Test;
 import java.util.Date;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Nikola Koevski
  */
 @ScenarioUnderTest("JobTimestampsUpdateScenario")
 @Origin("7.11.0")
-public class JobTimestampsUpdateTest extends AbstractTimestampUpdateTest {
+class JobTimestampsUpdateTest extends AbstractTimestampUpdateTest {
 
   protected static final long LOCK_DURATION = 300000L;
   protected static final Date LOCK_EXP_TIME = new Date(TIME + LOCK_DURATION);
 
   @ScenarioUnderTest("initJobTimestamps.1")
   @Test
-  public void testDueDateConversion() {
+  void dueDateConversion() {
 
     Job job = rule.jobQuery().singleResult();
 
@@ -47,12 +45,12 @@ public class JobTimestampsUpdateTest extends AbstractTimestampUpdateTest {
     assertNotNull(job);
 
     // then
-    assertThat(job.getDuedate(), is(TIMESTAMP));
+    assertThat(job.getDuedate()).isEqualTo(TIMESTAMP);
   }
 
   @ScenarioUnderTest("initJobTimestamps.1")
   @Test
-  public void testLockExpirationTimeConversion() {
+  void lockExpirationTimeConversion() {
 
     JobEntity job = (JobEntity) rule.jobQuery().singleResult();
 
@@ -60,6 +58,6 @@ public class JobTimestampsUpdateTest extends AbstractTimestampUpdateTest {
     assertNotNull(job);
 
     // then
-    assertThat(job.getLockExpirationTime(), is(LOCK_EXP_TIME));
+    assertThat(job.getLockExpirationTime()).isEqualTo(LOCK_EXP_TIME);
   }
 }

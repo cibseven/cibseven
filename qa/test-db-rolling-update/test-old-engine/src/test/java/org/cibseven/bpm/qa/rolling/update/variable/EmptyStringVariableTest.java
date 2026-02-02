@@ -16,14 +16,13 @@
  */
 package org.cibseven.bpm.qa.rolling.update.variable;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstanceQuery;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * This test ensures that the old engine can read an empty String variable created by the new engine.
@@ -32,40 +31,40 @@ import org.junit.Test;
  *
  */
 @ScenarioUnderTest("EmptyStringVariableScenario")
-public class EmptyStringVariableTest extends AbstractRollingUpdateTestCase {
+class EmptyStringVariableTest extends AbstractRollingUpdateTestCase {
 
   @Test
   @ScenarioUnderTest("init.1")
-  public void shouldFindEmptyStringVariableWithValue() {
+  void shouldFindEmptyStringVariableWithValue() {
     //given
     VariableInstance variableInstance = rule.getRuntimeService().createVariableInstanceQuery()
         .variableName("myStringVar")
         .singleResult();
 
     // then
-    assertThat(variableInstance.getValue(), is(""));
+    assertThat(variableInstance.getValue()).isEqualTo("");
   }
 
   @Test
   @ScenarioUnderTest("init.1")
-  public void shouldQueryEmptyStringVariableWithValueEquals() {
+  void shouldQueryEmptyStringVariableWithValueEquals() {
     //given
     VariableInstanceQuery variableInstanceQuery = rule.getRuntimeService().createVariableInstanceQuery()
         .variableValueEquals("myStringVar", "");
 
     // then
-    assertThat(variableInstanceQuery.count(), is(1L));
+    assertThat(variableInstanceQuery.count()).isEqualTo(1L);
   }
 
   @Test
   @ScenarioUnderTest("init.1")
-  public void shouldQueryEmptyStringVariableWithValueNotEquals() {
+  void shouldQueryEmptyStringVariableWithValueNotEquals() {
     //given
     VariableInstanceQuery variableInstanceQuery = rule.getRuntimeService().createVariableInstanceQuery()
         .variableValueNotEquals("myStringVar", "");
 
     // then
-    assertThat(variableInstanceQuery.count(), is(0L));
+    assertThat(variableInstanceQuery.count()).isEqualTo(0L);
   }
 
 }

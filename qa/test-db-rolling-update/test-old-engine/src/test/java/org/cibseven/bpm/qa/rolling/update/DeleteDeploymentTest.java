@@ -18,7 +18,7 @@ package org.cibseven.bpm.qa.rolling.update;
 
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * This test ensures that the old engine can delete an
@@ -27,11 +27,11 @@ import org.junit.Test;
  * @author Christopher Zell <christopher.zell@camunda.com>
  */
 @ScenarioUnderTest("DeploymentWhichShouldBeDeletedScenario")
-public class DeleteDeploymentTest extends AbstractRollingUpdateTestCase {
+class DeleteDeploymentTest extends AbstractRollingUpdateTestCase {
 
   @Test
   @ScenarioUnderTest("init.1")
-  public void testCompleteProcessWithUserTask() {
+  void completeProcessWithUserTask() {
     //given deployed process with process instance
     String processDefinitionId = rule.processInstance().getProcessDefinitionId();
     ProcessDefinition procDef = rule.getRepositoryService()

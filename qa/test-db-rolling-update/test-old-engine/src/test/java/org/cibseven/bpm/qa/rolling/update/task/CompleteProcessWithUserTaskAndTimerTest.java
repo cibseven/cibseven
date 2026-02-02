@@ -21,8 +21,9 @@ import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 /**
@@ -32,29 +33,29 @@ import org.junit.Test;
  * @author Christopher Zell <christopher.zell@camunda.com>
  */
 @ScenarioUnderTest("ProcessWithUserTaskAndTimerScenario")
-public class CompleteProcessWithUserTaskAndTimerTest extends AbstractRollingUpdateTestCase {
+class CompleteProcessWithUserTaskAndTimerTest extends AbstractRollingUpdateTestCase {
 
   @Test
   @ScenarioUnderTest("init.1")
-  public void testCompleteProcessWithUserTaskAndTimer() throws InterruptedException {
+  void completeProcessWithUserTaskAndTimer() throws InterruptedException {
     //given a process instance with user task and timer boundary event
     Job job = rule.jobQuery().singleResult();
-    Assert.assertNotNull(job);
+    assertThat(job).isNotNull();
     //job is not available since timer is set to 2 mintues in the future
-    Assert.assertFalse(!job.isSuspended()
-            && job.getRetries() > 0
-            && (job.getDuedate() == null
-                || ClockUtil.getCurrentTime().after(job.getDuedate())));
+    assertThat(!job.isSuspended()
+        && job.getRetries() > 0
+        && (job.getDuedate() == null
+        || ClockUtil.getCurrentTime().after(job.getDuedate()))).isFalse();
 
     //when time is incremented by five minutes
     ClockUtil.setCurrentTime(new Date(ClockUtil.getCurrentTime().getTime() + 60 * 1000 * 5));
 
     //then job is available and timer should executed and process instance ends
     job = rule.jobQuery().singleResult();
-    Assert.assertTrue(!job.isSuspended()
-            && job.getRetries() > 0
-            && (job.getDuedate() == null
-                || ClockUtil.getCurrentTime().after(job.getDuedate())));
+    assertThat(!job.isSuspended()
+        && job.getRetries() > 0
+        && (job.getDuedate() == null
+        || ClockUtil.getCurrentTime().after(job.getDuedate()))).isTrue();
     rule.getManagementService().executeJob(job.getId());
     rule.assertScenarioEnded();
   }
