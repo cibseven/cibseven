@@ -84,6 +84,14 @@
       <artifactId>selenium-java</artifactId>
       <scope>provided</scope>
     </dependency>
+
+    <!-- JUnit 4 is provided for test classes in main sources -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${version.junit}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <description>
