@@ -46,6 +46,14 @@
       <version>${version.junit-jupiter}</version>
       <scope>test</scope>
     </dependency>
+
+    <!-- JUnit 4 is provided for UpgradeTestRule in main sources -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${version.junit}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <description>
