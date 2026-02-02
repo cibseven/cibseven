@@ -32,10 +32,10 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.qa.largedata.util.BatchModificationJobHelper;
 import org.cibseven.bpm.qa.largedata.util.EngineDataGenerator;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.RuleChain;
 
 public class SetJobRetriesAsyncTest {
@@ -54,8 +54,8 @@ public class SetJobRetriesAsyncTest {
   protected RuntimeService runtimeService;
   protected ManagementService managementService;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     runtimeService = engineRule.getRuntimeService();
     managementService = engineRule.getManagementService();
 
@@ -65,14 +65,14 @@ public class SetJobRetriesAsyncTest {
     generator.generateAsyncTaskProcessInstanceData();
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     helper.removeAllRunningAndHistoricBatches();
   }
 
   /* See https://jira.camunda.com/browse/CAM-12852 for more details */
   @Test
-  public void shouldModifyJobRetriesAsync() {
+  void shouldModifyJobRetriesAsync() {
     // given
     List<ProcessInstance> processInstances = runtimeService.createProcessInstanceQuery()
         .processDefinitionKey(generator.getAsyncTaskProcessKey())

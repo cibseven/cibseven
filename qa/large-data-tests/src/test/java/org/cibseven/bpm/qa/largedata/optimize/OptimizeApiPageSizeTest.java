@@ -16,25 +16,20 @@
  */
 package org.cibseven.bpm.qa.largedata.optimize;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import org.cibseven.bpm.engine.impl.OptimizeService;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.qa.largedata.util.EngineDataGenerator;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.List;
 import java.util.function.Function;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(JUnitParamsRunner.class)
 public class OptimizeApiPageSizeTest {
 
   private static OptimizeService optimizeService;
@@ -43,8 +38,8 @@ public class OptimizeApiPageSizeTest {
   @ClassRule
   public static ProcessEngineRule processEngineRule = new ProcessEngineRule("camunda.cfg.xml");
 
-  @BeforeClass
-  public static void init() {
+  @BeforeAll
+  static void init() {
     optimizeService = processEngineRule.getProcessEngineConfiguration().getOptimizeService();
 
     // given the generated engine data
@@ -53,58 +48,58 @@ public class OptimizeApiPageSizeTest {
     generator.generateData();
   }
 
-  @Test
-  @Parameters(method = "optimizeServiceFunctions")
-  public void databaseCanCopeWithPageSize(TestScenario scenario) {
+  @ParameterizedTest
+  @MethodSource("optimizeServiceFunctions")
+  void databaseCanCopeWithPageSize(TestScenario scenario) {
     // when
     final List<?> pageOfEntries = scenario.getOptimizeServiceFunction().apply(OPTIMIZE_PAGE_SIZE);
 
     // then
-    assertThat(pageOfEntries.size(), is(OPTIMIZE_PAGE_SIZE));
+    assertThat(pageOfEntries).hasSize(OPTIMIZE_PAGE_SIZE);
   }
 
-  private Object[] optimizeServiceFunctions() {
+  private static Object[] optimizeServiceFunctions() {
     return new TestScenario[]{
-      new TestScenario(
-        (pageSize) -> optimizeService.getRunningHistoricActivityInstances(null, null, pageSize),
-        "running historic activity instances"
-      ),
-      new TestScenario(
-        (pageSize) -> optimizeService.getCompletedHistoricActivityInstances(null, null, pageSize),
-        "completed historic activity instances"
-      ),
-      new TestScenario(
-        (pageSize) -> optimizeService.getRunningHistoricProcessInstances(null, null, pageSize),
-        "running historic process instances"
-      ),
-      new TestScenario(
-        (pageSize) -> optimizeService.getCompletedHistoricProcessInstances(null, null, pageSize),
-        "completed historic process instances"
-      ),
-      new TestScenario(
-        (pageSize) -> optimizeService.getRunningHistoricTaskInstances(null, null, pageSize),
-        "running historic task instances"
-      ),
-      new TestScenario(
-        (pageSize) -> optimizeService.getCompletedHistoricTaskInstances(null, null, pageSize),
-        "completed historic task instances"
-      ),
-      new TestScenario(
-        (pageSize) -> optimizeService.getHistoricIdentityLinkLogs(null, null, pageSize),
-        "historic identity link logs"
-      ),
-      new TestScenario(
-        (pageSize) -> optimizeService.getHistoricUserOperationLogs(null, null, pageSize),
-        "historic user operation logs"
-      ),
-      new TestScenario(
-        (pageSize) -> optimizeService.getHistoricVariableUpdates(null, null, true, pageSize),
-        "historic variable updates"
-      ),
-      new TestScenario(
-        (pageSize) -> optimizeService.getHistoricDecisionInstances(null, null, pageSize),
-        "historic decision instances"
-      )
+        new TestScenario(
+            (pageSize) -> optimizeService.getRunningHistoricActivityInstances(null, null, pageSize),
+            "running historic activity instances"
+        ),
+        new TestScenario(
+            (pageSize) -> optimizeService.getCompletedHistoricActivityInstances(null, null, pageSize),
+            "completed historic activity instances"
+        ),
+        new TestScenario(
+            (pageSize) -> optimizeService.getRunningHistoricProcessInstances(null, null, pageSize),
+            "running historic process instances"
+        ),
+        new TestScenario(
+            (pageSize) -> optimizeService.getCompletedHistoricProcessInstances(null, null, pageSize),
+            "completed historic process instances"
+        ),
+        new TestScenario(
+            (pageSize) -> optimizeService.getRunningHistoricTaskInstances(null, null, pageSize),
+            "running historic task instances"
+        ),
+        new TestScenario(
+            (pageSize) -> optimizeService.getCompletedHistoricTaskInstances(null, null, pageSize),
+            "completed historic task instances"
+        ),
+        new TestScenario(
+            (pageSize) -> optimizeService.getHistoricIdentityLinkLogs(null, null, pageSize),
+            "historic identity link logs"
+        ),
+        new TestScenario(
+            (pageSize) -> optimizeService.getHistoricUserOperationLogs(null, null, pageSize),
+            "historic user operation logs"
+        ),
+        new TestScenario(
+            (pageSize) -> optimizeService.getHistoricVariableUpdates(null, null, true, pageSize),
+            "historic variable updates"
+        ),
+        new TestScenario(
+            (pageSize) -> optimizeService.getHistoricDecisionInstances(null, null, pageSize),
+            "historic decision instances"
+        )
     };
   }
 
