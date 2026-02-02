@@ -1,0 +1,298 @@
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ------< org.cibseven.bpm.qa:cibseven-qa-integration-tests-engine >------
+[INFO] Building CIB seven - QA Integration Tests - Engine 2.2.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- clean:3.1.0:clean (default-clean) @ cibseven-qa-integration-tests-engine ---
+[INFO] Deleting /app/qa/integration-tests-engine/target
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ cibseven-qa-integration-tests-engine ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /app/qa/integration-tests-engine/src/main/resources
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ cibseven-qa-integration-tests-engine ---
+[INFO] No sources to compile
+[INFO]
+[INFO] --- build-helper:1.9.1:add-test-source (add-test-source) @ cibseven-qa-integration-tests-engine ---
+[INFO] Test Source directory: /app/qa/integration-tests-engine/src/test/java-wildfly26 added.
+[INFO]
+[INFO] --- build-helper:1.9.1:add-test-resource (add-test-resource) @ cibseven-qa-integration-tests-engine ---
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ cibseven-qa-integration-tests-engine ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 159 resources
+[INFO] Copying 32 resources
+[INFO] Copying 13 resources
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ cibseven-qa-integration-tests-engine ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 331 source files to /app/qa/integration-tests-engine/target/test-classes
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR :
+[INFO] -------------------------------------------------------------
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/war/CaseVariableListenerResolutionTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/war/CaseVariableListenerResolutionTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/war/CaseVariableListenerResolutionTest.java:[20,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/war/CaseVariableListenerResolutionTest.java:[20,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/war/CaseVariableListenerResolutionTest.java:[32,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/war/CaseVariableListenerResolutionTest.java:[38,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/service/TestProcessEngineJndiBinding_JBOSS.java:[31,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/service/TestProcessEngineJndiBinding_JBOSS.java:[39,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/context/CallActivityContextSwitchTest.java:[29,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/context/CallActivityContextSwitchTest.java:[29,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/context/CallActivityContextSwitchTest.java:[30,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/context/CallActivityContextSwitchTest.java:[30,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/context/CallActivityContextSwitchTest.java:[41,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/context/CallActivityContextSwitchTest.java:[52,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/GroovyAsyncScriptExecutionTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/GroovyAsyncScriptExecutionTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/GroovyAsyncScriptExecutionTest.java:[30,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/GroovyAsyncScriptExecutionTest.java:[32,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringPAExpressionResolvingTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringPAExpressionResolvingTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringPAExpressionResolvingTest.java:[31,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringPAExpressionResolvingTest.java:[40,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithCmmn.java:[18,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithCmmn.java:[18,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithCmmn.java:[26,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithCmmn.java:[29,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/migration/MigrationContextSwitchClassesTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/migration/MigrationContextSwitchClassesTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/migration/MigrationContextSwitchClassesTest.java:[38,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/migration/MigrationContextSwitchClassesTest.java:[47,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentResumePreviousOnDeploymentName.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentResumePreviousOnDeploymentName.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentResumePreviousOnDeploymentName.java:[20,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentResumePreviousOnDeploymentName.java:[20,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentResumePreviousOnDeploymentName.java:[36,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentResumePreviousOnDeploymentName.java:[38,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithoutProcessesXml.java:[18,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithoutProcessesXml.java:[18,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithoutProcessesXml.java:[30,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithoutProcessesXml.java:[38,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractScriptEngineSupportTest.java:[26,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractScriptEngineSupportTest.java:[28,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractScriptEngineSupportTest.java:[28,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractScriptEngineSupportTest.java:[33,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractTemplateScriptEngineSupportTest.java:[27,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractTemplateScriptEngineSupportTest.java:[29,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractTemplateScriptEngineSupportTest.java:[29,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractTemplateScriptEngineSupportTest.java:[34,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaDataFormatConfiguratorTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaDataFormatConfiguratorTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaDataFormatConfiguratorTest.java:[42,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaDataFormatConfiguratorTest.java:[51,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiBeanResolutionTwoEnginesTest.java:[24,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiBeanResolutionTwoEnginesTest.java:[24,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiBeanResolutionTwoEnginesTest.java:[39,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiBeanResolutionTwoEnginesTest.java:[41,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/dmn/BusinessRuleTaskVersionTagTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/dmn/BusinessRuleTaskVersionTagTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/dmn/BusinessRuleTaskVersionTagTest.java:[32,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/dmn/BusinessRuleTaskVersionTagTest.java:[34,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/message/IntermediateMessageCatchEventTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/message/IntermediateMessageCatchEventTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/message/IntermediateMessageCatchEventTest.java:[28,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/message/IntermediateMessageCatchEventTest.java:[30,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestResourceName.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestResourceName.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestResourceName.java:[37,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestResourceName.java:[43,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestDeploymentTenantId.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestDeploymentTenantId.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestDeploymentTenantId.java:[28,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestDeploymentTenantId.java:[30,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/bpmnmodelapi/RepositoryServiceBpmnModelRetrievalTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/bpmnmodelapi/RepositoryServiceBpmnModelRetrievalTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/bpmnmodelapi/RepositoryServiceBpmnModelRetrievalTest.java:[30,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/bpmnmodelapi/RepositoryServiceBpmnModelRetrievalTest.java:[36,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/jobexecution/ClassloadingDuringJobExecutionTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/jobexecution/ClassloadingDuringJobExecutionTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/jobexecution/ClassloadingDuringJobExecutionTest.java:[31,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/jobexecution/ClassloadingDuringJobExecutionTest.java:[36,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/migration/MigrationContextSwitchBeansTest.java:[24,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/migration/MigrationContextSwitchBeansTest.java:[24,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/migration/MigrationContextSwitchBeansTest.java:[40,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/migration/MigrationContextSwitchBeansTest.java:[46,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestDeploymentSource.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestDeploymentSource.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestDeploymentSource.java:[28,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestDeploymentSource.java:[34,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/callbacks/EjbPALifecycleCallbacksTest.java:[26,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/callbacks/EjbPALifecycleCallbacksTest.java:[32,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringRetryConfigurationTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringRetryConfigurationTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringRetryConfigurationTest.java:[35,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringRetryConfigurationTest.java:[44,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/metadata/engine/TestProcessEnginesXmlInProcessApplication.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/metadata/engine/TestProcessEnginesXmlInProcessApplication.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/metadata/engine/TestProcessEnginesXmlInProcessApplication.java:[29,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/metadata/engine/TestProcessEnginesXmlInProcessApplication.java:[37,2] cannot find symbol
+  symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/el/ElResolveStartFormDataTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/el/ElResolveStartFormDataTest.java:[19,1] static import only from classes and interfaces
+[INFO] 100 errors
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  7.638 s
+[INFO] Finished at: 2026-02-02T13:51:15Z
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.6.2:testCompile (default-testCompile) on project cibseven-qa-integration-tests-engine: Compilation failure: Compilation failure:
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/war/CaseVariableListenerResolutionTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/war/CaseVariableListenerResolutionTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/war/CaseVariableListenerResolutionTest.java:[20,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/war/CaseVariableListenerResolutionTest.java:[20,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/war/CaseVariableListenerResolutionTest.java:[32,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/war/CaseVariableListenerResolutionTest.java:[38,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/service/TestProcessEngineJndiBinding_JBOSS.java:[31,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/service/TestProcessEngineJndiBinding_JBOSS.java:[39,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/context/CallActivityContextSwitchTest.java:[29,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/context/CallActivityContextSwitchTest.java:[29,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/context/CallActivityContextSwitchTest.java:[30,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/context/CallActivityContextSwitchTest.java:[30,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/context/CallActivityContextSwitchTest.java:[41,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/context/CallActivityContextSwitchTest.java:[52,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/GroovyAsyncScriptExecutionTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/GroovyAsyncScriptExecutionTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/GroovyAsyncScriptExecutionTest.java:[30,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/GroovyAsyncScriptExecutionTest.java:[32,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringPAExpressionResolvingTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringPAExpressionResolvingTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringPAExpressionResolvingTest.java:[31,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringPAExpressionResolvingTest.java:[40,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithCmmn.java:[18,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithCmmn.java:[18,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithCmmn.java:[26,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithCmmn.java:[29,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/migration/MigrationContextSwitchClassesTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/migration/MigrationContextSwitchClassesTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/migration/MigrationContextSwitchClassesTest.java:[38,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/migration/MigrationContextSwitchClassesTest.java:[47,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentResumePreviousOnDeploymentName.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentResumePreviousOnDeploymentName.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentResumePreviousOnDeploymentName.java:[20,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentResumePreviousOnDeploymentName.java:[20,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentResumePreviousOnDeploymentName.java:[36,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentResumePreviousOnDeploymentName.java:[38,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithoutProcessesXml.java:[18,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithoutProcessesXml.java:[18,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithoutProcessesXml.java:[30,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestWarDeploymentWithoutProcessesXml.java:[38,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractScriptEngineSupportTest.java:[26,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractScriptEngineSupportTest.java:[28,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractScriptEngineSupportTest.java:[28,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractScriptEngineSupportTest.java:[33,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractTemplateScriptEngineSupportTest.java:[27,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractTemplateScriptEngineSupportTest.java:[29,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractTemplateScriptEngineSupportTest.java:[29,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/scriptengine/AbstractTemplateScriptEngineSupportTest.java:[34,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaDataFormatConfiguratorTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaDataFormatConfiguratorTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaDataFormatConfiguratorTest.java:[42,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spin/PaDataFormatConfiguratorTest.java:[51,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiBeanResolutionTwoEnginesTest.java:[24,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiBeanResolutionTwoEnginesTest.java:[24,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiBeanResolutionTwoEnginesTest.java:[39,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/cdi/CdiBeanResolutionTwoEnginesTest.java:[41,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/dmn/BusinessRuleTaskVersionTagTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/dmn/BusinessRuleTaskVersionTagTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/dmn/BusinessRuleTaskVersionTagTest.java:[32,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/dmn/BusinessRuleTaskVersionTagTest.java:[34,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/message/IntermediateMessageCatchEventTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/message/IntermediateMessageCatchEventTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/message/IntermediateMessageCatchEventTest.java:[28,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/message/IntermediateMessageCatchEventTest.java:[30,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestResourceName.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestResourceName.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestResourceName.java:[37,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/war/TestResourceName.java:[43,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestDeploymentTenantId.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestDeploymentTenantId.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestDeploymentTenantId.java:[28,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestDeploymentTenantId.java:[30,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/bpmnmodelapi/RepositoryServiceBpmnModelRetrievalTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/bpmnmodelapi/RepositoryServiceBpmnModelRetrievalTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/bpmnmodelapi/RepositoryServiceBpmnModelRetrievalTest.java:[30,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/bpmnmodelapi/RepositoryServiceBpmnModelRetrievalTest.java:[36,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/jobexecution/ClassloadingDuringJobExecutionTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/jobexecution/ClassloadingDuringJobExecutionTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/jobexecution/ClassloadingDuringJobExecutionTest.java:[31,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/classloading/jobexecution/ClassloadingDuringJobExecutionTest.java:[36,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/migration/MigrationContextSwitchBeansTest.java:[24,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/migration/MigrationContextSwitchBeansTest.java:[24,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/migration/MigrationContextSwitchBeansTest.java:[40,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/migration/MigrationContextSwitchBeansTest.java:[46,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestDeploymentSource.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestDeploymentSource.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestDeploymentSource.java:[28,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/cfg/TestDeploymentSource.java:[34,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/callbacks/EjbPALifecycleCallbacksTest.java:[26,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/deployment/callbacks/EjbPALifecycleCallbacksTest.java:[32,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringRetryConfigurationTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringRetryConfigurationTest.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringRetryConfigurationTest.java:[35,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/spring/SpringRetryConfigurationTest.java:[44,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/metadata/engine/TestProcessEnginesXmlInProcessApplication.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/metadata/engine/TestProcessEnginesXmlInProcessApplication.java:[19,1] static import only from classes and interfaces
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/metadata/engine/TestProcessEnginesXmlInProcessApplication.java:[29,24] package org.junit.runner does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/metadata/engine/TestProcessEnginesXmlInProcessApplication.java:[37,2] cannot find symbol
+[ERROR]   symbol: class RunWith
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/el/ElResolveStartFormDataTest.java:[19,35] package org.assertj.core.api does not exist
+[ERROR] /app/qa/integration-tests-engine/src/test/java/org/cibseven/bpm/integrationtest/functional/el/ElResolveStartFormDataTest.java:[19,1] static import only from classes and interfaces
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
