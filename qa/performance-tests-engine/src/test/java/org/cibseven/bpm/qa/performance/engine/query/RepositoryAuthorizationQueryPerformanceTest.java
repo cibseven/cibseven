@@ -33,12 +33,9 @@ import org.cibseven.bpm.qa.performance.engine.framework.PerfTestRunContext;
 import org.cibseven.bpm.qa.performance.engine.framework.PerfTestStepBehavior;
 import org.cibseven.bpm.qa.performance.engine.junit.AuthorizationPerformanceTestCase;
 import org.cibseven.bpm.qa.performance.engine.junit.PerfTestProcessEngine;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.cibseven.bpm.engine.authorization.Resources.*;
 import static org.cibseven.bpm.engine.authorization.Permissions.*;
@@ -48,22 +45,11 @@ import static org.cibseven.bpm.engine.authorization.Permissions.*;
  *
  */
 @SuppressWarnings("rawtypes")
-@RunWith(Parameterized.class)
 public class RepositoryAuthorizationQueryPerformanceTest extends AuthorizationPerformanceTestCase {
-
-  @Parameter(0)
   public static String name;
-
-  @Parameter(1)
   public static Query query;
-
-  @Parameter(2)
   public static Resource resource;
-
-  @Parameter(3)
   public static Permission[] permissions;
-
-  @Parameter(4)
   public static Authentication authentication;
 
   static List<Object[]> queryResourcesAndPermissions;
@@ -118,7 +104,6 @@ public class RepositoryAuthorizationQueryPerformanceTest extends AuthorizationPe
 
   }
 
-  @Parameters(name="{0} - {4}")
   public static Iterable<Object[]> params() {
     final ArrayList<Object[]> params = new ArrayList<Object[]>();
 
@@ -134,8 +119,8 @@ public class RepositoryAuthorizationQueryPerformanceTest extends AuthorizationPe
     return params;
   }
 
-  @Before
-  public void createAuthorizations() {
+  @BeforeEach
+  void createAuthorizations() {
     AuthorizationService authorizationService = engine.getAuthorizationService();
     List<Authorization> auths = authorizationService.createAuthorizationQuery().list();
     for (Authorization authorization : auths) {
@@ -149,8 +134,10 @@ public class RepositoryAuthorizationQueryPerformanceTest extends AuthorizationPe
     engine.getProcessEngineConfiguration().setAuthorizationEnabled(true);
   }
 
-  @Test
-  public void queryList() {
+  @MethodSource("params")
+  @ParameterizedTest(name = "{0} - {4}")
+  public void queryList(String name, Query query, Resource resource, Permission[] permissions, Authentication authentication) {
+    initRepositoryAuthorizationQueryPerformanceTest(name, query, resource, permissions, authentication);
     performanceTest().step(new PerfTestStepBehavior() {
       public void execute(PerfTestRunContext context) {
         try {
@@ -163,8 +150,10 @@ public class RepositoryAuthorizationQueryPerformanceTest extends AuthorizationPe
     }).run();
   }
 
-  @Test
-  public void queryCount() {
+  @MethodSource("params")
+  @ParameterizedTest(name = "{0} - {4}")
+  public void queryCount(String name, Query query, Resource resource, Permission[] permissions, Authentication authentication) {
+    initRepositoryAuthorizationQueryPerformanceTest(name, query, resource, permissions, authentication);
     performanceTest().step(new PerfTestStepBehavior() {
       public void execute(PerfTestRunContext context) {
         try {
@@ -175,6 +164,14 @@ public class RepositoryAuthorizationQueryPerformanceTest extends AuthorizationPe
         }
       }
     }).run();
+  }
+
+  public void initRepositoryAuthorizationQueryPerformanceTest(String name, Query query, Resource resource, Permission[] permissions, Authentication authentication) {
+    this.name = name;
+    this.query = query;
+    this.resource = resource;
+    this.permissions = permissions;
+    this.authentication = authentication;
   }
 
 }

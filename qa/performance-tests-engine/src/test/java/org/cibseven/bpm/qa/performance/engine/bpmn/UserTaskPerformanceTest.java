@@ -22,17 +22,17 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.qa.performance.engine.junit.ProcessEnginePerformanceTestCase;
 import org.cibseven.bpm.qa.performance.engine.steps.CompleteTaskStep;
 import org.cibseven.bpm.qa.performance.engine.steps.StartProcessInstanceStep;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
  *
  */
-public class UserTaskPerformanceTest extends ProcessEnginePerformanceTestCase {
+class UserTaskPerformanceTest extends ProcessEnginePerformanceTestCase {
 
   @Test
   @Deployment
-  public void singleTask() {
+  void singleTask() {
     performanceTest()
       .step(new StartProcessInstanceStep(engine, "process"))
       .step(new CompleteTaskStep(engine, TASK_ID))

@@ -1,0 +1,156 @@
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ------< org.cibseven.bpm.qa:cibseven-qa-performance-tests-engine >------
+[INFO] Building CIB seven - QA Performance Tests Engine 2.2.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] >>> rewrite:5.43.0:run (default-cli) > process-test-classes @ cibseven-qa-performance-tests-engine >>>
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ cibseven-qa-performance-tests-engine ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 2 resources
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ cibseven-qa-performance-tests-engine ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ cibseven-qa-performance-tests-engine ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 66 resources
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ cibseven-qa-performance-tests-engine ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO]
+[INFO] <<< rewrite:5.43.0:run (default-cli) < process-test-classes @ cibseven-qa-performance-tests-engine <<<
+[INFO]
+[INFO]
+[INFO] --- rewrite:5.43.0:run (default-cli) @ cibseven-qa-performance-tests-engine ---
+[INFO] Using active recipe(s) [org.openrewrite.java.testing.junit5.JUnit5BestPractices, org.openrewrite.java.testing.assertj.Assertj]
+[INFO] Using active styles(s) []
+[INFO] Validating active recipes...
+[INFO] Project [CIB seven - QA Performance Tests Engine] Resolving Poms...
+[INFO] Project [CIB seven - QA Performance Tests Engine] Parsing source files
+[INFO] Running recipe(s)...
+[WARNING] Changes have been made to qa/performance-tests-engine/pom.xml by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.dependencies.RemoveDependency: {groupId=junit, artifactId=junit}
+[WARNING]                 org.openrewrite.maven.RemoveDependency: {groupId=junit, artifactId=junit}
+[WARNING]             org.openrewrite.java.testing.junit5.AddJupiterDependencies
+[WARNING] Changes have been made to qa/performance-tests-engine/src/main/java/org/cibseven/bpm/qa/performance/engine/junit/ProcessEngineJobExecutorPerformanceTestCase.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING] Changes have been made to qa/performance-tests-engine/src/main/java/org/cibseven/bpm/qa/performance/engine/junit/ProcessEnginePerformanceTestCase.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING] Changes have been made to qa/performance-tests-engine/src/main/java/org/cibseven/bpm/qa/performance/engine/junit/ProcessEngineQueryPerformanceTestCase.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/performance-tests-engine/src/main/java/org/cibseven/bpm/qa/performance/engine/junit/AuthorizationPerformanceTestCase.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.CleanupJUnitImports
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING] Changes have been made to qa/performance-tests-engine/src/test/java/org/cibseven/bpm/qa/performance/engine/query/RuntimeAuthorizationQueryPerformanceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]             org.openrewrite.java.testing.junit5.ParameterizedRunnerToParameterized
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/performance-tests-engine/src/test/java/org/cibseven/bpm/qa/performance/engine/query/RepositoryAuthorizationQueryPerformanceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]             org.openrewrite.java.testing.junit5.ParameterizedRunnerToParameterized
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/performance-tests-engine/src/test/java/org/cibseven/bpm/qa/performance/engine/query/HistoryAuthorizationQueryPerformanceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]             org.openrewrite.java.testing.junit5.ParameterizedRunnerToParameterized
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/performance-tests-engine/src/test/java/org/cibseven/bpm/qa/performance/engine/query/MetricPerformanceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]             org.openrewrite.java.testing.junit5.ParameterizedRunnerToParameterized
+[WARNING] Changes have been made to qa/performance-tests-engine/src/test/java/org/cibseven/bpm/qa/performance/engine/dmn/DmnEnginePerformanceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/performance-tests-engine/src/test/java/org/cibseven/bpm/qa/performance/engine/dmn/DmnBusinessRuleTaskTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/performance-tests-engine/src/test/java/org/cibseven/bpm/qa/performance/engine/bpmn/IntermediateCatchPerformanceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/performance-tests-engine/src/test/java/org/cibseven/bpm/qa/performance/engine/bpmn/MultiInstancePerformanceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/performance-tests-engine/src/test/java/org/cibseven/bpm/qa/performance/engine/bpmn/VariablesPerformanceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/performance-tests-engine/src/test/java/org/cibseven/bpm/qa/performance/engine/bpmn/AsyncStartAndTimerPerformanceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/performance-tests-engine/src/test/java/org/cibseven/bpm/qa/performance/engine/bpmn/UserTaskPerformanceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/performance-tests-engine/src/test/java/org/cibseven/bpm/qa/performance/engine/bpmn/ExclusiveGatewayPerformanceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/performance-tests-engine/src/test/java/org/cibseven/bpm/qa/performance/engine/bpmn/StartEventPerformanceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/performance-tests-engine/src/test/java/org/cibseven/bpm/qa/performance/engine/bpmn/SequencePerformanceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/performance-tests-engine/src/test/java/org/cibseven/bpm/qa/performance/engine/bpmn/EmbeddedSubprocessPerformanceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/performance-tests-engine/src/test/java/org/cibseven/bpm/qa/performance/engine/bpmn/ServiceTaskPerformanceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/performance-tests-engine/src/test/java/org/cibseven/bpm/qa/performance/engine/bpmn/BoundaryEventPerformanceTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Please review and commit the results.
+[WARNING] Estimate time saved: 1h 50m
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  47.687 s
+[INFO] Finished at: 2026-02-02T15:39:11Z
+[INFO] ------------------------------------------------------------------------

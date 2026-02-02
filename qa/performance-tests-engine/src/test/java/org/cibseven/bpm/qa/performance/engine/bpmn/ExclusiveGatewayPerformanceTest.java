@@ -19,17 +19,17 @@ package org.cibseven.bpm.qa.performance.engine.bpmn;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.qa.performance.engine.junit.ProcessEnginePerformanceTestCase;
 import org.cibseven.bpm.qa.performance.engine.steps.StartProcessInstanceStep;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
  *
  */
-public class ExclusiveGatewayPerformanceTest extends ProcessEnginePerformanceTestCase {
+class ExclusiveGatewayPerformanceTest extends ProcessEnginePerformanceTestCase {
 
   @Test
   @Deployment
-  public void sync1gateway() {
+  void sync1gateway() {
     performanceTest()
       .step(new StartProcessInstanceStep(engine, "process"))
     .run();
@@ -37,7 +37,7 @@ public class ExclusiveGatewayPerformanceTest extends ProcessEnginePerformanceTes
 
   @Test
   @Deployment
-  public void sync2gateways() {
+  void sync2gateways() {
     performanceTest()
       .step(new StartProcessInstanceStep(engine, "process"))
     .run();
@@ -45,7 +45,7 @@ public class ExclusiveGatewayPerformanceTest extends ProcessEnginePerformanceTes
 
   @Test
   @Deployment
-  public void sync5gateways() {
+  void sync5gateways() {
     performanceTest()
       .step(new StartProcessInstanceStep(engine, "process"))
     .run();

@@ -20,17 +20,17 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.qa.performance.engine.junit.ProcessEnginePerformanceTestCase;
 import org.cibseven.bpm.qa.performance.engine.steps.StartProcessInstanceByMessageStep;
 import org.cibseven.bpm.qa.performance.engine.steps.StartProcessInstanceStep;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
  *
  */
-public class StartEventPerformanceTest extends ProcessEnginePerformanceTestCase {
+class StartEventPerformanceTest extends ProcessEnginePerformanceTestCase {
 
   @Test
   @Deployment
-  public void noneStartEvent() {
+  void noneStartEvent() {
 
     performanceTest()
       .step(new StartProcessInstanceStep(engine, "process"))
@@ -40,7 +40,7 @@ public class StartEventPerformanceTest extends ProcessEnginePerformanceTestCase 
 
   @Test
   @Deployment
-  public void messageStartEvent() {
+  void messageStartEvent() {
 
     performanceTest()
       .step(new StartProcessInstanceByMessageStep(engine, "message"))

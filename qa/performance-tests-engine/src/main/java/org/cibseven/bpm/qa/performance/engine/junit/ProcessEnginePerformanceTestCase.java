@@ -24,8 +24,8 @@ import org.cibseven.bpm.engine.TaskService;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.qa.performance.engine.framework.PerfTestBuilder;
 import org.cibseven.bpm.qa.performance.engine.framework.PerfTestConfiguration;
-import org.junit.Before;
 import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * <p>Base class for implementing a process engine performance test</p>
@@ -50,7 +50,7 @@ public abstract class ProcessEnginePerformanceTestCase {
   protected RuntimeService runtimeService;
   protected RepositoryService repositoryService;
 
-  @Before
+  @BeforeEach
   public void setup() {
     engine = processEngineRule.getProcessEngine();
     taskService = engine.getTaskService();

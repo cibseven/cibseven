@@ -22,17 +22,17 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.qa.performance.engine.junit.ProcessEnginePerformanceTestCase;
 import org.cibseven.bpm.qa.performance.engine.steps.CorrelateMessageStep;
 import org.cibseven.bpm.qa.performance.engine.steps.StartProcessInstanceStep;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
  *
  */
-public class IntermediateCatchPerformanceTest extends ProcessEnginePerformanceTestCase {
+class IntermediateCatchPerformanceTest extends ProcessEnginePerformanceTestCase {
 
   @Test
   @Deployment
-  public void singleMessage() {
+  void singleMessage() {
     performanceTest()
       .step(new StartProcessInstanceStep(engine, "process"))
       .step(new CorrelateMessageStep(engine, "message", PROCESS_INSTANCE_ID))

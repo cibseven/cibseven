@@ -18,8 +18,8 @@ package org.cibseven.bpm.qa.performance.engine.junit;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.Before;
 import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author Daniel Meyer
@@ -32,8 +32,8 @@ public class ProcessEngineQueryPerformanceTestCase {
 
   protected ProcessEngine engine;
 
-  @Before
-  public void setup() {
+  @BeforeEach
+  void setup() {
     engine = processEngineRule.getProcessEngine();
   }
 
