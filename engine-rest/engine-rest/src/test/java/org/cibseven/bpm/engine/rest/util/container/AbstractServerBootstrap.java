@@ -27,7 +27,7 @@ public abstract class AbstractServerBootstrap {
   protected static final String ROOT_RESOURCE_PATH = "/rest-test";
   protected static final String PROPERTIES_FILE = "/testconfig.properties";
 
-  protected static final int STARTUP_RETRIES = 3;
+  protected static final int STARTUP_RETRIES = 10;
 
   public abstract void stop();
 
