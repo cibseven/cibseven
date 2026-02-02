@@ -135,7 +135,7 @@ public class JobExecutorAcquireJobsForPriorityRangeTest extends AbstractJobExecu
 
     // then
     Job jobWithNegativePrio = managementService.createJobQuery().priorityLowerThanOrEquals(-5).singleResult();
-    assertThat(acquirableJobs).extracting("id").contains(jobWithNegativePrio.getId());
+    assertThat(acquirableJobs).extracting("id").isEqualTo(jobWithNegativePrio.getId());
   }
 
   @Test

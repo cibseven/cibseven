@@ -51,11 +51,12 @@
     <version.logback>1.2.13</version.logback>
     <version.log4j2>2.25.3</version.log4j2>
     <version.junit>4.13.1</version.junit>
-    <version.assertj>2.9.1</version.assertj>
+    <version.junit-jupiter>5.11.0</version.junit-jupiter>
+    <version.assertj>3.27.7</version.assertj>
     <version.mockito>5.17.0</version.mockito>
     <version.wiremock>2.27.2</version.wiremock>
     <version.testcontainers>1.20.5</version.testcontainers>
-    <version.surefire>3.0.0-M5</version.surefire>
+    <version.surefire>3.5.2</version.surefire>
     <version.unirest-java>2.3.10</version.unirest-java>
 
     <version.commonj>1.1.0</version.commonj>
@@ -132,6 +133,14 @@
         <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-bom</artifactId>
         <version>${project.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${version.junit-jupiter}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>

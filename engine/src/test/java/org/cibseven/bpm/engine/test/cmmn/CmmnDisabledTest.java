@@ -170,7 +170,7 @@ public class CmmnDisabledTest {
     List<Task> tasks = taskService.createTaskQuery().list();
 
     // then
-    assertThat(tasks).extracting("id").containsExactlyInAnyOrder(standaloneTask.getId(), processInstanceTask.getId());
+    assertThat(tasks).extracting("id").asList().containsExactlyInAnyOrder(standaloneTask.getId(), processInstanceTask.getId());
   }
 
 }

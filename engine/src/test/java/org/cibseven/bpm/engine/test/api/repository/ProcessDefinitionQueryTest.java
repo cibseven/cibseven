@@ -875,7 +875,7 @@ public class ProcessDefinitionQueryTest extends AbstractDefinitionQueryTest {
 
     // then
     assertThat(startable).hasSize(3);
-    assertThat(startable).extracting("key").containsExactlyInAnyOrder("one", "one", "two");
+    assertThat(startable).extracting("key").asList().containsExactlyInAnyOrder("one", "one", "two");
     assertThat(notStartable).hasSize(1);
     assertThat(notStartable.get(0).getKey()).isEqualTo("xyz_");
   }

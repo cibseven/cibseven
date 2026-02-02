@@ -158,7 +158,7 @@ public class BatchJobPriorityRangeTest {
 
     assertThat(jobs).hasSize(2);
     assertThat(executionJobs).hasSize(1);
-    assertThat(jobs).extracting("id").containsExactlyInAnyOrder(monitorJob.getId(), executionJobs.get(0).getId());
+    assertThat(jobs).extracting("id").asList().containsExactlyInAnyOrder(monitorJob.getId(), executionJobs.get(0).getId());
     assertThat(monitorJob.getPriority()).isEqualTo(priority);
     assertThat(executionJobs.get(0).getPriority()).isEqualTo(priority);
 

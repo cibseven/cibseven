@@ -232,7 +232,7 @@ public class ReadWriteTest extends DmnModelTest {
     Collection<InputData> inputDataCollection = modelInstance.getModelElementsByType(InputData.class);
 
     assertThat(inputDataCollection).hasSize(2);
-    assertThat(inputDataCollection).extracting("class").contains(InputDataImpl.class);
+    assertThat(inputDataCollection).extracting("class").isEqualTo(InputDataImpl.class);
 
     InputData inputData = modelInstance.getModelElementById("customerStatusIn");
 

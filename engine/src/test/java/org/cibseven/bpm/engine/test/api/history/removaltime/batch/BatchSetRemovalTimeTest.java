@@ -1589,7 +1589,7 @@ public class BatchSetRemovalTimeTest {
       .singleResult();
 
     // then
-    assertThat(historicDecisionInstance.getRemovalTime()).isEqualTo(null);
+    assertThat(historicDecisionInstance.getRemovalTime()).isNull();
   }
 
   @Test
@@ -1700,7 +1700,7 @@ public class BatchSetRemovalTimeTest {
       .singleResult();
 
     // then
-    assertThat(historicDecisionInstance.getRemovalTime()).isEqualTo(null);
+    assertThat(historicDecisionInstance.getRemovalTime()).isNull();
   }
 
   @Test
@@ -2820,8 +2820,8 @@ public class BatchSetRemovalTimeTest {
     HistoricBatch historicBatch = historyService.createHistoricBatchQuery().singleResult();
     batch = managementService.createBatchQuery().singleResult();
 
-    assertThat(batch.getExecutionStartTime()).isEqualToIgnoringMillis(CURRENT_DATE);
-    assertThat(historicBatch.getExecutionStartTime()).isEqualToIgnoringMillis(CURRENT_DATE);
+    assertThat(batch.getExecutionStartTime()).isEqualTo(CURRENT_DATE);
+    assertThat(historicBatch.getExecutionStartTime()).isEqualTo(CURRENT_DATE);
   }
 
   @Test
@@ -2849,8 +2849,8 @@ public class BatchSetRemovalTimeTest {
     HistoricBatch historicBatch = historyService.createHistoricBatchQuery().singleResult();
     batch = managementService.createBatchQuery().singleResult();
 
-    assertThat(batch.getExecutionStartTime()).isEqualToIgnoringMillis(CURRENT_DATE);
-    assertThat(historicBatch.getExecutionStartTime()).isEqualToIgnoringMillis(CURRENT_DATE);
+    assertThat(batch.getExecutionStartTime()).isEqualTo(CURRENT_DATE);
+    assertThat(historicBatch.getExecutionStartTime()).isEqualTo(CURRENT_DATE);
   }
 
 }

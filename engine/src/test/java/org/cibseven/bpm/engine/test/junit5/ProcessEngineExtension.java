@@ -177,13 +177,11 @@ public class ProcessEngineExtension implements TestWatcher,
 
   // TEST EXECUTION
 
-  @Override
   public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
       throws ParameterResolutionException {
     return parameterContext.getParameter().getType().equals(ProcessEngine.class);
   }
 
-  @Override
   public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
       throws ParameterResolutionException {
     if (ProcessEngine.class.equals(parameterContext.getParameter().getType())) {
@@ -194,7 +192,6 @@ public class ProcessEngineExtension implements TestWatcher,
     }
   }
 
-  @Override
   public void beforeTestExecution(ExtensionContext context) {
     LOG.debug("beforeTestExecution: {}", context.getDisplayName());
 
@@ -209,7 +206,6 @@ public class ProcessEngineExtension implements TestWatcher,
     Assumptions.assumeTrue(hasRequiredDatabase, "ignored because the database doesn't match the required ones");
   }
 
-  @Override
   public void afterTestExecution(ExtensionContext context) {
     final String testMethod = context.getTestMethod().orElseThrow(illegalStateException("testMethod not set")).getName();
     final Class<?> testClass = context.getTestClass().orElseThrow(illegalStateException("testClass not set"));
@@ -231,12 +227,10 @@ public class ProcessEngineExtension implements TestWatcher,
    }
   }
 
-  @Override
   public void afterAll(ExtensionContext context) throws Exception {
     clearServiceReferences();
   }
 
-  @Override
   public void postProcessTestInstance(Object testInstance, ExtensionContext context) {
     if (processEngine == null) {
       initializeProcessEngine();

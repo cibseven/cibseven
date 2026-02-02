@@ -86,8 +86,8 @@ public class CamundaFormDefinitionDeploymentTest {
 
     List<CamundaFormDefinition> definitions = findAllCamundaFormDefinitionEntities(processEngineConfiguration);
     assertThat(definitions).hasSize(2);
-    assertThat(definitions).extracting("version").containsExactlyInAnyOrder(1, 2);
-    assertThat(definitions).extracting("deploymentId").containsExactlyInAnyOrder(deployments.stream().map(Deployment::getId).toArray());
+    assertThat(definitions).extracting("version").asList().containsExactlyInAnyOrder(1, 2);
+    assertThat(definitions).extracting("deploymentId").asList().containsExactlyInAnyOrder(deployments.stream().map(Deployment::getId).toArray());
     assertThat(definitions).extracting("resourceName").containsExactly(SIMPLE_FORM, SIMPLE_FORM);
   }
 
@@ -141,8 +141,8 @@ public class CamundaFormDefinitionDeploymentTest {
     List<CamundaFormDefinition> definitions = findAllCamundaFormDefinitionEntities(processEngineConfiguration);
     assertThat(definitions).hasSize(2);
     assertThat(definitions).extracting("version").containsExactly(1, 1);
-    assertThat(definitions).extracting("deploymentId").containsExactlyInAnyOrder(deployments.stream().map(Deployment::getId).toArray());
-    assertThat(definitions).extracting("resourceName").containsExactlyInAnyOrder(SIMPLE_FORM, COMPLEX_FORM);
+    assertThat(definitions).extracting("deploymentId").asList().containsExactlyInAnyOrder(deployments.stream().map(Deployment::getId).toArray());
+    assertThat(definitions).extracting("resourceName").asList().containsExactlyInAnyOrder(SIMPLE_FORM, COMPLEX_FORM);
   }
 
   @Test
@@ -159,7 +159,7 @@ public class CamundaFormDefinitionDeploymentTest {
     assertThat(definitions).hasSize(2);
     assertThat(definitions).extracting("version").containsExactly(1, 1);
     assertThat(definitions).extracting("deploymentId").containsExactly(deploymentId, deploymentId);
-    assertThat(definitions).extracting("resourceName").containsExactlyInAnyOrder(SIMPLE_FORM, COMPLEX_FORM);
+    assertThat(definitions).extracting("resourceName").asList().containsExactlyInAnyOrder(SIMPLE_FORM, COMPLEX_FORM);
   }
 
   @Test
@@ -208,9 +208,9 @@ public class CamundaFormDefinitionDeploymentTest {
     assertThat(deployments).hasSize(2);
     assertThat(deployments).extracting("tenantId").containsExactly(null, null);
     List<CamundaFormDefinition> formDefinitions = findAllCamundaFormDefinitionEntities(processEngineConfiguration);
-    assertThat(formDefinitions).extracting("version").containsExactlyInAnyOrder(1, 2);
+    assertThat(formDefinitions).extracting("version").asList().containsExactlyInAnyOrder(1, 2);
     assertThat(formDefinitions).extracting("resourceName").containsExactly(fileName, fileName);
-    assertThat(formDefinitions).extracting("deploymentId").containsExactlyInAnyOrder(deployments.stream().map(Deployment::getId).toArray());
+    assertThat(formDefinitions).extracting("deploymentId").asList().containsExactlyInAnyOrder(deployments.stream().map(Deployment::getId).toArray());
 
   }
 
@@ -231,9 +231,9 @@ public class CamundaFormDefinitionDeploymentTest {
     assertThat(deployments).hasSize(2);
     assertThat(deployments).extracting("tenantId").containsExactly("tenant1", "tenant1");
     List<CamundaFormDefinition> formDefinitions = findAllCamundaFormDefinitionEntities(processEngineConfiguration);
-    assertThat(formDefinitions).extracting("version").containsExactlyInAnyOrder(1, 2);
+    assertThat(formDefinitions).extracting("version").asList().containsExactlyInAnyOrder(1, 2);
     assertThat(formDefinitions).extracting("resourceName").containsExactly(fileName, fileName);
-    assertThat(formDefinitions).extracting("deploymentId").containsExactlyInAnyOrder(deployments.stream().map(Deployment::getId).toArray());
+    assertThat(formDefinitions).extracting("deploymentId").asList().containsExactlyInAnyOrder(deployments.stream().map(Deployment::getId).toArray());
 
   }
 

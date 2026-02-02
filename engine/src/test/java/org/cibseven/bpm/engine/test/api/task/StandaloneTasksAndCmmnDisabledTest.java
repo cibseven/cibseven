@@ -117,7 +117,7 @@ public class StandaloneTasksAndCmmnDisabledTest {
     List<Task> tasks = taskService.createTaskQuery().list();
 
     // then
-    assertThat(tasks).extracting("id").containsExactlyInAnyOrder(instance1Task.getId(), instance2Task.getId());
+    assertThat(tasks).extracting("id").asList().containsExactlyInAnyOrder(instance1Task.getId(), instance2Task.getId());
   }
 
   /**
@@ -196,7 +196,7 @@ public class StandaloneTasksAndCmmnDisabledTest {
         .list();
 
     // then
-    assertThat(tasks).extracting("id").containsExactlyInAnyOrder(instance1Task.getId(), instance2Task.getId());
+    assertThat(tasks).extracting("id").asList().containsExactlyInAnyOrder(instance1Task.getId(), instance2Task.getId());
   }
 
 }

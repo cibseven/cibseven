@@ -25,8 +25,9 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.jobexecutor.DefaultJobExecutor;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -78,11 +79,11 @@ public class PropertyHelperTest {
 
     PropertyHelper.applyProperties(engineConfiguration, propertiesToSet);
 
-    Assert.assertTrue(engineConfiguration.isJobExecutorDeploymentAware());
-    Assert.assertTrue(engineConfiguration.isJobExecutorPreferTimerJobs());
-    Assert.assertTrue(engineConfiguration.isJobExecutorAcquireByDueDate());
-    Assert.assertEquals(42, engineConfiguration.getMailServerPort());
-    Assert.assertEquals("someUrl", engineConfiguration.getJdbcUrl());
+    org.junit.jupiter.api.Assertions.assertTrue(engineConfiguration.isJobExecutorDeploymentAware());
+    org.junit.jupiter.api.Assertions.assertTrue(engineConfiguration.isJobExecutorPreferTimerJobs());
+    org.junit.jupiter.api.Assertions.assertTrue(engineConfiguration.isJobExecutorAcquireByDueDate());
+    org.junit.jupiter.api.Assertions.assertEquals(42, engineConfiguration.getMailServerPort());
+    org.junit.jupiter.api.Assertions.assertEquals("someUrl", engineConfiguration.getJdbcUrl());
   }
 
   @Test
@@ -100,10 +101,10 @@ public class PropertyHelperTest {
     PropertyHelper.applyProperties(jobExecutor, propertiesToSet);
 
     // then
-    Assert.assertEquals(Integer.MAX_VALUE, jobExecutor.getMaxJobsPerAcquisition());
-    Assert.assertEquals(Long.MAX_VALUE, jobExecutor.getMaxWait());
-    Assert.assertEquals(Float.MAX_VALUE, jobExecutor.getWaitIncreaseFactor(), 0.0001d);
-    Assert.assertEquals(Integer.MAX_VALUE, jobExecutor.getBackoffTimeInMillis());
+    org.junit.jupiter.api.Assertions.assertEquals(Integer.MAX_VALUE, jobExecutor.getMaxJobsPerAcquisition());
+    org.junit.jupiter.api.Assertions.assertEquals(Long.MAX_VALUE, jobExecutor.getMaxWait());
+    org.junit.jupiter.api.Assertions.assertEquals(Float.MAX_VALUE, jobExecutor.getWaitIncreaseFactor(), 0.0001d);
+    org.junit.jupiter.api.Assertions.assertEquals(Integer.MAX_VALUE, jobExecutor.getBackoffTimeInMillis());
   }
 
   /**
@@ -118,12 +119,12 @@ public class PropertyHelperTest {
     propertiesToSet.put(DB_IDENTITY_USED_PROP, "false");
     PropertyHelper.applyProperties(engineConfiguration, propertiesToSet);
 
-    Assert.assertFalse(engineConfiguration.isDbIdentityUsed());
+    org.junit.jupiter.api.Assertions.assertFalse(engineConfiguration.isDbIdentityUsed());
 
     propertiesToSet.put(DB_IDENTITY_USED_PROP, "true");
     PropertyHelper.applyProperties(engineConfiguration, propertiesToSet);
 
-    Assert.assertTrue(engineConfiguration.isDbIdentityUsed());
+    org.junit.jupiter.api.Assertions.assertTrue(engineConfiguration.isDbIdentityUsed());
   }
 
   @Test
@@ -131,8 +132,8 @@ public class PropertyHelperTest {
     ProcessEngineConfigurationImpl engineConfiguration = new StandaloneProcessEngineConfiguration();
 
     // Verify defaults
-    Assert.assertEquals("QUARTZ", engineConfiguration.getCronType());
-    Assert.assertTrue(engineConfiguration.isSupportLegacyQuartzSyntax());
+    org.junit.jupiter.api.Assertions.assertEquals("QUARTZ", engineConfiguration.getCronType());
+    org.junit.jupiter.api.Assertions.assertTrue(engineConfiguration.isSupportLegacyQuartzSyntax());
 
     // Test setting QUARTZ cron type with legacy support enabled
     Map<String, String> propertiesToSet = new HashMap<String, String>();
@@ -140,16 +141,16 @@ public class PropertyHelperTest {
     propertiesToSet.put(SUPPORT_LEGACY_QUARTZ_SYNTAX_PROP, "false");
     PropertyHelper.applyProperties(engineConfiguration, propertiesToSet);
 
-    Assert.assertEquals("SPRING53", engineConfiguration.getCronType());
-    Assert.assertFalse(engineConfiguration.isSupportLegacyQuartzSyntax());
+    org.junit.jupiter.api.Assertions.assertEquals("SPRING53", engineConfiguration.getCronType());
+    org.junit.jupiter.api.Assertions.assertFalse(engineConfiguration.isSupportLegacyQuartzSyntax());
 
     // Test setting back to SPRING53 with legacy support disabled
     propertiesToSet.put(CRON_TYPE_PROP, "QUARTZ");
     propertiesToSet.put(SUPPORT_LEGACY_QUARTZ_SYNTAX_PROP, "true");
     PropertyHelper.applyProperties(engineConfiguration, propertiesToSet);
 
-    Assert.assertEquals("QUARTZ", engineConfiguration.getCronType());
-    Assert.assertTrue(engineConfiguration.isSupportLegacyQuartzSyntax());
+    org.junit.jupiter.api.Assertions.assertEquals("QUARTZ", engineConfiguration.getCronType());
+    org.junit.jupiter.api.Assertions.assertTrue(engineConfiguration.isSupportLegacyQuartzSyntax());
   }
 
   @Test
@@ -160,7 +161,7 @@ public class PropertyHelperTest {
 
     try {
       PropertyHelper.applyProperties(engineConfiguration, propertiesToSet);
-      Assert.fail();
+      org.junit.jupiter.api.Assertions.fail();
     } catch (Exception e) {
       // happy path
     }
@@ -171,7 +172,7 @@ public class PropertyHelperTest {
     Properties source = new Properties();
     source.put("camunda.test.someKey", "1234");
     String result = PropertyHelper.resolveProperty(source, "${camunda.test.someKey}");
-    Assert.assertEquals("1234", result);
+    org.junit.jupiter.api.Assertions.assertEquals("1234", result);
   }
 
   @Test
@@ -179,7 +180,7 @@ public class PropertyHelperTest {
     Properties source = new Properties();
     source.put("camunda.test.someKey", "1234");
     String result = PropertyHelper.resolveProperty(source, " -${ camunda.test.someKey }- ");
-    Assert.assertEquals(" -1234- ", result);
+    org.junit.jupiter.api.Assertions.assertEquals(" -1234- ", result);
   }
 
   @Test
@@ -188,14 +189,14 @@ public class PropertyHelperTest {
     source.put("camunda.test.oneKey", "1234");
     source.put("camunda.test.anotherKey", "5678");
     String result = PropertyHelper.resolveProperty(source, "-${ camunda.test.oneKey }-${ camunda.test.anotherKey}-");
-    Assert.assertEquals("-1234-5678-", result);
+    org.junit.jupiter.api.Assertions.assertEquals("-1234-5678-", result);
   }
 
   @Test
   public void testResolvePropertyForMissingProperty() {
     Properties source = new Properties();
     String result = PropertyHelper.resolveProperty(source, "${camunda.test.someKey}");
-    Assert.assertEquals("", result);
+    org.junit.jupiter.api.Assertions.assertEquals("", result);
   }
 
   @Test
@@ -203,7 +204,7 @@ public class PropertyHelperTest {
     Properties source = new Properties();
     source.put("camunda.test.someKey", "1234");
     String result = PropertyHelper.resolveProperty(source, "camunda.test.someKey");
-    Assert.assertEquals("camunda.test.someKey", result);
+    org.junit.jupiter.api.Assertions.assertEquals("camunda.test.someKey", result);
   }
 
   @Test
@@ -225,10 +226,10 @@ public class PropertyHelperTest {
     PropertyHelper.applyProperties(jobExecutor, executorProperties, PropertyHelper.KEBAB_CASE);
 
     // then
-    Assert.assertEquals(Integer.MAX_VALUE, jobExecutor.getBackoffTimeInMillis());
-    Assert.assertEquals(Float.MAX_VALUE, jobExecutor.getWaitIncreaseFactor(), 0.0001d);
-    Assert.assertEquals(true, engineConfiguration.isDbIdentityUsed());
-    Assert.assertEquals("someUrl", engineConfiguration.getJdbcUrl());
+    org.junit.jupiter.api.Assertions.assertEquals(Integer.MAX_VALUE, jobExecutor.getBackoffTimeInMillis());
+    org.junit.jupiter.api.Assertions.assertEquals(Float.MAX_VALUE, jobExecutor.getWaitIncreaseFactor(), 0.0001d);
+    org.junit.jupiter.api.Assertions.assertEquals(true, engineConfiguration.isDbIdentityUsed());
+    org.junit.jupiter.api.Assertions.assertEquals("someUrl", engineConfiguration.getJdbcUrl());
   }
 
   @Test
@@ -250,9 +251,9 @@ public class PropertyHelperTest {
     PropertyHelper.applyProperties(jobExecutor, executorProperties, PropertyHelper.SNAKE_CASE);
 
     // then
-    Assert.assertEquals(Integer.MAX_VALUE, jobExecutor.getBackoffTimeInMillis());
-    Assert.assertEquals(Float.MAX_VALUE, jobExecutor.getWaitIncreaseFactor(), 0.0001d);
-    Assert.assertEquals(true, engineConfiguration.isDbIdentityUsed());
-    Assert.assertEquals("someUrl", engineConfiguration.getJdbcUrl());
+    org.junit.jupiter.api.Assertions.assertEquals(Integer.MAX_VALUE, jobExecutor.getBackoffTimeInMillis());
+    org.junit.jupiter.api.Assertions.assertEquals(Float.MAX_VALUE, jobExecutor.getWaitIncreaseFactor(), 0.0001d);
+    org.junit.jupiter.api.Assertions.assertEquals(true, engineConfiguration.isDbIdentityUsed());
+    org.junit.jupiter.api.Assertions.assertEquals("someUrl", engineConfiguration.getJdbcUrl());
   }
 }
