@@ -121,6 +121,14 @@
       <scope>test</scope>
       <classifier>tests</classifier>
     </dependency>
+
+    <!-- JUnit 4 is provided for AbstractCockpitPluginTest test utility -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${version.junit}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <build>
