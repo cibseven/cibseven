@@ -193,6 +193,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+      <version>${version.junit}</version>
       <scope>provided</scope>
     </dependency>
 
@@ -371,12 +372,6 @@
       <groupId>org.junit.vintage</groupId>
       <artifactId>junit-vintage-engine</artifactId>
       <version>${version.junit-jupiter}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
       <scope>test</scope>
     </dependency>
 
