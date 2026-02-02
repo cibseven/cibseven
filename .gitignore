@@ -25,3 +25,6 @@ camunda-h2-dbs
 
 *.DS_Store
 .vscode/settings.json
+rewrite_qa_webapps.log
+rewrite_qa_engine_retry.log
+qa_engine_build.log
