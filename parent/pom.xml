@@ -69,7 +69,7 @@
     <version.wildfly28.core>20.0.2.Final</version.wildfly28.core>
 
     <version.tomcat9>9.0.110</version.tomcat9>
-    <version.tomcat>10.1.51</version.tomcat>
+    <version.tomcat>10.1.52</version.tomcat>
 
     <version.arquillian>1.1.10.Final</version.arquillian>
     <version.shrinkwrap.resolvers>2.2.2</version.shrinkwrap.resolvers>
