@@ -18,7 +18,7 @@ package org.cibseven.bpm.qa.rolling.update;
 
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * This test ensures that the old engine can delete an

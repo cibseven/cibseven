@@ -22,42 +22,36 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.cibseven.bpm.engine.HistoryService;
+import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.history.HistoricProcessInstance;
 import org.cibseven.bpm.engine.impl.db.sql.DbSqlSessionFactory;
 import org.cibseven.bpm.engine.impl.util.CollectionUtil;
 import org.cibseven.bpm.engine.repository.Deployment;
-import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.qa.largedata.util.EngineDataGenerator;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class DeleteDeploymentCascadeTest {
-
-  @Rule
-  public ProcessEngineRule processEngineRule = new ProcessEngineRule("camunda.cfg.xml");
 
   protected static final String DATA_PREFIX = DeleteDeploymentCascadeTest.class.getSimpleName();
 
   protected int GENERATE_PROCESS_INSTANCES_COUNT = 2500;
+  protected ProcessEngine processEngine;
   protected RepositoryService repositoryService;
   protected HistoryService historyService;
   protected EngineDataGenerator generator;
   
-  @Before
+  @BeforeEach
   public void init() {
-    repositoryService = processEngineRule.getProcessEngine().getRepositoryService();
-    historyService = processEngineRule.getProcessEngine().getHistoryService();
-
     // generate data
-    generator = new EngineDataGenerator(processEngineRule.getProcessEngine(), GENERATE_PROCESS_INSTANCES_COUNT, DATA_PREFIX);
+    generator = new EngineDataGenerator(processEngine, GENERATE_PROCESS_INSTANCES_COUNT, DATA_PREFIX);
     generator.deployDefinitions();
     generator.generateCompletedProcessInstanceData();
   }
 
-  @After
+  @AfterEach
   public void teardown() {
     Deployment deployment = repositoryService.createDeploymentQuery().deploymentName(generator.getDeploymentName()).singleResult();
     if (deployment != null) {

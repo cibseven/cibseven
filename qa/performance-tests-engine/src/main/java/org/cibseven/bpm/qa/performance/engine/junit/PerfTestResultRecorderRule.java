@@ -23,28 +23,29 @@ import java.util.logging.Logger;
 import org.cibseven.bpm.qa.performance.engine.framework.PerfTestException;
 import org.cibseven.bpm.qa.performance.engine.framework.PerfTestResults;
 import org.cibseven.bpm.qa.performance.engine.util.JsonUtil;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.TestWatcher;
 
 /**
- * JUnit rule recording the performance test result
+ * JUnit 5 extension recording the performance test result
  *
  * @author Daniel Meyer
  *
  */
-public class PerfTestResultRecorderRule extends TestWatcher {
+public class PerfTestResultRecorderRule implements TestWatcher {
 
   public static final Logger LOG = Logger.getLogger(PerfTestResultRecorderRule.class.getName());
 
   protected PerfTestResults results;
 
   @Override
-  protected void succeeded(Description description) {
+  public void testSuccessful(ExtensionContext context) {
     if(results != null) {
-      results.setTestName(description.getTestClass().getSimpleName() +"."+description.getMethodName());
+      String testName = context.getRequiredTestClass().getSimpleName() + "." + context.getRequiredTestMethod().getName();
+      results.setTestName(testName);
       LOG.log(Level.INFO, results.toString());
 
-      String resultFileName = formatResultFileName(description);
+      String resultFileName = formatResultFileName(context);
 
       try {
         // create file:
@@ -57,7 +58,6 @@ public class PerfTestResultRecorderRule extends TestWatcher {
 
       } catch ( Exception e ){
         throw new PerfTestException("Could not record results to file "+resultFileName, e);
-
       }
     }
   }
@@ -66,8 +66,8 @@ public class PerfTestResultRecorderRule extends TestWatcher {
     return "target"+File.separatorChar + "results";
   }
 
-  protected String formatResultFileName(Description description) {
-    return formatResultFileDirName() + File.separatorChar + description.getTestClass().getSimpleName() + "."+description.getMethodName() +".json";
+  protected String formatResultFileName(ExtensionContext context) {
+    return formatResultFileDirName() + File.separatorChar + context.getRequiredTestClass().getSimpleName() + "." + context.getRequiredTestMethod().getName() + ".json";
   }
 
   public void setResults(PerfTestResults results) {

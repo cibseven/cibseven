@@ -23,8 +23,8 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.rolling.update.RollingUpdateConstants;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -42,7 +42,7 @@ public class HistoryCleanupTest extends AbstractRollingUpdateTestCase {
   // should be 18.03.2013 13:00 in the local TimeZone
   static final Date FIXED_DATE = (new java.util.GregorianCalendar(2013, 2, 18, 13, 0)).getTime();
  
-  @After
+  @AfterEach
   public void resetClock() {
     ClockUtil.reset();
   }

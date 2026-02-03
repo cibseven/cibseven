@@ -24,12 +24,12 @@ import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  *
@@ -37,7 +37,7 @@ import org.junit.runner.RunWith;
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class CdiBeanSignallableActivityBehaviorResolutionTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -63,7 +63,7 @@ public class CdiBeanSignallableActivityBehaviorResolutionTest extends AbstractFo
   @OperateOnDeployment("clientDeployment")
   public void testResolveClass() {
     // assert that we cannot resolve the bean here:
-    Assert.assertNull(ProgrammaticBeanLookup.lookup("exampleSignallableActivityBehaviorBean"));
+    Assertions.assertNull(ProgrammaticBeanLookup.lookup("exampleSignallableActivityBehaviorBean"));
 
     // but the process can since it performs context switch to the process archive for execution
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testResolveBean");

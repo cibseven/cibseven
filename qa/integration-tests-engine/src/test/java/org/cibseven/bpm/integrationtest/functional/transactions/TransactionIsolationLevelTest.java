@@ -21,20 +21,20 @@ import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import javax.inject.Inject;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.integrationtest.util.TestContainer.addContainerSpecificResourcesForNonPaWithoutWeld;
-import static org.junit.Assert.assertEquals;
 
 
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TransactionIsolationLevelTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -55,8 +55,9 @@ public class TransactionIsolationLevelTest extends AbstractFoxPlatformIntegratio
         .openSession();
     try {
       int transactionIsolation = sqlSession.getConnection().getTransactionIsolation();
-      assertEquals("TransactionIsolationLevel for connection is " + transactionIsolation + " instead of " + Connection.TRANSACTION_READ_COMMITTED,
-          Connection.TRANSACTION_READ_COMMITTED, transactionIsolation);
+      assertThat(transactionIsolation)
+        .as("TransactionIsolationLevel for connection is %s instead of %s", transactionIsolation, Connection.TRANSACTION_READ_COMMITTED)
+        .isEqualTo(Connection.TRANSACTION_READ_COMMITTED);
     } catch (SQLException e) {
       e.printStackTrace();
     }

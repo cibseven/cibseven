@@ -18,7 +18,9 @@ package org.cibseven.bpm.integrationtest.functional.jpa;
 
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
@@ -40,7 +42,7 @@ public class AsyncPersistenceDelegateBean implements JavaDelegate {
     // this means that we obtain a seperate entity manager since
     // we are invoked in a new transaction
 
-    Assert.assertFalse(em.contains(entity));
+    assertThat(em.contains(entity)).isFalse();
 
   }
 

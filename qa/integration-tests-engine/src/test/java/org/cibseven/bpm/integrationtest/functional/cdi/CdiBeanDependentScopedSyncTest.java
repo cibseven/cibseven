@@ -22,20 +22,22 @@ import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 
 /**
  * @author Tassilo Weidner
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class CdiBeanDependentScopedSyncTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -58,21 +60,21 @@ public class CdiBeanDependentScopedSyncTest extends AbstractFoxPlatformIntegrati
     return deployment;
   }
 
-  @Before
+  @BeforeEach
   @OperateOnDeployment("clientDeployment")
   public void setup() {
     DependentScopedBean.reset();
 
-    Assert.assertEquals(0, runtimeService.createProcessInstanceQuery().processDefinitionKey("testResolveBean").count());
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionKey("testResolveBean").count()).isEqualTo(0);
 
     runtimeService.startProcessInstanceByKey("testResolveBean");
 
-    Assert.assertEquals(0,runtimeService.createProcessInstanceQuery().processDefinitionKey("testResolveBean").count());
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionKey("testResolveBean").count()).isEqualTo(0);
   }
 
   @Test
   public void testResolveBean() {
-    Assert.assertEquals(Arrays.asList("post-construct-invoked", "bean-invoked", "pre-destroy-invoked"), DependentScopedBean.lifecycle);
+    assertThat(DependentScopedBean.lifecycle).isEqualTo(Arrays.asList("post-construct-invoked", "bean-invoked", "pre-destroy-invoked"));
   }
 
 }

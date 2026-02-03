@@ -16,10 +16,9 @@
  */
 package org.cibseven.bpm.integrationtest.functional.error;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Collections;
 import java.util.Map;
@@ -31,13 +30,13 @@ import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -70,12 +69,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowExceptionInExecute() {
     String pi = runtimeService.startProcessInstanceByKey("testProcess", throwException()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
@@ -85,12 +84,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowErrorInExecute() {
     String pi = runtimeService.startProcessInstanceByKey("testProcess", throwError()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
@@ -100,7 +99,7 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowExceptionInSignal() {
     String pi = runtimeService.startProcessInstanceByKey("testProcess").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").singleResult();
@@ -109,12 +108,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
     runtimeService.setVariables(pi, throwException());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
@@ -124,7 +123,7 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowErrorInSignal() {
     String pi = runtimeService.startProcessInstanceByKey("testProcess").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").singleResult();
@@ -133,12 +132,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
     runtimeService.setVariables(pi, throwError());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
@@ -148,12 +147,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowExceptionInExecuteSequentialMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessSequentialMI", throwException()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
@@ -163,12 +162,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowErrorInExecuteSequentialMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessSequentialMI", throwError()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
@@ -178,7 +177,7 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowExceptionInSignalSequentialMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessSequentialMI").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     // signal 2 times to execute first sequential behaviors
@@ -192,12 +191,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
     runtimeService.setVariables(pi, throwException());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
@@ -207,7 +206,7 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowErrorInSignalSequentialMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessSequentialMI").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     // signal 2 times to execute first sequential behaviors
@@ -222,12 +221,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
     runtimeService.setVariables(pi, throwError());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
@@ -237,12 +236,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowExceptionInExecuteParallelMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessParallelMI", throwException()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
@@ -252,12 +251,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowErrorInExecuteParallelMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessParallelMI", throwError()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
@@ -267,7 +266,7 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowExceptionInSignalParallelMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessParallelMI").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").list().get(3);
@@ -276,12 +275,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
     runtimeService.setVariables(pi, throwException());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
@@ -291,7 +290,7 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowErrorInSignalParallelMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessParallelMI").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").list().get(3);
@@ -300,12 +299,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
     runtimeService.setVariables(pi, throwError());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
@@ -315,12 +314,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowExceptionInDelegateExpressionExecute() {
     String pi = runtimeService.startProcessInstanceByKey("testProcess", throwException()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
@@ -330,12 +329,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowErrorInDelegateExpressionExecute() {
     String pi = runtimeService.startProcessInstanceByKey("testProcess", throwError()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
@@ -345,7 +344,7 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowExceptionInDelegateExpressionSignal() {
     String pi = runtimeService.startProcessInstanceByKey("testProcess").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").singleResult();
@@ -354,12 +353,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
     runtimeService.setVariables(pi, throwException());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
@@ -369,7 +368,7 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowErrorInDelegateExpressionSignal() {
     String pi = runtimeService.startProcessInstanceByKey("testProcess").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").singleResult();
@@ -378,12 +377,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
     runtimeService.setVariables(pi, throwError());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
@@ -393,12 +392,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowExceptionInDelegateExpressionExecuteSequentialMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessSequentialMI", throwException()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
@@ -408,12 +407,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowErrorInDelegateExpressionExecuteSequentialMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessSequentialMI", throwError()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
@@ -423,7 +422,7 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowExceptionInDelegateExpressionSignalSequentialMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessSequentialMI").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     // signal 2 times to execute first sequential behaviors
@@ -437,12 +436,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
     runtimeService.setVariables(pi, throwException());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
@@ -452,7 +451,7 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowErrorInDelegateExpressionSignalSequentialMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessSequentialMI").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     // signal 2 times to execute first sequential behaviors
@@ -467,12 +466,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
     runtimeService.setVariables(pi, throwError());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
@@ -482,12 +481,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowExceptionInDelegateExpressionExecuteParallelMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessParallelMI", throwException()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
@@ -497,12 +496,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowErrorInDelegateExpressionExecuteParallelMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessParallelMI", throwError()).getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }
@@ -512,7 +511,7 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowExceptionInDelegateExpressionSignalParallelMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessParallelMI").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").list().get(3);
@@ -521,12 +520,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
     runtimeService.setVariables(pi, throwException());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskException", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskException");
 
     taskService.complete(userTask.getId());
   }
@@ -536,7 +535,7 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
   public void testThrowErrorInDelegateExpressionSignalParallelMultiInstance() {
     String pi = runtimeService.startProcessInstanceByKey("testProcessParallelMI").getId();
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
     assertNull(runtimeService.getVariable(pi, "signaled"));
 
     Execution serviceTask = runtimeService.createExecutionQuery().processInstanceId(pi).activityId("serviceTask").list().get(3);
@@ -545,12 +544,12 @@ public class CatchErrorFromProcessApplicationTest extends AbstractFoxPlatformInt
     runtimeService.setVariables(pi, throwError());
     runtimeService.signal(serviceTask.getId());
 
-    assertTrue((Boolean) runtimeService.getVariable(pi, "executed"));
-    assertTrue((Boolean) runtimeService.getVariable(pi, "signaled"));
+    assertThat((Boolean) runtimeService.getVariable(pi, "executed")).isTrue();
+    assertThat((Boolean) runtimeService.getVariable(pi, "signaled")).isTrue();
 
     Task userTask = taskService.createTaskQuery().processInstanceId(pi).singleResult();
     assertNotNull(userTask);
-    assertEquals("userTaskError", userTask.getTaskDefinitionKey());
+    assertThat(userTask.getTaskDefinitionKey()).isEqualTo("userTaskError");
 
     taskService.complete(userTask.getId());
   }

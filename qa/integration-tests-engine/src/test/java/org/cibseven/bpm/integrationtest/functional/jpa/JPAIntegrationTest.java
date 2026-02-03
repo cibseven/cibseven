@@ -18,10 +18,10 @@ package org.cibseven.bpm.integrationtest.functional.jpa;
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -34,7 +34,7 @@ import javax.transaction.UserTransaction;
  *
  * @author Daniel Meyer
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class JPAIntegrationTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment

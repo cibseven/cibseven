@@ -21,11 +21,11 @@ import org.cibseven.bpm.integrationtest.functional.ejb.beans.SFSBClientDelegate;
 import org.cibseven.bpm.integrationtest.functional.ejb.beans.SFSBDelegate;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 
 
@@ -35,7 +35,7 @@ import org.junit.runner.RunWith;
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class SFSBDelegateTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -55,7 +55,7 @@ public class SFSBDelegateTest extends AbstractFoxPlatformIntegrationTest {
 
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("testBeanResolution");
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), SFSBDelegate.class.getName()));
+    Assertions.assertEquals(true, runtimeService.getVariable(pi.getId(), SFSBDelegate.class.getName()));
 
     runtimeService.setVariable(pi.getId(), SFSBDelegate.class.getName(), false);
 
@@ -63,7 +63,7 @@ public class SFSBDelegateTest extends AbstractFoxPlatformIntegrationTest {
 
     waitForJobExecutorToProcessAllJobs();
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), SFSBDelegate.class.getName()));
+    Assertions.assertEquals(true, runtimeService.getVariable(pi.getId(), SFSBDelegate.class.getName()));
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(pi.getId()).singleResult().getId());
 
@@ -77,7 +77,7 @@ public class SFSBDelegateTest extends AbstractFoxPlatformIntegrationTest {
 
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("testBeanResolutionfromClient");
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), SFSBDelegate.class.getName()));
+    Assertions.assertEquals(true, runtimeService.getVariable(pi.getId(), SFSBDelegate.class.getName()));
 
     runtimeService.setVariable(pi.getId(), SFSBDelegate.class.getName(), false);
 
@@ -85,7 +85,7 @@ public class SFSBDelegateTest extends AbstractFoxPlatformIntegrationTest {
 
     waitForJobExecutorToProcessAllJobs();
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), SFSBDelegate.class.getName()));
+    Assertions.assertEquals(true, runtimeService.getVariable(pi.getId(), SFSBDelegate.class.getName()));
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(pi.getId()).singleResult().getId());
   }
@@ -99,7 +99,7 @@ public class SFSBDelegateTest extends AbstractFoxPlatformIntegrationTest {
 
     for(int i=0; i<instances; i++) {
       ids[i] = runtimeService.startProcessInstanceByKey("testBeanResolutionfromClient").getId();
-      Assert.assertEquals("Incovation=" + i, true, runtimeService.getVariable(ids[i], SFSBDelegate.class.getName()));
+      Assertions.assertEquals(true, runtimeService.getVariable(ids[i], SFSBDelegate.class.getName()), "Incovation=" + i);
       runtimeService.setVariable(ids[i], SFSBDelegate.class.getName(), false);
       taskService.complete(taskService.createTaskQuery().processInstanceId(ids[i]).singleResult().getId());
     }
@@ -107,7 +107,7 @@ public class SFSBDelegateTest extends AbstractFoxPlatformIntegrationTest {
     waitForJobExecutorToProcessAllJobs(60*1000);
 
     for(int i=0; i<instances; i++) {
-      Assert.assertEquals("Incovation=" + i, true, runtimeService.getVariable(ids[i], SFSBDelegate.class.getName()));
+      Assertions.assertEquals(true, runtimeService.getVariable(ids[i], SFSBDelegate.class.getName()), "Incovation=" + i);
       taskService.complete(taskService.createTaskQuery().processInstanceId(ids[i]).singleResult().getId());
     }
 

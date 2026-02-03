@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.spring;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.JobQuery;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
@@ -26,12 +28,11 @@ import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * <p>Integration test that makes sure the shared container managed process engine is able to resolve
@@ -40,7 +41,7 @@ import org.junit.runner.RunWith;
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class SpringRetryConfigurationTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -108,7 +109,7 @@ public class SpringRetryConfigurationTest extends AbstractFoxPlatformIntegration
 
     // then
     job = query.singleResult();
-    Assert.assertEquals(6, job.getRetries());
+    assertThat(job.getRetries()).isEqualTo(6);
   }
 
 }

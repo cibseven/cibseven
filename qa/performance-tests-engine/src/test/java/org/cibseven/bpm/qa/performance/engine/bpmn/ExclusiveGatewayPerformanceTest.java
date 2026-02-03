@@ -19,7 +19,7 @@ package org.cibseven.bpm.qa.performance.engine.bpmn;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.qa.performance.engine.junit.ProcessEnginePerformanceTestCase;
 import org.cibseven.bpm.qa.performance.engine.steps.StartProcessInstanceStep;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer

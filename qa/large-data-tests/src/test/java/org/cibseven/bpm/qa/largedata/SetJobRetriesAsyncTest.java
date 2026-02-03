@@ -29,14 +29,11 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.qa.largedata.util.BatchModificationJobHelper;
 import org.cibseven.bpm.qa.largedata.util.EngineDataGenerator;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class SetJobRetriesAsyncTest {
 
@@ -44,17 +41,13 @@ public class SetJobRetriesAsyncTest {
   protected static final int GENERATE_PROCESS_INSTANCES_COUNT = 3000;
 
   protected ProcessEngineRule engineRule = new ProcessEngineRule();
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   protected BatchModificationJobHelper helper = new BatchModificationJobHelper(engineRule);
-
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected EngineDataGenerator generator;
   protected RuntimeService runtimeService;
   protected ManagementService managementService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     runtimeService = engineRule.getRuntimeService();
     managementService = engineRule.getManagementService();
@@ -65,7 +58,7 @@ public class SetJobRetriesAsyncTest {
     generator.generateAsyncTaskProcessInstanceData();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     helper.removeAllRunningAndHistoricBatches();
   }

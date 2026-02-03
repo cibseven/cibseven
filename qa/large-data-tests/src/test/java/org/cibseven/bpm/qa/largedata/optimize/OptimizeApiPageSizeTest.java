@@ -19,13 +19,11 @@ package org.cibseven.bpm.qa.largedata.optimize;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.cibseven.bpm.engine.impl.OptimizeService;
-import org.cibseven.bpm.engine.impl.test.TestHelper;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.qa.largedata.util.EngineDataGenerator;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 import java.util.List;
@@ -43,7 +41,7 @@ public class OptimizeApiPageSizeTest {
   @ClassRule
   public static ProcessEngineRule processEngineRule = new ProcessEngineRule("camunda.cfg.xml");
 
-  @BeforeClass
+  @BeforeAll
   public static void init() {
     optimizeService = processEngineRule.getProcessEngineConfiguration().getOptimizeService();
 

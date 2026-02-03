@@ -28,21 +28,18 @@ import org.cibseven.bpm.integrationtest.functional.context.beans.SignalableTask;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
-
+import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Checks if the process application is invoked with an invocation context.
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class InvocationContextTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment(name = "app")
@@ -58,7 +55,7 @@ public class InvocationContextTest extends AbstractFoxPlatformIntegrationTest {
         .addAsResource("org/cibseven/bpm/integrationtest/functional/context/InvocationContextTest-signalTask.bpmn");
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     ClockUtil.reset();
   }
@@ -70,67 +67,54 @@ public class InvocationContextTest extends AbstractFoxPlatformIntegrationTest {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("messageProcess");
 
     InvocationContext invocationContext = ProcessApplicationWithInvocationContext.getInvocationContext();
-    assertThat(invocationContext, is(notNullValue()));
-    assertThat(invocationContext.getExecution(), is(notNullValue()));
-    assertThat(invocationContext.getExecution().getId(), is(pi.getId()));
+    assertThat(invocationContext).isNotNull();
+    assertThat(invocationContext.getExecution()).isNotNull();
+    assertThat(invocationContext.getExecution().getId()).isEqualTo(pi.getId());
   }
 
   @Test
   @OperateOnDeployment("app")
   public void testInvokeProcessApplicationWithContextOnAsyncExecution() {
-
     runtimeService.startProcessInstanceByKey("timerProcess");
     ProcessApplicationWithInvocationContext.clearInvocationContext();
-
     Job timer = managementService.createJobQuery().timers().singleResult();
-    assertThat(timer, is(notNullValue()));
-
+    assertThat(timer).isNotNull();
     long dueDate = timer.getDuedate().getTime();
     Date afterDueDate = new Date(dueDate + 1000 * 60);
-
     ClockUtil.setCurrentTime(afterDueDate);
     waitForJobExecutorToProcessAllJobs();
-
     InvocationContext invocationContext = ProcessApplicationWithInvocationContext.getInvocationContext();
-    assertThat(invocationContext, is(notNullValue()));
-    assertThat(invocationContext.getExecution(), is(notNullValue()));
-    assertThat(invocationContext.getExecution().getId(), is(timer.getExecutionId()));
+    assertThat(invocationContext).isNotNull();
+    assertThat(invocationContext.getExecution()).isNotNull();
+    assertThat(invocationContext.getExecution().getId()).isEqualTo(timer.getExecutionId());
   }
 
   @Test
   @OperateOnDeployment("app")
   public void testInvokeProcessApplicationWithContextOnMessageReceived() {
-
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("messageProcess");
     ProcessApplicationWithInvocationContext.clearInvocationContext();
-
     EventSubscription messageSubscription = runtimeService.createEventSubscriptionQuery().eventType("message").processInstanceId(processInstance.getId()).singleResult();
-    assertThat(messageSubscription, is(notNullValue()));
-
+    assertThat(messageSubscription).isNotNull();
     runtimeService.messageEventReceived(messageSubscription.getEventName(), messageSubscription.getExecutionId());
-
     InvocationContext invocationContext = ProcessApplicationWithInvocationContext.getInvocationContext();
-    assertThat(invocationContext, is(notNullValue()));
-    assertThat(invocationContext.getExecution(), is(notNullValue()));
-    assertThat(invocationContext.getExecution().getId(), is(messageSubscription.getExecutionId()));
+    assertThat(invocationContext).isNotNull();
+    assertThat(invocationContext.getExecution()).isNotNull();
+    assertThat(invocationContext.getExecution().getId()).isEqualTo(messageSubscription.getExecutionId());
   }
 
   @Test
   @OperateOnDeployment("app")
   public void testInvokeProcessApplicationWithContextOnSignalTask() {
-
     runtimeService.startProcessInstanceByKey("signalableProcess");
     ProcessApplicationWithInvocationContext.clearInvocationContext();
-
     Execution execution = runtimeService.createExecutionQuery().activityId("waitingTask").singleResult();
-    assertThat(execution, is(notNullValue()));
-
+    assertThat(execution).isNotNull();
     runtimeService.signal(execution.getId());
-
     InvocationContext invocationContext = ProcessApplicationWithInvocationContext.getInvocationContext();
-    assertThat(invocationContext, is(notNullValue()));
-    assertThat(invocationContext.getExecution(), is(notNullValue()));
-    assertThat(invocationContext.getExecution().getId(), is(execution.getId()));
+    assertThat(invocationContext).isNotNull();
+    assertThat(invocationContext.getExecution()).isNotNull();
+    assertThat(invocationContext.getExecution().getId()).isEqualTo(execution.getId());
   }
 
 }

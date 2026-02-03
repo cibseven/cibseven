@@ -32,7 +32,7 @@ import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate.ThrowBpmnErrorDelegateException;
 import org.junit.Assert;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 @ScenarioUnderTest("NestedNonInterruptingBoundaryEventOnInnerSubprocessScenario")
 @Origin("1.1.0")

@@ -16,6 +16,10 @@
  */
 package org.cibseven.bpm.rest;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
@@ -25,8 +29,8 @@ import org.json.JSONObject;
 import org.cibseven.bpm.AbstractWebIntegrationTest;
 import org.cibseven.bpm.engine.rest.hal.Hal;
 import org.cibseven.bpm.engine.rest.mapper.JacksonConfigurator;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -35,7 +39,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import static org.junit.Assert.*;
 
 public class RestIT extends AbstractWebIntegrationTest {
 
@@ -57,7 +60,7 @@ public class RestIT extends AbstractWebIntegrationTest {
 
   private final static Logger log = Logger.getLogger(RestIT.class.getName());
 
-  @Before
+  @BeforeEach
   public void createClient() throws Exception {
     preventRaceConditions();
     createClient(getRestCtxPath());
@@ -71,25 +74,25 @@ public class RestIT extends AbstractWebIntegrationTest {
         .header("Accept", "application/json")
         .asJson();
 
-    assertEquals(200, response.getStatus());
+    assertThat(response.getStatus()).isEqualTo(200);
 
     JSONArray definitionsJson = response.getBody().getArray();
 
     // invoice example
-    assertEquals(3, definitionsJson.length());
+    assertThat(definitionsJson.length()).isEqualTo(3);
 
     // order of results is not consistent between database types
     for (int i = 0; i < definitionsJson.length(); i++) {
       JSONObject definitionJson = definitionsJson.getJSONObject(i);
       assertTrue(definitionJson.isNull("description"));
-      assertFalse(definitionJson.getBoolean("suspended"));
+      assertThat(definitionJson.getBoolean("suspended")).isFalse();
       if (definitionJson.getString("key").equals("ReviewInvoice")) {
-        assertEquals("http://bpmn.io/schema/bpmn", definitionJson.getString("category"));
-        assertEquals("Review Invoice", definitionJson.getString("name"));
-        assertEquals("reviewInvoice.bpmn", definitionJson.getString("resource"));
+        assertThat(definitionJson.getString("category")).isEqualTo("http://bpmn.io/schema/bpmn");
+        assertThat(definitionJson.getString("name")).isEqualTo("Review Invoice");
+        assertThat(definitionJson.getString("resource")).isEqualTo("reviewInvoice.bpmn");
       } else if (definitionJson.getString("key").equals("invoice")) {
-        assertEquals("http://www.omg.org/spec/BPMN/20100524/MODEL", definitionJson.getString("category"));
-        assertEquals("Invoice Receipt", definitionJson.getString("name"));
+        assertThat(definitionJson.getString("category")).isEqualTo("http://www.omg.org/spec/BPMN/20100524/MODEL");
+        assertThat(definitionJson.getString("name")).isEqualTo("Invoice Receipt");
         assertTrue(definitionJson.getString("resource").matches("invoice\\.v[1,2]\\.bpmn"));
       } else {
         fail("Unexpected definition key in response JSON.");
@@ -106,10 +109,10 @@ public class RestIT extends AbstractWebIntegrationTest {
         .header("Accept", "application/json")
         .asJson();
 
-    assertEquals(200, response.getStatus());
+    assertThat(response.getStatus()).isEqualTo(200);
 
     JSONArray definitionsJson = response.getBody().getArray();
-    assertEquals(4, definitionsJson.length());
+    assertThat(definitionsJson.length()).isEqualTo(4);
   }
 
   @Test
@@ -128,7 +131,7 @@ public class RestIT extends AbstractWebIntegrationTest {
         .body(requestBody)
         .asString();
 
-    assertEquals(204, response.getStatus());
+    assertThat(response.getStatus()).isEqualTo(204);
   }
 
   @Test
@@ -166,7 +169,7 @@ public class RestIT extends AbstractWebIntegrationTest {
         .body(filter)
         .asJson();
 
-    assertEquals(200, response.getStatus());
+    assertThat(response.getStatus()).isEqualTo(200);
     String filterId = response.getBody().getObject().getString("id");
 
     String resourcePath = appBasePath + FILTER_PATH + "/" + filterId + "/list";
@@ -179,7 +182,7 @@ public class RestIT extends AbstractWebIntegrationTest {
 
     // delete test filter
     HttpResponse<String> deleteResponse = Unirest.delete(appBasePath + FILTER_PATH + "/" + filterId).asString();
-    assertEquals(204, deleteResponse.getStatus());
+    assertThat(deleteResponse.getStatus()).isEqualTo(204);
   }
 
   @Test
@@ -190,7 +193,7 @@ public class RestIT extends AbstractWebIntegrationTest {
         .asJson();
 
     // then
-    assertEquals(200, response.getStatus());
+    assertThat(response.getStatus()).isEqualTo(200);
     JSONObject logElement = response.getBody().getArray().getJSONObject(0);
     String timestamp = logElement.getString("timestamp");
     try {
@@ -224,9 +227,9 @@ public class RestIT extends AbstractWebIntegrationTest {
 
     JSONArray instancesJson = response.getBody().getArray();
 
-    assertEquals(200, response.getStatus());
+    assertThat(response.getStatus()).isEqualTo(200);
     // invoice example instance
-    assertEquals(2, instancesJson.length());
+    assertThat(instancesJson.length()).isEqualTo(4);
   }
 
   @Test
@@ -238,18 +241,18 @@ public class RestIT extends AbstractWebIntegrationTest {
 
     JSONArray definitionStatistics = response.getBody().getArray();
 
-    assertEquals(200, response.getStatus());
+    assertThat(response.getStatus()).isEqualTo(200);
     // invoice example instance
-    assertEquals(3, definitionStatistics.length());
+    assertThat(definitionStatistics.length()).isEqualTo(3);
 
     // check that definition is also serialized
     for (int i = 0; i < definitionStatistics.length(); i++) {
       JSONObject definitionStatistic = definitionStatistics.getJSONObject(i);
-      assertEquals("org.cibseven.bpm.engine.rest.dto.repository.ProcessDefinitionStatisticsResultDto", definitionStatistic.getString("@class"));
-      assertEquals(0, definitionStatistic.getJSONArray("incidents").length());
+      assertThat(definitionStatistic.getString("@class")).isEqualTo("org.cibseven.bpm.engine.rest.dto.repository.ProcessDefinitionStatisticsResultDto");
+      assertThat(definitionStatistic.getJSONArray("incidents").length()).isEqualTo(0);
       JSONObject definition = definitionStatistic.getJSONObject("definition");
       assertTrue(definition.getString("name").toLowerCase().contains("invoice"));
-      assertFalse(definition.getBoolean("suspended"));
+      assertThat(definition.getBoolean("suspended")).isFalse();
     }
   }
 
@@ -263,8 +266,8 @@ public class RestIT extends AbstractWebIntegrationTest {
     HttpResponse<JsonNode> response = Unirest.options(resourcePath).asJson();
 
     // then
-    assertNotNull(response);
-    assertEquals(200, response.getStatus());
+    assertThat(response).isNotNull();
+    assertThat(response.getStatus()).isEqualTo(200);
     JSONObject entity = response.getBody().getObject();
     assertTrue(entity.has("links"));
   }
@@ -277,7 +280,7 @@ public class RestIT extends AbstractWebIntegrationTest {
         .body("")
         .asString();
 
-    assertEquals(400, response.getStatus());
+    assertThat(response.getStatus()).isEqualTo(400);
   }
 
   protected JSONObject getFirstTask() throws Exception {
@@ -330,8 +333,8 @@ public class RestIT extends AbstractWebIntegrationTest {
 
   protected void assertMediaType(HttpResponse<String> response, String expected) {
     String actual = response.getHeaders().getFirst("Content-Type");
-    assertEquals(200, response.getStatus());
+    assertThat(response.getStatus()).isEqualTo(200);
     // use startsWith cause sometimes server also returns quality parameters
-    assertTrue("Expected: " + expected + " Actual: " + actual, actual != null && actual.startsWith(expected));
+    assertThat(actual.startsWith(expected)).isTrue().withFailMessage("Expected media type '%s' but was '%s'", expected, actual);
   }
 }

@@ -28,8 +28,8 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.rolling.update.RollingUpdateConstants;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 @ScenarioUnderTest("SetRemovalTimeToProcessInstanceScenario")
 public class SetRemovalTimeToProcessInstanceTest extends AbstractRollingUpdateTestCase {
@@ -37,7 +37,7 @@ public class SetRemovalTimeToProcessInstanceTest extends AbstractRollingUpdateTe
   protected ManagementService managementService;
   protected RuntimeService runtimeService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     managementService = rule.getManagementService();
     runtimeService = rule.getRuntimeService();

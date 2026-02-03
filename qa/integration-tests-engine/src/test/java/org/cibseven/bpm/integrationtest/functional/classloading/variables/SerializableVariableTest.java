@@ -20,11 +20,11 @@ import org.cibseven.bpm.integrationtest.functional.classloading.variables.beans.
 import org.cibseven.bpm.integrationtest.functional.classloading.variables.beans.SetVariableDelegate;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 
 /**
@@ -33,7 +33,7 @@ import org.junit.runner.RunWith;
  *
  * @author Daniel Meyer
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class SerializableVariableTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -52,7 +52,7 @@ public class SerializableVariableTest extends AbstractFoxPlatformIntegrationTest
 
     waitForJobExecutorToProcessAllJobs();
 
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processInstanceId(pid).singleResult());
+    Assertions.assertNull(runtimeService.createProcessInstanceQuery().processInstanceId(pid).singleResult());
 
   }
 

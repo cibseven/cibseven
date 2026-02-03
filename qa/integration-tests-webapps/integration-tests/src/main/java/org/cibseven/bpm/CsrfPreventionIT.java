@@ -20,22 +20,22 @@ import javax.ws.rs.core.MediaType;
 
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
+@Timeout(10) // 10 seconds timeout for all tests in this class
 public class CsrfPreventionIT extends AbstractWebIntegrationTest {
 
-  @Before
+  @BeforeEach
   public void createClient() throws Exception {
     preventRaceConditions();
     createClient(getWebappCtxPath());
   }
 
-  @Test(timeout=10000)
+  @Test
   public void shouldCheckPresenceOfCsrfPreventionCookie() {
     // given
 
@@ -44,17 +44,17 @@ public class CsrfPreventionIT extends AbstractWebIntegrationTest {
         .asString();
 
     // then
-    assertEquals(200, response.getStatus());
+    assertThat(response.getStatus()).isEqualTo(200);
     String xsrfTokenHeader = getXsrfTokenHeader(response);
     String xsrfCookieValue = getXsrfCookieValue(response);
 
-    assertNotNull(xsrfTokenHeader);
-    assertEquals(32, xsrfTokenHeader.length());
-    assertNotNull(xsrfCookieValue);
-    assertTrue(xsrfCookieValue.contains(";SameSite=Lax"));
+    assertThat(xsrfTokenHeader).isNotNull();
+    assertThat(xsrfTokenHeader.length()).isEqualTo(32);
+    assertThat(xsrfCookieValue).isNotNull();
+    assertThat(xsrfCookieValue).contains(";SameSite=Lax");
   }
 
-  @Test(timeout=10000)
+  @Test
   public void shouldRejectModifyingRequest() {
     // given
     String baseUrl = testProperties.getApplicationPath("/" + getWebappCtxPath());
@@ -66,8 +66,8 @@ public class CsrfPreventionIT extends AbstractWebIntegrationTest {
         .asString();
 
     // then
-    assertEquals(403, response.getStatus());
-    assertTrue(getXsrfTokenHeader(response).equals("Required"));
+    assertThat(response.getStatus()).isEqualTo(403);
+    assertThat(getXsrfTokenHeader(response)).isEqualTo("Required");
   }
 
 }

@@ -34,12 +34,10 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 /**
  *
  * @author Christopher Zell <christopher.zell@camunda.com>
@@ -58,7 +56,7 @@ public class AuthorizationTest extends AbstractRollingUpdateTestCase {
   protected HistoryService historyService;
   protected FormService formService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     identityService = rule.getIdentityService();
     repositoryService = rule.getRepositoryService();
@@ -71,7 +69,7 @@ public class AuthorizationTest extends AbstractRollingUpdateTestCase {
     identityService.setAuthentication(USER_ID + rule.getBuisnessKey(), Arrays.asList(GROUP_ID + rule.getBuisnessKey()));
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     identityService.clearAuthentication();
   }
@@ -102,7 +100,7 @@ public class AuthorizationTest extends AbstractRollingUpdateTestCase {
 
   public void testGetDeployment() {
     List<Deployment> deployments = repositoryService.createDeploymentQuery().list();
-    assertFalse(deployments.isEmpty());
+    assertThat(deployments.isEmpty()).isFalse();
   }
 
   public void testGetProcessDefinition() {
@@ -110,7 +108,7 @@ public class AuthorizationTest extends AbstractRollingUpdateTestCase {
         .createProcessDefinitionQuery()
         .processDefinitionKey(PROCESS_DEF_KEY)
         .list();
-    assertFalse(definitions.isEmpty());
+    assertThat(definitions.isEmpty()).isFalse();
   }
 
   public void testGetProcessInstance() {
@@ -119,7 +117,7 @@ public class AuthorizationTest extends AbstractRollingUpdateTestCase {
         .processInstanceBusinessKey(rule.getBuisnessKey())
         .processDefinitionKey(PROCESS_DEF_KEY)
         .list();
-    assertFalse(instances.isEmpty());
+    assertThat(instances.isEmpty()).isFalse();
   }
 
   public void testGetExecution() {
@@ -128,7 +126,7 @@ public class AuthorizationTest extends AbstractRollingUpdateTestCase {
         .processInstanceBusinessKey(rule.getBuisnessKey())
         .processDefinitionKey(PROCESS_DEF_KEY)
         .list();
-    assertFalse(executions.isEmpty());
+    assertThat(executions.isEmpty()).isFalse();
   }
 
   public void testGetTask() {
@@ -137,7 +135,7 @@ public class AuthorizationTest extends AbstractRollingUpdateTestCase {
         .processInstanceBusinessKey(rule.getBuisnessKey())
         .processDefinitionKey(PROCESS_DEF_KEY)
         .list();
-    assertFalse(tasks.isEmpty());
+    assertThat(tasks.isEmpty()).isFalse();
   }
 
   public void testGetHistoricProcessInstance() {
@@ -146,14 +144,14 @@ public class AuthorizationTest extends AbstractRollingUpdateTestCase {
         .processInstanceBusinessKey(rule.getBuisnessKey())
         .processDefinitionKey(PROCESS_DEF_KEY)
         .list();
-    assertFalse(instances.isEmpty());
+    assertThat(instances.isEmpty()).isFalse();
   }
 
   public void testGetHistoricActivityInstance() {
     List<HistoricActivityInstance> instances= historyService
         .createHistoricActivityInstanceQuery()
         .list();
-    assertFalse(instances.isEmpty());
+    assertThat(instances.isEmpty()).isFalse();
   }
 
   public void testGetHistoricTaskInstance() {
@@ -161,17 +159,17 @@ public class AuthorizationTest extends AbstractRollingUpdateTestCase {
         .createHistoricTaskInstanceQuery()
         .processDefinitionKey(PROCESS_DEF_KEY)
         .list();
-    assertFalse(instances.isEmpty());
+    assertThat(instances.isEmpty()).isFalse();
   }
 
   public void testStartProcessInstance() {
     ProcessInstance instance = runtimeService.startProcessInstanceByKey(PROCESS_DEF_KEY, rule.getBuisnessKey());
-    assertNotNull(instance);
+    assertThat(instance).isNotNull();
   }
 
   public void testSubmitStartForm() {
     ProcessInstance instance = formService.submitStartForm(rule.processInstance().getProcessDefinitionId(), rule.getBuisnessKey(), null);
-    assertNotNull(instance);
+    assertThat(instance).isNotNull();
   }
 
   public void testCompleteTaskInstance() {

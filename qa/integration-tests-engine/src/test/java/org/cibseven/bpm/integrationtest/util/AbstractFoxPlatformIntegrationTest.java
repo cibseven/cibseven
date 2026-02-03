@@ -35,7 +35,7 @@ import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.util.List;
 import java.util.Timer;
@@ -85,7 +85,7 @@ public abstract class AbstractFoxPlatformIntegrationTest {
 
 
 
-  @Before
+  @BeforeEach
   public void setupBeforeTest() {
     processEngineService = BpmPlatform.getProcessEngineService();
     processEngine = processEngineService.getDefaultProcessEngine();

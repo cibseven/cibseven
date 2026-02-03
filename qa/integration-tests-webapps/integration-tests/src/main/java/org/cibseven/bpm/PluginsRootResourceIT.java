@@ -18,54 +18,43 @@ package org.cibseven.bpm;
 
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@RunWith(Parameterized.class)
 public class PluginsRootResourceIT extends AbstractWebIntegrationTest {
 
-  @Parameter(0)
-  public String assetName;
-
-  @Parameter(1)
-  public boolean assetAllowed;
-
-  @Before
+  @BeforeEach
   public void createClient() throws Exception {
     createClient(getWebappCtxPath());
   }
 
-  @Parameters(name = "Test instance: {index}. Asset: {0}, Allowed: {1}")
-  public static Collection<Object[]> getAssets() {
-    return Arrays.asList(new Object[][]{
-        {"app/plugin.js", true},
-        {"app/plugin.css", true},
-        {"app/asset.js", false},
-        {"../..", false},
-        {"../../annotations-api.jar", false},
-    });
+  static Stream<org.junit.jupiter.params.provider.Arguments> getAssets() {
+    return Stream.of(
+        org.junit.jupiter.params.provider.Arguments.of("app/plugin.js", true),
+        org.junit.jupiter.params.provider.Arguments.of("app/plugin.css", true),
+        org.junit.jupiter.params.provider.Arguments.of("app/asset.js", false),
+        org.junit.jupiter.params.provider.Arguments.of("../..", false),
+        org.junit.jupiter.params.provider.Arguments.of("../../annotations-api.jar", false)
+    );
   }
 
-  @Test
-  public void shouldGetAssetIfAllowed() {
+  @ParameterizedTest(name = "Test instance: {index}. Asset: {0}, Allowed: {1}")
+  @MethodSource("getAssets")
+  public void shouldGetAssetIfAllowed(String assetName, boolean assetAllowed) {
     // when
     HttpResponse<String> response = Unirest.get(appBasePath + "api/admin/plugin/adminPlugins/static/" + assetName).asString();
 
     // then
-    assertResponse(assetName, response);
+    assertResponse(assetName, assetAllowed, response);
   }
 
-  protected void assertResponse(String asset, HttpResponse<String> response) {
+  protected void assertResponse(String asset, boolean assetAllowed, HttpResponse<String> response) {
     if (assetAllowed) {
       assertEquals(200, response.getStatus());
     } else {

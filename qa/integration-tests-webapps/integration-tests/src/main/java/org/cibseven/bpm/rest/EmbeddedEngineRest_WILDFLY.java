@@ -21,20 +21,21 @@ import org.cibseven.bpm.rest.beans.CustomRestApplication;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.assertj.core.api.Assertions.fail;
+import org.jboss.arquillian.junit5.ArquillianExtension;
+
 
 import java.io.IOException;
 
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class EmbeddedEngineRest_WILDFLY {
 
   private static final String EMBEDDED_ENGINE_REST = "embedded-engine-rest";
@@ -62,7 +63,7 @@ public class EmbeddedEngineRest_WILDFLY {
       deployer.deploy(EMBEDDED_ENGINE_REST);
       deployer.undeploy(EMBEDDED_ENGINE_REST);
     } catch(Exception e) {
-      Assert.fail("Embedded engine-rest deployment failed because of " + e);
+      fail("Embedded engine-rest deployment failed because of " + e);
     }
   }
 

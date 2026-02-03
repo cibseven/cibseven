@@ -20,11 +20,13 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.integrationtest.functional.transactions.beans.FailingDelegate;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.inject.Inject;
 import javax.transaction.Status;
@@ -36,7 +38,7 @@ import javax.transaction.UserTransaction;
  *
  * @author Daniel Meyer
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TransactionIntegrationTest extends AbstractFoxPlatformIntegrationTest {
     
   @Deployment
@@ -68,18 +70,18 @@ public class TransactionIntegrationTest extends AbstractFoxPlatformIntegrationTe
                         
       try {
         runtimeService.startProcessInstanceByKey("testProcessFailure");
-        Assert.fail("Exception expected");
+        fail("Exception expected");
       }catch (Exception ex) {
         if(!(ex instanceof RuntimeException)) {
-          Assert.fail("Wrong exception of type "+ex+" RuntimeException expected!");
+          fail("Wrong exception of type "+ex+" RuntimeException expected!");
         }    
         if(!ex.getMessage().contains("I'm a complete failure!")) {
-          Assert.fail("Different message expected");
+          fail("Different message expected");
         }
       }
       
       // assert that now our transaction is marked rollback-only:
-      Assert.assertEquals(Status.STATUS_MARKED_ROLLBACK, utx.getStatus());
+      assertThat(utx.getStatus()).isEqualTo(Status.STATUS_MARKED_ROLLBACK);
       
     } finally {
       // make sure we always rollback
@@ -101,7 +103,7 @@ public class TransactionIntegrationTest extends AbstractFoxPlatformIntegrationTe
       String id = runtimeService.startProcessInstanceByKey("testApplicationFailure").getId();
       
       // assert that the transaction is in good shape:
-      Assert.assertEquals(Status.STATUS_ACTIVE, utx.getStatus());
+      assertThat(utx.getStatus()).isEqualTo(Status.STATUS_ACTIVE);
      
       // now rollback the transaction (simmulating an application failure after the process engine is done).
       utx.rollback();
@@ -113,7 +115,7 @@ public class TransactionIntegrationTest extends AbstractFoxPlatformIntegrationTe
         .processInstanceId(id)
         .singleResult();
       
-      Assert.assertNull(processInstance);
+      Assertions.assertNull(processInstance);
       
       utx.commit();
     }catch (Exception e) {
@@ -132,14 +134,14 @@ public class TransactionIntegrationTest extends AbstractFoxPlatformIntegrationTe
       String id = runtimeService.startProcessInstanceByKey("testTxSuccess").getId();
       
       // assert that the transaction is in good shape:
-      Assert.assertEquals(Status.STATUS_ACTIVE, utx.getStatus());
+      assertThat(utx.getStatus()).isEqualTo(Status.STATUS_ACTIVE);
       
       // the process instance is visible form our tx:
       ProcessInstance processInstance = runtimeService.createProcessInstanceQuery()
         .processInstanceId(id)
         .singleResult();
       
-      Assert.assertNotNull(processInstance);
+      Assertions.assertNotNull(processInstance);
      
       utx.commit();
       
@@ -150,7 +152,7 @@ public class TransactionIntegrationTest extends AbstractFoxPlatformIntegrationTe
         .processInstanceId(id)
         .singleResult();
       
-      Assert.assertNotNull(processInstance);
+      Assertions.assertNotNull(processInstance);
       
       utx.commit();
     }catch (Exception e) {

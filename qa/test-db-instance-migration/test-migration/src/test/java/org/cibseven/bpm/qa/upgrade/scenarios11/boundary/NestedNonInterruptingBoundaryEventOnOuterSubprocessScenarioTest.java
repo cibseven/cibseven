@@ -32,8 +32,8 @@ import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate.ThrowBpmnErrorDelegateException;
 import org.junit.Assert;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 
 @ScenarioUnderTest("NestedNonInterruptingBoundaryEventOnOuterSubprocessScenario")
 @Origin("1.1.0")
@@ -131,7 +131,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
   }
 
   // TODO: fix the test for CIB seven migration and enable it 
-  @Ignore("Error with CIB seven engine: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("Error with CIB seven engine: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("initTimer.6")
   public void testInitTimerThrowError() {
@@ -258,7 +258,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
   }
 
   // TODO: fix the test for CIB seven migration and enable it 
-  @Ignore("Error with CIB seven engine: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("Error with CIB seven engine: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("initMessage.6")
   public void testInitMessageThrowError() {

@@ -27,8 +27,8 @@ import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.junit.Assert;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 
 /**
  * @author Thorben Lindhauer
@@ -131,7 +131,7 @@ public class SubprocessCompensationScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("init.triggerCompensation.3")
   public void testInitTriggerCompensationActivityInstanceTree() {
@@ -248,7 +248,7 @@ public class SubprocessCompensationScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("init.concurrent.triggerCompensation.3")
   public void testInitConcurrentTriggerCompensationActivityInstanceTree() {

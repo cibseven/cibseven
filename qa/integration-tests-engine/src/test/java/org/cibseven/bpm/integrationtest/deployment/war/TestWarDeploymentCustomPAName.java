@@ -20,12 +20,13 @@ import org.cibseven.bpm.BpmPlatform;
 import org.cibseven.bpm.integrationtest.deployment.war.apps.CustomNameServletPA;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Set;
 
@@ -33,7 +34,7 @@ import java.util.Set;
  * @author Thorben Lindhauer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TestWarDeploymentCustomPAName extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -49,8 +50,8 @@ public class TestWarDeploymentCustomPAName extends AbstractFoxPlatformIntegratio
   public void testProcessApplicationName() {
     Set<String> paNames = BpmPlatform.getProcessApplicationService().getProcessApplicationNames();
 
-    Assert.assertEquals(1, paNames.size());
-    Assert.assertTrue(paNames.contains(CustomNameServletPA.NAME));
+    assertThat(paNames.size()).isEqualTo(1);
+    assertThat(paNames.contains(CustomNameServletPA.NAME)).isTrue();
 
   }
 }

@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.spin;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.cibseven.bpm.application.PostDeploy;
 import org.cibseven.bpm.application.ProcessApplication;

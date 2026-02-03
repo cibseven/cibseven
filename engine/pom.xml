@@ -360,6 +360,20 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- JUnit 5 Jupiter API for unit testing -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${version.junit5}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${version.junit5}</version>
+      <scope>provided</scope>
+    </dependency>
+
   </dependencies>
 
 

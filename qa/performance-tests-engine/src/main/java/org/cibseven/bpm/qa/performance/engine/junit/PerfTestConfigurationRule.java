@@ -23,25 +23,24 @@ import java.util.Properties;
 import org.cibseven.bpm.engine.impl.util.IoUtil;
 import org.cibseven.bpm.qa.performance.engine.framework.PerfTestConfiguration;
 import org.cibseven.bpm.qa.performance.engine.framework.PerfTestException;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
- * JUnit rule allowing to load the performance test configuration from a file
+ * JUnit 5 extension allowing to load the performance test configuration from a file
  *
  * @author Daniel Meyer
  *
  */
-public class PerfTestConfigurationRule extends TestWatcher {
+public class PerfTestConfigurationRule implements BeforeTestExecutionCallback {
 
   private static final String PROPERTY_FILE_NAME = "perf-test-config.properties";
 
   static PerfTestConfiguration perfTestConfiguration;
 
   @Override
-  protected void starting(Description description) {
+  public void beforeTestExecution(ExtensionContext context) throws Exception {
     if(perfTestConfiguration == null) {
-
       File file = IoUtil.getFile(PROPERTY_FILE_NAME);
       if(!file.exists()) {
         throw new PerfTestException("Cannot load file '"+PROPERTY_FILE_NAME+"': file does not exist.");
@@ -54,7 +53,6 @@ public class PerfTestConfigurationRule extends TestWatcher {
         perfTestConfiguration = new PerfTestConfiguration(properties);
       } catch(Exception e) {
         throw new PerfTestException("Cannot load properties from file "+PROPERTY_FILE_NAME+": "+e);
-
       } finally {
         IoUtil.closeSilently(propertyInputStream);
       }
@@ -64,5 +62,4 @@ public class PerfTestConfigurationRule extends TestWatcher {
   public PerfTestConfiguration getPerformanceTestConfiguration() {
     return perfTestConfiguration;
   }
-
 }

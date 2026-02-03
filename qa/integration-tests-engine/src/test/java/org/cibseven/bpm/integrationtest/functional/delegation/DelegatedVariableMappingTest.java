@@ -19,7 +19,7 @@ package org.cibseven.bpm.integrationtest.functional.delegation;
 import org.cibseven.bpm.integrationtest.functional.delegation.beans.DelegateVarMapping;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.inject.Inject;
-import static junit.framework.TestCase.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.task.TaskQuery;
@@ -29,17 +29,17 @@ import org.cibseven.bpm.integrationtest.util.TestConstants;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  *
  * @author Christopher Zell <christopher.zell@camunda.com>
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class DelegatedVariableMappingTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment(name = "mainDeployment")
@@ -82,21 +82,21 @@ public class DelegatedVariableMappingTest extends AbstractFoxPlatformIntegration
 
     //when
     Task taskInSubProcess = taskQuery.singleResult();
-    assertEquals("Task in subprocess", taskInSubProcess.getName());
+    assertThat(taskInSubProcess.getName()).isEqualTo("Task in subprocess");
 
     //then check value from input variable
     Object inputVar = runtimeService.getVariable(taskInSubProcess.getProcessInstanceId(), "TestInputVar");
-    assertEquals("inValue", inputVar);
+    assertThat(inputVar).isEqualTo("inValue");
 
     //when completing the task in the subprocess, finishes the subprocess
     taskService.complete(taskInSubProcess.getId());
     Task taskAfterSubProcess = taskQuery.singleResult();
-    assertEquals("Task after subprocess", taskAfterSubProcess.getName());
+    assertThat(taskAfterSubProcess.getName()).isEqualTo("Task after subprocess");
 
     //then check value from output variable
     ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().singleResult();
     Object outputVar = runtimeService.getVariable(processInstance.getId(), "TestOutputVar");
-    assertEquals("outValue", outputVar);
+    assertThat(outputVar).isEqualTo("outValue");
 
     //complete task after sub process
     taskService.complete(taskAfterSubProcess.getId());

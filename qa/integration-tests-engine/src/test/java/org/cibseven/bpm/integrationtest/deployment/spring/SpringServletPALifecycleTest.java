@@ -21,18 +21,18 @@ import org.cibseven.bpm.ProcessApplicationService;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class SpringServletPALifecycleTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -48,7 +48,7 @@ public class SpringServletPALifecycleTest extends AbstractFoxPlatformIntegration
   @Test
   public void test() {
     ProcessApplicationService processApplicationService = BpmPlatform.getProcessApplicationService();
-    Assert.assertNotNull(processApplicationService.getProcessApplicationInfo("pa"));
+    Assertions.assertNotNull(processApplicationService.getProcessApplicationInfo("pa"));
   }
 
 }

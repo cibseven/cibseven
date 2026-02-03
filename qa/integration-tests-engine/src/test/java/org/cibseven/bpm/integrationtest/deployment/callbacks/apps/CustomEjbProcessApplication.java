@@ -29,7 +29,7 @@ import org.cibseven.bpm.application.PreUndeploy;
 import org.cibseven.bpm.application.ProcessApplication;
 import org.cibseven.bpm.application.ProcessApplicationInterface;
 import org.cibseven.bpm.engine.ProcessEngine;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * Custom {@link org.cibseven.bpm.application.impl.EjbProcessApplication} with PA lifecycle callbacks
@@ -48,12 +48,12 @@ public class CustomEjbProcessApplication extends org.cibseven.bpm.application.im
 
   @PostDeploy
   public void postDeploy(ProcessEngine processEngine) {
-    Assert.assertNotNull(processEngine);
+    Assertions.assertNotNull(processEngine);
   }
 
   @PreUndeploy
   public void preUnDeploy(ProcessEngine processEngine) {
-    Assert.assertNotNull(processEngine);
+    Assertions.assertNotNull(processEngine);
   }
 
 }

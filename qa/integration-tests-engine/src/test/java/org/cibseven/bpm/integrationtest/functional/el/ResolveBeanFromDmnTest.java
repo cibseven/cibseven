@@ -16,23 +16,23 @@
  */
 package org.cibseven.bpm.integrationtest.functional.el;
 
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.integrationtest.functional.el.beans.GreeterBean;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class ResolveBeanFromDmnTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -48,11 +48,15 @@ public class ResolveBeanFromDmnTest extends AbstractFoxPlatformIntegrationTest {
     runtimeService.startProcessInstanceByKey("testProcess");
 
     Task task = taskService.createTaskQuery().singleResult();
-    assertNotNull(task);
+    assertThat(task).isNotNull();
 
     VariableInstance decisionResult = runtimeService.createVariableInstanceQuery().variableName("result").singleResult();
-    assertNotNull("The variable 'result' should exist", decisionResult);
-    assertNotNull("The value of the variable 'result' should not be null", decisionResult.getValue());
+    assertThat(decisionResult)
+      .withFailMessage("The variable 'result' should exist")
+      .isNotNull();
+    assertThat(decisionResult.getValue())
+      .withFailMessage("The value of the variable 'result' should not be null")
+      .isNotNull();
   }
 
 }

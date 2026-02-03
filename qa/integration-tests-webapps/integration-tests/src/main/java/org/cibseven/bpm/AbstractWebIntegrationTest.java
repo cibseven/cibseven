@@ -22,8 +22,8 @@ import java.util.logging.Logger;
 
 import javax.ws.rs.core.MediaType;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.openqa.selenium.chrome.ChromeDriverService;
 
 import kong.unirest.ObjectMapper;
@@ -61,7 +61,7 @@ public abstract class AbstractWebIntegrationTest {
   protected String csrfToken;
   protected String sessionId;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpClass() {
     Unirest.config().reset().enableCookieManagement(false).setObjectMapper(new ObjectMapper() {
       final com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
@@ -84,7 +84,7 @@ public abstract class AbstractWebIntegrationTest {
     });
   }
 
-  @Before
+  @BeforeEach
   public void before() throws Exception {
     testProperties = new TestProperties(48080);
   }

@@ -26,10 +26,9 @@ import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.junit.Assert;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Test;
 
 @ScenarioUnderTest("MultiInstanceReceiveTaskScenario")
 @Origin("1.1.0")
@@ -49,7 +48,7 @@ public class MultiInstanceReceiveTaskScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("initParallel.2")
   public void testInitParallelActivityInstanceTree() {
@@ -84,7 +83,7 @@ public class MultiInstanceReceiveTaskScenarioTest {
   }
 
   @Test
-  @Ignore("CAM-6408")
+  @Disabled("CAM-6408")
   @ScenarioUnderTest("initParallel.4")
   public void testInitParallelMigration() {
     // given
@@ -117,7 +116,7 @@ public class MultiInstanceReceiveTaskScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("initSequential.2")
   public void testInitSequentialActivityInstanceTree() {
@@ -149,7 +148,7 @@ public class MultiInstanceReceiveTaskScenarioTest {
   }
 
   @Test
-  @Ignore("CAM-6408")
+  @Disabled("CAM-6408")
   @ScenarioUnderTest("initSequential.4")
   public void testInitSequentialMigration() {
     // given

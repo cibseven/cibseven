@@ -22,15 +22,14 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.integrationtest.deployment.war.beans.GroovyProcessEnginePlugin;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 /**
@@ -39,7 +38,7 @@ import static org.junit.Assert.assertEquals;
  *
  * Does not work on JBoss, see https://app.camunda.com/jira/browse/CAM-1778
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TestWarDeploymentWithProcessEnginePlugin extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -59,18 +58,18 @@ public class TestWarDeploymentWithProcessEnginePlugin extends AbstractFoxPlatfor
   @Test
   public void testPAGroovyProcessEnginePlugin() {
     ProcessEngine groovyEngine = processEngineService.getProcessEngine("groovy");
-    Assert.assertNotNull(groovyEngine);
+    assertThat(groovyEngine).isNotNull();
 
     ProcessInstance pi = groovyEngine.getRuntimeService().startProcessInstanceByKey("groovy");
     HistoricProcessInstance hpi = groovyEngine.getHistoryService()
         .createHistoricProcessInstanceQuery().processDefinitionKey("groovy").finished().singleResult();
-    assertEquals(pi.getId(), hpi.getId());
+    assertThat(hpi.getId()).isEqualTo(pi.getId());
   }
 
   @Test
   public void testPAGroovyAsyncProcessEnginePlugin() {
     ProcessEngine groovyEngine = processEngineService.getProcessEngine("groovy");
-    Assert.assertNotNull(groovyEngine);
+    assertThat(groovyEngine).isNotNull();
 
     ProcessInstance pi = groovyEngine.getRuntimeService().startProcessInstanceByKey("groovyAsync");
 
@@ -78,7 +77,7 @@ public class TestWarDeploymentWithProcessEnginePlugin extends AbstractFoxPlatfor
 
     HistoricProcessInstance hpi = groovyEngine.getHistoryService()
         .createHistoricProcessInstanceQuery().processDefinitionKey("groovyAsync").finished().singleResult();
-    assertEquals(pi.getId(), hpi.getId());
+    assertThat(hpi.getId()).isEqualTo(pi.getId());
   }
 
 }

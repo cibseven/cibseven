@@ -33,12 +33,9 @@ import org.cibseven.bpm.qa.performance.engine.framework.PerfTestRunContext;
 import org.cibseven.bpm.qa.performance.engine.framework.PerfTestStepBehavior;
 import org.cibseven.bpm.qa.performance.engine.junit.AuthorizationPerformanceTestCase;
 import org.cibseven.bpm.qa.performance.engine.junit.PerfTestProcessEngine;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.cibseven.bpm.engine.authorization.Resources.*;
 import static org.cibseven.bpm.engine.authorization.Permissions.*;
@@ -48,26 +45,9 @@ import static org.cibseven.bpm.engine.authorization.Permissions.*;
  *
  */
 @SuppressWarnings("rawtypes")
-@RunWith(Parameterized.class)
 public class HistoryAuthorizationQueryPerformanceTest extends AuthorizationPerformanceTestCase {
 
-  @Parameter(0)
-  public static String name;
-
-  @Parameter(1)
-  public static Query query;
-
-  @Parameter(2)
-  public static Resource resource;
-
-  @Parameter(3)
-  public static Permission[] permissions;
-
-  @Parameter(4)
-  public static Authentication authentication;
-
   static List<Object[]> queryResourcesAndPermissions;
-
   static List<Authentication> authentications;
 
   static {
@@ -118,9 +98,8 @@ public class HistoryAuthorizationQueryPerformanceTest extends AuthorizationPerfo
 
   }
 
-  @Parameters(name="{0} - {4}")
-  public static Iterable<Object[]> params() {
-    final ArrayList<Object[]> params = new ArrayList<Object[]>();
+  static List<Object[]> params() {
+    final ArrayList<Object[]> params = new ArrayList<>();
 
     for (Object[] queryResourcesAndPermission : queryResourcesAndPermissions) {
       for (Authentication authentication : authentications) {
@@ -134,14 +113,12 @@ public class HistoryAuthorizationQueryPerformanceTest extends AuthorizationPerfo
     return params;
   }
 
-  @Before
-  public void createAuthorizations() {
+  private void createAuthorizations(Resource resource, Permission[] permissions) {
     AuthorizationService authorizationService = engine.getAuthorizationService();
     List<Authorization> auths = authorizationService.createAuthorizationQuery().list();
     for (Authorization authorization : auths) {
       authorizationService.deleteAuthorization(authorization.getId());
     }
-
     userGrant("test", resource, permissions);
     for (int i = 0; i < 5; i++) {
       grouptGrant("g"+i, resource, permissions);
@@ -149,8 +126,10 @@ public class HistoryAuthorizationQueryPerformanceTest extends AuthorizationPerfo
     engine.getProcessEngineConfiguration().setAuthorizationEnabled(true);
   }
 
-  @Test
-  public void queryList() {
+  @ParameterizedTest
+  @MethodSource("params")
+  public void queryList(String name, Query query, Resource resource, Permission[] permissions, Authentication authentication) {
+    createAuthorizations(resource, permissions);
     performanceTest().step(new PerfTestStepBehavior() {
       public void execute(PerfTestRunContext context) {
         try {
@@ -163,8 +142,10 @@ public class HistoryAuthorizationQueryPerformanceTest extends AuthorizationPerfo
     }).run();
   }
 
-  @Test
-  public void queryCount() {
+  @ParameterizedTest
+  @MethodSource("params")
+  public void queryCount(String name, Query query, Resource resource, Permission[] permissions, Authentication authentication) {
+    createAuthorizations(resource, permissions);
     performanceTest().step(new PerfTestStepBehavior() {
       public void execute(PerfTestRunContext context) {
         try {

@@ -30,22 +30,23 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.cibseven.spin.spi.DataFormatConfigurator;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.joda.time.DateTime;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.util.Date;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class PaDataFormatConfiguratorJodaTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -94,7 +95,7 @@ public class PaDataFormatConfiguratorJodaTest extends AbstractFoxPlatformIntegra
     JsonNode actualJsonTree = objectMapper.readTree(serializedValue);
     JsonNode expectedJsonTree = objectMapper.readTree(expectedSerializedValue);
     // JsonNode#equals makes a deep comparison
-    Assert.assertEquals(expectedJsonTree, actualJsonTree);
+    assertThat(actualJsonTree).isEqualTo(expectedJsonTree);
   }
 
 }

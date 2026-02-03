@@ -29,11 +29,11 @@ import org.cibseven.bpm.engine.authorization.Resources;
 import org.cibseven.bpm.engine.impl.db.sql.DbSqlSessionFactory;
 import org.cibseven.bpm.engine.impl.test.RequiredDatabase;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 
 public class AuthorizationTest {
 
@@ -48,7 +48,7 @@ public class AuthorizationTest {
   @Rule
   public ProcessEngineRule rule = new ProcessEngineRule();
 
-  @Before
+  @BeforeEach
   public void init() {
     authorizationService = rule.getAuthorizationService();
     identityService = rule.getIdentityService();
@@ -56,13 +56,13 @@ public class AuthorizationTest {
     defaultAuthorizationEnabled = processEngineConfiguration.isAuthorizationEnabled();
   }
 
-  @After
+  @AfterEach
   public void restoreAuthorization() {
     processEngineConfiguration.setAuthorizationEnabled(defaultAuthorizationEnabled);
   }
 
   // TODO: fix and enable for CIB seven migration test
-  @Ignore
+  @Disabled
   @Test
   public void testDefaultAuthorizationQueryForCamundaAdminOnUpgrade() {
 

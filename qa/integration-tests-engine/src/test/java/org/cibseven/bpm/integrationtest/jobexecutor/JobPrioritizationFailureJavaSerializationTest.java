@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.jobexecutor;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
@@ -37,20 +39,20 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.asset.ByteArrayAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class JobPrioritizationFailureJavaSerializationTest extends AbstractFoxPlatformIntegrationTest {
 
   protected ProcessInstance processInstance;
@@ -60,7 +62,7 @@ public class JobPrioritizationFailureJavaSerializationTest extends AbstractFoxPl
   public static final String VARIABLE_CLASS_NAME = "org.cibseven.bpm.integrationtest.jobexecutor.beans.PriorityBean";
   public static final String PRIORITY_BEAN_INSTANCE_FILE = "priorityBean.instance";
 
-  @Before
+  @BeforeEach
   public void setEngines() {
     ProcessEngineService engineService = BpmPlatform.getProcessEngineService();
     engine1 = engineService.getProcessEngine("engine1");
@@ -93,7 +95,7 @@ public class JobPrioritizationFailureJavaSerializationTest extends AbstractFoxPl
     return webArchive;
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (processInstance != null) {
       engine1.getRuntimeService().deleteProcessInstance(processInstance.getId(), "");
@@ -109,7 +111,7 @@ public class JobPrioritizationFailureJavaSerializationTest extends AbstractFoxPl
 
     // then the job was created successfully and has the default priority on bean evaluation failure
     Job job = engine1.getManagementService().createJobQuery().processInstanceId(processInstance.getProcessInstanceId()).singleResult();
-    Assert.assertEquals(DefaultJobPriorityProvider.DEFAULT_PRIORITY_ON_RESOLUTION_FAILURE, job.getPriority());
+    assertThat(job.getPriority()).isEqualTo(DefaultJobPriorityProvider.DEFAULT_PRIORITY_ON_RESOLUTION_FAILURE);
   }
 
   @Test
@@ -132,7 +134,7 @@ public class JobPrioritizationFailureJavaSerializationTest extends AbstractFoxPl
     // then the job was created successfully and has the default priority although
     // the bean could not be resolved due to a missing class
     Job job = engine1.getManagementService().createJobQuery().processInstanceId(processInstance.getProcessInstanceId()).singleResult();
-    Assert.assertEquals(DefaultJobPriorityProvider.DEFAULT_PRIORITY_ON_RESOLUTION_FAILURE, job.getPriority());
+    assertThat(job.getPriority()).isEqualTo(DefaultJobPriorityProvider.DEFAULT_PRIORITY_ON_RESOLUTION_FAILURE);
   }
 
   protected static byte[] serializeJavaObjectValue(Serializable object) {

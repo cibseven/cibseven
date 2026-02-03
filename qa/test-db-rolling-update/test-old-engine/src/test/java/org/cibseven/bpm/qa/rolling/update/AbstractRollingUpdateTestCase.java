@@ -19,7 +19,7 @@ package org.cibseven.bpm.qa.rolling.update;
 import java.util.Arrays;
 import java.util.Collection;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -50,7 +50,7 @@ public abstract class AbstractRollingUpdateTestCase {
   @Rule
   public UpgradeTestRule rule = new UpgradeTestRule();
 
-  @Before
+  @BeforeEach
   public void init() {
     rule.setTag(tag);
   }
