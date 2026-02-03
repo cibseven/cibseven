@@ -18,6 +18,10 @@ package org.cibseven.bpm.integrationtest.functional.classloading.ear;
 import javax.transaction.SystemException;
 
 import org.cibseven.bpm.integrationtest.functional.classloading.beans.ExampleDelegate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -26,8 +30,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -67,11 +70,11 @@ public class TestJavaDelegateResolution_ClientAsLibInWebModule extends AbstractF
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testResolveClass() {
+  void resolveClass() {
     // assert that we cannot load the delegate here:
     try {
       Class.forName("org.cibseven.bpm.integrationtest.functional.classloading.ExampleDelegate");
-      Assert.fail("CNFE expected");
+      fail("CNFE expected");
     }catch (ClassNotFoundException e) {
       // expected
     }
@@ -82,15 +85,15 @@ public class TestJavaDelegateResolution_ClientAsLibInWebModule extends AbstractF
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testResolveClassFromJobExecutor() throws InterruptedException, SystemException {
+  void resolveClassFromJobExecutor() throws InterruptedException, SystemException {
 
     runtimeService.startProcessInstanceByKey("testResolveClassFromJobExecutor");
 
-    Assert.assertEquals(1, runtimeService.createProcessInstanceQuery().count());
+    assertThat(runtimeService.createProcessInstanceQuery().count()).isEqualTo(1);
 
     waitForJobExecutorToProcessAllJobs();
 
-    Assert.assertEquals(0, runtimeService.createProcessInstanceQuery().count());
+    assertThat(runtimeService.createProcessInstanceQuery().count()).isEqualTo(0);
 
   }
 

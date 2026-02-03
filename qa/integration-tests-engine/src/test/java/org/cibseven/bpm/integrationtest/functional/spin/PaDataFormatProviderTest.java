@@ -30,10 +30,10 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.variable.Variables.serializedObjectValue;
 
 /**
@@ -67,7 +67,7 @@ public class PaDataFormatProviderTest extends AbstractFoxPlatformIntegrationTest
    *   by using the PA-local serializer
    */
   @Test
-  public void customFormatCanBeUsedForVariableSerialization() {
+  void customFormatCanBeUsedForVariableSerialization() {
     final ProcessInstance pi = runtimeService.startProcessInstanceByKey("testProcess",
         Variables.createVariables()
           .putValue("serializedObject",
@@ -84,8 +84,8 @@ public class PaDataFormatProviderTest extends AbstractFoxPlatformIntegrationTest
     }
 
     Object value = objectValue.getValue();
-    Assert.assertNotNull(value);
-    Assert.assertTrue(value instanceof Foo);
+    assertThat(value).isNotNull();
+    assertThat(value instanceof Foo).isTrue();
   }
 
 }

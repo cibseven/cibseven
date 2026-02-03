@@ -19,21 +19,20 @@ package org.cibseven.bpm.qa.rolling.update.timestamp;
 import org.cibseven.bpm.engine.runtime.Incident;
 import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Nikola Koevski
  */
 @ScenarioUnderTest("IncidentTimestampUpdateScenario")
 @Origin("7.11.0")
-public class IncidentTimestampUpdateTest extends AbstractTimestampUpdateTest {
+class IncidentTimestampUpdateTest extends AbstractTimestampUpdateTest {
 
   @ScenarioUnderTest("initIncidentTimestamp.1")
   @Test
-  public void testIncidentTimestampConversion() {
+  void incidentTimestampConversion() {
     // given
     String processInstanceId = rule.jobQuery().singleResult().getProcessInstanceId();
 
@@ -50,6 +49,6 @@ public class IncidentTimestampUpdateTest extends AbstractTimestampUpdateTest {
       .count();
 
     // then
-    assertThat(incident.getIncidentTimestamp(), is(TIMESTAMP));
+    assertThat(incident.getIncidentTimestamp()).isEqualTo(TIMESTAMP);
   }
 }

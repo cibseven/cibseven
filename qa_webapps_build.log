@@ -1,0 +1,147 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO]
+[INFO] CIB seven - QA Integration Tests - Webapps Root                    [pom]
+[INFO] CIB seven - QA Integration Tests - Webapps ITs                     [jar]
+[INFO] CIB seven - QA Integration Tests - Webapps Shared Engine           [jar]
+[INFO]
+[INFO] ---< org.cibseven.bpm.qa:cibseven-qa-integration-tests-webapps-root >---
+[INFO] Building CIB seven - QA Integration Tests - Webapps Root 2.2.0-SNAPSHOT [1/3]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO]
+[INFO] --- clean:3.1.0:clean (default-clean) @ cibseven-qa-integration-tests-webapps-root ---
+[INFO] Deleting /app/qa/integration-tests-webapps/target
+[INFO]
+[INFO] --- download:1.13.0:wget (default) @ cibseven-qa-integration-tests-webapps-root ---
+[INFO]
+[INFO] --- antrun:1.8:run (move-folder) @ cibseven-qa-integration-tests-webapps-root ---
+[INFO] Executing tasks
+
+main:
+[INFO] Executed tasks
+[INFO]
+[INFO] --- dependency:2.8:list (list-deps) @ cibseven-qa-integration-tests-webapps-root ---
+[INFO] Skipping plugin execution
+[INFO]
+[INFO] --- antrun:1.8:run (reformat-dependencies) @ cibseven-qa-integration-tests-webapps-root ---
+[INFO] Skipping Antrun execution
+[INFO]
+[INFO] --- build-helper:1.9.1:attach-artifact (attach-deps) @ cibseven-qa-integration-tests-webapps-root ---
+[INFO] Skip attaching artifacts
+[INFO]
+[INFO] --- install:3.1.2:install (default-install) @ cibseven-qa-integration-tests-webapps-root ---
+[INFO] Installing /app/qa/integration-tests-webapps/pom.xml to /home/jules/.m2/repository/org/cibseven/bpm/qa/cibseven-qa-integration-tests-webapps-root/2.2.0-SNAPSHOT/cibseven-qa-integration-tests-webapps-root-2.2.0-SNAPSHOT.pom
+[INFO]
+[INFO] -----< org.cibseven.bpm.qa:cibseven-qa-integration-tests-webapps >------
+[INFO] Building CIB seven - QA Integration Tests - Webapps ITs 2.2.0-SNAPSHOT [2/3]
+[INFO]   from integration-tests/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- clean:3.1.0:clean (default-clean) @ cibseven-qa-integration-tests-webapps ---
+[INFO] Deleting /app/qa/integration-tests-webapps/integration-tests/target
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ cibseven-qa-integration-tests-webapps ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1 resource
+[INFO]
+[INFO] --- download:1.13.0:wget (default) @ cibseven-qa-integration-tests-webapps ---
+[INFO]
+[INFO] --- antrun:1.8:run (move-folder) @ cibseven-qa-integration-tests-webapps ---
+[INFO] Executing tasks
+
+main:
+[INFO] Executed tasks
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ cibseven-qa-integration-tests-webapps ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 19 source files to /app/qa/integration-tests-webapps/integration-tests/target/classes
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ cibseven-qa-integration-tests-webapps ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /app/qa/integration-tests-webapps/integration-tests/src/test/resources
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ cibseven-qa-integration-tests-webapps ---
+[INFO] No sources to compile
+[INFO]
+[INFO] --- surefire:3.5.2:test (default-test) @ cibseven-qa-integration-tests-webapps ---
+[INFO] Tests are skipped.
+[INFO]
+[INFO] --- jar:2.6:jar (default-jar) @ cibseven-qa-integration-tests-webapps ---
+[INFO] Building jar: /app/qa/integration-tests-webapps/integration-tests/target/cibseven-qa-integration-tests-webapps-2.2.0-SNAPSHOT.jar
+[INFO]
+[INFO] --- dependency:2.8:list (list-deps) @ cibseven-qa-integration-tests-webapps ---
+[INFO] Skipping plugin execution
+[INFO]
+[INFO] --- antrun:1.8:run (reformat-dependencies) @ cibseven-qa-integration-tests-webapps ---
+[INFO] Skipping Antrun execution
+[INFO]
+[INFO] --- build-helper:1.9.1:attach-artifact (attach-deps) @ cibseven-qa-integration-tests-webapps ---
+[INFO] Skip attaching artifacts
+[INFO]
+[INFO] --- install:3.1.2:install (default-install) @ cibseven-qa-integration-tests-webapps ---
+[INFO] Installing /app/qa/integration-tests-webapps/integration-tests/pom.xml to /home/jules/.m2/repository/org/cibseven/bpm/qa/cibseven-qa-integration-tests-webapps/2.2.0-SNAPSHOT/cibseven-qa-integration-tests-webapps-2.2.0-SNAPSHOT.pom
+[INFO] Installing /app/qa/integration-tests-webapps/integration-tests/target/cibseven-qa-integration-tests-webapps-2.2.0-SNAPSHOT.jar to /home/jules/.m2/repository/org/cibseven/bpm/qa/cibseven-qa-integration-tests-webapps/2.2.0-SNAPSHOT/cibseven-qa-integration-tests-webapps-2.2.0-SNAPSHOT.jar
+[INFO]
+[INFO] --< org.cibseven.bpm.qa:cibseven-qa-integration-tests-webapps-shared-engine >--
+[INFO] Building CIB seven - QA Integration Tests - Webapps Shared Engine 2.2.0-SNAPSHOT [3/3]
+[INFO]   from shared-engine/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- clean:3.1.0:clean (default-clean) @ cibseven-qa-integration-tests-webapps-shared-engine ---
+[INFO] Deleting /app/qa/integration-tests-webapps/shared-engine/target
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ cibseven-qa-integration-tests-webapps-shared-engine ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /app/qa/integration-tests-webapps/shared-engine/src/main/resources
+[INFO]
+[INFO] --- download:1.13.0:wget (default) @ cibseven-qa-integration-tests-webapps-shared-engine ---
+[INFO]
+[INFO] --- antrun:1.8:run (move-folder) @ cibseven-qa-integration-tests-webapps-shared-engine ---
+[INFO] Executing tasks
+
+main:
+[INFO] Executed tasks
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ cibseven-qa-integration-tests-webapps-shared-engine ---
+[INFO] No sources to compile
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ cibseven-qa-integration-tests-webapps-shared-engine ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 4 resources
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ cibseven-qa-integration-tests-webapps-shared-engine ---
+[INFO] No sources to compile
+[INFO]
+[INFO] --- surefire:3.5.2:test (default-test) @ cibseven-qa-integration-tests-webapps-shared-engine ---
+[INFO] Tests are skipped.
+[INFO]
+[INFO] --- jar:2.6:jar (default-jar) @ cibseven-qa-integration-tests-webapps-shared-engine ---
+[WARNING] JAR will be empty - no content was marked for inclusion!
+[INFO] Building jar: /app/qa/integration-tests-webapps/shared-engine/target/cibseven-qa-integration-tests-webapps-shared-engine-2.2.0-SNAPSHOT.jar
+[INFO]
+[INFO] --- dependency:2.8:list (list-deps) @ cibseven-qa-integration-tests-webapps-shared-engine ---
+[INFO] Skipping plugin execution
+[INFO]
+[INFO] --- antrun:1.8:run (reformat-dependencies) @ cibseven-qa-integration-tests-webapps-shared-engine ---
+[INFO] Skipping Antrun execution
+[INFO]
+[INFO] --- build-helper:1.9.1:attach-artifact (attach-deps) @ cibseven-qa-integration-tests-webapps-shared-engine ---
+[INFO] Skip attaching artifacts
+[INFO]
+[INFO] --- install:3.1.2:install (default-install) @ cibseven-qa-integration-tests-webapps-shared-engine ---
+[INFO] Installing /app/qa/integration-tests-webapps/shared-engine/pom.xml to /home/jules/.m2/repository/org/cibseven/bpm/qa/cibseven-qa-integration-tests-webapps-shared-engine/2.2.0-SNAPSHOT/cibseven-qa-integration-tests-webapps-shared-engine-2.2.0-SNAPSHOT.pom
+[INFO] Installing /app/qa/integration-tests-webapps/shared-engine/target/cibseven-qa-integration-tests-webapps-shared-engine-2.2.0-SNAPSHOT.jar to /home/jules/.m2/repository/org/cibseven/bpm/qa/cibseven-qa-integration-tests-webapps-shared-engine/2.2.0-SNAPSHOT/cibseven-qa-integration-tests-webapps-shared-engine-2.2.0-SNAPSHOT.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for CIB seven - QA Integration Tests - Webapps Root 2.2.0-SNAPSHOT:
+[INFO]
+[INFO] CIB seven - QA Integration Tests - Webapps Root .... SUCCESS [  6.054 s]
+[INFO] CIB seven - QA Integration Tests - Webapps ITs ..... SUCCESS [  4.927 s]
+[INFO] CIB seven - QA Integration Tests - Webapps Shared Engine SUCCESS [  0.831 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  12.303 s
+[INFO] Finished at: 2026-02-02T14:36:31Z
+[INFO] ------------------------------------------------------------------------

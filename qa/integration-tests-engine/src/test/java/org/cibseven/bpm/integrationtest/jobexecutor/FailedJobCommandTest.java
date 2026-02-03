@@ -16,13 +16,14 @@
  */
 package org.cibseven.bpm.integrationtest.jobexecutor;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.integrationtest.jobexecutor.beans.FailingSLSB;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -38,35 +39,35 @@ public class FailedJobCommandTest extends AbstractFoxPlatformIntegrationTest {
   }
 
   @Test
-  public void testJobRetriesDecremented() {
+  void jobRetriesDecremented() {
     runtimeService.startProcessInstanceByKey("theProcess");
 
-    Assert.assertEquals(1, managementService.createJobQuery().withRetriesLeft().count());
+    assertThat(managementService.createJobQuery().withRetriesLeft().count()).isEqualTo(1);
 
     waitForJobExecutorToProcessAllJobs();
 
     // now the retries = 0
 
-    Assert.assertEquals(0, managementService.createJobQuery().withRetriesLeft().count());
-    Assert.assertEquals(1, managementService.createJobQuery().noRetriesLeft().count());
+    assertThat(managementService.createJobQuery().withRetriesLeft().count()).isEqualTo(0);
+    assertThat(managementService.createJobQuery().noRetriesLeft().count()).isEqualTo(1);
 
   }
 
   @Test
-  public void testJobRetriesDecremented_multiple() {
+  void jobRetriesDecrementedMultiple() {
 
     for(int i = 0; i < 50; i++) {
       runtimeService.startProcessInstanceByKey("theProcess");
     }
 
-    Assert.assertEquals(50, managementService.createJobQuery().withRetriesLeft().count());
+    assertThat(managementService.createJobQuery().withRetriesLeft().count()).isEqualTo(50);
 
     waitForJobExecutorToProcessAllJobs(6 * 60 * 1000);
 
     // now the retries = 0
 
-    Assert.assertEquals(0, managementService.createJobQuery().withRetriesLeft().count());
-    Assert.assertEquals(51, managementService.createJobQuery().noRetriesLeft().count());
+    assertThat(managementService.createJobQuery().withRetriesLeft().count()).isEqualTo(0);
+    assertThat(managementService.createJobQuery().noRetriesLeft().count()).isEqualTo(51);
 
   }
 

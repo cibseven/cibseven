@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.qa.upgrade.scenarios11.compensation;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.assertThat;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.describeActivityInstanceTree;
 
@@ -25,10 +26,9 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
-import org.junit.Assert;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -43,22 +43,22 @@ public class TransactionCancelCompensationScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.1")
-  public void testInitCompletion() {
+  void initCompletion() {
     // when compensation is thrown
     Task beforeCompensationTask = rule.taskQuery().singleResult();
     rule.getTaskService().complete(beforeCompensationTask.getId());
 
     // then there is an active compensation handler task
     Task compensationHandlerTask = rule.taskQuery().singleResult();
-    Assert.assertNotNull(compensationHandlerTask);
-    Assert.assertEquals("undoTask", compensationHandlerTask.getTaskDefinitionKey());
+    assertThat(compensationHandlerTask).isNotNull();
+    assertThat(compensationHandlerTask.getTaskDefinitionKey()).isEqualTo("undoTask");
 
     // and it can be completed such that the process instance ends successfully
     rule.getTaskService().complete(compensationHandlerTask.getId());
 
     Task afterCompensateTask = rule.taskQuery().singleResult();
-    Assert.assertNotNull(afterCompensateTask);
-    Assert.assertEquals("afterCancel", afterCompensateTask.getTaskDefinitionKey());
+    assertThat(afterCompensateTask).isNotNull();
+    assertThat(afterCompensateTask.getTaskDefinitionKey()).isEqualTo("afterCancel");
 
     rule.getTaskService().complete(afterCompensateTask.getId());
 
@@ -67,7 +67,7 @@ public class TransactionCancelCompensationScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.2")
-  public void testInitDeletion() {
+  void initDeletion() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -84,7 +84,7 @@ public class TransactionCancelCompensationScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.3")
-  public void testInitActivityInstanceTree() {
+  void initActivityInstanceTree() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -94,7 +94,7 @@ public class TransactionCancelCompensationScenarioTest {
 
     // then the activity instance tree is meaningful
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
-    Assert.assertNotNull(activityInstance);
+    assertThat(activityInstance).isNotNull();
     assertThat(activityInstance).hasStructure(
       describeActivityInstanceTree(instance.getProcessDefinitionId())
         .beginScope("tx")
@@ -105,7 +105,7 @@ public class TransactionCancelCompensationScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.triggerCompensation.1")
-  public void testInitTriggerCompensationCompletion() {
+  void initTriggerCompensationCompletion() {
     // given active compensation
     Task compensationHandlerTask = rule.taskQuery().singleResult();
 
@@ -113,8 +113,8 @@ public class TransactionCancelCompensationScenarioTest {
     rule.getTaskService().complete(compensationHandlerTask.getId());
 
     Task afterCompensateTask = rule.taskQuery().singleResult();
-    Assert.assertNotNull(afterCompensateTask);
-    Assert.assertEquals("afterCancel", afterCompensateTask.getTaskDefinitionKey());
+    assertThat(afterCompensateTask).isNotNull();
+    assertThat(afterCompensateTask.getTaskDefinitionKey()).isEqualTo("afterCancel");
 
     rule.getTaskService().complete(afterCompensateTask.getId());
 
@@ -123,7 +123,7 @@ public class TransactionCancelCompensationScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.triggerCompensation.2")
-  public void testInitTriggerCompensationDeletion() {
+  void initTriggerCompensationDeletion() {
     // given active compensation
     ProcessInstance instance = rule.processInstance();
 
@@ -135,16 +135,16 @@ public class TransactionCancelCompensationScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("init.triggerCompensation.3")
-  public void testInitTriggerCompensationActivityInstanceTree() {
+  void initTriggerCompensationActivityInstanceTree() {
     // given active compensation
     ProcessInstance instance = rule.processInstance();
 
     // then the activity instance tree is meaningful
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
-    Assert.assertNotNull(activityInstance);
+    assertThat(activityInstance).isNotNull();
     assertThat(activityInstance).hasStructure(
       describeActivityInstanceTree(instance.getProcessDefinitionId())
         .activity("catchCancelTx")

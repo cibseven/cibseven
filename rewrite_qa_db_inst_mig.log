@@ -1,0 +1,629 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO]
+[INFO] CIB seven Platform - QA - upgrade - instance migration             [pom]
+[INFO] CIB seven Platform - QA - upgrade - instance migration - test fixture - 1.1.0 [jar]
+[INFO] CIB seven BPM - QA - upgrade - instance migration - test fixture - 2.0.0 [jar]
+[INFO] CIB seven BPM - QA - upgrade - instance migration - test fixture - 2.1.0 [jar]
+[INFO] CIB seven Platform - QA - upgrade - instance migration - test      [jar]
+[INFO]
+[INFO] ---< org.cibseven.bpm.qa.upgrade:cibseven-qa-db-instance-migration >----
+[INFO] Building CIB seven Platform - QA - upgrade - instance migration 2.2.0-SNAPSHOT [1/5]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO]
+[INFO] >>> rewrite:5.43.0:run (default-cli) > process-test-classes @ cibseven-qa-db-instance-migration >>>
+[INFO]
+[INFO] <<< rewrite:5.43.0:run (default-cli) < process-test-classes @ cibseven-qa-db-instance-migration <<<
+[INFO]
+[INFO]
+[INFO] --- rewrite:5.43.0:run (default-cli) @ cibseven-qa-db-instance-migration ---
+[INFO] REWRITE: Delaying execution to the end of multi-module project for org.cibseven.bpm.qa.upgrade:cibseven-qa-db-instance-migration:2.2.0-SNAPSHOT
+[INFO]
+[INFO] --< org.cibseven.bpm.qa.upgrade:cibseven-qa-upgrade-test-fixture-11 >---
+[INFO] Building CIB seven Platform - QA - upgrade - instance migration - test fixture - 1.1.0 2.2.0-SNAPSHOT [2/5]
+[INFO]   from test-fixture-11/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] >>> rewrite:5.43.0:run (default-cli) > process-test-classes @ cibseven-qa-upgrade-test-fixture-11 >>>
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ cibseven-qa-upgrade-test-fixture-11 ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 45 resources
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ cibseven-qa-upgrade-test-fixture-11 ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ cibseven-qa-upgrade-test-fixture-11 ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /app/qa/test-db-instance-migration/test-fixture-11/src/test/resources
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ cibseven-qa-upgrade-test-fixture-11 ---
+[INFO] No sources to compile
+[INFO]
+[INFO] <<< rewrite:5.43.0:run (default-cli) < process-test-classes @ cibseven-qa-upgrade-test-fixture-11 <<<
+[INFO]
+[INFO]
+[INFO] --- rewrite:5.43.0:run (default-cli) @ cibseven-qa-upgrade-test-fixture-11 ---
+[INFO] REWRITE: Delaying execution to the end of multi-module project for org.cibseven.bpm.qa.upgrade:cibseven-qa-upgrade-test-fixture-11:2.2.0-SNAPSHOT
+[INFO]
+[INFO] --< org.cibseven.bpm.qa.upgrade:cibseven-qa-upgrade-test-fixture-20 >---
+[INFO] Building CIB seven BPM - QA - upgrade - instance migration - test fixture - 2.0.0 2.2.0-SNAPSHOT [3/5]
+[INFO]   from test-fixture-20/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] >>> rewrite:5.43.0:run (default-cli) > process-test-classes @ cibseven-qa-upgrade-test-fixture-20 >>>
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ cibseven-qa-upgrade-test-fixture-20 ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1 resource
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ cibseven-qa-upgrade-test-fixture-20 ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ cibseven-qa-upgrade-test-fixture-20 ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /app/qa/test-db-instance-migration/test-fixture-20/src/test/resources
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ cibseven-qa-upgrade-test-fixture-20 ---
+[INFO] No sources to compile
+[INFO]
+[INFO] <<< rewrite:5.43.0:run (default-cli) < process-test-classes @ cibseven-qa-upgrade-test-fixture-20 <<<
+[INFO]
+[INFO]
+[INFO] --- rewrite:5.43.0:run (default-cli) @ cibseven-qa-upgrade-test-fixture-20 ---
+[INFO] REWRITE: Delaying execution to the end of multi-module project for org.cibseven.bpm.qa.upgrade:cibseven-qa-upgrade-test-fixture-20:2.2.0-SNAPSHOT
+[INFO]
+[INFO] --< org.cibseven.bpm.qa.upgrade:cibseven-qa-upgrade-test-fixture-21 >---
+[INFO] Building CIB seven BPM - QA - upgrade - instance migration - test fixture - 2.1.0 2.2.0-SNAPSHOT [4/5]
+[INFO]   from test-fixture-21/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] >>> rewrite:5.43.0:run (default-cli) > process-test-classes @ cibseven-qa-upgrade-test-fixture-21 >>>
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ cibseven-qa-upgrade-test-fixture-21 ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1 resource
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ cibseven-qa-upgrade-test-fixture-21 ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ cibseven-qa-upgrade-test-fixture-21 ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /app/qa/test-db-instance-migration/test-fixture-21/src/test/resources
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ cibseven-qa-upgrade-test-fixture-21 ---
+[INFO] No sources to compile
+[INFO]
+[INFO] <<< rewrite:5.43.0:run (default-cli) < process-test-classes @ cibseven-qa-upgrade-test-fixture-21 <<<
+[INFO]
+[INFO]
+[INFO] --- rewrite:5.43.0:run (default-cli) @ cibseven-qa-upgrade-test-fixture-21 ---
+[INFO] REWRITE: Delaying execution to the end of multi-module project for org.cibseven.bpm.qa.upgrade:cibseven-qa-upgrade-test-fixture-21:2.2.0-SNAPSHOT
+[INFO]
+[INFO] ---< org.cibseven.bpm.qa.upgrade:cibseven-qa-upgrade-test-migration >---
+[INFO] Building CIB seven Platform - QA - upgrade - instance migration - test 2.2.0-SNAPSHOT [5/5]
+[INFO]   from test-migration/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] >>> rewrite:5.43.0:run (default-cli) > process-test-classes @ cibseven-qa-upgrade-test-migration >>>
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ cibseven-qa-upgrade-test-migration ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 3 resources
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ cibseven-qa-upgrade-test-migration ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ cibseven-qa-upgrade-test-migration ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /app/qa/test-db-instance-migration/test-migration/src/test/resources
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ cibseven-qa-upgrade-test-migration ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO]
+[INFO] <<< rewrite:5.43.0:run (default-cli) < process-test-classes @ cibseven-qa-upgrade-test-migration <<<
+[INFO]
+[INFO]
+[INFO] --- rewrite:5.43.0:run (default-cli) @ cibseven-qa-upgrade-test-migration ---
+[INFO] Using active recipe(s) [org.openrewrite.java.testing.junit5.JUnit5BestPractices, org.openrewrite.java.testing.assertj.Assertj]
+[INFO] Using active styles(s) []
+[INFO] Validating active recipes...
+[INFO] Project [CIB seven Platform - QA - upgrade - instance migration] Resolving Poms...
+[WARNING] Failed to access maven repository http://snapshots.repository.codehaus.org due to: snapshots.repository.codehaus.org
+[WARNING] Failed to access maven repository http://snapshots.repository.codehaus.org due to: snapshots.repository.codehaus.org
+[INFO] Project [CIB seven Platform - QA - upgrade - instance migration] Parsing source files
+[INFO] Project [CIB seven Platform - QA - upgrade - instance migration - test fixture - 1.1.0] Parsing source files
+[INFO] Project [CIB seven BPM - QA - upgrade - instance migration - test fixture - 2.0.0] Parsing source files
+[INFO] Project [CIB seven BPM - QA - upgrade - instance migration - test fixture - 2.1.0] Parsing source files
+[INFO] Project [CIB seven Platform - QA - upgrade - instance migration - test] Parsing source files
+[INFO] Running recipe(s)...
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-fixture-11/pom.xml by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.maven.ExcludeDependency: {groupId=junit, artifactId=junit}
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-fixture-20/pom.xml by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.maven.ExcludeDependency: {groupId=junit, artifactId=junit}
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-fixture-21/pom.xml by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.maven.ExcludeDependency: {groupId=junit, artifactId=junit}
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/pom.xml by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.dependencies.RemoveDependency: {groupId=junit, artifactId=junit}
+[WARNING]                 org.openrewrite.maven.RemoveDependency: {groupId=junit, artifactId=junit}
+[WARNING]             org.openrewrite.maven.ExcludeDependency: {groupId=junit, artifactId=junit}
+[WARNING]             org.openrewrite.java.testing.junit5.AddJupiterDependencies
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/util/ActivityInstanceAssert.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/multiinstance/SequentialMultiInstanceScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/multiinstance/ParallelMultiInstanceScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/multiinstance/MultiInstanceReceiveTaskScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/multiinstance/NestedSequentialMultiInstanceScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/job/AsyncParallelMultiInstanceScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/job/AsyncSequentialMultiInstanceScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/compensation/SingleActivityCompensationScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/compensation/SubprocessParallelCreateCompensationScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/compensation/InterruptingEventSubprocessCompensationScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/compensation/SubprocessParallelThrowCompensationScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/compensation/SubprocessCompensationScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/compensation/TransactionCancelCompensationScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/gateway/EventBasedGatewayScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/eventsubprocess/NestedNonInterruptingEventSubprocessNestedSubprocessTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/eventsubprocess/TwoLevelNestedNonInterruptingEventSubprocessScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/eventsubprocess/NestedInterruptingEventSubprocessParallelScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNullToAssertThat
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/eventsubprocess/ParallelNestedNonInterruptingEventSubprocessScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/eventsubprocess/NestedInterruptingErrorEventSubprocessScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/eventsubprocess/NestedNonInterruptingEventSubprocessScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/eventsubprocess/NestedParallelNonInterruptingEventSubprocessScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/eventsubprocess/InterruptingEventSubprocessScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/eventsubprocess/NonInterruptingEventSubprocessScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/boundary/NonInterruptingBoundaryEventScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/boundary/NestedNonInterruptingBoundaryEventOnInnerSubprocessScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/boundary/NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/task/OneScopeTaskScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/task/ParallelTasksScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/task/ParallelScopeTasksScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/scenarios11/task/OneTaskScenarioTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.StaticImports
+[WARNING]             org.openrewrite.java.UseStaticImport: {methodPattern=org.junit.jupiter.api.Assertions *(..)}
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat
+[WARNING] Changes have been made to qa/test-db-instance-migration/test-migration/src/test/java/org/cibseven/bpm/qa/upgrade/authorization/AuthorizationTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.IgnoreToDisabled
+[WARNING]                 org.openrewrite.java.ChangeType: {oldFullyQualifiedTypeName=org.junit.Ignore, newFullyQualifiedTypeName=org.junit.jupiter.api.Disabled}
+[WARNING]             org.openrewrite.java.testing.junit5.AssertToAssertions
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.junit5.CleanupAssertions
+[WARNING]             org.openrewrite.java.testing.cleanup.AssertEqualsBooleanToAssertBoolean
+[WARNING]         org.openrewrite.java.testing.cleanup.RemoveTestPrefix
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.assertj.JUnitToAssertj
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat
+[WARNING]                 org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat
+[WARNING] Please review and commit the results.
+[WARNING] Estimate time saved: 2h 55m
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for CIB seven Platform - QA - upgrade - instance migration 2.2.0-SNAPSHOT:
+[INFO]
+[INFO] CIB seven Platform - QA - upgrade - instance migration SUCCESS [  2.630 s]
+[INFO] CIB seven Platform - QA - upgrade - instance migration - test fixture - 1.1.0 SUCCESS [  1.610 s]
+[INFO] CIB seven BPM - QA - upgrade - instance migration - test fixture - 2.0.0 SUCCESS [  0.357 s]
+[INFO] CIB seven BPM - QA - upgrade - instance migration - test fixture - 2.1.0 SUCCESS [  0.245 s]
+[INFO] CIB seven Platform - QA - upgrade - instance migration - test SUCCESS [01:45 min]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:51 min
+[INFO] Finished at: 2026-02-02T17:26:47Z
+[INFO] ------------------------------------------------------------------------

@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.qa.upgrade.util;
 
+import static org.assertj.core.api.Assertions.fail;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -24,7 +26,6 @@ import java.util.Stack;
 import org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParse;
 import org.cibseven.bpm.engine.runtime.ActivityInstance;
 import org.cibseven.bpm.engine.runtime.TransitionInstance;
-import org.junit.Assert;
 
 /**
  * @author Daniel Meyer
@@ -47,7 +48,7 @@ public class ActivityInstanceAssert {
     protected void assertTreeMatch(ExpectedActivityInstance expected, ActivityInstance actual) {
       boolean treesMatch = isTreeMatched(expected, actual);
       if (!treesMatch) {
-        Assert.fail("Could not match expected tree \n" + expected +" \n\n with actual tree \n\n "+actual);
+        fail("Could not match expected tree \n" + expected + " \n\n with actual tree \n\n " + actual);
       }
 
     }

@@ -19,13 +19,14 @@ package org.cibseven.bpm.integrationtest.jobexecutor;
 import java.util.List;
 
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.cibseven.bpm.integrationtest.jobexecutor.beans.SampleServiceBean;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -45,14 +46,14 @@ public class TimerExecutionTest extends AbstractFoxPlatformIntegrationTest {
   }
 
   @Test
-  public void testProcessExecution() {
+  void processExecution() {
 
     ProcessInstance instance = runtimeService.startProcessInstanceByKey("TimerExecutionProcess");
 
     waitForJobExecutorToProcessAllJobs();
 
     List<ProcessInstance> finallyRunningInstances = runtimeService.createProcessInstanceQuery().processInstanceId(instance.getId()).list();
-    Assert.assertEquals(0, finallyRunningInstances.size());
+    assertThat(finallyRunningInstances).hasSize(0);
 
   }
 }

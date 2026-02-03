@@ -22,7 +22,7 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.qa.performance.engine.junit.ProcessEnginePerformanceTestCase;
 import org.cibseven.bpm.qa.performance.engine.steps.StartProcessInstanceStep;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Execute process definitions which contains a DMN business rule task.
@@ -30,7 +30,7 @@ import org.junit.Test;
  * @author Philipp Ossler
  *
  */
-public class DmnBusinessRuleTaskTest extends ProcessEnginePerformanceTestCase {
+class DmnBusinessRuleTaskTest extends ProcessEnginePerformanceTestCase {
 
   private final static String BPMN = "org/cibseven/bpm/qa/performance/engine/dmn/DmnBusinessRuleTaskTest.businessRuleTask.bpmn";
   private final static String DMN_DIR = "org/cibseven/bpm/qa/performance/engine/dmn/";
@@ -48,32 +48,32 @@ public class DmnBusinessRuleTaskTest extends ProcessEnginePerformanceTestCase {
   private static final double NUMBER_OF_MATCHING_RULES = 1.0;
 
   @Test
-  @Deployment(resources = { BPMN, DMN_DIR + "DmnEnginePerformanceTest.twoRules.dmn" })
-  public void twoRules() {
+  @Deployment(resources = {BPMN, DMN_DIR + "DmnEnginePerformanceTest.twoRules.dmn"})
+  void twoRules() {
     performanceTest()
       .step(startProcessInstanceStep(TWO_RULES))
     .run();
   }
 
   @Test
-  @Deployment(resources = { BPMN, DMN_DIR + "DmnEnginePerformanceTest.fiveRules.dmn" })
-  public void fiveRules() {
+  @Deployment(resources = {BPMN, DMN_DIR + "DmnEnginePerformanceTest.fiveRules.dmn"})
+  void fiveRules() {
     performanceTest()
       .step(startProcessInstanceStep(FIVE_RULES))
     .run();
   }
 
   @Test
-  @Deployment(resources = { BPMN, DMN_DIR + "DmnEnginePerformanceTest.tenRules.dmn" })
-  public void tenRules() {
+  @Deployment(resources = {BPMN, DMN_DIR + "DmnEnginePerformanceTest.tenRules.dmn"})
+  void tenRules() {
     performanceTest()
       .step(startProcessInstanceStep(TEN_RULES))
     .run();
   }
 
   @Test
-  @Deployment(resources = { BPMN, DMN_DIR + "DmnEnginePerformanceTest.oneHundredRules.dmn" })
-  public void onehundredRules() {
+  @Deployment(resources = {BPMN, DMN_DIR + "DmnEnginePerformanceTest.oneHundredRules.dmn"})
+  void onehundredRules() {
     performanceTest()
       .step(startProcessInstanceStep(ONE_HUNDRED_RULES))
     .run();
@@ -81,7 +81,7 @@ public class DmnBusinessRuleTaskTest extends ProcessEnginePerformanceTestCase {
 
   @Test
   @Deployment
-  public void noop() {
+  void noop() {
     performanceTest()
       .step(new StartProcessInstanceStep(engine, PROCESS_DEFINITION_KEY))
     .run();

@@ -29,10 +29,10 @@ import org.cibseven.bpm.engine.impl.util.CollectionUtil;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.qa.largedata.util.EngineDataGenerator;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DeleteDeploymentCascadeTest {
 
@@ -45,9 +45,9 @@ public class DeleteDeploymentCascadeTest {
   protected RepositoryService repositoryService;
   protected HistoryService historyService;
   protected EngineDataGenerator generator;
-  
-  @Before
-  public void init() {
+
+  @BeforeEach
+  void init() {
     repositoryService = processEngineRule.getProcessEngine().getRepositoryService();
     historyService = processEngineRule.getProcessEngine().getHistoryService();
 
@@ -57,8 +57,8 @@ public class DeleteDeploymentCascadeTest {
     generator.generateCompletedProcessInstanceData();
   }
 
-  @After
-  public void teardown() {
+  @AfterEach
+  void teardown() {
     Deployment deployment = repositoryService.createDeploymentQuery().deploymentName(generator.getDeploymentName()).singleResult();
     if (deployment != null) {
       List<HistoricProcessInstance> processInstances = historyService.createHistoricProcessInstanceQuery()
@@ -75,7 +75,7 @@ public class DeleteDeploymentCascadeTest {
   }
 
   @Test
-  public void shouldDeleteCascadeWithLargeParameterCount() {
+  void shouldDeleteCascadeWithLargeParameterCount() {
     // given
     Deployment deployment = repositoryService.createDeploymentQuery().deploymentName(generator.getDeploymentName()).singleResult();
 

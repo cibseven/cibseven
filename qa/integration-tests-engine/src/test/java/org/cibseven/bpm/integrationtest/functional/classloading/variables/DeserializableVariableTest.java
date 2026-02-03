@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.classloading.variables;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.history.HistoricVariableInstance;
 import org.cibseven.bpm.engine.impl.persistence.entity.HistoricVariableInstanceEntity;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
@@ -29,8 +31,7 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 import java.util.List;
@@ -65,12 +66,12 @@ public class DeserializableVariableTest extends AbstractFoxPlatformIntegrationTe
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testVariableDeserializationOnProcessApplicationRestart() {
+  void variableDeserializationOnProcessApplicationRestart() {
     // given
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("testDeserializeVariable");
 
     // when
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processInstanceId(pi.getId()).singleResult());
+    assertThat(runtimeService.createProcessInstanceQuery().processInstanceId(pi.getId()).singleResult()).isNull();
     runtimeService.restartProcessInstances(pi.getProcessDefinitionId())
       .startAfterActivity("servicetask1")
       .processInstanceIds(pi.getId())
@@ -83,7 +84,7 @@ public class DeserializableVariableTest extends AbstractFoxPlatformIntegrationTe
     List<HistoricVariableInstance> variableInstances = historyService.createHistoricVariableInstanceQuery().disableCustomObjectDeserialization().list();
     for (HistoricVariableInstance variable : variableInstances) {
       if (variable.getProcessInstanceId() != pi.getId() && variable instanceof HistoricVariableInstanceEntity) {
-        Assert.assertNotNull(((HistoricVariableInstanceEntity) variable).getByteArrayValue());
+        assertThat(((HistoricVariableInstanceEntity) variable).getByteArrayValue()).isNotNull();
       }
     }
   }

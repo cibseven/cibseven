@@ -20,7 +20,7 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
@@ -64,7 +64,7 @@ public class JPAIntegrationTest extends AbstractFoxPlatformIntegrationTest {
   private AsyncPersistenceDelegateBean asyncPersistenceDelegateBean;
 
   @Test
-  public void testDelegateParticipateInApplicationTx() throws Exception {
+  void delegateParticipateInApplicationTx() throws Exception {
 
     /* if we start a transaction here, persist an entity and then
      * start a process instance which synchronously invokes a java delegate,
@@ -91,7 +91,7 @@ public class JPAIntegrationTest extends AbstractFoxPlatformIntegrationTest {
 
 
   @Test
-  public void testAsyncDelegateNewTx() throws Exception {
+  void asyncDelegateNewTx() throws Exception {
 
     /* if we start a transaction here, persist an entity and then
      * start a process instance which asynchronously invokes a java delegate,

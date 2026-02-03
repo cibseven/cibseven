@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.qa.upgrade.scenarios11.eventsubprocess;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.assertThat;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.describeActivityInstanceTree;
 
@@ -25,10 +26,9 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
-import org.junit.Assert;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 @ScenarioUnderTest("NonInterruptingEventSubprocessScenario")
 @Origin("1.1.0")
@@ -39,7 +39,7 @@ public class NonInterruptingEventSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.1")
-  public void testInitCompletionCase1() {
+  void initCompletionCase1() {
     // given
     Task outerTask = rule.taskQuery().taskDefinitionKey("outerTask").singleResult();
     Task eventSubprocessTask = rule.taskQuery().taskDefinitionKey("eventSubProcessTask").singleResult();
@@ -54,7 +54,7 @@ public class NonInterruptingEventSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.2")
-  public void testInitCompletionCase2() {
+  void initCompletionCase2() {
     // given
     Task outerTask = rule.taskQuery().taskDefinitionKey("outerTask").singleResult();
     Task eventSubprocessTask = rule.taskQuery().taskDefinitionKey("eventSubProcessTask").singleResult();
@@ -68,10 +68,10 @@ public class NonInterruptingEventSubprocessScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("init.3")
-  public void testInitActivityInstanceTree() {
+  void initActivityInstanceTree() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -79,7 +79,7 @@ public class NonInterruptingEventSubprocessScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    assertThat(activityInstance).isNotNull();
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
           .activity("outerTask")
@@ -90,7 +90,7 @@ public class NonInterruptingEventSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.4")
-  public void testInitDeletion() {
+  void initDeletion() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -103,7 +103,7 @@ public class NonInterruptingEventSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.outerTask.1")
-  public void testInitTask1Completion() {
+  void initTask1Completion() {
     // given
     Task eventSubprocessTask = rule.taskQuery().taskDefinitionKey("eventSubProcessTask").singleResult();
 
@@ -115,10 +115,10 @@ public class NonInterruptingEventSubprocessScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("init.outerTask.2")
-  public void testInitTask1ActivityInstanceTree() {
+  void initTask1ActivityInstanceTree() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -126,7 +126,7 @@ public class NonInterruptingEventSubprocessScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    assertThat(activityInstance).isNotNull();
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
           // eventSubProcess was previously no scope so it misses here
@@ -136,7 +136,7 @@ public class NonInterruptingEventSubprocessScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.outerTask.3")
-  public void testInitOuterTaskDeletion() {
+  void initOuterTaskDeletion() {
     // given
     ProcessInstance instance = rule.processInstance();
 

@@ -22,14 +22,14 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.qa.performance.engine.junit.ProcessEnginePerformanceTestCase;
 import org.cibseven.bpm.qa.performance.engine.steps.EvaluateDecisionTableStep;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Evaluate DMN decision tables via decision service.
  *
  * @author Philipp Ossler
  */
-public class DmnEnginePerformanceTest extends ProcessEnginePerformanceTestCase {
+class DmnEnginePerformanceTest extends ProcessEnginePerformanceTestCase {
 
   // 1.0 => 100% - all rules of the decision table will match
   // 0.5 => 50% - half of the rules of the decision table will match
@@ -48,7 +48,7 @@ public class DmnEnginePerformanceTest extends ProcessEnginePerformanceTestCase {
 
   @Test
   @Deployment
-  public void twoRules() {
+  void twoRules() {
     performanceTest()
       .step(evaluateDecisionTableStep(TWO_RULES))
     .run();
@@ -56,7 +56,7 @@ public class DmnEnginePerformanceTest extends ProcessEnginePerformanceTestCase {
 
   @Test
   @Deployment
-  public void fiveRules() {
+  void fiveRules() {
     performanceTest()
       .step(evaluateDecisionTableStep(FIVE_RULES))
     .run();
@@ -64,7 +64,7 @@ public class DmnEnginePerformanceTest extends ProcessEnginePerformanceTestCase {
 
   @Test
   @Deployment
-  public void tenRules() {
+  void tenRules() {
     performanceTest()
       .step(evaluateDecisionTableStep(TEN_RULES))
     .run();
@@ -72,7 +72,7 @@ public class DmnEnginePerformanceTest extends ProcessEnginePerformanceTestCase {
 
   @Test
   @Deployment
-  public void oneHundredRules() {
+  void oneHundredRules() {
     performanceTest()
       .step(evaluateDecisionTableStep(ONE_HUNDRED_RULES))
     .run();
@@ -80,7 +80,7 @@ public class DmnEnginePerformanceTest extends ProcessEnginePerformanceTestCase {
 
   @Test
   @Deployment
-  public void twoRulesTwoInputs() {
+  void twoRulesTwoInputs() {
     performanceTest()
       .step(evaluateDecisionTableStep(TWO_RULES_TWO_INPUTS))
     .run();
@@ -88,7 +88,7 @@ public class DmnEnginePerformanceTest extends ProcessEnginePerformanceTestCase {
 
   @Test
   @Deployment
-  public void fiveRulesTwoInputs() {
+  void fiveRulesTwoInputs() {
    performanceTest()
       .step(evaluateDecisionTableStep(FIVE_RULES_TWO_INPUTS))
     .run();
@@ -96,7 +96,7 @@ public class DmnEnginePerformanceTest extends ProcessEnginePerformanceTestCase {
 
   @Test
   @Deployment
-  public void tenRulesTwoInputs() {
+  void tenRulesTwoInputs() {
     performanceTest()
       .step(evaluateDecisionTableStep(TEN_RULES_TWO_INPUTS))
     .run();
@@ -104,7 +104,7 @@ public class DmnEnginePerformanceTest extends ProcessEnginePerformanceTestCase {
 
   @Test
   @Deployment
-  public void oneHundredRulesTwoInputs() {
+  void oneHundredRulesTwoInputs() {
     performanceTest()
       .step(evaluateDecisionTableStep(ONE_HUNDRED_RULES_TWO_INPUTS))
     .run();

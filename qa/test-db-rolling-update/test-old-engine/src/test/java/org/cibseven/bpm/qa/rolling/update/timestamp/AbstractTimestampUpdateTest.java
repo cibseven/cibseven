@@ -25,14 +25,10 @@ import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.TaskService;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
-import org.junit.Before;
-import org.junit.Rule;
-
+import org.junit.jupiter.api.BeforeEach;
 import java.util.Date;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Nikola Koevski
@@ -45,13 +41,13 @@ public abstract class AbstractTimestampUpdateTest extends AbstractRollingUpdateT
   protected RuntimeService runtimeService;
   protected ManagementService managementService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     runtimeService = rule.getRuntimeService();
     managementService = rule.getManagementService();
   }
 
   protected void assertNotNull(Object object) {
-    assertThat(object, is(notNullValue()));
+    assertThat(object).isNotNull();
   }
 }

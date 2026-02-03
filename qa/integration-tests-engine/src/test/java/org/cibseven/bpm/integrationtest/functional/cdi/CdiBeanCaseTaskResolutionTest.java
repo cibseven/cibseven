@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.cdi;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.runtime.CaseExecution;
 import org.cibseven.bpm.engine.runtime.CaseInstance;
 import org.cibseven.bpm.engine.task.Task;
@@ -29,8 +31,7 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -67,7 +68,7 @@ public class CdiBeanCaseTaskResolutionTest extends AbstractFoxPlatformIntegratio
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testResolveBeanInCmmnCase() {
+  void resolveBeanInCmmnCase() {
     CaseInstance caseInstance = caseService.withCaseDefinitionByKey("callingCase")
         .create();
 
@@ -89,6 +90,6 @@ public class CdiBeanCaseTaskResolutionTest extends AbstractFoxPlatformIntegratio
 
     // then
     String variable = (String) caseService.getVariable(caseInstance.getId(), "var");
-    Assert.assertEquals("valuevalue", variable);
+    assertThat(variable).isEqualTo("valuevalue");
   }
 }

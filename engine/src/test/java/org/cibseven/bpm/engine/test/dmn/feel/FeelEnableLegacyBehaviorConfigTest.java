@@ -87,7 +87,7 @@ public class FeelEnableLegacyBehaviorConfigTest {
         Variables.putValue("cellInput", 6)).getSingleEntry())
       .hasCauseInstanceOf(FeelSyntaxException.class)
       .extracting("cause.message")
-      .contains("FEEL-01010 Syntax error in expression 'for x in 1..3 return x * 2'");
+      .asString().contains("FEEL-01010 Syntax error in expression 'for x in 1..3 return x * 2'");
   }
 
   @Test

@@ -21,7 +21,7 @@ import org.cibseven.bpm.integrationtest.util.TestHelper;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -42,16 +42,16 @@ public class TestWarDeploymentWithDiagram extends AbstractFoxPlatformIntegration
             .addAsResource("org/cibseven/bpm/integrationtest/invoice-it.bpmn20.xml")
             .addAsResource("org/cibseven/bpm/integrationtest/invoice-it.jpg");
   }
-  
+
   @Test
-  public void testDeployProcessArchive() throws IOException {
+  void deployProcessArchive() throws IOException {
     String expectedDiagramResource = "/org/cibseven/bpm/integrationtest/testDeployProcessArchive.png";
     String processDefinitionKey = "testDeployProcessArchive";
     TestHelper.assertDiagramIsDeployed(true, getClass(), expectedDiagramResource, processDefinitionKey);
   }
 
   @Test
-  public void testInvoiceProcess() throws IOException {
+  void invoiceProcess() throws IOException {
     String expectedDiagramResource = "/org/cibseven/bpm/integrationtest/invoice-it.jpg";
     String processDefinitionKey = "invoice-it";
     TestHelper.assertDiagramIsDeployed(true, getClass(), expectedDiagramResource, processDefinitionKey);

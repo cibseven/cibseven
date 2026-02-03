@@ -16,9 +16,10 @@
  */
 package org.cibseven.bpm.integrationtest.functional.classloading.variables.beans;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
-import org.junit.Assert;
 
 /**
  * @author Daniel Meyer
@@ -30,7 +31,7 @@ public class GetVariableDelegate implements JavaDelegate {
     
     SerializableVariable variable = (SerializableVariable) execution.getVariable("var1");
 
-    Assert.assertNotNull(variable);
+    assertThat(variable).isNotNull();
   }
 
 

@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 package org.cibseven.bpm.integrationtest.deployment.war;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.BpmPlatform;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
@@ -22,14 +24,11 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 import java.util.List;
 import java.util.Set;
-
-import static org.junit.Assert.assertTrue;
 
 
 /**
@@ -47,15 +46,15 @@ public class TestWarDeploymentEmptyProcessesXml extends AbstractFoxPlatformInteg
   }
 
   @Test
-  public void testDeployProcessArchive() {
-    Assert.assertNotNull(processEngine);
+  void deployProcessArchive() {
+    assertThat(processEngine).isNotNull();
     RepositoryService repositoryService = processEngine.getRepositoryService();
 
     List<ProcessDefinition> processDefinitions = repositoryService.createProcessDefinitionQuery()
       .processDefinitionKey("testDeployProcessArchive")
       .list();
 
-    Assert.assertEquals(1, processDefinitions.size());
+    assertThat(processDefinitions).hasSize(1);
     org.cibseven.bpm.engine.repository.Deployment deployment = repositoryService.createDeploymentQuery()
       .deploymentId(processDefinitions.get(0).getDeploymentId())
       .singleResult();
@@ -70,7 +69,7 @@ public class TestWarDeploymentEmptyProcessesXml extends AbstractFoxPlatformInteg
         containsProcessApplication = true;
       }
     }
-    assertTrue(containsProcessApplication);
+    assertThat(containsProcessApplication).isTrue();
 
 
     // manually delete process definition here (to clean up)

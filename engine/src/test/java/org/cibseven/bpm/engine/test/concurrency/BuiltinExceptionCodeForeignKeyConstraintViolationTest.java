@@ -112,7 +112,7 @@ public class BuiltinExceptionCodeForeignKeyConstraintViolationTest extends Concu
     assertThat(thread2.exception)
         .isInstanceOf(ProcessEngineException.class)
         .extracting("code")
-        .contains(BuiltinExceptionCode.FOREIGN_KEY_CONSTRAINT_VIOLATION.getCode());
+        .isEqualTo(BuiltinExceptionCode.FOREIGN_KEY_CONSTRAINT_VIOLATION.getCode());
   }
 
 }

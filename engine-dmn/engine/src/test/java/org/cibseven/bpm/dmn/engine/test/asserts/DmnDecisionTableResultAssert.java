@@ -16,14 +16,30 @@
  */
 package org.cibseven.bpm.dmn.engine.test.asserts;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.assertj.core.api.AbstractListAssert;
 import org.cibseven.bpm.dmn.engine.DmnDecisionRuleResult;
 import org.cibseven.bpm.dmn.engine.DmnDecisionTableResult;
+import org.cibseven.bpm.dmn.engine.impl.DmnDecisionTableResultImpl;
 
 public class DmnDecisionTableResultAssert extends AbstractListAssert<DmnDecisionTableResultAssert, DmnDecisionTableResult, DmnDecisionRuleResult, DmnDecisionRuleResultAssert> {
 
   public DmnDecisionTableResultAssert(DmnDecisionTableResult decisionTableResult) {
     super(decisionTableResult, DmnDecisionTableResultAssert.class);
+  }
+
+  @Override
+  protected DmnDecisionTableResultAssert newAbstractIterableAssert(Iterable<? extends DmnDecisionRuleResult> iterable) {
+    if (iterable instanceof DmnDecisionTableResult) {
+      return new DmnDecisionTableResultAssert((DmnDecisionTableResult) iterable);
+    }
+    List<DmnDecisionRuleResult> list = new ArrayList<>();
+    for (DmnDecisionRuleResult result : iterable) {
+      list.add(result);
+    }
+    return new DmnDecisionTableResultAssert(new DmnDecisionTableResultImpl(list));
   }
 
   public DmnDecisionRuleResultAssert hasSingleResult() {

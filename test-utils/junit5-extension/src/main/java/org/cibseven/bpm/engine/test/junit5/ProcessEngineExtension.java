@@ -130,11 +130,16 @@ public class ProcessEngineExtension implements TestWatcher,
   protected String deploymentId;
   protected boolean ensureCleanAfterTest = false;
   protected List<String> additionalDeployments = new ArrayList<>();
+  protected Supplier<ProcessEngine> processEngineSupplier;
 
   // SETUP
 
   protected void initializeProcessEngine() {
-    processEngine = TestHelper.getProcessEngine(configurationResource);
+    if (processEngineSupplier != null) {
+      processEngine = processEngineSupplier.get();
+    } else {
+      processEngine = TestHelper.getProcessEngine(configurationResource);
+    }
     processEngineConfiguration = (ProcessEngineConfigurationImpl) processEngine.getProcessEngineConfiguration();
   }
 
@@ -254,6 +259,11 @@ public class ProcessEngineExtension implements TestWatcher,
 
   public ProcessEngineExtension useProcessEngine(ProcessEngine engine) {
     this.setProcessEngine(engine);
+    return this;
+  }
+
+  public ProcessEngineExtension useProcessEngine(Supplier<ProcessEngine> processEngineSupplier) {
+    this.processEngineSupplier = processEngineSupplier;
     return this;
   }
 

@@ -27,11 +27,10 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Sebastian Menski
@@ -56,14 +55,14 @@ public class TestAdditionalResourceSuffixes extends AbstractFoxPlatformIntegrati
   }
 
   @Test
-  public void testDeployProcessArchive() {
-    assertNotNull(processEngine);
+  void deployProcessArchive() {
+    assertThat(processEngine).isNotNull();
     RepositoryService repositoryService = processEngine.getRepositoryService();
 
     ProcessDefinitionQuery processDefinitionQuery = repositoryService.createProcessDefinitionQuery()
       .processDefinitionKey("invoice-it");
 
-    assertEquals(1, processDefinitionQuery.count());
+    assertThat(processDefinitionQuery.count()).isEqualTo(1);
     ProcessDefinition processDefinition = processDefinitionQuery.singleResult();
 
     String deploymentId = repositoryService.createDeploymentQuery()
@@ -71,7 +70,7 @@ public class TestAdditionalResourceSuffixes extends AbstractFoxPlatformIntegrati
       .singleResult()
       .getId();
     List<Resource> deploymentResources = repositoryService.getDeploymentResources(deploymentId);
-    assertEquals(3, deploymentResources.size());
+    assertThat(deploymentResources).hasSize(3);
   }
 
 }

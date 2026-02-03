@@ -25,16 +25,16 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.qa.performance.engine.bpmn.delegate.NoopDelegate;
 import org.cibseven.bpm.qa.performance.engine.junit.ProcessEnginePerformanceTestCase;
 import org.cibseven.bpm.qa.performance.engine.steps.StartProcessInstanceStep;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
  *
  */
-public class ServiceTaskPerformanceTest extends ProcessEnginePerformanceTestCase {
+class ServiceTaskPerformanceTest extends ProcessEnginePerformanceTestCase {
 
   @Test
-  public void threeServiceTasksAndAGateway() {
+  void threeServiceTasksAndAGateway() {
 
     Map<String, Object> variables = new HashMap<String, Object>();
     variables.put("approved", true);

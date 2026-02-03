@@ -19,12 +19,11 @@ package org.cibseven.bpm.qa.rolling.update.externalTask;
 import java.util.List;
 import org.cibseven.bpm.engine.externaltask.ExternalTask;
 import org.cibseven.bpm.engine.externaltask.LockedExternalTask;
-import org.junit.Assert;
-import org.junit.Test;
-import static junit.framework.TestCase.assertEquals;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import static org.junit.Assert.assertNull;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  *
@@ -37,13 +36,13 @@ public class CompleteProcessWithExternalTaskTest extends AbstractRollingUpdateTe
 
   @Test
   @ScenarioUnderTest("init.1")
-  public void testCompleteProcessWithExternalTask() {
+  void completeProcessWithExternalTask() {
     //given process with external task
     String buisnessKey = rule.getBuisnessKey();
     List<LockedExternalTask> externalTasks = rule.getExternalTaskService().fetchAndLock(1, buisnessKey)
       .topic(buisnessKey, LOCK_TIME)
       .execute();
-    assertEquals(1, externalTasks.size());
+    assertThat(externalTasks).hasSize(1);
 
     //when external task is completed
     rule.getExternalTaskService().complete(externalTasks.get(0).getId(), buisnessKey);
@@ -54,7 +53,7 @@ public class CompleteProcessWithExternalTaskTest extends AbstractRollingUpdateTe
 
   @Test
   @ScenarioUnderTest("init.fetch.1")
-  public void testCompleteProcessWithFetchedExternalTask() throws InterruptedException {
+  void completeProcessWithFetchedExternalTask() throws InterruptedException {
     //given process with locked external task
     String buisnessKey = rule.getBuisnessKey();
     ExternalTask task = rule.getExternalTaskService()
@@ -63,7 +62,7 @@ public class CompleteProcessWithExternalTaskTest extends AbstractRollingUpdateTe
                             .topicName(buisnessKey)
                             .workerId(buisnessKey)
                             .singleResult();
-    Assert.assertNotNull(task);
+    assertThat(task).isNotNull();
 
     //when external task is completed
     rule.getExternalTaskService().complete(task.getId(), buisnessKey);
@@ -75,7 +74,7 @@ public class CompleteProcessWithExternalTaskTest extends AbstractRollingUpdateTe
                             .topicName(buisnessKey)
                             .workerId(buisnessKey)
                             .singleResult();
-    assertNull(task);
+    assertThat(task).isNull();
     rule.assertScenarioEnded();
   }
 }

@@ -1,0 +1,1998 @@
+[INFO] Scanning for projects...
+[WARNING]
+[WARNING] Some problems were encountered while building the effective model for org.cibseven.bpm.springboot:cibseven-bpm-spring-boot-starter-security:jar:2.2.0-SNAPSHOT
+[WARNING] The expression ${version} is deprecated. Please use ${project.version} instead.
+[WARNING]
+[WARNING] Some problems were encountered while building the effective model for org.cibseven.bpm:cibseven-engine:jar:2.2.0-SNAPSHOT
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.assertj:assertj-core:jar -> duplicate declaration of version (?) @ line 375, column 17
+[WARNING]
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING]
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING]
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO]
+[INFO] CIB seven - Root Pom                                               [pom]
+[INFO] CIB seven - Parent Pom                                             [pom]
+[INFO] CIB seven - database settings                                      [pom]
+[INFO] CIB seven Model APIs                                               [pom]
+[INFO] CIB seven - Xml Model API                                          [jar]
+[INFO] CIB seven - ArchUnit                                               [jar]
+[INFO] CIB seven - BPMN Model API                                         [jar]
+[INFO] CIB seven - CMMN Model API                                         [jar]
+[INFO] CIB seven - JUEL                                                   [jar]
+[INFO] CIB seven Commons - Root Pom                                       [pom]
+[INFO] CIB seven Commons - Logging                                        [jar]
+[INFO] CIB seven Commons - Utils                                          [jar]
+[INFO] CIB seven Commons - Typed Values                                   [jar]
+[INFO] CIB seven - DMN Model API                                          [jar]
+[INFO] CIB seven DMN - engine - root                                      [pom]
+[INFO] CIB seven DMN - engine FEEL - API                                  [jar]
+[INFO] CIB seven DMN - engine FEEL - JUEL                                 [jar]
+[INFO] CIB seven DMN - engine FEEL - SCALA                                [jar]
+[INFO] CIB seven DMN - engine                                             [jar]
+[INFO] CIB seven Commons - Testing                                        [jar]
+[INFO] CIB seven Test Utils - Testcontainers                              [jar]
+[INFO] CIB seven - engine                                                 [jar]
+[INFO] CIB seven - engine - Spring 6                                      [jar]
+[INFO] CIB seven Spin - root                                              [pom]
+[INFO] CIB seven Spin - core                                              [jar]
+[INFO] CIB seven Spin - Jackson JSON data format                          [jar]
+[INFO] CIB seven Spin - DOM XML data format                               [jar]
+[INFO] CIB seven - engine plugins                                         [pom]
+[INFO] CIB seven - engine plugins - spin                                  [jar]
+[INFO] CIB seven - connect - root                                         [pom]
+[INFO] CIB seven - connect - core                                         [jar]
+[INFO] CIB seven - connect - http client                                  [jar]
+[INFO] CIB seven - connect - soap http client                             [jar]
+[INFO] CIB seven - engine plugins - connect                               [jar]
+[INFO] CIB seven - Assert - Root                                          [pom]
+[INFO] CIB seven - Assert                                                 [jar]
+[INFO] CIB seven - Spring Boot Starter - Root Pom                         [pom]
+[INFO] CIB seven - Spring Boot Starter - Test                             [jar]
+[INFO] CIB seven - Spring Boot Starter                                    [jar]
+[INFO] CIB seven - Bom Root                                               [pom]
+[INFO] CIB seven - Bom                                                    [pom]
+[INFO] CIB seven - Core - Internal Dependencies                           [pom]
+[INFO] CIB seven - engine - REST - Root                                   [pom]
+[INFO] CIB seven - engine - REST Jakarta                                  [jar]
+[INFO] CIB seven - Spring Boot Starter - Rest                             [jar]
+[INFO] CIB seven - Webapp - Root                                          [pom]
+[INFO] CIB seven - Webapp - Assembly Jakarta                              [war]
+[INFO] CIB seven - webapp - webjar                                        [jar]
+[INFO] CIB seven - Spring Boot Starter - Webapps Core                     [jar]
+[INFO] CIB seven - Spring Boot Starter - Webapps                          [jar]
+[INFO] CIB seven - Spring Boot Starter - Spring Security                  [jar]
+[INFO] CIB seven Spin - all dataformats in one                            [jar]
+[INFO] CIB seven - Java External Task Client - ROOT                       [pom]
+[INFO] CIB seven - Java External Task Client - QA                         [pom]
+[INFO] CIB seven - Java External Task Client - QA VARIABLE TEST           [war]
+[INFO] CIB seven - engine - Cdi - Jakarta                                 [jar]
+[INFO] CIB seven - engine plugins - identity - ldap                       [jar]
+[INFO] CIB seven - connect - all connectors in one                        [jar]
+[INFO] CIB seven - License Book                                           [pom]
+[INFO] CIB seven template engine jsr223 freemarker                        [jar]
+[INFO] CIB seven - tomcat                                                 [pom]
+[INFO] CIB seven - tomcat Assembly                                        [pom]
+[INFO] CIB seven - engine - REST - Assembly Jakarta                       [war]
+[INFO] CIB seven - Java External Task Client - CLIENT                     [jar]
+[INFO] CIB seven - Spring Boot Starter - Client - Spring                  [jar]
+[INFO] CIB seven - Spring Boot Starter - Client - Spring Boot             [jar]
+[INFO] CIB seven - Spring Boot Starter - QA - Root Pom                    [pom]
+[INFO] CIB seven - Spring Boot Starter - QA - Simple                      [jar]
+[INFO] CIB seven - Spring Boot Starter - QA - Request Scope               [jar]
+[INFO] CIB seven - Spring Boot Starter - QA - Plugins                     [pom]
+[INFO] CIB seven - Spring Boot Starter - QA - Plugins - Spin              [pom]
+[INFO] CIB seven - Spring Boot Starter - QA - Plugins - Spin Json Jackson [jar]
+[INFO] CIB seven - Spring Boot Starter - QA - Plugins - Spin All          [jar]
+[INFO] CIB seven - Example - Root                                         [pom]
+[INFO] CIB seven - Example - Invoice Jakarta                              [war]
+[INFO] CIB seven - Spring Boot Starter - QA - Webapps                     [pom]
+[INFO] CIB seven - Spring Boot Starter - QA - Webapps Invoice Example     [jar]
+[INFO] CIB seven - Spring Boot Starter - QA - Webapps Runtime             [jar]
+[INFO] CIB seven - Spring Boot Starter - QA - Liquibase                   [jar]
+[INFO] CIB seven - Quarkus Extension - Parent                             [pom]
+[INFO] CIB seven - Quarkus Extension - Engine - Parent                    [pom]
+[INFO] CIB seven - Quarkus Extension - Engine - Runtime                   [jar]
+[INFO] CIB seven - Quarkus Extension - Engine - Deployment                [jar]
+[INFO] CIB seven - Quarkus Extension - Engine - CDI QA                    [jar]
+[INFO] CIB seven - QA                                                     [pom]
+[INFO] CIB seven - QA - ensure clean db plugin                            [jar]
+[INFO] CIB seven - QA - check indexes in SQL scripts                      [jar]
+[INFO] CIB seven - QA Wildfly Test Runtime                                [jar]
+[INFO] CIB seven - QA Tomcat Test Runtime                                 [pom]
+[INFO] CIB seven - QA Tomcat 9 Test Runtime                               [pom]
+[INFO] CIB seven - engine - REST                                          [jar]
+[INFO] CIB seven - engine - REST - Assembly                               [war]
+[INFO] CIB seven - Example - Invoice                                      [war]
+[INFO] CIB seven - QA Integration Tests - Webapps Root                    [pom]
+[INFO] CIB seven - QA Integration Tests - Webapps ITs                     [jar]
+[INFO] CIB seven - QA Integration Tests - Webapps Shared Engine           [jar]
+[INFO] CIB seven - Client                                                 [jar]
+[INFO] CIB seven - engine - Cdi                                           [jar]
+[INFO] CIB seven - engine - Spring                                        [jar]
+[INFO] CIB seven - QA Integration Tests - Engine                          [jar]
+[INFO] CIB seven - QA - upgrade - scenario util                           [jar]
+[INFO] CIB seven Platform - QA - upgrade - instance migration             [pom]
+[INFO] CIB seven Platform - QA - upgrade - instance migration - test fixture - 1.1.0 [jar]
+[INFO] CIB seven BPM - QA - upgrade - instance migration - test fixture - 2.0.0 [jar]
+[INFO] CIB seven BPM - QA - upgrade - instance migration - test fixture - 2.1.0 [jar]
+[INFO] CIB seven Platform - QA - upgrade - instance migration - test      [jar]
+[INFO] CIB seven - QA - upgrade - rolling update                          [pom]
+[INFO] CIB seven - QA - upgrade - rolling update util                     [jar]
+[INFO] CIB seven - QA - upgrade - rolling update - create old engine      [jar]
+[INFO] CIB seven - QA - upgrade - rolling update - create new engine      [jar]
+[INFO] CIB seven - QA - upgrade - rolling update - test old engine        [jar]
+[INFO] CIB seven - QA - test new schema with old engine                   [jar]
+[INFO] CIB seven - QA Performance Tests Engine                            [jar]
+[INFO] Large Data Tests                                                   [jar]
+[INFO] CIB seven - EJB Client Jakarta                                     [jar]
+[INFO] CIB seven - QA Integration Tests - Engine - Jakarta                [jar]
+[INFO] CIB seven - Job Executor RA                                        [jar]
+[INFO] CIB seven - EJB Service                                            [ejb]
+[INFO] CIB seven - Job Executor RAR                                       [rar]
+[INFO] CIB seven DMN - engine - bom                                       [pom]
+[INFO] CIB seven - connect - bom                                          [pom]
+[INFO] CIB seven spin - bom                                               [pom]
+[INFO] CIB seven Spin - DOM XML data format Jakarta                       [jar]
+[INFO] CIB seven Commons - Bom                                            [pom]
+[INFO] CIB seven DMN - JUnit 5 Extension                                  [jar]
+[INFO] CIB seven - JUnit 5 Extension                                      [jar]
+[INFO] CIB seven - QA - Assert                                            [jar]
+[INFO] CIB seven - engine - CDI - Root                                    [pom]
+[INFO] CIB seven - engine - Spring - Root                                 [pom]
+[INFO] CIB seven - engine - REST - OpenAPI (JSON Generator)               [jar]
+[INFO] CIB seven - engine - REST - OpenAPI                                [jar]
+[INFO] CIB seven - engine - REST - Docs                                   [pom]
+[INFO] CIB seven - Webapp - Assembly                                      [war]
+[INFO] CIB seven - JBoss                                                  [pom]
+[INFO] CIB seven - webapp - JBoss                                         [war]
+[INFO] CIB seven - SQL scripts                                            [jar]
+[INFO] CIB seven - webapp - Tomcat - Jakarta                              [war]
+[INFO] CIB seven - tomcat Distro                                          [pom]
+[INFO] CIB seven - Run - Root                                             [pom]
+[INFO] CIB seven - Run - Modules                                          [pom]
+[INFO] CIB seven - Run - Module REST                                      [pom]
+[INFO] CIB seven - Run - Module Spring Security                           [pom]
+[INFO] CIB seven - Run - Module Example Invoice                           [jar]
+[INFO] CIB seven - Run - Core                                             [jar]
+[INFO] CIB seven - Run - Assembly                                         [pom]
+[INFO] CIB seven - Run - Module Webapps                                   [pom]
+[INFO] CIB seven - Run - Distribution                                     [pom]
+[INFO] CIB seven - Run - QA                                               [pom]
+[INFO] CIB seven - Run - QA - Example Plugin                              [jar]
+[INFO] CIB seven - Run - QA - Integration Tests                           [jar]
+[INFO] CIB seven - Run - QA - Runtime                                     [jar]
+[INFO] CIB seven Only - Bom                                               [pom]
+[INFO] CIB seven - Wildfly                                                [pom]
+[INFO] CIB seven - Wildfly Subsystem                                      [jar]
+[INFO] CIB seven - Wildfly Modules                                        [jar]
+[INFO] CIB seven - Wildfly Assembly                                       [pom]
+[INFO] CIB seven - webapp - WildFly                                       [war]
+[INFO] CIB seven - Wildfly Distro                                         [pom]
+[INFO] CIB seven - Wildfly 28                                             [pom]
+[INFO] CIB seven - Wildfly 28 Subsystem                                   [jar]
+[INFO] CIB seven - Wildfly 28 Modules                                     [jar]
+[INFO] CIB seven - Wildfly 28 Assembly                                    [pom]
+[INFO] CIB seven - Wildfly 28 Distro                                      [pom]
+[INFO]
+[INFO] -------------------< org.cibseven.bpm:cibseven-root >-------------------
+[INFO] Building CIB seven - Root Pom 2.2.0-SNAPSHOT                     [1/163]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO]
+[INFO] --- clean:3.1.0:clean (default-clean) @ cibseven-root ---
+[INFO]
+[INFO] --- dependency:2.8:list (list-deps) @ cibseven-root ---
+[INFO] Skipping plugin execution
+[INFO]
+[INFO] --- antrun:1.8:run (reformat-dependencies) @ cibseven-root ---
+[INFO] Skipping Antrun execution
+[INFO]
+[INFO] --- build-helper:1.9.1:attach-artifact (attach-deps) @ cibseven-root ---
+[INFO] Skip attaching artifacts
+[INFO]
+[INFO] --- install:3.1.2:install (default-install) @ cibseven-root ---
+[INFO] Installing /app/pom.xml to /home/jules/.m2/repository/org/cibseven/bpm/cibseven-root/2.2.0-SNAPSHOT/cibseven-root-2.2.0-SNAPSHOT.pom
+[INFO]
+[INFO] ------------------< org.cibseven.bpm:cibseven-parent >------------------
+[INFO] Building CIB seven - Parent Pom 2.2.0-SNAPSHOT                   [2/163]
+[INFO]   from parent/pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO]
+[INFO] --- clean:3.1.0:clean (default-clean) @ cibseven-parent ---
+[INFO]
+[INFO] --- dependency:2.8:list (list-deps) @ cibseven-parent ---
+[INFO] Skipping plugin execution
+[INFO]
+[INFO] --- antrun:1.8:run (reformat-dependencies) @ cibseven-parent ---
+[INFO] Skipping Antrun execution
+[INFO]
+[INFO] --- build-helper:1.9.1:attach-artifact (attach-deps) @ cibseven-parent ---
+[INFO] Skip attaching artifacts
+[INFO]
+[INFO] --- install:3.1.2:install (default-install) @ cibseven-parent ---
+[INFO] Installing /app/parent/pom.xml to /home/jules/.m2/repository/org/cibseven/bpm/cibseven-parent/2.2.0-SNAPSHOT/cibseven-parent-2.2.0-SNAPSHOT.pom
+[INFO]
+[INFO] ------------< org.cibseven.bpm:cibseven-database-settings >-------------
+[INFO] Building CIB seven - database settings 2.2.0-SNAPSHOT            [3/163]
+[INFO]   from database/pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO]
+[INFO] --- clean:3.1.0:clean (default-clean) @ cibseven-database-settings ---
+[INFO]
+[INFO] --- dependency:2.8:list (list-deps) @ cibseven-database-settings ---
+[INFO] Skipping plugin execution
+[INFO]
+[INFO] --- antrun:1.8:run (reformat-dependencies) @ cibseven-database-settings ---
+[INFO] Skipping Antrun execution
+[INFO]
+[INFO] --- build-helper:1.9.1:attach-artifact (attach-deps) @ cibseven-database-settings ---
+[INFO] Skip attaching artifacts
+[INFO]
+[INFO] --- install:3.1.2:install (default-install) @ cibseven-database-settings ---
+[INFO] Installing /app/database/pom.xml to /home/jules/.m2/repository/org/cibseven/bpm/cibseven-database-settings/2.2.0-SNAPSHOT/cibseven-database-settings-2.2.0-SNAPSHOT.pom
+[INFO]
+[INFO] -------------< org.cibseven.bpm.model:cibseven-model-apis >-------------
+[INFO] Building CIB seven Model APIs 2.2.0-SNAPSHOT                     [4/163]
+[INFO]   from model-api/pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO]
+[INFO] --- clean:3.1.0:clean (default-clean) @ cibseven-model-apis ---
+[INFO]
+[INFO] --- dependency:2.8:list (list-deps) @ cibseven-model-apis ---
+[INFO] Skipping plugin execution
+[INFO]
+[INFO] --- antrun:1.8:run (reformat-dependencies) @ cibseven-model-apis ---
+[INFO] Skipping Antrun execution
+[INFO]
+[INFO] --- build-helper:1.9.1:attach-artifact (attach-deps) @ cibseven-model-apis ---
+[INFO] Skip attaching artifacts
+[INFO]
+[INFO] --- install:3.1.2:install (default-install) @ cibseven-model-apis ---
+[INFO] Installing /app/model-api/pom.xml to /home/jules/.m2/repository/org/cibseven/bpm/model/cibseven-model-apis/2.2.0-SNAPSHOT/cibseven-model-apis-2.2.0-SNAPSHOT.pom
+[INFO]
+[INFO] -------------< org.cibseven.bpm.model:cibseven-xml-model >--------------
+[INFO] Building CIB seven - Xml Model API 2.2.0-SNAPSHOT                [5/163]
+[INFO]   from model-api/xml-model/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- clean:3.1.0:clean (default-clean) @ cibseven-xml-model ---
+[INFO] Deleting /app/model-api/xml-model/target
+[INFO]
+[INFO] --- bundle:5.1.9:cleanVersions (default) @ cibseven-xml-model ---
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ cibseven-xml-model ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /app/model-api/xml-model/src/main/resources
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ cibseven-xml-model ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 110 source files to /app/model-api/xml-model/target/classes
+[INFO]
+[INFO] --- bundle:5.1.9:manifest (bundle-manifest) @ cibseven-xml-model ---
+[INFO] No MANIFEST.MF file found, generating manifest.
+[INFO] Writing manifest: /app/model-api/xml-model/target/classes/META-INF/MANIFEST.MF
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ cibseven-xml-model ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 14 resources
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ cibseven-xml-model ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 44 source files to /app/model-api/xml-model/target/test-classes
+[INFO] /app/model-api/xml-model/src/test/java/org/cibseven/bpm/model/xml/testmodel/instance/AlternativeNsTest.java: Some input files use or override a deprecated API.
+[INFO] /app/model-api/xml-model/src/test/java/org/cibseven/bpm/model/xml/testmodel/instance/AlternativeNsTest.java: Recompile with -Xlint:deprecation for details.
+[INFO]
+[INFO] --- surefire:3.5.2:test (default-test) @ cibseven-xml-model ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junit4.JUnit4Provider
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/surefire-junit4/3.5.2/surefire-junit4-3.5.2.pom
+Progress (1): 843 BProgress (1): 2.3 kBProgress (1): 3.3 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/surefire-junit4/3.5.2/surefire-junit4-3.5.2.pom (3.3 kB at 5.3 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/surefire-providers/3.5.2/surefire-providers-3.5.2.pom
+Progress (1): 854 BProgress (1): 2.2 kBProgress (1): 2.6 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/surefire-providers/3.5.2/surefire-providers-3.5.2.pom (2.6 kB at 65 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/common-java5/3.5.2/common-java5-3.5.2.pom
+Progress (1): 854 BProgress (1): 2.0 kBProgress (1): 2.8 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/common-java5/3.5.2/common-java5-3.5.2.pom (2.8 kB at 73 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/common-junit4/3.5.2/common-junit4-3.5.2.pom
+Progress (1): 843 BProgress (1): 2.5 kBProgress (1): 3.5 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/common-junit4/3.5.2/common-junit4-3.5.2.pom (3.5 kB at 96 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/common-junit3/3.5.2/common-junit3-3.5.2.pom
+Progress (1): 854 BProgress (1): 2.0 kBProgress (1): 2.7 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/common-junit3/3.5.2/common-junit3-3.5.2.pom (2.7 kB at 74 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/surefire-junit4/3.5.2/surefire-junit4-3.5.2.jar
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/common-java5/3.5.2/common-java5-3.5.2.jar
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/common-junit4/3.5.2/common-junit4-3.5.2.jar
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/common-junit3/3.5.2/common-junit3-3.5.2.jar
+Progress (1): 0.9/18 kBProgress (1): 2.3/18 kBProgress (1): 3.6/18 kBProgress (1): 5.0/18 kBProgress (1): 6.4/18 kBProgress (1): 7.7/18 kBProgress (1): 9.1/18 kBProgress (1): 10/18 kB Progress (1): 12/18 kBProgress (1): 13/18 kBProgress (1): 15/18 kBProgress (1): 16/18 kBProgress (1): 17/18 kBProgress (1): 18 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/common-java5/3.5.2/common-java5-3.5.2.jar (18 kB at 351 kB/s)
+Progress (1): 0.9/26 kBProgress (1): 2.3/26 kBProgress (1): 3.6/26 kBProgress (1): 5.0/26 kBProgress (1): 6.4/26 kBProgress (1): 7.7/26 kBProgress (1): 9.1/26 kBProgress (1): 10/26 kB Progress (1): 12/26 kBProgress (1): 13/26 kBProgress (1): 15/26 kBProgress (1): 16/26 kBProgress (1): 17/26 kBProgress (2): 17/26 kB | 0.9/18 kBProgress (2): 17/26 kB | 2.3/18 kBProgress (2): 17/26 kB | 3.3/18 kBProgress (2): 17/26 kB | 4.7/18 kBProgress (2): 17/26 kB | 6.1/18 kBProgress (2): 19/26 kB | 6.1/18 kBProgress (2): 19/26 kB | 7.5/18 kBProgress (2): 19/26 kB | 8.8/18 kBProgress (2): 19/26 kB | 10/18 kB Progress (2): 19/26 kB | 12/18 kBProgress (2): 19/26 kB | 13/18 kBProgress (2): 20/26 kB | 13/18 kBProgress (2): 20/26 kB | 14/18 kBProgress (2): 21/26 kB | 14/18 kBProgress (2): 21/26 kB | 16/18 kBProgress (2): 23/26 kB | 16/18 kBProgress (2): 23/26 kB | 17/18 kBProgress (2): 24/26 kB | 17/18 kBProgress (2): 26/26 kB | 17/18 kBProgress (2): 26 kB | 17/18 kB                                 Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/common-junit4/3.5.2/common-junit4-3.5.2.jar (26 kB at 294 kB/s)
+Progress (2): 17/18 kB | 0.9/12 kBProgress (2): 17/18 kB | 2.3/12 kBProgress (2): 18 kB | 2.3/12 kB                                  Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/surefire-junit4/3.5.2/surefire-junit4-3.5.2.jar (18 kB at 194 kB/s)
+Progress (1): 3.6/12 kBProgress (1): 5.0/12 kBProgress (1): 6.4/12 kBProgress (1): 7.7/12 kBProgress (1): 9.1/12 kBProgress (1): 10/12 kB Progress (1): 12/12 kBProgress (1): 12 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/common-junit3/3.5.2/common-junit3-3.5.2.jar (12 kB at 129 kB/s)
+[INFO]
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.cibseven.bpm.model.xml.ModelTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.324 s -- in org.cibseven.bpm.model.xml.ModelTest
+[INFO] Running org.cibseven.bpm.model.xml.StringUtilTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.cibseven.bpm.model.xml.StringUtilTest
+[INFO] Running org.cibseven.bpm.model.xml.impl.parser.ParserTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.430 s -- in org.cibseven.bpm.model.xml.impl.parser.ParserTest
+[INFO] Running org.cibseven.bpm.model.xml.instance.DomTest
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.159 s -- in org.cibseven.bpm.model.xml.instance.DomTest
+[INFO] Running org.cibseven.bpm.model.xml.instance.ModelElementInstanceTest
+[INFO] Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.095 s -- in org.cibseven.bpm.model.xml.instance.ModelElementInstanceTest
+[INFO] Running org.cibseven.bpm.model.xml.testmodel.ModelBuilderTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.xml.testmodel.ModelBuilderTest
+[INFO] Running org.cibseven.bpm.model.xml.testmodel.TestModelInstanceTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.cibseven.bpm.model.xml.testmodel.TestModelInstanceTest
+[INFO] Running org.cibseven.bpm.model.xml.testmodel.instance.AlternativeNsTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.072 s -- in org.cibseven.bpm.model.xml.testmodel.instance.AlternativeNsTest
+[INFO] Running org.cibseven.bpm.model.xml.testmodel.instance.AnimalTest
+[INFO] Tests run: 106, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.238 s -- in org.cibseven.bpm.model.xml.testmodel.instance.AnimalTest
+[INFO] Running org.cibseven.bpm.model.xml.testmodel.instance.BirdTest
+[INFO] Tests run: 76, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.111 s -- in org.cibseven.bpm.model.xml.testmodel.instance.BirdTest
+[INFO] Running org.cibseven.bpm.model.xml.testmodel.instance.FlyingAnimalTest
+[INFO] Tests run: 40, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.075 s -- in org.cibseven.bpm.model.xml.testmodel.instance.FlyingAnimalTest
+[INFO] Running org.cibseven.bpm.model.xml.testmodel.instance.UnknownAnimalTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.150 s -- in org.cibseven.bpm.model.xml.testmodel.instance.UnknownAnimalTest
+[INFO] Running org.cibseven.bpm.model.xml.type.ModelElementTypeTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.084 s -- in org.cibseven.bpm.model.xml.type.ModelElementTypeTest
+[INFO] Running org.cibseven.bpm.model.xml.type.attribute.AttributeTest
+[INFO] Tests run: 22, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.067 s -- in org.cibseven.bpm.model.xml.type.attribute.AttributeTest
+[INFO] Running org.cibseven.bpm.model.xml.type.child.ChildElementCollectionTest
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.066 s -- in org.cibseven.bpm.model.xml.type.child.ChildElementCollectionTest
+[INFO] Running org.cibseven.bpm.model.xml.type.reference.ReferenceTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.041 s -- in org.cibseven.bpm.model.xml.type.reference.ReferenceTest
+[INFO] Running org.cibseven.bpm.model.xml.validation.ModelValidationTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.114 s -- in org.cibseven.bpm.model.xml.validation.ModelValidationTest
+[INFO]
+[INFO] Results:
+[INFO]
+[INFO] Tests run: 359, Failures: 0, Errors: 0, Skipped: 0
+[INFO]
+[INFO]
+[INFO] --- jar:2.6:jar (default-jar) @ cibseven-xml-model ---
+[INFO] Adding existing MANIFEST to archive. Found under: /app/model-api/xml-model/target/classes/META-INF/MANIFEST.MF
+[INFO] Building jar: /app/model-api/xml-model/target/cibseven-xml-model-2.2.0-SNAPSHOT.jar
+[INFO]
+[INFO] --- dependency:2.8:list (list-deps) @ cibseven-xml-model ---
+[INFO] Skipping plugin execution
+[INFO]
+[INFO] --- antrun:1.8:run (reformat-dependencies) @ cibseven-xml-model ---
+[INFO] Skipping Antrun execution
+[INFO]
+[INFO] --- build-helper:1.9.1:attach-artifact (attach-deps) @ cibseven-xml-model ---
+[INFO] Skip attaching artifacts
+[INFO]
+[INFO] --- clirr:2.8:check-no-fork (all) @ cibseven-xml-model ---
+[INFO] Comparing to version: 7.23.0
+[WARNING] Impossible to find previous version
+[INFO] Succeeded with 0 errors; 0 warnings; and 0 other changes.
+[INFO]
+[INFO] --- clirr:2.8:check-no-fork (restrictive) @ cibseven-xml-model ---
+[INFO] Comparing to version: 7.23.0
+[WARNING] Impossible to find previous version
+[INFO] Succeeded with 0 errors; 0 warnings; and 0 other changes.
+[INFO]
+[INFO] --- install:3.1.2:install (default-install) @ cibseven-xml-model ---
+[INFO] Installing /app/model-api/xml-model/pom.xml to /home/jules/.m2/repository/org/cibseven/bpm/model/cibseven-xml-model/2.2.0-SNAPSHOT/cibseven-xml-model-2.2.0-SNAPSHOT.pom
+[INFO] Installing /app/model-api/xml-model/target/cibseven-xml-model-2.2.0-SNAPSHOT.jar to /home/jules/.m2/repository/org/cibseven/bpm/model/cibseven-xml-model/2.2.0-SNAPSHOT/cibseven-xml-model-2.2.0-SNAPSHOT.jar
+[INFO]
+[INFO] ---------------< org.cibseven.bpm:cibseven-bpm-archunit >---------------
+[INFO] Building CIB seven - ArchUnit 2.2.0-SNAPSHOT                     [6/163]
+[INFO]   from test-utils/archunit/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- clean:3.1.0:clean (default-clean) @ cibseven-bpm-archunit ---
+[INFO] Deleting /app/test-utils/archunit/target
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ cibseven-bpm-archunit ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /app/test-utils/archunit/src/main/resources
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ cibseven-bpm-archunit ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 1 source file to /app/test-utils/archunit/target/classes
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ cibseven-bpm-archunit ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /app/test-utils/archunit/src/test/resources
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ cibseven-bpm-archunit ---
+[INFO] No sources to compile
+[INFO]
+[INFO] --- surefire:3.5.2:test (default-test) @ cibseven-bpm-archunit ---
+[INFO] No tests to run.
+[INFO]
+[INFO] --- jar:2.6:jar (default-jar) @ cibseven-bpm-archunit ---
+[INFO] Building jar: /app/test-utils/archunit/target/cibseven-bpm-archunit-2.2.0-SNAPSHOT.jar
+[INFO]
+[INFO] --- dependency:2.8:list (list-deps) @ cibseven-bpm-archunit ---
+[INFO] Skipping plugin execution
+[INFO]
+[INFO] --- antrun:1.8:run (reformat-dependencies) @ cibseven-bpm-archunit ---
+[INFO] Skipping Antrun execution
+[INFO]
+[INFO] --- build-helper:1.9.1:attach-artifact (attach-deps) @ cibseven-bpm-archunit ---
+[INFO] Skip attaching artifacts
+[INFO]
+[INFO] --- install:3.1.2:install (default-install) @ cibseven-bpm-archunit ---
+[INFO] Installing /app/test-utils/archunit/pom.xml to /home/jules/.m2/repository/org/cibseven/bpm/cibseven-bpm-archunit/2.2.0-SNAPSHOT/cibseven-bpm-archunit-2.2.0-SNAPSHOT.pom
+[INFO] Installing /app/test-utils/archunit/target/cibseven-bpm-archunit-2.2.0-SNAPSHOT.jar to /home/jules/.m2/repository/org/cibseven/bpm/cibseven-bpm-archunit/2.2.0-SNAPSHOT/cibseven-bpm-archunit-2.2.0-SNAPSHOT.jar
+[INFO]
+[INFO] -------------< org.cibseven.bpm.model:cibseven-bpmn-model >-------------
+[INFO] Building CIB seven - BPMN Model API 2.2.0-SNAPSHOT               [7/163]
+[INFO]   from model-api/bpmn-model/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- clean:3.1.0:clean (default-clean) @ cibseven-bpmn-model ---
+[INFO] Deleting /app/model-api/bpmn-model/target
+[INFO]
+[INFO] --- bundle:5.1.9:cleanVersions (default) @ cibseven-bpmn-model ---
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ cibseven-bpmn-model ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 5 resources
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ cibseven-bpmn-model ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 495 source files to /app/model-api/bpmn-model/target/classes
+[INFO] /app/model-api/bpmn-model/src/main/java/org/cibseven/bpm/model/bpmn/builder/AbstractProcessBuilder.java: Some input files use or override a deprecated API.
+[INFO] /app/model-api/bpmn-model/src/main/java/org/cibseven/bpm/model/bpmn/builder/AbstractProcessBuilder.java: Recompile with -Xlint:deprecation for details.
+[INFO]
+[INFO] --- bundle:5.1.9:manifest (bundle-manifest) @ cibseven-bpmn-model ---
+[INFO] No MANIFEST.MF file found, generating manifest.
+[INFO] Writing manifest: /app/model-api/bpmn-model/target/classes/META-INF/MANIFEST.MF
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ cibseven-bpmn-model ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 20 resources
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ cibseven-bpmn-model ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 234 source files to /app/model-api/bpmn-model/target/test-classes
+[INFO] /app/model-api/bpmn-model/src/test/java/org/cibseven/bpm/model/bpmn/CamundaExtensionsTest.java: Some input files use or override a deprecated API.
+[INFO] /app/model-api/bpmn-model/src/test/java/org/cibseven/bpm/model/bpmn/CamundaExtensionsTest.java: Recompile with -Xlint:deprecation for details.
+[INFO]
+[INFO] --- surefire:3.5.2:test (default-test) @ cibseven-bpmn-model ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junit4.JUnit4Provider
+[INFO]
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.cibseven.bpm.model.bpmn.BpmnDiTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.867 s -- in org.cibseven.bpm.model.bpmn.BpmnDiTest
+[INFO] Running org.cibseven.bpm.model.bpmn.BpmnModelInstanceTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.BpmnModelInstanceTest
+[INFO] Running org.cibseven.bpm.model.bpmn.BpmnTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.BpmnTest
+[INFO] Running org.cibseven.bpm.model.bpmn.CamundaExtensionsTest
+[INFO] Tests run: 150, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.044 s -- in org.cibseven.bpm.model.bpmn.CamundaExtensionsTest
+[INFO] Running org.cibseven.bpm.model.bpmn.CollaborationParserTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.041 s -- in org.cibseven.bpm.model.bpmn.CollaborationParserTest
+[INFO] Running org.cibseven.bpm.model.bpmn.ConditionalSequenceFlowTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.154 s -- in org.cibseven.bpm.model.bpmn.ConditionalSequenceFlowTest
+[INFO] Running org.cibseven.bpm.model.bpmn.CreateModelTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.022 s -- in org.cibseven.bpm.model.bpmn.CreateModelTest
+[INFO] Running org.cibseven.bpm.model.bpmn.DataObjectsTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.048 s -- in org.cibseven.bpm.model.bpmn.DataObjectsTest
+[INFO] Running org.cibseven.bpm.model.bpmn.DataStoreTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.032 s -- in org.cibseven.bpm.model.bpmn.DataStoreTest
+[INFO] Running org.cibseven.bpm.model.bpmn.DefinitionsTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.292 s -- in org.cibseven.bpm.model.bpmn.DefinitionsTest
+[INFO] Running org.cibseven.bpm.model.bpmn.GenerateIdTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.026 s -- in org.cibseven.bpm.model.bpmn.GenerateIdTest
+[INFO] Running org.cibseven.bpm.model.bpmn.ModelTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.cibseven.bpm.model.bpmn.ModelTest
+[INFO] Running org.cibseven.bpm.model.bpmn.ProcessTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.032 s -- in org.cibseven.bpm.model.bpmn.ProcessTest
+[INFO] Running org.cibseven.bpm.model.bpmn.QueryTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.033 s -- in org.cibseven.bpm.model.bpmn.QueryTest
+[INFO] Running org.cibseven.bpm.model.bpmn.ReferenceTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.069 s -- in org.cibseven.bpm.model.bpmn.ReferenceTest
+[INFO] Running org.cibseven.bpm.model.bpmn.ResourceRolesTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.020 s -- in org.cibseven.bpm.model.bpmn.ResourceRolesTest
+[INFO] Running org.cibseven.bpm.model.bpmn.builder.ProcessBuilderTest
+[INFO] Tests run: 170, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.936 s -- in org.cibseven.bpm.model.bpmn.builder.ProcessBuilderTest
+[INFO] Running org.cibseven.bpm.model.bpmn.builder.di.CoordinatesGenerationTest
+[INFO] Tests run: 44, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.048 s -- in org.cibseven.bpm.model.bpmn.builder.di.CoordinatesGenerationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.builder.di.DiGeneratorForFlowNodesTest
+[INFO] Tests run: 22, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 s -- in org.cibseven.bpm.model.bpmn.builder.di.DiGeneratorForFlowNodesTest
+[INFO] Running org.cibseven.bpm.model.bpmn.builder.di.DiGeneratorForSequenceFlowsTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.013 s -- in org.cibseven.bpm.model.bpmn.builder.di.DiGeneratorForSequenceFlowsTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.CategoryValueRefTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.CategoryValueRefTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.ChildLaneSetTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.ChildLaneSetTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.CorrelationPropertyRefTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.impl.instance.CorrelationPropertyRefTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.DataInputRefsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.DataInputRefsTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.DataOutputRefsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.DataOutputRefsTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.DataPathTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.DataPathTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.ErrorRefTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.cibseven.bpm.model.bpmn.impl.instance.ErrorRefTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.EventDefinitionRefTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.EventDefinitionRefTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.FlowNodeRefTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.impl.instance.FlowNodeRefTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.FromTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.FromTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.InMessageRefTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.InMessageRefTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.IncomingTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.IncomingTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.InputSetRefsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.InputSetRefsTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.MessagePathTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.MessagePathTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.OperationRefTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.OperationRefTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.OptionalInputRefsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.OptionalInputRefsTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.OptionalOutputRefsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.OptionalOutputRefsTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.OutMessageRefTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.OutMessageRefTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.OutgoingTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.OutgoingTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.OutputSetRefsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.OutputSetRefsTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.PartitionElementTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.PartitionElementTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.ResourceRefTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.impl.instance.ResourceRefTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.SourceRefTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.SourceRefTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.SourceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.SourceTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.SupportedInterfaceRefTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.SupportedInterfaceRefTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.SupportsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.SupportsTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.TargetRefTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.TargetRefTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.TargetTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.TargetTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.ToTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.impl.instance.ToTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.TransformationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.TransformationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.WhileExecutingInputRefsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.WhileExecutingInputRefsTest
+[INFO] Running org.cibseven.bpm.model.bpmn.impl.instance.WhileExecutingOutputRefsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.impl.instance.WhileExecutingOutputRefsTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ActivityTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ActivityTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ArtifactTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.ArtifactTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.AssignmentTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.AssignmentTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.AssociationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.AssociationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.AuditingTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.AuditingTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.BaseElementTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.BaseElementTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.BoundaryEventTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.BoundaryEventTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.BusinessRuleTaskTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.BusinessRuleTaskTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.CallActivityTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.CallActivityTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.CallConversationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.CallConversationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.CallableElementTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.CallableElementTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.CancelEventDefinitionTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.048 s -- in org.cibseven.bpm.model.bpmn.instance.CancelEventDefinitionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.CatchEventTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.CatchEventTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.CategoryTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.CategoryTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.CategoryValueTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.CategoryValueTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.CollaborationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.CollaborationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.CompensateEventDefinitionTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.020 s -- in org.cibseven.bpm.model.bpmn.instance.CompensateEventDefinitionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.CompletionConditionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.CompletionConditionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ComplexBehaviorDefinitionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ComplexBehaviorDefinitionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ComplexGatewayTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.050 s -- in org.cibseven.bpm.model.bpmn.instance.ComplexGatewayTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ConditionExpressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ConditionExpressionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ConditionalEventDefinitionTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.026 s -- in org.cibseven.bpm.model.bpmn.instance.ConditionalEventDefinitionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ConversationAssociationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ConversationAssociationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ConversationLinkTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ConversationLinkTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ConversationNodeTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ConversationNodeTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ConversationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ConversationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.CorrelationKeyTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.CorrelationKeyTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.CorrelationPropertyBindingTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.CorrelationPropertyBindingTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.CorrelationPropertyRetrievalExpressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.CorrelationPropertyRetrievalExpressionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.CorrelationPropertyTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.CorrelationPropertyTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.CorrelationSubscriptionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.CorrelationSubscriptionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.DataAssociationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.DataAssociationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.DataInputAssociationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.DataInputAssociationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.DataInputTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.DataInputTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.DataObjectReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.DataObjectReferenceTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.DataObjectTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.DataObjectTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.DataOutputAssociationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.DataOutputAssociationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.DataOutputTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.DataOutputTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.DataStateTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.DataStateTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.DataStoreReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.DataStoreReferenceTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.DataStoreTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.DataStoreTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.DefinitionsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.DefinitionsTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.DocumentationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.DocumentationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.EndEventTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.EndEventTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.EndPointTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.EndPointTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ErrorEventDefinitionTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ErrorEventDefinitionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ErrorTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ErrorTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.EscalationEventDefinitionTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.048 s -- in org.cibseven.bpm.model.bpmn.instance.EscalationEventDefinitionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.EscalationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.EscalationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.EventBasedGatewayTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.049 s -- in org.cibseven.bpm.model.bpmn.instance.EventBasedGatewayTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.EventDefinitionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.EventDefinitionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.EventTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.016 s -- in org.cibseven.bpm.model.bpmn.instance.EventTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ExclusiveGatewayTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in org.cibseven.bpm.model.bpmn.instance.ExclusiveGatewayTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ExpressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ExpressionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ExtensionElementsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in org.cibseven.bpm.model.bpmn.instance.ExtensionElementsTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ExtensionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ExtensionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.FlowElementTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.FlowElementTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.FlowNodeTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.FlowNodeTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.FormalExpressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.FormalExpressionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.GatewayTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.GatewayTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.GlobalConversationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.GlobalConversationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.GroupTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.GroupTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.HumanPerformerTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.HumanPerformerTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ImportTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ImportTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.InclusiveGatewayTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.InclusiveGatewayTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.InputDataItemTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.InputDataItemTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.InputSetTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.InputSetTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.InterfaceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.InterfaceTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.IntermediateCatchEventTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.IntermediateCatchEventTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.IntermediateThrowEventTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.IntermediateThrowEventTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.IoBindingTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.IoBindingTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.IoSpecificationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.IoSpecificationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ItemAwareElementTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ItemAwareElementTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ItemDefinitionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ItemDefinitionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.LaneSetTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.LaneSetTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.LaneTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.LaneTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.LinkEventDefinitionTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.016 s -- in org.cibseven.bpm.model.bpmn.instance.LinkEventDefinitionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.LoopCardinalityTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.LoopCardinalityTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.LoopCharacteristicsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.LoopCharacteristicsTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ManualTaskTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ManualTaskTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.MessageEventDefinitionTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 s -- in org.cibseven.bpm.model.bpmn.instance.MessageEventDefinitionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.MessageFlowAssociationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.MessageFlowAssociationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.MessageFlowTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.MessageFlowTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.MessageTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.MessageTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.MonitoringTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.MonitoringTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.MultiInstanceLoopCharacteristicsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.MultiInstanceLoopCharacteristicsTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.OperationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.OperationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.OutputDataItemTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.OutputDataItemTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.OutputSetTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.OutputSetTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ParallelGatewayTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ParallelGatewayTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ParticipantAssociationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.ParticipantAssociationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ParticipantMultiplicityTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ParticipantMultiplicityTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ParticipantTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ParticipantTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.PerformerTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.PerformerTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.PotentialOwnerTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.PotentialOwnerTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ProcessTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ProcessTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.PropertyTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.PropertyTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ReceiveTaskTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.ReceiveTaskTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.RelationshipTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.RelationshipTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.RenderingTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.RenderingTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ResourceAssignmentExpressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ResourceAssignmentExpressionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ResourceParameterBindingTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ResourceParameterBindingTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ResourceParameterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ResourceParameterTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ResourceRoleTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ResourceRoleTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ResourceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ResourceTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.RootElementTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.RootElementTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ScriptTaskTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ScriptTaskTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ScriptTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ScriptTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.SendTaskTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.SendTaskTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.SequenceFlowTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.SequenceFlowTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ServiceTaskTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ServiceTaskTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.SignalEventDefinitionTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.SignalEventDefinitionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.SignalTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.SignalTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.StartEventTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.StartEventTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.SubConversationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.SubConversationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.SubProcessTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.SubProcessTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.TaskTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.TaskTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.TerminateEventDefinitionTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.TerminateEventDefinitionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.TextAnnotationTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.TextAnnotationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.TextTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.TextTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.ThrowEventTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.ThrowEventTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.TimerEventDefinitionTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.020 s -- in org.cibseven.bpm.model.bpmn.instance.TimerEventDefinitionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.TransactionTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in org.cibseven.bpm.model.bpmn.instance.TransactionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.UserTaskTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.UserTaskTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnDiagramTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnDiagramTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnEdgeTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnEdgeTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnLabelStyleTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnLabelStyleTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnLabelTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnLabelTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnPlaneTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnPlaneTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnShapeTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnShapeTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaConnectorIdTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaConnectorIdTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaConnectorTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaConnectorTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaConstraintTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaConstraintTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaEntryTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaEntryTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaExecutionListenerTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaExecutionListenerTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaExpressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaExpressionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaFailedJobRetryTimeCycleTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaFailedJobRetryTimeCycleTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaFieldTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaFieldTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaFormDataTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaFormDataTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaFormFieldTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaFormFieldTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaFormPropertyTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaFormPropertyTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaInTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaInTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaInputOutputTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaInputOutputTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaInputParameterTest
+[WARNING] Tests run: 6, Failures: 0, Errors: 0, Skipped: 3, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaInputParameterTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaListTest
+[WARNING] Tests run: 4, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaListTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaMapTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaMapTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaOutTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaOutTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaOutputParameterTest
+[WARNING] Tests run: 6, Failures: 0, Errors: 0, Skipped: 3, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaOutputParameterTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaPotentialStarterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaPotentialStarterTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaPropertiesTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaPropertiesTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaPropertyTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaPropertyTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaScriptTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaScriptTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaStringTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaStringTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaTaskListenerTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaTaskListenerTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaValidationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaValidationTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaValueTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaValueTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.cibseven.CompatabilityTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.cibseven.CompatabilityTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.dc.BoundsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.dc.BoundsTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.dc.FontTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.dc.FontTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.dc.PointTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.dc.PointTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.di.DiagramElementTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.di.DiagramElementTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.di.DiagramTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.di.DiagramTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.di.EdgeTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.di.EdgeTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.di.ExtensionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.di.ExtensionTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.di.LabelTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.bpmn.instance.di.LabelTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.di.LabeledEdgeTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.di.LabeledEdgeTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.di.LabeledShapeTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.di.LabeledShapeTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.di.NodeTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.di.NodeTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.di.PlaneTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.di.PlaneTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.di.ShapeTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.di.ShapeTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.di.StyleTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.di.StyleTest
+[INFO] Running org.cibseven.bpm.model.bpmn.instance.di.WaypointTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.instance.di.WaypointTest
+[INFO] Running org.cibseven.bpm.model.bpmn.validation.ValidateProcessTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.bpmn.validation.ValidateProcessTest
+[INFO]
+[INFO] Results:
+[INFO]
+[WARNING] Tests run: 1101, Failures: 0, Errors: 0, Skipped: 7
+[INFO]
+[INFO]
+[INFO] --- jar:2.6:jar (default-jar) @ cibseven-bpmn-model ---
+[INFO] Adding existing MANIFEST to archive. Found under: /app/model-api/bpmn-model/target/classes/META-INF/MANIFEST.MF
+[INFO] Building jar: /app/model-api/bpmn-model/target/cibseven-bpmn-model-2.2.0-SNAPSHOT.jar
+[INFO]
+[INFO] --- dependency:2.8:list (list-deps) @ cibseven-bpmn-model ---
+[INFO] Skipping plugin execution
+[INFO]
+[INFO] --- antrun:1.8:run (reformat-dependencies) @ cibseven-bpmn-model ---
+[INFO] Skipping Antrun execution
+[INFO]
+[INFO] --- build-helper:1.9.1:attach-artifact (attach-deps) @ cibseven-bpmn-model ---
+[INFO] Skip attaching artifacts
+[INFO]
+[INFO] --- clirr:2.8:check-no-fork (all) @ cibseven-bpmn-model ---
+[INFO] Comparing to version: 7.23.0
+[WARNING] Impossible to find previous version
+[INFO] Succeeded with 0 errors; 0 warnings; and 0 other changes.
+[INFO]
+[INFO] --- clirr:2.8:check-no-fork (restrictive) @ cibseven-bpmn-model ---
+[INFO] Comparing to version: 7.23.0
+[WARNING] Impossible to find previous version
+[INFO] Succeeded with 0 errors; 0 warnings; and 0 other changes.
+[INFO]
+[INFO] --- install:3.1.2:install (default-install) @ cibseven-bpmn-model ---
+[INFO] Installing /app/model-api/bpmn-model/pom.xml to /home/jules/.m2/repository/org/cibseven/bpm/model/cibseven-bpmn-model/2.2.0-SNAPSHOT/cibseven-bpmn-model-2.2.0-SNAPSHOT.pom
+[INFO] Installing /app/model-api/bpmn-model/target/cibseven-bpmn-model-2.2.0-SNAPSHOT.jar to /home/jules/.m2/repository/org/cibseven/bpm/model/cibseven-bpmn-model/2.2.0-SNAPSHOT/cibseven-bpmn-model-2.2.0-SNAPSHOT.jar
+[INFO]
+[INFO] -------------< org.cibseven.bpm.model:cibseven-cmmn-model >-------------
+[INFO] Building CIB seven - CMMN Model API 2.2.0-SNAPSHOT               [8/163]
+[INFO]   from model-api/cmmn-model/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- clean:3.1.0:clean (default-clean) @ cibseven-cmmn-model ---
+[INFO] Deleting /app/model-api/cmmn-model/target
+[INFO]
+[INFO] --- bundle:5.1.9:cleanVersions (default) @ cibseven-cmmn-model ---
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ cibseven-cmmn-model ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 7 resources
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ cibseven-cmmn-model ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 211 source files to /app/model-api/cmmn-model/target/classes
+[INFO] /app/model-api/cmmn-model/src/main/java/org/cibseven/bpm/model/cmmn/impl/instance/CmmnElementImpl.java: Some input files use or override a deprecated API.
+[INFO] /app/model-api/cmmn-model/src/main/java/org/cibseven/bpm/model/cmmn/impl/instance/CmmnElementImpl.java: Recompile with -Xlint:deprecation for details.
+[INFO]
+[INFO] --- bundle:5.1.9:manifest (bundle-manifest) @ cibseven-cmmn-model ---
+[INFO] No MANIFEST.MF file found, generating manifest.
+[INFO] Writing manifest: /app/model-api/cmmn-model/target/classes/META-INF/MANIFEST.MF
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ cibseven-cmmn-model ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 4 resources
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ cibseven-cmmn-model ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 105 source files to /app/model-api/cmmn-model/target/test-classes
+[INFO] /app/model-api/cmmn-model/src/test/java/org/cibseven/bpm/model/cmmn/CmmnModelInstanceTest.java: Some input files use or override a deprecated API.
+[INFO] /app/model-api/cmmn-model/src/test/java/org/cibseven/bpm/model/cmmn/CmmnModelInstanceTest.java: Recompile with -Xlint:deprecation for details.
+[INFO]
+[INFO] --- surefire:3.5.2:test (default-test) @ cibseven-cmmn-model ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junit4.JUnit4Provider
+[INFO]
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.cibseven.bpm.model.cmmn.CmmnModelInstanceTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.383 s -- in org.cibseven.bpm.model.cmmn.CmmnModelInstanceTest
+[INFO] Running org.cibseven.bpm.model.cmmn.CmmnTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.056 s -- in org.cibseven.bpm.model.cmmn.CmmnTest
+[INFO] Running org.cibseven.bpm.model.cmmn.CreateModelTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.018 s -- in org.cibseven.bpm.model.cmmn.CreateModelTest
+[INFO] Running org.cibseven.bpm.model.cmmn.GenerateIdTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.068 s -- in org.cibseven.bpm.model.cmmn.GenerateIdTest
+[INFO] Running org.cibseven.bpm.model.cmmn.SimpleTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.050 s -- in org.cibseven.bpm.model.cmmn.SimpleTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.ApplicabilityRuleTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in org.cibseven.bpm.model.cmmn.instance.ApplicabilityRuleTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.ArtifactTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in org.cibseven.bpm.model.cmmn.instance.ArtifactTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.AssociationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.AssociationTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.BindingRefinementExpressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.cmmn.instance.BindingRefinementExpressionTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.BodyTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.cibseven.bpm.model.cmmn.instance.BodyTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.CaseFileItemDefinitionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.cibseven.bpm.model.cmmn.instance.CaseFileItemDefinitionTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.CaseFileItemOnPartTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.cibseven.bpm.model.cmmn.instance.CaseFileItemOnPartTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.CaseFileItemStartTriggerTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.cibseven.bpm.model.cmmn.instance.CaseFileItemStartTriggerTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.CaseFileItemTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.cibseven.bpm.model.cmmn.instance.CaseFileItemTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.CaseFileItemTransitionStandardEventTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.CaseFileItemTransitionStandardEventTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.CaseFileModelTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.cmmn.instance.CaseFileModelTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.CaseFileTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.cmmn.instance.CaseFileTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.CaseParameterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.cmmn.instance.CaseParameterTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.CasePlanModelTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.CasePlanModelTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.CaseRefExpressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.CaseRefExpressionTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.CaseRoleTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in org.cibseven.bpm.model.cmmn.instance.CaseRoleTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.CaseRolesTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.CaseRolesTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.CaseTaskTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.CaseTaskTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.CaseTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.CaseTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.ChildrenTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.ChildrenTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.CmmnElementTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.cmmn.instance.CmmnElementTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.ConditionExpressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.ConditionExpressionTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.CriterionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.CriterionTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.DecisionParameterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.DecisionParameterTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.DecisionRefExpressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.DecisionRefExpressionTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.DecisionTaskTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.DecisionTaskTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.DecisionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.DecisionTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.DefaultControlTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.DefaultControlTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.DefinitionsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.DefinitionsTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.DiscretionaryItemTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.DiscretionaryItemTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.DocumentationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.DocumentationTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.EntryCriterionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.EntryCriterionTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.EventListenerTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.cmmn.instance.EventListenerTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.EventTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.EventTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.ExitCriterionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.ExitCriterionTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.ExpressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.ExpressionTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.ExtensionElementsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.ExtensionElementsTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.HumanTaskTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.cmmn.instance.HumanTaskTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.IfPartTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.IfPartTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.ImportTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.ImportTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.InputCaseParameterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.InputCaseParameterTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.InputDecisionParameterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.InputDecisionParameterTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.InputProcessParameterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.InputProcessParameterTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.InputsCaseParameterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.InputsCaseParameterTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.ItemControlTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.ItemControlTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.ManualActivationRuleTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.cmmn.instance.ManualActivationRuleTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.MilestoneTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.MilestoneTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.OnPartTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.OnPartTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.OutputCaseParameterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.OutputCaseParameterTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.OutputDecisionParameterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.OutputDecisionParameterTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.OutputProcessParameterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.OutputProcessParameterTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.OutputsCaseParameterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.cmmn.instance.OutputsCaseParameterTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.ParameterMappingTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.ParameterMappingTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.ParameterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.cmmn.instance.ParameterTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.PlanFragmentTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.PlanFragmentTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.PlanItemControlTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.PlanItemControlTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.PlanItemDefinitionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.PlanItemDefinitionTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.PlanItemOnPartTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.PlanItemOnPartTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.PlanItemStartTriggerTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.PlanItemStartTriggerTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.PlanItemTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.PlanItemTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.PlanItemTransitionStandardEventTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.PlanItemTransitionStandardEventTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.ProcessParameterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.ProcessParameterTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.ProcessRefExpressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.ProcessRefExpressionTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.ProcessTaskTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.ProcessTaskTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.ProcessTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.ProcessTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.PropertyTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.PropertyTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.RelationshipTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.RelationshipTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.RepetitionRuleTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.RepetitionRuleTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.RequiredRuleTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.RequiredRuleTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.RoleTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.RoleTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.SentryTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.SentryTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.SourceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.SourceTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.StageTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.StageTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.StartTriggerTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.StartTriggerTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.TableItemTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.TableItemTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.TargetTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.TargetTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.TaskTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.TaskTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.TextAnnotationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.TextAnnotationTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.TimerEventListenerTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.TimerEventListenerTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.TimerEventTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.TimerEventTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.TransformationExpressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.TransformationExpressionTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.UserEventListenerTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.UserEventListenerTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.UserEventTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.UserEventTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaCaseExecutionListenerTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaCaseExecutionListenerTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaExpressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaExpressionTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaFieldTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaFieldTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaInTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaInTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaOutTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaOutTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaScriptTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaScriptTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaStringTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaStringTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaTaskListenerTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaTaskListenerTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaVariableListenerTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaVariableListenerTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaVariableOnPartTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaVariableOnPartTest
+[INFO] Running org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaVariableTransitionEventTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaVariableTransitionEventTest
+[INFO] Running org.cibseven.bpm.model.cmmn10.Cmmn10Test
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.251 s -- in org.cibseven.bpm.model.cmmn10.Cmmn10Test
+[INFO]
+[INFO] Results:
+[INFO]
+[INFO] Tests run: 301, Failures: 0, Errors: 0, Skipped: 0
+[INFO]
+[INFO]
+[INFO] --- jar:2.6:jar (default-jar) @ cibseven-cmmn-model ---
+[INFO] Adding existing MANIFEST to archive. Found under: /app/model-api/cmmn-model/target/classes/META-INF/MANIFEST.MF
+[INFO] Building jar: /app/model-api/cmmn-model/target/cibseven-cmmn-model-2.2.0-SNAPSHOT.jar
+[INFO]
+[INFO] --- dependency:2.8:list (list-deps) @ cibseven-cmmn-model ---
+[INFO] Skipping plugin execution
+[INFO]
+[INFO] --- antrun:1.8:run (reformat-dependencies) @ cibseven-cmmn-model ---
+[INFO] Skipping Antrun execution
+[INFO]
+[INFO] --- build-helper:1.9.1:attach-artifact (attach-deps) @ cibseven-cmmn-model ---
+[INFO] Skip attaching artifacts
+[INFO]
+[INFO] --- clirr:2.8:check-no-fork (all) @ cibseven-cmmn-model ---
+[INFO] Comparing to version: 7.23.0
+[WARNING] Impossible to find previous version
+[INFO] Succeeded with 0 errors; 0 warnings; and 0 other changes.
+[INFO]
+[INFO] --- clirr:2.8:check-no-fork (restrictive) @ cibseven-cmmn-model ---
+[INFO] Comparing to version: 7.23.0
+[WARNING] Impossible to find previous version
+[INFO] Succeeded with 0 errors; 0 warnings; and 0 other changes.
+[INFO]
+[INFO] --- install:3.1.2:install (default-install) @ cibseven-cmmn-model ---
+[INFO] Installing /app/model-api/cmmn-model/pom.xml to /home/jules/.m2/repository/org/cibseven/bpm/model/cibseven-cmmn-model/2.2.0-SNAPSHOT/cibseven-cmmn-model-2.2.0-SNAPSHOT.pom
+[INFO] Installing /app/model-api/cmmn-model/target/cibseven-cmmn-model-2.2.0-SNAPSHOT.jar to /home/jules/.m2/repository/org/cibseven/bpm/model/cibseven-cmmn-model/2.2.0-SNAPSHOT/cibseven-cmmn-model-2.2.0-SNAPSHOT.jar
+[INFO]
+[INFO] ----------------< org.cibseven.bpm.juel:cibseven-juel >-----------------
+[INFO] Building CIB seven - JUEL 2.2.0-SNAPSHOT                         [9/163]
+[INFO]   from juel/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- clean:3.1.0:clean (default-clean) @ cibseven-juel ---
+[INFO] Deleting /app/juel/target
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ cibseven-juel ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 2 resources
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ cibseven-juel ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 48 source files to /app/juel/target/classes
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ cibseven-juel ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /app/juel/src/test/resources
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ cibseven-juel ---
+[INFO] No sources to compile
+[INFO]
+[INFO] --- surefire:3.5.2:test (default-test) @ cibseven-juel ---
+[INFO] No tests to run.
+[INFO]
+[INFO] --- jar:2.6:jar (default-jar) @ cibseven-juel ---
+[INFO] Building jar: /app/juel/target/cibseven-juel-2.2.0-SNAPSHOT.jar
+[INFO]
+[INFO] --- dependency:2.8:list (list-deps) @ cibseven-juel ---
+[INFO]
+[INFO] --- antrun:1.8:run (reformat-dependencies) @ cibseven-juel ---
+[INFO] Executing tasks
+
+main:
+     [copy] Copying 1 file to /app/juel/target
+[INFO] Executed tasks
+[INFO]
+[INFO] --- build-helper:1.9.1:attach-artifact (attach-deps) @ cibseven-juel ---
+[INFO]
+[INFO] --- source:3.2.1:jar-no-fork (attach-sources) @ cibseven-juel ---
+[INFO] Building jar: /app/juel/target/cibseven-juel-2.2.0-SNAPSHOT-sources.jar
+[INFO]
+[INFO] --- shade:3.2.4:shade (default) @ cibseven-juel ---
+[INFO] Including jakarta.el:jakarta.el-api:jar:4.0.0 in the shaded jar.
+[WARNING] cibseven-juel-2.2.0-SNAPSHOT.jar, jakarta.el-api-4.0.0.jar define 1 overlapping resource:
+[WARNING]   - META-INF/MANIFEST.MF
+[WARNING] maven-shade-plugin has detected that some class files are
+[WARNING] present in two or more JARs. When this happens, only one
+[WARNING] single version of the class is copied to the uber jar.
+[WARNING] Usually this is not harmful and you can skip these warnings,
+[WARNING] otherwise try to manually exclude artifacts based on
+[WARNING] mvn dependency:tree -Ddetail=true and the above output.
+[WARNING] See http://maven.apache.org/plugins/maven-shade-plugin/
+[WARNING] cibseven-juel-2.2.0-SNAPSHOT-sources.jar, jakarta.el-api-4.0.0-sources.jar define 1 overlapping resource:
+[WARNING]   - META-INF/MANIFEST.MF
+[WARNING] maven-shade-plugin has detected that some class files are
+[WARNING] present in two or more JARs. When this happens, only one
+[WARNING] single version of the class is copied to the uber jar.
+[WARNING] Usually this is not harmful and you can skip these warnings,
+[WARNING] otherwise try to manually exclude artifacts based on
+[WARNING] mvn dependency:tree -Ddetail=true and the above output.
+[WARNING] See http://maven.apache.org/plugins/maven-shade-plugin/
+[INFO] Replacing original artifact with shaded artifact.
+[INFO] Replacing /app/juel/target/cibseven-juel-2.2.0-SNAPSHOT.jar with /app/juel/target/cibseven-juel-2.2.0-SNAPSHOT-shaded.jar
+[INFO] Replacing original source artifact with shaded source artifact.
+[INFO] Replacing /app/juel/target/cibseven-juel-2.2.0-SNAPSHOT-sources.jar with /app/juel/target/cibseven-juel-2.2.0-SNAPSHOT-shaded-sources.jar
+[WARNING] artifact org.cibseven.bpm.juel:cibseven-juel:java-source:sources:2.2.0-SNAPSHOT already attached, replace previous instance
+[INFO] Dependency-reduced POM written at: /app/juel/dependency-reduced-pom.xml
+[INFO]
+[INFO] --- install:3.1.2:install (default-install) @ cibseven-juel ---
+[INFO] Installing /app/juel/dependency-reduced-pom.xml to /home/jules/.m2/repository/org/cibseven/bpm/juel/cibseven-juel/2.2.0-SNAPSHOT/cibseven-juel-2.2.0-SNAPSHOT.pom
+[INFO] Installing /app/juel/target/cibseven-juel-2.2.0-SNAPSHOT.jar to /home/jules/.m2/repository/org/cibseven/bpm/juel/cibseven-juel/2.2.0-SNAPSHOT/cibseven-juel-2.2.0-SNAPSHOT.jar
+[INFO] Installing /app/juel/target/dependencies.txt to /home/jules/.m2/repository/org/cibseven/bpm/juel/cibseven-juel/2.2.0-SNAPSHOT/cibseven-juel-2.2.0-SNAPSHOT-third-party-bom.txt
+[INFO] Installing /app/juel/target/cibseven-juel-2.2.0-SNAPSHOT-sources.jar to /home/jules/.m2/repository/org/cibseven/bpm/juel/cibseven-juel/2.2.0-SNAPSHOT/cibseven-juel-2.2.0-SNAPSHOT-sources.jar
+[INFO]
+[INFO] -------------< org.cibseven.commons:cibseven-commons-root >-------------
+[INFO] Building CIB seven Commons - Root Pom 2.2.0-SNAPSHOT            [10/163]
+[INFO]   from commons/pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO]
+[INFO] --- clean:3.1.0:clean (default-clean) @ cibseven-commons-root ---
+[INFO]
+[INFO] --- bundle:5.1.1:manifest (bundle-manifest) @ cibseven-commons-root ---
+[WARNING] Ignoring project type pom - supportedProjectTypes = [jar, bundle]
+[INFO]
+[INFO] --- dependency:2.8:list (list-deps) @ cibseven-commons-root ---
+[INFO] Skipping plugin execution
+[INFO]
+[INFO] --- antrun:1.8:run (reformat-dependencies) @ cibseven-commons-root ---
+[INFO] Skipping Antrun execution
+[INFO]
+[INFO] --- build-helper:1.9.1:attach-artifact (attach-deps) @ cibseven-commons-root ---
+[INFO] Skip attaching artifacts
+[INFO]
+[INFO] --- install:3.1.2:install (default-install) @ cibseven-commons-root ---
+[INFO] Installing /app/commons/pom.xml to /home/jules/.m2/repository/org/cibseven/commons/cibseven-commons-root/2.2.0-SNAPSHOT/cibseven-commons-root-2.2.0-SNAPSHOT.pom
+[INFO]
+[INFO] -----------< org.cibseven.commons:cibseven-commons-logging >------------
+[INFO] Building CIB seven Commons - Logging 2.2.0-SNAPSHOT             [11/163]
+[INFO]   from commons/logging/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- clean:3.1.0:clean (default-clean) @ cibseven-commons-logging ---
+[INFO] Deleting /app/commons/logging/target
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ cibseven-commons-logging ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1 resource
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ cibseven-commons-logging ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 3 source files to /app/commons/logging/target/classes
+[INFO] /app/commons/logging/src/main/java/org/cibseven/commons/logging/BaseLogger.java: /app/commons/logging/src/main/java/org/cibseven/commons/logging/BaseLogger.java uses or overrides a deprecated API.
+[INFO] /app/commons/logging/src/main/java/org/cibseven/commons/logging/BaseLogger.java: Recompile with -Xlint:deprecation for details.
+[INFO]
+[INFO] --- bundle:5.1.1:manifest (bundle-manifest) @ cibseven-commons-logging ---
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ cibseven-commons-logging ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /app/commons/logging/src/test/resources
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ cibseven-commons-logging ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 3 source files to /app/commons/logging/target/test-classes
+[INFO] /app/commons/logging/src/test/java/org/cibseven/commons/logging/MdcAccessTest.java: /app/commons/logging/src/test/java/org/cibseven/commons/logging/MdcAccessTest.java uses or overrides a deprecated API.
+[INFO] /app/commons/logging/src/test/java/org/cibseven/commons/logging/MdcAccessTest.java: Recompile with -Xlint:deprecation for details.
+[INFO]
+[INFO] --- surefire:3.5.2:test (default-test) @ cibseven-commons-logging ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junit4.JUnit4Provider
+[INFO]
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.cibseven.commons.logging.BaseLoggerTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.118 s -- in org.cibseven.commons.logging.BaseLoggerTest
+[INFO] Running org.cibseven.commons.logging.MdcAccessTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in org.cibseven.commons.logging.MdcAccessTest
+[INFO]
+[INFO] Results:
+[INFO]
+[INFO] Tests run: 18, Failures: 0, Errors: 0, Skipped: 0
+[INFO]
+[INFO]
+[INFO] --- jar:2.6:jar (default-jar) @ cibseven-commons-logging ---
+[INFO] Adding existing MANIFEST to archive. Found under: /app/commons/logging/target/classes/META-INF/MANIFEST.MF
+[INFO] Building jar: /app/commons/logging/target/cibseven-commons-logging-2.2.0-SNAPSHOT.jar
+[INFO]
+[INFO] --- dependency:2.8:list (list-deps) @ cibseven-commons-logging ---
+[INFO] Skipping plugin execution
+[INFO]
+[INFO] --- antrun:1.8:run (reformat-dependencies) @ cibseven-commons-logging ---
+[INFO] Skipping Antrun execution
+[INFO]
+[INFO] --- build-helper:1.9.1:attach-artifact (attach-deps) @ cibseven-commons-logging ---
+[INFO] Skip attaching artifacts
+[INFO]
+[INFO] --- install:3.1.2:install (default-install) @ cibseven-commons-logging ---
+[INFO] Installing /app/commons/logging/pom.xml to /home/jules/.m2/repository/org/cibseven/commons/cibseven-commons-logging/2.2.0-SNAPSHOT/cibseven-commons-logging-2.2.0-SNAPSHOT.pom
+[INFO] Installing /app/commons/logging/target/cibseven-commons-logging-2.2.0-SNAPSHOT.jar to /home/jules/.m2/repository/org/cibseven/commons/cibseven-commons-logging/2.2.0-SNAPSHOT/cibseven-commons-logging-2.2.0-SNAPSHOT.jar
+[INFO]
+[INFO] ------------< org.cibseven.commons:cibseven-commons-utils >-------------
+[INFO] Building CIB seven Commons - Utils 2.2.0-SNAPSHOT               [12/163]
+[INFO]   from commons/utils/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- clean:3.1.0:clean (default-clean) @ cibseven-commons-utils ---
+[INFO] Deleting /app/commons/utils/target
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ cibseven-commons-utils ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1 resource
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ cibseven-commons-utils ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 9 source files to /app/commons/utils/target/classes
+[INFO]
+[INFO] --- bundle:5.1.1:manifest (bundle-manifest) @ cibseven-commons-utils ---
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ cibseven-commons-utils ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1 resource
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ cibseven-commons-utils ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 4 source files to /app/commons/utils/target/test-classes
+[INFO] /app/commons/utils/src/test/java/org/cibseven/commons/utils/cache/ConcurrentLruCacheTest.java: /app/commons/utils/src/test/java/org/cibseven/commons/utils/cache/ConcurrentLruCacheTest.java uses or overrides a deprecated API.
+[INFO] /app/commons/utils/src/test/java/org/cibseven/commons/utils/cache/ConcurrentLruCacheTest.java: Recompile with -Xlint:deprecation for details.
+[INFO]
+[INFO] --- surefire:3.5.2:test (default-test) @ cibseven-commons-utils ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junit4.JUnit4Provider
+[INFO]
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.cibseven.commons.utils.EnsureUtilTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.244 s -- in org.cibseven.commons.utils.EnsureUtilTest
+[INFO] Running org.cibseven.commons.utils.IoUtilTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.018 s -- in org.cibseven.commons.utils.IoUtilTest
+[INFO] Running org.cibseven.commons.utils.StringUtilTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.029 s -- in org.cibseven.commons.utils.StringUtilTest
+[INFO] Running org.cibseven.commons.utils.cache.ConcurrentLruCacheTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.028 s -- in org.cibseven.commons.utils.cache.ConcurrentLruCacheTest
+[INFO]
+[INFO] Results:
+[INFO]
+[INFO] Tests run: 33, Failures: 0, Errors: 0, Skipped: 0
+[INFO]
+[INFO]
+[INFO] --- jar:2.6:jar (default-jar) @ cibseven-commons-utils ---
+[INFO] Adding existing MANIFEST to archive. Found under: /app/commons/utils/target/classes/META-INF/MANIFEST.MF
+[INFO] Building jar: /app/commons/utils/target/cibseven-commons-utils-2.2.0-SNAPSHOT.jar
+[INFO]
+[INFO] --- dependency:2.8:list (list-deps) @ cibseven-commons-utils ---
+[INFO] Skipping plugin execution
+[INFO]
+[INFO] --- antrun:1.8:run (reformat-dependencies) @ cibseven-commons-utils ---
+[INFO] Skipping Antrun execution
+[INFO]
+[INFO] --- build-helper:1.9.1:attach-artifact (attach-deps) @ cibseven-commons-utils ---
+[INFO] Skip attaching artifacts
+[INFO]
+[INFO] --- install:3.1.2:install (default-install) @ cibseven-commons-utils ---
+[INFO] Installing /app/commons/utils/pom.xml to /home/jules/.m2/repository/org/cibseven/commons/cibseven-commons-utils/2.2.0-SNAPSHOT/cibseven-commons-utils-2.2.0-SNAPSHOT.pom
+[INFO] Installing /app/commons/utils/target/cibseven-commons-utils-2.2.0-SNAPSHOT.jar to /home/jules/.m2/repository/org/cibseven/commons/cibseven-commons-utils/2.2.0-SNAPSHOT/cibseven-commons-utils-2.2.0-SNAPSHOT.jar
+[INFO]
+[INFO] ---------< org.cibseven.commons:cibseven-commons-typed-values >---------
+[INFO] Building CIB seven Commons - Typed Values 2.2.0-SNAPSHOT        [13/163]
+[INFO]   from commons/typed-values/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- clean:3.1.0:clean (default-clean) @ cibseven-commons-typed-values ---
+[INFO] Deleting /app/commons/typed-values/target
+[INFO]
+[INFO] --- bundle:5.1.9:cleanVersions (default) @ cibseven-commons-typed-values ---
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ cibseven-commons-typed-values ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /app/commons/typed-values/src/main/resources
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ cibseven-commons-typed-values ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 44 source files to /app/commons/typed-values/target/classes
+[INFO]
+[INFO] --- bundle:5.1.9:manifest (bundle-manifest) @ cibseven-commons-typed-values ---
+[INFO] No MANIFEST.MF file found, generating manifest.
+[INFO] Writing manifest: /app/commons/typed-values/target/classes/META-INF/MANIFEST.MF
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ cibseven-commons-typed-values ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 2 resources
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ cibseven-commons-typed-values ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 4 source files to /app/commons/typed-values/target/test-classes
+[INFO] /app/commons/typed-values/src/test/java/org/cibseven/bpm/engine/test/variables/FileValueTypeImplTest.java: /app/commons/typed-values/src/test/java/org/cibseven/bpm/engine/test/variables/FileValueTypeImplTest.java uses or overrides a deprecated API.
+[INFO] /app/commons/typed-values/src/test/java/org/cibseven/bpm/engine/test/variables/FileValueTypeImplTest.java: Recompile with -Xlint:deprecation for details.
+[INFO]
+[INFO] --- surefire:3.5.2:test (default-test) @ cibseven-commons-typed-values ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junit4.JUnit4Provider
+[INFO]
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.cibseven.bpm.engine.test.api.variable.PrimitiveValueTest
+[INFO] Tests run: 24, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.119 s -- in org.cibseven.bpm.engine.test.api.variable.PrimitiveValueTest
+[INFO] Running org.cibseven.bpm.engine.test.api.variable.VariableApiTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.115 s -- in org.cibseven.bpm.engine.test.api.variable.VariableApiTest
+[INFO] Running org.cibseven.bpm.engine.test.variables.FileValueTypeImplTest
+[INFO] Tests run: 20, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.037 s -- in org.cibseven.bpm.engine.test.variables.FileValueTypeImplTest
+[INFO]
+[INFO] Results:
+[INFO]
+[INFO] Tests run: 53, Failures: 0, Errors: 0, Skipped: 0
+[INFO]
+[INFO]
+[INFO] --- jar:2.6:jar (default-jar) @ cibseven-commons-typed-values ---
+[INFO] Adding existing MANIFEST to archive. Found under: /app/commons/typed-values/target/classes/META-INF/MANIFEST.MF
+[INFO] Building jar: /app/commons/typed-values/target/cibseven-commons-typed-values-2.2.0-SNAPSHOT.jar
+[INFO]
+[INFO] --- dependency:2.8:list (list-deps) @ cibseven-commons-typed-values ---
+[INFO] Skipping plugin execution
+[INFO]
+[INFO] --- antrun:1.8:run (reformat-dependencies) @ cibseven-commons-typed-values ---
+[INFO] Skipping Antrun execution
+[INFO]
+[INFO] --- build-helper:1.9.1:attach-artifact (attach-deps) @ cibseven-commons-typed-values ---
+[INFO] Skip attaching artifacts
+[INFO]
+[INFO] --- shade:3.2.4:shade (default) @ cibseven-commons-typed-values ---
+[INFO] Including com.sun.activation:javax.activation:jar:1.2.0 in the shaded jar.
+[INFO] Excluding org.cibseven.commons:cibseven-commons-utils:jar:2.2.0-SNAPSHOT from the shaded jar.
+[INFO] Excluding org.cibseven.commons:cibseven-commons-logging:jar:2.2.0-SNAPSHOT from the shaded jar.
+[INFO] Excluding org.slf4j:slf4j-api:jar:1.7.26 from the shaded jar.
+[WARNING] cibseven-commons-typed-values-2.2.0-SNAPSHOT.jar, javax.activation-1.2.0.jar define 1 overlapping resource:
+[WARNING]   - META-INF/MANIFEST.MF
+[WARNING] maven-shade-plugin has detected that some class files are
+[WARNING] present in two or more JARs. When this happens, only one
+[WARNING] single version of the class is copied to the uber jar.
+[WARNING] Usually this is not harmful and you can skip these warnings,
+[WARNING] otherwise try to manually exclude artifacts based on
+[WARNING] mvn dependency:tree -Ddetail=true and the above output.
+[WARNING] See http://maven.apache.org/plugins/maven-shade-plugin/
+[INFO] Replacing original artifact with shaded artifact.
+[INFO] Replacing /app/commons/typed-values/target/cibseven-commons-typed-values-2.2.0-SNAPSHOT.jar with /app/commons/typed-values/target/cibseven-commons-typed-values-2.2.0-SNAPSHOT-shaded.jar
+[INFO] Replacing original source artifact with shaded source artifact.
+[INFO] Replacing /app/commons/typed-values/target/cibseven-commons-typed-values-2.2.0-SNAPSHOT-sources.jar with /app/commons/typed-values/target/cibseven-commons-typed-values-2.2.0-SNAPSHOT-shaded-sources.jar
+[INFO] Dependency-reduced POM written at: /app/commons/typed-values/dependency-reduced-pom.xml
+[INFO]
+[INFO] --- clirr:2.8:check-no-fork (all) @ cibseven-commons-typed-values ---
+[INFO] Comparing to version: 7.23.0
+[WARNING] Impossible to find previous version
+[INFO] Succeeded with 0 errors; 0 warnings; and 0 other changes.
+[INFO]
+[INFO] --- clirr:2.8:check-no-fork (restrictive) @ cibseven-commons-typed-values ---
+[INFO] Comparing to version: 7.23.0
+[WARNING] Impossible to find previous version
+[INFO] Succeeded with 0 errors; 0 warnings; and 0 other changes.
+[INFO]
+[INFO] --- install:3.1.2:install (default-install) @ cibseven-commons-typed-values ---
+[INFO] Installing /app/commons/typed-values/dependency-reduced-pom.xml to /home/jules/.m2/repository/org/cibseven/commons/cibseven-commons-typed-values/2.2.0-SNAPSHOT/cibseven-commons-typed-values-2.2.0-SNAPSHOT.pom
+[INFO] Installing /app/commons/typed-values/target/cibseven-commons-typed-values-2.2.0-SNAPSHOT.jar to /home/jules/.m2/repository/org/cibseven/commons/cibseven-commons-typed-values/2.2.0-SNAPSHOT/cibseven-commons-typed-values-2.2.0-SNAPSHOT.jar
+[INFO] Installing /app/commons/typed-values/target/cibseven-commons-typed-values-2.2.0-SNAPSHOT-sources.jar to /home/jules/.m2/repository/org/cibseven/commons/cibseven-commons-typed-values/2.2.0-SNAPSHOT/cibseven-commons-typed-values-2.2.0-SNAPSHOT-sources.jar
+[INFO]
+[INFO] -------------< org.cibseven.bpm.model:cibseven-dmn-model >--------------
+[INFO] Building CIB seven - DMN Model API 2.2.0-SNAPSHOT               [14/163]
+[INFO]   from model-api/dmn-model/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- clean:3.1.0:clean (default-clean) @ cibseven-dmn-model ---
+[INFO] Deleting /app/model-api/dmn-model/target
+[INFO]
+[INFO] --- bundle:5.1.9:cleanVersions (default) @ cibseven-dmn-model ---
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ cibseven-dmn-model ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 11 resources
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ cibseven-dmn-model ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 184 source files to /app/model-api/dmn-model/target/classes
+[INFO] /app/model-api/dmn-model/src/main/java/org/cibseven/bpm/model/dmn/impl/instance/DecisionImpl.java: /app/model-api/dmn-model/src/main/java/org/cibseven/bpm/model/dmn/impl/instance/DecisionImpl.java uses or overrides a deprecated API.
+[INFO] /app/model-api/dmn-model/src/main/java/org/cibseven/bpm/model/dmn/impl/instance/DecisionImpl.java: Recompile with -Xlint:deprecation for details.
+[INFO]
+[INFO] --- bundle:5.1.9:manifest (bundle-manifest) @ cibseven-dmn-model ---
+[INFO] No MANIFEST.MF file found, generating manifest.
+[INFO] Writing manifest: /app/model-api/dmn-model/target/classes/META-INF/MANIFEST.MF
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ cibseven-dmn-model ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 15 resources
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ cibseven-dmn-model ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 102 source files to /app/model-api/dmn-model/target/test-classes
+[INFO] /app/model-api/dmn-model/src/test/java/org/cibseven/bpm/model/dmn/CamundaExtensionsTest.java: /app/model-api/dmn-model/src/test/java/org/cibseven/bpm/model/dmn/CamundaExtensionsTest.java uses or overrides a deprecated API.
+[INFO] /app/model-api/dmn-model/src/test/java/org/cibseven/bpm/model/dmn/CamundaExtensionsTest.java: Recompile with -Xlint:deprecation for details.
+[INFO]
+[INFO] --- surefire:3.5.2:test (default-test) @ cibseven-dmn-model ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junit4.JUnit4Provider
+[INFO]
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.cibseven.bpm.model.dmn.CamundaExtensionsTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.633 s -- in org.cibseven.bpm.model.dmn.CamundaExtensionsTest
+[INFO] Running org.cibseven.bpm.model.dmn.DmnDiTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.052 s -- in org.cibseven.bpm.model.dmn.DmnDiTest
+[INFO] Running org.cibseven.bpm.model.dmn.DmnModelInstanceTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.111 s -- in org.cibseven.bpm.model.dmn.DmnModelInstanceTest
+[INFO] Running org.cibseven.bpm.model.dmn.DmnTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.DmnTest
+[INFO] Running org.cibseven.bpm.model.dmn.DmnWriterTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.046 s -- in org.cibseven.bpm.model.dmn.DmnWriterTest
+[INFO] Running org.cibseven.bpm.model.dmn.ExampleCompatibilityTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.565 s -- in org.cibseven.bpm.model.dmn.ExampleCompatibilityTest
+[INFO] Running org.cibseven.bpm.model.dmn.ExpressionLanguageTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.035 s -- in org.cibseven.bpm.model.dmn.ExpressionLanguageTest
+[INFO] Running org.cibseven.bpm.model.dmn.GenerateIdTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.020 s -- in org.cibseven.bpm.model.dmn.GenerateIdTest
+[INFO] Running org.cibseven.bpm.model.dmn.ReadWriteTest
+[ERROR] Tests run: 5, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.133 s <<< FAILURE! -- in org.cibseven.bpm.model.dmn.ReadWriteTest
+[ERROR] org.cibseven.bpm.model.dmn.ReadWriteTest.shouldReadInputData -- Time elapsed: 0.053 s <<< FAILURE!
+org.junit.ComparisonFailure:
+[Extracted: class] expected:<[org.cibseven.bpm.model.dmn.impl.instance.InputDataImpl]> but was:<[[org.cibseven.bpm.model.dmn.impl.instance.InputDataImpl,
+    org.cibseven.bpm.model.dmn.impl.instance.InputDataImpl]]>
+	at org.cibseven.bpm.model.dmn.ReadWriteTest.shouldReadInputData(ReadWriteTest.java:235)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26)
+	at org.junit.rules.TestWatcher$1.evaluate(TestWatcher.java:61)
+	at org.junit.rules.ExternalResource$1.evaluate(ExternalResource.java:54)
+	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+	at org.junit.runners.BlockJUnit4ClassRunner$1.evaluate(BlockJUnit4ClassRunner.java:100)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:366)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:103)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:63)
+	at org.junit.runners.ParentRunner$4.run(ParentRunner.java:331)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:79)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:329)
+	at org.junit.runners.ParentRunner.access$100(ParentRunner.java:66)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:293)
+	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:413)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.execute(JUnit4Provider.java:316)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.executeWithRerun(JUnit4Provider.java:240)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.executeTestSet(JUnit4Provider.java:214)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.invoke(JUnit4Provider.java:155)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+
+[INFO] Running org.cibseven.bpm.model.dmn.instance.AllowedAnswersTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in org.cibseven.bpm.model.dmn.instance.AllowedAnswersTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.AllowedValuesTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.cibseven.bpm.model.dmn.instance.AllowedValuesTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.ArtifactTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.dmn.instance.ArtifactTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.AssociationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.cibseven.bpm.model.dmn.instance.AssociationTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.AuthorityRequirementTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.cibseven.bpm.model.dmn.instance.AuthorityRequirementTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.BindingTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.dmn.instance.BindingTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.BusinessContextElementTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.BusinessContextElementTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.BusinessKnowledgeModelTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.BusinessKnowledgeModelTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.ColumnTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.dmn.instance.ColumnTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.ContextEntryTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.ContextEntryTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.ContextTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.ContextTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.DecisionMadeReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.DecisionMadeReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.DecisionMakerReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.dmn.instance.DecisionMakerReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.DecisionOwnedReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.DecisionOwnedReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.DecisionOwnerReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.DecisionOwnerReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.DecisionRuleTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.DecisionRuleTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.DecisionServiceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.DecisionServiceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.DecisionTableTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.DecisionTableTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.DecisionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.DecisionTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.DefaultOutputEntryTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.DefaultOutputEntryTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.DefinitionsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.DefinitionsTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.DescriptionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.DescriptionTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.DmnElementReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.DmnElementReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.DmnElementTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.DmnElementTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.DrgElementReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.DrgElementReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.DrgElementTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.DrgElementTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.ElementCollectionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.ElementCollectionTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.EncapsulatedDecisionReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.EncapsulatedDecisionReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.EncapsulatedLogicTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.EncapsulatedLogicTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.ExpressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.ExpressionTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.ExtensionElementsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.ExtensionElementsTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.FormalParameterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.FormalParameterTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.FunctionDefinitionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.FunctionDefinitionTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.ImpactedPerformanceIndicatorReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.ImpactedPerformanceIndicatorReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.ImpactingDecisionReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.ImpactingDecisionReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.ImportTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.dmn.instance.ImportTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.ImportedElementTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.ImportedElementTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.ImportedValuesTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.ImportedValuesTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.InformationItemTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.InformationItemTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.InformationRequirementTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.InformationRequirementTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.InputClauseTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.InputClauseTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.InputDataReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.dmn.instance.InputDataReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.InputDataTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.InputDataTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.InputDecisionReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.InputDecisionReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.InputEntryTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.InputEntryTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.InputExpressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.InputExpressionTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.InputTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in org.cibseven.bpm.model.dmn.instance.InputTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.InputValuesTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.InputValuesTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.InvocationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.InvocationTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.ItemComponentTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.ItemComponentTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.ItemDefinitionReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.ItemDefinitionReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.ItemDefinitionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.ItemDefinitionTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.KnowledgeRequirementTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.dmn.instance.KnowledgeRequirementTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.KnowledgeSourceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.KnowledgeSourceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.ListTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.ListTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.LiteralExpressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.LiteralExpressionTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.NamedElementTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in org.cibseven.bpm.model.dmn.instance.NamedElementTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.OrganizationUnitTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.OrganizationUnitTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.OutputClauseTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.OutputClauseTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.OutputDecisionReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.OutputDecisionReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.OutputEntryTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.OutputEntryTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.OutputTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.OutputTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.OutputValuesTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.OutputValuesTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.OwnerReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.OwnerReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.ParameterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.ParameterTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.PerformanceIndicatorTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.PerformanceIndicatorTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.QuestionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.QuestionTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.RelationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.RelationTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.RequiredAuthorityReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.RequiredAuthorityReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.RequiredDecisionReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.RequiredDecisionReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.RequiredInputReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.RequiredInputReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.RequiredKnowledgeReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.RequiredKnowledgeReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.RowTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.RowTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.RuleTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.dmn.instance.RuleTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.SourceRefTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.SourceRefTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.SupportedObjectiveReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.SupportedObjectiveReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.TargetRefTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.TargetRefTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.TextAnnotationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.TextAnnotationTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.TextTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.TextTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.TypeRefTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.cibseven.bpm.model.dmn.instance.TypeRefTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.TypeTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.TypeTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.UnaryTestsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.UnaryTestsTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.UsingProcessReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.UsingProcessReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.UsingTaskReferenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.UsingTaskReferenceTest
+[INFO] Running org.cibseven.bpm.model.dmn.instance.VariableTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in org.cibseven.bpm.model.dmn.instance.VariableTest
+[INFO]
+[INFO] Results:
+[INFO]
+[ERROR] Failures:
+[ERROR]   ReadWriteTest.shouldReadInputData:235 [Extracted: class] expected:<[org.cibseven.bpm.model.dmn.impl.instance.InputDataImpl]> but was:<[[org.cibseven.bpm.model.dmn.impl.instance.InputDataImpl,
+    org.cibseven.bpm.model.dmn.impl.instance.InputDataImpl]]>
+[INFO]
+[ERROR] Tests run: 287, Failures: 1, Errors: 0, Skipped: 0
+[INFO]
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for CIB seven - Root Pom 2.2.0-SNAPSHOT:
+[INFO]
+[INFO] CIB seven - Root Pom ............................... SUCCESS [  1.373 s]
+[INFO] CIB seven - Parent Pom ............................. SUCCESS [  0.051 s]
+[INFO] CIB seven - database settings ...................... SUCCESS [  0.028 s]
+[INFO] CIB seven Model APIs ............................... SUCCESS [  0.024 s]
+[INFO] CIB seven - Xml Model API .......................... SUCCESS [ 13.209 s]
+[INFO] CIB seven - ArchUnit ............................... SUCCESS [  0.818 s]
+[INFO] CIB seven - BPMN Model API ......................... SUCCESS [ 18.114 s]
+[INFO] CIB seven - CMMN Model API ......................... SUCCESS [  3.591 s]
+[INFO] CIB seven - JUEL ................................... SUCCESS [  1.997 s]
+[INFO] CIB seven Commons - Root Pom ....................... SUCCESS [  0.347 s]
+[INFO] CIB seven Commons - Logging ........................ SUCCESS [  2.877 s]
+[INFO] CIB seven Commons - Utils .......................... SUCCESS [  1.225 s]
+[INFO] CIB seven Commons - Typed Values ................... SUCCESS [  1.631 s]
+[INFO] CIB seven - DMN Model API .......................... FAILURE [  3.817 s]
+[INFO] CIB seven DMN - engine - root ...................... SKIPPED
+[INFO] CIB seven DMN - engine FEEL - API .................. SKIPPED
+[INFO] CIB seven DMN - engine FEEL - JUEL ................. SKIPPED
+[INFO] CIB seven DMN - engine FEEL - SCALA ................ SKIPPED
+[INFO] CIB seven DMN - engine ............................. SKIPPED
+[INFO] CIB seven Commons - Testing ........................ SKIPPED
+[INFO] CIB seven Test Utils - Testcontainers .............. SKIPPED
+[INFO] CIB seven - engine ................................. SKIPPED
+[INFO] CIB seven - engine - Spring 6 ...................... SKIPPED
+[INFO] CIB seven Spin - root .............................. SKIPPED
+[INFO] CIB seven Spin - core .............................. SKIPPED
+[INFO] CIB seven Spin - Jackson JSON data format .......... SKIPPED
+[INFO] CIB seven Spin - DOM XML data format ............... SKIPPED
+[INFO] CIB seven - engine plugins ......................... SKIPPED
+[INFO] CIB seven - engine plugins - spin .................. SKIPPED
+[INFO] CIB seven - connect - root ......................... SKIPPED
+[INFO] CIB seven - connect - core ......................... SKIPPED
+[INFO] CIB seven - connect - http client .................. SKIPPED
+[INFO] CIB seven - connect - soap http client ............. SKIPPED
+[INFO] CIB seven - engine plugins - connect ............... SKIPPED
+[INFO] CIB seven - Assert - Root .......................... SKIPPED
+[INFO] CIB seven - Assert ................................. SKIPPED
+[INFO] CIB seven - Spring Boot Starter - Root Pom ......... SKIPPED
+[INFO] CIB seven - Spring Boot Starter - Test ............. SKIPPED
+[INFO] CIB seven - Spring Boot Starter .................... SKIPPED
+[INFO] CIB seven - Bom Root ............................... SKIPPED
+[INFO] CIB seven - Bom .................................... SKIPPED
+[INFO] CIB seven - Core - Internal Dependencies ........... SKIPPED
+[INFO] CIB seven - engine - REST - Root ................... SKIPPED
+[INFO] CIB seven - engine - REST Jakarta .................. SKIPPED
+[INFO] CIB seven - Spring Boot Starter - Rest ............. SKIPPED
+[INFO] CIB seven - Webapp - Root .......................... SKIPPED
+[INFO] CIB seven - Webapp - Assembly Jakarta .............. SKIPPED
+[INFO] CIB seven - webapp - webjar ........................ SKIPPED
+[INFO] CIB seven - Spring Boot Starter - Webapps Core ..... SKIPPED
+[INFO] CIB seven - Spring Boot Starter - Webapps .......... SKIPPED
+[INFO] CIB seven - Spring Boot Starter - Spring Security .. SKIPPED
+[INFO] CIB seven Spin - all dataformats in one ............ SKIPPED
+[INFO] CIB seven - Java External Task Client - ROOT ....... SKIPPED
+[INFO] CIB seven - Java External Task Client - QA ......... SKIPPED
+[INFO] CIB seven - Java External Task Client - QA VARIABLE TEST SKIPPED
+[INFO] CIB seven - engine - Cdi - Jakarta ................. SKIPPED
+[INFO] CIB seven - engine plugins - identity - ldap ....... SKIPPED
+[INFO] CIB seven - connect - all connectors in one ........ SKIPPED
+[INFO] CIB seven - License Book ........................... SKIPPED
+[INFO] CIB seven template engine jsr223 freemarker ........ SKIPPED
+[INFO] CIB seven - tomcat ................................. SKIPPED
+[INFO] CIB seven - tomcat Assembly ........................ SKIPPED
+[INFO] CIB seven - engine - REST - Assembly Jakarta ....... SKIPPED
+[INFO] CIB seven - Java External Task Client - CLIENT ..... SKIPPED
+[INFO] CIB seven - Spring Boot Starter - Client - Spring .. SKIPPED
+[INFO] CIB seven - Spring Boot Starter - Client - Spring Boot SKIPPED
+[INFO] CIB seven - Spring Boot Starter - QA - Root Pom .... SKIPPED
+[INFO] CIB seven - Spring Boot Starter - QA - Simple ...... SKIPPED
+[INFO] CIB seven - Spring Boot Starter - QA - Request Scope SKIPPED
+[INFO] CIB seven - Spring Boot Starter - QA - Plugins ..... SKIPPED
+[INFO] CIB seven - Spring Boot Starter - QA - Plugins - Spin SKIPPED
+[INFO] CIB seven - Spring Boot Starter - QA - Plugins - Spin Json Jackson SKIPPED
+[INFO] CIB seven - Spring Boot Starter - QA - Plugins - Spin All SKIPPED
+[INFO] CIB seven - Example - Root ......................... SKIPPED
+[INFO] CIB seven - Example - Invoice Jakarta .............. SKIPPED
+[INFO] CIB seven - Spring Boot Starter - QA - Webapps ..... SKIPPED
+[INFO] CIB seven - Spring Boot Starter - QA - Webapps Invoice Example SKIPPED
+[INFO] CIB seven - Spring Boot Starter - QA - Webapps Runtime SKIPPED
+[INFO] CIB seven - Spring Boot Starter - QA - Liquibase ... SKIPPED
+[INFO] CIB seven - Quarkus Extension - Parent ............. SKIPPED
+[INFO] CIB seven - Quarkus Extension - Engine - Parent .... SKIPPED
+[INFO] CIB seven - Quarkus Extension - Engine - Runtime ... SKIPPED
+[INFO] CIB seven - Quarkus Extension - Engine - Deployment  SKIPPED
+[INFO] CIB seven - Quarkus Extension - Engine - CDI QA .... SKIPPED
+[INFO] CIB seven - QA ..................................... SKIPPED
+[INFO] CIB seven - QA - ensure clean db plugin ............ SKIPPED
+[INFO] CIB seven - QA - check indexes in SQL scripts ...... SKIPPED
+[INFO] CIB seven - QA Wildfly Test Runtime ................ SKIPPED
+[INFO] CIB seven - QA Tomcat Test Runtime ................. SKIPPED
+[INFO] CIB seven - QA Tomcat 9 Test Runtime ............... SKIPPED
+[INFO] CIB seven - engine - REST .......................... SKIPPED
+[INFO] CIB seven - engine - REST - Assembly ............... SKIPPED
+[INFO] CIB seven - Example - Invoice ...................... SKIPPED
+[INFO] CIB seven - QA Integration Tests - Webapps Root .... SKIPPED
+[INFO] CIB seven - QA Integration Tests - Webapps ITs ..... SKIPPED
+[INFO] CIB seven - QA Integration Tests - Webapps Shared Engine SKIPPED
+[INFO] CIB seven - Client ................................. SKIPPED
+[INFO] CIB seven - engine - Cdi ........................... SKIPPED
+[INFO] CIB seven - engine - Spring ........................ SKIPPED
+[INFO] CIB seven - QA Integration Tests - Engine .......... SKIPPED
+[INFO] CIB seven - QA - upgrade - scenario util ........... SKIPPED
+[INFO] CIB seven Platform - QA - upgrade - instance migration SKIPPED
+[INFO] CIB seven Platform - QA - upgrade - instance migration - test fixture - 1.1.0 SKIPPED
+[INFO] CIB seven BPM - QA - upgrade - instance migration - test fixture - 2.0.0 SKIPPED
+[INFO] CIB seven BPM - QA - upgrade - instance migration - test fixture - 2.1.0 SKIPPED
+[INFO] CIB seven Platform - QA - upgrade - instance migration - test SKIPPED
+[INFO] CIB seven - QA - upgrade - rolling update .......... SKIPPED
+[INFO] CIB seven - QA - upgrade - rolling update util ..... SKIPPED
+[INFO] CIB seven - QA - upgrade - rolling update - create old engine SKIPPED
+[INFO] CIB seven - QA - upgrade - rolling update - create new engine SKIPPED
+[INFO] CIB seven - QA - upgrade - rolling update - test old engine SKIPPED
+[INFO] CIB seven - QA - test new schema with old engine ... SKIPPED
+[INFO] CIB seven - QA Performance Tests Engine ............ SKIPPED
+[INFO] Large Data Tests ................................... SKIPPED
+[INFO] CIB seven - EJB Client Jakarta ..................... SKIPPED
+[INFO] CIB seven - QA Integration Tests - Engine - Jakarta  SKIPPED
+[INFO] CIB seven - Job Executor RA ........................ SKIPPED
+[INFO] CIB seven - EJB Service ............................ SKIPPED
+[INFO] CIB seven - Job Executor RAR ....................... SKIPPED
+[INFO] CIB seven DMN - engine - bom ....................... SKIPPED
+[INFO] CIB seven - connect - bom .......................... SKIPPED
+[INFO] CIB seven spin - bom ............................... SKIPPED
+[INFO] CIB seven Spin - DOM XML data format Jakarta ....... SKIPPED
+[INFO] CIB seven Commons - Bom ............................ SKIPPED
+[INFO] CIB seven DMN - JUnit 5 Extension .................. SKIPPED
+[INFO] CIB seven - JUnit 5 Extension ...................... SKIPPED
+[INFO] CIB seven - QA - Assert ............................ SKIPPED
+[INFO] CIB seven - engine - CDI - Root .................... SKIPPED
+[INFO] CIB seven - engine - Spring - Root ................. SKIPPED
+[INFO] CIB seven - engine - REST - OpenAPI (JSON Generator) SKIPPED
+[INFO] CIB seven - engine - REST - OpenAPI ................ SKIPPED
+[INFO] CIB seven - engine - REST - Docs ................... SKIPPED
+[INFO] CIB seven - Webapp - Assembly ...................... SKIPPED
+[INFO] CIB seven - JBoss .................................. SKIPPED
+[INFO] CIB seven - webapp - JBoss ......................... SKIPPED
+[INFO] CIB seven - SQL scripts ............................ SKIPPED
+[INFO] CIB seven - webapp - Tomcat - Jakarta .............. SKIPPED
+[INFO] CIB seven - tomcat Distro .......................... SKIPPED
+[INFO] CIB seven - Run - Root ............................. SKIPPED
+[INFO] CIB seven - Run - Modules .......................... SKIPPED
+[INFO] CIB seven - Run - Module REST ...................... SKIPPED
+[INFO] CIB seven - Run - Module Spring Security ........... SKIPPED
+[INFO] CIB seven - Run - Module Example Invoice ........... SKIPPED
+[INFO] CIB seven - Run - Core ............................. SKIPPED
+[INFO] CIB seven - Run - Assembly ......................... SKIPPED
+[INFO] CIB seven - Run - Module Webapps ................... SKIPPED
+[INFO] CIB seven - Run - Distribution ..................... SKIPPED
+[INFO] CIB seven - Run - QA ............................... SKIPPED
+[INFO] CIB seven - Run - QA - Example Plugin .............. SKIPPED
+[INFO] CIB seven - Run - QA - Integration Tests ........... SKIPPED
+[INFO] CIB seven - Run - QA - Runtime ..................... SKIPPED
+[INFO] CIB seven Only - Bom ............................... SKIPPED
+[INFO] CIB seven - Wildfly ................................ SKIPPED
+[INFO] CIB seven - Wildfly Subsystem ...................... SKIPPED
+[INFO] CIB seven - Wildfly Modules ........................ SKIPPED
+[INFO] CIB seven - Wildfly Assembly ....................... SKIPPED
+[INFO] CIB seven - webapp - WildFly ....................... SKIPPED
+[INFO] CIB seven - Wildfly Distro ......................... SKIPPED
+[INFO] CIB seven - Wildfly 28 ............................. SKIPPED
+[INFO] CIB seven - Wildfly 28 Subsystem ................... SKIPPED
+[INFO] CIB seven - Wildfly 28 Modules ..................... SKIPPED
+[INFO] CIB seven - Wildfly 28 Assembly .................... SKIPPED
+[INFO] CIB seven - Wildfly 28 Distro ...................... SKIPPED
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  56.708 s
+[INFO] Finished at: 2026-02-02T10:25:29Z
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.2:test (default-test) on project cibseven-dmn-model: There are test failures.
+[ERROR]
+[ERROR] See /app/model-api/dmn-model/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[ERROR]
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn <args> -rf :cibseven-dmn-model

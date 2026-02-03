@@ -422,7 +422,7 @@ public class HistoryServiceTest extends PluggableProcessEngineTest {
     HistoricProcessInstanceQuery query = historyService.createHistoricProcessInstanceQuery().variableValueEquals("stringVar", "abcdef");
     List<HistoricProcessInstance> processInstances = query.list();
     assertThat(processInstances).hasSize(2);
-    assertThat(processInstances).extracting("id").containsExactlyInAnyOrder(processInstance1, processInstance2);
+    assertThat(processInstances).extracting("id").asList().containsExactlyInAnyOrder(processInstance1, processInstance2);
 
     // Test EQUAL on two string variables, should result in single match
     query = historyService.createHistoricProcessInstanceQuery().variableValueEquals("stringVar", "abcdef").variableValueEquals("stringVar2", "ghijkl");
@@ -445,22 +445,22 @@ public class HistoryServiceTest extends PluggableProcessEngineTest {
 
     // Test GREATER_THAN_OR_EQUAL, should return 3 results
     processInstances = historyService.createHistoricProcessInstanceQuery().variableValueGreaterThanOrEqual("stringVar", "abcdef").list();
-    assertThat(processInstances).extracting("id").containsExactlyInAnyOrder(processInstance1, processInstance2, processInstance3);
+    assertThat(processInstances).extracting("id").asList().containsExactlyInAnyOrder(processInstance1, processInstance2, processInstance3);
     assertEquals(0, historyService.createHistoricProcessInstanceQuery().variableValueGreaterThanOrEqual("stringVar", "z").count());
 
     // Test LESS_THAN, should return 2 results
     processInstances = historyService.createHistoricProcessInstanceQuery().variableValueLessThan("stringVar", "abcdeg").list();
-    assertThat(processInstances).extracting("id").containsExactlyInAnyOrder(processInstance1, processInstance2);
+    assertThat(processInstances).extracting("id").asList().containsExactlyInAnyOrder(processInstance1, processInstance2);
 
     processInstances = historyService.createHistoricProcessInstanceQuery().variableValueLessThanOrEqual("stringVar", "z").list();
-    assertThat(processInstances).extracting("id").containsExactlyInAnyOrder(processInstance1, processInstance2, processInstance3);
+    assertThat(processInstances).extracting("id").asList().containsExactlyInAnyOrder(processInstance1, processInstance2, processInstance3);
 
     // Test LESS_THAN_OR_EQUAL
     processInstances = historyService.createHistoricProcessInstanceQuery().variableValueLessThanOrEqual("stringVar", "abcdef").list();
-    assertThat(processInstances).extracting("id").containsExactlyInAnyOrder(processInstance1, processInstance2);
+    assertThat(processInstances).extracting("id").asList().containsExactlyInAnyOrder(processInstance1, processInstance2);
 
     processInstances = historyService.createHistoricProcessInstanceQuery().variableValueLessThanOrEqual("stringVar", "z").list();
-    assertThat(processInstances).extracting("id").containsExactlyInAnyOrder(processInstance1, processInstance2, processInstance3);
+    assertThat(processInstances).extracting("id").asList().containsExactlyInAnyOrder(processInstance1, processInstance2, processInstance3);
 
     assertEquals(0, historyService.createHistoricProcessInstanceQuery().variableValueLessThanOrEqual("stringVar", "aa").count());
 
@@ -475,7 +475,7 @@ public class HistoryServiceTest extends PluggableProcessEngineTest {
     assertThat(resultInstance.getId()).isEqualTo(processInstance3);
 
     processInstances = historyService.createHistoricProcessInstanceQuery().variableValueLike("stringVar", "a%").list();
-    assertThat(processInstances).extracting("id").containsExactlyInAnyOrder(processInstance1, processInstance2, processInstance3);
+    assertThat(processInstances).extracting("id").asList().containsExactlyInAnyOrder(processInstance1, processInstance2, processInstance3);
     assertEquals(0, historyService.createHistoricProcessInstanceQuery().variableValueLike("stringVar", "%x%").count());
   }
 
@@ -636,7 +636,7 @@ public class HistoryServiceTest extends PluggableProcessEngineTest {
         .list();
 
     // then
-    assertThat(instances).extracting("id").containsExactlyInAnyOrder(processInstance1, processInstance2);
+    assertThat(instances).extracting("id").asList().containsExactlyInAnyOrder(processInstance1, processInstance2);
   }
 
   @Deployment(resources = {"org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})

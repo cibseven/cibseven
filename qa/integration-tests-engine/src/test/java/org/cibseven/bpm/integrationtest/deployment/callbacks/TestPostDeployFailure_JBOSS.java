@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.callbacks;
 
-import org.junit.Assert;
+import static org.assertj.core.api.Assertions.fail;
 
 import org.cibseven.bpm.integrationtest.deployment.callbacks.apps.PostDeployFailureApp;
 import org.jboss.arquillian.container.test.api.Deployer;
@@ -25,7 +25,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -51,13 +51,13 @@ public class TestPostDeployFailure_JBOSS {
     return archive;
     
   }
-  
+
   @Test
-  public void test() {
+  void test() {
     
     try {
       deployer.deploy(DEPLOYMENT);
-      Assert.fail("failure expected");
+      fail("failure expected");
     } catch (Exception e) {
       // expected
     }

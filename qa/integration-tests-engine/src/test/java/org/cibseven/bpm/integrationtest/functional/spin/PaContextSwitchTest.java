@@ -32,12 +32,12 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 import java.util.concurrent.Callable;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.application.ProcessApplicationContext.withProcessApplicationContext;
 
 /**
@@ -83,7 +83,7 @@ public class PaContextSwitchTest extends AbstractFoxPlatformIntegrationTest {
    */
   @Test
   @OperateOnDeployment("pa1")
-  public void testNoContextSwitchOnInnerCommand() throws Exception {
+  void noContextSwitchOnInnerCommand() throws Exception {
 
     ProcessInstance pi = withProcessApplicationContext(new Callable<ProcessInstance>() {
 
@@ -104,7 +104,7 @@ public class PaContextSwitchTest extends AbstractFoxPlatformIntegrationTest {
     JsonNode actualJsonTree = objectMapper.readTree(actualJsonString);
     JsonNode expectedJsonTree = objectMapper.readTree(expectedJsonString);
     // JsonNode#equals makes a deep comparison
-    Assert.assertEquals(expectedJsonTree, actualJsonTree);
+    assertThat(actualJsonTree).isEqualTo(expectedJsonTree);
 
   }
 }

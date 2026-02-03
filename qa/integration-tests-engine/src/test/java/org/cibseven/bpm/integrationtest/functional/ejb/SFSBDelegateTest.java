@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.ejb;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.integrationtest.functional.ejb.beans.SFSBClientDelegate;
 import org.cibseven.bpm.integrationtest.functional.ejb.beans.SFSBDelegate;
@@ -23,10 +25,8 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
-
 
 
 /**
@@ -49,13 +49,13 @@ public class SFSBDelegateTest extends AbstractFoxPlatformIntegrationTest {
 
 
   @Test
-  public void testBeanResolution() {
+  void beanResolution() {
 
     // this testcase first resolves the SFSB synchronouly and then from the JobExecutor
 
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("testBeanResolution");
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), SFSBDelegate.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), SFSBDelegate.class.getName())).isEqualTo(true);
 
     runtimeService.setVariable(pi.getId(), SFSBDelegate.class.getName(), false);
 
@@ -63,7 +63,7 @@ public class SFSBDelegateTest extends AbstractFoxPlatformIntegrationTest {
 
     waitForJobExecutorToProcessAllJobs();
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), SFSBDelegate.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), SFSBDelegate.class.getName())).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(pi.getId()).singleResult().getId());
 
@@ -71,13 +71,13 @@ public class SFSBDelegateTest extends AbstractFoxPlatformIntegrationTest {
 
 
   @Test
-  public void testBeanResolutionfromClient() {
+  void beanResolutionfromClient() {
 
     // this testcase invokes a CDI bean that injects the EJB
 
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("testBeanResolutionfromClient");
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), SFSBDelegate.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), SFSBDelegate.class.getName())).isEqualTo(true);
 
     runtimeService.setVariable(pi.getId(), SFSBDelegate.class.getName(), false);
 
@@ -85,13 +85,13 @@ public class SFSBDelegateTest extends AbstractFoxPlatformIntegrationTest {
 
     waitForJobExecutorToProcessAllJobs();
 
-    Assert.assertEquals(true, runtimeService.getVariable(pi.getId(), SFSBDelegate.class.getName()));
+    assertThat(runtimeService.getVariable(pi.getId(), SFSBDelegate.class.getName())).isEqualTo(true);
 
     taskService.complete(taskService.createTaskQuery().processInstanceId(pi.getId()).singleResult().getId());
   }
 
   @Test
-  public void testMultipleInvocations() {
+  void multipleInvocations() {
 
     // this is greater than any Datasource- / EJB- / Thread-Pool size -> make sure all resources are released properly.
     int instances = 100;
@@ -99,7 +99,7 @@ public class SFSBDelegateTest extends AbstractFoxPlatformIntegrationTest {
 
     for(int i=0; i<instances; i++) {
       ids[i] = runtimeService.startProcessInstanceByKey("testBeanResolutionfromClient").getId();
-      Assert.assertEquals("Incovation=" + i, true, runtimeService.getVariable(ids[i], SFSBDelegate.class.getName()));
+      assertThat(runtimeService.getVariable(ids[i], SFSBDelegate.class.getName())).as("Incovation=" + i).isEqualTo(true);
       runtimeService.setVariable(ids[i], SFSBDelegate.class.getName(), false);
       taskService.complete(taskService.createTaskQuery().processInstanceId(ids[i]).singleResult().getId());
     }
@@ -107,7 +107,7 @@ public class SFSBDelegateTest extends AbstractFoxPlatformIntegrationTest {
     waitForJobExecutorToProcessAllJobs(60*1000);
 
     for(int i=0; i<instances; i++) {
-      Assert.assertEquals("Incovation=" + i, true, runtimeService.getVariable(ids[i], SFSBDelegate.class.getName()));
+      assertThat(runtimeService.getVariable(ids[i], SFSBDelegate.class.getName())).as("Incovation=" + i).isEqualTo(true);
       taskService.complete(taskService.createTaskQuery().processInstanceId(ids[i]).singleResult().getId());
     }
 

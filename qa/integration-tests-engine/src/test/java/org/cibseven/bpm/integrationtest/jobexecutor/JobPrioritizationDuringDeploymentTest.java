@@ -16,6 +16,9 @@
  */
 package org.cibseven.bpm.integrationtest.jobexecutor;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.integrationtest.jobexecutor.beans.PriorityBean;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
@@ -26,9 +29,9 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -37,12 +40,13 @@ import org.junit.runner.RunWith;
  * @author Thorben Lindhauer
  */
 @RunWith(Arquillian.class)
-@Ignore
+@Disabled
 public class JobPrioritizationDuringDeploymentTest extends AbstractFoxPlatformIntegrationTest {
 
   @ArquillianResource
   protected Deployer deployer;
 
+  @BeforeEach
   @Override
   public void setupBeforeTest() {
     // don't lookup the default engine since this method is not executed in the deployment
@@ -59,26 +63,26 @@ public class JobPrioritizationDuringDeploymentTest extends AbstractFoxPlatformIn
 
   @Test
   @InSequence(1)
-  public void testPriorityOnTimerStartEvent() {
+  void priorityOnTimerStartEvent() {
     // when
     try {
       deployer.deploy("timerStart");
 
     } catch (Exception e) {
       e.printStackTrace();
-      Assert.fail("deployment should be successful, i.e. bean for timer start event should get resolved");
+      fail("deployment should be successful, i.e. bean for timer start event should get resolved");
     }
   }
 
   @Test
   @OperateOnDeployment("timerStart")
   @InSequence(2)
-  public void testAssertPriority() {
+  void assertPriority() {
 
     // then the timer start event job has the priority resolved from the bean
     Job job = managementService.createJobQuery().activityId("timerStart").singleResult();
 
-    Assert.assertNotNull(job);
-    Assert.assertEquals(PriorityBean.PRIORITY, job.getPriority());
+    assertThat(job).isNotNull();
+    assertThat(job.getPriority()).isEqualTo(PriorityBean.PRIORITY);
   }
 }

@@ -21,7 +21,10 @@ import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Map;
+
 import org.cibseven.bpm.BpmPlatform;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.cibseven.bpm.ProcessEngineService;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.impl.digest._apacheCommonsCodec.Base64;
@@ -40,10 +43,9 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.asset.ByteArrayAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -60,8 +62,8 @@ public class JobPrioritizationFailureJavaSerializationTest extends AbstractFoxPl
   public static final String VARIABLE_CLASS_NAME = "org.cibseven.bpm.integrationtest.jobexecutor.beans.PriorityBean";
   public static final String PRIORITY_BEAN_INSTANCE_FILE = "priorityBean.instance";
 
-  @Before
-  public void setEngines() {
+  @BeforeEach
+  void setEngines() {
     ProcessEngineService engineService = BpmPlatform.getProcessEngineService();
     engine1 = engineService.getProcessEngine("engine1");
 
@@ -93,8 +95,8 @@ public class JobPrioritizationFailureJavaSerializationTest extends AbstractFoxPl
     return webArchive;
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     if (processInstance != null) {
       engine1.getRuntimeService().deleteProcessInstance(processInstance.getId(), "");
     }
@@ -103,18 +105,18 @@ public class JobPrioritizationFailureJavaSerializationTest extends AbstractFoxPl
 
   @Test
   @OperateOnDeployment("dummy-client")
-  public void testGracefulDegradationOnMissingBean() {
+  void gracefulDegradationOnMissingBean() {
     // when
     processInstance = engine1.getRuntimeService().startProcessInstanceByKey("priorityProcess");
 
     // then the job was created successfully and has the default priority on bean evaluation failure
     Job job = engine1.getManagementService().createJobQuery().processInstanceId(processInstance.getProcessInstanceId()).singleResult();
-    Assert.assertEquals(DefaultJobPriorityProvider.DEFAULT_PRIORITY_ON_RESOLUTION_FAILURE, job.getPriority());
+    assertThat(job.getPriority()).isEqualTo(DefaultJobPriorityProvider.DEFAULT_PRIORITY_ON_RESOLUTION_FAILURE);
   }
 
   @Test
   @OperateOnDeployment("dummy-client")
-  public void testGracefulDegradationOnMissingClassJava() {
+  void gracefulDegradationOnMissingClassJava() {
     // given
     byte[] serializedPriorityBean = readByteArrayFromClasspath(PRIORITY_BEAN_INSTANCE_FILE);
     String encodedPriorityBean = StringUtil.fromBytes(Base64.encodeBase64(serializedPriorityBean), processEngine);
@@ -132,7 +134,7 @@ public class JobPrioritizationFailureJavaSerializationTest extends AbstractFoxPl
     // then the job was created successfully and has the default priority although
     // the bean could not be resolved due to a missing class
     Job job = engine1.getManagementService().createJobQuery().processInstanceId(processInstance.getProcessInstanceId()).singleResult();
-    Assert.assertEquals(DefaultJobPriorityProvider.DEFAULT_PRIORITY_ON_RESOLUTION_FAILURE, job.getPriority());
+    assertThat(job.getPriority()).isEqualTo(DefaultJobPriorityProvider.DEFAULT_PRIORITY_ON_RESOLUTION_FAILURE);
   }
 
   protected static byte[] serializeJavaObjectValue(Serializable object) {

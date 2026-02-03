@@ -21,24 +21,25 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  *
  * @author Christopher Zell <christopher.zell@camunda.com>
  */
 @ScenarioUnderTest("ProcessWithEventSubProcessScenario")
-public class CompleteProcessWithEventSubProcessTest extends AbstractRollingUpdateTestCase {
+class CompleteProcessWithEventSubProcessTest extends AbstractRollingUpdateTestCase {
 
   @Test
   @ScenarioUnderTest("init.1")
-  public void testCompleteProcessWithEventSubProcess() {
+  void completeProcessWithEventSubProcess() {
     //given process within event sub process
     ProcessInstance oldInstance = rule.processInstance();
-    Assert.assertNotNull(oldInstance);
+    assertThat(oldInstance).isNotNull();
     Job job = rule.jobQuery().singleResult();
-    Assert.assertNotNull(job);
+    assertThat(job).isNotNull();
 
     //when job is executed
     rule.getManagementService().executeJob(job.getId());
@@ -48,21 +49,21 @@ public class CompleteProcessWithEventSubProcessTest extends AbstractRollingUpdat
                     .createTaskQuery()
                     .processInstanceId(oldInstance.getId())
                     .taskName("TaskInEventSubProcess").singleResult();
-    Assert.assertNotNull(task);
+    assertThat(task).isNotNull();
     rule.getTaskService().complete(task.getId());
     rule.assertScenarioEnded();
   }
 
   @Test
   @ScenarioUnderTest("init.error.1")
-  public void testCompleteProcessWithInEventSubProcess() {
+  void completeProcessWithInEventSubProcess() {
     //given process within event sub process
     ProcessInstance oldInstance = rule.processInstance();
     Task task = rule.getTaskService()
                     .createTaskQuery()
                     .processInstanceId(oldInstance.getId())
                     .taskName("TaskInEventSubProcess").singleResult();
-    Assert.assertNotNull(task);
+    assertThat(task).isNotNull();
 
     //when task is completed
     rule.getTaskService().complete(task.getId());

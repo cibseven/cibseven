@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.event;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.integrationtest.functional.event.beans.ExecutionListenerProcessApplication;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
@@ -25,8 +27,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -53,12 +54,12 @@ public class ProcessApplicationExecutionListenerTest extends AbstractFoxPlatform
   }
 
   @Test
-  public void testExecutionListener() {
+  void executionListener() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testProcess");
 
     Integer listenerInvocationCount = (Integer) runtimeService.getVariable(processInstance.getId(), ExecutionListenerProcessApplication.LISTENER_INVOCATION_COUNT);
-    Assert.assertNotNull(listenerInvocationCount);
-    Assert.assertEquals(5, listenerInvocationCount.intValue());
+    assertThat(listenerInvocationCount).isNotNull();
+    assertThat(listenerInvocationCount.intValue()).isEqualTo(5);
   }
 
 }

@@ -22,13 +22,14 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.cibseven.bpm.engine.runtime.Job;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -48,61 +49,61 @@ public class JodaTimeClassloadingTest extends AbstractFoxPlatformIntegrationTest
 
     // After process start, there should be timer created
     ProcessInstance pi1 = runtimeService.startProcessInstanceByKey("intermediateTimerEventExample", variables1);
-    Assert.assertEquals(1, managementService.createJobQuery().processInstanceId(pi1.getId()).count());
+    assertThat(managementService.createJobQuery().processInstanceId(pi1.getId()).count()).isEqualTo(1);
 
     List<Job> jobs = managementService.createJobQuery().executable().list();
-    Assert.assertEquals(1, jobs.size());
+    assertThat(jobs).hasSize(1);
     runtimeService.deleteProcessInstance(pi1.getId(), "test");
     
     return jobs.get(0).getDuedate();
   }
 
   @Test
-  public void testTimeExpressionComplete() throws Exception {
+  void timeExpressionComplete() throws Exception {
     Date dt = new Date();
 
     Date dueDate = testExpression(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(dt));
-    Assert.assertEquals(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(dt), new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(dueDate));
+    assertThat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(dueDate)).isEqualTo(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(dt));
   }
 
   @Test
-  public void testTimeExpressionWithoutSeconds() throws Exception {
+  void timeExpressionWithoutSeconds() throws Exception {
     Date dt = new Date();
 
     Date dueDate = testExpression(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm").format(dt));
-    Assert.assertEquals(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm").format(dt), new SimpleDateFormat("yyyy-MM-dd'T'HH:mm").format(dueDate));
+    assertThat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm").format(dueDate)).isEqualTo(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm").format(dt));
   }
 
   @Test
-  public void testTimeExpressionWithoutMinutes() throws Exception {
+  void timeExpressionWithoutMinutes() throws Exception {
     Date dt = new Date();
 
     Date dueDate = testExpression(new SimpleDateFormat("yyyy-MM-dd'T'HH").format(new Date()));
-    Assert.assertEquals(new SimpleDateFormat("yyyy-MM-dd'T'HH").format(dt), new SimpleDateFormat("yyyy-MM-dd'T'HH").format(dueDate));
+    assertThat(new SimpleDateFormat("yyyy-MM-dd'T'HH").format(dueDate)).isEqualTo(new SimpleDateFormat("yyyy-MM-dd'T'HH").format(dt));
   }
 
   @Test
-  public void testTimeExpressionWithoutTime() throws Exception {
+  void timeExpressionWithoutTime() throws Exception {
     Date dt = new Date();
 
     Date dueDate = testExpression(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
-    Assert.assertEquals(new SimpleDateFormat("yyyy-MM-dd").format(dt), new SimpleDateFormat("yyyy-MM-dd").format(dueDate));
+    assertThat(new SimpleDateFormat("yyyy-MM-dd").format(dueDate)).isEqualTo(new SimpleDateFormat("yyyy-MM-dd").format(dt));
   }
 
   @Test
-  public void testTimeExpressionWithoutDay() throws Exception {
+  void timeExpressionWithoutDay() throws Exception {
     Date dt = new Date();
 
     Date dueDate = testExpression(new SimpleDateFormat("yyyy-MM").format(new Date()));
-    Assert.assertEquals(new SimpleDateFormat("yyyy-MM").format(dt), new SimpleDateFormat("yyyy-MM").format(dueDate));
+    assertThat(new SimpleDateFormat("yyyy-MM").format(dueDate)).isEqualTo(new SimpleDateFormat("yyyy-MM").format(dt));
   }
 
   @Test
-  public void testTimeExpressionWithoutMonth() throws Exception {
+  void timeExpressionWithoutMonth() throws Exception {
     Date dt = new Date();
 
     Date dueDate = testExpression(new SimpleDateFormat("yyyy").format(new Date()));
-    Assert.assertEquals(new SimpleDateFormat("yyyy").format(dt), new SimpleDateFormat("yyyy").format(dueDate));
+    assertThat(new SimpleDateFormat("yyyy").format(dueDate)).isEqualTo(new SimpleDateFormat("yyyy").format(dt));
   }
 
 }

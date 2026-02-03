@@ -1,0 +1,74 @@
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ----------------< org.cibseven.bpm.qa:large-data-tests >----------------
+[INFO] Building Large Data Tests 2.2.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] >>> rewrite:5.43.0:run (default-cli) > process-test-classes @ large-data-tests >>>
+[INFO]
+[INFO] --- resources:2.6:resources (default-resources) @ large-data-tests ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /app/qa/large-data-tests/src/main/resources
+[INFO]
+[INFO] --- compiler:3.6.2:compile (default-compile) @ large-data-tests ---
+[INFO] No sources to compile
+[INFO]
+[INFO] --- resources:2.6:testResources (default-testResources) @ large-data-tests ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 2 resources
+[INFO] Copying 1 resource
+[INFO]
+[INFO] --- compiler:3.6.2:testCompile (default-testCompile) @ large-data-tests ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO]
+[INFO] <<< rewrite:5.43.0:run (default-cli) < process-test-classes @ large-data-tests <<<
+[INFO]
+[INFO]
+[INFO] --- rewrite:5.43.0:run (default-cli) @ large-data-tests ---
+[INFO] Using active recipe(s) [org.openrewrite.java.testing.junit5.JUnit5BestPractices, org.openrewrite.java.testing.assertj.Assertj]
+[INFO] Using active styles(s) []
+[INFO] Validating active recipes...
+[INFO] Project [Large Data Tests] Resolving Poms...
+[INFO] Project [Large Data Tests] Parsing source files
+[INFO] Running recipe(s)...
+[WARNING] Changes have been made to qa/large-data-tests/pom.xml by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.dependencies.RemoveDependency: {groupId=junit, artifactId=junit}
+[WARNING]                 org.openrewrite.maven.RemoveDependency: {groupId=junit, artifactId=junit}
+[WARNING]             org.openrewrite.maven.ExcludeDependency: {groupId=junit, artifactId=junit}
+[WARNING]             org.openrewrite.java.testing.junit5.AddJupiterDependencies
+[WARNING] Changes have been made to qa/large-data-tests/src/test/java/org/cibseven/bpm/qa/largedata/DeleteDeploymentCascadeTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/large-data-tests/src/test/java/org/cibseven/bpm/qa/largedata/SetJobRetriesAsyncTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING] Changes have been made to qa/large-data-tests/src/test/java/org/cibseven/bpm/qa/largedata/optimize/OptimizeApiPageSizeTest.java by:
+[WARNING]     org.openrewrite.java.testing.junit5.JUnit5BestPractices
+[WARNING]         org.openrewrite.java.testing.junit5.JUnit4to5Migration
+[WARNING]             org.openrewrite.java.testing.junit5.CleanupJUnitImports
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateBeforeAfterAnnotations
+[WARNING]             org.openrewrite.java.testing.junit5.UpdateTestAnnotation
+[WARNING]             org.openrewrite.java.testing.junit5.JUnitParamsRunnerToParameterized
+[WARNING]         org.openrewrite.java.testing.cleanup.TestsShouldNotBePublic
+[WARNING]         org.openrewrite.java.testing.assertj.Assertj
+[WARNING]             org.openrewrite.java.testing.hamcrest.MigrateHamcrestToAssertJ
+[WARNING]                 org.openrewrite.java.testing.hamcrest.HamcrestIsMatcherToAssertJ
+[WARNING]             org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions
+[WARNING]                 org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion: {chainedAssertion=size, assertToReplace=isEqualTo, dedicatedAssertion=hasSize, requiredType=java.util.Collection}
+[WARNING] Please review and commit the results.
+[WARNING] Estimate time saved: 20m
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  38.707 s
+[INFO] Finished at: 2026-02-02T15:10:27Z
+[INFO] ------------------------------------------------------------------------

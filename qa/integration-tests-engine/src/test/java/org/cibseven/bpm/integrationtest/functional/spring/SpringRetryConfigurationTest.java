@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.spring;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.JobQuery;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
@@ -29,8 +31,7 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -89,7 +90,7 @@ public class SpringRetryConfigurationTest extends AbstractFoxPlatformIntegration
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testResolveRetryConfigBean() {
+  void resolveRetryConfigBean() {
     // given
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testRetry");
 
@@ -108,7 +109,7 @@ public class SpringRetryConfigurationTest extends AbstractFoxPlatformIntegration
 
     // then
     job = query.singleResult();
-    Assert.assertEquals(6, job.getRetries());
+    assertThat(job.getRetries()).isEqualTo(6);
   }
 
 }

@@ -16,6 +16,9 @@
  */
 package org.cibseven.bpm.integrationtest.functional.classloading.war;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
 import org.cibseven.bpm.engine.runtime.VariableInstanceQuery;
 import org.cibseven.bpm.integrationtest.functional.classloading.beans.ExampleCaseExecutionListener;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
@@ -25,8 +28,7 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -56,11 +58,11 @@ public class CaseExecutionListenerResolutionTest extends AbstractFoxPlatformInte
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testResolveCaseExecutionListenerClass() {
+  void resolveCaseExecutionListenerClass() {
     // assert that we cannot load the delegate here:
     try {
       Class.forName("org.cibseven.bpm.integrationtest.functional.classloading.beans.ExampleCaseExecutionListener");
-      Assert.fail("CNFE expected");
+      fail("CNFE expected");
     }catch (ClassNotFoundException e) {
       // expected
     }
@@ -81,23 +83,23 @@ public class CaseExecutionListenerResolutionTest extends AbstractFoxPlatformInte
         .variableName("listener")
         .caseInstanceIdIn(caseInstanceId);
 
-    Assert.assertNotNull(query.singleResult());
-    Assert.assertEquals("listener-notified", query.singleResult().getValue());
+    assertThat(query.singleResult()).isNotNull();
+    assertThat(query.singleResult().getValue()).isEqualTo("listener-notified");
 
     caseService
       .withCaseExecution(caseInstanceId)
       .removeVariable("listener")
       .execute();
 
-    Assert.assertEquals(0, query.count());
+    assertThat(query.count()).isEqualTo(0);
 
     // the delegate expression listener should execute successfully
     caseService
       .withCaseExecution(humanTaskId)
       .complete();
 
-    Assert.assertNotNull(query.singleResult());
-    Assert.assertEquals("listener-notified", query.singleResult().getValue());
+    assertThat(query.singleResult()).isNotNull();
+    assertThat(query.singleResult().getValue()).isEqualTo("listener-notified");
 
   }
 

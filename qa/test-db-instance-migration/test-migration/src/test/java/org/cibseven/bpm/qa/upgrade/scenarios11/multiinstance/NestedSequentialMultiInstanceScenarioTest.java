@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.qa.upgrade.scenarios11.multiinstance;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.assertThat;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.describeActivityInstanceTree;
 
@@ -27,10 +29,9 @@ import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate.ThrowBpmnErrorDelegateException;
-import org.junit.Assert;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 @ScenarioUnderTest("NestedSequentialMultiInstanceSubprocessScenario")
 @Origin("1.1.0")
@@ -41,7 +42,7 @@ public class NestedSequentialMultiInstanceScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.1")
-  public void testInitCompletionCase1() {
+  void initCompletionCase1() {
     // given
     Task innerMiSubProcessTask = rule.taskQuery().taskDefinitionKey("innerSubProcessTask").singleResult();
 
@@ -50,7 +51,7 @@ public class NestedSequentialMultiInstanceScenarioTest {
 
     for (int i = 0; i < 8; i++) {
       innerMiSubProcessTask = rule.taskQuery().taskDefinitionKey("innerSubProcessTask").singleResult();
-      Assert.assertNotNull(innerMiSubProcessTask);
+      assertThat(innerMiSubProcessTask).isNotNull();
       rule.getTaskService().complete(innerMiSubProcessTask.getId());
     }
 
@@ -59,10 +60,10 @@ public class NestedSequentialMultiInstanceScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("init.2")
-  public void testInitActivityInstanceTree() {
+  void initActivityInstanceTree() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -70,7 +71,7 @@ public class NestedSequentialMultiInstanceScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    assertThat(activityInstance).isNotNull();
     assertThat(activityInstance).hasStructure(
       describeActivityInstanceTree(instance.getProcessDefinitionId())
         // the subprocess itself misses because it was no scope in 7.2
@@ -83,7 +84,7 @@ public class NestedSequentialMultiInstanceScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.3")
-  public void testInitDeletion() {
+  void initDeletion() {
     // given
     ProcessInstance instance = rule.processInstance();
 
@@ -96,7 +97,7 @@ public class NestedSequentialMultiInstanceScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.4")
-  public void testInitThrowError() {
+  void initThrowError() {
     // given
     ProcessInstance instance = rule.processInstance();
     Task innerMiSubProcessTask = rule.taskQuery().taskDefinitionKey("innerSubProcessTask").singleResult();
@@ -107,8 +108,8 @@ public class NestedSequentialMultiInstanceScenarioTest {
 
     // then
     Task escalatedTask = rule.taskQuery().singleResult();
-    Assert.assertEquals("escalatedTask", escalatedTask.getTaskDefinitionKey());
-    Assert.assertNotNull(escalatedTask);
+    assertThat(escalatedTask.getTaskDefinitionKey()).isEqualTo("escalatedTask");
+    assertThat(escalatedTask).isNotNull();
 
     rule.getTaskService().complete(escalatedTask.getId());
     rule.assertScenarioEnded();
@@ -116,7 +117,7 @@ public class NestedSequentialMultiInstanceScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.5")
-  public void testInitThrowUnhandledException() {
+  void initThrowUnhandledException() {
     // given
     ProcessInstance instance = rule.processInstance();
     Task innerMiSubProcessTask = rule.taskQuery().taskDefinitionKey("innerSubProcessTask").singleResult();
@@ -128,10 +129,10 @@ public class NestedSequentialMultiInstanceScenarioTest {
     // then
     try {
       rule.getTaskService().complete(innerMiSubProcessTask.getId());
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      assertThat(e.getMessage()).isEqualTo("unhandledException");
     }
   }
 

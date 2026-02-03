@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.spin;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.BpmPlatform;
 import org.cibseven.bpm.integrationtest.functional.spin.dataformat.FailingJsonDataFormatConfigurator;
 import org.cibseven.bpm.integrationtest.functional.spin.dataformat.JsonSerializable;
@@ -29,9 +31,8 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Set;
@@ -70,8 +71,8 @@ public class PaDataFormatConfiguratorFailingTest {
     return webArchive;
   }
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     try {
       deployer.deploy("deployment");
       // The failing configurator provokes a RuntimeException in a servlet context listener.
@@ -84,8 +85,8 @@ public class PaDataFormatConfiguratorFailingTest {
 
   @Test
   @OperateOnDeployment("checkDeployment")
-  public void testNoProcessApplicationIsDeployed() {
+  void noProcessApplicationIsDeployed() {
     Set<String> registeredPAs = BpmPlatform.getProcessApplicationService().getProcessApplicationNames();
-    Assert.assertTrue(registeredPAs.isEmpty());
+    assertThat(registeredPAs).isEmpty();
   }
 }

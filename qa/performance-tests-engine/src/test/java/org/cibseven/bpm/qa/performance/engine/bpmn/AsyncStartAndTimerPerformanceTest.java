@@ -20,13 +20,13 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.qa.performance.engine.junit.ProcessEngineJobExecutorPerformanceTestCase;
 import org.cibseven.bpm.qa.performance.engine.steps.StartProcessInstanceStep;
 import org.cibseven.bpm.qa.performance.engine.steps.WaitStep;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class AsyncStartAndTimerPerformanceTest extends ProcessEngineJobExecutorPerformanceTestCase {
+class AsyncStartAndTimerPerformanceTest extends ProcessEngineJobExecutorPerformanceTestCase {
 
   @Test
   @Deployment
-  public void test() {
+  void test() {
     performanceTest()
       .step(new StartProcessInstanceStep(engine, "process"))
       .step(new WaitStep())

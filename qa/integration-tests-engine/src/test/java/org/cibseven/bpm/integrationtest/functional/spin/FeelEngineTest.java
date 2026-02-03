@@ -25,15 +25,13 @@ import org.cibseven.spin.Spin;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Arquillian.class)
 public class FeelEngineTest extends AbstractFoxPlatformIntegrationTest {
@@ -66,7 +64,7 @@ public class FeelEngineTest extends AbstractFoxPlatformIntegrationTest {
   }
 
   @Test
-  public void shouldExecuteProcessWithJSONVariableCorrectly() {
+  void shouldExecuteProcessWithJSONVariableCorrectly() {
     // given
     VariableMap varMap = createSpinParsedVariableInMap("JSON");
 
@@ -79,12 +77,12 @@ public class FeelEngineTest extends AbstractFoxPlatformIntegrationTest {
         .includeOutputs()
         .singleResult();
 
-    assertThat(hdi.getOutputs().size(), is(1));
-    assertThat(hdi.getOutputs().get(0).getValue(), is(true));
+    assertThat(hdi.getOutputs()).hasSize(1);
+    assertThat(hdi.getOutputs().get(0).getValue()).isEqualTo(true);
   }
 
   @Test
-  public void shouldExecuteProcessWithXMLVariableCorrectly() {
+  void shouldExecuteProcessWithXMLVariableCorrectly() {
     // given
     VariableMap varMap = createSpinParsedVariableInMap("XML");
 
@@ -97,12 +95,12 @@ public class FeelEngineTest extends AbstractFoxPlatformIntegrationTest {
         .includeOutputs()
         .singleResult();
 
-    assertThat(hdi.getOutputs().size(), is(1));
-    assertThat(hdi.getOutputs().get(0).getValue(), is(true));
+    assertThat(hdi.getOutputs()).hasSize(1);
+    assertThat(hdi.getOutputs().get(0).getValue()).isEqualTo(true);
   }
 
   @Test
-  public void testSpinIntegration() {
+  void spinIntegration() {
     // Accessing SPIN object from FEEL requires the org.cibseven.spin.plugin.impl.feel.integration.SpinValueMapper SPI
     // given
     VariableMap variablesLarge = Variables.createVariables().putValue("amount", Spin.JSON("{\"value\": 25}"));
@@ -116,22 +114,22 @@ public class FeelEngineTest extends AbstractFoxPlatformIntegrationTest {
     List<String> resultsSmall = runtimeService.getActiveActivityIds(pi2.getId());
 
     // then
-    assertEquals(1, resultsLarge.size());
-    assertEquals("taskRequestInvoice", resultsLarge.get(0));
+    assertThat(resultsLarge).hasSize(1);
+    assertThat(resultsLarge.get(0)).isEqualTo("taskRequestInvoice");
 
-    assertEquals(1, resultsSmall.size());
-    assertEquals("taskApprove", resultsSmall.get(0));
+    assertThat(resultsSmall).hasSize(1);
+    assertThat(resultsSmall.get(0)).isEqualTo("taskApprove");
   }
 
   @Test
-  public void testFeelEngineComplexContext() {
+  void feelEngineComplexContext() {
     // Mapping complex FEEL context into Java requires the org.cibseven.feel.impl.JavaValueMapper SPI to be registered
     // when
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("feelComplexContextProcess");
     String result = (String) runtimeService.getVariable(pi.getId(), "result");
 
     // then
-    assertEquals("contentFromInnerContext", result);
+    assertThat(result).isEqualTo("contentFromInnerContext");
   }
 
   // HELPER

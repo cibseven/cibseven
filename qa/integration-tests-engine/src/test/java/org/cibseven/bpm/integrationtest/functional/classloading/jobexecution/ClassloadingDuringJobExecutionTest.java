@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.classloading.jobexecution;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.List;
 
 import org.cibseven.bpm.engine.runtime.Job;
@@ -27,7 +27,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -66,7 +66,7 @@ public class ClassloadingDuringJobExecutionTest extends AbstractFoxPlatformInteg
   }
 
   @Test
-  public void shouldLoadBPMNErorClassUsedInGroovyScriptDuringJobExecution() {
+  void shouldLoadBPMNErorClassUsedInGroovyScriptDuringJobExecution() {
     // given
     String deploymentId = repositoryService.createDeployment()
         .addString("process.bpmn", process)
@@ -78,11 +78,11 @@ public class ClassloadingDuringJobExecutionTest extends AbstractFoxPlatformInteg
 
     // then
     List<Job> failedJobs = managementService.createJobQuery().noRetriesLeft().list();
-    assertTrue(failedJobs.size() > 0);
+    assertThat(failedJobs.size() > 0).isTrue();
     for (Job job : failedJobs) {
       String jobExceptionStacktrace = managementService.getJobExceptionStacktrace(job.getId());
-      assertFalse(jobExceptionStacktrace.contains("ClassNotFoundException"));
-      assertTrue(jobExceptionStacktrace.contains("Test error thrown"));
+      assertThat(jobExceptionStacktrace).doesNotContain("ClassNotFoundException");
+      assertThat(jobExceptionStacktrace).contains("Test error thrown");
     }
     // clean up
     repositoryService.deleteDeployment(deploymentId, true);

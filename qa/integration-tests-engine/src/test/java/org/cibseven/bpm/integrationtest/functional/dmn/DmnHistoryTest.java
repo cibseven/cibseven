@@ -16,9 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.dmn;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.history.HistoricDecisionInstance;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
@@ -29,7 +27,7 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -48,18 +46,18 @@ public class DmnHistoryTest extends AbstractFoxPlatformIntegrationTest {
   }
 
   @Test
-  public void testHistoricDecisionInstance() {
+  void historicDecisionInstance() {
 
     VariableMap variables = Variables.createVariables().putValue("status", "bronze").putValue("sum", 100);
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("testProcess", variables);
 
     HistoricDecisionInstance historicDecisionInstance = historyService.createHistoricDecisionInstanceQuery().includeInputs().includeOutputs().singleResult();
-    assertThat(historicDecisionInstance, is(notNullValue()));
-    assertThat(historicDecisionInstance.getDecisionDefinitionKey(), is("decision"));
-    assertThat(historicDecisionInstance.getDecisionDefinitionName(), is("Check Order"));
+    assertThat(historicDecisionInstance).isNotNull();
+    assertThat(historicDecisionInstance.getDecisionDefinitionKey()).isEqualTo("decision");
+    assertThat(historicDecisionInstance.getDecisionDefinitionName()).isEqualTo("Check Order");
 
-    assertThat(historicDecisionInstance.getInputs().size(), is(2));
-    assertThat(historicDecisionInstance.getOutputs().size(), is(2));
+    assertThat(historicDecisionInstance.getInputs()).hasSize(2);
+    assertThat(historicDecisionInstance.getOutputs()).hasSize(2);
 
     Task task = taskService.createTaskQuery().processInstanceId(pi.getId()).singleResult();
     taskService.complete(task.getId());

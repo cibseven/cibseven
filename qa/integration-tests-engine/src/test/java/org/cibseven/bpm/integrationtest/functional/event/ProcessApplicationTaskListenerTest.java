@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.event;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.delegate.TaskListener;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
@@ -27,8 +29,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 import java.util.HashMap;
@@ -58,7 +59,7 @@ public class ProcessApplicationTaskListenerTest extends AbstractFoxPlatformInteg
   }
 
   @Test
-  public void testTaskListener() {
+  void taskListener() {
     Map<String, Object> variables = new HashMap<String, Object>();
     variables.put(TaskListener.EVENTNAME_CREATE, false);
     variables.put(TaskListener.EVENTNAME_ASSIGNMENT, false);
@@ -72,10 +73,10 @@ public class ProcessApplicationTaskListenerTest extends AbstractFoxPlatformInteg
     boolean updateEventFired = (Boolean) runtimeService.getVariable(processInstance.getId(), TaskListener.EVENTNAME_UPDATE);
     boolean completeEventFired = (Boolean) runtimeService.getVariable(processInstance.getId(), TaskListener.EVENTNAME_COMPLETE);
 
-    Assert.assertTrue(createEventFired);
-    Assert.assertFalse(assignmentEventFired);
-    Assert.assertFalse(completeEventFired);
-    Assert.assertFalse(updateEventFired);
+    assertThat(createEventFired).isTrue();
+    assertThat(assignmentEventFired).isFalse();
+    assertThat(completeEventFired).isFalse();
+    assertThat(updateEventFired).isFalse();
 
     Task task = taskService.createTaskQuery().processDefinitionKey("testProcess").singleResult();
     taskService.claim(task.getId(), "jonny");
@@ -85,10 +86,10 @@ public class ProcessApplicationTaskListenerTest extends AbstractFoxPlatformInteg
     updateEventFired = (Boolean) runtimeService.getVariable(processInstance.getId(), TaskListener.EVENTNAME_UPDATE);
     completeEventFired = (Boolean) runtimeService.getVariable(processInstance.getId(), TaskListener.EVENTNAME_COMPLETE);
 
-    Assert.assertTrue(createEventFired);
-    Assert.assertTrue(assignmentEventFired);
-    Assert.assertTrue(updateEventFired);
-    Assert.assertFalse(completeEventFired);
+    assertThat(createEventFired).isTrue();
+    assertThat(assignmentEventFired).isTrue();
+    assertThat(updateEventFired).isTrue();
+    assertThat(completeEventFired).isFalse();
 
     taskService.complete(task.getId());
 
@@ -97,9 +98,9 @@ public class ProcessApplicationTaskListenerTest extends AbstractFoxPlatformInteg
     updateEventFired = (Boolean) runtimeService.getVariable(processInstance.getId(), TaskListener.EVENTNAME_UPDATE);
     completeEventFired = (Boolean) runtimeService.getVariable(processInstance.getId(), TaskListener.EVENTNAME_COMPLETE);
 
-    Assert.assertTrue(createEventFired);
-    Assert.assertTrue(assignmentEventFired);
-    Assert.assertTrue(updateEventFired);
-    Assert.assertTrue(completeEventFired);
+    assertThat(createEventFired).isTrue();
+    assertThat(assignmentEventFired).isTrue();
+    assertThat(updateEventFired).isTrue();
+    assertThat(completeEventFired).isTrue();
   }
 }

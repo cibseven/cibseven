@@ -21,12 +21,11 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Sebastian Menski
@@ -61,14 +60,14 @@ public abstract class AbstractScriptEngineSupportTest extends AbstractFoxPlatfor
     processInstanceId = runtimeService.startProcessInstanceByKey(PROCESS_ID).getId();
   }
 
-  @After
+  @AfterEach
   public void variableFooShouldBeBar() {
     Object foo = runtimeService.getVariable(processInstanceId, "foo");
     Object bar = runtimeService.getVariable(processInstanceId, "bar");
-    assertNotNull(foo);
-    assertNotNull(bar);
-    assertEquals("bar", foo);
-    assertEquals("baz", bar);
+    assertThat(foo).isNotNull();
+    assertThat(bar).isNotNull();
+    assertThat(foo).isEqualTo("bar");
+    assertThat(bar).isEqualTo("baz");
   }
 
 }

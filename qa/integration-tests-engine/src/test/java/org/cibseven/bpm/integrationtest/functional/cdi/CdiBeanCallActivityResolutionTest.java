@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.cdi;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.variable.Variables;
@@ -29,9 +31,8 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -71,8 +72,8 @@ public class CdiBeanCallActivityResolutionTest extends AbstractFoxPlatformIntegr
 
   protected ProcessInstance processInstance;
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     if (processInstance != null) {
       runtimeService.deleteProcessInstance(processInstance.getId(), null);
     }
@@ -80,7 +81,7 @@ public class CdiBeanCallActivityResolutionTest extends AbstractFoxPlatformIntegr
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testResolveBeanInBpmnProcess() {
+  void resolveBeanInBpmnProcess() {
     processInstance = runtimeService.startProcessInstanceByKey("callingProcess");
 
     Task calledProcessTask = taskService.createTaskQuery().singleResult();
@@ -89,16 +90,16 @@ public class CdiBeanCallActivityResolutionTest extends AbstractFoxPlatformIntegr
         Variables.createVariables().putValue("var", "value"));
 
     Task afterCallActivityTask = taskService.createTaskQuery().singleResult();
-    Assert.assertNotNull(afterCallActivityTask);
-    Assert.assertEquals("afterCallActivity", afterCallActivityTask.getTaskDefinitionKey());
+    assertThat(afterCallActivityTask).isNotNull();
+    assertThat(afterCallActivityTask.getTaskDefinitionKey()).isEqualTo("afterCallActivity");
 
     String variable = (String) runtimeService.getVariable(processInstance.getId(), "var");
-    Assert.assertEquals("valuevalue", variable);
+    assertThat(variable).isEqualTo("valuevalue");
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testResolveBeanInBpmnProcessConditionalFlow() {
+  void resolveBeanInBpmnProcessConditionalFlow() {
     // given
     processInstance = runtimeService.startProcessInstanceByKey("callingProcessConditionalFlow",
         Variables.createVariables().putValue("takeFlow", true));
@@ -110,8 +111,8 @@ public class CdiBeanCallActivityResolutionTest extends AbstractFoxPlatformIntegr
 
     // then
     Task afterCallActivityTask = taskService.createTaskQuery().singleResult();
-    Assert.assertNotNull(afterCallActivityTask);
-    Assert.assertEquals("afterCallActivityTask", afterCallActivityTask.getTaskDefinitionKey());
+    assertThat(afterCallActivityTask).isNotNull();
+    assertThat(afterCallActivityTask.getTaskDefinitionKey()).isEqualTo("afterCallActivityTask");
   }
 
 }

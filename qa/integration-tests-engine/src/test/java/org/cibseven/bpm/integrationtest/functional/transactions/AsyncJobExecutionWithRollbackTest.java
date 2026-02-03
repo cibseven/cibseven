@@ -16,8 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.transactions;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.inject.Inject;
 
@@ -29,8 +28,8 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -53,15 +52,15 @@ public class AsyncJobExecutionWithRollbackTest extends AbstractFoxPlatformIntegr
   @Inject
   private RuntimeService runtimeService;
 
-  @After
-  public void cleanUp() {
+  @AfterEach
+  void cleanUp() {
     for (ProcessInstance processInstance : runtimeService.createProcessInstanceQuery().list()) {
       runtimeService.deleteProcessInstance(processInstance.getId(), "test ended", true);
     }
   }
 
   @Test
-  public void shouldRollbackTransactionInServiceTask() throws Exception {
+  void shouldRollbackTransactionInServiceTask() throws Exception {
     // given
     runtimeService.startProcessInstanceByKey("txRollbackServiceTask");
 
@@ -73,14 +72,14 @@ public class AsyncJobExecutionWithRollbackTest extends AbstractFoxPlatformIntegr
     // the job exists with no retries, and an incident is raised
     Job job = managementService.createJobQuery().singleResult();
 
-    assertNotNull(job);
-    assertEquals(0, job.getRetries());
-    assertNotNull(job.getExceptionMessage());
-    assertNotNull(managementService.getJobExceptionStacktrace(job.getId()));
+    assertThat(job).isNotNull();
+    assertThat(job.getRetries()).isEqualTo(0);
+    assertThat(job.getExceptionMessage()).isNotNull();
+    assertThat(managementService.getJobExceptionStacktrace(job.getId())).isNotNull();
   }
 
   @Test
-  public void shouldRollbackTransactionInServiceTaskWithCustomRetryCycle() throws Exception {
+  void shouldRollbackTransactionInServiceTaskWithCustomRetryCycle() throws Exception {
     // given
     runtimeService.startProcessInstanceByKey("txRollbackServiceTaskWithCustomRetryCycle");
 
@@ -91,10 +90,10 @@ public class AsyncJobExecutionWithRollbackTest extends AbstractFoxPlatformIntegr
     // the job exists with no retries, and an incident is raised
     Job job = managementService.createJobQuery().singleResult();
 
-    assertNotNull(job);
-    assertEquals(0, job.getRetries());
-    assertNotNull(job.getExceptionMessage());
-    assertNotNull(managementService.getJobExceptionStacktrace(job.getId()));
+    assertThat(job).isNotNull();
+    assertThat(job.getRetries()).isEqualTo(0);
+    assertThat(job.getExceptionMessage()).isNotNull();
+    assertThat(managementService.getJobExceptionStacktrace(job.getId())).isNotNull();
   }
 
 }

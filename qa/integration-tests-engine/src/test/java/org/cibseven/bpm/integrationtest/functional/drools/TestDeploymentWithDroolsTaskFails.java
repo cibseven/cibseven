@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.drools;
 
+import static org.assertj.core.api.Assertions.fail;
+
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -24,8 +26,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -51,13 +52,13 @@ public class TestDeploymentWithDroolsTaskFails {
       .addAsResource("META-INF/processes.xml", "META-INF/processes.xml")
       .addAsResource("org/cibseven/bpm/integrationtest/functional/drools/TestDeploymentWithDroolsTaskFails.testDeployDroolsFails.bpmn20.xml");           
   }
-  
+
   @Test
   @RunAsClient
-  public void testDeployDroolsFails() {
+  void deployDroolsFails() {
     try {
       deployer.deploy("deployment");
-      Assert.fail("exception expected");
+      fail("exception expected");
     }catch (Exception e) {
       // expected
     }

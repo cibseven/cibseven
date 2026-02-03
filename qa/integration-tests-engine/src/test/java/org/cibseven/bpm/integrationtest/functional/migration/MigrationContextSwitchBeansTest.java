@@ -20,6 +20,8 @@ import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 
 import org.cibseven.bpm.engine.migration.MigrationPlan;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.integrationtest.functional.migration.beans.TimerBean;
@@ -34,8 +36,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.asset.ByteArrayAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -89,7 +90,7 @@ public class MigrationContextSwitchBeansTest extends AbstractFoxPlatformIntegrat
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testCreateBoundaryTimer() {
+  void createBoundaryTimer() {
     // given
     ProcessDefinition sourceDefinition = repositoryService
         .createProcessDefinitionQuery()
@@ -114,8 +115,8 @@ public class MigrationContextSwitchBeansTest extends AbstractFoxPlatformIntegrat
 
     // then
     Job timerJob = managementService.createJobQuery().singleResult();
-    Assert.assertNotNull(timerJob);
-    Assert.assertNotNull(timerJob.getDuedate());
+    assertThat(timerJob).isNotNull();
+    assertThat(timerJob.getDuedate()).isNotNull();
   }
 
   protected static Asset modelAsAsset(BpmnModelInstance modelInstance) {

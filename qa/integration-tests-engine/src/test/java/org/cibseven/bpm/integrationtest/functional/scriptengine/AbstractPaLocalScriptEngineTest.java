@@ -16,12 +16,10 @@
  */
 package org.cibseven.bpm.integrationtest.functional.scriptengine;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.application.ProcessApplicationInterface;
 import org.cibseven.bpm.application.ProcessApplicationReference;
-import org.cibseven.bpm.application.ProcessApplicationUnavailableException;
 import org.cibseven.bpm.engine.impl.application.ProcessApplicationManager;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
@@ -31,6 +29,7 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 
 /**
@@ -72,14 +71,12 @@ public abstract class AbstractPaLocalScriptEngineTest extends AbstractFoxPlatfor
       }
     });
 
-    assertNotNull(reference);
+    assertThat(reference).isNotNull();
 
     ProcessApplicationInterface processApplication = null;
-    try {
+    Assertions.assertDoesNotThrow(() -> {
       processApplication = reference.getProcessApplication();
-    } catch (ProcessApplicationUnavailableException e) {
-      fail("Could not retrieve process application");
-    }
+    }, "Could not retrieve process application");
 
     return processApplication.getRawObject();
   }

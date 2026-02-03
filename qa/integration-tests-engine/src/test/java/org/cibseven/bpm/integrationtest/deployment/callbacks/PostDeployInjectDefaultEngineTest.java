@@ -18,15 +18,15 @@ package org.cibseven.bpm.integrationtest.deployment.callbacks;
 
 import java.util.List;
 
-import org.junit.Assert;
-
 import org.cibseven.bpm.engine.ProcessEngine;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.cibseven.bpm.integrationtest.deployment.callbacks.apps.PostDeployInjectApp;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -45,17 +45,17 @@ public class PostDeployInjectDefaultEngineTest {
     return archive;
     
   }
-  
+
   @Test
-  public void test() {
-    Assert.assertNotNull("processEngine must be injected", PostDeployInjectApp.processEngine);
-    Assert.assertNotNull("processApplicationInfo must be injected", PostDeployInjectApp.processApplicationInfo);
+  void test() {
+    assertThat(PostDeployInjectApp.processEngine).as("processEngine must be injected").isNotNull();
+    assertThat(PostDeployInjectApp.processApplicationInfo).as("processApplicationInfo must be injected").isNotNull();
     
     List<ProcessEngine> processEngines = PostDeployInjectApp.processEngines;
-    Assert.assertNotNull("processEngines must be injected", processEngines);
-    
+    assertThat(processEngines).as("processEngines must be injected").isNotNull();
+
     // the app did no do a deployment so no engines are in the list
-    Assert.assertEquals(0, processEngines.size());
+    assertThat(processEngines).hasSize(0);
     
   }
   

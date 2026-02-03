@@ -16,12 +16,14 @@
  */
 package org.cibseven.bpm.integrationtest.functional.el;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.List;
 import java.util.Map;
 
 import org.cibseven.bpm.dmn.engine.DmnDecisionTableResult;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.variable.Variables;
@@ -33,8 +35,7 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -72,27 +73,27 @@ public class DecisionContextSwitchTest extends AbstractFoxPlatformIntegrationTes
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void shouldSwitchContextWhenUsingDecisionService() {
+  void shouldSwitchContextWhenUsingDecisionService() {
     DmnDecisionTableResult decisionResult = decisionService.evaluateDecisionTableByKey("decision", Variables.createVariables());
-    assertEquals("ok", decisionResult.getFirstResult().getFirstEntry());
+    assertThat(decisionResult.getFirstResult().getFirstEntry()).isEqualTo("ok");
   }
 
   @Test
   @SuppressWarnings("unchecked")
   @OperateOnDeployment("clientDeployment")
-  public void shouldSwitchContextWhenCallingFromBpmn() {
+  void shouldSwitchContextWhenCallingFromBpmn() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("testProcess");
 
     VariableInstance decisionResult = runtimeService.createVariableInstanceQuery()
       .processInstanceIdIn(pi.getId())
       .variableName("result").singleResult();
     List<Map<String, Object>> result = (List<Map<String, Object>>) decisionResult.getValue();
-    assertEquals("ok", result.get(0).get("result"));
+    assertThat(result.get(0)).containsEntry("result", "ok");
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void shouldSwitchContextWhenUsingDecisionServiceAfterRedeployment() {
+  void shouldSwitchContextWhenUsingDecisionServiceAfterRedeployment() {
 
     // given
     List<org.cibseven.bpm.engine.repository.Deployment> deployments = repositoryService.createDeploymentQuery()
@@ -108,7 +109,7 @@ public class DecisionContextSwitchTest extends AbstractFoxPlatformIntegrationTes
     }
 
     if(dmnDeployment == null) {
-      Assert.fail("Expected to find DMN deployment");
+      fail("Expected to find DMN deployment");
     }
 
     org.cibseven.bpm.engine.repository.Deployment deployment2 = repositoryService
@@ -120,7 +121,7 @@ public class DecisionContextSwitchTest extends AbstractFoxPlatformIntegrationTes
     try {
       // when then
       DmnDecisionTableResult decisionResult = decisionService.evaluateDecisionTableByKey("decision", Variables.createVariables());
-      assertEquals("ok", decisionResult.getFirstResult().getFirstEntry());
+      assertThat(decisionResult.getFirstResult().getFirstEntry()).isEqualTo("ok");
     }
     finally {
       repositoryService.deleteDeployment(deployment2.getId(), true);
@@ -131,7 +132,7 @@ public class DecisionContextSwitchTest extends AbstractFoxPlatformIntegrationTes
   @Test
   @SuppressWarnings("unchecked")
   @OperateOnDeployment("clientDeployment")
-  public void shouldSwitchContextWhenCallingFromBpmnAfterRedeployment() {
+  void shouldSwitchContextWhenCallingFromBpmnAfterRedeployment() {
     // given
     List<org.cibseven.bpm.engine.repository.Deployment> deployments = repositoryService.createDeploymentQuery()
         .list();
@@ -146,7 +147,7 @@ public class DecisionContextSwitchTest extends AbstractFoxPlatformIntegrationTes
     }
 
     if(dmnDeployment == null) {
-      Assert.fail("Expected to find DMN deployment");
+      fail("Expected to find DMN deployment");
     }
 
     org.cibseven.bpm.engine.repository.Deployment deployment2 = repositoryService
@@ -164,7 +165,7 @@ public class DecisionContextSwitchTest extends AbstractFoxPlatformIntegrationTes
         .variableName("result")
         .singleResult();
       List<Map<String, Object>> result = (List<Map<String, Object>>) decisionResult.getValue();
-      assertEquals("ok", result.get(0).get("result"));
+      assertThat(result.get(0)).containsEntry("result", "ok");
     }
     finally {
       repositoryService.deleteDeployment(deployment2.getId(), true);

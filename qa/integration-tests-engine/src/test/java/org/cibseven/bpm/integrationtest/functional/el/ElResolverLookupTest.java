@@ -16,14 +16,15 @@
  */
 package org.cibseven.bpm.integrationtest.functional.el;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.integrationtest.functional.el.beans.ResolveExpressionBean;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -46,11 +47,11 @@ public class ElResolverLookupTest extends AbstractFoxPlatformIntegrationTest {
 
   @Test
   @OperateOnDeployment("pa")
-  public void testNullElResolverIsIgnored() {
+  void nullElResolverIsIgnored() {
     // The expression should be resolved correctly although the NullElResolver
     // is present
     runtimeService.startProcessInstanceByKey("elServiceTaskProcess");
 
-    Assert.assertNotNull(taskService.createTaskQuery().singleResult());
+    assertThat(taskService.createTaskQuery().singleResult()).isNotNull();
   }
 }

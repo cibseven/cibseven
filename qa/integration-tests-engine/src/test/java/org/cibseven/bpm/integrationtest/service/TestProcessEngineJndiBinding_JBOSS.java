@@ -19,12 +19,15 @@ package org.cibseven.bpm.integrationtest.service;
 import javax.naming.InitialContext;
 
 import org.cibseven.bpm.engine.ProcessEngine;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -40,18 +43,15 @@ public class TestProcessEngineJndiBinding_JBOSS extends AbstractFoxPlatformInteg
   public static WebArchive app1() {    
     return initWebArchiveDeployment();
   }
-  
+
   @Test
-  public void testDefaultProcessEngineBindingCreated() {
-    
-    try {
+  void defaultProcessEngineBindingCreated() {
+
+    Assertions.assertDoesNotThrow(() -> {
       ProcessEngine processEngine = InitialContext.doLookup("java:global/camunda-bpm-platform/process-engine/default");
-      Assert.assertNotNull("Process engine must not be null", processEngine);
-      
-    } catch(Exception e) {
-      Assert.fail("Process Engine not bound in JNDI.");
-      
-    }
+      assertNotNull(processEngine, "Process engine must not be null");
+
+    }, "Process Engine not bound in JNDI.");
         
   }
   

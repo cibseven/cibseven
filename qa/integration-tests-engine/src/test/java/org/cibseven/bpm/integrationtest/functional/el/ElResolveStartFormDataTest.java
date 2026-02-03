@@ -16,14 +16,15 @@
  */
 package org.cibseven.bpm.integrationtest.functional.el;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.form.StartFormData;
 import org.cibseven.bpm.integrationtest.functional.el.beans.ResolveFormDataBean;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -40,25 +41,25 @@ public class ElResolveStartFormDataTest extends AbstractFoxPlatformIntegrationTe
   }
 
   @Test
-  public void testStartFormDataWithDefaultValueExpression() {
+  void startFormDataWithDefaultValueExpression() {
     String processDefinitionId = repositoryService.createProcessDefinitionQuery().singleResult().getId();
 
     StartFormData formData = formService.getStartFormData(processDefinitionId);
     Object defaultValue = formData.getFormFields().get(0).getValue().getValue();
 
-    Assert.assertNotNull(defaultValue);
-    Assert.assertEquals("testString123", defaultValue);
+    assertThat(defaultValue).isNotNull();
+    assertThat(defaultValue).isEqualTo("testString123");
   }
 
   @Test
-  public void testStartFormDataWithLabelExpression() {
+  void startFormDataWithLabelExpression() {
     String processDefinitionId = repositoryService.createProcessDefinitionQuery().singleResult().getId();
 
     StartFormData formData = formService.getStartFormData(processDefinitionId);
 
     String label = formData.getFormFields().get(0).getLabel();
-    Assert.assertNotNull(label);
-    Assert.assertEquals("testString123", label);
+    assertThat(label).isNotNull();
+    assertThat(label).isEqualTo("testString123");
   }
 
 }

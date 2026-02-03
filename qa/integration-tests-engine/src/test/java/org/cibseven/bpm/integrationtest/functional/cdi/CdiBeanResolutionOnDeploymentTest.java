@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.cdi;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.integrationtest.functional.cdi.beans.TimerStartBean;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
@@ -26,8 +28,7 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -58,8 +59,8 @@ public class CdiBeanResolutionOnDeploymentTest extends AbstractFoxPlatformIntegr
 
   @Test
   @OperateOnDeployment("clientDeployment")
-  public void testTimerStartWithBeanExpression() {
+  void timerStartWithBeanExpression() {
     ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().singleResult();
-    Assert.assertNotNull(processDefinition);
+    assertThat(processDefinition).isNotNull();
   }
 }

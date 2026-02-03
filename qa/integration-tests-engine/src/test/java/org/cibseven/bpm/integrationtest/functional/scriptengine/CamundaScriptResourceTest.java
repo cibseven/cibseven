@@ -22,10 +22,10 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Daniel Meyer
@@ -43,7 +43,7 @@ public class CamundaScriptResourceTest extends AbstractFoxPlatformIntegrationTes
   }
 
   @Test
-  public void testDeployProcessArchive() {
+  void deployProcessArchive() {
 
     // the process can successfully be executed
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("testProcess");
@@ -52,9 +52,9 @@ public class CamundaScriptResourceTest extends AbstractFoxPlatformIntegrationTes
       .processInstanceId(pi.getId())
       .singleResult();
 
-    assertNotNull(variable);
-    assertEquals("executed", variable.getName());
-    assertEquals(true, variable.getValue());
+    assertThat(variable).isNotNull();
+    assertThat(variable.getName()).isEqualTo("executed");
+    assertThat(variable.getValue()).isEqualTo(true);
   }
 
 }

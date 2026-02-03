@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.war;
 
-import org.junit.Assert;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.repository.DeploymentQuery;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
@@ -30,7 +30,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -113,9 +113,9 @@ public class TestWarDeploymentWithMultiplePasAsSubdeployment4 extends AbstractFo
     
     return deployment;
   }
-  
+
   @Test
-  public void testDeployProcessArchive() {
+  void deployProcessArchive() {
     
     assertProcessNotDeployed("process-0");
     assertProcessDeployed   ("process-1", "pa1");
@@ -130,8 +130,8 @@ public class TestWarDeploymentWithMultiplePasAsSubdeployment4 extends AbstractFo
         .latestVersion()
         .processDefinitionKey(processKey)
         .count();
-    
-    Assert.assertEquals("Process with key "+processKey+ " should not be deployed", 0, count);
+
+    assertThat(count).as("Process with key " + processKey + " should not be deployed").isEqualTo(0);
   }
 
   protected void assertProcessDeployed(String processKey, String expectedDeploymentName) {
@@ -145,8 +145,8 @@ public class TestWarDeploymentWithMultiplePasAsSubdeployment4 extends AbstractFo
     DeploymentQuery deploymentQuery = repositoryService
         .createDeploymentQuery()
         .deploymentId(processDefinition.getDeploymentId());
-    
-    Assert.assertEquals(expectedDeploymentName, deploymentQuery.singleResult().getName());
+
+    assertThat(deploymentQuery.singleResult().getName()).isEqualTo(expectedDeploymentName);
     
   }
 

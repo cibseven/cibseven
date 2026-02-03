@@ -23,44 +23,45 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.task.TaskQuery;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.Test;
-import org.junit.Before;
-import static org.junit.Assert.assertNotNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  *
  * @author Christopher Zell <christopher.zell@camunda.com>
  */
 @ScenarioUnderTest("ProcessWithCallActivityScenario")
-public class CompleteProcessWithCallActivityTest extends AbstractRollingUpdateTestCase {
+class CompleteProcessWithCallActivityTest extends AbstractRollingUpdateTestCase {
 
   protected RuntimeService runtimeService;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     runtimeService = rule.getRuntimeService();
   }
 
   @Test
   @ScenarioUnderTest("init.1")
-  public void testCompleteProcessWithCallActivity() {
+  void completeProcessWithCallActivity() {
     //given process with user task before call activity
     ProcessInstance processInstance = rule.processInstance();
 
     TaskQuery taskQuery = rule.getTaskService().createTaskQuery();
     Task taskBeforeSubProcess = taskQuery.processInstanceId(processInstance.getId()).taskName("Task before subprocess").singleResult();
-    assertNotNull(taskBeforeSubProcess);
+    assertThat(taskBeforeSubProcess).isNotNull();
 
     // Completing the task continues the process which leads to calling the subprocess
     rule.getTaskService().complete(taskBeforeSubProcess.getId());
     Execution subProcess = runtimeService.createProcessInstanceQuery().superProcessInstanceId(processInstance.getId()).singleResult();
     Task taskInSubProcess = taskQuery.processInstanceId(subProcess.getId()).taskName("Task in subprocess").singleResult();
-    assertNotNull(taskInSubProcess);
+    assertThat(taskInSubProcess).isNotNull();
 
     // Completing the task in the subprocess, finishes the subprocess
     rule.getTaskService().complete(taskInSubProcess.getId());
     Task taskAfterSubProcess = taskQuery.processInstanceId(processInstance.getId()).taskName("Task after subprocess").singleResult();
-    assertNotNull(taskAfterSubProcess);
+    assertThat(taskAfterSubProcess).isNotNull();
 
     // Completing this task end the process instance
     rule.getTaskService().complete(taskAfterSubProcess.getId());
@@ -69,19 +70,19 @@ public class CompleteProcessWithCallActivityTest extends AbstractRollingUpdateTe
 
   @Test
   @ScenarioUnderTest("init.complete.one.1")
-  public void testCompleteProcessWithCallActivityAndOneCompletedTask() {
+  void completeProcessWithCallActivityAndOneCompletedTask() {
     //given process within sub process
     ProcessInstance processInstance = rule.processInstance();
     Execution subProcess = runtimeService.createProcessInstanceQuery().superProcessInstanceId(processInstance.getId()).singleResult();
 
     TaskQuery taskQuery = rule.getTaskService().createTaskQuery();
     Task taskInSubProcess = taskQuery.processInstanceId(subProcess.getId()).taskName("Task in subprocess").singleResult();
-    assertNotNull(taskInSubProcess);
+    assertThat(taskInSubProcess).isNotNull();
 
     // Completing the task in the subprocess, finishes the subprocess
     rule.getTaskService().complete(taskInSubProcess.getId());
     Task taskAfterSubProcess = taskQuery.processInstanceId(processInstance.getId()).taskName("Task after subprocess").singleResult();
-    assertNotNull(taskAfterSubProcess);
+    assertThat(taskAfterSubProcess).isNotNull();
 
     // Completing this task end the process instance
     rule.getTaskService().complete(taskAfterSubProcess.getId());

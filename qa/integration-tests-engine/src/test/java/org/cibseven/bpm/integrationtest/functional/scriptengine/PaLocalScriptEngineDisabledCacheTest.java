@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.scriptengine;
 
-import static org.junit.Assert.assertNotEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.application.AbstractProcessApplication;
 import org.cibseven.bpm.integrationtest.functional.scriptengine.engine.AbstractScriptEngineFactory;
@@ -24,7 +24,7 @@ import org.cibseven.bpm.integrationtest.functional.scriptengine.engine.DummyScri
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -43,9 +43,9 @@ public class PaLocalScriptEngineDisabledCacheTest extends AbstractPaLocalScriptE
   }
 
   @Test
-  public void shouldNotCacheScriptEngine() {
+  void shouldNotCacheScriptEngine() {
     AbstractProcessApplication processApplication = (AbstractProcessApplication) getProcessApplication();
-    assertNotEquals(processApplication.getScriptEngineForName(SCRIPT_FORMAT, false), processApplication.getScriptEngineForName(SCRIPT_FORMAT, false));
+    assertThat(processApplication.getScriptEngineForName(SCRIPT_FORMAT, false)).isNotEqualTo(processApplication.getScriptEngineForName(SCRIPT_FORMAT, false));
   }
 
 }

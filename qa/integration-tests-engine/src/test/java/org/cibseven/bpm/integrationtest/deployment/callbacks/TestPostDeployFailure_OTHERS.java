@@ -16,15 +16,15 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.callbacks;
 
-import org.junit.Assert;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -32,7 +32,7 @@ import org.junit.runner.RunWith;
  *
  */
 @RunWith(Arquillian.class)
-@Ignore
+@Disabled
 public class TestPostDeployFailure_OTHERS extends AbstractFoxPlatformIntegrationTest {
   
   @Deployment(name="fail")
@@ -44,18 +44,18 @@ public class TestPostDeployFailure_OTHERS extends AbstractFoxPlatformIntegration
   public static WebArchive createDeployment2() {    
     return initWebArchiveDeployment("checker.war");
   }
-  
+
   @Test
   @OperateOnDeployment("checker")
-  public void test() {
+  void test() {
     
     // make sure the deployment of the first app was rolled back
     
     long count = processEngine.getRepositoryService()
       .createDeploymentQuery()
       .count();
-    
-    Assert.assertEquals(1, count);
+
+    assertThat(count).isEqualTo(1);
        
   }
   

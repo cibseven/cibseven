@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.ejb.request;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.integrationtest.functional.cdi.beans.RequestScopedDelegateBean;
@@ -33,8 +35,7 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 
@@ -81,7 +82,7 @@ public class JobExecutorRequestContextLocalInvocationTest extends AbstractFoxPla
 
   @Test
   @OperateOnDeployment("pa")
-  public void testRequestContextPropagationEjbLocal() throws Exception{
+  void requestContextPropagationEjbLocal() throws Exception{
 
     // This fails with  WELD-001303 No active contexts for scope type javax.enterprise.context.RequestScoped as well
 
@@ -98,7 +99,7 @@ public class JobExecutorRequestContextLocalInvocationTest extends AbstractFoxPla
 
     Object variable = runtimeService.getVariable(pi.getId(), "invocationCounter");
     // -> the same bean instance was invoked 2 times!
-    Assert.assertEquals(2, variable);
+    assertThat(variable).isEqualTo(2);
 
     Task task = taskService.createTaskQuery()
       .processInstanceId(pi.getProcessInstanceId())
@@ -109,7 +110,7 @@ public class JobExecutorRequestContextLocalInvocationTest extends AbstractFoxPla
 
     variable = runtimeService.getVariable(pi.getId(), "invocationCounter");
     // now it's '1' again! -> new instance of the bean
-    Assert.assertEquals(1, variable);
+    assertThat(variable).isEqualTo(1);
   }
 
 }

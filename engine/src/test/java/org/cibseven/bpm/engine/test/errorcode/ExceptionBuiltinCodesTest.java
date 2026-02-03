@@ -99,7 +99,7 @@ public class ExceptionBuiltinCodesTest {
     // when/then
     assertThatThrownBy(() -> runtimeService.startProcessInstanceByKey("process", businessKey))
         .extracting("code")
-          .contains(BuiltinExceptionCode.COLUMN_SIZE_TOO_SMALL.getCode());
+          .isEqualTo(BuiltinExceptionCode.COLUMN_SIZE_TOO_SMALL.getCode());
   }
 
   @Test
@@ -122,7 +122,7 @@ public class ExceptionBuiltinCodesTest {
     // when/then
     assertThatThrownBy(() -> authorizationService.saveAuthorization(authorizationTwo))
         .extracting("code")
-        .contains(BuiltinExceptionCode.FALLBACK.getCode());
+        .isEqualTo(BuiltinExceptionCode.FALLBACK.getCode());
     assertThat(loggingRule.getLog()).isEmpty();
   }
 
@@ -144,7 +144,7 @@ public class ExceptionBuiltinCodesTest {
     assertThatThrownBy(() -> identityService.saveUser(user2))
         .isInstanceOf(OptimisticLockingException.class)
         .extracting("code")
-        .contains(BuiltinExceptionCode.OPTIMISTIC_LOCKING.getCode());
+        .isEqualTo(BuiltinExceptionCode.OPTIMISTIC_LOCKING.getCode());
   }
 
   @Test
@@ -184,7 +184,7 @@ public class ExceptionBuiltinCodesTest {
     assertThatThrownBy(() -> runtimeService.deleteProcessInstance(processInstanceId, ""))
         .isInstanceOf(ProcessEngineException.class)
         .extracting("code")
-        .contains(BuiltinExceptionCode.FOREIGN_KEY_CONSTRAINT_VIOLATION.getCode());
+        .isEqualTo(BuiltinExceptionCode.FOREIGN_KEY_CONSTRAINT_VIOLATION.getCode());
   }
 
   // helper ////////////////////////////////////////////////////////////////////////////////////////

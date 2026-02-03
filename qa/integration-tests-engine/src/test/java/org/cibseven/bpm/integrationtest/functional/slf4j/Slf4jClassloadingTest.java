@@ -22,14 +22,14 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.NOPLoggerFactory;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @RunWith(Arquillian.class)
 public class Slf4jClassloadingTest extends AbstractFoxPlatformIntegrationTest {
@@ -51,20 +51,20 @@ public class Slf4jClassloadingTest extends AbstractFoxPlatformIntegrationTest {
   }
 
   @Test
-  public void shouldNotUseNopLoggerFactory() {
+  void shouldNotUseNopLoggerFactory() {
     ILoggerFactory loggerFactory = LoggerFactory.getILoggerFactory();
 
     // verify that a SLF4J backend is used which is not the NOP logger
-    assertFalse("Should not use NOPLoggerFactory", loggerFactory instanceof NOPLoggerFactory);
+    assertFalse(loggerFactory instanceof NOPLoggerFactory, "Should not use NOPLoggerFactory");
 
     // should either use slf4j-jdk14 or slf4j-jboss-logmanager
     String loggerFactoryClassName = loggerFactory.getClass().getCanonicalName();
-    assertTrue("Should use slf4j-jdk14 or slf4j-jboss-logmanager",
-        JDK14_LOGGER_FACTORY.equals(loggerFactoryClassName) || JBOSS_SLF4J_LOGGER_FACTORY.equals(loggerFactoryClassName));
+    assertTrue(JDK14_LOGGER_FACTORY.equals(loggerFactoryClassName) || JBOSS_SLF4J_LOGGER_FACTORY.equals(loggerFactoryClassName),
+        "Should use slf4j-jdk14 or slf4j-jboss-logmanager");
   }
 
   @Test
-  public void shouldBeAbleToLogMessageWithFormatParameters() {
+  void shouldBeAbleToLogMessageWithFormatParameters() {
     TestLogger logger = TestLogger.INSTANCE;
 
     // verify that we can use different formatting methods

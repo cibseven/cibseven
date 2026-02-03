@@ -16,15 +16,17 @@
  */
 package org.cibseven.bpm.qa.upgrade.scenarios11.eventsubprocess;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.cibseven.bpm.qa.upgrade.util.CompleteTaskThread;
-import org.junit.Assert;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -39,7 +41,7 @@ public class NestedInterruptingEventSubprocessParallelScenarioTest {
 
   @Test
   @ScenarioUnderTest("init.1")
-  public void testInitSynchronization() {
+  void initSynchronization() {
     // given
     Task eventSubProcessTask1 = rule.taskQuery().taskDefinitionKey("innerEventSubProcessTask1").singleResult();
     Task eventSubProcessTask2 = rule.taskQuery().taskDefinitionKey("innerEventSubProcessTask2").singleResult();
@@ -58,7 +60,7 @@ public class NestedInterruptingEventSubprocessParallelScenarioTest {
     completeTaskThread2.proceedAndWaitTillDone();
 
     // then
-    Assert.assertNull(completeTaskThread1.getException());
-    Assert.assertNotNull(completeTaskThread2.getException());
+    assertThat(completeTaskThread1.getException()).isNull();
+    assertThat(completeTaskThread2.getException()).isNotNull();
   }
 }

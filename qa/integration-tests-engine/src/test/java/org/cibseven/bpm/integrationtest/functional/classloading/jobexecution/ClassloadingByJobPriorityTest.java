@@ -16,12 +16,12 @@
  */
 package org.cibseven.bpm.integrationtest.functional.classloading.jobexecution;
 
-import static org.junit.Assert.assertTrue;
-
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
@@ -34,7 +34,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.asset.ByteArrayAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 /*
@@ -66,7 +66,7 @@ public class ClassloadingByJobPriorityTest extends AbstractFoxPlatformIntegratio
 
   @Test
   @OperateOnDeployment("engineWithPriorityJobAcquisition")
-  public void testDeployProcessArchive() {
+  void deployProcessArchive() {
     // given
     ProcessEngineConfigurationImpl configuration = (ProcessEngineConfigurationImpl) processEngineService
                                                        .getProcessEngine("engineWithJobPriority")
@@ -79,7 +79,7 @@ public class ClassloadingByJobPriorityTest extends AbstractFoxPlatformIntegratio
 
     // then
     List<Job> availableJobs = configuration.getManagementService().createJobQuery().noRetriesLeft().list();
-    assertTrue(availableJobs.isEmpty());
+    assertThat(availableJobs).isEmpty();
   }
 
   protected static Asset modelAsAsset(BpmnModelInstance modelInstance) {
