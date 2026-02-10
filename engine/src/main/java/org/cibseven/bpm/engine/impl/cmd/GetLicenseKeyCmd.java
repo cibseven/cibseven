@@ -18,7 +18,6 @@ package org.cibseven.bpm.engine.impl.cmd;
 
 import java.nio.charset.StandardCharsets;
 
-import org.cibseven.bpm.engine.impl.cfg.CommandChecker;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.PropertyEntity;
@@ -28,7 +27,6 @@ public class GetLicenseKeyCmd extends LicenseCmd implements Command<String> {
 
   @Override
   public String execute(CommandContext commandContext) {
-    commandContext.getAuthorizationManager().checkCamundaAdminOrPermission(CommandChecker::checkReadLicenseKey);
 
     // case I: license is stored as BLOB
     ResourceEntity licenseResource = commandContext.getResourceManager().findLicenseKeyResource();

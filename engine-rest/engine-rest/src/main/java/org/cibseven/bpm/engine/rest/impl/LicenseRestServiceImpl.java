@@ -16,10 +16,22 @@
  */
 package org.cibseven.bpm.engine.rest.impl;
 
+import java.util.Map;
+
+import javax.ws.rs.core.Response.Status;
+
+import org.cibseven.bpm.engine.impl.telemetry.dto.LicenseKeyDataImpl;
 import org.cibseven.bpm.engine.rest.LicenseRestService;
 import org.cibseven.bpm.engine.rest.dto.license.LicenseKeyDto;
+import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
+import org.cibseven.bpm.engine.rest.security.auth.impl.jwt.Configuration;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 
 public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware implements LicenseRestService {
 
@@ -29,12 +41,49 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
 
   @Override
   public void setLicenseKey(LicenseKeyDto licenseKey) {
+    licenseKey.setLicenseKey(decryptSignature(licenseKey.getLicenseKey()));
     getProcessEngine().getManagementService().setLicenseKey(licenseKey.getLicenseKey());
   }
 
   @Override
   public String getLicenseKey() {
-    return getProcessEngine().getManagementService().getLicenseKey();
+    String licenseKey = getProcessEngine().getManagementService().getLicenseKey();
+    licenseKey = encryptSignature(licenseKey);
+    return licenseKey;
+  }
+  
+  private String encryptSignature(String licenseKey) {
+    try {
+      Map<String, Object> map = objectMapper.readValue(licenseKey, new TypeReference<Map<String,Object>>(){});
+      String signature = (String)map.get("signature");
+      String jwtSecret = Configuration.getInstance().getSecret();
+      String token = Jwts.builder()
+          .claim("licenseSignature", signature)
+          .signWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()), Jwts.SIG.HS256)
+          .compact();
+      map.put("signature", token);
+      return objectMapper.writeValueAsString(map);
+    } catch (JsonProcessingException e) {
+      throw new InvalidRequestException(Status.BAD_REQUEST, e.getMessage());
+    }
+  }
+
+  private String decryptSignature(String licenseKey) {
+    try {
+      Map<String, Object> map = objectMapper.readValue(licenseKey, new TypeReference<Map<String,Object>>(){});
+      String signature = (String)map.get("signature");
+      String jwtSecret = Configuration.getInstance().getSecret();
+      String decodedSignature = Jwts.parser()
+          .verifyWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()))
+          .build()
+          .parseSignedClaims(signature)
+          .getPayload()
+          .get("licenseSignature", String.class);
+      map.put("signature", decodedSignature);
+      return objectMapper.writeValueAsString(map);
+    } catch (JsonProcessingException e) {
+      throw new InvalidRequestException(Status.BAD_REQUEST, e.getMessage());
+    }
   }
 
 }
