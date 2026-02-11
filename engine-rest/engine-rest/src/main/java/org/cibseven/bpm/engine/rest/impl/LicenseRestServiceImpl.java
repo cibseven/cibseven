@@ -20,7 +20,6 @@ import java.util.Map;
 
 import javax.ws.rs.core.Response.Status;
 
-import org.cibseven.bpm.engine.impl.telemetry.dto.LicenseKeyDataImpl;
 import org.cibseven.bpm.engine.rest.LicenseRestService;
 import org.cibseven.bpm.engine.rest.dto.license.LicenseKeyDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
@@ -28,8 +27,9 @@ import org.cibseven.bpm.engine.rest.security.auth.impl.jwt.Configuration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
@@ -48,7 +48,8 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
   @Override
   public String getLicenseKey() {
     String licenseKey = getProcessEngine().getManagementService().getLicenseKey();
-    licenseKey = encryptSignature(licenseKey);
+    if (licenseKey != null) 
+      licenseKey = encryptSignature(licenseKey);
     return licenseKey;
   }
   
@@ -63,8 +64,8 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
           .compact();
       map.put("signature", token);
       return objectMapper.writeValueAsString(map);
-    } catch (JsonProcessingException e) {
-      throw new InvalidRequestException(Status.BAD_REQUEST, e.getMessage());
+    } catch (JsonProcessingException|JwtException|IllegalArgumentException e) {
+      throw new InvalidRequestException(Status.BAD_REQUEST, e, e.getMessage());
     }
   }
 
@@ -81,8 +82,8 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
           .get("licenseSignature", String.class);
       map.put("signature", decodedSignature);
       return objectMapper.writeValueAsString(map);
-    } catch (JsonProcessingException e) {
-      throw new InvalidRequestException(Status.BAD_REQUEST, e.getMessage());
+    } catch (JsonProcessingException|JwtException|IllegalArgumentException e) {
+      throw new InvalidRequestException(Status.BAD_REQUEST, e, e.getMessage());
     }
   }
 
