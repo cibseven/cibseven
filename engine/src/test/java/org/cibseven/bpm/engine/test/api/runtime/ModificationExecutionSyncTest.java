@@ -19,10 +19,10 @@ package org.cibseven.bpm.engine.test.api.runtime;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,11 +45,11 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 public class ModificationExecutionSyncTest {
 
@@ -57,14 +57,14 @@ public class ModificationExecutionSyncTest {
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
   protected BatchModificationHelper helper = new BatchModificationHelper(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
   protected BpmnModelInstance instance;
 
-  @Before
+  @BeforeEach
   public void createBpmnModelInstance() {
     this.instance = Bpmn.createExecutableProcess("process1")
         .startEvent("start")
@@ -76,13 +76,13 @@ public class ModificationExecutionSyncTest {
         .done();
   }
 
-  @Before
+  @BeforeEach
   public void initServices() {
     runtimeService = rule.getRuntimeService();
     historyService = rule.getHistoryService();
   }
 
-  @After
+  @AfterEach
   public void removeInstanceIds() {
     helper.currentProcessInstances = new ArrayList<String>();
   }

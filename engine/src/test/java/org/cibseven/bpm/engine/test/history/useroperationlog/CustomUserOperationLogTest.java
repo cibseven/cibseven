@@ -30,9 +30,9 @@ import org.cibseven.bpm.engine.impl.oplog.UserOperationLogContext;
 import org.cibseven.bpm.engine.impl.oplog.UserOperationLogContextEntry;
 import org.cibseven.bpm.engine.impl.persistence.entity.PropertyChange;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CustomUserOperationLogTest  {
 
@@ -48,7 +48,7 @@ public class CustomUserOperationLogTest  {
     private CommandExecutor commandExecutor;
     private HistoryService historyService;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         commandExecutor = ((ProcessEngineConfigurationImpl)bootstrapRule.getProcessEngine().getProcessEngineConfiguration()).getCommandExecutorTxRequired();
         historyService = bootstrapRule.getProcessEngine().getHistoryService();

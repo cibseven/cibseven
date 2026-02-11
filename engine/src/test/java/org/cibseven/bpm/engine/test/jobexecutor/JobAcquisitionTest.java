@@ -27,13 +27,14 @@ import org.cibseven.bpm.engine.test.jobexecutor.RecordingAcquireJobsRunnable.Rec
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+
+import org.junit.jupiter.api.AfterEach;
 
 /**
  * @author Thorben Lindhauer
@@ -55,10 +56,10 @@ public class JobAcquisitionTest {
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     // two job executors with the default settings
     jobExecutor1 = (ControllableJobExecutor)
@@ -72,7 +73,7 @@ public class JobAcquisitionTest {
     acquisitionThread2 = jobExecutor2.getAcquisitionThreadControl();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     jobExecutor1.shutdown();
     jobExecutor2.shutdown();
@@ -103,10 +104,10 @@ public class JobAcquisitionTest {
     acquisitionThread1.makeContinueAndWaitForSync();
 
     // then it has not performed waiting since it was able to acquire and execute all jobs
-    Assert.assertEquals(0, engineRule.getManagementService().createJobQuery().active().count());
+    Assertions.assertEquals(0, engineRule.getManagementService().createJobQuery().active().count());
     List<RecordedWaitEvent> jobExecutor1WaitEvents = jobExecutor1.getAcquireJobsRunnable().getWaitEvents();
-    Assert.assertEquals(1, jobExecutor1WaitEvents.size());
-    Assert.assertEquals(0, jobExecutor1WaitEvents.get(0).getTimeBetweenAcquisitions());
+    Assertions.assertEquals(1, jobExecutor1WaitEvents.size());
+    Assertions.assertEquals(0, jobExecutor1WaitEvents.get(0).getTimeBetweenAcquisitions());
 
     // when continuing acquisition thread 2
     acquisitionThread2.makeContinueAndWaitForSync();
@@ -114,8 +115,8 @@ public class JobAcquisitionTest {
     // then its acquisition cycle fails with OLEs
     // but the acquisition thread immediately tries again
     List<RecordedWaitEvent> jobExecutor2WaitEvents = jobExecutor2.getAcquireJobsRunnable().getWaitEvents();
-    Assert.assertEquals(1, jobExecutor2WaitEvents.size());
+    Assertions.assertEquals(1, jobExecutor2WaitEvents.size());
 
-    Assert.assertEquals(0, jobExecutor2WaitEvents.get(0).getTimeBetweenAcquisitions());
+    Assertions.assertEquals(0, jobExecutor2WaitEvents.get(0).getTimeBetweenAcquisitions());
   }
 }

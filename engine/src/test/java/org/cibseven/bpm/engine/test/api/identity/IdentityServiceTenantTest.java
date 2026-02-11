@@ -18,8 +18,8 @@ package org.cibseven.bpm.engine.test.api.identity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.IdentityService;
@@ -36,10 +36,10 @@ import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.identity.UserQuery;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 
 public class IdentityServiceTenantTest {
 
@@ -54,18 +54,18 @@ public class IdentityServiceTenantTest {
 
   private final String INVALID_ID_MESSAGE = "%s has an invalid id: '%s' is not a valid resource identifier.";
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected IdentityService identityService;
   protected ProcessEngine processEngine;
 
-  @Before
+  @BeforeEach
   public void initService() {
     identityService = engineRule.getIdentityService();
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     identityService.deleteTenant(TENANT_ONE);
     identityService.deleteTenant(TENANT_TWO);

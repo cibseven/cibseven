@@ -18,8 +18,8 @@ package org.cibseven.bpm.engine.test.standalone.history;
 
 import static org.cibseven.bpm.engine.ProcessEngineConfiguration.DB_SCHEMA_UPDATE_CREATE_DROP;
 import static org.cibseven.bpm.engine.ProcessEngineConfiguration.HISTORY_CLEANUP_STRATEGY_END_TIME_BASED;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,12 +57,12 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
@@ -99,8 +99,8 @@ public class CustomHistoryLevelIncidentTest {
   protected BatchMigrationHelper migrationHelper = new BatchMigrationHelper(engineRule, migrationRule);
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(migrationRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(migrationRule);
 
   protected HistoryService historyService;
   protected RuntimeService runtimeService;
@@ -120,7 +120,7 @@ public class CustomHistoryLevelIncidentTest {
     .endEvent("end")
     .done();
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     runtimeService = engineRule.getRuntimeService();
     historyService = engineRule.getHistoryService();
@@ -133,7 +133,7 @@ public class CustomHistoryLevelIncidentTest {
     configuration.setHistoryCleanupStrategy(HISTORY_CLEANUP_STRATEGY_END_TIME_BASED);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     customHistoryLevelIncident.setEventTypes(null);
     if (deployment != null) {

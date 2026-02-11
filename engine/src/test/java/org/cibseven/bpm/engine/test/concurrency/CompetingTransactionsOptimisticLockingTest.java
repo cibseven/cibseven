@@ -18,19 +18,19 @@ package org.cibseven.bpm.engine.test.concurrency;
 
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+
 
 public class CompetingTransactionsOptimisticLockingTest extends AbstractCompetingTransactionsOptimisticLockingTest {
 
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
-  @Before
+  @BeforeEach
   public void initializeServices() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     runtimeService = engineRule.getRuntimeService();

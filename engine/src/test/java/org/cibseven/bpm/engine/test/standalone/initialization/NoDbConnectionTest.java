@@ -16,13 +16,13 @@
  */
 package org.cibseven.bpm.engine.test.standalone.initialization;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.sql.SQLException;
 
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Tom Baeyens

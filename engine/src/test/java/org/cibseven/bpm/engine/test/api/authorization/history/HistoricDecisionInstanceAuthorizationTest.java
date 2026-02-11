@@ -21,8 +21,8 @@ import static org.cibseven.bpm.engine.authorization.Authorization.ANY;
 import static org.cibseven.bpm.engine.authorization.Permissions.DELETE_HISTORY;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ_HISTORY;
 import static org.cibseven.bpm.engine.authorization.Resources.DECISION_DEFINITION;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -42,9 +42,9 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.authorization.AuthorizationTest;
 import org.cibseven.bpm.engine.test.util.ResetDmnConfigUtil;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Philipp Ossler
@@ -56,7 +56,7 @@ public class HistoricDecisionInstanceAuthorizationTest extends AuthorizationTest
   protected static final String DECISION_DEFINITION_KEY = "testDecision";
 
   @Override
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     testRule.deploy("org/cibseven/bpm/engine/test/history/HistoricDecisionInstanceTest.processWithBusinessRuleTask.bpmn20.xml",
         "org/cibseven/bpm/engine/test/history/HistoricDecisionInstanceTest.decisionSingleOutput.dmn11.xml");
@@ -71,7 +71,7 @@ public class HistoricDecisionInstanceAuthorizationTest extends AuthorizationTest
   }
 
   @Override
-  @After
+  @AfterEach
   public void tearDown() {
     super.tearDown();
 

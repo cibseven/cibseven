@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.api.multitenancy.tenantcheck;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,10 +38,10 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class MultiTenancyCleanableHistoricProcessInstanceReportCmdTenantCheckTest {
@@ -61,8 +61,8 @@ public class MultiTenancyCleanableHistoricProcessInstanceReportCmdTenantCheckTes
   protected HistoryService historyService;
   protected ProcessEngineConfiguration processEngineConfiguration;
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected static final BpmnModelInstance BPMN_PROCESS = Bpmn.createExecutableProcess(PROCESS_DEFINITION_KEY)
       .startEvent()
@@ -70,7 +70,7 @@ public class MultiTenancyCleanableHistoricProcessInstanceReportCmdTenantCheckTes
       .endEvent()
     .done();
 
-  @Before
+  @BeforeEach
   public void init() {
     repositoryService = engineRule.getRepositoryService();
     identityService = engineRule.getIdentityService();

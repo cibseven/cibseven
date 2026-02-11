@@ -34,11 +34,11 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -57,8 +57,8 @@ public class MultiTenancyMigrationTenantProviderTest {
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain tenantRuleChain = RuleChain.outerRule(engineRule).around(testHelper);
+//  @Rule
+//  public RuleChain tenantRuleChain = RuleChain.outerRule(engineRule).around(testHelper);
 
 
   @Test
@@ -78,14 +78,14 @@ public class MultiTenancyMigrationTenantProviderTest {
         .newMigration(migrationPlan)
         .processInstanceIds(Arrays.asList(processInstance.getId()))
         .execute();
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     } catch (ProcessEngineException e) {
       assertThat(e.getMessage()).contains("Cannot migrate process instance '" + processInstance.getId() + "' "
               + "to a process definition of a different tenant ('tenant1' != 'tenant2')");
     }
 
     // then
-    Assert.assertNotNull(migrationPlan);
+    Assertions.assertNotNull(migrationPlan);
   }
 
   @Test
@@ -166,7 +166,7 @@ public class MultiTenancyMigrationTenantProviderTest {
   }
 
   protected void assertInstanceOfDefinition(ProcessInstance processInstance, ProcessDefinition targetDefinition) {
-    Assert.assertEquals(1, engineRule.getRuntimeService()
+    Assertions.assertEquals(1, engineRule.getRuntimeService()
       .createProcessInstanceQuery()
       .processInstanceId(processInstance.getId())
       .processDefinitionId(targetDefinition.getId())

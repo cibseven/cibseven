@@ -29,20 +29,23 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
+import org.cibseven.bpm.engine.test.util.AuthorizationRuleTripleExtension;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Askar Akhmerov
  */
+@ExtendWith(AuthorizationRuleTripleExtension.class)
 public abstract class AbstractBatchAuthorizationTest {
   protected static final String TEST_REASON = "test reason";
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  protected ProcessEngineRule engineRule ;
+  protected AuthorizationTestRule authRule;
+  protected ProcessEngineTestRule testRule;
 
   protected ProcessDefinition sourceDefinition;
   protected ProcessDefinition sourceDefinition2;
@@ -53,7 +56,7 @@ public abstract class AbstractBatchAuthorizationTest {
   protected ManagementService managementService;
   protected int invocationsPerBatchJob;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     authRule.createUserAndGroup("userId", "groupId");
     runtimeService = engineRule.getRuntimeService();
@@ -61,23 +64,23 @@ public abstract class AbstractBatchAuthorizationTest {
     invocationsPerBatchJob = engineRule.getProcessEngineConfiguration().getInvocationsPerBatchJob();
   }
 
-  @Before
+  @BeforeEach
   public void deployProcesses() {
-    sourceDefinition = testHelper.deployAndGetDefinition(modify(ProcessModels.ONE_TASK_PROCESS)
+    sourceDefinition = testRule.deployAndGetDefinition(modify(ProcessModels.ONE_TASK_PROCESS)
         .changeElementId(ProcessModels.PROCESS_KEY, "ONE_TASK_PROCESS"));
-    sourceDefinition2 = testHelper.deployAndGetDefinition(modify(ProcessModels.TWO_TASKS_PROCESS)
+    sourceDefinition2 = testRule.deployAndGetDefinition(modify(ProcessModels.TWO_TASKS_PROCESS)
         .changeElementId(ProcessModels.PROCESS_KEY, "TWO_TASKS_PROCESS"));
     processInstance = engineRule.getRuntimeService().startProcessInstanceById(sourceDefinition.getId());
     processInstance2 = engineRule.getRuntimeService().startProcessInstanceById(sourceDefinition2.getId());
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
     engineRule.getProcessEngineConfiguration().setInvocationsPerBatchJob(invocationsPerBatchJob);
   }
 
-  @After
+  @AfterEach
   public void cleanBatch() {
     Batch batch = engineRule.getManagementService().createBatchQuery().singleResult();
     if (batch != null) {

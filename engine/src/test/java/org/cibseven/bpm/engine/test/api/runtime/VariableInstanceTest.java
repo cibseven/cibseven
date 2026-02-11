@@ -32,14 +32,14 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class VariableInstanceTest extends PluggableProcessEngineTest {
 
     private final List<String> deploymentIds = new ArrayList<>();
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         deploymentIds.forEach(deploymentId -> repositoryService.deleteDeployment(deploymentId, true));
     }

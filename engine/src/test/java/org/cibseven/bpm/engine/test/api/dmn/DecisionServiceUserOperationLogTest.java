@@ -35,11 +35,11 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ResetDmnConfigUtil;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Tobias Metzke
@@ -60,15 +60,15 @@ public class DecisionServiceUserOperationLogTest {
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected DecisionService decisionService;
   protected RepositoryService repositoryService;
   protected HistoryService historyService;
   protected IdentityService identityService;
 
-  @Before
+  @BeforeEach
   public void init() {
     decisionService = engineRule.getDecisionService();
     repositoryService = engineRule.getRepositoryService();
@@ -77,7 +77,7 @@ public class DecisionServiceUserOperationLogTest {
     identityService.clearAuthentication();
   }
 
-  @Before
+  @BeforeEach
   public void enableDmnFeelLegacyBehavior() {
     DefaultDmnEngineConfiguration dmnEngineConfiguration =
         engineRule.getProcessEngineConfiguration()
@@ -88,7 +88,7 @@ public class DecisionServiceUserOperationLogTest {
         .init();
   }
 
-  @After
+  @AfterEach
   public void disableDmnFeelLegacyBehavior() {
 
     DefaultDmnEngineConfiguration dmnEngineConfiguration =

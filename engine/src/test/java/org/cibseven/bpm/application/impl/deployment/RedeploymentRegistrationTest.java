@@ -16,12 +16,6 @@
  */
 package org.cibseven.bpm.application.impl.deployment;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
-import java.util.Arrays;
-import java.util.Collection;
-
 import org.cibseven.bpm.application.ProcessApplicationReference;
 import org.cibseven.bpm.application.impl.EmbeddedProcessApplication;
 import org.cibseven.bpm.engine.RepositoryService;
@@ -37,19 +31,19 @@ import org.cibseven.bpm.engine.impl.persistence.deploy.cache.DeploymentCache;
 import org.cibseven.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
-import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRuleExtension;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.Arguments;
+import java.util.stream.Stream;
 
-@RunWith(Parameterized.class)
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+@ExtendWith(ProvidedProcessEngineRuleExtension.class)
 public class RedeploymentRegistrationTest {
 
   protected static final String DEPLOYMENT_NAME = "my-deployment";
@@ -68,41 +62,22 @@ public class RedeploymentRegistrationTest {
 
   protected EmbeddedProcessApplication processApplication;
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  //set from ProvidedProcessEngineRuleExtension
+  protected ProcessEngineRule engineRule;
 
   protected RepositoryService repositoryService;
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Parameter(0)
-  public String resource1;
-
-  @Parameter(1)
-  public String resource2;
-
-  @Parameter(2)
-  public String definitionKey1;
-
-  @Parameter(3)
-  public String definitionKey2;
-
-  @Parameter(4)
-  public TestProvider testProvider;
-
-  @Parameters(name = "scenario {index}")
-  public static Collection<Object[]> scenarios() {
-    return Arrays.asList(new Object[][] {
-      { BPMN_RESOURCE_1, BPMN_RESOURCE_2, "processOne", "processTwo", processDefinitionTestProvider() },
-      { CMMN_RESOURCE_1, CMMN_RESOURCE_2, "oneTaskCase", "twoTaskCase", caseDefinitionTestProvider() },
-      { DMN_RESOURCE_1, DMN_RESOURCE_2, "decision", "score-decision", decisionDefinitionTestProvider() },
-      { DRD_RESOURCE_1, DRD_RESOURCE_2, "score", "dish", decisionRequirementsDefinitionTestProvider() }
-    });
+  public static Stream<Arguments> scenarios() {
+    return Stream.of(
+      Arguments.of(BPMN_RESOURCE_1, BPMN_RESOURCE_2, "processOne", "processTwo", processDefinitionTestProvider()),
+      Arguments.of(CMMN_RESOURCE_1, CMMN_RESOURCE_2, "oneTaskCase", "twoTaskCase", caseDefinitionTestProvider()),
+      Arguments.of(DMN_RESOURCE_1, DMN_RESOURCE_2, "decision", "score-decision", decisionDefinitionTestProvider()),
+      Arguments.of(DRD_RESOURCE_1, DRD_RESOURCE_2, "score", "dish", decisionRequirementsDefinitionTestProvider())
+    );
   }
 
-  @Before
+  @BeforeEach
   public void init() throws Exception {
     repositoryService = engineRule.getRepositoryService();
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
@@ -110,8 +85,9 @@ public class RedeploymentRegistrationTest {
     processApplication = new EmbeddedProcessApplication();
   }
 
-  @Test
-	public void registrationNotFoundByDeploymentId() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void registrationNotFoundByDeploymentId(String resource1, String resource2, String definitionKey1, String definitionKey2, TestProvider testProvider) {
     // given
     ProcessApplicationReference reference = processApplication.getReference();
 
@@ -134,8 +110,9 @@ public class RedeploymentRegistrationTest {
     assertNull(getProcessApplicationForDeployment(deployment2.getId()));
   }
 
-  @Test
-	public void registrationNotFoundByDefinition() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void registrationNotFoundByDefinition(String resource1, String resource2, String definitionKey1, String definitionKey2, TestProvider testProvider) {
     // given
 
     // first deployment
@@ -159,14 +136,15 @@ public class RedeploymentRegistrationTest {
         .addDeploymentResources(deployment1.getId())
         .deploy();
 
-    String definitionId = getLatestDefinitionIdByKey(definitionKey1);
+    String definitionId = testProvider.getLatestDefinitionIdByKey(repositoryService, definitionKey1);
 
     // then
-    assertNull(getProcessApplicationForDefinition(definitionId));
+    assertNull(getProcessApplicationForDefinition(definitionId, testProvider));
   }
 
-  @Test
-	public void registrationFoundByDeploymentId() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void registrationFoundByDeploymentId(String resource1, String resource2, String definitionKey1, String definitionKey2, TestProvider testProvider) {
     // given
     ProcessApplicationReference reference1 = processApplication.getReference();
 
@@ -191,8 +169,9 @@ public class RedeploymentRegistrationTest {
     assertEquals(reference2, getProcessApplicationForDeployment(deployment2.getId()));
   }
 
-  @Test
-	public void registrationFoundFromPreviousDefinition() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void registrationFoundFromPreviousDefinition(String resource1, String resource2, String definitionKey1, String definitionKey2, TestProvider testProvider) {
     // given
     ProcessApplicationReference reference = processApplication.getReference();
     Deployment deployment1 = repositoryService
@@ -208,17 +187,18 @@ public class RedeploymentRegistrationTest {
         .addDeploymentResources(deployment1.getId())
         .deploy();
 
-    String definitionId = getLatestDefinitionIdByKey(definitionKey1);
+    String definitionId = testProvider.getLatestDefinitionIdByKey(repositoryService, definitionKey1);
 
     // then
-    assertEquals(reference, getProcessApplicationForDefinition(definitionId));
+    assertEquals(reference, getProcessApplicationForDefinition(definitionId, testProvider));
 
     // and the reference is not cached
     assertNull(getProcessApplicationForDeployment(deployment2.getId()));
   }
 
-  @Test
-	public void registrationFoundFromLatestDeployment() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void registrationFoundFromLatestDeployment(String resource1, String resource2, String definitionKey1, String definitionKey2, TestProvider testProvider) {
     // given
     ProcessApplicationReference reference1 = processApplication.getReference();
     Deployment deployment1 = repositoryService
@@ -235,15 +215,16 @@ public class RedeploymentRegistrationTest {
         .addDeploymentResources(deployment1.getId())
         .deploy();
 
-    String definitionId = getLatestDefinitionIdByKey(definitionKey1);
+    String definitionId = testProvider.getLatestDefinitionIdByKey(repositoryService, definitionKey1);
 
     // then
-    assertEquals(reference2, getProcessApplicationForDefinition(definitionId));
+    assertEquals(reference2, getProcessApplicationForDefinition(definitionId, testProvider));
     assertEquals(reference2, getProcessApplicationForDeployment(deployment2.getId()));
   }
 
-  @Test
-	public void registrationFoundOnlyForOneProcessDefinition() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void registrationFoundOnlyForOneProcessDefinition(String resource1, String resource2, String definitionKey1, String definitionKey2, TestProvider testProvider) {
     // given
 
     // first deployment
@@ -269,16 +250,17 @@ public class RedeploymentRegistrationTest {
         .addDeploymentResources(deployment1.getId())
         .deploy();
 
-    String firstDefinitionId = getLatestDefinitionIdByKey(definitionKey1);
-    String secondDefinitionId = getLatestDefinitionIdByKey(definitionKey2);
+    String firstDefinitionId = testProvider.getLatestDefinitionIdByKey(repositoryService, definitionKey1);
+    String secondDefinitionId = testProvider.getLatestDefinitionIdByKey(repositoryService, definitionKey2);
 
     // then
-    assertEquals(reference2, getProcessApplicationForDefinition(firstDefinitionId));
-    assertNull(getProcessApplicationForDefinition(secondDefinitionId));
+    assertEquals(reference2, getProcessApplicationForDefinition(firstDefinitionId, testProvider));
+    assertNull(getProcessApplicationForDefinition(secondDefinitionId, testProvider));
   }
 
-  @Test
-	public void registrationFoundFromDifferentDeployment() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void registrationFoundFromDifferentDeployment(String resource1, String resource2, String definitionKey1, String definitionKey2, TestProvider testProvider) {
     // given
 
     // first deployment
@@ -305,16 +287,17 @@ public class RedeploymentRegistrationTest {
         .addDeploymentResources(deployment1.getId())
         .deploy();
 
-    String firstDefinitionId = getLatestDefinitionIdByKey(definitionKey1);
-    String secondDefinitionId = getLatestDefinitionIdByKey(definitionKey2);
+    String firstDefinitionId = testProvider.getLatestDefinitionIdByKey(repositoryService, definitionKey1);
+    String secondDefinitionId = testProvider.getLatestDefinitionIdByKey(repositoryService, definitionKey2);
 
     // then
-    assertEquals(reference2, getProcessApplicationForDefinition(firstDefinitionId));
-    assertEquals(reference1, getProcessApplicationForDefinition(secondDefinitionId));
+    assertEquals(reference2, getProcessApplicationForDefinition(firstDefinitionId, testProvider));
+    assertEquals(reference1, getProcessApplicationForDefinition(secondDefinitionId, testProvider));
   }
 
-  @Test
-	public void registrationFoundFromSameDeployment() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void registrationFoundFromSameDeployment(String resource1, String resource2, String definitionKey1, String definitionKey2, TestProvider testProvider) {
     // given
 
     // first deployment
@@ -346,16 +329,17 @@ public class RedeploymentRegistrationTest {
         .addDeploymentResources(deployment1.getId())
         .deploy();
 
-    String firstDefinitionId = getLatestDefinitionIdByKey(definitionKey1);
-    String secondDefinitionId = getLatestDefinitionIdByKey(definitionKey1);
+    String firstDefinitionId = testProvider.getLatestDefinitionIdByKey(repositoryService, definitionKey1);
+    String secondDefinitionId = testProvider.getLatestDefinitionIdByKey(repositoryService, definitionKey1);
 
     // then
-    assertEquals(reference1, getProcessApplicationForDefinition(firstDefinitionId));
-    assertEquals(reference1, getProcessApplicationForDefinition(secondDefinitionId));
+    assertEquals(reference1, getProcessApplicationForDefinition(firstDefinitionId, testProvider));
+    assertEquals(reference1, getProcessApplicationForDefinition(secondDefinitionId, testProvider));
   }
 
-  @Test
-	public void registrationFoundFromDifferentDeployments() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void registrationFoundFromDifferentDeployments(String resource1, String resource2, String definitionKey1, String definitionKey2, TestProvider testProvider) {
     // given
 
     // first deployment
@@ -381,16 +365,17 @@ public class RedeploymentRegistrationTest {
         .addDeploymentResources(deployment1.getId())
         .deploy();
 
-    String firstDefinitionId = getLatestDefinitionIdByKey(definitionKey1);
-    String secondDefinitionId = getLatestDefinitionIdByKey(definitionKey2);
+    String firstDefinitionId = testProvider.getLatestDefinitionIdByKey(repositoryService, definitionKey1);
+    String secondDefinitionId = testProvider.getLatestDefinitionIdByKey(repositoryService, definitionKey2);
 
     // then
-    assertEquals(reference1, getProcessApplicationForDefinition(firstDefinitionId));
-    assertEquals(reference2, getProcessApplicationForDefinition(secondDefinitionId));
+    assertEquals(reference1, getProcessApplicationForDefinition(firstDefinitionId, testProvider));
+    assertEquals(reference2, getProcessApplicationForDefinition(secondDefinitionId, testProvider));
   }
 
-  @Test
-	public void registrationNotFoundWhenDeletingDeployment() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void registrationNotFoundWhenDeletingDeployment(String resource1, String resource2, String definitionKey1, String definitionKey2, TestProvider testProvider) {
     // given
 
     // first deployment
@@ -416,20 +401,21 @@ public class RedeploymentRegistrationTest {
         .addDeploymentResources(deployment1.getId())
         .deploy();
 
-    String firstDefinitionId = getLatestDefinitionIdByKey(definitionKey1);
+    String firstDefinitionId = testProvider.getLatestDefinitionIdByKey(repositoryService, definitionKey1);
 
     // then (1)
-    assertEquals(reference2, getProcessApplicationForDefinition(firstDefinitionId));
+    assertEquals(reference2, getProcessApplicationForDefinition(firstDefinitionId, testProvider));
 
     // when (2)
     deleteDeployment(deployment2);
 
     // then (2)
-    assertNull(getProcessApplicationForDefinition(firstDefinitionId));
+    assertNull(getProcessApplicationForDefinition(firstDefinitionId, testProvider));
   }
 
-  @Test
-	public void registrationFoundAfterDiscardingDeploymentCache() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void registrationFoundAfterDiscardingDeploymentCache(String resource1, String resource2, String definitionKey1, String definitionKey2, TestProvider testProvider) {
     // given
 
     // first deployment
@@ -455,21 +441,21 @@ public class RedeploymentRegistrationTest {
         .addDeploymentResources(deployment1.getId())
         .deploy();
 
-    String firstDefinitionId = getLatestDefinitionIdByKey(definitionKey1);
+    String firstDefinitionId = testProvider.getLatestDefinitionIdByKey(repositoryService, definitionKey1);
 
     // then (1)
-    assertEquals(reference2, getProcessApplicationForDefinition(firstDefinitionId));
+    assertEquals(reference2, getProcessApplicationForDefinition(firstDefinitionId, testProvider));
 
     // when (2)
     discardDefinitionCache();
 
     // then (2)
-    assertEquals(reference2, getProcessApplicationForDefinition(firstDefinitionId));
+    assertEquals(reference2, getProcessApplicationForDefinition(firstDefinitionId, testProvider));
   }
 
   // helper ///////////////////////////////////////////
 
-  @After
+  @AfterEach
   public void cleanUp() {
     for (Deployment deployment : repositoryService.createDeploymentQuery().list()) {
       deleteDeployment(deployment);
@@ -493,11 +479,7 @@ public class RedeploymentRegistrationTest {
     processEngineConfiguration.getDeploymentCache().discardDecisionRequirementsDefinitionCache();
   }
 
-  protected String getLatestDefinitionIdByKey(String key) {
-    return testProvider.getLatestDefinitionIdByKey(repositoryService, key);
-  }
-
-  protected ProcessApplicationReference getProcessApplicationForDefinition(String definitionId) {
+  protected ProcessApplicationReference getProcessApplicationForDefinition(String definitionId, TestProvider testProvider) {
     return processEngineConfiguration.getCommandExecutorTxRequired().execute(
         testProvider.createGetProcessApplicationCommand(definitionId));
   }

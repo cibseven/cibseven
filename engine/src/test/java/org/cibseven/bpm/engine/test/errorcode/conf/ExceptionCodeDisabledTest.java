@@ -22,18 +22,20 @@ import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.impl.errorcode.BuiltinExceptionCode;
 import org.cibseven.bpm.engine.test.errorcode.FailingJavaDelegateWithErrorCode;
+import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapClassExtension;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.AfterEach;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -41,26 +43,25 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 
 public class ExceptionCodeDisabledTest {
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule =
-      new ProcessEngineBootstrapRule(c -> c.setDisableExceptionCode(true));
+  @RegisterExtension
+  public static ProcessEngineBootstrapClassExtension processEngineBootstrapClassExtension = ProcessEngineBootstrapClassExtension.builder()
+    .useConsumer(c -> c.setDisableExceptionCode(true))
+    .addProcessEngineTestRule()
+    .build();
 
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  public ProvidedProcessEngineRule engineRule = null;
+  protected ProcessEngineTestRule testRule;
 
   protected RuntimeService runtimeService;
   protected IdentityService identityService;
 
-  @Before
+  @BeforeEach
   public void assignServices() {
     runtimeService = engineRule.getRuntimeService();
     identityService = engineRule.getIdentityService();
   }
 
-  @After
+  @AfterEach
   public void clear() {
     engineRule.getIdentityService().deleteUser("kermit");
   }

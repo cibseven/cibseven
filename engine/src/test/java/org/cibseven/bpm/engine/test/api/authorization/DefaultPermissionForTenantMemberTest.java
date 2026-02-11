@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.api.authorization;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Collections;
 
@@ -30,11 +30,10 @@ import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 
 public class DefaultPermissionForTenantMemberTest {
 
@@ -50,10 +49,7 @@ public class DefaultPermissionForTenantMemberTest {
   protected AuthorizationService authorizationService;
   protected IdentityService identityService;
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
-
-  @Before
+  @BeforeEach
   public void init() {
     identityService = engineRule.getIdentityService();
     authorizationService = engineRule.getAuthorizationService();
@@ -69,7 +65,7 @@ public class DefaultPermissionForTenantMemberTest {
     engineRule.getProcessEngineConfiguration().setAuthorizationEnabled(true);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     identityService.clearAuthentication();
 

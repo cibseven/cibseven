@@ -30,32 +30,33 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+
 
 public class JobExecutorCleanupTest {
 
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
   protected ProcessEngineConfigurationImpl configuration;
 
-  @Before
+  @BeforeEach
   public void assignServices() {
     runtimeService = engineRule.getRuntimeService();
     historyService = engineRule.getHistoryService();
     configuration = engineRule.getProcessEngineConfiguration();
   }
 
-  @After
+  @AfterEach
   public void resetConfig() {
     configuration.setHistoryCleanupEnabled(true);
   }
@@ -73,7 +74,7 @@ public class JobExecutorCleanupTest {
       .hasMessageContaining("time limit of 10000 was exceeded");
   }
 
-  @After
+  @AfterEach
   public void resetDatabase() {
     engineRule.getProcessEngineConfiguration().getCommandExecutorTxRequired().execute(new Command<Void>() {
       public Void execute(CommandContext commandContext) {

@@ -18,8 +18,11 @@ package org.cibseven.bpm.engine.test.api.mgmt.metrics;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 import java.util.Date;
@@ -35,11 +38,6 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
 
 /**
  * @author Daniel Meyer
@@ -49,9 +47,6 @@ public class MetricsTest {
 
   protected static final ProcessEngineRule ENGINE_RULE = new ProvidedProcessEngineRule();
   protected static final ProcessEngineTestRule TEST_RULE = new ProcessEngineTestRule(ENGINE_RULE);
-
-  @ClassRule
-  public static RuleChain RULE_CHAIN = RuleChain.outerRule(ENGINE_RULE).around(TEST_RULE);
 
   protected static RuntimeService runtimeService;
   protected static ProcessEngineConfigurationImpl processEngineConfiguration;
@@ -66,7 +61,7 @@ public class MetricsTest {
     processEngineConfiguration.setDbMetricsReporterActivate(false);
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void initMetrics() {
     runtimeService = ENGINE_RULE.getRuntimeService();
     processEngineConfiguration = ENGINE_RULE.getProcessEngineConfiguration();
@@ -82,7 +77,7 @@ public class MetricsTest {
         .done());
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     clearMetrics();
   }

@@ -17,8 +17,8 @@
 package org.cibseven.bpm.engine.test.api.repository.diagram;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -31,10 +31,10 @@ import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.repository.DiagramLayout;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Nikola Koevski
@@ -43,19 +43,19 @@ public class ProcessDiagramParseTest {
 
   private static final String resourcePath = "src/test/resources/org/cibseven/bpm/engine/test/api/repository/diagram/testXxeParsingIsDisabled";
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
 
   boolean xxeProcessingValue;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     xxeProcessingValue = processEngineConfiguration.isEnableXxeProcessing();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processEngineConfiguration.setEnableXxeProcessing(xxeProcessingValue);
   }

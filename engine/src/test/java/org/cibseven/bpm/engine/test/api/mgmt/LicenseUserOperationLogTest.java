@@ -29,10 +29,10 @@ import org.cibseven.bpm.engine.impl.cmd.LicenseCmd;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class LicenseUserOperationLogTest {
@@ -41,7 +41,7 @@ public class LicenseUserOperationLogTest {
   private final static String LICENSE_KEY_OLD = "{\"customer\":\"old testCompany\"}";
   private static final String USER_ID = "testUserId";
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   ProcessEngine processEngine;
@@ -49,7 +49,7 @@ public class LicenseUserOperationLogTest {
   HistoryService historyService;
   IdentityService identityService;
 
-  @Before
+  @BeforeEach
   public void init() {
     processEngine = engineRule.getProcessEngine();
     managementService = processEngine.getManagementService();
@@ -57,7 +57,7 @@ public class LicenseUserOperationLogTest {
     identityService = processEngine.getIdentityService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     identityService.clearAuthentication();
     managementService.deleteLicenseKey();

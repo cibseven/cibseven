@@ -35,12 +35,11 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -62,21 +61,21 @@ public class MetricsManagerForCleanupTest {
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected ManagementService managementService;
   protected RuntimeService runtimeService;
   protected TaskService taskService;
 
-  @Before
+  @BeforeEach
   public void init() {
     runtimeService = engineRule.getRuntimeService();
     managementService = engineRule.getManagementService();
     taskService = engineRule.getTaskService();
   }
 
-  @After
+  @org.junit.jupiter.api.AfterEach
   public void clearDatabase() {
     testRule.deleteHistoryCleanupJobs();
     managementService.deleteTaskMetrics(null);

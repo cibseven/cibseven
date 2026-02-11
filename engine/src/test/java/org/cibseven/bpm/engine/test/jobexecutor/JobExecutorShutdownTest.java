@@ -30,12 +30,12 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -69,14 +69,14 @@ public class JobExecutorShutdownTest {
       configuration.setJobExecutor(buildControllableJobExecutor()));
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule);
 
   protected ControllableJobExecutor jobExecutor;
   protected ThreadControl acquisitionThread;
   protected static ThreadControl executionThread;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     jobExecutor = (ControllableJobExecutor)
         ((ProcessEngineConfigurationImpl) engineRule.getProcessEngine().getProcessEngineConfiguration()).getJobExecutor();
@@ -85,7 +85,7 @@ public class JobExecutorShutdownTest {
     executionThread = jobExecutor.getExecutionThreadControl();
   }
 
-  @After
+  @AfterEach
   public void shutdownJobExecutor() {
     jobExecutor.shutdown();
   }
@@ -121,14 +121,14 @@ public class JobExecutorShutdownTest {
     executionThread.waitUntilDone();
 
     // then the current job has completed successfully
-    Assert.assertEquals(0, engineRule.getManagementService().createJobQuery().jobId(firstAsyncJob.getId()).count());
+    Assertions.assertEquals(0, engineRule.getManagementService().createJobQuery().jobId(firstAsyncJob.getId()).count());
 
     // but the exclusive follow-up job is not executed and is not locked
     JobEntity secondAsyncJob = (JobEntity) engineRule.getManagementService().createJobQuery().singleResult();
-    Assert.assertNotNull(secondAsyncJob);
-    Assert.assertFalse(secondAsyncJob.getId().equals(firstAsyncJob.getId()));
-    Assert.assertNull(secondAsyncJob.getLockOwner());
-    Assert.assertNull(secondAsyncJob.getLockExpirationTime());
+    Assertions.assertNotNull(secondAsyncJob);
+    Assertions.assertFalse(secondAsyncJob.getId().equals(firstAsyncJob.getId()));
+    Assertions.assertNull(secondAsyncJob.getLockOwner());
+    Assertions.assertNull(secondAsyncJob.getLockExpirationTime());
 
   }
 
@@ -159,10 +159,10 @@ public class JobExecutorShutdownTest {
 
     // jobs must now be locked
     List<Job> lockedJobList = engineRule.getManagementService().createJobQuery().list();
-    Assert.assertEquals(2, lockedJobList.size());
+    Assertions.assertEquals(2, lockedJobList.size());
     for(Job job : lockedJobList) {
       JobEntity jobEntity = (JobEntity)job;
-      Assert.assertNotNull(jobEntity.getLockOwner());
+      Assertions.assertNotNull(jobEntity.getLockOwner());
     }
 
     // shut down the job executor while first job is executing
@@ -173,10 +173,10 @@ public class JobExecutorShutdownTest {
 
     // check that only one job left, which is not executed nor locked
     JobEntity jobEntity = (JobEntity) engineRule.getManagementService().createJobQuery().singleResult();
-    Assert.assertNotNull(jobEntity);
-    Assert.assertTrue(lockedJobList.get(1).getId().equals(jobEntity.getId()) || lockedJobList.get(0).getId().equals(jobEntity.getId()));
-    Assert.assertNull(jobEntity.getLockOwner());
-    Assert.assertNull(jobEntity.getLockExpirationTime());
+    Assertions.assertNotNull(jobEntity);
+    Assertions.assertTrue(lockedJobList.get(1).getId().equals(jobEntity.getId()) || lockedJobList.get(0).getId().equals(jobEntity.getId()));
+    Assertions.assertNull(jobEntity.getLockOwner());
+    Assertions.assertNull(jobEntity.getLockExpirationTime());
   }
 
   protected static ControllableJobExecutor buildControllableJobExecutor() {

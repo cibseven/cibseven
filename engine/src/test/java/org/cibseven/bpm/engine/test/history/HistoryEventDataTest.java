@@ -25,10 +25,10 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Edoardo Patti
@@ -38,7 +38,7 @@ public class HistoryEventDataTest {
 
   private static final TestEventHandler HANDLER = new TestEventHandler();
 
-  @Rule
+//  @Rule
   public HistoryEventVerifier verifier = new HistoryEventVerifier(HANDLER);
 
   @ClassRule
@@ -47,10 +47,10 @@ public class HistoryEventDataTest {
 
   private RuntimeService runtimeService;
 
-  @Rule
+//  @Rule
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
-  @Before
+  @BeforeEach
   public void initServices() {
     runtimeService = engineRule.getRuntimeService();
 

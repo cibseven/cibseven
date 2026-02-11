@@ -32,29 +32,28 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
+import org.cibseven.bpm.engine.test.util.AuthorizationRuleTripleExtension;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 @RunWith(Parameterized.class)
+@ExtendWith(AuthorizationRuleTripleExtension.class)
 public class BatchModificationAuthorizationTest {
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  protected ProcessEngineRule engineRule;
+  protected AuthorizationTestRule authRule;
+  protected ProcessEngineTestRule testRule;
   protected BatchModificationHelper helper = new BatchModificationHelper(engineRule);
 
   protected ProcessDefinition processDefinition;
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testRule);
 
   @Parameterized.Parameter
   public AuthorizationScenario scenario;
@@ -95,17 +94,17 @@ public class BatchModificationAuthorizationTest {
     );
   }
 
-  @Before
+  @BeforeEach
   public void deployProcess() {
     processDefinition = testRule.deployAndGetDefinition(ProcessModels.TWO_TASKS_PROCESS);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
   }
 
-  @After
+  @AfterEach
   public void cleanBatch() {
     Batch batch = engineRule.getManagementService().createBatchQuery().singleResult();
     if (batch != null) {
@@ -120,7 +119,7 @@ public class BatchModificationAuthorizationTest {
     }
   }
 
-  @After
+  @AfterEach
   public void removeBatches() {
     helper.removeAllRunningAndHistoricBatches();
   }

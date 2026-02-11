@@ -32,7 +32,7 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.authorization.batch.creation.BatchCreationAuthorizationTest;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runners.Parameterized;
 
 /**

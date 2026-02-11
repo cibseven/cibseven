@@ -31,11 +31,13 @@ import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.TaskService;
-import org.cibseven.bpm.engine.impl.test.ProcessEngineAssert;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
+import org.cibseven.bpm.engine.runtime.ProcessInstance;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.opentest4j.AssertionFailedError;
 
 
 /** Convenience for ProcessEngine and services initialization in the form of a JUnit base class.
@@ -66,7 +68,7 @@ import junit.framework.TestCase;
  * @author Tom Baeyens
  * @author Falko Menge (camunda)
  */
-public class ProcessEngineTestCase extends TestCase {
+public class ProcessEngineTestCase {
 
   protected String configurationResource = "camunda.cfg.xml";
   protected String configurationResourceCompat = "activiti.cfg.xml";
@@ -92,31 +94,28 @@ public class ProcessEngineTestCase extends TestCase {
   }
 
   public void assertProcessEnded(final String processInstanceId) {
-    ProcessEngineAssert.assertProcessEnded(processEngine, processInstanceId);
+    ProcessInstance processInstance = processEngine
+      .getRuntimeService()
+      .createProcessInstanceQuery()
+      .processInstanceId(processInstanceId)
+      .singleResult();
+    if (processInstance != null) {
+      throw new AssertionFailedError("expected finished process instance '" + processInstanceId + "' but it was still in the db");
+    }
   }
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-
+  @BeforeEach
+  public void setUp() throws Exception {
     if (processEngine==null) {
       initializeProcessEngine();
       initializeServices();
     }
-
-    boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine, getClass(), getName());
+    boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine, getClass(), "");
     // ignore test case when current history level is too low
     skipTest = !hasRequiredHistoryLevel;
 
     if (!skipTest) {
-      deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, getClass(), getName());
-    }
-  }
-
-  @Override
-  protected void runTest() throws Throwable {
-    if (!skipTest) {
-      super.runTest();
+      deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, getClass(), "");
     }
   }
 
@@ -148,13 +147,10 @@ public class ProcessEngineTestCase extends TestCase {
     caseService = processEngine.getCaseService();
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    TestHelper.annotationDeploymentTearDown(processEngine, deploymentId, getClass(), getName());
-
+  @AfterEach
+  public void tearDown() throws Exception {
+    TestHelper.annotationDeploymentTearDown(processEngine, deploymentId, getClass(), "");
     ClockUtil.reset();
-
-    super.tearDown();
   }
 
   public static void closeProcessEngines() {
@@ -172,5 +168,4 @@ public class ProcessEngineTestCase extends TestCase {
   public void setConfigurationResource(String configurationResource) {
     this.configurationResource = configurationResource;
   }
-
 }

@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.test.history;
 
 import static junit.framework.TestCase.fail;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,19 +43,20 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
+import org.junit.jupiter.api.AfterEach;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class CleanableHistoricProcessInstanceReportTest {
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(testRule).around(engineRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(testRule).around(engineRule);
 
   protected HistoryService historyService;
   protected TaskService taskService;
@@ -67,7 +68,7 @@ public class CleanableHistoricProcessInstanceReportTest {
   protected static final String THIRD_PROCESS_DEFINITION_KEY = "THIRD_HISTORIC_INST";
   protected static final String FOURTH_PROCESS_DEFINITION_KEY = "FOURTH_HISTORIC_INST";
 
-  @Before
+  @BeforeEach
   public void setUp() {
     historyService = engineRule.getHistoryService();
     taskService = engineRule.getTaskService();
@@ -77,7 +78,7 @@ public class CleanableHistoricProcessInstanceReportTest {
     testRule.deploy(createProcessWithUserTask(PROCESS_DEFINITION_KEY));
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     List<ProcessInstance> processInstances = runtimeService.createProcessInstanceQuery().list();
     for (ProcessInstance processInstance : processInstances) {

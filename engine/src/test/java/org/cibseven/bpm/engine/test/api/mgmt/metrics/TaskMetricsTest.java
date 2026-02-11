@@ -38,11 +38,9 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TaskMetricsTest {
 
@@ -54,11 +52,8 @@ public class TaskMetricsTest {
       .endEvent()
       .done();
 
-  @ClassRule
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(config -> config.setTaskMetricsEnabled(true));
-  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  @Rule
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
@@ -66,7 +61,7 @@ public class TaskMetricsTest {
   protected ManagementService managementService;
   protected TaskService taskService;
 
-  @Before
+  @BeforeEach
   public void init() {
     runtimeService = engineRule.getRuntimeService();
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
@@ -74,7 +69,7 @@ public class TaskMetricsTest {
     taskService = engineRule.getTaskService();
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     managementService.deleteTaskMetrics(null);
     testRule.deleteAllStandaloneTasks();

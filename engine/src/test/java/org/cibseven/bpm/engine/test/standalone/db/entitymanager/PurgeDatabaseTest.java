@@ -20,8 +20,8 @@ import static org.cibseven.bpm.engine.authorization.Authorization.ANY;
 import static org.cibseven.bpm.engine.authorization.Authorization.AUTH_TYPE_GLOBAL;
 import static org.cibseven.bpm.engine.authorization.Authorization.AUTH_TYPE_GRANT;
 import static org.cibseven.bpm.engine.impl.test.TestHelper.assertAndEnsureCleanDbAndCache;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.List;
 
@@ -49,10 +49,10 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Christopher Zell <christopher.zell@camunda.com>
@@ -61,19 +61,19 @@ public class PurgeDatabaseTest {
 
   protected static final String PROCESS_DEF_KEY = "test";
   protected static final String PROCESS_MODEL_NAME = "test.bpmn20.xml";
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   private ProcessEngineConfigurationImpl processEngineConfiguration;
   private String databaseTablePrefix;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     processEngineConfiguration.setDbMetricsReporterActivate(true);
     databaseTablePrefix = processEngineConfiguration.getDatabaseTablePrefix();
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     processEngineConfiguration.setDbMetricsReporterActivate(false);
   }

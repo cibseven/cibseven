@@ -17,8 +17,8 @@
 package org.cibseven.bpm.engine.test.cmmn;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 
@@ -42,12 +42,12 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Roman Smirnov
@@ -62,8 +62,8 @@ public class CmmnDisabledTest {
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   public ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule);
 
   protected RuntimeService runtimeService;
   protected RepositoryService repositoryService;
@@ -73,7 +73,7 @@ public class CmmnDisabledTest {
 
   protected EmbeddedProcessApplication processApplication;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     runtimeService = engineRule.getRuntimeService();
     repositoryService = engineRule.getRepositoryService();
@@ -84,7 +84,7 @@ public class CmmnDisabledTest {
     processApplication = new EmbeddedProcessApplication();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     identityService.clearAuthentication();
     engineRule.getProcessEngineConfiguration().setAuthorizationEnabled(false);

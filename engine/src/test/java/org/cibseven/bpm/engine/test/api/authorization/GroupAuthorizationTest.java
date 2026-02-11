@@ -16,10 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.api.authorization;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.atLeastOnce;
@@ -47,8 +46,8 @@ import org.cibseven.bpm.engine.impl.interceptor.Session;
 import org.cibseven.bpm.engine.impl.persistence.entity.AuthorizationManager;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 public class GroupAuthorizationTest extends AuthorizationTest {
@@ -56,7 +55,7 @@ public class GroupAuthorizationTest extends AuthorizationTest {
   public static final String testUserId = "testUser";
   public static final List<String> testGroupIds = Arrays.asList("testGroup1", "testGroup2", "testGroup3");
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     createUser(testUserId);
     for (String testGroupId : testGroupIds) {
@@ -126,8 +125,8 @@ public class GroupAuthorizationTest extends AuthorizationTest {
 
         taskQuery.list();
 
-        verify(authorizationManager, atLeastOnce()).filterAuthenticatedGroupIds(eq(testGroupIds));
-        verify(authCheck, atLeastOnce()).setAuthGroupIds((List<String>) argThat(containsInAnyOrder(testGroupIds.toArray())));
+        verify(authorizationManager, atLeastOnce()).filterAuthenticatedGroupIds(testGroupIds);
+        verify(authCheck, atLeastOnce()).setAuthGroupIds(testGroupIds);
 
         return null;
       }

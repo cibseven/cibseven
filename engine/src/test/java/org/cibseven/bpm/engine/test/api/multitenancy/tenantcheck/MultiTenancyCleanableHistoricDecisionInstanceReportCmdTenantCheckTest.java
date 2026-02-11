@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.api.multitenancy.tenantcheck;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -37,10 +37,10 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class MultiTenancyCleanableHistoricDecisionInstanceReportCmdTenantCheckTest {
@@ -62,10 +62,10 @@ public class MultiTenancyCleanableHistoricDecisionInstanceReportCmdTenantCheckTe
   protected HistoryService historyService;
   protected ProcessEngineConfiguration processEngineConfiguration;
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
-  @Before
+  @BeforeEach
   public void init() {
     repositoryService = engineRule.getRepositoryService();
     identityService = engineRule.getIdentityService();

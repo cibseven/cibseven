@@ -22,7 +22,7 @@ import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.historic
 import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.historicBatchByStartTime;
 import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.inverted;
 import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.verifySorting;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -44,12 +44,12 @@ import org.cibseven.bpm.engine.test.api.runtime.migration.batch.BatchMigrationHe
 import org.cibseven.bpm.engine.test.util.ClockTestUtil;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.hamcrest.CoreMatchers;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class HistoricBatchQueryTest {
@@ -58,26 +58,26 @@ public class HistoricBatchQueryTest {
   protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
   protected BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule);
 
   protected RuntimeService runtimeService;
   protected ManagementService managementService;
   protected HistoryService historyService;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     runtimeService = engineRule.getRuntimeService();
     managementService = engineRule.getManagementService();
     historyService = engineRule.getHistoryService();
   }
 
-  @After
+  @AfterEach
   public void removeBatches() {
     helper.removeAllRunningAndHistoricBatches();
   }
 
-  @After
+  @AfterEach
   public void resetClock() {
     ClockUtil.reset();
   }
@@ -99,8 +99,8 @@ public class HistoricBatchQueryTest {
       batchIds.add(resultBatch.getId());
     }
 
-    Assert.assertTrue(batchIds.contains(batch1.getId()));
-    Assert.assertTrue(batchIds.contains(batch2.getId()));
+    Assertions.assertTrue(batchIds.contains(batch1.getId()));
+    Assertions.assertTrue(batchIds.contains(batch2.getId()));
   }
 
   @Test
@@ -121,7 +121,7 @@ public class HistoricBatchQueryTest {
     HistoricBatch resultBatch = historyService.createHistoricBatchQuery().singleResult();
 
     // then
-    Assert.assertNotNull(resultBatch);
+    Assertions.assertNotNull(resultBatch);
 
     assertEquals(batch.getId(), resultBatch.getId());
     assertEquals(batch.getBatchJobDefinitionId(), resultBatch.getBatchJobDefinitionId());
@@ -146,7 +146,7 @@ public class HistoricBatchQueryTest {
     HistoricBatch resultBatch = historyService.createHistoricBatchQuery().batchId(batch1.getId()).singleResult();
 
     // then
-    Assert.assertNotNull(resultBatch);
+    Assertions.assertNotNull(resultBatch);
     assertEquals(batch1.getId(), resultBatch.getId());
   }
 
@@ -154,7 +154,7 @@ public class HistoricBatchQueryTest {
   public void testBatchQueryByIdNull() {
     try {
       historyService.createHistoricBatchQuery().batchId(null).singleResult();
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     }
     catch (NullValueException e) {
       assertThat(e.getMessage()).contains("Batch id is null");
@@ -215,7 +215,7 @@ public class HistoricBatchQueryTest {
   public void testBatchQueryByTypeNull() {
     try {
       historyService.createHistoricBatchQuery().type(null).singleResult();
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     }
     catch (NullValueException e) {
       assertThat(e.getMessage()).contains("Type is null");
@@ -331,7 +331,7 @@ public class HistoricBatchQueryTest {
   public void testBatchQueryOrderingPropertyWithoutOrder() {
     try {
       historyService.createHistoricBatchQuery().orderById().singleResult();
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     }
     catch (NotValidException e) {
       assertThat(e.getMessage()).contains("Invalid query: "
@@ -343,7 +343,7 @@ public class HistoricBatchQueryTest {
   public void testBatchQueryOrderWithoutOrderingProperty() {
     try {
       historyService.createHistoricBatchQuery().asc().singleResult();
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     }
     catch (NotValidException e) {
       assertThat(e.getMessage()).contains("You should call any of the orderBy methods "

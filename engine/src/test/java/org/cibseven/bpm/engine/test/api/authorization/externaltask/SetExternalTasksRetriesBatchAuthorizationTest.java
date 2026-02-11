@@ -34,32 +34,34 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
+import org.cibseven.bpm.engine.test.util.AuthorizationRuleTripleExtension;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ExternalTaskModels;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
+@ExtendWith(AuthorizationRuleTripleExtension.class)
 public class SetExternalTasksRetriesBatchAuthorizationTest {
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  public ProcessEngineRule engineRule;
+  public AuthorizationTestRule authRule;
+  protected ProcessEngineTestRule testRule;
 
 
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule).around(testRule);
+//  @Rule
+//  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule).around(testRule);
 
   @Parameter
   public AuthorizationScenario scenario;
@@ -99,17 +101,17 @@ public class SetExternalTasksRetriesBatchAuthorizationTest {
       );
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     authRule.createUserAndGroup("userId", "groupId");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
   }
 
-  @After
+  @AfterEach
   public void cleanBatch() {
     Batch batch = engineRule.getManagementService().createBatchQuery().singleResult();
     if (batch != null) {
@@ -156,7 +158,7 @@ public class SetExternalTasksRetriesBatchAuthorizationTest {
     if (authRule.assertScenario(scenario)) {
       externalTasks = engineRule.getExternalTaskService().createExternalTaskQuery().list();
       for ( ExternalTask task : externalTasks) {
-      Assert.assertEquals(5, (int) task.getRetries());
+      Assertions.assertEquals(5, (int) task.getRetries());
       }
     }
   }
@@ -187,11 +189,11 @@ public class SetExternalTasksRetriesBatchAuthorizationTest {
 
     // then
     if (authRule.assertScenario(scenario)) {
-      Assert.assertEquals("userId", batch.getCreateUserId());
+      Assertions.assertEquals("userId", batch.getCreateUserId());
 
       externalTasks = engineRule.getExternalTaskService().createExternalTaskQuery().list();
       for ( ExternalTask task : externalTasks) {
-        Assert.assertEquals(5, (int) task.getRetries());
+        Assertions.assertEquals(5, (int) task.getRetries());
       }
     }
   }

@@ -25,27 +25,27 @@ import org.cibseven.bpm.engine.authorization.HistoricTaskPermissions;
 import org.cibseven.bpm.engine.authorization.Resources;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 
 public class EnableHistoricInstancePermissionsTest {
 
-  @Rule
+//  @Rule
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected ProcessEngineConfigurationImpl config;
   protected AuthorizationService authorizationService;
 
-  @Before
+  @BeforeEach
   public void assign() {
     config = (ProcessEngineConfigurationImpl) engineRule.getProcessEngine()
         .getProcessEngineConfiguration();
     authorizationService = engineRule.getAuthorizationService();
   }
 
-  @After
+  @AfterEach
   public void resetConfig() {
     config.setEnableHistoricInstancePermissions(false);
   }

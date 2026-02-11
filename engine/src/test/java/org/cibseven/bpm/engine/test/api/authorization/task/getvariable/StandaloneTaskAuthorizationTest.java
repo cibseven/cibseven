@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.api.authorization.task.getvariable;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -28,30 +28,32 @@ import org.cibseven.bpm.engine.TaskService;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
+import org.cibseven.bpm.engine.test.util.AuthorizationRuleExtension;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runners.Parameterized.Parameter;
 
 /**
  * @author Yana.Vasileva
  *
  */
+@ExtendWith(AuthorizationRuleExtension.class)
 public abstract class StandaloneTaskAuthorizationTest {
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  public ProcessEngineRule engineRule;
+  public AuthorizationTestRule authRule;
 
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule);
+//  @Rule
+//  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule);
 
   @Parameter
   public AuthorizationScenario scenario;
@@ -67,7 +69,7 @@ public abstract class StandaloneTaskAuthorizationTest {
   public static final String PROCESS_KEY = "oneTaskProcess";
   protected boolean ensureSpecificVariablePermission;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     taskService = engineRule.getTaskService();
@@ -76,7 +78,7 @@ public abstract class StandaloneTaskAuthorizationTest {
     authRule.createUserAndGroup("userId", "groupId");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
     taskService.deleteTask(taskId, true);

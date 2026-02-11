@@ -16,13 +16,13 @@
  */
 package org.cibseven.bpm.engine.test.standalone.initialization;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Tom Baeyens

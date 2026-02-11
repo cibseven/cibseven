@@ -27,7 +27,7 @@ import org.cibseven.bpm.engine.test.standalone.pvm.activities.EmbeddedSubProcess
 import org.cibseven.bpm.engine.test.standalone.pvm.activities.End;
 import org.cibseven.bpm.engine.test.standalone.pvm.activities.ParallelGateway;
 import org.cibseven.bpm.engine.test.standalone.pvm.activities.WaitState;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  *

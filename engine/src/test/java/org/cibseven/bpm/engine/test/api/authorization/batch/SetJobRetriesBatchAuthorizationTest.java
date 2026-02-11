@@ -18,7 +18,10 @@ package org.cibseven.bpm.engine.test.api.authorization.batch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec.grant;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,18 +43,11 @@ import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenarioWithCount;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 
 /**
  * @author Askar Akhmerov
  */
-@RunWith(Parameterized.class)
 public class SetJobRetriesBatchAuthorizationTest extends AbstractBatchAuthorizationTest {
 
   protected static final String DEFINITION_XML = "org/cibseven/bpm/engine/test/api/mgmt/ManagementServiceTest.testGetJobExceptionStacktrace.bpmn20.xml";
@@ -74,14 +70,15 @@ public class SetJobRetriesBatchAuthorizationTest extends AbstractBatchAuthorizat
     return result;
   }
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
+  @RegisterExtension
+  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
-  @Parameterized.Parameter
   public AuthorizationScenarioWithCount scenario;
 
   @Override
-  @Before
+  @BeforeEach
   public void deployProcesses() {
     Deployment deploy = testHelper.deploy(DEFINITION_XML);
     sourceDefinition = engineRule.getRepositoryService()
@@ -91,7 +88,6 @@ public class SetJobRetriesBatchAuthorizationTest extends AbstractBatchAuthorizat
   }
 
 
-  @Parameterized.Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
         AuthorizationScenarioWithCount.scenario()

@@ -3,7 +3,7 @@ package org.cibseven.bpm.engine.impl.identity.db;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.junit.ClassRule;
-import org.junit.Rule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.zonky.test.db.postgres.junit.EmbeddedPostgresRules;
 import io.zonky.test.db.postgres.junit.SingleInstancePostgresRule;
@@ -13,7 +13,7 @@ public class DbIdentityServicePGTest extends DbIdentityServiceTestAbstract {
 	@ClassRule
 	public static SingleInstancePostgresRule pg = EmbeddedPostgresRules.singleInstance();
 	
-	@Rule
+	@RegisterExtension
 	public final ProcessEngineRule processEngineRule = new ProcessEngineRule(
 		ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration()
 			.setJdbcUrl(pg.getEmbeddedPostgres().getJdbcUrl("postgres", "postgres"))

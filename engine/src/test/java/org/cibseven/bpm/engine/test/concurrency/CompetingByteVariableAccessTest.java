@@ -18,9 +18,9 @@ package org.cibseven.bpm.engine.test.concurrency;
 
 import static org.cibseven.bpm.engine.variable.Variables.createVariables;
 import static org.cibseven.bpm.model.bpmn.Bpmn.createExecutableProcess;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.cibseven.bpm.engine.OptimisticLockingException;
 import org.cibseven.bpm.engine.impl.db.entitymanager.cache.CachedDbEntity;
@@ -28,7 +28,7 @@ import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.ByteArrayEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * thread1:
@@ -106,7 +106,7 @@ public class CompetingByteVariableAccessTest extends ConcurrencyTestCase {
       CachedDbEntity cachedByteArray = commandContext.getDbEntityManager().getDbEntityCache()
         .getCachedEntity(ByteArrayEntity.class, byteArrayValueId);
 
-      assertNull("Byte array is expected to be not fetched yet / lazily fetched.", cachedByteArray);
+      assertNull(cachedByteArray, "Byte array is expected to be not fetched yet / lazily fetched.");
 
       monitor.sync();
 

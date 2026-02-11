@@ -44,13 +44,12 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.Variables.SerializationDataFormats;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
-import org.junit.Before;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -88,13 +87,13 @@ public class MigrationVariablesTest {
       .message("Message")
       .done();
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   protected RuntimeService runtimeService;
   protected TaskService taskService;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     runtimeService = rule.getRuntimeService();
     taskService = rule.getTaskService();
@@ -125,7 +124,7 @@ public class MigrationVariablesTest {
     // then
     VariableInstance beforeMigration = testHelper.snapshotBeforeMigration.getSingleVariable("foo");
 
-    Assert.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
     testHelper.assertVariableMigratedToExecution(beforeMigration, beforeMigration.getExecutionId());
   }
 
@@ -154,7 +153,7 @@ public class MigrationVariablesTest {
     // then
     VariableInstance beforeMigration = testHelper.snapshotBeforeMigration.getSingleVariable("foo");
 
-    Assert.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
     testHelper.assertVariableMigratedToExecution(beforeMigration, beforeMigration.getExecutionId());
   }
 
@@ -177,7 +176,7 @@ public class MigrationVariablesTest {
     // then
     VariableInstance beforeMigration = testHelper.snapshotBeforeMigration.getSingleVariable("foo");
 
-    Assert.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
     testHelper.assertVariableMigratedToExecution(beforeMigration, beforeMigration.getExecutionId());
   }
 
@@ -206,7 +205,7 @@ public class MigrationVariablesTest {
     // then
     VariableInstance beforeMigration = testHelper.snapshotBeforeMigration.getSingleVariable("foo");
 
-    Assert.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
     testHelper.assertVariableMigratedToExecution(beforeMigration, beforeMigration.getExecutionId());
   }
 
@@ -245,7 +244,7 @@ public class MigrationVariablesTest {
         .get(0)
         .getParent();
 
-    Assert.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
     ActivityInstance subProcessInstance = testHelper.getSingleActivityInstanceAfterMigration("subProcess");
     // for variables at concurrent executions that are parent of a leaf-scope-execution, the activity instance is
     // the activity instance id of the parent activity instance (which is probably a bug)
@@ -287,7 +286,7 @@ public class MigrationVariablesTest {
         .get(0)
         .getParent();
 
-    Assert.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
     // for variables at concurrent executions that are parent of a leaf-scope-execution, the activity instance is
     // the activity instance id of the parent activity instance (which is probably a bug)
     testHelper.assertVariableMigratedToExecution(beforeMigration, userTask1CCExecutionAfter.getId(), processInstance.getId());
@@ -326,7 +325,7 @@ public class MigrationVariablesTest {
         .getLeafExecutions("userTask1")
         .get(0);
 
-    Assert.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
     testHelper.assertVariableMigratedToExecution(beforeMigration, userTask1CCExecutionAfter.getId());
   }
 
@@ -363,7 +362,7 @@ public class MigrationVariablesTest {
         .getLeafExecutions("userTask1")
         .get(0);
 
-    Assert.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
     testHelper.assertVariableMigratedToExecution(beforeMigration, userTask1CCExecutionAfter.getId());
   }
 
@@ -392,7 +391,7 @@ public class MigrationVariablesTest {
     // then
     VariableInstance beforeMigration = testHelper.snapshotBeforeMigration.getSingleVariable("foo");
 
-    Assert.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
     testHelper.assertVariableMigratedToExecution(beforeMigration, beforeMigration.getExecutionId());
   }
 
@@ -417,7 +416,7 @@ public class MigrationVariablesTest {
     // then
     VariableInstance beforeMigration = testHelper.snapshotBeforeMigration.getSingleVariable("foo");
 
-    Assert.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
     testHelper.assertVariableMigratedToExecution(beforeMigration, beforeMigration.getExecutionId());
   }
 
@@ -447,7 +446,7 @@ public class MigrationVariablesTest {
         .getLeafExecutions("userTask1")
         .get(0);
 
-    Assert.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
     testHelper.assertVariableMigratedToExecution(beforeMigration, userTask1ExecutionAfter.getId());
   }
 
@@ -478,7 +477,7 @@ public class MigrationVariablesTest {
         .getLeafExecutions("userTask1")
         .get(0);
 
-    Assert.assertEquals(2, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(2, testHelper.snapshotAfterMigration.getVariables().size());
     testHelper.assertVariableMigratedToExecution(taskVarBeforeMigration, userTask1ExecutionAfter.getId());
   }
 
@@ -507,7 +506,7 @@ public class MigrationVariablesTest {
     // then
     VariableInstance beforeMigration = testHelper.snapshotBeforeMigration.getSingleVariable("foo");
 
-    Assert.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
     testHelper.assertVariableMigratedToExecution(beforeMigration, processInstance.getId());
 
     // and the variable is concurrent local, i.e. expands on tree expansion
@@ -517,8 +516,8 @@ public class MigrationVariablesTest {
       .execute();
 
     VariableInstance variableAfterExpansion = runtimeService.createVariableInstanceQuery().singleResult();
-    Assert.assertNotNull(variableAfterExpansion);
-    Assert.assertNotSame(processInstance.getId(), variableAfterExpansion.getExecutionId());
+    Assertions.assertNotNull(variableAfterExpansion);
+    Assertions.assertNotSame(processInstance.getId(), variableAfterExpansion.getExecutionId());
 
   }
 
@@ -552,7 +551,7 @@ public class MigrationVariablesTest {
       .get(0)
       .getParent();
 
-    Assert.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
     testHelper.assertVariableMigratedToExecution(beforeMigration, userTask1CCExecution.getId());
   }
 
@@ -580,7 +579,7 @@ public class MigrationVariablesTest {
     // when
     try {
       testHelper.migrateProcessInstance(migrationPlan, processInstance);
-      Assert.fail("expected exception");
+      Assertions.fail("expected exception");
     }
     catch (ProcessEngineException e) {
       assertThat(e.getMessage()).contains("The variable 'foo' exists in both, this scope"
@@ -612,11 +611,11 @@ public class MigrationVariablesTest {
     testHelper.migrateProcessInstance(migrationPlan, processInstance);
 
     // then the process scope variable was overwritten due to a compacted execution tree
-    Assert.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
 
     VariableInstance variable = testHelper.snapshotAfterMigration.getVariables().iterator().next();
 
-    Assert.assertEquals("userTaskScopeValue", variable.getValue());
+    Assertions.assertEquals("userTaskScopeValue", variable.getValue());
   }
 
   @Test
@@ -649,15 +648,15 @@ public class MigrationVariablesTest {
     testHelper.migrateProcessInstance(migrationPlan, processInstance);
 
     // then the io mapping variable was overwritten due to a compacted execution tree
-    Assert.assertEquals(2, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(2, testHelper.snapshotAfterMigration.getVariables().size());
 
     List<String> values = new ArrayList<>();
     for (VariableInstance variable : testHelper.snapshotAfterMigration.getVariables()) {
       values.add((String) variable.getValue());
     }
 
-    Assert.assertTrue(values.contains("task1Value"));
-    Assert.assertTrue(values.contains("task2Value"));
+    Assertions.assertTrue(values.contains("task1Value"));
+    Assertions.assertTrue(values.contains("task2Value"));
   }
 
   @Test
@@ -696,10 +695,10 @@ public class MigrationVariablesTest {
     // then the scope variable instance has been overwritten during compaction (conform to prior behavior);
     // although this is tested here, changing this behavior may be ok in the future
     Collection<VariableInstance> variables = testHelper.snapshotAfterMigration.getVariables();
-    Assert.assertEquals(2, variables.size());
+    Assertions.assertEquals(2, variables.size());
 
     for (VariableInstance variable : variables) {
-      Assert.assertEquals("customValue", variable.getValue());
+      Assertions.assertEquals("customValue", variable.getValue());
     }
 
     ExecutionTree subProcessExecution  = testHelper.snapshotAfterMigration.getExecutionTree()
@@ -707,7 +706,7 @@ public class MigrationVariablesTest {
         .get(0)
         .getParent();
 
-    Assert.assertNotNull(testHelper.snapshotAfterMigration.getSingleVariable(subProcessExecution.getId(), "foo"));
+    Assertions.assertNotNull(testHelper.snapshotAfterMigration.getSingleVariable(subProcessExecution.getId(), "foo"));
   }
 
   @Test
@@ -747,19 +746,19 @@ public class MigrationVariablesTest {
 
     // then the scope variable instance has been overwritten during compaction (conform to prior behavior);
     // although this is tested here, changing this behavior may be ok in the future
-    Assert.assertEquals(3, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(3, testHelper.snapshotAfterMigration.getVariables().size());
 
     VariableInstance processScopeVariableAfterMigration = testHelper.snapshotAfterMigration.getVariable(processScopeVariable.getId());
-    Assert.assertNotNull(processScopeVariableAfterMigration);
-    Assert.assertEquals("processInstanceValue", processScopeVariableAfterMigration.getValue());
+    Assertions.assertNotNull(processScopeVariableAfterMigration);
+    Assertions.assertEquals("processInstanceValue", processScopeVariableAfterMigration.getValue());
 
     VariableInstance task1VariableAfterMigration = testHelper.snapshotAfterMigration.getVariable(task1Variable.getId());
-    Assert.assertNotNull(task1VariableAfterMigration);
-    Assert.assertEquals("task1Value", task1VariableAfterMigration.getValue());
+    Assertions.assertNotNull(task1VariableAfterMigration);
+    Assertions.assertEquals("task1Value", task1VariableAfterMigration.getValue());
 
     VariableInstance task2VariableAfterMigration = testHelper.snapshotAfterMigration.getVariable(task2Variable.getId());
-    Assert.assertNotNull(task2VariableAfterMigration);
-    Assert.assertEquals("task2Value", task2VariableAfterMigration.getValue());
+    Assertions.assertNotNull(task2VariableAfterMigration);
+    Assertions.assertEquals("task2Value", task2VariableAfterMigration.getValue());
 
   }
 
@@ -801,15 +800,15 @@ public class MigrationVariablesTest {
     // then the scope variable instance has been overwritten during compaction (conform to prior behavior);
     // although this is tested here, changing this behavior may be ok in the future
     Collection<VariableInstance> variables = testHelper.snapshotAfterMigration.getVariables();
-    Assert.assertEquals(2, variables.size());
+    Assertions.assertEquals(2, variables.size());
 
     VariableInstance task1VariableAfterMigration = testHelper.snapshotAfterMigration.getVariable(task1Variable.getId());
-    Assert.assertNotNull(task1VariableAfterMigration);
-    Assert.assertEquals("task1Value", task1VariableAfterMigration.getValue());
+    Assertions.assertNotNull(task1VariableAfterMigration);
+    Assertions.assertEquals("task1Value", task1VariableAfterMigration.getValue());
 
     VariableInstance task2VariableAfterMigration = testHelper.snapshotAfterMigration.getVariable(task2Variable.getId());
-    Assert.assertNotNull(task2VariableAfterMigration);
-    Assert.assertEquals("task2Value", task2VariableAfterMigration.getValue());
+    Assertions.assertNotNull(task2VariableAfterMigration);
+    Assertions.assertEquals("task2Value", task2VariableAfterMigration.getValue());
 
   }
 
@@ -909,8 +908,8 @@ public class MigrationVariablesTest {
 
     // then
     ObjectValue migratedValue = runtimeService.getVariableTyped(processInstance.getId(), "var", false);
-    Assert.assertEquals(objectValue.getValueSerialized(), migratedValue.getValueSerialized());
-    Assert.assertEquals(objectValue.getObjectTypeName(), migratedValue.getObjectTypeName());
+    Assertions.assertEquals(objectValue.getValueSerialized(), migratedValue.getValueSerialized());
+    Assertions.assertEquals(objectValue.getObjectTypeName(), migratedValue.getObjectTypeName());
   }
 
 }

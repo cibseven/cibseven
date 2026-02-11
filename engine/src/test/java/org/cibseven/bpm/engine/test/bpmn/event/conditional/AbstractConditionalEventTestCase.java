@@ -17,10 +17,10 @@
 package org.cibseven.bpm.engine.test.bpmn.event.conditional;
 
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,9 +38,9 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
 
 /**
  *
@@ -89,7 +89,7 @@ public abstract class AbstractConditionalEventTestCase {
 
   protected List<Task> tasksAfterVariableIsSet;
 
-  @Rule
+//  @Rule
   public final ProcessEngineRule engine = new ProvidedProcessEngineRule();
 
   protected RuntimeService runtimeService;
@@ -99,7 +99,7 @@ public abstract class AbstractConditionalEventTestCase {
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected EventSubscriptionQueryImpl conditionEventSubscriptionQuery;
 
-  @Before
+  @BeforeEach
   public void init() {
     this.runtimeService = engine.getRuntimeService();
     this.taskService = engine.getTaskService();
@@ -109,7 +109,7 @@ public abstract class AbstractConditionalEventTestCase {
     this.conditionEventSubscriptionQuery = new EventSubscriptionQueryImpl(processEngineConfiguration.getCommandExecutorTxRequired()).eventType(EventType.CONDITONAL.name());
   }
 
-  @After
+  @AfterEach
   public void checkIfProcessCanBeFinished() {
     //given tasks after variable was set
     assertNotNull(tasksAfterVariableIsSet);

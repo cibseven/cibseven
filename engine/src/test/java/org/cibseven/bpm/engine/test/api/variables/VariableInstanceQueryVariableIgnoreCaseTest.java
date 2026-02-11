@@ -16,19 +16,20 @@
  */
 package org.cibseven.bpm.engine.test.api.variables;
 
-import org.assertj.core.api.Assertions;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.impl.VariableInstanceQueryImpl;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 @Deployment(resources = { "org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml" })
 public class VariableInstanceQueryVariableIgnoreCaseTest extends AbstractVariableIgnoreCaseTest<VariableInstanceQueryImpl, VariableInstance> {
 
   RuntimeService runtimeService;
 
-  @Before
+  @BeforeEach
   public void init() {
     runtimeService = engineRule.getRuntimeService();
 
@@ -43,6 +44,6 @@ public class VariableInstanceQueryVariableIgnoreCaseTest extends AbstractVariabl
 
   @Override
   protected void assertThatTwoInstancesAreEqual(VariableInstance one, VariableInstance two) {
-    Assertions.assertThat(one.getId()).isEqualTo(two.getId());
+    assertThat(one.getId()).isEqualTo(two.getId());
   }
 }

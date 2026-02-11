@@ -19,7 +19,7 @@ package org.cibseven.bpm.engine.impl.incident;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.exception.NullValueException;
 import org.cibseven.bpm.engine.runtime.Incident;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.internal.verification.Times;
 
 import java.util.ArrayList;

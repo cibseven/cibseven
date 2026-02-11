@@ -33,15 +33,10 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.repository.CamundaFormDefinition;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.repository.DeploymentBuilder;
-import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.io.TempDir;
 
 public class CamundaFormDefinitionDeploymentTest {
 
@@ -50,23 +45,23 @@ public class CamundaFormDefinitionDeploymentTest {
   protected static final String COMPLEX_FORM = "org/cibseven/bpm/engine/test/form/deployment/CamundaFormDefinitionDeploymentTest.complex_form.form";
   protected static final String SIMPLE_BPMN = "org/cibseven/bpm/engine/test/form/deployment/CamundaFormDefinitionDeploymentTest.simpleBPMN.bpmn";
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-  protected TemporaryFolder tempFolder = new TemporaryFolder();
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(tempFolder);
+  @RegisterExtension
+  ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @TempDir
+  File tempFolder;
 
   RepositoryService repositoryService;
   ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Before
+  @org.junit.jupiter.api.BeforeEach
   public void init() {
     repositoryService = engineRule.getRepositoryService();
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
   }
 
-  @After
+  @org.junit.jupiter.api.AfterEach
   public void tearDown() {
     List<Deployment> deployments = repositoryService.createDeploymentQuery().list();
     for (Deployment deployment : deployments) {
@@ -74,7 +69,7 @@ public class CamundaFormDefinitionDeploymentTest {
     }
   }
 
-  @Test
+  @org.junit.Test
   public void shouldDeployTheSameFormTwiceWithoutDuplicateFiltering() {
     // when
     createDeploymentBuilder(false).addClasspathResource(SIMPLE_FORM).deploy();
@@ -91,7 +86,7 @@ public class CamundaFormDefinitionDeploymentTest {
     assertThat(definitions).extracting("resourceName").containsExactly(SIMPLE_FORM, SIMPLE_FORM);
   }
 
-  @Test
+  @org.junit.Test
   public void shouldNotDeployTheSameFormTwiceWithDuplicateFiltering() {
     // when
     createDeploymentBuilder(true).addClasspathResource(SIMPLE_FORM).deploy();
@@ -109,7 +104,7 @@ public class CamundaFormDefinitionDeploymentTest {
     assertThat(definition.getResourceName()).isEqualTo(SIMPLE_FORM);
   }
 
-  @Test
+  @org.junit.Test
   public void shouldNotDeployTheSameFormTwiceWithDuplicateFilteringAndAdditionalResources() {
     // when
     Deployment firstDeployment = createDeploymentBuilder(true).addClasspathResource(SIMPLE_FORM).deploy();
@@ -128,7 +123,7 @@ public class CamundaFormDefinitionDeploymentTest {
     assertThat(definition.getResourceName()).isEqualTo(SIMPLE_FORM);
   }
 
-  @Test
+  @org.junit.Test
   public void shouldDeployDifferentFormsFromDifferentDeployments() {
     // when
     createDeploymentBuilder(true).addClasspathResource(SIMPLE_FORM).deploy();
@@ -145,7 +140,7 @@ public class CamundaFormDefinitionDeploymentTest {
     assertThat(definitions).extracting("resourceName").containsExactlyInAnyOrder(SIMPLE_FORM, COMPLEX_FORM);
   }
 
-  @Test
+  @org.junit.Test
   public void shouldDeployDifferentFormsFromOneDeployment() {
     // when
     createDeploymentBuilder(true).addClasspathResource(SIMPLE_FORM).addClasspathResource(COMPLEX_FORM).deploy();
@@ -162,7 +157,7 @@ public class CamundaFormDefinitionDeploymentTest {
     assertThat(definitions).extracting("resourceName").containsExactlyInAnyOrder(SIMPLE_FORM, COMPLEX_FORM);
   }
 
-  @Test
+  @org.junit.Test
   public void shouldFailDeploymentWithMultipleFormsDuplicateId() {
     // when
     assertThatThrownBy(() -> {
@@ -171,7 +166,7 @@ public class CamundaFormDefinitionDeploymentTest {
     .hasMessageContaining("The deployment contains definitions with the same key 'simpleForm' (id attribute), this is not allowed");
   }
 
-  @Test
+  @org.junit.Test
   public void shouldDeleteFormDefinitionWhenDeletingDeployment() {
     // given
     Deployment deployment = createDeploymentBuilder(true).addClasspathResource(SIMPLE_FORM).addClasspathResource(COMPLEX_FORM).deploy();
@@ -191,7 +186,7 @@ public class CamundaFormDefinitionDeploymentTest {
     assertThat(repositoryService.createDeploymentQuery().list()).hasSize(0);
   }
 
-  @Test
+  @org.junit.Test
   public void shouldUpdateVersionForChangedFormResource() throws IOException {
     // given
     String fileName = "myForm.form";
@@ -214,7 +209,7 @@ public class CamundaFormDefinitionDeploymentTest {
 
   }
 
-  @Test
+  @org.junit.Test
   public void shouldUpdateVersionForChangedFormResourceWithTenant() throws IOException {
     // given
     String fileName = "myForm.form";

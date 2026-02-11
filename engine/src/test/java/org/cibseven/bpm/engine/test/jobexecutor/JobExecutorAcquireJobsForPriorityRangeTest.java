@@ -25,19 +25,19 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.cibseven.commons.testing.WatchLogger;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 
 @Deployment(resources = "org/cibseven/bpm/engine/test/jobexecutor/JobExecutorAcquireJobsForPriorityRangeTest.jobPrioProcess.bpmn20.xml")
 public class JobExecutorAcquireJobsForPriorityRangeTest extends AbstractJobExecutorAcquireJobsTest {
 
-  @Rule
+//  @Rule
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
 
-  @Before
+  @BeforeEach
   public void setUp() {
     configuration.setJobExecutorAcquireByPriority(true);
     // create 10 jobs, 5 with prio 5 and 5 with prio 10

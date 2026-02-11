@@ -24,10 +24,10 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,13 +40,13 @@ public class JobAcquisitionLoggingTest {
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().watch(
       "org.cibseven.bpm.engine.jobexecutor", Level.DEBUG);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(loggingRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(loggingRule);
 
   protected RuntimeService runtimeService;
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void init() {
     runtimeService = engineRule.getRuntimeService();
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();

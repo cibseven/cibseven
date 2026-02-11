@@ -21,8 +21,8 @@ import org.apache.ibatis.datasource.pooled.PooledDataSource;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
@@ -53,7 +53,7 @@ public class ForceCloseMybatisConnectionPoolTest {
     processEngine.close();
 
     // the idle connections are closed
-    Assert.assertTrue(state.getIdleConnectionCount() == 0);
+    Assertions.assertTrue(state.getIdleConnectionCount() == 0);
 
   }
 
@@ -80,11 +80,11 @@ public class ForceCloseMybatisConnectionPoolTest {
     processEngine.close();
 
     // the idle connections are not closed
-    Assert.assertEquals(state.getIdleConnectionCount(), idleConnections);
+    Assertions.assertEquals(state.getIdleConnectionCount(), idleConnections);
 
     pooledDataSource.forceCloseAll();
 
-    Assert.assertTrue(state.getIdleConnectionCount() == 0);
+    Assertions.assertTrue(state.getIdleConnectionCount() == 0);
   }
 
 }

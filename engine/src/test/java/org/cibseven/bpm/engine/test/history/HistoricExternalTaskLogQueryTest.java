@@ -40,33 +40,33 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
+import org.cibseven.bpm.engine.test.util.AuthorizationRuleTripleExtension;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
+@ExtendWith(AuthorizationRuleTripleExtension.class)
 public class HistoricExternalTaskLogQueryTest {
 
   protected final String WORKER_ID = "aWorkerId";
   protected final long LOCK_DURATION = 5 * 60L * 1000L;
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
+  protected ProcessEngineRule engineRule;
+  protected AuthorizationTestRule authRule;
+  protected ProcessEngineTestRule testHelper;
 
   protected ProcessInstance processInstance;
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
   protected ExternalTaskService externalTaskService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     runtimeService = engineRule.getRuntimeService();
     historyService = engineRule.getHistoryService();

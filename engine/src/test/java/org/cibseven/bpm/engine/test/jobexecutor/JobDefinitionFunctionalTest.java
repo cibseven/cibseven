@@ -16,10 +16,10 @@
  */
 package org.cibseven.bpm.engine.test.jobexecutor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.cibseven.bpm.engine.ManagementService;
 import org.cibseven.bpm.engine.RuntimeService;
@@ -34,9 +34,9 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 
 /**
@@ -47,10 +47,10 @@ public class JobDefinitionFunctionalTest {
 
   static Logger LOG = ProcessEngineLogger.TEST_LOGGER.getLogger();
 
-  @Rule
+//  @Rule
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
-  @Rule
+//  @Rule
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
@@ -65,7 +65,7 @@ public class JobDefinitionFunctionalTest {
       .endEvent()
       .done();
 
-  @Before
+  @BeforeEach
   public void initServices() {
     runtimeService = engineRule.getRuntimeService();
     managementService = engineRule.getManagementService();

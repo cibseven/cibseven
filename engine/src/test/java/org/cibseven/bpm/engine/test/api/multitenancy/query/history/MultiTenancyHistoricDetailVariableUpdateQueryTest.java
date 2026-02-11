@@ -43,10 +43,10 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class MultiTenancyHistoricDetailVariableUpdateQueryTest {
@@ -69,10 +69,10 @@ public class MultiTenancyHistoricDetailVariableUpdateQueryTest {
   protected TaskService taskService;
   protected IdentityService identityService;
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
-  @Before
+  @BeforeEach
   public void setUp() {
     historyService = engineRule.getHistoryService();
     runtimeService = engineRule.getRuntimeService();

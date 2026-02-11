@@ -32,8 +32,8 @@ import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguratio
 import org.cibseven.bpm.engine.impl.history.HistoryLevel;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class DatabaseHistoryPropertyAutoTest {
 
@@ -96,7 +96,7 @@ public class DatabaseHistoryPropertyAutoTest {
     assertThat(processEngine.getProcessEngineConfiguration().getHistoryLevel()).isEqualTo(HistoryLevel.HISTORY_LEVEL_AUDIT);
   }
 
-  @After
+  @AfterEach
   public void after() {
     for (ProcessEngineImpl engine : processEngines) {
       // no need to drop schema when testing with h2

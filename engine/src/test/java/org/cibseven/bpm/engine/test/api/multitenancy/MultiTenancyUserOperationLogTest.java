@@ -65,11 +65,11 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 @RequiredHistoryLevel(HISTORY_FULL)
 public class MultiTenancyUserOperationLogTest {
@@ -99,8 +99,8 @@ public class MultiTenancyUserOperationLogTest {
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   protected BatchMigrationHelper batchHelper = new BatchMigrationHelper(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected ProcessEngineConfiguration configuration;
   protected TaskService taskService;
@@ -111,7 +111,7 @@ public class MultiTenancyUserOperationLogTest {
   protected ManagementService managementService;
   protected boolean isDefaultTenantCheckEnabled;
 
-  @Before
+  @BeforeEach
   public void init() {
     configuration = engineRule.getProcessEngineConfiguration();
     taskService = engineRule.getTaskService();
@@ -124,7 +124,7 @@ public class MultiTenancyUserOperationLogTest {
     configuration.setTenantCheckEnabled(false);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     configuration.setTenantCheckEnabled(isDefaultTenantCheckEnabled);
   }

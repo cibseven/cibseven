@@ -29,10 +29,10 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.dmn.feel.helper.CustomFunctionProvider;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 public class FeelCustomFunctionConfigTest {
 
@@ -45,14 +45,14 @@ public class FeelCustomFunctionConfigTest {
     configuration.setDmnFeelCustomFunctionProviders(customFunctionProviders);
   });
 
-  @Rule
+//  @Rule
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   protected ProcessEngine processEngine;
   protected RepositoryService repositoryService;
   protected String deploymentId;
 
-  @Before
+  @BeforeEach
   public void setup() {
     processEngine = engineRule.getProcessEngine();
     repositoryService = processEngine.getRepositoryService();

@@ -17,9 +17,7 @@
 package org.cibseven.bpm.engine.test.api.optimize;
 
 import static junit.framework.TestCase.assertTrue;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -47,11 +45,11 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class GetCompletedHistoricTaskInstancesForOptimizeTest {
@@ -59,8 +57,8 @@ public class GetCompletedHistoricTaskInstancesForOptimizeTest {
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
 
   private OptimizeService optimizeService;
 
@@ -73,7 +71,7 @@ public class GetCompletedHistoricTaskInstancesForOptimizeTest {
   private HistoryService historyService;
 
 
-  @Before
+  @BeforeEach
   public void init() {
     ProcessEngineConfigurationImpl config =
       engineRule.getProcessEngineConfiguration();
@@ -87,7 +85,7 @@ public class GetCompletedHistoricTaskInstancesForOptimizeTest {
     createUser(userId);
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     for (User user : identityService.createUserQuery().list()) {
       identityService.deleteUser(user.getId());
@@ -122,7 +120,7 @@ public class GetCompletedHistoricTaskInstancesForOptimizeTest {
       optimizeService.getCompletedHistoricTaskInstances(null, null, 10);
 
     // then
-    assertThat(completedHistoricTaskInstances.size(), is(1));
+    assertThat(completedHistoricTaskInstances.size()).isEqualTo(1);
     assertThatTasksHaveAllImportantInformation(completedHistoricTaskInstances.get(0));
   }
 
@@ -156,7 +154,7 @@ public class GetCompletedHistoricTaskInstancesForOptimizeTest {
 
     // then
     Set<String> allowedTaskIds = new HashSet<>(Arrays.asList("userTask2", "userTask3"));
-    assertThat(completedHistoricTaskInstances.size(), is(2));
+    assertThat(completedHistoricTaskInstances.size()).isEqualTo(2);
     assertTrue(allowedTaskIds.contains(completedHistoricTaskInstances.get(0).getTaskDefinitionKey()));
     assertTrue(allowedTaskIds.contains(completedHistoricTaskInstances.get(1).getTaskDefinitionKey()));
   }
@@ -184,8 +182,8 @@ public class GetCompletedHistoricTaskInstancesForOptimizeTest {
       optimizeService.getCompletedHistoricTaskInstances(null, now, 10);
 
     // then
-    assertThat(completedHistoricTaskInstances.size(), is(1));
-    assertThat(completedHistoricTaskInstances.get(0).getTaskDefinitionKey(), is("userTask1"));
+    assertThat(completedHistoricTaskInstances.size()).isEqualTo(1);
+    assertThat(completedHistoricTaskInstances.get(0).getTaskDefinitionKey()).isEqualTo("userTask1");
   }
 
   @Test
@@ -211,7 +209,7 @@ public class GetCompletedHistoricTaskInstancesForOptimizeTest {
       optimizeService.getCompletedHistoricTaskInstances(now, now, 10);
 
     // then
-    assertThat(completedHistoricTaskInstances.size(), is(0));
+    assertThat(completedHistoricTaskInstances.size()).isEqualTo(0);
   }
 
   @Test
@@ -237,7 +235,7 @@ public class GetCompletedHistoricTaskInstancesForOptimizeTest {
       optimizeService.getCompletedHistoricTaskInstances(pastDate(), null, 3);
 
     // then
-    assertThat(completedHistoricTaskInstances.size(), is(3));
+    assertThat(completedHistoricTaskInstances.size()).isEqualTo(3);
   }
 
   @Test
@@ -269,10 +267,10 @@ public class GetCompletedHistoricTaskInstancesForOptimizeTest {
       optimizeService.getCompletedHistoricTaskInstances(pastDate(), null, 4);
 
     // then
-    assertThat(completedHistoricTaskInstances.size(), is(3));
-    assertThat(completedHistoricTaskInstances.get(0).getTaskDefinitionKey(), is("userTask1"));
-    assertThat(completedHistoricTaskInstances.get(1).getTaskDefinitionKey(), is("userTask2"));
-    assertThat(completedHistoricTaskInstances.get(2).getTaskDefinitionKey(), is("userTask3"));
+    assertThat(completedHistoricTaskInstances.size()).isEqualTo(3);
+    assertThat(completedHistoricTaskInstances.get(0).getTaskDefinitionKey()).isEqualTo("userTask1");
+    assertThat(completedHistoricTaskInstances.get(1).getTaskDefinitionKey()).isEqualTo("userTask2");
+    assertThat(completedHistoricTaskInstances.get(2).getTaskDefinitionKey()).isEqualTo("userTask3");
   }
 
   @Test
@@ -293,8 +291,8 @@ public class GetCompletedHistoricTaskInstancesForOptimizeTest {
       optimizeService.getCompletedHistoricTaskInstances(pastDate(), null, 10);
 
     // then
-    assertThat(completedHistoricTaskInstances.size(), is(1));
-    assertThat(completedHistoricTaskInstances.get(0).getTaskDefinitionKey(), is("userTask1"));
+    assertThat(completedHistoricTaskInstances.size()).isEqualTo(1);
+    assertThat(completedHistoricTaskInstances.get(0).getTaskDefinitionKey()).isEqualTo("userTask1");
   }
 
   @Test
@@ -330,15 +328,15 @@ public class GetCompletedHistoricTaskInstancesForOptimizeTest {
   }
 
   private void assertThatTasksHaveAllImportantInformation(HistoricTaskInstance completedHistoricTaskInstance) {
-    assertThat(completedHistoricTaskInstance, notNullValue());
-    assertThat(completedHistoricTaskInstance.getId(), notNullValue());
-    assertThat(completedHistoricTaskInstance.getTaskDefinitionKey(), is("userTask"));
-    assertThat(completedHistoricTaskInstance.getName(), is("task"));
-    assertThat(completedHistoricTaskInstance.getStartTime(), notNullValue());
-    assertThat(completedHistoricTaskInstance.getEndTime(), notNullValue());
-    assertThat(completedHistoricTaskInstance.getProcessDefinitionKey(), is("process"));
-    assertThat(completedHistoricTaskInstance.getProcessDefinitionId(), notNullValue());
-    assertThat(completedHistoricTaskInstance.getAssignee(), is(userId));
+    assertThat(completedHistoricTaskInstance).isNotNull();
+    assertThat(completedHistoricTaskInstance.getId()).isNotNull();
+    assertThat(completedHistoricTaskInstance.getTaskDefinitionKey()).isEqualTo("userTask");
+    assertThat(completedHistoricTaskInstance.getName()).isEqualTo("task");
+    assertThat(completedHistoricTaskInstance.getStartTime()).isNotNull();
+    assertThat(completedHistoricTaskInstance.getEndTime()).isNotNull();
+    assertThat(completedHistoricTaskInstance.getProcessDefinitionKey()).isEqualTo("process");
+    assertThat(completedHistoricTaskInstance.getProcessDefinitionId()).isNotNull();
+    assertThat(completedHistoricTaskInstance.getAssignee()).isEqualTo(userId);
   }
 
 }

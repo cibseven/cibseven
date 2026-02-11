@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.test.bpmn.event.signal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,9 +27,9 @@ import org.cibseven.bpm.engine.ParseException;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
@@ -66,12 +66,12 @@ public class SignalEventParseInvalidProcessTest {
   @Parameter(2)
   public String elementIds;
 
-  @Rule
+//  @Rule
   public ProcessEngineRule rule = new ProvidedProcessEngineRule();
 
   protected RepositoryService repositoryService;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     repositoryService = rule.getRepositoryService();
   }

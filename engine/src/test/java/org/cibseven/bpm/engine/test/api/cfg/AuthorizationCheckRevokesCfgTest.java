@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.api.cfg;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -41,9 +41,9 @@ import org.cibseven.bpm.engine.impl.db.entitymanager.DbEntityManager;
 import org.cibseven.bpm.engine.impl.identity.Authentication;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.AuthorizationManager;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
@@ -59,7 +59,7 @@ public class AuthorizationCheckRevokesCfgTest {
   AuthorizationManager authorizationManager;
   DbEntityManager mockedEntityManager;
 
-  @Before
+  @BeforeEach
   public void setup() {
 
     mockedCmdContext = mock(CommandContext.class);
@@ -78,7 +78,7 @@ public class AuthorizationCheckRevokesCfgTest {
     Context.setProcessEngineConfiguration(mockedConfiguration);
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     Context.removeCommandContext();
     Context.removeProcessEngineConfiguration();

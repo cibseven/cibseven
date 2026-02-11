@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.test.api.authorization;
 
 import static org.cibseven.bpm.engine.authorization.Authorization.ANY;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.cibseven.bpm.engine.AuthorizationService;
 import org.cibseven.bpm.engine.authorization.OptimizePermissions;
@@ -26,11 +26,11 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestBaseRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 public class OptimizeAuthorizationTest {
 
@@ -39,13 +39,13 @@ public class OptimizeAuthorizationTest {
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   public AuthorizationTestBaseRule authRule = new AuthorizationTestBaseRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule);
 
   ProcessEngineConfigurationImpl processEngineConfiguration;
   AuthorizationService authorizationService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     authorizationService = engineRule.getAuthorizationService();
@@ -64,7 +64,7 @@ public class OptimizeAuthorizationTest {
     assertTrue(authorizationService.isUserAuthorized(USER_ID, null, OptimizePermissions.SHARE, Resources.OPTIMIZE));
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.disableAuthorization();
     authRule.deleteUsersAndGroups();

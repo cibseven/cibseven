@@ -19,8 +19,8 @@ package org.cibseven.bpm.engine.test.api.authorization;
 import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE;
 import static org.cibseven.bpm.engine.authorization.Resources.HISTORIC_TASK;
 import static org.cibseven.bpm.engine.authorization.Resources.TASK;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -43,17 +43,19 @@ import org.cibseven.bpm.engine.task.IdentityLinkType;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
+import org.cibseven.bpm.engine.test.util.AuthorizationRuleExtension;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 @RunWith(Parameterized.class)
+@ExtendWith(AuthorizationRuleExtension.class)
 public class TaskReadVariablePermissionAuthorizationTest {
 
   protected static final String AUTHORIZATION_TYP_HISTORIC = "historicAuthorization";
@@ -64,11 +66,8 @@ public class TaskReadVariablePermissionAuthorizationTest {
   private static final String ACCOUNTING_GROUP = "accounting";
   protected static String userId = "test";
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule);
+  public ProcessEngineRule engineRule;
+  protected AuthorizationTestRule authRule;
 
   private ProcessEngineConfigurationImpl processEngineConfiguration;
   private IdentityService identityService;
@@ -90,7 +89,7 @@ public class TaskReadVariablePermissionAuthorizationTest {
     this.authorizationType = authorizationType;
   }
 
-  @Before
+  @BeforeEach
   public void init() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     identityService = engineRule.getIdentityService();
@@ -108,7 +107,7 @@ public class TaskReadVariablePermissionAuthorizationTest {
     authRule.createGrantAuthorization(Resources.AUTHORIZATION, "*", userId, Permissions.CREATE);
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     authRule.disableAuthorization();
     for (User user : identityService.createUserQuery().list()) {

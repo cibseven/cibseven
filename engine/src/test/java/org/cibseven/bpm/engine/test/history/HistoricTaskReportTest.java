@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.history;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Calendar;
 import java.util.List;
@@ -36,11 +36,11 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Stefan Hentschel.
@@ -51,10 +51,10 @@ public class HistoricTaskReportTest {
   public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
   public ProcessEngineTestRule processEngineTestRule = new ProcessEngineTestRule(processEngineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain
-    .outerRule(processEngineTestRule)
-    .around(processEngineRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain
+//    .outerRule(processEngineTestRule)
+//    .around(processEngineRule);
 
   protected ProcessEngineConfiguration processEngineConfiguration;
   protected HistoryService historyService;
@@ -63,7 +63,7 @@ public class HistoricTaskReportTest {
   protected static final String ANOTHER_PROCESS_DEFINITION_KEY = "ANOTHER_HISTORIC_TASK_INST_REPORT";
 
 
-  @Before
+  @BeforeEach
   public void setUp() {
     historyService = processEngineRule.getHistoryService();
     processEngineConfiguration = processEngineRule.getProcessEngineConfiguration();
@@ -72,7 +72,7 @@ public class HistoricTaskReportTest {
     processEngineTestRule.deploy(createProcessWithUserTask(ANOTHER_PROCESS_DEFINITION_KEY));
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     List<Task> list = processEngineRule.getTaskService().createTaskQuery().list();
     for( Task task : list ) {

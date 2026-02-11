@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.jobexecutor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,9 +35,9 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
@@ -69,7 +69,7 @@ public class JobDefinitionRedeploymentTest {
   @Parameter
   public String processDefinitionResource;
 
-  @Rule
+//  @Rule
   public ProcessEngineRule rule = new ProvidedProcessEngineRule();
 
   protected ManagementService managementService;
@@ -77,7 +77,7 @@ public class JobDefinitionRedeploymentTest {
   protected RuntimeService runtimeService;
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void initServices() {    
     managementService = rule.getManagementService();
     repositoryService = rule.getRepositoryService();

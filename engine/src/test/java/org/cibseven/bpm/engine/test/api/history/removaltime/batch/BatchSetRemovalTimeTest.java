@@ -62,11 +62,12 @@ import org.cibseven.bpm.engine.test.api.runtime.BatchHelper;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 /**
  * @author Tassilo Weidner
@@ -75,13 +76,16 @@ import org.junit.rules.RuleChain;
 @RequiredHistoryLevel(HISTORY_FULL)
 public class BatchSetRemovalTimeTest {
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
   protected BatchSetRemovalTimeRule testRule = new BatchSetRemovalTimeRule(engineRule, engineTestRule);
   protected BatchHelper helper = new BatchHelper(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule).around(testRule);
 
   protected final Date CURRENT_DATE = testRule.CURRENT_DATE;
   protected final Date REMOVAL_TIME = testRule.REMOVAL_TIME;
@@ -91,7 +95,7 @@ public class BatchSetRemovalTimeTest {
   protected HistoryService historyService;
   protected ManagementService managementService;
 
-  @Before
+  @BeforeEach
   public void assignServices() {
     runtimeService = engineRule.getRuntimeService();
     decisionService = engineRule.getDecisionService();
@@ -99,7 +103,7 @@ public class BatchSetRemovalTimeTest {
     managementService = engineRule.getManagementService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ClockUtil.reset();
     managementService.createBatchQuery().list().forEach(b -> managementService.deleteBatch(b.getId(), true));

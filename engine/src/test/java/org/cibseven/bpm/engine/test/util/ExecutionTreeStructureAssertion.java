@@ -19,7 +19,7 @@ package org.cibseven.bpm.engine.test.util;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * @author Thorben Lindhauer
@@ -103,7 +103,7 @@ public class ExecutionTreeStructureAssertion implements ExecutionTreeAssertion {
       describe(this, "", errorBuilder);
       errorBuilder.append("Actual tree: \n");
       errorBuilder.append(tree);
-      Assert.fail(errorBuilder.toString());
+      Assertions.fail(errorBuilder.toString());
     }
   }
 

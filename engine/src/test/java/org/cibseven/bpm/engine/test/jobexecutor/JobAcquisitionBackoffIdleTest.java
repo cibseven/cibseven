@@ -32,10 +32,10 @@ import org.cibseven.bpm.engine.test.concurrency.ConcurrencyTestHelper.ThreadCont
 import org.cibseven.bpm.engine.test.jobexecutor.RecordingAcquireJobsRunnable.RecordedWaitEvent;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -59,10 +59,10 @@ public class JobAcquisitionBackoffIdleTest {
   });
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule);
 
-  @After
+  @AfterEach
   public void shutdownJobExecutor() {
     ClockUtil.reset();
     jobExecutor.shutdown();

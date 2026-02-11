@@ -23,33 +23,30 @@ import org.cibseven.bpm.engine.AuthorizationService;
 import org.cibseven.bpm.engine.authorization.Authorization;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
+import org.cibseven.bpm.engine.test.util.AuthorizationRuleExtension;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ExtendWith(AuthorizationRuleExtension.class)
 public class AuthorizationLoggingTest {
 
   protected static final String CONTEXT_LOGGER = "org.cibseven.bpm.engine.context";
 
-  public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  public ProvidedProcessEngineRule engineRule;
+  public AuthorizationTestRule authRule;
 
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule);
-
-  @Rule
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch(CONTEXT_LOGGER)
       .level(Level.DEBUG);
 
-  @After
+  @AfterEach
   public void tearDown() {
     engineRule.getProcessEngineConfiguration().setAuthorizationEnabled(false);
     AuthorizationService authorizationService = engineRule.getAuthorizationService();

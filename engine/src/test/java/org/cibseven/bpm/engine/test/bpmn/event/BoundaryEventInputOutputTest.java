@@ -28,9 +28,9 @@ import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_AUDIT)
 public class BoundaryEventInputOutputTest extends PluggableProcessEngineTest {
@@ -53,14 +53,14 @@ public class BoundaryEventInputOutputTest extends PluggableProcessEngineTest {
 
   protected boolean skipOutputMappingVal;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     skipOutputMappingVal = processEngineConfiguration.isSkipOutputMappingOnCanceledActivities();
     processEngineConfiguration.setSkipOutputMappingOnCanceledActivities(true);
     VariableLogDelegate.reset();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processEngineConfiguration.setSkipOutputMappingOnCanceledActivities(skipOutputMappingVal);
     VariableLogDelegate.reset();

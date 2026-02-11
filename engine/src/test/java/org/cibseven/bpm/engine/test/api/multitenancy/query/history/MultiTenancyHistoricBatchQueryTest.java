@@ -40,12 +40,12 @@ import org.cibseven.bpm.engine.test.api.runtime.migration.batch.BatchMigrationHe
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -60,8 +60,8 @@ public class MultiTenancyHistoricBatchQueryTest {
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain defaultRuleChin = RuleChain.outerRule(engineRule).around(testHelper);
+//  @Rule
+//  public RuleChain defaultRuleChin = RuleChain.outerRule(engineRule).around(testHelper);
 
   protected BatchMigrationHelper batchHelper = new BatchMigrationHelper(engineRule);
 
@@ -72,13 +72,13 @@ public class MultiTenancyHistoricBatchQueryTest {
   protected Batch tenant1Batch;
   protected Batch tenant2Batch;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     historyService = engineRule.getHistoryService();
     identityService = engineRule.getIdentityService();
   }
 
-  @Before
+  @BeforeEach
   public void deployProcesses() {
     ProcessDefinition sharedDefinition = testHelper.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
     ProcessDefinition tenant1Definition = testHelper.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
@@ -89,7 +89,7 @@ public class MultiTenancyHistoricBatchQueryTest {
     tenant2Batch = batchHelper.migrateProcessInstanceAsync(tenant2Definition, tenant2Definition);
   }
 
-  @After
+  @AfterEach
   public void removeBatches() {
     batchHelper.removeAllRunningAndHistoricBatches();
   }
@@ -103,10 +103,10 @@ public class MultiTenancyHistoricBatchQueryTest {
     List<HistoricBatch> batches = historyService.createHistoricBatchQuery().list();
 
     // then
-    Assert.assertEquals(1, batches.size());
-    Assert.assertEquals(sharedBatch.getId(), batches.get(0).getId());
+    Assertions.assertEquals(1, batches.size());
+    Assertions.assertEquals(sharedBatch.getId(), batches.get(0).getId());
 
-    Assert.assertEquals(1, historyService.createHistoricBatchQuery().count());
+    Assertions.assertEquals(1, historyService.createHistoricBatchQuery().count());
 
     identityService.clearAuthentication();
   }
@@ -120,10 +120,10 @@ public class MultiTenancyHistoricBatchQueryTest {
     List<HistoricBatch> batches = historyService.createHistoricBatchQuery().list();
 
     // then
-    Assert.assertEquals(2, batches.size());
+    Assertions.assertEquals(2, batches.size());
     assertBatches(batches, tenant1Batch.getId(), sharedBatch.getId());
 
-    Assert.assertEquals(2, historyService.createHistoricBatchQuery().count());
+    Assertions.assertEquals(2, historyService.createHistoricBatchQuery().count());
 
     identityService.clearAuthentication();
   }
@@ -137,9 +137,9 @@ public class MultiTenancyHistoricBatchQueryTest {
     List<HistoricBatch> batches = historyService.createHistoricBatchQuery().list();
 
     // then
-    Assert.assertEquals(3, batches.size());
+    Assertions.assertEquals(3, batches.size());
 
-    Assert.assertEquals(3, historyService.createHistoricBatchQuery().count());
+    Assertions.assertEquals(3, historyService.createHistoricBatchQuery().count());
 
     identityService.clearAuthentication();
   }
@@ -154,7 +154,7 @@ public class MultiTenancyHistoricBatchQueryTest {
 
     // then
     identityService.clearAuthentication();
-    Assert.assertEquals(2, historyService.createHistoricBatchQuery().count());
+    Assertions.assertEquals(2, historyService.createHistoricBatchQuery().count());
   }
 
   @Test
@@ -165,7 +165,7 @@ public class MultiTenancyHistoricBatchQueryTest {
     // when
     try {
       historyService.deleteHistoricBatch(tenant2Batch.getId());
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     }
     catch (ProcessEngineException e) {
       // then
@@ -183,8 +183,8 @@ public class MultiTenancyHistoricBatchQueryTest {
     HistoricBatch returnedBatch = historyService.createHistoricBatchQuery().tenantIdIn(TENANT_ONE).singleResult();
 
     // then
-    Assert.assertNotNull(returnedBatch);
-    Assert.assertEquals(tenant1Batch.getId(), returnedBatch.getId());
+    Assertions.assertNotNull(returnedBatch);
+    Assertions.assertEquals(tenant1Batch.getId(), returnedBatch.getId());
   }
 
   @Test
@@ -197,9 +197,9 @@ public class MultiTenancyHistoricBatchQueryTest {
       .list();
 
     // then
-    Assert.assertEquals(2, returnedBatches.size());
-    Assert.assertEquals(tenant1Batch.getId(), returnedBatches.get(0).getId());
-    Assert.assertEquals(tenant2Batch.getId(), returnedBatches.get(1).getId());
+    Assertions.assertEquals(2, returnedBatches.size());
+    Assertions.assertEquals(tenant1Batch.getId(), returnedBatches.get(0).getId());
+    Assertions.assertEquals(tenant2Batch.getId(), returnedBatches.get(1).getId());
   }
 
   @Test
@@ -208,8 +208,8 @@ public class MultiTenancyHistoricBatchQueryTest {
     HistoricBatch returnedBatch = historyService.createHistoricBatchQuery().withoutTenantId().singleResult();
 
     // then
-    Assert.assertNotNull(returnedBatch);
-    Assert.assertEquals(sharedBatch.getId(), returnedBatch.getId());
+    Assertions.assertNotNull(returnedBatch);
+    Assertions.assertEquals(sharedBatch.getId(), returnedBatch.getId());
   }
 
   @Test
@@ -218,7 +218,7 @@ public class MultiTenancyHistoricBatchQueryTest {
     String[] tenantIds = null;
     try {
       historyService.createHistoricBatchQuery().tenantIdIn(tenantIds);
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     }
     catch (NullValueException e) {
       // happy path
@@ -231,7 +231,7 @@ public class MultiTenancyHistoricBatchQueryTest {
     String[] tenantIds = new String[]{ null };
     try {
       historyService.createHistoricBatchQuery().tenantIdIn(tenantIds);
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     }
     catch (NullValueException e) {
       // happy path
@@ -259,7 +259,7 @@ public class MultiTenancyHistoricBatchQueryTest {
   }
 
   protected void assertBatches(List<HistoricBatch> actualBatches, String... expectedIds) {
-    Assert.assertEquals(expectedIds.length, actualBatches.size());
+    Assertions.assertEquals(expectedIds.length, actualBatches.size());
 
     Set<String> actualIds = new HashSet<String>();
     for (HistoricBatch batch : actualBatches) {
@@ -267,7 +267,7 @@ public class MultiTenancyHistoricBatchQueryTest {
     }
 
     for (String expectedId : expectedIds) {
-      Assert.assertTrue(actualIds.contains(expectedId));
+      Assertions.assertTrue(actualIds.contains(expectedId));
     }
   }
 }

@@ -33,12 +33,12 @@ import static org.cibseven.bpm.engine.authorization.Resources.TENANT;
 import static org.cibseven.bpm.engine.authorization.Resources.TENANT_MEMBERSHIP;
 import static org.cibseven.bpm.engine.authorization.Resources.USER;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestUtil.assertExceptionInfo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -62,9 +62,9 @@ import org.cibseven.bpm.engine.impl.persistence.entity.TenantEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.UserEntity;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
@@ -74,7 +74,7 @@ public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTes
 
   private final static String jonny2 = "jonny2";
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     processEngineConfiguration.setAuthorizationEnabled(false);
     cleanupAfterTest();
@@ -1076,7 +1076,7 @@ public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTes
 
     for (User user : salesUser) {
       if (!user.getId().equals("demo") && !user.getId().equals("john")) {
-        Assert.fail("Unexpected user for group sales: " + user.getId());
+        Assertions.fail("Unexpected user for group sales: " + user.getId());
       }
     }
 
@@ -1085,7 +1085,7 @@ public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTes
 
     for (User user : accountingUser) {
       if (!user.getId().equals("demo") && !user.getId().equals("mary")) {
-        Assert.fail("Unexpected user for group accounting: " + user.getId());
+        Assertions.fail("Unexpected user for group accounting: " + user.getId());
       }
     }
 
@@ -1094,7 +1094,7 @@ public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTes
 
     for (User user : managementUser) {
       if (!user.getId().equals("demo") && !user.getId().equals("peter")) {
-        Assert.fail("Unexpected user for group managment: " + user.getId());
+        Assertions.fail("Unexpected user for group managment: " + user.getId());
       }
     }
   }

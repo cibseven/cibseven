@@ -20,9 +20,9 @@ import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.assertTha
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -41,11 +41,11 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ExecutionTree;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 import junit.framework.AssertionFailedError;
 
@@ -59,8 +59,8 @@ public class MultiTenancySingleProcessInstanceModificationAsyncTest {
 
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RepositoryService repositoryService;
@@ -68,7 +68,7 @@ public class MultiTenancySingleProcessInstanceModificationAsyncTest {
   protected ManagementService managementService;
   protected TaskService taskService;
 
-  @Before
+  @BeforeEach
   public void init() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     repositoryService = engineRule.getRepositoryService();
@@ -77,7 +77,7 @@ public class MultiTenancySingleProcessInstanceModificationAsyncTest {
     taskService = engineRule.getTaskService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     List<Batch> batches = managementService.createBatchQuery().list();
     for (Batch batch : batches) {
@@ -162,7 +162,7 @@ public class MultiTenancySingleProcessInstanceModificationAsyncTest {
     for (String taskName : taskNames) {
       // complete any task with that name
       List<Task> tasks = taskService.createTaskQuery().taskDefinitionKey(taskName).listPage(0, 1);
-      assertTrue("task for activity " + taskName + " does not exist", !tasks.isEmpty());
+      assertTrue(!tasks.isEmpty(), "task for activity " + taskName + " does not exist");
       taskService.complete(tasks.get(0).getId());
     }
   }

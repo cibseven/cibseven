@@ -21,7 +21,7 @@ import org.cibseven.bpm.engine.impl.pvm.PvmProcessDefinition;
 import org.cibseven.bpm.engine.impl.pvm.PvmProcessInstance;
 import org.cibseven.bpm.engine.test.standalone.pvm.activities.Automatic;
 import org.cibseven.bpm.engine.test.standalone.pvm.activities.WaitState;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 
 /**

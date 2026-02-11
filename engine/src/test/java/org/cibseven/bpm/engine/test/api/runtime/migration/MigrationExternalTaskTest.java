@@ -19,9 +19,9 @@ package org.cibseven.bpm.engine.test.api.runtime.migration;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
-import static org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert.assertReport;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 
@@ -40,10 +40,10 @@ import org.cibseven.bpm.engine.test.api.runtime.migration.models.ExternalTaskMod
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ServiceTaskModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -56,8 +56,8 @@ public class MigrationExternalTaskTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testTrees() {
@@ -113,21 +113,21 @@ public class MigrationExternalTaskTest {
     // then all properties are the same apart from the process reference
     ExternalTask externalTaskAfterMigration = rule.getExternalTaskService().createExternalTaskQuery().singleResult();
 
-    Assert.assertEquals("newExternalTask", externalTaskAfterMigration.getActivityId());
-    Assert.assertEquals(targetProcessDefinition.getId(), externalTaskAfterMigration.getProcessDefinitionId());
-    Assert.assertEquals("new" + ProcessModels.PROCESS_KEY, externalTaskAfterMigration.getProcessDefinitionKey());
+    Assertions.assertEquals("newExternalTask", externalTaskAfterMigration.getActivityId());
+    Assertions.assertEquals(targetProcessDefinition.getId(), externalTaskAfterMigration.getProcessDefinitionId());
+    Assertions.assertEquals("new" + ProcessModels.PROCESS_KEY, externalTaskAfterMigration.getProcessDefinitionKey());
 
-    Assert.assertEquals(externalTaskBeforeMigration.getPriority(), externalTaskAfterMigration.getPriority());
-    Assert.assertEquals(externalTaskBeforeMigration.getActivityInstanceId(), externalTaskAfterMigration.getActivityInstanceId());
-    Assert.assertEquals(externalTaskBeforeMigration.getErrorMessage(), externalTaskAfterMigration.getErrorMessage());
-    Assert.assertEquals(externalTaskBeforeMigration.getExecutionId(), externalTaskAfterMigration.getExecutionId());
-    Assert.assertEquals(externalTaskBeforeMigration.getId(), externalTaskAfterMigration.getId());
-    Assert.assertEquals(externalTaskBeforeMigration.getLockExpirationTime(), externalTaskAfterMigration.getLockExpirationTime());
-    Assert.assertEquals(processInstance.getId(), externalTaskAfterMigration.getProcessInstanceId());
-    Assert.assertEquals(externalTaskBeforeMigration.getRetries(), externalTaskAfterMigration.getRetries());
-    Assert.assertEquals(externalTaskBeforeMigration.getTenantId(), externalTaskAfterMigration.getTenantId());
-    Assert.assertEquals(externalTaskBeforeMigration.getTopicName(), externalTaskAfterMigration.getTopicName());
-    Assert.assertEquals(externalTaskBeforeMigration.getWorkerId(), externalTaskAfterMigration.getWorkerId());
+    Assertions.assertEquals(externalTaskBeforeMigration.getPriority(), externalTaskAfterMigration.getPriority());
+    Assertions.assertEquals(externalTaskBeforeMigration.getActivityInstanceId(), externalTaskAfterMigration.getActivityInstanceId());
+    Assertions.assertEquals(externalTaskBeforeMigration.getErrorMessage(), externalTaskAfterMigration.getErrorMessage());
+    Assertions.assertEquals(externalTaskBeforeMigration.getExecutionId(), externalTaskAfterMigration.getExecutionId());
+    Assertions.assertEquals(externalTaskBeforeMigration.getId(), externalTaskAfterMigration.getId());
+    Assertions.assertEquals(externalTaskBeforeMigration.getLockExpirationTime(), externalTaskAfterMigration.getLockExpirationTime());
+    Assertions.assertEquals(processInstance.getId(), externalTaskAfterMigration.getProcessInstanceId());
+    Assertions.assertEquals(externalTaskBeforeMigration.getRetries(), externalTaskAfterMigration.getRetries());
+    Assertions.assertEquals(externalTaskBeforeMigration.getTenantId(), externalTaskAfterMigration.getTenantId());
+    Assertions.assertEquals(externalTaskBeforeMigration.getTopicName(), externalTaskAfterMigration.getTopicName());
+    Assertions.assertEquals(externalTaskBeforeMigration.getWorkerId(), externalTaskAfterMigration.getWorkerId());
   }
 
 
@@ -176,8 +176,8 @@ public class MigrationExternalTaskTest {
 
     // then the task's topic and priority have not changed
     ExternalTask externalTaskAfterMigration = rule.getExternalTaskService().createExternalTaskQuery().singleResult();
-    Assert.assertEquals(ExternalTaskModels.PRIORITY.longValue(), externalTaskAfterMigration.getPriority());
-    Assert.assertEquals(ExternalTaskModels.TOPIC, externalTaskAfterMigration.getTopicName());
+    Assertions.assertEquals(ExternalTaskModels.PRIORITY.longValue(), externalTaskAfterMigration.getPriority());
+    Assertions.assertEquals(ExternalTaskModels.TOPIC, externalTaskAfterMigration.getTopicName());
 
   }
 
@@ -236,8 +236,8 @@ public class MigrationExternalTaskTest {
     // then the locking properties have not been changed
     ExternalTask externalTaskAfterMigration = rule.getExternalTaskService().createExternalTaskQuery().singleResult();
 
-    Assert.assertEquals(externalTaskBeforeMigration.getLockExpirationTime(), externalTaskAfterMigration.getLockExpirationTime());
-    Assert.assertEquals(externalTaskBeforeMigration.getWorkerId(), externalTaskAfterMigration.getWorkerId());
+    Assertions.assertEquals(externalTaskBeforeMigration.getLockExpirationTime(), externalTaskAfterMigration.getLockExpirationTime());
+    Assertions.assertEquals(externalTaskBeforeMigration.getWorkerId(), externalTaskAfterMigration.getWorkerId());
   }
 
   @Test
@@ -276,10 +276,10 @@ public class MigrationExternalTaskTest {
         .createMigrationPlan(sourceProcessDefinition.getId(), targetProcessDefinition.getId())
         .mapActivities("externalTask", "serviceTask")
         .build();
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     } catch (MigrationPlanValidationException e) {
       // then
-      assertThat(e.getValidationReport())
+      assertReport(e.getValidationReport())
       .hasInstructionFailures("externalTask",
         "Activities have incompatible types (ExternalTaskActivityBehavior is not compatible with"
         + " ClassDelegateActivityBehavior)"
@@ -400,9 +400,9 @@ public class MigrationExternalTaskTest {
     // when migration is executed
     try {
       testHelper.migrateProcessInstance(migrationPlan, processInstance);
-      Assert.fail("Exception expected!");
+      Assertions.fail("Exception expected!");
     } catch (Exception ex) {
-      Assert.assertTrue(ex instanceof MigratingProcessInstanceValidationException);
+      Assertions.assertTrue(ex instanceof MigratingProcessInstanceValidationException);
     }
   }
 
@@ -451,7 +451,7 @@ public class MigrationExternalTaskTest {
       .topic(topic, 1000L)
       .execute();
 
-    Assert.assertEquals(1, tasks.size());
+    Assertions.assertEquals(1, tasks.size());
 
     return tasks.get(0);
   }

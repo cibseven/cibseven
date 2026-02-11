@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.standalone.testing;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,45 +27,43 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 
 /**
  * @author Thorben Lindhauer
  */
-@RunWith(Parameterized.class)
 public class ProcessEngineRuleParameterizedJunit4Test {
 
-  @Parameters
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {
-      { 1 }, { 2 }
-    });
+  public static Collection<Integer> parameters() {
+    return Arrays.asList(1, 2);
   }
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
-  public ProcessEngineRuleParameterizedJunit4Test(int parameter) {
+  protected RuntimeService runtimeService;
+  protected TaskService taskService;
 
+  @BeforeEach
+  public void setUp() {
+    runtimeService = engineRule.getRuntimeService();
+    taskService = engineRule.getTaskService();
   }
 
-  /**
+/**
    * Unnamed @Deployment annotations don't work with parameterized Unit tests
    */
-  @Ignore
-  @Test
+  @Disabled
+  @ParameterizedTest
+  @MethodSource("parameters")
   @Deployment
-  public void ruleUsageExample() {
-    RuntimeService runtimeService = engineRule.getRuntimeService();
+  public void ruleUsageExample(int parameter) {
     runtimeService.startProcessInstanceByKey("ruleUsage");
 
-    TaskService taskService = engineRule.getTaskService();
     Task task = taskService.createTaskQuery().singleResult();
     assertEquals("My Task", task.getName());
 
@@ -73,13 +71,12 @@ public class ProcessEngineRuleParameterizedJunit4Test {
     assertEquals(0, runtimeService.createProcessInstanceQuery().count());
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("parameters")
   @Deployment(resources = "org/cibseven/bpm/engine/test/standalone/testing/ProcessEngineRuleParameterizedJunit4Test.ruleUsageExample.bpmn20.xml")
-  public void ruleUsageExampleWithNamedAnnotation() {
-    RuntimeService runtimeService = engineRule.getRuntimeService();
+  public void ruleUsageExampleWithNamedAnnotation(int parameter) {
     runtimeService.startProcessInstanceByKey("ruleUsage");
 
-    TaskService taskService = engineRule.getTaskService();
     Task task = taskService.createTaskQuery().singleResult();
     assertEquals("My Task", task.getName());
 
@@ -87,11 +84,9 @@ public class ProcessEngineRuleParameterizedJunit4Test {
     assertEquals(0, runtimeService.createProcessInstanceQuery().count());
   }
 
-  /**
-   * The rule should work with tests that have no deployment annotation
-   */
-  @Test
-  public void testWithoutDeploymentAnnotation() {
+  @ParameterizedTest
+  @MethodSource("parameters")
+  public void testWithoutDeploymentAnnotation(int parameter) {
     assertEquals("aString", "aString");
   }
 

@@ -32,10 +32,10 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -49,8 +49,8 @@ public class MigrationUserOperationLogTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testLogCreation() {
@@ -75,45 +75,45 @@ public class MigrationUserOperationLogTest {
 
     // then
     List<UserOperationLogEntry> opLogEntries = rule.getHistoryService().createUserOperationLogQuery().list();
-    Assert.assertEquals(3, opLogEntries.size());
+    Assertions.assertEquals(3, opLogEntries.size());
 
     Map<String, UserOperationLogEntry> entries = asMap(opLogEntries);
 
     UserOperationLogEntry procDefEntry = entries.get("processDefinitionId");
-    Assert.assertNotNull(procDefEntry);
-    Assert.assertEquals("ProcessInstance", procDefEntry.getEntityType());
-    Assert.assertEquals("Migrate", procDefEntry.getOperationType());
-    Assert.assertEquals(sourceProcessDefinition.getId(), procDefEntry.getProcessDefinitionId());
-    Assert.assertEquals(sourceProcessDefinition.getKey(), procDefEntry.getProcessDefinitionKey());
-    Assert.assertNull(procDefEntry.getProcessInstanceId());
-    Assert.assertEquals(sourceProcessDefinition.getId(), procDefEntry.getOrgValue());
-    Assert.assertEquals(targetProcessDefinition.getId(), procDefEntry.getNewValue());
-    Assert.assertEquals(UserOperationLogEntry.CATEGORY_OPERATOR, procDefEntry.getCategory());
+    Assertions.assertNotNull(procDefEntry);
+    Assertions.assertEquals("ProcessInstance", procDefEntry.getEntityType());
+    Assertions.assertEquals("Migrate", procDefEntry.getOperationType());
+    Assertions.assertEquals(sourceProcessDefinition.getId(), procDefEntry.getProcessDefinitionId());
+    Assertions.assertEquals(sourceProcessDefinition.getKey(), procDefEntry.getProcessDefinitionKey());
+    Assertions.assertNull(procDefEntry.getProcessInstanceId());
+    Assertions.assertEquals(sourceProcessDefinition.getId(), procDefEntry.getOrgValue());
+    Assertions.assertEquals(targetProcessDefinition.getId(), procDefEntry.getNewValue());
+    Assertions.assertEquals(UserOperationLogEntry.CATEGORY_OPERATOR, procDefEntry.getCategory());
 
     UserOperationLogEntry asyncEntry = entries.get("async");
-    Assert.assertNotNull(asyncEntry);
-    Assert.assertEquals("ProcessInstance", asyncEntry.getEntityType());
-    Assert.assertEquals("Migrate", asyncEntry.getOperationType());
-    Assert.assertEquals(sourceProcessDefinition.getId(), asyncEntry.getProcessDefinitionId());
-    Assert.assertEquals(sourceProcessDefinition.getKey(), asyncEntry.getProcessDefinitionKey());
-    Assert.assertNull(asyncEntry.getProcessInstanceId());
-    Assert.assertNull(asyncEntry.getOrgValue());
-    Assert.assertEquals("false", asyncEntry.getNewValue());
-    Assert.assertEquals(UserOperationLogEntry.CATEGORY_OPERATOR, asyncEntry.getCategory());
+    Assertions.assertNotNull(asyncEntry);
+    Assertions.assertEquals("ProcessInstance", asyncEntry.getEntityType());
+    Assertions.assertEquals("Migrate", asyncEntry.getOperationType());
+    Assertions.assertEquals(sourceProcessDefinition.getId(), asyncEntry.getProcessDefinitionId());
+    Assertions.assertEquals(sourceProcessDefinition.getKey(), asyncEntry.getProcessDefinitionKey());
+    Assertions.assertNull(asyncEntry.getProcessInstanceId());
+    Assertions.assertNull(asyncEntry.getOrgValue());
+    Assertions.assertEquals("false", asyncEntry.getNewValue());
+    Assertions.assertEquals(UserOperationLogEntry.CATEGORY_OPERATOR, asyncEntry.getCategory());
 
     UserOperationLogEntry numInstanceEntry = entries.get("nrOfInstances");
-    Assert.assertNotNull(numInstanceEntry);
-    Assert.assertEquals("ProcessInstance", numInstanceEntry.getEntityType());
-    Assert.assertEquals("Migrate", numInstanceEntry.getOperationType());
-    Assert.assertEquals(sourceProcessDefinition.getId(), numInstanceEntry.getProcessDefinitionId());
-    Assert.assertEquals(sourceProcessDefinition.getKey(), numInstanceEntry.getProcessDefinitionKey());
-    Assert.assertNull(numInstanceEntry.getProcessInstanceId());
-    Assert.assertNull(numInstanceEntry.getOrgValue());
-    Assert.assertEquals("1", numInstanceEntry.getNewValue());
-    Assert.assertEquals(UserOperationLogEntry.CATEGORY_OPERATOR, numInstanceEntry.getCategory());
+    Assertions.assertNotNull(numInstanceEntry);
+    Assertions.assertEquals("ProcessInstance", numInstanceEntry.getEntityType());
+    Assertions.assertEquals("Migrate", numInstanceEntry.getOperationType());
+    Assertions.assertEquals(sourceProcessDefinition.getId(), numInstanceEntry.getProcessDefinitionId());
+    Assertions.assertEquals(sourceProcessDefinition.getKey(), numInstanceEntry.getProcessDefinitionKey());
+    Assertions.assertNull(numInstanceEntry.getProcessInstanceId());
+    Assertions.assertNull(numInstanceEntry.getOrgValue());
+    Assertions.assertEquals("1", numInstanceEntry.getNewValue());
+    Assertions.assertEquals(UserOperationLogEntry.CATEGORY_OPERATOR, numInstanceEntry.getCategory());
 
-    Assert.assertEquals(procDefEntry.getOperationId(), asyncEntry.getOperationId());
-    Assert.assertEquals(asyncEntry.getOperationId(), numInstanceEntry.getOperationId());
+    Assertions.assertEquals(procDefEntry.getOperationId(), asyncEntry.getOperationId());
+    Assertions.assertEquals(asyncEntry.getOperationId(), numInstanceEntry.getOperationId());
   }
 
   protected Map<String, UserOperationLogEntry> asMap(List<UserOperationLogEntry> logEntries) {
@@ -123,7 +123,7 @@ public class MigrationUserOperationLogTest {
 
       UserOperationLogEntry previousValue = map.put(entry.getProperty(), entry);
       if (previousValue != null) {
-        Assert.fail("expected only entry for every property");
+        Assertions.fail("expected only entry for every property");
       }
     }
 

@@ -29,10 +29,10 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.cibseven.commons.testing.WatchLogger;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 public class BuiltinTaskListenerTest {
 
@@ -40,16 +40,16 @@ public class BuiltinTaskListenerTest {
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
       "org/cibseven/bpm/engine/test/bpmn/tasklistener/builtin/task.listener.camunda.cfg.xml");
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
-  @Rule
+//  @Rule
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
 
   protected RuntimeService runtimeService;
   protected RepositoryService repositoryService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     runtimeService = engineRule.getRuntimeService();
   }

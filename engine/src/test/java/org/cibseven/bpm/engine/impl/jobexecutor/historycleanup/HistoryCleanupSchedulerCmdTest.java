@@ -21,9 +21,9 @@ import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.metrics.reporter.DbMetricsReporter;
 import org.cibseven.bpm.engine.impl.persistence.entity.JobManager;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 
@@ -61,7 +61,7 @@ public class HistoryCleanupSchedulerCmdTest {
     String METRICS_KEY = "Key";
     Long METRICS_VALUE = 123L;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
@@ -80,7 +80,7 @@ public class HistoryCleanupSchedulerCmdTest {
         mockedHistoryCleanupHelper.when(() -> HistoryCleanupHelper.isWithinBatchWindow(any(Date.class), any(ProcessEngineConfigurationImpl.class))).thenReturn(false);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         mockedHistoryCleanupHelper.close();
     }

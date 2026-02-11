@@ -27,10 +27,10 @@ import org.cibseven.bpm.engine.test.api.runtime.migration.models.EventSubProcess
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.TransactionModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -41,8 +41,8 @@ public class MigrationTransactionTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testRule = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
 
   @Test
   public void testContinueProcess() {
@@ -245,7 +245,7 @@ public class MigrationTransactionTest {
     ProcessInstance processInstance = testRule.createProcessInstanceAndMigrate(migrationPlan);
 
     // then
-    Assert.assertEquals(
+    Assertions.assertEquals(
         testRule.getSingleActivityInstanceBeforeMigration("transaction").getId(),
         testRule.getSingleActivityInstanceAfterMigration("subProcess").getId());
 
@@ -274,7 +274,7 @@ public class MigrationTransactionTest {
     testRule.migrateProcessInstance(migrationPlan, processInstance);
 
     // then
-    Assert.assertEquals(
+    Assertions.assertEquals(
         testRule.getSingleActivityInstanceBeforeMigration("eventSubProcess").getId(),
         testRule.getSingleActivityInstanceAfterMigration("transaction").getId());
 

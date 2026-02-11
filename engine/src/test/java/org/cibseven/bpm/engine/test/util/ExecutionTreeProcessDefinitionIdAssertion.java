@@ -21,7 +21,7 @@ import java.util.List;
 
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.runtime.Execution;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * @author Thorben Lindhauer
@@ -47,7 +47,7 @@ public class ExecutionTreeProcessDefinitionIdAssertion implements ExecutionTreeA
         sb.append("\n");
       }
       sb.append("]\n");
-      Assert.fail(sb.toString());
+      Assertions.fail(sb.toString());
     }
   }
 

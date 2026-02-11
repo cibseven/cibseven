@@ -33,7 +33,7 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runners.Parameterized;
 
 public class SetJobRetriesBatchAuthorizationTest extends BatchCreationAuthorizationTest {
@@ -98,7 +98,7 @@ public class SetJobRetriesBatchAuthorizationTest extends BatchCreationAuthorizat
   protected List<String> setupFailedJobs() {
     List<String> jobIds = new ArrayList<>();
 
-    Deployment deploy = testHelper.deploy(JOB_EXCEPTION_DEFINITION_XML);
+    Deployment deploy = testRule.deploy(JOB_EXCEPTION_DEFINITION_XML);
     ProcessDefinition sourceDefinition = engineRule.getRepositoryService()
         .createProcessDefinitionQuery().deploymentId(deploy.getId()).singleResult();
     processInstance = engineRule.getRuntimeService().startProcessInstanceById(sourceDefinition.getId());

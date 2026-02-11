@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.jobexecutor;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
@@ -33,11 +33,12 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.MigrationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.batch.BatchMigrationHelper;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+
 
 public class JobExecutorBatchTest {
 
@@ -45,13 +46,13 @@ public class JobExecutorBatchTest {
   protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
   protected BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule);
   public CountingJobExecutor jobExecutor;
   protected JobExecutor defaultJobExecutor;
   protected int defaultBatchJobsPerSeed;
 
-  @Before
+  @BeforeEach
   public void replaceJobExecutor() throws Exception {
     ProcessEngineConfigurationImpl processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     defaultJobExecutor = processEngineConfiguration.getJobExecutor();
@@ -59,24 +60,24 @@ public class JobExecutorBatchTest {
     processEngineConfiguration.setJobExecutor(jobExecutor);
   }
 
-  @Before
+  @BeforeEach
   public void saveBatchJobsPerSeed() {
     defaultBatchJobsPerSeed = engineRule.getProcessEngineConfiguration().getBatchJobsPerSeed();
   }
 
-  @After
+  @AfterEach
   public void resetJobExecutor() {
     engineRule.getProcessEngineConfiguration()
       .setJobExecutor(defaultJobExecutor);
   }
 
-  @After
+  @AfterEach
   public void resetBatchJobsPerSeed() {
     engineRule.getProcessEngineConfiguration()
       .setBatchJobsPerSeed(defaultBatchJobsPerSeed);
   }
 
-  @After
+  @AfterEach
   public void removeBatches() {
     helper.removeAllRunningAndHistoricBatches();
   }

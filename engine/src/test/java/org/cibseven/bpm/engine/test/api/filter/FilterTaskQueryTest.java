@@ -17,12 +17,12 @@
 package org.cibseven.bpm.engine.test.api.filter;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,10 +60,10 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import com.google.gson.JsonObject;
 
@@ -103,7 +103,7 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
 
   protected JsonTaskQueryConverter queryConverter;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     filter = filterService.newTaskFilter("name")
         .setOwner("owner")
@@ -125,7 +125,7 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
     queryConverter = new JsonTaskQueryConverter();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processEngineConfiguration.setEnableExpressionsInAdhocQueries(false);
 
@@ -2304,7 +2304,7 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
   }
 
   @Deployment(resources = {"org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
-  @Ignore("CAM-9613")
+  @Disabled("CAM-9613")
   @Test
   public void testDateVariable() {
     // given
@@ -2326,7 +2326,7 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
   }
 
   @Deployment(resources = {"org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
-  @Ignore("CAM-9613")
+  @Disabled("CAM-9613")
   @Test
   public void testByteArrayVariable() {
     // given
@@ -2347,7 +2347,7 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
   }
 
   @Deployment(resources = {"org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
-  @Ignore("CAM-9613")
+  @Disabled("CAM-9613")
   @Test
   public void testLongVariable() {
     // given
@@ -2368,7 +2368,7 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
   }
 
   @Deployment(resources = {"org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
-  @Ignore("CAM-9613")
+  @Disabled("CAM-9613")
   @Test
   public void testShortVariable() {
     // given

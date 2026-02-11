@@ -19,11 +19,11 @@ package org.cibseven.bpm.engine.test.bpmn.event.error;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.test.bpmn.event.error.ThrowErrorDelegate.throwError;
 import static org.cibseven.bpm.engine.test.bpmn.event.error.ThrowErrorDelegate.throwException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.HashMap;
 import java.util.List;
@@ -44,9 +44,9 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -55,7 +55,7 @@ import org.junit.Test;
  */
 public class BoundaryErrorEventTest extends PluggableProcessEngineTest {
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
 
 
@@ -63,7 +63,7 @@ public class BoundaryErrorEventTest extends PluggableProcessEngineTest {
     identityService.setAuthenticatedUserId("kermit");
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     identityService.clearAuthentication();
 
@@ -752,7 +752,7 @@ public class BoundaryErrorEventTest extends PluggableProcessEngineTest {
   private void assertThatErrorHasBeenCaught(String procId) {
     // The service task will throw an error event,
     // which is caught on the service task boundary
-    assertEquals("No tasks found in task list.", 1, taskService.createTaskQuery().count());
+    assertEquals(1, taskService.createTaskQuery().count(), "No tasks found in task list.");
     Task task = taskService.createTaskQuery().singleResult();
     assertEquals("Escalated Task", task.getName());
 
@@ -764,7 +764,7 @@ public class BoundaryErrorEventTest extends PluggableProcessEngineTest {
   private void assertThatExceptionHasBeenCaught(String procId) {
     // The service task will throw an error event,
     // which is caught on the service task boundary
-    assertEquals("No tasks found in task list.", 1, taskService.createTaskQuery().count());
+    assertEquals(1, taskService.createTaskQuery().count(), "No tasks found in task list.");
     Task task = taskService.createTaskQuery().singleResult();
     assertEquals("Escalated Exception Task", task.getName());
 

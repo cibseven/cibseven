@@ -38,10 +38,10 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.TriConsumer;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -61,8 +61,8 @@ public class MultiTenancySetTaskPropertyTest {
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   // populated by data in constructor
   protected final String operationName;
@@ -70,7 +70,7 @@ public class MultiTenancySetTaskPropertyTest {
   protected final Object value;
   protected final String taskQueryBuilderMethodName;
 
-  // initialized during @Before
+  // initialized during @BeforeEach
   protected TaskService taskService;
   protected IdentityService identityService;
   protected String taskId;
@@ -111,7 +111,7 @@ public class MultiTenancySetTaskPropertyTest {
     });
   }
 
-  @Before
+  @BeforeEach
   public void init() {
     testRule.deployForTenant(TENANT_ONE, ONE_TASK_PROCESS);
 

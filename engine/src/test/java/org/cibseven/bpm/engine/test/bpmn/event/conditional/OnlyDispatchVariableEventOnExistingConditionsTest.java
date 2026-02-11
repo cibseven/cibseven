@@ -20,9 +20,9 @@ import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnM
 import static org.cibseven.bpm.engine.test.bpmn.event.conditional.AbstractConditionalEventTestCase.CONDITIONAL_EVENT_PROCESS_KEY;
 import static org.cibseven.bpm.engine.test.bpmn.event.conditional.AbstractConditionalEventTestCase.CONDITIONAL_MODEL;
 import static org.cibseven.bpm.engine.test.bpmn.event.conditional.AbstractConditionalEventTestCase.TASK_WITH_CONDITION_ID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 
@@ -36,8 +36,8 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Christopher Zell <christopher.zell@camunda.com>
@@ -73,7 +73,7 @@ public class OnlyDispatchVariableEventOnExistingConditionsTest {
     }
   }
 
-  @Rule
+//  @Rule
   public ProcessEngineRule rule = new ProvidedProcessEngineRule();
 
   @Test

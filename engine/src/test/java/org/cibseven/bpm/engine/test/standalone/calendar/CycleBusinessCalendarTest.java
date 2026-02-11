@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.test.standalone.calendar;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -29,11 +29,12 @@ import java.util.Date;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.calendar.CycleBusinessCalendar;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
 
 @RunWith(Parameterized.class)
 public class CycleBusinessCalendarTest {
@@ -59,7 +60,7 @@ public class CycleBusinessCalendarTest {
     this.supportLegacyQuartzSyntax = supportLegacyQuartzSyntax;
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ClockUtil.reset();
   }

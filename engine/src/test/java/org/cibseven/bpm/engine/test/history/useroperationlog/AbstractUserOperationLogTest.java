@@ -16,27 +16,58 @@
  */
 package org.cibseven.bpm.engine.test.history.useroperationlog;
 
+import org.cibseven.bpm.engine.ExternalTaskService;
+import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
-import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author Roman Smirnov
  *
  */
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
-public abstract class AbstractUserOperationLogTest extends PluggableProcessEngineTest {
+public abstract class AbstractUserOperationLogTest {
 
   public static final String USER_ID = "demo";
 
-  @Before
+  @org.junit.jupiter.api.extension.RegisterExtension
+  protected org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule engineRule = new org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule();
+  @org.junit.jupiter.api.extension.RegisterExtension
+  protected org.cibseven.bpm.engine.test.util.ProcessEngineTestRule testRule = new org.cibseven.bpm.engine.test.util.ProcessEngineTestRule(engineRule);
+  protected org.cibseven.bpm.engine.IdentityService identityService;
+  protected org.cibseven.bpm.engine.RuntimeService runtimeService;
+  protected org.cibseven.bpm.engine.TaskService taskService;
+  protected org.cibseven.bpm.engine.HistoryService historyService;
+  protected org.cibseven.bpm.engine.RepositoryService repositoryService;
+  protected org.cibseven.bpm.engine.ManagementService managementService;
+  protected org.cibseven.bpm.engine.CaseService caseService;
+  protected org.cibseven.bpm.engine.DecisionService decisionService;
+  protected org.cibseven.bpm.engine.FormService formService;
+  protected ExternalTaskService externalTaskService;
+  protected ProcessEngine processEngine;
+  protected org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl processEngineConfiguration;
+
+
+  @BeforeEach
   public void abstractSetUp() throws Exception {
+    processEngine = engineRule.getProcessEngine();
+    identityService = processEngine.getIdentityService();
+    runtimeService = processEngine.getRuntimeService();
+    taskService = processEngine.getTaskService();
+    historyService = processEngine.getHistoryService();
+    repositoryService = processEngine.getRepositoryService();
+    managementService = processEngine.getManagementService();
+    caseService = processEngine.getCaseService();
+    decisionService = processEngine.getDecisionService();
+    formService = processEngine.getFormService();
+    externalTaskService = processEngine.getExternalTaskService();
+    processEngineConfiguration = (org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl) processEngine.getProcessEngineConfiguration();
     identityService.setAuthenticatedUserId(USER_ID);
   }
 
-  @After
+  @AfterEach
   public void abstractTearDown() throws Exception {
     identityService.clearAuthentication();
   }

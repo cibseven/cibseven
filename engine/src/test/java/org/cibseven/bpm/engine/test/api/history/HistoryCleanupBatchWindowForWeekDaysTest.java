@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.api.history;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -41,11 +41,11 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -82,8 +82,8 @@ public class HistoryCleanupBatchWindowForWeekDaysTest {
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule).around(testRule);
 
   private HistoryService historyService;
   private ManagementService managementService;
@@ -119,7 +119,7 @@ public class HistoryCleanupBatchWindowForWeekDaysTest {
         {  sdf.parse("2018-05-20T09:00:00"), sdf.parse("2018-05-20T10:00:00"), sdf.parse("2018-05-20T20:00:00"), null, null }} ); //sunday
   }
 
-  @Before
+  @BeforeEach
   public void init() {
     historyService = engineRule.getHistoryService();
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
@@ -131,7 +131,7 @@ public class HistoryCleanupBatchWindowForWeekDaysTest {
     defaultBatchSize = processEngineConfiguration.getHistoryCleanupBatchSize();
   }
 
-  @After
+  @AfterEach
   public void clearDatabase() {
     //reset configuration changes
     processEngineConfiguration.setHistoryCleanupBatchWindowStartTime(defaultStartTime);

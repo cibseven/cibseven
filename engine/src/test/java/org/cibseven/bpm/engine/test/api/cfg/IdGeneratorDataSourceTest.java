@@ -21,25 +21,26 @@ import java.util.List;
 
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
+import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapClassExtension;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class IdGeneratorDataSourceTest {
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
-      "org/cibseven/bpm/engine/test/api/cfg/IdGeneratorDataSourceTest.camunda.cfg.xml");
-  @Rule
-  public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  public static ProcessEngineBootstrapClassExtension processEngineBootstrapClassExtension = ProcessEngineBootstrapClassExtension.builder()
+    .setConfigurationResource("org/cibseven/bpm/engine/test/api/cfg/IdGeneratorDataSourceTest.camunda.cfg.xml")
+    .build();
+
+  protected ProvidedProcessEngineRule engineRule;
 
   protected RuntimeService runtimeService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     runtimeService = engineRule.getRuntimeService();
   }

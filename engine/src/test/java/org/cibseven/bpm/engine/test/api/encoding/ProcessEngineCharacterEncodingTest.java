@@ -29,10 +29,10 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.task.Comment;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
@@ -41,7 +41,7 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class ProcessEngineCharacterEncodingTest {
 
-  @Rule
+//  @Rule
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
@@ -60,7 +60,7 @@ public class ProcessEngineCharacterEncodingTest {
     });
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processEngineConfiguration.setDefaultCharset(defaultCharset);
     for (Task task : tasks) {
@@ -68,7 +68,7 @@ public class ProcessEngineCharacterEncodingTest {
     }
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     taskService = processEngineConfiguration.getTaskService();

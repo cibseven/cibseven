@@ -22,10 +22,10 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -36,8 +36,8 @@ public class MigrationHorizontalScopeChangeTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testCannotMigrateHorizontallyBetweenScopes() {
@@ -56,10 +56,10 @@ public class MigrationHorizontalScopeChangeTest {
         .mapActivities("userTask2", "userTask1")
         .build();
 
-      Assert.fail("should fail");
+      Assertions.fail("should fail");
     }
     catch (MigrationPlanValidationException e) {
-      MigrationPlanValidationReportAssert.assertThat(e.getValidationReport())
+      MigrationPlanValidationReportAssert.assertReport(e.getValidationReport())
         .hasInstructionFailures("userTask1",
           "The closest mapped ancestor 'subProcess1' is mapped to scope 'subProcess1' which is not an ancestor of target scope 'userTask2'"
         )

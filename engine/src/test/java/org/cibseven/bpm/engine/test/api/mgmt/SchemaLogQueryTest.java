@@ -35,9 +35,9 @@ import org.cibseven.bpm.engine.impl.persistence.entity.SchemaLogEntryEntity;
 import org.cibseven.bpm.engine.management.SchemaLogEntry;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Miklas Boskamp
@@ -45,7 +45,7 @@ import org.junit.Test;
  */
 public class SchemaLogQueryTest {
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected ManagementService managementService;
@@ -54,7 +54,7 @@ public class SchemaLogQueryTest {
   protected SchemaLogEntryEntity dummySchemaLogEntry;
   protected long initialEntryCount;
 
-  @Before
+  @BeforeEach
   public void init() {
     managementService = engineRule.getManagementService();
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();

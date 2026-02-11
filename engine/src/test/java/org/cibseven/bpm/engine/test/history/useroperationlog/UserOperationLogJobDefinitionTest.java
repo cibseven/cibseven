@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.history.useroperationlog;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Date;
 
@@ -28,7 +28,7 @@ import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.management.JobDefinition;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -178,7 +178,7 @@ public class UserOperationLogJobDefinitionTest extends AbstractUserOperationLogT
         jobDefOpLogEntry.getOperationId(), jobOpLogEntry.getOperationId());
 
     assertEquals(EntityTypes.JOB, jobOpLogEntry.getEntityType());
-    assertNull("id should null because it is a bulk update operation", jobOpLogEntry.getJobId());
+    assertNull(jobOpLogEntry.getJobId(), "id should null because it is a bulk update operation");
 
     assertEquals(UserOperationLogEntry.OPERATION_TYPE_SET_PRIORITY, jobOpLogEntry.getOperationType());
 

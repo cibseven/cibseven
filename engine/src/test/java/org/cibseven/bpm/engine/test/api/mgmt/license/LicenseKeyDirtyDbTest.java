@@ -26,24 +26,24 @@ import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 public class LicenseKeyDirtyDbTest {
 
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(testRule).around(engineRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(testRule).around(engineRule);
 
   ProcessEngine processEngine;
   ProcessEngineConfigurationImpl processEngineConfiguration;
   ManagementService managementService;
 
-  @Before
+  @BeforeEach
   public void init() {
     processEngine = engineRule.getProcessEngine();
     processEngineConfiguration = (ProcessEngineConfigurationImpl) processEngine.getProcessEngineConfiguration();

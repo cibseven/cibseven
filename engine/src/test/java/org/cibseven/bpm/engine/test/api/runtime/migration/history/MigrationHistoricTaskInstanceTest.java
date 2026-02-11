@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.test.api.runtime.migration.history;
 
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 
@@ -38,11 +38,11 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.runtime.migration.MigrationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -53,14 +53,14 @@ public class MigrationHistoricTaskInstanceTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
   protected TaskService taskService;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     historyService = rule.getHistoryService();
     runtimeService = rule.getRuntimeService();
@@ -138,10 +138,10 @@ public class MigrationHistoricTaskInstanceTest {
     HistoricTaskInstance historicSubTaskAfterMigration = historyService
         .createHistoricTaskInstanceQuery().taskId(subTask.getId()).singleResult();
 
-    Assert.assertNotNull(historicSubTaskAfterMigration);
-    Assert.assertNull(historicSubTaskAfterMigration.getProcessDefinitionId());
-    Assert.assertNull(historicSubTaskAfterMigration.getProcessDefinitionKey());
-    Assert.assertNull(historicSubTaskAfterMigration.getExecutionId());
-    Assert.assertNull(historicSubTaskAfterMigration.getActivityInstanceId());
+    Assertions.assertNotNull(historicSubTaskAfterMigration);
+    Assertions.assertNull(historicSubTaskAfterMigration.getProcessDefinitionId());
+    Assertions.assertNull(historicSubTaskAfterMigration.getProcessDefinitionKey());
+    Assertions.assertNull(historicSubTaskAfterMigration.getExecutionId());
+    Assertions.assertNull(historicSubTaskAfterMigration.getActivityInstanceId());
   }
 }

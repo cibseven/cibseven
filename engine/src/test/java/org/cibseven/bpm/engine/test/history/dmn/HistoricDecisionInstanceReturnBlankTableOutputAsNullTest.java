@@ -24,8 +24,8 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -37,7 +37,7 @@ public class HistoricDecisionInstanceReturnBlankTableOutputAsNullTest {
   public static ProcessEngineBootstrapRule bootstrapRule =
       new ProcessEngineBootstrapRule(config -> config.setDmnReturnBlankTableOutputAsNull(true));
 
-  @Rule
+//  @Rule
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   public static final String RESULT_TEST_DMN = "org/cibseven/bpm/engine/test/history/ReturnBlankTableOutputAsNull.dmn";

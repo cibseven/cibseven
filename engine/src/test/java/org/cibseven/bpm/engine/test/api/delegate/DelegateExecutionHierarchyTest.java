@@ -16,18 +16,18 @@
  */
 package org.cibseven.bpm.engine.test.api.delegate;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.test.api.delegate.AssertingJavaDelegate.DelegateExecutionAsserter;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.model.bpmn.Bpmn;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for the execution hierarchy methods exposed in delegate execution
@@ -37,7 +37,7 @@ import org.junit.Test;
  */
 public class DelegateExecutionHierarchyTest extends PluggableProcessEngineTest {
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     AssertingJavaDelegate.clear();
 

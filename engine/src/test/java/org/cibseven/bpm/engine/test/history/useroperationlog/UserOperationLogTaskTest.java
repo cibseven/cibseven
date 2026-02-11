@@ -30,11 +30,11 @@ import static org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity.DELEGAT
 import static org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity.DELETE;
 import static org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity.OWNER;
 import static org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity.PRIORITY;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -52,7 +52,7 @@ import org.cibseven.bpm.engine.task.DelegationState;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.joda.time.DateTime;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Danny Gräf

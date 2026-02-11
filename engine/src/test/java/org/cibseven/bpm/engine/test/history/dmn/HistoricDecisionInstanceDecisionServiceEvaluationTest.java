@@ -36,14 +36,14 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ResetDmnConfigUtil;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
 
 @RunWith(Parameterized.class)
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
@@ -78,17 +78,17 @@ public class HistoricDecisionInstanceDecisionServiceEvaluationTest {
   @Parameter(1)
   public String activityId;
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
-  @Rule
+//  @Rule
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected RepositoryService repositoryService;
   protected HistoryService historyService;
 
-  @Before
+  @BeforeEach
   public void init() {
     testRule.deploy(DECISION_DMN, process);
 
@@ -97,7 +97,7 @@ public class HistoricDecisionInstanceDecisionServiceEvaluationTest {
     historyService = engineRule.getHistoryService();
   }
 
-  @Before
+  @BeforeEach
   public void enableDmnFeelLegacyBehavior() {
     DefaultDmnEngineConfiguration dmnEngineConfiguration =
         engineRule.getProcessEngineConfiguration()
@@ -108,7 +108,7 @@ public class HistoricDecisionInstanceDecisionServiceEvaluationTest {
         .init();
   }
 
-  @After
+  @AfterEach
   public void disableDmnFeelLegacyBehavior() {
 
     DefaultDmnEngineConfiguration dmnEngineConfiguration =

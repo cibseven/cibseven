@@ -24,7 +24,7 @@ import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION
 import static org.cibseven.bpm.engine.authorization.Resources.TASK;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario.scenario;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec.grant;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -37,35 +37,37 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
+import org.cibseven.bpm.engine.test.util.AuthorizationRuleExtension;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
+@ExtendWith(AuthorizationRuleExtension.class)
 public class HandleTaskAuthorizationTest {
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  public ProcessEngineRule engineRule;
+  public AuthorizationTestRule authRule;
 
-  @Rule
+//  @Rule
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
                                                       .watch(BPMN_BEHAVIOR_LOGGER)
                                                       .level(Level.INFO);
 
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule);
+//  @Rule
+//  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule);
 
   @Parameter
   public AuthorizationScenario scenario;
@@ -108,7 +110,7 @@ public class HandleTaskAuthorizationTest {
       );
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     taskService = engineRule.getTaskService();
@@ -118,7 +120,7 @@ public class HandleTaskAuthorizationTest {
     authRule.createUserAndGroup("userId", "groupId");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
     repositoryService.deleteDeployment(deploymentId, true);

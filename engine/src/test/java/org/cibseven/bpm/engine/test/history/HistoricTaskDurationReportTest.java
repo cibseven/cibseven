@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.history;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Calendar;
 import java.util.List;
@@ -38,26 +38,24 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Stefan Hentschel.
  */
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
+@ExtendWith(ProvidedProcessEngineRule.class)
 public class HistoricTaskDurationReportTest {
 
+  @RegisterExtension
   public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public ProcessEngineTestRule processEngineTestRule = new ProcessEngineTestRule(processEngineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain
-    .outerRule(processEngineTestRule)
-    .around(processEngineRule);
-
+  
   protected ProcessEngineConfiguration processEngineConfiguration;
   protected HistoryService historyService;
 
@@ -65,7 +63,7 @@ public class HistoricTaskDurationReportTest {
   protected static final String ANOTHER_PROCESS_DEFINITION_KEY = "ANOTHER_HISTORIC_TASK_INST_REPORT";
 
 
-  @Before
+  @BeforeEach
   public void setUp() {
     historyService = processEngineRule.getHistoryService();
     processEngineConfiguration = processEngineRule.getProcessEngineConfiguration();
@@ -74,7 +72,7 @@ public class HistoricTaskDurationReportTest {
     processEngineTestRule.deploy(createProcessWithUserTask(ANOTHER_PROCESS_DEFINITION_KEY));
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     List<Task> list = processEngineRule.getTaskService().createTaskQuery().list();
     for( Task task : list ) {
@@ -164,9 +162,9 @@ public class HistoricTaskDurationReportTest {
 
     long avg = sum / historicTaskInstances.size();
 
-    assertEquals("maximum", max, taskReportResult.getMaximum());
-    assertEquals("minimum", min, taskReportResult.getMinimum());
-    assertEquals("average", avg, taskReportResult.getAverage(), 0);
+    assertEquals(max, taskReportResult.getMaximum(), "maximum");
+    assertEquals(min, taskReportResult.getMinimum(), "minimum");
+    assertEquals(avg, taskReportResult.getAverage(), 0, "average");
 
   }
 

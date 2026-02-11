@@ -43,10 +43,10 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.cibseven.commons.testing.WatchLogger;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -57,19 +57,19 @@ public class BpmnDeploymentTest extends PluggableProcessEngineTest {
 
   protected static final String CMD_LOGGER = "org.cibseven.bpm.engine.cmd";
   
-  @Rule
+//  @Rule
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
 
   protected DeploymentHandlerFactory defaultDeploymentHandlerFactory;
   protected DeploymentHandlerFactory customDeploymentHandlerFactory;
   
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     defaultDeploymentHandlerFactory = processEngineConfiguration.getDeploymentHandlerFactory();
     customDeploymentHandlerFactory = new VersionedDeploymentHandlerFactory();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     processEngineConfiguration.setDeploymentHandlerFactory(defaultDeploymentHandlerFactory);
   }

@@ -25,13 +25,13 @@ import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.ExecutionListener;
 import org.cibseven.bpm.engine.impl.pvm.PvmProcessInstance;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * @author Daniel Meyer
  *
  */
-public class ActivityInstanceVerification extends Assert implements ExecutionListener {
+public class ActivityInstanceVerification extends Assertions implements ExecutionListener {
 
   class ActivityInstance {
 

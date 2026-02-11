@@ -33,25 +33,25 @@ import org.cibseven.bpm.engine.impl.test.RequiredDatabase;
 import org.cibseven.bpm.engine.impl.util.PropertiesUtil;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 // This test is excluded on Oracle since the SQL State changed with the new version of the JDBC driver.
 @RequiredDatabase(excludes = { DbSqlSessionFactory.H2, DbSqlSessionFactory.ORACLE })
 public class ConnectionPersistenceExceptionTest {
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
+  
   protected IdentityService identityService;
 
   protected ProcessEngineConfigurationImpl engineConfig;
 
   protected String resetUrl;
 
-  @Before
+  @BeforeEach
   public void assignServices() {
     identityService = engineRule.getIdentityService();
 
@@ -60,7 +60,7 @@ public class ConnectionPersistenceExceptionTest {
     resetUrl = ((PooledDataSource) engineConfig.getDataSource()).getUrl();
   }
 
-  @After
+  @AfterEach
   public void resetEngine() {
     ((PooledDataSource) engineConfig.getDataSource()).setUrl(resetUrl);
     engineRule.getIdentityService().deleteUser("foo");

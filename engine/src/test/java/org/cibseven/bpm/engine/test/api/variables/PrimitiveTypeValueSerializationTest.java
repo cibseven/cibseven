@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.api.variables;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,10 +29,10 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
@@ -73,10 +73,10 @@ public class PrimitiveTypeValueSerializationTest {
   private RepositoryService repositoryService;
   private String deploymentId;
 
-  @Rule
+//  @Rule
   public ProcessEngineRule rule = new ProvidedProcessEngineRule();
 
-  @Before
+  @BeforeEach
   public void setup() {
     runtimeService = rule.getRuntimeService();
     repositoryService = rule.getRepositoryService();
@@ -84,7 +84,7 @@ public class PrimitiveTypeValueSerializationTest {
     deploymentId = repositoryService.createDeployment().addClasspathResource(BPMN_FILE).deploy().getId();
   }
 
-  @After
+  @AfterEach
   public void teardown() {
     repositoryService.deleteDeployment(deploymentId, true);
   }

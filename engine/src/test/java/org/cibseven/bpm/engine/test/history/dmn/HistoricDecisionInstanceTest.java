@@ -44,9 +44,9 @@ import org.cibseven.bpm.engine.test.util.ResetDmnConfigUtil;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.joda.time.DateTime;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Philipp Ossler
@@ -75,7 +75,7 @@ public class HistoricDecisionInstanceTest extends PluggableProcessEngineTest {
 
   public static final String DECISION_DEFINITION_KEY = "testDecision";
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     DefaultDmnEngineConfiguration dmnEngineConfiguration =
         processEngineConfiguration.getDmnEngineConfiguration();
@@ -87,7 +87,7 @@ public class HistoricDecisionInstanceTest extends PluggableProcessEngineTest {
 
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     DefaultDmnEngineConfiguration dmnEngineConfiguration =
         processEngineConfiguration.getDmnEngineConfiguration();

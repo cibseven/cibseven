@@ -22,9 +22,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class JobExecutorPriorityRangeConfigurationTest {
 
@@ -33,7 +33,7 @@ public class JobExecutorPriorityRangeConfigurationTest {
   protected Long defaultJobExecutorPriorityRangeMin;
   protected Long defaultJobExecutorPriorityRangeMax;
 
-  @Before
+  @BeforeEach
   public void setup() {
     config = (ProcessEngineConfigurationImpl) ProcessEngineConfiguration
         .createProcessEngineConfigurationFromResource("camunda.cfg.xml");
@@ -41,7 +41,7 @@ public class JobExecutorPriorityRangeConfigurationTest {
     defaultJobExecutorPriorityRangeMax = config.getJobExecutorPriorityRangeMax();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     config.setJobExecutorPriorityRangeMin(defaultJobExecutorPriorityRangeMin);
     config.setJobExecutorPriorityRangeMax(defaultJobExecutorPriorityRangeMax);

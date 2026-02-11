@@ -30,15 +30,15 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
+import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
-import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.cibseven.bpm.engine.test.util.AuthorizationRuleExtension;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Please note that if you want to reuse Rule and other fields you should create abstract class
@@ -48,7 +48,7 @@ import org.junit.runners.Parameterized;
  *
  * @author Askar Akhmerov
  */
-@RunWith(Parameterized.class)
+@ExtendWith(AuthorizationRuleExtension.class)
 public class GetErrorDetailsAuthorizationTest {
 
   protected static final String ERROR_DETAILS = "theDetails";
@@ -56,55 +56,50 @@ public class GetErrorDetailsAuthorizationTest {
   protected String deploymentId;
   protected String currentDetails;
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  // Add fields for engineRule and authRule to be injected by the extension
+  protected ProcessEngineRule engineRule;
+  protected AuthorizationTestRule authRule;
 
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule);
-
-  @Parameterized.Parameter
-  public AuthorizationScenario scenario;
-
-  @Parameterized.Parameters(name = "Scenario {index}")
-  public static Collection<AuthorizationScenario[]> scenarios() {
-    return AuthorizationTestRule.asParameters(
-        scenario()
-            .withoutAuthorizations()
-            .failsDueToRequired(
-                grant(Resources.PROCESS_INSTANCE, "processInstanceId", "userId", Permissions.READ),
-                grant(Resources.PROCESS_DEFINITION, "oneExternalTaskProcess", "userId", Permissions.READ_INSTANCE)),
-        scenario()
-            .withAuthorizations(
-                grant(Resources.PROCESS_INSTANCE, "processInstanceId", "userId", Permissions.READ))
-            .succeeds(),
-        scenario()
-            .withAuthorizations(
-                grant(Resources.PROCESS_INSTANCE, "*", "userId", Permissions.READ))
-            .succeeds(),
-        scenario()
-            .withAuthorizations(
-                grant(Resources.PROCESS_DEFINITION, "processDefinitionKey", "userId", Permissions.READ_INSTANCE))
-            .succeeds(),
-        scenario()
-            .withAuthorizations(
-                grant(Resources.PROCESS_DEFINITION, "*", "userId", Permissions.READ_INSTANCE))
-            .succeeds()
+  public static Collection<AuthorizationScenario> scenarios() {
+    return List.of(
+      scenario()
+        .withoutAuthorizations()
+        .failsDueToRequired(
+          grant(Resources.PROCESS_INSTANCE, "processInstanceId", "userId", Permissions.READ),
+          grant(Resources.PROCESS_DEFINITION, "oneExternalTaskProcess", "userId", Permissions.READ_INSTANCE)),
+      scenario()
+        .withAuthorizations(
+          grant(Resources.PROCESS_INSTANCE, "processInstanceId", "userId", Permissions.READ))
+        .succeeds(),
+      scenario()
+        .withAuthorizations(
+          grant(Resources.PROCESS_INSTANCE, "*", "userId", Permissions.READ))
+        .succeeds(),
+      scenario()
+        .withAuthorizations(
+          grant(Resources.PROCESS_DEFINITION, "processDefinitionKey", "userId", Permissions.READ_INSTANCE))
+        .succeeds(),
+      scenario()
+        .withAuthorizations(
+          grant(Resources.PROCESS_DEFINITION, "*", "userId", Permissions.READ_INSTANCE))
+        .succeeds()
     );
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     authRule.createUserAndGroup("userId", "groupId");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/externaltask/oneExternalTaskProcess.bpmn20.xml")
-  public void testCompleteExternalTask() {
+  public void testCompleteExternalTask(AuthorizationScenario scenario) {
 
     // given
     ProcessInstance processInstance = engineRule.getRuntimeService().startProcessInstanceByKey("oneExternalTaskProcess");

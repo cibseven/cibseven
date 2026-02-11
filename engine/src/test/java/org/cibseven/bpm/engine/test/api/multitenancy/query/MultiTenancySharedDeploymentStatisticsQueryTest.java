@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.api.multitenancy.query;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,11 +34,11 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * 
@@ -64,8 +64,8 @@ public class MultiTenancySharedDeploymentStatisticsQueryTest {
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain tenantRuleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain tenantRuleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected RuntimeService runtimeService;
   protected ManagementService managementService;
@@ -92,7 +92,7 @@ public class MultiTenancySharedDeploymentStatisticsQueryTest {
     .done();
 
 
-  @Before
+  @BeforeEach
   public void setUp() {
     runtimeService = engineRule.getRuntimeService();
     identityService = engineRule.getIdentityService();

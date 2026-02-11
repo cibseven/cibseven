@@ -38,11 +38,11 @@ import org.cibseven.bpm.engine.test.api.runtime.migration.MigrationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.AsyncProcessModels;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -54,15 +54,15 @@ public class MigrationHistoricIncidentTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
   protected ManagementService managementService;
   protected RepositoryService repositoryService;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     historyService = rule.getHistoryService();
     runtimeService = rule.getRuntimeService();
@@ -102,17 +102,17 @@ public class MigrationHistoricIncidentTest {
 
     // then
     HistoricIncident historicIncident = historyService.createHistoricIncidentQuery().singleResult();
-    Assert.assertNotNull(historicIncident);
+    Assertions.assertNotNull(historicIncident);
 
-    Assert.assertEquals("newUserTask", historicIncident.getActivityId());
-    Assert.assertEquals(targetJobDefinition.getId(), historicIncident.getJobDefinitionId());
-    Assert.assertEquals(targetProcess.getId(), historicIncident.getProcessDefinitionId());
-    Assert.assertEquals(targetProcess.getKey(), historicIncident.getProcessDefinitionKey());
-    Assert.assertEquals(processInstance.getId(), historicIncident.getExecutionId());
+    Assertions.assertEquals("newUserTask", historicIncident.getActivityId());
+    Assertions.assertEquals(targetJobDefinition.getId(), historicIncident.getJobDefinitionId());
+    Assertions.assertEquals(targetProcess.getId(), historicIncident.getProcessDefinitionId());
+    Assertions.assertEquals(targetProcess.getKey(), historicIncident.getProcessDefinitionKey());
+    Assertions.assertEquals(processInstance.getId(), historicIncident.getExecutionId());
 
     // and other properties have not changed
-    Assert.assertEquals(incidentBeforeMigration.getCreateTime(), historicIncident.getCreateTime());
-    Assert.assertEquals(incidentBeforeMigration.getProcessInstanceId(), historicIncident.getProcessInstanceId());
+    Assertions.assertEquals(incidentBeforeMigration.getCreateTime(), historicIncident.getCreateTime());
+    Assertions.assertEquals(incidentBeforeMigration.getProcessInstanceId(), historicIncident.getProcessInstanceId());
 
   }
 
@@ -140,8 +140,8 @@ public class MigrationHistoricIncidentTest {
     ActivityInstance activityInstance = runtimeService.getActivityInstance(processInstance.getId());
 
     HistoricIncident historicIncident = historyService.createHistoricIncidentQuery().singleResult();
-    Assert.assertNotNull(historicIncident);
-    Assert.assertEquals(
+    Assertions.assertNotNull(historicIncident);
+    Assertions.assertEquals(
         activityInstance.getTransitionInstances("userTask")[0].getExecutionId(),
         historicIncident.getExecutionId());
   }

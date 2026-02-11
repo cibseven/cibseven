@@ -17,8 +17,8 @@
 package org.cibseven.bpm.engine.test.api.runtime;
 
 import static org.cibseven.bpm.engine.test.api.runtime.util.SetBusinessKeyListener.BUSINESS_KEY_VARIABLE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.concurrent.TimeUnit;
 
@@ -45,10 +45,10 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class SetBusinessKeyTest {
@@ -56,8 +56,8 @@ public class SetBusinessKeyTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
 
   protected static final String PROCESS_KEY = "process";
 
@@ -85,7 +85,7 @@ public class SetBusinessKeyTest {
   protected HistoryService historyService;
   protected ManagementService managementService;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     runtimeService = rule.getRuntimeService();
     taskService = rule.getTaskService();

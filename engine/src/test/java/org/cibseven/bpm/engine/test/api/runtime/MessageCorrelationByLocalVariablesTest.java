@@ -18,8 +18,8 @@ package org.cibseven.bpm.engine.test.api.runtime;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,8 +38,9 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Svetlana Dorokhova
@@ -47,8 +48,10 @@ import org.junit.Test;
 public class MessageCorrelationByLocalVariablesTest {
 
   public static final String TEST_MESSAGE_NAME = "TEST_MSG";
-  @Rule public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  @Rule public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   @Test
   public void testReceiveTaskMessageCorrelation() {

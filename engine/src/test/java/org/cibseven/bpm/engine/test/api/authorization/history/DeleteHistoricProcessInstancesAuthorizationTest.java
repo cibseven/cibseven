@@ -18,8 +18,7 @@ package org.cibseven.bpm.engine.test.api.authorization.history;
 
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario.scenario;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec.grant;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,31 +35,30 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
+import org.cibseven.bpm.engine.test.util.AuthorizationRuleTripleExtension;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Askar Akhmerov
  */
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
-@RunWith(Parameterized.class)
+@ExtendWith(AuthorizationRuleTripleExtension.class)
 public class DeleteHistoricProcessInstancesAuthorizationTest {
 
   protected static final String PROCESS_KEY = "oneTaskProcess";
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  protected ProcessEngineRule engineRule;
+  protected AuthorizationTestRule authRule;
+  protected ProcessEngineTestRule testRule;
 
   protected ProcessInstance processInstance;
   protected ProcessInstance processInstance2;
@@ -72,29 +70,7 @@ public class DeleteHistoricProcessInstancesAuthorizationTest {
   protected HistoryService historyService;
   protected ManagementService managementService;
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
-  @Parameterized.Parameter
-  public AuthorizationScenario scenario;
-
-  @Parameterized.Parameters(name = "Scenario {index}")
-  public static Collection<AuthorizationScenario[]> scenarios() {
-    return AuthorizationTestRule.asParameters(
-        scenario()
-            .withAuthorizations(
-                grant(Resources.PROCESS_DEFINITION, "Process", "userId", Permissions.READ_HISTORY)
-            )
-            .failsDueToRequired(
-                grant(Resources.PROCESS_DEFINITION, "Process", "userId", Permissions.DELETE_HISTORY)
-            ),
-        scenario()
-            .withAuthorizations(
-                grant(Resources.PROCESS_DEFINITION, "Process", "userId", Permissions.READ_HISTORY, Permissions.DELETE_HISTORY)
-            ).succeeds()
-    );
-  }
-
-  @Before
+  @BeforeEach
   public void setUp() {
     authRule.createUserAndGroup("userId", "groupId");
     runtimeService = engineRule.getRuntimeService();
@@ -105,7 +81,7 @@ public class DeleteHistoricProcessInstancesAuthorizationTest {
   }
 
   public void deployAndCompleteProcesses() {
-    ProcessDefinition sourceDefinition = testHelper.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
+    ProcessDefinition sourceDefinition = testRule.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
     processInstance = engineRule.getRuntimeService().startProcessInstanceById(sourceDefinition.getId());
     processInstance2 = engineRule.getRuntimeService().startProcessInstanceById(sourceDefinition.getId());
 
@@ -120,13 +96,31 @@ public class DeleteHistoricProcessInstancesAuthorizationTest {
         .processInstanceId(processInstance2.getId()).singleResult();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
   }
 
-  @Test
-  public void testProcessInstancesList() {
+  public static List<AuthorizationScenario> scenarios() {
+    return Arrays.asList(
+      scenario()
+        .withAuthorizations(
+          grant(Resources.PROCESS_DEFINITION, "Process", "userId", Permissions.READ_HISTORY)
+        )
+        .failsDueToRequired(
+          grant(Resources.PROCESS_DEFINITION, "Process", "userId", Permissions.DELETE_HISTORY)
+        ),
+      scenario()
+        .withAuthorizations(
+          grant(Resources.PROCESS_DEFINITION, "Process", "userId", Permissions.READ_HISTORY, Permissions.DELETE_HISTORY)
+        )
+        .succeeds()
+    );
+  }
+
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testProcessInstancesList(AuthorizationScenario scenario) {
     //given
     List<String> processInstanceIds = Arrays.asList(historicProcessInstance.getId(), historicProcessInstance2.getId());
     authRule
@@ -141,7 +135,7 @@ public class DeleteHistoricProcessInstancesAuthorizationTest {
 
     // then
     if (authRule.assertScenario(scenario)) {
-      assertThat(historyService.createHistoricProcessInstanceQuery().count(), is(0L));
+      assertThat(historyService.createHistoricProcessInstanceQuery().count()).isEqualTo(0L);
     }
   }
 }

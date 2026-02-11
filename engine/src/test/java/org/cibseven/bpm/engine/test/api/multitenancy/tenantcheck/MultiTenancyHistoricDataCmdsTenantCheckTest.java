@@ -49,11 +49,11 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author kristin.polenz
@@ -79,8 +79,8 @@ public class MultiTenancyHistoricDataCmdsTenantCheckTest {
   protected HistoryService historyService;
   protected ProcessEngineConfiguration processEngineConfiguration;
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected static final BpmnModelInstance BPMN_PROCESS = Bpmn.createExecutableProcess(PROCESS_DEFINITION_KEY)
       .startEvent().endEvent().done();
@@ -100,7 +100,7 @@ public class MultiTenancyHistoricDataCmdsTenantCheckTest {
 
   protected static final String DMN = "org/cibseven/bpm/engine/test/api/multitenancy/simpleDecisionTable.dmn";
 
-  @Before
+  @BeforeEach
   public void init() {
     repositoryService = engineRule.getRepositoryService();
     identityService = engineRule.getIdentityService();
@@ -112,7 +112,7 @@ public class MultiTenancyHistoricDataCmdsTenantCheckTest {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     identityService.clearAuthentication();
     for(HistoricTaskInstance instance : historyService.createHistoricTaskInstanceQuery().list()) {

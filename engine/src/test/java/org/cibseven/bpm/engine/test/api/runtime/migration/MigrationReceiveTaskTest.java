@@ -28,10 +28,10 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.MessageReceiveModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Assertions;
+
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * @author Thorben Lindhauer
@@ -41,9 +41,6 @@ public class MigrationReceiveTaskTest {
 
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testCannotMigrateActivityInstance() {
@@ -86,11 +83,11 @@ public class MigrationReceiveTaskTest {
     EventSubscription eventSubscriptionBefore = testHelper.snapshotBeforeMigration.getEventSubscriptions().get(0);
 
     List<EventSubscription> eventSubscriptionsAfter = testHelper.snapshotAfterMigration.getEventSubscriptions();
-    Assert.assertEquals(1, eventSubscriptionsAfter.size());
+    Assertions.assertEquals(1, eventSubscriptionsAfter.size());
     EventSubscription eventSubscriptionAfter = eventSubscriptionsAfter.get(0);
-    Assert.assertEquals(eventSubscriptionBefore.getCreated(), eventSubscriptionAfter.getCreated());
-    Assert.assertEquals(eventSubscriptionBefore.getExecutionId(), eventSubscriptionAfter.getExecutionId());
-    Assert.assertEquals(eventSubscriptionBefore.getProcessInstanceId(), eventSubscriptionAfter.getProcessInstanceId());
+    Assertions.assertEquals(eventSubscriptionBefore.getCreated(), eventSubscriptionAfter.getCreated());
+    Assertions.assertEquals(eventSubscriptionBefore.getExecutionId(), eventSubscriptionAfter.getExecutionId());
+    Assertions.assertEquals(eventSubscriptionBefore.getProcessInstanceId(), eventSubscriptionAfter.getProcessInstanceId());
   }
 
   @Test

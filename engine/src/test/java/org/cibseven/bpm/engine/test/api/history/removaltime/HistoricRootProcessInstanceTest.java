@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.api.history.removaltime;
 
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.hamcrest.core.IsNull.nullValue;
@@ -62,7 +62,7 @@ import org.cibseven.bpm.engine.test.dmn.businessruletask.TestPojo;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Tassilo Weidner
@@ -111,12 +111,12 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     List<HistoricDecisionInstance> historicDecisionInstances = historyService.createHistoricDecisionInstanceQuery().list();
 
     // assume
-    assertThat(historicDecisionInstances.size(), is(3));
+    assertThat(historicDecisionInstances.size()).isEqualTo(3);
 
     // then
-    assertThat(historicDecisionInstances.get(0).getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
-    assertThat(historicDecisionInstances.get(1).getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
-    assertThat(historicDecisionInstances.get(2).getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(historicDecisionInstances.get(0).getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
+    assertThat(historicDecisionInstances.get(1).getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
+    assertThat(historicDecisionInstances.get(2).getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -143,13 +143,13 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
       .singleResult();
 
     // assume
-    assertThat(historicDecisionInstance, notNullValue());
+    assertThat(historicDecisionInstance).isNotNull();
 
     List<HistoricDecisionInputInstance> historicDecisionInputInstances = historicDecisionInstance.getInputs();
 
     // then
-    assertThat(historicDecisionInputInstances.get(0).getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
-    assertThat(historicDecisionInputInstances.get(1).getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(historicDecisionInputInstances.get(0).getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
+    assertThat(historicDecisionInputInstances.get(1).getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -170,13 +170,13 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
       .singleResult();
 
     // assume
-    assertThat(historicDecisionInstance, notNullValue());
+    assertThat(historicDecisionInstance).isNotNull();
 
     List<HistoricDecisionInputInstance> historicDecisionInputInstances = historicDecisionInstance.getInputs();
 
     // then
-    assertThat(historicDecisionInputInstances.get(0).getRootProcessInstanceId(), nullValue());
-    assertThat(historicDecisionInputInstances.get(1).getRootProcessInstanceId(), nullValue());
+    assertThat(historicDecisionInputInstances.get(0).getRootProcessInstanceId()).isNull();
+    assertThat(historicDecisionInputInstances.get(1).getRootProcessInstanceId()).isNull();
   }
 
   @Test
@@ -203,12 +203,12 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
       .singleResult();
 
     // assume
-    assertThat(historicDecisionInstance, notNullValue());
+    assertThat(historicDecisionInstance).isNotNull();
 
     List<HistoricDecisionOutputInstance> historicDecisionOutputInstances = historicDecisionInstance.getOutputs();
 
     // then
-    assertThat(historicDecisionOutputInstances.get(0).getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(historicDecisionOutputInstances.get(0).getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -229,12 +229,12 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
       .singleResult();
 
     // assume
-    assertThat(historicDecisionInstance, notNullValue());
+    assertThat(historicDecisionInstance).isNotNull();
 
     List<HistoricDecisionOutputInstance> historicDecisionOutputInstances = historicDecisionInstance.getOutputs();
 
     // then
-    assertThat(historicDecisionOutputInstances.get(0).getRootProcessInstanceId(), nullValue());
+    assertThat(historicDecisionOutputInstances.get(0).getRootProcessInstanceId()).isNull();
   }
 
   @Test
@@ -252,10 +252,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
       .singleResult();
 
     // assume
-    assertThat(historicProcessInstance, notNullValue());
+    assertThat(historicProcessInstance).isNotNull();
 
     // then
-    assertThat(historicProcessInstance.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(historicProcessInstance.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -273,10 +273,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
       .singleResult();
 
     // assume
-    assertThat(historicActivityInstance, notNullValue());
+    assertThat(historicActivityInstance).isNotNull();
 
     // then
-    assertThat(historicActivityInstance.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(historicActivityInstance.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -294,10 +294,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
       .singleResult();
 
     // assume
-    assertThat(historicTaskInstance, notNullValue());
+    assertThat(historicTaskInstance).isNotNull();
 
     // then
-    assertThat(historicTaskInstance.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(historicTaskInstance.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -311,10 +311,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     HistoricTaskInstance historicTaskInstance = historyService.createHistoricTaskInstanceQuery().singleResult();
 
     // assume
-    assertThat(historicTaskInstance, notNullValue());
+    assertThat(historicTaskInstance).isNotNull();
 
     // then
-    assertThat(historicTaskInstance.getRootProcessInstanceId(), nullValue());
+    assertThat(historicTaskInstance.getRootProcessInstanceId()).isNull();
 
     // cleanup
     taskService.deleteTask(task.getId(), true);
@@ -335,10 +335,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     HistoricVariableInstance historicVariableInstance = historyService.createHistoricVariableInstanceQuery().singleResult();
 
     // assume
-    assertThat(historicVariableInstance, notNullValue());
+    assertThat(historicVariableInstance).isNotNull();
 
     // then
-    assertThat(historicVariableInstance.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(historicVariableInstance.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -360,11 +360,11 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
       .list();
 
     // assume
-    assertThat(historicDetails.size(), is(2));
+    assertThat(historicDetails.size()).isEqualTo(2);
 
     // then
-    assertThat(historicDetails.get(0).getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
-    assertThat(historicDetails.get(1).getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(historicDetails.get(0).getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
+    assertThat(historicDetails.get(1).getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -384,10 +384,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     HistoricDetail historicDetail = historyService.createHistoricDetailQuery().formFields().singleResult();
 
     // assume
-    assertThat(historicDetail, notNullValue());
+    assertThat(historicDetail).isNotNull();
 
     // then
-    assertThat(historicDetail.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(historicDetail.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -414,11 +414,11 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     List<HistoricIncident> historicIncidents = historyService.createHistoricIncidentQuery().list();
 
     // assume
-    assertThat(historicIncidents.size(), is(2));
+    assertThat(historicIncidents.size()).isEqualTo(2);
 
     // then
-    assertThat(historicIncidents.get(0).getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
-    assertThat(historicIncidents.get(1).getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(historicIncidents.get(0).getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
+    assertThat(historicIncidents.get(1).getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -442,10 +442,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     HistoricIncident historicIncident = historyService.createHistoricIncidentQuery().singleResult();
 
     // assume
-    assertThat(historicIncident, notNullValue());
+    assertThat(historicIncident).isNotNull();
 
     // then
-    assertThat(historicIncident.getRootProcessInstanceId(), nullValue());
+    assertThat(historicIncident.getRootProcessInstanceId()).isNull();
 
     // cleanup
     clearJobLog(jobId);
@@ -472,10 +472,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     HistoricExternalTaskLog ExternalTaskLog = historyService.createHistoricExternalTaskLogQuery().singleResult();
 
     // assume
-    assertThat(ExternalTaskLog, notNullValue());
+    assertThat(ExternalTaskLog).isNotNull();
 
     // then
-    assertThat(ExternalTaskLog.getRootProcessInstanceId(), is(processInstance.getRootProcessInstanceId()));
+    assertThat(ExternalTaskLog.getRootProcessInstanceId()).isEqualTo(processInstance.getRootProcessInstanceId());
   }
 
   @Test
@@ -500,11 +500,11 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     List<HistoricJobLog> jobLog = historyService.createHistoricJobLogQuery().list();
 
     // assume
-    assertThat(jobLog.size(), is(2));
+    assertThat(jobLog.size()).isEqualTo(2);
 
     // then
-    assertThat(jobLog.get(0).getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
-    assertThat(jobLog.get(1).getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(jobLog.get(0).getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
+    assertThat(jobLog.get(1).getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -518,10 +518,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     HistoricJobLog jobLog = historyService.createHistoricJobLogQuery().singleResult();
 
     // assume
-    assertThat(jobLog, notNullValue());
+    assertThat(jobLog).isNotNull();
 
     // then
-    assertThat(jobLog.getRootProcessInstanceId(), nullValue());
+    assertThat(jobLog.getRootProcessInstanceId()).isNull();
 
     // cleanup
     managementService.deleteJob(jobLog.getJobId());
@@ -550,10 +550,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     UserOperationLogEntry userOperationLog = historyService.createUserOperationLogQuery().singleResult();
 
     // assume
-    assertThat(userOperationLog, notNullValue());
+    assertThat(userOperationLog).isNotNull();
 
     // then
-    assertThat(userOperationLog.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(userOperationLog.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -580,10 +580,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     UserOperationLogEntry userOperationLog = historyService.createUserOperationLogQuery().singleResult();
 
     // assume
-    assertThat(userOperationLog, notNullValue());
+    assertThat(userOperationLog).isNotNull();
 
     // then
-    assertThat(userOperationLog.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(userOperationLog.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -605,10 +605,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     UserOperationLogEntry userOperationLog = historyService.createUserOperationLogQuery().singleResult();
 
     // assume
-    assertThat(userOperationLog, notNullValue());
+    assertThat(userOperationLog).isNotNull();
 
     // then
-    assertThat(userOperationLog.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(userOperationLog.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -628,10 +628,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     UserOperationLogEntry userOperationLog = historyService.createUserOperationLogQuery().singleResult();
 
     // assume
-    assertThat(userOperationLog, notNullValue());
+    assertThat(userOperationLog).isNotNull();
 
     // then
-    assertThat(userOperationLog.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(userOperationLog.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -654,10 +654,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
             .singleResult();
 
     // assume
-    assertThat(historicIdentityLinkLog, notNullValue());
+    assertThat(historicIdentityLinkLog).isNotNull();
 
     // then
-    assertThat(historicIdentityLinkLog.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(historicIdentityLinkLog.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -672,10 +672,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     HistoricIdentityLinkLog historicIdentityLinkLog = historyService.createHistoricIdentityLinkLogQuery().singleResult();
 
     // assume
-    assertThat(historicIdentityLinkLog, notNullValue());
+    assertThat(historicIdentityLinkLog).isNotNull();
 
     // then
-    assertThat(historicIdentityLinkLog.getRootProcessInstanceId(), nullValue());
+    assertThat(historicIdentityLinkLog.getRootProcessInstanceId()).isNull();
 
     // cleanup
     taskService.complete(aTask.getId());
@@ -702,10 +702,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     Comment comment = taskService.getProcessInstanceComments(processInstanceId).get(0);
 
     // assume
-    assertThat(comment, notNullValue());
+    assertThat(comment).isNotNull();
 
     // then
-    assertThat(comment.getRootProcessInstanceId(), is(processInstance.getRootProcessInstanceId()));
+    assertThat(comment.getRootProcessInstanceId()).isEqualTo(processInstance.getRootProcessInstanceId());
   }
 
   @Test
@@ -725,10 +725,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     Comment comment = taskService.getTaskComments(taskId).get(0);
 
     // assume
-    assertThat(comment, notNullValue());
+    assertThat(comment).isNotNull();
 
     // then
-    assertThat(comment.getRootProcessInstanceId(), is(processInstance.getRootProcessInstanceId()));
+    assertThat(comment.getRootProcessInstanceId()).isEqualTo(processInstance.getRootProcessInstanceId());
   }
 
   @Test
@@ -751,10 +751,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     Comment comment = taskService.getProcessInstanceComments(processInstanceId).get(0);
 
     // assume
-    assertThat(comment, notNullValue());
+    assertThat(comment).isNotNull();
 
     // then
-    assertThat(comment.getRootProcessInstanceId(), nullValue());
+    assertThat(comment.getRootProcessInstanceId()).isNull();
   }
 
   @Test
@@ -774,10 +774,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     Comment comment = taskService.getTaskComments(taskId).get(0);
 
     // assume
-    assertThat(comment, notNullValue());
+    assertThat(comment).isNotNull();
 
     // then
-    assertThat(comment.getRootProcessInstanceId(), is(processInstance.getRootProcessInstanceId()));
+    assertThat(comment.getRootProcessInstanceId()).isEqualTo(processInstance.getRootProcessInstanceId());
   }
 
   @Test
@@ -790,10 +790,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     Comment comment = taskService.getProcessInstanceComments("aNonExistentProcessInstanceId").get(0);
 
     // assume
-    assertThat(comment, notNullValue());
+    assertThat(comment).isNotNull();
 
     // then
-    assertThat(comment.getRootProcessInstanceId(), nullValue());
+    assertThat(comment.getRootProcessInstanceId()).isNull();
 
     // cleanup
     clearCommentByProcessInstanceId("aNonExistentProcessInstanceId");
@@ -809,10 +809,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     Comment comment = taskService.getTaskComments("aNonExistentTaskId").get(0);
 
     // assume
-    assertThat(comment, notNullValue());
+    assertThat(comment).isNotNull();
 
     // then
-    assertThat(comment.getRootProcessInstanceId(), nullValue());
+    assertThat(comment.getRootProcessInstanceId()).isNull();
 
     // cleanup
     clearCommentByTaskId("aNonExistentTaskId");
@@ -838,10 +838,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     Attachment attachment = taskService.getAttachment(attachmentId);
 
     // assume
-    assertThat(attachment, notNullValue());
+    assertThat(attachment).isNotNull();
 
     // then
-    assertThat(attachment.getRootProcessInstanceId(), is(processInstance.getRootProcessInstanceId()));
+    assertThat(attachment.getRootProcessInstanceId()).isEqualTo(processInstance.getRootProcessInstanceId());
   }
 
   @Test
@@ -861,10 +861,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     Attachment attachment = taskService.getAttachment(attachmentId);
 
     // assume
-    assertThat(attachment, notNullValue());
+    assertThat(attachment).isNotNull();
 
     // then
-    assertThat(attachment.getRootProcessInstanceId(), is(processInstance.getRootProcessInstanceId()));
+    assertThat(attachment.getRootProcessInstanceId()).isEqualTo(processInstance.getRootProcessInstanceId());
   }
 
   @Test
@@ -887,10 +887,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     Attachment attachment = taskService.getAttachment(attachmentId);
 
     // assume
-    assertThat(attachment, notNullValue());
+    assertThat(attachment).isNotNull();
 
     // then
-    assertThat(attachment.getRootProcessInstanceId(), nullValue());
+    assertThat(attachment.getRootProcessInstanceId()).isNull();
   }
 
   @Test
@@ -912,10 +912,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     Attachment attachment = taskService.getAttachment(attachmentId);
 
     // assume
-    assertThat(attachment, notNullValue());
+    assertThat(attachment).isNotNull();
 
     // then
-    assertThat(attachment.getRootProcessInstanceId(), is(processInstance.getRootProcessInstanceId()));
+    assertThat(attachment.getRootProcessInstanceId()).isEqualTo(processInstance.getRootProcessInstanceId());
   }
 
   @Test
@@ -928,10 +928,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     Attachment attachment = taskService.getAttachment(attachmentId);
 
     // assume
-    assertThat(attachment, notNullValue());
+    assertThat(attachment).isNotNull();
 
     // then
-    assertThat(attachment.getRootProcessInstanceId(), nullValue());
+    assertThat(attachment.getRootProcessInstanceId()).isNull();
 
     // cleanup
     clearAttachment(attachment);
@@ -954,10 +954,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     ByteArrayEntity byteArray = findByteArrayById(attachment.getContentId());
 
     // assume
-    assertThat(byteArray, notNullValue());
+    assertThat(byteArray).isNotNull();
 
     // then
-    assertThat(byteArray.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(byteArray.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -980,10 +980,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     ByteArrayEntity byteArray = findByteArrayById(attachment.getContentId());
 
     // assume
-    assertThat(byteArray, notNullValue());
+    assertThat(byteArray).isNotNull();
 
     // then
-    assertThat(byteArray.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(byteArray.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -1003,10 +1003,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     ByteArrayEntity byteArray = findByteArrayById(historicVariableInstance.getByteArrayId());
 
     // assume
-    assertThat(byteArray, notNullValue());
+    assertThat(byteArray).isNotNull();
 
     // then
-    assertThat(byteArray.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(byteArray.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -1032,7 +1032,7 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
     ByteArrayEntity byteArray = findByteArrayById(historicDetails.getByteArrayValueId());
 
     // then
-    assertThat(byteArray.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(byteArray.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -1060,12 +1060,12 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
       .singleResult();
 
     // assume
-    assertThat(jobLog, notNullValue());
+    assertThat(jobLog).isNotNull();
 
     ByteArrayEntity byteArray = findByteArrayById(jobLog.getExceptionByteArrayId());
 
     // then
-    assertThat(byteArray.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(byteArray.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -1096,12 +1096,12 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
       .singleResult();
 
     // assume
-    assertThat(externalTaskLog, notNullValue());
+    assertThat(externalTaskLog).isNotNull();
 
     ByteArrayEntity byteArrayEntity = findByteArrayById(externalTaskLog.getErrorDetailsByteArrayId());
 
     // then
-    assertThat(byteArrayEntity.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(byteArrayEntity.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -1126,14 +1126,14 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
       .singleResult();
 
     // assume
-    assertThat(historicDecisionInstance, notNullValue());
+    assertThat(historicDecisionInstance).isNotNull();
 
     HistoricDecisionInputInstanceEntity historicDecisionInputInstanceEntity = (HistoricDecisionInputInstanceEntity) historicDecisionInstance.getInputs().get(0);
 
     ByteArrayEntity byteArrayEntity = findByteArrayById(historicDecisionInputInstanceEntity.getByteArrayValueId());
 
     // then
-    assertThat(byteArrayEntity.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(byteArrayEntity.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -1158,14 +1158,14 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
       .singleResult();
 
     // assume
-    assertThat(historicDecisionInstance, notNullValue());
+    assertThat(historicDecisionInstance).isNotNull();
 
     HistoricDecisionOutputInstanceEntity historicDecisionOutputInstanceEntity = (HistoricDecisionOutputInstanceEntity) historicDecisionInstance.getOutputs().get(0);
 
     ByteArrayEntity byteArrayEntity = findByteArrayById(historicDecisionOutputInstanceEntity.getByteArrayValueId());
 
     // then
-    assertThat(byteArrayEntity.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(byteArrayEntity.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -1188,14 +1188,14 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
       .singleResult();
 
     // assume
-    assertThat(historicDecisionInstance, notNullValue());
+    assertThat(historicDecisionInstance).isNotNull();
 
     HistoricDecisionOutputInstanceEntity historicDecisionOutputInstanceEntity = (HistoricDecisionOutputInstanceEntity) historicDecisionInstance.getOutputs().get(0);
 
     ByteArrayEntity byteArrayEntity = findByteArrayById(historicDecisionOutputInstanceEntity.getByteArrayValueId());
 
     // then
-    assertThat(byteArrayEntity.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(byteArrayEntity.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
   }
 
   @Test
@@ -1217,10 +1217,10 @@ public class HistoricRootProcessInstanceTest extends AbstractRemovalTimeTest {
         .singleResult();
 
     // assume
-    assertThat(authorization, notNullValue());
+    assertThat(authorization).isNotNull();
 
     // then
-    assertThat(authorization.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(authorization.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
 
     // clear
     clearAuthorization();

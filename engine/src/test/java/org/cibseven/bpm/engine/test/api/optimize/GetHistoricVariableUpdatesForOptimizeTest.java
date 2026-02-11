@@ -44,11 +44,11 @@ import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.cibseven.bpm.engine.variable.value.builder.ObjectValueBuilder;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 import java.util.Date;
 import java.util.HashMap;
@@ -75,8 +75,8 @@ public class GetHistoricVariableUpdatesForOptimizeTest {
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
 
   private OptimizeService optimizeService;
   private IdentityService identityService;
@@ -84,7 +84,7 @@ public class GetHistoricVariableUpdatesForOptimizeTest {
   private AuthorizationService authorizationService;
   private TaskService taskService;
 
-  @Before
+  @BeforeEach
   public void init() {
     ProcessEngineConfigurationImpl config =
       engineRule.getProcessEngineConfiguration();
@@ -97,7 +97,7 @@ public class GetHistoricVariableUpdatesForOptimizeTest {
     createUser(USER_ID);
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     for (User user : identityService.createUserQuery().list()) {
       identityService.deleteUser(user.getId());

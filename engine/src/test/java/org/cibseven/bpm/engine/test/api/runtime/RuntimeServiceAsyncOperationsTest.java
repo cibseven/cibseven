@@ -19,16 +19,16 @@ package org.cibseven.bpm.engine.test.api.runtime;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Assertions;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.batch.Batch;
@@ -48,10 +48,10 @@ import org.cibseven.bpm.engine.test.api.runtime.util.IncrementCounterListener;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 
 /**
@@ -64,13 +64,13 @@ public class RuntimeServiceAsyncOperationsTest extends AbstractAsyncOperationsTe
 
   protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
-  @Rule
-  public RuleChain migrationChain = RuleChain.outerRule(testRule).around(migrationRule);
+//  @Rule
+//  public RuleChain migrationChain = RuleChain.outerRule(testRule).around(migrationRule);
 
-  @Before
+  @BeforeEach
   public void setup() {
     initDefaults(engineRule);
   }
@@ -566,7 +566,7 @@ public class RuntimeServiceAsyncOperationsTest extends AbstractAsyncOperationsTe
     Batch batch = runtimeService.deleteProcessInstancesAsync(processIds, null, TESTING_INSTANCE_DELETE);
 
     // then
-    Assertions.assertThat(batch.getInvocationsPerBatchJob()).isEqualTo(42);
+    Assertions.assertEquals(batch.getInvocationsPerBatchJob(), 42);
 
     // clear
     engineRule.getProcessEngineConfiguration()

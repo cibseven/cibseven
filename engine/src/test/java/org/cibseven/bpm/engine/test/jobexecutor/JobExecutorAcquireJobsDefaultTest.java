@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.jobexecutor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.text.ParseException;
 import java.util.Arrays;
@@ -28,8 +28,8 @@ import java.util.List;
 import org.cibseven.bpm.engine.impl.persistence.entity.AcquirableJobEntity;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.ClockTestUtil;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -50,7 +50,7 @@ public class JobExecutorAcquireJobsDefaultTest extends AbstractJobExecutorAcquir
     });
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     rule.getProcessEngineConfiguration().setEnsureJobDueDateNotNull(ensureJobDueDateSet);
   }

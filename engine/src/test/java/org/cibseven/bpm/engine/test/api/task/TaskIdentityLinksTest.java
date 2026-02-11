@@ -17,9 +17,9 @@
 package org.cibseven.bpm.engine.test.api.task;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 
@@ -35,8 +35,8 @@ import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 import ch.qos.logback.classic.Level;
 
@@ -48,7 +48,7 @@ import ch.qos.logback.classic.Level;
  */
 public class TaskIdentityLinksTest extends PluggableProcessEngineTest {
 
-  @Rule
+//  @Rule
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().level(Level.ERROR);
 
   @Deployment(resources="org/cibseven/bpm/engine/test/api/task/IdentityLinksProcess.bpmn20.xml")
@@ -100,7 +100,7 @@ public class TaskIdentityLinksTest extends PluggableProcessEngineTest {
       IdentityLink identityLink = identityLinks.get(0);
 
       assertEquals("muppets", identityLink.getGroupId());
-      assertNull("kermit", identityLink.getUserId());
+      assertNull(identityLink.getUserId(), "kermit");
       assertEquals(IdentityLinkType.CANDIDATE, identityLink.getType());
       assertEquals(taskId, identityLink.getTaskId());
 
@@ -232,7 +232,7 @@ public class TaskIdentityLinksTest extends PluggableProcessEngineTest {
     IdentityLink identityLink = identityLinks.get(0);
 
     assertEquals("muppets", identityLink.getGroupId());
-    assertNull("kermit", identityLink.getUserId());
+    assertNull(identityLink.getUserId(), "kermit");
     assertEquals("playing", identityLink.getType());
     assertEquals(taskId, identityLink.getTaskId());
 

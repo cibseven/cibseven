@@ -49,10 +49,10 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.UserTask;
 import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaTaskListener;
 import org.joda.time.DateTime;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -63,8 +63,8 @@ public class MigrationUserTaskTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testUserTaskMigrationInProcessDefinitionScope() {
@@ -90,7 +90,7 @@ public class MigrationUserTaskTest {
 
     Task task = testHelper.snapshotBeforeMigration.getTaskForKey("userTask");
     Task migratedTask = testHelper.snapshotAfterMigration.getTaskForKey("userTask");
-    Assert.assertEquals(task.getId(), migratedTask.getId());
+    Assertions.assertEquals(task.getId(), migratedTask.getId());
 
     // and it is possible to successfully complete the migrated instance
     rule.getTaskService().complete(migratedTask.getId());
@@ -124,8 +124,8 @@ public class MigrationUserTaskTest {
 
     Task task = testHelper.snapshotBeforeMigration.getTaskForKey("userTask");
     Task migratedTask = testHelper.snapshotAfterMigration.getTaskForKey("userTask");
-    Assert.assertEquals(task.getId(), migratedTask.getId());
-    Assert.assertEquals(targetProcessDefinition.getId(), migratedTask.getProcessDefinitionId());
+    Assertions.assertEquals(task.getId(), migratedTask.getId());
+    Assertions.assertEquals(targetProcessDefinition.getId(), migratedTask.getProcessDefinitionId());
 
     // and it is possible to successfully complete the migrated instance
     rule.getTaskService().complete(migratedTask.getId());
@@ -157,10 +157,10 @@ public class MigrationUserTaskTest {
           .done());
 
     List<Task> migratedTasks = testHelper.snapshotAfterMigration.getTasks();
-    Assert.assertEquals(2, migratedTasks.size());
+    Assertions.assertEquals(2, migratedTasks.size());
 
     for (Task migratedTask : migratedTasks) {
-      Assert.assertEquals(targetProcessDefinition.getId(), migratedTask.getProcessDefinitionId());
+      Assertions.assertEquals(targetProcessDefinition.getId(), migratedTask.getProcessDefinitionId());
     }
 
     // and it is possible to successfully complete the migrated instance
@@ -184,7 +184,7 @@ public class MigrationUserTaskTest {
     // when
     try {
       testHelper.createProcessInstanceAndMigrate(migrationPlan);
-      Assert.fail("should not succeed because the userTask2 instance is not mapped");
+      Assertions.fail("should not succeed because the userTask2 instance is not mapped");
     } catch (MigratingProcessInstanceValidationException e) {
       assertThat(e.getValidationReport())
         .hasActivityInstanceFailures("userTask2", "There is no migration instruction for this instance's activity");
@@ -212,7 +212,7 @@ public class MigrationUserTaskTest {
     // when
     try {
       testHelper.createProcessInstanceAndMigrate(migrationPlan);
-      Assert.fail("should not succeed because the userTask2 instance is not mapped");
+      Assertions.fail("should not succeed because the userTask2 instance is not mapped");
     } catch (MigratingProcessInstanceValidationException e) {
       assertThat(e.getValidationReport())
         .hasTransitionInstanceFailures("userTask2", "There is no migration instruction for this instance's activity");
@@ -250,9 +250,9 @@ public class MigrationUserTaskTest {
         .done());
 
     Task migratedTask = testHelper.snapshotAfterMigration.getTaskForKey("userTask2");
-    Assert.assertNotNull(migratedTask);
-    Assert.assertEquals(targetProcessDefinition.getId(), migratedTask.getProcessDefinitionId());
-    Assert.assertEquals("userTask2", migratedTask.getTaskDefinitionKey());
+    Assertions.assertNotNull(migratedTask);
+    Assertions.assertEquals(targetProcessDefinition.getId(), migratedTask.getProcessDefinitionId());
+    Assertions.assertEquals("userTask2", migratedTask.getTaskDefinitionKey());
 
     // and it is possible to successfully complete the migrated instance
     rule.getTaskService().complete(migratedTask.getId());
@@ -281,9 +281,9 @@ public class MigrationUserTaskTest {
 
     // then the sub task properties have not been updated (i.e. subtask should not reference the process instance/definition now)
     Task subTaskAfterMigration = rule.getTaskService().createTaskQuery().taskId(subTask.getId()).singleResult();
-    Assert.assertNull(subTaskAfterMigration.getProcessDefinitionId());
-    Assert.assertNull(subTaskAfterMigration.getProcessInstanceId());
-    Assert.assertNull(subTaskAfterMigration.getTaskDefinitionKey());
+    Assertions.assertNull(subTaskAfterMigration.getProcessDefinitionId());
+    Assertions.assertNull(subTaskAfterMigration.getProcessInstanceId());
+    Assertions.assertNull(subTaskAfterMigration.getTaskDefinitionKey());
 
     // the tasks can be completed and the process can be ended
     rule.getTaskService().complete(subTask.getId());
@@ -319,7 +319,7 @@ public class MigrationUserTaskTest {
     // then the task listener was able to access the bpmn model instance and set a variable
     String variableValue =
         (String) rule.getRuntimeService().getVariable(processInstance.getId(), AccessModelInstanceTaskListener.VARIABLE_NAME);
-    Assert.assertEquals("newUserTask", variableValue);
+    Assertions.assertEquals("newUserTask", variableValue);
 
   }
 
@@ -549,7 +549,7 @@ public class MigrationUserTaskTest {
     testHelper.waitForJobExecutorToProcessAllJobs(5000L);
     String variableValue =
         (String) rule.getRuntimeService().getVariable(processInstance.getId(), AccessModelInstanceTaskListener.VARIABLE_NAME);
-    Assert.assertEquals("userTask", variableValue);
+    Assertions.assertEquals("userTask", variableValue);
   }
 
   @Test
@@ -950,7 +950,7 @@ public class MigrationUserTaskTest {
     rule.getManagementService().executeJob(testHelper.snapshotAfterMigration.getJobForDefinitionId(jobDefinition.getId()).getId());
     String variableValue =
         (String) rule.getRuntimeService().getVariable(processInstance.getId(), AccessModelInstanceTaskListener.VARIABLE_NAME);
-    Assert.assertEquals(activityId, variableValue);
+    Assertions.assertEquals(activityId, variableValue);
   }
 
 }

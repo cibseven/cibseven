@@ -38,10 +38,10 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.StringValue;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author kristin.polenz
@@ -62,8 +62,8 @@ public class MultiTenancyCaseInstanceCmdsTenantCheckTest {
 
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected IdentityService identityService;
   protected CaseService caseService;
@@ -73,7 +73,7 @@ public class MultiTenancyCaseInstanceCmdsTenantCheckTest {
   protected String caseInstanceId;
   protected String caseExecutionId;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     identityService = engineRule.getIdentityService();

@@ -34,22 +34,20 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ClockTestUtil;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
+import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRuleExtension;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
+@ExtendWith(ProvidedProcessEngineRuleExtension.class)
 public class ExternalTaskQueryByCreateTimeTest {
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(testHelper);
+  public ProcessEngineRule engineRule;
+  public ProcessEngineTestRule testRule;
 
   protected ProcessEngine engine;
 
@@ -60,7 +58,7 @@ public class ExternalTaskQueryByCreateTimeTest {
   protected TaskService taskService;
   protected CaseService caseService;
 
-  @Before
+  @BeforeEach
   public void setup() {
     engine = engineRule.getProcessEngine();
     repositoryService = engineRule.getRepositoryService();
@@ -74,7 +72,7 @@ public class ExternalTaskQueryByCreateTimeTest {
     deployProcessesWithExternalTasks();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ClockUtil.reset();
   }
@@ -280,7 +278,7 @@ public class ExternalTaskQueryByCreateTimeTest {
     var process3 = createProcessWithTask("process3", "task3", "topic3", "0");
     var process4 = createProcessWithTask("process4", "task4", "topic4", "0");
 
-    testHelper.deploy(process1, process2, process3, process4);
+    testRule.deploy(process1, process2, process3, process4);
   }
 
   private void startProcessInstanceWithDate(String processKey, Date fixedDate) {

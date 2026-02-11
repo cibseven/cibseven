@@ -22,11 +22,11 @@ import static org.cibseven.bpm.engine.ProcessEngineConfiguration.HISTORY_CLEANUP
 import static org.cibseven.bpm.engine.ProcessEngineConfiguration.HISTORY_CLEANUP_STRATEGY_REMOVAL_TIME_BASED;
 import static org.cibseven.bpm.engine.history.UserOperationLogEntry.CATEGORY_OPERATOR;
 import static org.cibseven.bpm.engine.history.UserOperationLogEntry.OPERATION_TYPE_CREATE_HISTORY_CLEANUP_JOB;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -83,12 +83,12 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.Removable;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Svetlana Dorokhova
@@ -128,10 +128,10 @@ public class HistoryCleanupTest {
 
   protected Removable removable;
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule)
-      .around(engineRule)
-      .around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule)
+//      .around(engineRule)
+//      .around(testRule);
 
   private final Random random = new Random();
 
@@ -144,8 +144,8 @@ public class HistoryCleanupTest {
   private ProcessEngineConfigurationImpl processEngineConfiguration;
 
 
-  @Before
-  public void init() {
+    @BeforeEach
+    public void init() {
     runtimeService = engineRule.getRuntimeService();
     historyService = engineRule.getHistoryService();
     managementService = engineRule.getManagementService();
@@ -161,10 +161,10 @@ public class HistoryCleanupTest {
 
     identityService.setAuthenticatedUserId(USER_ID);
     removable = Removable.of(testRule);
-  }
+    }
 
-  @After
-  public void clearDatabase() {
+    @AfterEach
+    public void clearDatabase() {
     //reset configuration changes
     processEngineConfiguration.setHistoryCleanupBatchWindowStartTime(defaultStartTime);
     processEngineConfiguration.setHistoryCleanupBatchWindowEndTime(defaultEndTime);
@@ -176,7 +176,7 @@ public class HistoryCleanupTest {
     removable.removeAll();
     clearMetrics();
     identityService.clearAuthentication();
-  }
+    }
 
   protected void clearMetrics() {
     Collection<Meter> meters = processEngineConfiguration.getMetricsRegistry().getDbMeters().values();
@@ -186,8 +186,8 @@ public class HistoryCleanupTest {
     managementService.deleteMetrics(null);
   }
 
-  @Test
-  public void testHistoryCleanupManualRun() {
+    @org.junit.jupiter.api.Test
+    public void testHistoryCleanupManualRun() {
     //given
     prepareData(15);
 
@@ -208,7 +208,7 @@ public class HistoryCleanupTest {
 
     UserOperationLogEntry entry = userOperationLogEntries.get(0);
     assertEquals(CATEGORY_OPERATOR, entry.getCategory());
-  }
+    }
 
   @Test
   public void shouldThrowExceptionWhenCleanupDisabled_1() {
@@ -1101,7 +1101,7 @@ public class HistoryCleanupTest {
   }
 
   @Test
-  @Ignore("CAM-10055")
+  @Disabled("CAM-10055")
   public void testLessThanThresholdOutsideBatchWindowAfterMidnightDaylightSaving() throws ParseException {
     //given
     prepareData(5);
@@ -1133,7 +1133,7 @@ public class HistoryCleanupTest {
   }
 
   @Test
-  @Ignore("CAM-10055")
+  @Disabled("CAM-10055")
   public void testLessThanThresholdWithinBatchWindowAfterMidnightDaylightSaving() throws ParseException {
     //given
     prepareData(5);

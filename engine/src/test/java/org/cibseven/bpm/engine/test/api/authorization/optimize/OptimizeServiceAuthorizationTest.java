@@ -27,7 +27,7 @@ import static org.cibseven.bpm.engine.authorization.Resources.DECISION_DEFINITIO
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION;
 import static org.cibseven.bpm.engine.authorization.Resources.TENANT;
 import static org.cibseven.bpm.engine.authorization.Resources.USER;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -62,11 +62,11 @@ import org.cibseven.bpm.engine.test.util.ResetDmnConfigUtil;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -91,8 +91,8 @@ public class OptimizeServiceAuthorizationTest {
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   protected AuthorizationTestBaseRule authRule = new AuthorizationTestBaseRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(authRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(authRule);
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
@@ -142,7 +142,7 @@ public class OptimizeServiceAuthorizationTest {
   protected TaskService taskService;
   protected ManagementService managementService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
 
     identityService = engineRule.getIdentityService();
@@ -169,7 +169,7 @@ public class OptimizeServiceAuthorizationTest {
     authRule.enableAuthorization(userId);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     DefaultDmnEngineConfiguration dmnEngineConfiguration =
       engineRule.getProcessEngineConfiguration().getDmnEngineConfiguration();

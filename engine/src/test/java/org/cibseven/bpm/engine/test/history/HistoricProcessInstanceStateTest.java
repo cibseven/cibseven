@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.test.history;
 
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
@@ -36,9 +36,9 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.EndEvent;
 import org.cibseven.bpm.model.bpmn.instance.TerminateEventDefinition;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Askar Akhmerov
@@ -53,10 +53,10 @@ public class HistoricProcessInstanceStateTest {
   public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
   public ProcessEngineTestRule processEngineTestRule = new ProcessEngineTestRule(processEngineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain
-      .outerRule(processEngineTestRule)
-      .around(processEngineRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain
+//      .outerRule(processEngineTestRule)
+//      .around(processEngineRule);
 
   @Test
   public void testTerminatedInternalWithGateway() {

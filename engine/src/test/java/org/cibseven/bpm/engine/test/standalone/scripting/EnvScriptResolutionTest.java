@@ -24,7 +24,7 @@ import java.util.Map;
 import org.cibseven.bpm.engine.impl.scripting.ExecutableScript;
 import org.cibseven.bpm.engine.impl.scripting.env.ScriptEnvResolver;
 import org.cibseven.bpm.engine.repository.ProcessApplicationDeployment;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class EnvScriptResolutionTest extends AbstractScriptEnvironmentTest {
 

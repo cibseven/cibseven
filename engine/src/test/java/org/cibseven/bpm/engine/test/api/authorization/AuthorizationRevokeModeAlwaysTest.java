@@ -27,10 +27,9 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import java.util.List;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class AuthorizationRevokeModeAlwaysTest extends AuthorizationTest {
 
@@ -38,16 +37,15 @@ public class AuthorizationRevokeModeAlwaysTest extends AuthorizationTest {
 
   protected String defaultRevokeMode;
 
-  @Rule
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch(LOGGING_CONTEXT, Level.DEBUG);
 
-  @Before
+  @BeforeEach
   public void storeRevokeMode() {
     defaultRevokeMode = processEngineConfiguration.getAuthorizationCheckRevokes();
   }
 
-  @After
+  @AfterEach
   public void resetRevokeMode() {
     processEngineConfiguration.setAuthorizationCheckRevokes(defaultRevokeMode);
   }

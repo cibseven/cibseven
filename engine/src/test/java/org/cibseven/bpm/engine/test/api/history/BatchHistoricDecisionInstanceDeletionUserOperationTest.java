@@ -16,10 +16,10 @@
  */
 package org.cibseven.bpm.engine.test.api.history;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,12 +44,12 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class BatchHistoricDecisionInstanceDeletionUserOperationTest {
@@ -61,8 +61,8 @@ public class BatchHistoricDecisionInstanceDeletionUserOperationTest {
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected DecisionService decisionService;
   protected HistoryService historyService;
@@ -71,7 +71,7 @@ public class BatchHistoricDecisionInstanceDeletionUserOperationTest {
 
   protected List<String> decisionInstanceIds;
 
-  @Before
+  @BeforeEach
   public void setup() {
     historyService = engineRule.getHistoryService();
     decisionService = engineRule.getDecisionService();
@@ -80,7 +80,7 @@ public class BatchHistoricDecisionInstanceDeletionUserOperationTest {
     decisionInstanceIds = new ArrayList<String>();
   }
 
-  @Before
+  @BeforeEach
   public void evaluateDecisionInstances() {
     testRule.deploy("org/cibseven/bpm/engine/test/api/dmn/Example.dmn");
 
@@ -98,7 +98,7 @@ public class BatchHistoricDecisionInstanceDeletionUserOperationTest {
     }
   }
 
-  @After
+  @AfterEach
   public void removeBatches() {
     for (Batch batch : managementService.createBatchQuery().list()) {
       managementService.deleteBatch(batch.getId(), true);
@@ -110,7 +110,7 @@ public class BatchHistoricDecisionInstanceDeletionUserOperationTest {
     }
   }
 
-  @After
+  @AfterEach
   public void clearAuthentication() {
     identityService.clearAuthentication();
   }
@@ -124,7 +124,7 @@ public class BatchHistoricDecisionInstanceDeletionUserOperationTest {
 
     // then
     List<UserOperationLogEntry> opLogEntries = engineRule.getHistoryService().createUserOperationLogQuery().list();
-    Assert.assertEquals(3, opLogEntries.size());
+    Assertions.assertEquals(3, opLogEntries.size());
 
     Map<String, UserOperationLogEntry> entries = asMap(opLogEntries);
 
@@ -175,7 +175,7 @@ public class BatchHistoricDecisionInstanceDeletionUserOperationTest {
 
     // then
     List<UserOperationLogEntry> opLogEntries = engineRule.getHistoryService().createUserOperationLogQuery().list();
-    Assert.assertEquals(3, opLogEntries.size());
+    Assertions.assertEquals(3, opLogEntries.size());
 
     Map<String, UserOperationLogEntry> entries = asMap(opLogEntries);
 
@@ -226,7 +226,7 @@ public class BatchHistoricDecisionInstanceDeletionUserOperationTest {
 
     // then
     List<UserOperationLogEntry> opLogEntries = engineRule.getHistoryService().createUserOperationLogQuery().list();
-    Assert.assertEquals(3, opLogEntries.size());
+    Assertions.assertEquals(3, opLogEntries.size());
 
     Map<String, UserOperationLogEntry> entries = asMap(opLogEntries);
 

@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.test.api.authorization.batch;
 
 import static org.cibseven.bpm.engine.authorization.Authorization.ANY;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,12 +34,10 @@ import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestBase
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Thorben Lindhauer
@@ -48,23 +46,22 @@ import org.junit.rules.RuleChain;
 public class BatchStatisticsQueryAuthorizationTest {
 
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public AuthorizationTestBaseRule authRule = new AuthorizationTestBaseRule(engineRule);
+  @RegisterExtension
   public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
 
   protected MigrationPlan migrationPlan;
   protected Batch batch1;
   protected Batch batch2;
   protected Batch batch3;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     authRule.createUserAndGroup("user", "group");
   }
 
-  @Before
+  @BeforeEach
   public void deployProcessesAndCreateMigrationPlan() {
     ProcessInstance pi = createMigrationPlan();
 
@@ -82,12 +79,12 @@ public class BatchStatisticsQueryAuthorizationTest {
         .executeAsync();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
   }
 
-  @After
+  @AfterEach
   public void deleteBatches() {
     engineRule.getManagementService().deleteBatch(batch1.getId(), true);
     engineRule.getManagementService().deleteBatch(batch2.getId(), true);
@@ -107,13 +104,13 @@ public class BatchStatisticsQueryAuthorizationTest {
     authRule.disableAuthorization();
 
     // then
-    Assert.assertEquals(1, batches.size());
-    Assert.assertEquals(batch1.getId(), batches.get(0).getId());
+    assertEquals(1, batches.size());
+    assertEquals(batch1.getId(), batches.get(0).getId());
 
     // and the visibility of jobs is not restricted
-    Assert.assertEquals(1, batches.get(0).getJobsCreated());
-    Assert.assertEquals(1, batches.get(0).getRemainingJobs());
-    Assert.assertEquals(1, batches.get(0).getTotalJobs());
+    assertEquals(1, batches.get(0).getJobsCreated());
+    assertEquals(1, batches.get(0).getRemainingJobs());
+    assertEquals(1, batches.get(0).getTotalJobs());
   }
 
   @Test
@@ -127,7 +124,7 @@ public class BatchStatisticsQueryAuthorizationTest {
     authRule.disableAuthorization();
 
     // then
-    Assert.assertEquals(1, count);
+    assertEquals(1, count);
   }
 
   @Test
@@ -138,7 +135,7 @@ public class BatchStatisticsQueryAuthorizationTest {
     authRule.disableAuthorization();
 
     // then
-    Assert.assertEquals(0, count);
+    assertEquals(0, count);
   }
 
   @Test
@@ -152,7 +149,7 @@ public class BatchStatisticsQueryAuthorizationTest {
     authRule.disableAuthorization();
 
     // then
-    Assert.assertEquals(2, batches.size());
+    assertEquals(2, batches.size());
   }
 
   @Test
@@ -167,7 +164,7 @@ public class BatchStatisticsQueryAuthorizationTest {
     authRule.disableAuthorization();
 
     // then
-    Assert.assertEquals(2, batches.size());
+    assertEquals(2, batches.size());
   }
 
   @Test
@@ -203,7 +200,7 @@ public class BatchStatisticsQueryAuthorizationTest {
     authRule.disableAuthorization();
 
     // then
-    Assert.assertEquals(0, batches.size());
+    assertEquals(0, batches.size());
   }
 
   protected ProcessInstance createMigrationPlan() {

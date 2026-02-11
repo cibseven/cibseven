@@ -34,11 +34,11 @@ import org.cibseven.bpm.engine.test.api.runtime.migration.util.SignalEventFactor
 import org.cibseven.bpm.engine.test.api.runtime.migration.util.TimerEventFactory;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
@@ -66,10 +66,10 @@ public class MigrateEventSubProcessAndTriggerTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
-  @Before
+  @BeforeEach
   public void setUp() {
     ClockUtil.setCurrentTime(new Date()); // lock time so that timer job is effectively not updated
   }
@@ -106,7 +106,7 @@ public class MigrateEventSubProcessAndTriggerTest {
 
     // and it is possible to trigger the event subprocess
     eventTrigger.trigger(processInstance.getId());
-    Assert.assertEquals(1, rule.getTaskService().createTaskQuery().count());
+    Assertions.assertEquals(1, rule.getTaskService().createTaskQuery().count());
 
     // and complete the process instance
     testHelper.completeTask("eventSubProcessTask");

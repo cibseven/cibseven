@@ -26,8 +26,8 @@ import static org.cibseven.bpm.engine.test.api.runtime.migration.models.Conditio
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.ConditionalModels.VAR_CONDITION;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.EventSubProcessModels.EVENT_SUB_PROCESS_START_ID;
 import static org.cibseven.bpm.engine.test.bpmn.event.conditional.AbstractConditionalEventTestCase.TASK_AFTER_CONDITION_ID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.cibseven.bpm.engine.delegate.ExecutionListener;
 import org.cibseven.bpm.engine.migration.MigrationPlan;
@@ -39,9 +39,9 @@ import org.cibseven.bpm.engine.test.bpmn.event.conditional.SetVariableDelegate;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Christopher Zell <christopher.zell@camunda.com>
@@ -51,8 +51,8 @@ public class MigrationWithoutTriggerConditionTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testIntermediateConditionalEventWithSetVariableOnEndListener() {

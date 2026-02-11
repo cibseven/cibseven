@@ -25,7 +25,7 @@ import java.util.Map;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.interceptor.CommandExecutor;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.Description;
 
 /**
@@ -49,7 +49,7 @@ public class AuthorizationTestRule extends AuthorizationTestBaseRule {
   }
 
   public void start(AuthorizationScenario scenario, String userId, Map<String, String> resourceBindings) {
-    Assert.assertNull(interceptor.getLastException());
+    Assertions.assertNull(interceptor.getLastException());
     scenarioInstance = new AuthorizationScenarioInstance(scenario, engineRule.getAuthorizationService(), resourceBindings);
     enableAuthorization(userId);
     interceptor.activate();

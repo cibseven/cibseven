@@ -36,7 +36,7 @@ import org.cibseven.bpm.engine.test.bpmn.tasklistener.util.CompletingTaskListene
 import org.cibseven.bpm.engine.test.bpmn.tasklistener.util.RecorderTaskListener;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class TaskListenerEventLifecycleTest extends AbstractTaskListenerTest{
   /*

@@ -16,17 +16,13 @@
  */
 package org.cibseven.bpm.engine.test.util;
 
-import static org.junit.Assert.assertNotNull;
-
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.cibseven.bpm.engine.migration.MigrationInstructionValidationReport;
 import org.cibseven.bpm.engine.migration.MigrationPlanValidationReport;
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
-import org.junit.Assert;
+
+import org.assertj.core.api.Assertions;
 
 public class MigrationPlanValidationReportAssert {
 
@@ -37,7 +33,7 @@ public class MigrationPlanValidationReportAssert {
   }
 
   public MigrationPlanValidationReportAssert isNotNull() {
-    assertNotNull("Expected report to be not null", actual);
+	 Assertions.assertThat(actual).as("Expected report to be not null").isNotNull();
 
     return this;
   }
@@ -54,7 +50,7 @@ public class MigrationPlanValidationReportAssert {
         .findFirst()
         .ifPresent(entry -> failuresFound.addAll(entry.getValue().getFailures()));
 
-    org.assertj.core.api.Assertions.assertThat(failuresFound)
+    Assertions.assertThat(failuresFound)
         .as("Expected failures for variable name '%s':\n%sBut found failures:\n%s",
             name, joinFailures(expectedFailures), joinFailures(failuresFound.toArray()))
         .containsExactlyInAnyOrder(expectedFailures);
@@ -74,14 +70,10 @@ public class MigrationPlanValidationReportAssert {
       }
     }
 
-    Collection<Matcher<? super String>> matchers = new ArrayList<Matcher<? super String>>();
-    for (String expectedFailure : expectedFailures) {
-      matchers.add(Matchers.containsString(expectedFailure));
-    }
-
-    Assert.assertThat("Expected failures for activity id '" + activityId + "':\n" + joinFailures(expectedFailures) +
-      "But found failures:\n" + joinFailures(failuresFound.toArray()),
-      failuresFound, Matchers.containsInAnyOrder(matchers));
+    Assertions.assertThat(failuresFound)
+        .as("Expected failures for activity id '%s':\n%sBut found failures:\n%s",
+            activityId, joinFailures(expectedFailures), joinFailures(failuresFound.toArray()))
+        .containsExactlyInAnyOrder(expectedFailures);
 
     return this;
   }
@@ -97,6 +89,10 @@ public class MigrationPlanValidationReportAssert {
     }
 
     return builder.toString();
+  }
+
+  public static MigrationPlanValidationReportAssert assertReport(MigrationPlanValidationReport report) {
+    return new MigrationPlanValidationReportAssert(report);
   }
 
 }

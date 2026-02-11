@@ -44,11 +44,11 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * Represents the test class for the process instantiation on which
@@ -70,8 +70,8 @@ public class ProcessInstantiationWithVariablesInReturnTest {
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(testHelper);
+//  @Rule
+//  public RuleChain chain = RuleChain.outerRule(engineRule).around(testHelper);
 
   private void checkVariables(VariableMap map, int expectedSize) {
     List<HistoricVariableInstance> variables = engineRule.getHistoryService()
@@ -125,7 +125,7 @@ public class ProcessInstantiationWithVariablesInReturnTest {
     //access on value should fail because variable is not deserialized
     try {
       serializedVar.getValue();
-      Assert.fail("Deserialization should fail!");
+      Assertions.fail("Deserialization should fail!");
     } catch (IllegalStateException ise) {
       assertTrue(ise.getMessage().equals("Object is not deserialized."));
     }

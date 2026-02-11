@@ -17,8 +17,8 @@
 package org.cibseven.bpm.engine.test.history;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 
@@ -35,9 +35,9 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -46,14 +46,14 @@ import org.junit.Test;
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
 public class HistoricCaseActivityStatisticsQueryTest {
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected HistoryService historyService;
   protected CaseService caseService;
   protected RepositoryService repositoryService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     historyService = engineRule.getHistoryService();
     caseService = engineRule.getCaseService();

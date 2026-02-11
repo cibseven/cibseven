@@ -21,7 +21,7 @@ import static org.cibseven.bpm.engine.history.UserOperationLogEntry.OPERATION_TY
 import static org.cibseven.bpm.engine.history.UserOperationLogEntry.OPERATION_TYPE_DELETE_HISTORY;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario.scenario;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec.grant;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,36 +44,26 @@ import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Thorben Lindhauer
  *
  */
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
-@RunWith(Parameterized.class)
 public class DeleteBatchAuthorizationTest {
 
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
   public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
-
-  @Parameter
   public AuthorizationScenario scenario;
 
-  @Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
       scenario()
@@ -91,12 +81,12 @@ public class DeleteBatchAuthorizationTest {
   protected Batch batch;
   protected boolean cascade;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     authRule.createUserAndGroup("userId", "groupId");
   }
 
-  @Before
+  @BeforeEach
   public void deployProcessesAndCreateMigrationPlan() {
     ProcessDefinition sourceDefinition = testHelper.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
     ProcessDefinition targetDefinition = testHelper.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
@@ -107,12 +97,12 @@ public class DeleteBatchAuthorizationTest {
         .build();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
   }
 
-  @After
+  @AfterEach
   public void deleteBatch() {
     if (authRule.scenarioFailed()) {
       engineRule.getManagementService().deleteBatch(batch.getId(), true);
@@ -147,7 +137,7 @@ public class DeleteBatchAuthorizationTest {
 
     // then
     if (authRule.assertScenario(scenario)) {
-      Assert.assertEquals(0, engineRule.getManagementService().createBatchQuery().count());
+      assertEquals(0, engineRule.getManagementService().createBatchQuery().count());
 
       List<UserOperationLogEntry> userOperationLogEntries = engineRule.getHistoryService()
         .createUserOperationLogQuery()
@@ -188,8 +178,8 @@ public class DeleteBatchAuthorizationTest {
 
     // then
     if (authRule.assertScenario(scenario)) {
-      Assert.assertEquals(0, engineRule.getManagementService().createBatchQuery().count());
-      Assert.assertEquals(0, engineRule.getHistoryService().createHistoricBatchQuery().count());
+      assertEquals(0, engineRule.getManagementService().createBatchQuery().count());
+      assertEquals(0, engineRule.getHistoryService().createHistoricBatchQuery().count());
 
       UserOperationLogQuery query = engineRule.getHistoryService()
         .createUserOperationLogQuery();

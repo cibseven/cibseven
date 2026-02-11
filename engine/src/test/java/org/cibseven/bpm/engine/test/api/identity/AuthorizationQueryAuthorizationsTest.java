@@ -19,9 +19,9 @@ package org.cibseven.bpm.engine.test.api.identity;
 import static org.cibseven.bpm.engine.authorization.Authorization.ANY;
 import static org.cibseven.bpm.engine.authorization.Authorization.AUTH_TYPE_GRANT;
 import static org.cibseven.bpm.engine.authorization.Authorization.AUTH_TYPE_REVOKE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.cibseven.bpm.engine.AuthorizationService;
@@ -35,26 +35,26 @@ import org.cibseven.bpm.engine.authorization.Resources;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 
 public class AuthorizationQueryAuthorizationsTest {
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected AuthorizationService authorizationService;
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void init() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     authorizationService = engineRule.getAuthorizationService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processEngineConfiguration.setAuthorizationEnabled(false);
     cleanupAfterTest();

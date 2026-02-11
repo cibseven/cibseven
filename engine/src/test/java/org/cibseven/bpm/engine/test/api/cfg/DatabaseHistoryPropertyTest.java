@@ -26,9 +26,9 @@ import org.cibseven.bpm.engine.impl.SchemaOperationsProcessEngineBuild;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Christian Lipphardt
@@ -39,7 +39,7 @@ public class DatabaseHistoryPropertyTest {
   private static ProcessEngineImpl processEngineImpl;
 
   // make sure schema is dropped
-  @After
+  @AfterEach
   public void cleanup() {
     processEngineImpl.close();
     processEngineImpl = null;
@@ -91,8 +91,8 @@ public class DatabaseHistoryPropertyTest {
   private void assertHistoryLevel() {
     Map<String, String> properties = processEngineImpl.getManagementService().getProperties();
     String historyLevel = properties.get("historyLevel");
-    Assert.assertNotNull("historyLevel is null -> not set in database", historyLevel);
-    Assert.assertEquals(ProcessEngineConfigurationImpl.HISTORYLEVEL_FULL, Integer.parseInt(historyLevel));
+    Assertions.assertNotNull("historyLevel is null -> not set in database", historyLevel);
+    Assertions.assertEquals(ProcessEngineConfigurationImpl.HISTORYLEVEL_FULL, Integer.parseInt(historyLevel));
   }
 
 

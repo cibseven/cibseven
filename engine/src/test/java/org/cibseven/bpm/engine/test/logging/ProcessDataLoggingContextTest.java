@@ -38,6 +38,7 @@ import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.repository.DeploymentBuilder;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
+import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapClassExtension;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
@@ -47,16 +48,17 @@ import org.cibseven.commons.logging.MdcAccess;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.cibseven.commons.testing.WatchLogger;
 import org.jboss.logging.MDC;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 
+//TODO: Needs ExtendsWith or RegisterExtension to 
+// replace @ClassRule and @Rule with JUnit 5 equivalents
 public class ProcessDataLoggingContextTest {
 
   private static final String PROCESS = "process";
@@ -75,17 +77,17 @@ public class ProcessDataLoggingContextTest {
   private RuntimeContainerDelegate runtimeContainerDelegate = RuntimeContainerDelegate.INSTANCE.get();
   private boolean defaultEngineRegistered;
 
-  @ClassRule
+//  @ClassRule
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configuration.setLoggingContextBusinessKey("businessKey"));
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
-  @Rule
+//  @Rule
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
+//  @Rule
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
 
   private RuntimeService runtimeService;
@@ -93,7 +95,7 @@ public class ProcessDataLoggingContextTest {
 
   private TestMdcFacade testMDCFacade;
 
-  @Before
+  @BeforeEach
   public void setupServices() {
     runtimeService = engineRule.getRuntimeService();
     taskService = engineRule.getTaskService();
@@ -101,20 +103,20 @@ public class ProcessDataLoggingContextTest {
     testMDCFacade = TestMdcFacade.empty();
   }
 
-  @After
+  @AfterEach
   public void resetClock() {
     ClockUtil.reset();
     testMDCFacade.clear();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (defaultEngineRegistered) {
       runtimeContainerDelegate.unregisterProcessEngine(engineRule.getProcessEngine());
     }
   }
 
-  @After
+  @AfterEach
   public void resetLogConfiguration() {
     engineRule.getProcessEngineConfiguration()
       .setLoggingContextActivityId("activityId")

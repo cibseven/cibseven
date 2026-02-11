@@ -32,11 +32,10 @@ import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class LoginAttemptsTest {
 
@@ -53,10 +52,8 @@ public class LoginAttemptsTest {
       configuration.setLoginDelayBase(1);
   });
 
-  @Rule
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
-  @Rule
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
                                                       .watch(INDENTITY_LOGGER)
                                                       .level(Level.INFO);
@@ -64,12 +61,12 @@ public class LoginAttemptsTest {
   protected IdentityService identityService;
   protected ProcessEngine processEngine;
 
-  @Before
+  @BeforeEach
   public void setup() {
     identityService = engineRule.getIdentityService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ClockUtil.setCurrentTime(new Date());
     for (User user : identityService.createUserQuery().list()) {

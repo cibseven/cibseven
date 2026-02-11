@@ -25,26 +25,26 @@ import org.cibseven.bpm.engine.impl.diagnostics.DiagnosticsRegistry;
 import org.cibseven.bpm.engine.impl.telemetry.dto.LicenseKeyDataImpl;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 public class LicenseKeyTelemetryTest {
 
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(testRule).around(engineRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(testRule).around(engineRule);
 
   ProcessEngine processEngine;
   ProcessEngineConfigurationImpl processEngineConfiguration;
   ManagementService managementService;
   DiagnosticsRegistry telemetryRegistry;
 
-  @Before
+  @BeforeEach
   public void init() {
     processEngine = engineRule.getProcessEngine();
     processEngineConfiguration = (ProcessEngineConfigurationImpl) processEngine.getProcessEngineConfiguration();
@@ -52,7 +52,7 @@ public class LicenseKeyTelemetryTest {
     telemetryRegistry = processEngineConfiguration.getDiagnosticsRegistry();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     managementService.deleteLicenseKey();
     telemetryRegistry.clear();

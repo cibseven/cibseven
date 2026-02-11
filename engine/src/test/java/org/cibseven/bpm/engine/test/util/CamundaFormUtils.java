@@ -25,7 +25,7 @@ import java.util.List;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.repository.CamundaFormDefinition;
 import org.cibseven.bpm.engine.test.form.deployment.FindCamundaFormDefinitionsCmd;
-import org.junit.rules.TemporaryFolder;
+
 
 public class CamundaFormUtils {
 
@@ -34,10 +34,13 @@ public class CamundaFormUtils {
         .execute(new FindCamundaFormDefinitionsCmd());
   }
 
-  public static FileInputStream writeTempFormFile(String fileName, String content, TemporaryFolder tempFolder) throws IOException {
-    File formFile = new File(tempFolder.getRoot(), fileName);
+  public static FileInputStream writeTempFormFile(String fileName, String content, File tempFolder) throws IOException {
+    File formFile = new File(tempFolder, fileName);
     if(!formFile.exists()) {
-      formFile = tempFolder.newFile(fileName);
+        if (!formFile.createNewFile()) {
+            throw new IOException(
+                    "a file with the name \'" + fileName + "\' already exists in the test folder");
+        }
     }
 
     FileWriter writer = new FileWriter(formFile, false);

@@ -16,10 +16,10 @@
  */
 package org.cibseven.bpm.engine.test.api.runtime.migration.batch;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.text.ParseException;
 import java.util.Arrays;
@@ -44,11 +44,11 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.runtime.migration.MigrationTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -86,39 +86,39 @@ public class BatchMigrationHistoryTest {
     });
   }
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule);
 
-  @Before
+  @BeforeEach
   public void initServices() {
     runtimeService = engineRule.getRuntimeService();
     managementService = engineRule.getManagementService();
     historyService = engineRule.getHistoryService();
   }
 
-  @Before
+  @BeforeEach
   public void setupConfiguration() {
     configuration = engineRule.getProcessEngineConfiguration();
     defaultEnsureJobDueDateSet = configuration.isEnsureJobDueDateNotNull();
     configuration.setEnsureJobDueDateNotNull(ensureJobDueDateSet);
   }
 
-  @Before
+  @BeforeEach
   public void setClock() {
     ClockUtil.setCurrentTime(START_DATE);
   }
 
-  @After
+  @AfterEach
   public void resetClock() {
     ClockUtil.reset();
   }
 
-  @After
+  @AfterEach
   public void removeBatches() {
     helper.removeAllRunningAndHistoricBatches();
   }
 
-  @After
+  @AfterEach
   public void resetConfiguration() {
     configuration.setEnsureJobDueDateNotNull(defaultEnsureJobDueDateSet);
   }

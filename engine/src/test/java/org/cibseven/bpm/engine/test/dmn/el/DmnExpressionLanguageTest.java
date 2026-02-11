@@ -30,21 +30,21 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 
 public class DmnExpressionLanguageTest {
 
   private static final String JUEL_EXPRESSIONS_WITH_PROPERTIES_DMN =
       "org/cibseven/bpm/engine/test/dmn/el/DmnExpressionLanguageTest.dmn";
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   private DecisionService decisionService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     decisionService = engineRule.getDecisionService();
   }

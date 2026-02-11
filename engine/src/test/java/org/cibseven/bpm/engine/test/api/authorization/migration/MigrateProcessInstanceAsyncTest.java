@@ -33,17 +33,18 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
+import org.cibseven.bpm.engine.test.util.AuthorizationRuleTripleExtension;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
@@ -54,16 +55,14 @@ import org.junit.runners.Parameterized.Parameters;
  *
  */
 @RunWith(Parameterized.class)
+@ExtendWith(AuthorizationRuleTripleExtension.class)
 public class MigrateProcessInstanceAsyncTest {
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  public ProcessEngineRule engineRule;
+  public AuthorizationTestRule authRule;
+  public ProcessEngineTestRule testRule;
 
   protected Batch batch;
-
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
 
   @Parameter
   public AuthorizationScenario scenario;
@@ -122,13 +121,13 @@ public class MigrateProcessInstanceAsyncTest {
          );
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     batch = null;
     authRule.createUserAndGroup("userId", "groupId");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (batch != null) {
       engineRule.getManagementService().deleteBatch(batch.getId(), true);
@@ -141,8 +140,8 @@ public class MigrateProcessInstanceAsyncTest {
   public void testMigrate() {
 
     // given
-    ProcessDefinition sourceDefinition = testHelper.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
-    ProcessDefinition targetDefinition = testHelper.deployAndGetDefinition(modify(ProcessModels.ONE_TASK_PROCESS)
+    ProcessDefinition sourceDefinition = testRule.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
+    ProcessDefinition targetDefinition = testRule.deployAndGetDefinition(modify(ProcessModels.ONE_TASK_PROCESS)
         .changeElementId(ProcessModels.PROCESS_KEY, "new" + ProcessModels.PROCESS_KEY));
 
     ProcessInstance processInstance = engineRule.getRuntimeService().startProcessInstanceById(sourceDefinition.getId());
@@ -167,9 +166,9 @@ public class MigrateProcessInstanceAsyncTest {
 
     // then
     if (authRule.assertScenario(scenario)) {
-      Assert.assertEquals("userId", batch.getCreateUserId());
+      Assertions.assertEquals("userId", batch.getCreateUserId());
 
-      Assert.assertEquals(1, engineRule.getManagementService().createBatchQuery().count());
+      Assertions.assertEquals(1, engineRule.getManagementService().createBatchQuery().count());
     }
 
   }
@@ -179,8 +178,8 @@ public class MigrateProcessInstanceAsyncTest {
   public void testMigrateWithQuery() {
 
     // given
-    ProcessDefinition sourceDefinition = testHelper.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
-    ProcessDefinition targetDefinition = testHelper.deployAndGetDefinition(modify(ProcessModels.ONE_TASK_PROCESS)
+    ProcessDefinition sourceDefinition = testRule.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
+    ProcessDefinition targetDefinition = testRule.deployAndGetDefinition(modify(ProcessModels.ONE_TASK_PROCESS)
         .changeElementId(ProcessModels.PROCESS_KEY, "new" + ProcessModels.PROCESS_KEY));
 
     ProcessInstance processInstance = engineRule.getRuntimeService().startProcessInstanceById(sourceDefinition.getId());
@@ -207,7 +206,7 @@ public class MigrateProcessInstanceAsyncTest {
 
     // then
     if (authRule.assertScenario(scenario)) {
-      Assert.assertEquals(1, engineRule.getManagementService().createBatchQuery().count());
+      Assertions.assertEquals(1, engineRule.getManagementService().createBatchQuery().count());
     }
 
   }

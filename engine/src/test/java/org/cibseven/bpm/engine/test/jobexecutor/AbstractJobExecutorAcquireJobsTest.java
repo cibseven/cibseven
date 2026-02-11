@@ -30,13 +30,11 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ClockTestUtil;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 public abstract class AbstractJobExecutorAcquireJobsTest {
 
-  @Rule
   public ProcessEngineRule rule = new ProvidedProcessEngineRule();
 
   protected ManagementService managementService;
@@ -51,14 +49,10 @@ public abstract class AbstractJobExecutorAcquireJobsTest {
   private Long jobExecutorPriorityRangeMin;
   private Long jobExecutorPriorityRangeMax;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     runtimeService = rule.getRuntimeService();
     managementService = rule.getManagementService();
-  }
-
-  @Before
-  public void saveProcessEngineConfiguration() {
     configuration = (ProcessEngineConfigurationImpl) rule.getProcessEngine().getProcessEngineConfiguration();
     jobExecutorAcquireByDueDate = configuration.isJobExecutorAcquireByDueDate();
     jobExecutorAcquireByPriority = configuration.isJobExecutorAcquireByPriority();
@@ -66,14 +60,10 @@ public abstract class AbstractJobExecutorAcquireJobsTest {
     jobEnsureDueDateSet = configuration.isEnsureJobDueDateNotNull();
     jobExecutorPriorityRangeMin = configuration.getJobExecutorPriorityRangeMin();
     jobExecutorPriorityRangeMax = configuration.getJobExecutorPriorityRangeMax();
-  }
-
-  @Before
-  public void setClock() {
     ClockTestUtil.setClockToDateWithoutMilliseconds();
   }
 
-  @After
+  @AfterEach
   public void restoreProcessEngineConfiguration() {
     configuration.setJobExecutorAcquireByDueDate(jobExecutorAcquireByDueDate);
     configuration.setJobExecutorAcquireByPriority(jobExecutorAcquireByPriority);
@@ -81,10 +71,6 @@ public abstract class AbstractJobExecutorAcquireJobsTest {
     configuration.setEnsureJobDueDateNotNull(jobEnsureDueDateSet);
     configuration.setJobExecutorPriorityRangeMin(jobExecutorPriorityRangeMin);
     configuration.setJobExecutorPriorityRangeMax(jobExecutorPriorityRangeMax);
-  }
-
-  @After
-  public void resetClock() {
     ClockUtil.reset();
   }
 

@@ -23,16 +23,12 @@ import static org.assertj.core.api.Assertions.entry;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNull.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -79,10 +75,10 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.joda.time.DateTime;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -98,14 +94,14 @@ public class ExternalTaskServiceTest extends PluggableProcessEngineTest {
 
   protected SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy - HH:mm:ss");
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     // get rid of the milliseconds because of MySQL datetime precision
     Date now = formatter.parse(formatter.format(new Date()));
     ClockUtil.setCurrentTime(now);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     ClockUtil.reset();
   }
@@ -2456,9 +2452,9 @@ public class ExternalTaskServiceTest extends PluggableProcessEngineTest {
       externalTaskService.unlock(null);
       fail("expected exception");
     } catch (ProcessEngineException e) {
-      Assert.assertThat(e.getMessage(), containsString("externalTaskId is null"));
+      assertThat(e.getMessage()).contains("externalTaskId is null");
     }
-  }
+    }
 
   @Test
   public void testUnlockNonExistingTask() {
@@ -2541,22 +2537,22 @@ public class ExternalTaskServiceTest extends PluggableProcessEngineTest {
         errorMessage = errorMessage + ":" + e.getMessage();
       }
     }
-    Assert.assertThat(exceptionStackTrace,is(notNullValue()));
-//  make sure that stack trace is longer then errorMessage DB field length
-    Assert.assertThat(exceptionStackTrace.length(),is(greaterThan(4000)));
+    assertThat(exceptionStackTrace).isNotNull();
+    //  make sure that stack trace is longer then errorMessage DB field length
+    assertThat(exceptionStackTrace.length()).isGreaterThan(4000);
     externalTaskService.handleFailure(task.getId(), WORKER_ID, errorMessage, exceptionStackTrace, 5, 3000L);
     ClockUtil.setCurrentTime(nowPlus(4000L));
     tasks = externalTaskService.fetchAndLock(5, WORKER_ID)
         .topic(TOPIC_NAME, LOCK_TIME)
         .execute();
-    Assert.assertThat(tasks.size(), is(1));
+    assertThat(tasks.size()).isEqualTo(1);
 
     // verify that exception is accessible properly
     task = tasks.get(0);
-    Assert.assertThat(task.getErrorMessage(),is(errorMessage.substring(0,666)));
-    Assert.assertThat(task.getRetries(),is(5));
-    Assert.assertThat(externalTaskService.getExternalTaskErrorDetails(task.getId()),is(exceptionStackTrace));
-    Assert.assertThat(task.getErrorDetails(),is(exceptionStackTrace));
+    assertThat(task.getErrorMessage()).isEqualTo(errorMessage.substring(0,666));
+    assertThat(task.getRetries()).isEqualTo(5);
+    assertThat(externalTaskService.getExternalTaskErrorDetails(task.getId())).isEqualTo(exceptionStackTrace);
+    assertThat(task.getErrorDetails()).isEqualTo(exceptionStackTrace);
   }
 
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/externaltask/oneExternalTaskProcess.bpmn20.xml")
@@ -3036,9 +3032,9 @@ public class ExternalTaskServiceTest extends PluggableProcessEngineTest {
       externalTaskService.setRetries((String)null, 5);
       fail("expected exception");
     } catch (NullValueException e) {
-      Assert.assertThat(e.getMessage(), containsString("externalTaskId is null"));
+      assertThat(e.getMessage()).contains("externalTaskId is null");
     }
-  }
+    }
 
 
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/externaltask/oneExternalTaskProcess.bpmn20.xml")
@@ -3077,7 +3073,7 @@ public class ExternalTaskServiceTest extends PluggableProcessEngineTest {
       externalTaskService.setPriority(null, 5);
       fail("expected exception");
     } catch (NullValueException e) {
-      Assert.assertThat(e.getMessage(), containsString("externalTaskId is null"));
+      assertThat(e.getMessage()).contains("externalTaskId is null");
     }
   }
 

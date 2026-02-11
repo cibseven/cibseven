@@ -29,8 +29,8 @@ import org.cibseven.bpm.engine.impl.history.handler.HistoryEventHandler;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -47,14 +47,14 @@ public class DefaultHistoryEventHandlerTest {
   @Parameterized.Parameter
   public boolean isDefaultHandlerEnabled;
 
-  @Rule
+//  @Rule
   public ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
     // given
     configuration.setEnableDefaultDbHistoryEventHandler(isDefaultHandlerEnabled);
     configuration.setCustomHistoryEventHandlers(Collections.singletonList(new CustomHistoryEventHandler()));
   });
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   @Test

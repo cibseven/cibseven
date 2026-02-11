@@ -28,7 +28,7 @@ import org.cibseven.bpm.engine.authorization.Permissions;
 import org.cibseven.bpm.engine.authorization.Resource;
 import org.cibseven.bpm.engine.authorization.Resources;
 import org.cibseven.bpm.engine.impl.util.ResourceTypeUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class PermissionsTest {
 

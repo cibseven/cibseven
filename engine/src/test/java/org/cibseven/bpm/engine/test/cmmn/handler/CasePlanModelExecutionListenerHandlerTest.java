@@ -19,7 +19,7 @@ package org.cibseven.bpm.engine.test.cmmn.handler;
 import org.cibseven.bpm.engine.impl.cmmn.handler.CasePlanModelHandler;
 import org.cibseven.bpm.engine.impl.cmmn.model.CmmnActivity;
 import org.cibseven.bpm.engine.test.cmmn.handler.specification.AbstractExecutionListenerSpec;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;

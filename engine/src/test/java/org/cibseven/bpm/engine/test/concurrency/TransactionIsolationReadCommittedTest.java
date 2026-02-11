@@ -30,8 +30,8 @@ import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.test.RequiredDatabase;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
@@ -120,7 +120,7 @@ public class TransactionIsolationReadCommittedTest extends ConcurrencyTestCase {
 
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
 
     // end interaction with Thread 2

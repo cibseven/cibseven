@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.test.api.multitenancy.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -28,8 +28,8 @@ import org.cibseven.bpm.engine.exception.NullValueException;
 import org.cibseven.bpm.engine.repository.DecisionDefinition;
 import org.cibseven.bpm.engine.repository.DecisionDefinitionQuery;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class MultiTenancyDecisionDefinitionQueryTest extends PluggableProcessEngineTest {
 
@@ -39,7 +39,7 @@ public class MultiTenancyDecisionDefinitionQueryTest extends PluggableProcessEng
   protected static final String TENANT_ONE = "tenant1";
   protected static final String TENANT_TWO = "tenant2";
 
-  @Before
+  @BeforeEach
   public void setUp() {
     testRule.deploy(DMN);
     testRule.deployForTenant(TENANT_ONE, DMN);

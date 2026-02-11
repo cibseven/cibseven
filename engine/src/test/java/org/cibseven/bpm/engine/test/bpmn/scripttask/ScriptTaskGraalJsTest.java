@@ -23,8 +23,8 @@ import static org.cibseven.bpm.engine.impl.util.ReflectUtil.CIBSEVEN_NAMESPACE;
 import static org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines.ECMASCRIPT_SCRIPTING_LANGUAGE;
 import static org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines.GRAAL_JS_SCRIPT_ENGINE_NAME;
 import static org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines.JAVASCRIPT_SCRIPTING_LANGUAGE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,9 +36,9 @@ import org.cibseven.bpm.engine.delegate.BpmnError;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.scripting.engine.ScriptEngineResolver;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
@@ -55,7 +55,7 @@ public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
   protected ScriptEngineResolver defaultScriptEngineResolver;
   protected boolean spinEnabled = false;
 
-  @Before
+  @BeforeEach
   public void setup() {
     spinEnabled = processEngineConfiguration.getEnvScriptResolvers().stream()
                     .anyMatch(resolver -> resolver.getClass().getSimpleName().equals("SpinScriptEnvResolver"));
@@ -66,7 +66,7 @@ public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
     processEngineConfiguration.setUseCibSevenNamespaceInScripting(true);
   }
 
-  @After
+  @AfterEach
   public void resetConfiguration() {
     processEngineConfiguration.setConfigureScriptEngineHostAccess(true);
     processEngineConfiguration.setEnableScriptEngineNashornCompatibility(false);

@@ -27,7 +27,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Assertions;
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.ManagementService;
@@ -54,11 +54,12 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+
 
 public class CorrelateAllMessageBatchTest {
 
@@ -74,21 +75,21 @@ public class CorrelateAllMessageBatchTest {
   protected BatchRule rule = new BatchRule(engineRule, engineTestRule);
   protected BatchHelper helper = new BatchHelper(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule).around(rule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule).around(rule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
   protected ManagementService managementService;
 
-  @Before
+  @BeforeEach
   public void assignServices() {
     runtimeService = engineRule.getRuntimeService();
     historyService = engineRule.getHistoryService();
     managementService = engineRule.getManagementService();
   }
 
-  @Before
+  @BeforeEach
   public void deployProcessIntermediateMessageOne() {
     BpmnModelInstance process = Bpmn.createExecutableProcess(PROCESS_ONE_KEY)
       .startEvent()
@@ -100,12 +101,12 @@ public class CorrelateAllMessageBatchTest {
     engineTestRule.deploy(process);
   }
 
-  @After
+  @AfterEach
   public void clearAuthentication() {
     engineRule.getIdentityService().setAuthenticatedUserId(null);
   }
 
-  @After
+  @AfterEach
   public void resetConfiguration() {
     ClockUtil.reset();
     engineRule.getProcessEngineConfiguration()
@@ -635,8 +636,8 @@ public class CorrelateAllMessageBatchTest {
     HistoricBatch historicBatch = historyService.createHistoricBatchQuery().singleResult();
     batch = managementService.createBatchQuery().singleResult();
 
-    Assertions.assertThat(batch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
-    Assertions.assertThat(historicBatch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
+    assertThat(batch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
+    assertThat(historicBatch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
 
     // clear
     managementService.deleteBatch(batch.getId(), true);

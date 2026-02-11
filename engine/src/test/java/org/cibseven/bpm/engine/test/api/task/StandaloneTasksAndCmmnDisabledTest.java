@@ -33,12 +33,12 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+
 
 public class StandaloneTasksAndCmmnDisabledTest {
 
@@ -49,8 +49,8 @@ public class StandaloneTasksAndCmmnDisabledTest {
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   public ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule);
 
   private RuntimeService runtimeService;
   private TaskService taskService;
@@ -58,7 +58,7 @@ public class StandaloneTasksAndCmmnDisabledTest {
   private AuthorizationService authorizationService;
 
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     runtimeService = engineRule.getRuntimeService();
     taskService = engineRule.getTaskService();
@@ -66,7 +66,7 @@ public class StandaloneTasksAndCmmnDisabledTest {
     authorizationService = engineRule.getAuthorizationService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     identityService.clearAuthentication();
     engineRule.getProcessEngineConfiguration().setAuthorizationEnabled(false);

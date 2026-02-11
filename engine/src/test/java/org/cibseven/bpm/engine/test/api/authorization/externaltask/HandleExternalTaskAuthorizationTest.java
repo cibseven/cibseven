@@ -24,25 +24,26 @@ import java.util.Collection;
 import org.cibseven.bpm.engine.authorization.Permissions;
 import org.cibseven.bpm.engine.authorization.Resources;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
+import org.cibseven.bpm.engine.test.util.AuthorizationRuleExtension;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runners.Parameterized;
 
 /**
  * Represents a base class for to define authorization test scenarios for a single external task.
  */
+@ExtendWith(AuthorizationRuleExtension.class)
 public abstract class HandleExternalTaskAuthorizationTest {
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  public ProcessEngineRule engineRule;
+  public AuthorizationTestRule authRule;
 
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule);
+//  @Rule
+//  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule);
 
   @Parameterized.Parameter
   public AuthorizationScenario scenario;
@@ -74,12 +75,12 @@ public abstract class HandleExternalTaskAuthorizationTest {
     );
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     authRule.createUserAndGroup("userId", "groupId");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
   }

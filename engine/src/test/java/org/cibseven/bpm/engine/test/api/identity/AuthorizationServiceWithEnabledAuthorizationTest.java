@@ -25,9 +25,9 @@ import static org.cibseven.bpm.engine.test.api.identity.TestPermissions.CREATE;
 import static org.cibseven.bpm.engine.test.api.identity.TestPermissions.DELETE;
 import static org.cibseven.bpm.engine.test.api.identity.TestPermissions.READ;
 import static org.cibseven.bpm.engine.test.api.identity.TestPermissions.UPDATE;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,22 +38,22 @@ import org.cibseven.bpm.engine.authorization.Resource;
 import org.cibseven.bpm.engine.exception.NullValueException;
 import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Stefan Hentschel.
  */
 public class AuthorizationServiceWithEnabledAuthorizationTest extends PluggableProcessEngineTest {
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
 
     processEngineConfiguration.setAuthorizationEnabled(true);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     processEngineConfiguration.setAuthorizationEnabled(false);
     cleanupAfterTest();

@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.api.runtime.migration;
 
-import static org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert.assertReport;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.cibseven.bpm.engine.migration.MigrationPlanValidationException;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
@@ -25,9 +25,9 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.MultiInstanceProcessModels;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -38,8 +38,8 @@ public class MigrationAddMultiInstanceTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testAddMultiInstanceBody() {
@@ -55,7 +55,7 @@ public class MigrationAddMultiInstanceTest {
       fail("Should not succeed");
     }
     catch (MigrationPlanValidationException e) {
-      assertThat(e.getValidationReport())
+      assertReport(e.getValidationReport())
         .hasInstructionFailures("userTask",
           "Target activity 'userTask' is a descendant of multi-instance body 'userTask#multiInstanceBody' "
           + "that is not mapped from the source process definition"
@@ -77,7 +77,7 @@ public class MigrationAddMultiInstanceTest {
       fail("Should not succeed");
     }
     catch (MigrationPlanValidationException e) {
-      assertThat(e.getValidationReport())
+      assertReport(e.getValidationReport())
         .hasInstructionFailures("userTask",
           "Target activity 'userTask' is a descendant of multi-instance body 'userTask#multiInstanceBody' "
           + "that is not mapped from the source process definition"
@@ -100,7 +100,7 @@ public class MigrationAddMultiInstanceTest {
     }
     catch (MigrationPlanValidationException e) {
       e.printStackTrace();
-      assertThat(e.getValidationReport())
+      assertReport(e.getValidationReport())
         .hasInstructionFailures("userTask",
           "Target activity 'userTask' is a descendant of multi-instance body 'subProcess#multiInstanceBody' "
           + "that is not mapped from the source process definition"

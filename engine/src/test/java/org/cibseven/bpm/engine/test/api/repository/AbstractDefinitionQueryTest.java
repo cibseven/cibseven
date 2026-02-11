@@ -26,10 +26,10 @@ import org.cibseven.bpm.engine.query.Query;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+
 
 public abstract class AbstractDefinitionQueryTest {
 
@@ -38,8 +38,8 @@ public abstract class AbstractDefinitionQueryTest {
 
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain chain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected RepositoryService repositoryService;
   protected RuntimeService runtimeService;
@@ -47,7 +47,7 @@ public abstract class AbstractDefinitionQueryTest {
   protected String deploymentOneId;
   protected String deploymentTwoId;
 
-  @Before
+  @BeforeEach
   public void before() throws Exception {
     repositoryService = engineRule.getRepositoryService();
     runtimeService = engineRule.getRuntimeService();
@@ -72,7 +72,7 @@ public abstract class AbstractDefinitionQueryTest {
 
   protected abstract String getResourceTwoPath();
 
-  @After
+  @AfterEach
   public void after() throws Exception {
     repositoryService.deleteDeployment(deploymentOneId, true);
     repositoryService.deleteDeployment(deploymentTwoId, true);

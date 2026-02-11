@@ -21,7 +21,7 @@ import java.util.List;
 import org.cibseven.bpm.engine.externaltask.LockedExternalTask;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Represents a base class for authorization test cases to handle

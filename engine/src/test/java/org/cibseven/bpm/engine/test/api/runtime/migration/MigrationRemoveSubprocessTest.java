@@ -19,7 +19,7 @@ package org.cibseven.bpm.engine.test.api.runtime.migration;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,11 +37,11 @@ import org.cibseven.bpm.engine.test.bpmn.multiinstance.DelegateEvent;
 import org.cibseven.bpm.engine.test.bpmn.multiinstance.DelegateExecutionListener;
 import org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -52,8 +52,8 @@ public class MigrationRemoveSubprocessTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testRemoveScopeForNonScopeActivity() {
@@ -83,7 +83,7 @@ public class MigrationRemoveSubprocessTest {
         .done());
 
     Task migratedTask = testHelper.snapshotAfterMigration.getTaskForKey("userTask");
-    Assert.assertNotNull(migratedTask);
+    Assertions.assertNotNull(migratedTask);
     assertEquals(targetProcessDefinition.getId(), migratedTask.getProcessDefinitionId());
 
     // and it is possible to successfully complete the migrated instance
@@ -120,7 +120,7 @@ public class MigrationRemoveSubprocessTest {
         .done());
 
     Task migratedTask = testHelper.snapshotAfterMigration.getTaskForKey("userTask");
-    Assert.assertNotNull(migratedTask);
+    Assertions.assertNotNull(migratedTask);
     assertEquals(targetProcessDefinition.getId(), migratedTask.getProcessDefinitionId());
 
     // and it is possible to successfully complete the migrated instance
@@ -160,7 +160,7 @@ public class MigrationRemoveSubprocessTest {
         .done());
 
     List<Task> migratedTasks = testHelper.snapshotAfterMigration.getTasks();
-    Assert.assertEquals(2, migratedTasks.size());
+    Assertions.assertEquals(2, migratedTasks.size());
     for (Task migratedTask : migratedTasks) {
       assertEquals(targetProcessDefinition.getId(), migratedTask.getProcessDefinitionId());
     }
@@ -206,7 +206,7 @@ public class MigrationRemoveSubprocessTest {
         .done());
 
     List<Task> migratedTasks = testHelper.snapshotAfterMigration.getTasks();
-    Assert.assertEquals(2, migratedTasks.size());
+    Assertions.assertEquals(2, migratedTasks.size());
     for (Task migratedTask : migratedTasks) {
       assertEquals(targetProcessDefinition.getId(), migratedTask.getProcessDefinitionId());
     }
@@ -251,7 +251,7 @@ public class MigrationRemoveSubprocessTest {
         .done());
 
     List<Task> migratedTasks = testHelper.snapshotAfterMigration.getTasks();
-    Assert.assertEquals(2, migratedTasks.size());
+    Assertions.assertEquals(2, migratedTasks.size());
     for (Task migratedTask : migratedTasks) {
       assertEquals(targetProcessDefinition.getId(), migratedTask.getProcessDefinitionId());
     }
@@ -298,7 +298,7 @@ public class MigrationRemoveSubprocessTest {
         .done());
 
     List<Task> migratedTasks = testHelper.snapshotAfterMigration.getTasks();
-    Assert.assertEquals(2, migratedTasks.size());
+    Assertions.assertEquals(2, migratedTasks.size());
     for (Task migratedTask : migratedTasks) {
       assertEquals(targetProcessDefinition.getId(), migratedTask.getProcessDefinitionId());
     }
@@ -311,7 +311,7 @@ public class MigrationRemoveSubprocessTest {
   }
 
   @Test
-  @Ignore("Missing feature CAM-5407")
+  @Disabled("Missing feature CAM-5407")
   public void testRemoveScopeAndMoveToConcurrentActivity() {
 
     // given
@@ -346,7 +346,7 @@ public class MigrationRemoveSubprocessTest {
         .done());
 
     List<Task> migratedTasks = testHelper.snapshotAfterMigration.getTasks();
-    Assert.assertEquals(2, migratedTasks.size());
+    Assertions.assertEquals(2, migratedTasks.size());
     for (Task migratedTask : migratedTasks) {
       assertEquals(targetProcessDefinition.getId(), migratedTask.getProcessDefinitionId());
     }
@@ -377,9 +377,9 @@ public class MigrationRemoveSubprocessTest {
         .mapActivities("userTask2", "userTask2")
         .build();
 
-      Assert.fail("should not validate");
+      Assertions.fail("should not validate");
     } catch (MigrationPlanValidationException e) {
-      MigrationPlanValidationReportAssert.assertThat(e.getValidationReport())
+      MigrationPlanValidationReportAssert.assertReport(e.getValidationReport())
         .hasInstructionFailures("userTask2",
           "The closest mapped ancestor 'subProcess' is mapped to scope 'subProcess' which is not an ancestor of target scope 'userTask2'"
         );
@@ -414,7 +414,7 @@ public class MigrationRemoveSubprocessTest {
         .done());
 
     Task migratedTask = testHelper.snapshotAfterMigration.getTaskForKey("userTask");
-    Assert.assertNotNull(migratedTask);
+    Assertions.assertNotNull(migratedTask);
     assertEquals(targetProcessDefinition.getId(), migratedTask.getProcessDefinitionId());
 
     // and it is possible to successfully complete the migrated instance
@@ -512,7 +512,7 @@ public class MigrationRemoveSubprocessTest {
 
     // then
     VariableInstance inputVariable = rule.getRuntimeService().createVariableInstanceQuery().singleResult();
-    Assert.assertNotNull(inputVariable);
+    Assertions.assertNotNull(inputVariable);
     assertEquals("foo", inputVariable.getName());
     assertEquals("bar", inputVariable.getValue());
     assertEquals(processInstance.getId(), inputVariable.getActivityInstanceId());
@@ -563,9 +563,9 @@ public class MigrationRemoveSubprocessTest {
         .mapActivities("userTask", "userTask")
         .build();
 
-      Assert.fail("should not validate");
+      Assertions.fail("should not validate");
     } catch (MigrationPlanValidationException e) {
-      MigrationPlanValidationReportAssert.assertThat(e.getValidationReport())
+      MigrationPlanValidationReportAssert.assertReport(e.getValidationReport())
         .hasInstructionFailures("subProcess3",
           "The closest mapped ancestor 'subProcess1' is mapped to scope 'subProcess1' which is not an ancestor of target scope 'subProcess1'"
         );

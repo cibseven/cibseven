@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.history;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,13 +39,13 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.runtime.migration.MigrationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.batch.BatchMigrationHelper;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.AfterEach;
 
 @RunWith(Parameterized.class)
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
@@ -55,17 +55,17 @@ public class HistoricBatchManagerBatchesForCleanupTest {
   public MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
   public BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule);
 
   protected HistoryService historyService;
 
-  @Before
+  @BeforeEach
   public void init() {
     historyService = engineRule.getHistoryService();
   }
 
-  @After
+  @AfterEach
   public void clearDatabase() {
     helper.removeAllRunningAndHistoricBatches();
   }

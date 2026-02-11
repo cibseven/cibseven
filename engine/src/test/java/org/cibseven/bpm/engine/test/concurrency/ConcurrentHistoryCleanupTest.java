@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.concurrency;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.Assume.assumeTrue;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -34,8 +34,8 @@ import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.impl.test.RequiredDatabase;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.util.DatabaseHelper;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * <p>Tests the call to history cleanup simultaneously.</p>
@@ -47,7 +47,7 @@ import org.junit.Test;
  */
 public class ConcurrentHistoryCleanupTest extends ConcurrencyTestCase {
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     processEngineConfiguration.getCommandExecutorTxRequired().execute((Command<Void>) commandContext -> {
 

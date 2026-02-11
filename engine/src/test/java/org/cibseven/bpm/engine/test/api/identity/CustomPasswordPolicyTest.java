@@ -27,23 +27,23 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.identity.DefaultPasswordPolicyImpl;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Miklas Boskamp
  */
 public class CustomPasswordPolicyTest {
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   private ProcessEngineConfigurationImpl processEngineConfiguration;
   private IdentityService identityService;
 
-  @Before
+  @BeforeEach
   public void init() {
     identityService = engineRule.getIdentityService();
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
@@ -51,7 +51,7 @@ public class CustomPasswordPolicyTest {
     processEngineConfiguration.setEnablePasswordPolicy(true);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     // reset configuration
     processEngineConfiguration.setPasswordPolicy(null);

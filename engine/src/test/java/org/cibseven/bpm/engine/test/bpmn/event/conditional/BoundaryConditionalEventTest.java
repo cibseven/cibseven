@@ -17,11 +17,11 @@
 package org.cibseven.bpm.engine.test.bpmn.event.conditional;
 
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 
@@ -38,8 +38,8 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.builder.AbstractActivityBuilder;
 import org.cibseven.bpm.model.bpmn.instance.SequenceFlow;
 import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaExecutionListener;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -1576,7 +1576,9 @@ public class BoundaryConditionalEventTest extends AbstractConditionalEventTestCa
     assertEquals(1, taskService.createTaskQuery().count());
     tasksAfterVariableIsSet = taskService.createTaskQuery().list();
     String taskDefinitionKey = tasksAfterVariableIsSet.get(0).getTaskDefinitionKey();
-    Assert.assertTrue("afterBoundary1".equals(taskDefinitionKey) || "afterBoundary2".equals(taskDefinitionKey));
+    Assertions.assertTrue(
+        "afterBoundary1".equals(taskDefinitionKey) || "afterBoundary2".equals(taskDefinitionKey),
+        "taskDefinitionKey is neither 'afterBoundary1' nor 'afterBoundary2'");
   }
 
   @Test

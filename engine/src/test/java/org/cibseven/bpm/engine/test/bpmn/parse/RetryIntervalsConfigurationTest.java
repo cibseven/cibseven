@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.parse;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -37,11 +37,11 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 public class RetryIntervalsConfigurationTest extends AbstractAsyncOperationsTest {
 
@@ -56,10 +56,10 @@ public class RetryIntervalsConfigurationTest extends AbstractAsyncOperationsTest
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule).around(testRule);
 
-  @Before
+  @BeforeEach
   public void setUp() {
     initDefaults(engineRule);
   }
@@ -246,7 +246,7 @@ public class RetryIntervalsConfigurationTest extends AbstractAsyncOperationsTest
 
     // then
     job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(8, job.getRetries());
+    Assertions.assertEquals(8, job.getRetries());
   }
 
   @Test

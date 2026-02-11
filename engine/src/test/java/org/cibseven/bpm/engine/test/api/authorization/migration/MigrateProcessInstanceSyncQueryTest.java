@@ -31,39 +31,39 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
+import org.cibseven.bpm.engine.test.util.AuthorizationRuleTripleExtension;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 
 /**
  * @author Thorben Lindhauer
  *
  */
+@ExtendWith(AuthorizationRuleTripleExtension.class)
 public class MigrateProcessInstanceSyncQueryTest {
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  public ProcessEngineRule engineRule;
+  public AuthorizationTestRule authRule;
+  public ProcessEngineTestRule testRule;
 
   protected List<Authorization> authorizations;
 
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
-
-  @Before
+  @BeforeEach
   public void setUp() {
     authorizations = new ArrayList<Authorization>();
     authRule.createUserAndGroup("userId", "groupId");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     for (Authorization authorization : authorizations) {
       engineRule.getAuthorizationService().deleteAuthorization(authorization.getId());
@@ -75,8 +75,8 @@ public class MigrateProcessInstanceSyncQueryTest {
   @Test
   public void testMigrateWithQuery() {
     // given
-    ProcessDefinition sourceDefinition = testHelper.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
-    ProcessDefinition targetDefinition = testHelper.deployAndGetDefinition(modify(ProcessModels.ONE_TASK_PROCESS)
+    ProcessDefinition sourceDefinition = testRule.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
+    ProcessDefinition targetDefinition = testRule.deployAndGetDefinition(modify(ProcessModels.ONE_TASK_PROCESS)
         .changeElementId(ProcessModels.PROCESS_KEY, "new" + ProcessModels.PROCESS_KEY));
 
     ProcessInstance instance1 = engineRule.getRuntimeService().startProcessInstanceById(sourceDefinition.getId());
@@ -108,7 +108,7 @@ public class MigrateProcessInstanceSyncQueryTest {
       .processInstanceId(instance1.getId())
       .singleResult();
 
-    Assert.assertEquals(sourceDefinition.getId(), instance1AfterMigration.getProcessDefinitionId());
+    Assertions.assertEquals(sourceDefinition.getId(), instance1AfterMigration.getProcessDefinitionId());
   }
 
   protected void grantAuthorization(String userId, Resource resource, String resourceId, Permission permission) {

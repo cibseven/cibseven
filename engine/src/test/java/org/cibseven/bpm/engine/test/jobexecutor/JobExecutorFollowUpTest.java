@@ -34,11 +34,11 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * Test cases for handling of new jobs created while a job is executed
@@ -106,8 +106,8 @@ public class JobExecutorFollowUpTest {
     return jobExecutor;
   }
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule).around(testHelper);
 
   protected ControllableJobExecutor jobExecutor;
   protected ThreadControl acquisitionThread;
@@ -117,7 +117,7 @@ public class JobExecutorFollowUpTest {
   protected long defaultJobExecutorPriorityRangeMin;
   protected long defaultJobExecutorPriorityRangeMax;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     jobExecutor = (ControllableJobExecutor)
         ((ProcessEngineConfigurationImpl) engineRule.getProcessEngine().getProcessEngineConfiguration()).getJobExecutor();
@@ -130,7 +130,7 @@ public class JobExecutorFollowUpTest {
     defaultJobExecutorPriorityRangeMax = configuration.getJobExecutorPriorityRangeMax();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     jobExecutor.shutdown();
 

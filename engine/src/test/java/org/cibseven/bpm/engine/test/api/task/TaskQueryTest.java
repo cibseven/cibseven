@@ -32,13 +32,13 @@ import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.taskByNa
 import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.taskByPriority;
 import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.taskByProcessInstanceId;
 import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.verifySortingAndCount;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -82,9 +82,9 @@ import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.engine.variable.value.FileValue;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Joram Barrez
@@ -100,7 +100,7 @@ public class TaskQueryTest extends PluggableProcessEngineTest {
   // max value
   protected static final double MAX_DOUBLE_VALUE = 10E+124;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
 
     identityService.saveUser(identityService.newUser("kermit"));
@@ -117,7 +117,7 @@ public class TaskQueryTest extends PluggableProcessEngineTest {
     taskIds = generateTestTasks();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     identityService.deleteGroup("accountancy");
     identityService.deleteGroup("management");
@@ -4992,22 +4992,23 @@ public class TaskQueryTest extends PluggableProcessEngineTest {
     }
   }
 
-  /**
-   * verify that either the first or the last task of the list belong to the given process instance
-   */
-  protected void verifyFirstOrLastTask(List<Task> tasks, ProcessInstance belongingProcessInstance) {
+    /**
+     * verify that either the first or the last task of the list belong to the given process instance
+     */
+    protected void verifyFirstOrLastTask(List<Task> tasks, ProcessInstance belongingProcessInstance) {
     if (tasks.size() == 0) {
       fail("no tasks given");
     }
 
     int numTasks = tasks.size();
-    boolean matches = tasks.get(0).getProcessInstanceId().equals(belongingProcessInstance.getId());
-    matches = matches || tasks.get(numTasks - 1).getProcessInstanceId()
-        .equals(belongingProcessInstance.getId());
+    Task firstTask = tasks.get(0);
+    Task lastTask = tasks.get(numTasks - 1);
 
-    assertTrue("neither first nor last task belong to process instance " + belongingProcessInstance.getId(),
-        matches);
-  }
+    assertTrue(
+        firstTask.getProcessInstanceId().equals(belongingProcessInstance.getId()) ||
+        lastTask.getProcessInstanceId().equals(belongingProcessInstance.getId()),
+        "neither first nor last task belong to process instance " + belongingProcessInstance.getId());
+    }
 
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/task/TaskQueryTest.testProcessDefinition.bpmn20.xml")
   @Test

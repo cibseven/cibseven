@@ -20,10 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -34,7 +34,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Assertions;
 import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.ProcessEngineException;
@@ -67,12 +67,12 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -85,8 +85,8 @@ public class ModificationExecutionAsyncTest {
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
   protected BatchModificationHelper helper = new BatchModificationHelper(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
 
   protected ProcessEngineConfigurationImpl configuration;
   protected RuntimeService runtimeService;
@@ -112,18 +112,18 @@ public class ModificationExecutionAsyncTest {
     });
   }
 
-  @Before
+  @BeforeEach
   public void initServices() {
     runtimeService = rule.getRuntimeService();
     historyService = rule.getHistoryService();
   }
 
-  @Before
+  @BeforeEach
   public void setClock() {
     ClockUtil.setCurrentTime(START_DATE);
   }
 
-  @Before
+  @BeforeEach
   public void storeEngineSettings() {
     configuration = rule.getProcessEngineConfiguration();
     defaultBatchJobsPerSeed = configuration.getBatchJobsPerSeed();
@@ -132,7 +132,7 @@ public class ModificationExecutionAsyncTest {
     configuration.setEnsureJobDueDateNotNull(ensureJobDueDateSet);
   }
 
-  @Before
+  @BeforeEach
   public void createBpmnModelInstance() {
     this.instance = Bpmn.createExecutableProcess("process1")
         .startEvent("start")
@@ -143,24 +143,24 @@ public class ModificationExecutionAsyncTest {
         .done();
   }
 
-  @After
+  @AfterEach
   public void resetClock() {
     ClockUtil.reset();
   }
 
-  @After
+  @AfterEach
   public void restoreEngineSettings() {
     configuration.setBatchJobsPerSeed(defaultBatchJobsPerSeed);
     configuration.setInvocationsPerBatchJob(defaultInvocationsPerBatchJob);
     configuration.setEnsureJobDueDateNotNull(defaultEnsureJobDueDateSet);
   }
 
-  @After
+  @AfterEach
   public void removeInstanceIds() {
     helper.currentProcessInstances = new ArrayList<>();
   }
 
-  @After
+  @AfterEach
   public void removeBatches() {
     helper.removeAllRunningAndHistoricBatches();
   }
@@ -1277,7 +1277,7 @@ public class ModificationExecutionAsyncTest {
 
     // then
     VariableInstance inputVariable = runtimeService.createVariableInstanceQuery().singleResult();
-    Assert.assertNotNull(inputVariable);
+    Assertions.assertNotNull(inputVariable);
     assertEquals("foo", inputVariable.getName());
     assertEquals("bar", inputVariable.getValue());
 
@@ -1469,8 +1469,8 @@ public class ModificationExecutionAsyncTest {
     HistoricBatch historicBatch = rule.getHistoryService().createHistoricBatchQuery().singleResult();
     batch = rule.getManagementService().createBatchQuery().singleResult();
 
-    Assertions.assertThat(batch.getExecutionStartTime()).isEqualToIgnoringMillis(START_DATE);
-    Assertions.assertThat(historicBatch.getExecutionStartTime()).isEqualToIgnoringMillis(START_DATE);
+    assertThat(batch.getExecutionStartTime()).isEqualToIgnoringMillis(START_DATE);
+    assertThat(historicBatch.getExecutionStartTime()).isEqualToIgnoringMillis(START_DATE);
 
     // clear
     configuration.setInvocationsPerBatchJobByBatchType(new HashMap<>());

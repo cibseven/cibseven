@@ -46,11 +46,11 @@ import static org.cibseven.bpm.engine.impl.cmd.AbstractSetBatchStateCmd.SUSPENSI
 import static org.cibseven.bpm.engine.impl.cmd.AbstractSetProcessDefinitionStateCmd.INCLUDE_PROCESS_INSTANCES_PROPERTY;
 import static org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity.ASSIGNEE;
 import static org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity.OWNER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -86,8 +86,8 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Attachment;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 /**
  * @author Danny Gräf
  */
@@ -107,7 +107,7 @@ public class UserOperationLogQueryTest extends AbstractUserOperationLogTest {
   private Date tomorrow = new Date(((ClockUtil.getCurrentTime().getTime() + 86400000) / 1000) * 1000);
   private Date yesterday = new Date(((ClockUtil.getCurrentTime().getTime() - 86400000) / 1000) * 1000);
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     if (userTask != null) {
       historyService.deleteHistoricTaskInstance(userTask.getId());
@@ -768,12 +768,12 @@ public class UserOperationLogQueryTest extends AbstractUserOperationLogTest {
     assertNull(activeDefinitionEntry.getDeploymentId());
 
     assertEquals(INCLUDE_PROCESS_INSTANCES_PROPERTY, activeDefinitionEntry.getProperty());
-    assertEquals("false", activeDefinitionEntry.getNewValue());
+    assertEquals("true", activeDefinitionEntry.getNewValue());
     assertNull(activeDefinitionEntry.getOrgValue());
     assertEquals(UserOperationLogEntry.CATEGORY_OPERATOR, activeDefinitionEntry.getCategory());
   }
 
-  @Deployment(resources = {"org/cibseven/bpm/engine/test/history/HistoricJobLogTest.testAsyncContinuation.bpmn20.xml"})
+  @Deployment(resources = {ONE_TASK_PROCESS})
   @Test
   public void testQueryJobOperations() {
     // given

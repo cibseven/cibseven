@@ -22,29 +22,26 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.jobexecutor.FailingDelegate;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
-import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
+import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRuleExtension;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+@ExtendWith(ProvidedProcessEngineRuleExtension.class)
 public class JobDeclarationRetriesTest {
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  protected ProcessEngineRule engineRule;
 
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  protected ProcessEngineTestRule testRule;
 
   private ManagementService managementService;
   private RuntimeService runtimeService;
 
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
-
-  @Before
+  @BeforeEach
   public void init() {
     this.managementService = engineRule.getProcessEngine().getManagementService();
     this.runtimeService = engineRule.getRuntimeService();
@@ -64,7 +61,7 @@ public class JobDeclarationRetriesTest {
     Job job = managementService.createJobQuery().processInstanceId(processInstanceId).singleResult();
 
     // then
-    Assert.assertEquals(1, job.getRetries());
+    Assertions.assertEquals(1, job.getRetries());
 
     // when
     try {
@@ -75,7 +72,7 @@ public class JobDeclarationRetriesTest {
     job = managementService.createJobQuery().processInstanceId(processInstanceId).singleResult();
 
     // then
-    Assert.assertEquals(0, job.getRetries());
+    Assertions.assertEquals(0, job.getRetries());
   }
 
   @Test
@@ -90,7 +87,7 @@ public class JobDeclarationRetriesTest {
     // when
     String processInstanceId = runtimeService.startProcessInstanceByKey(processDefinitionName).getId();
     Job job = managementService.createJobQuery().processInstanceId(processInstanceId).singleResult();
-    Assert.assertEquals(5, job.getRetries());
+    Assertions.assertEquals(5, job.getRetries());
 
     // when
     try {
@@ -101,7 +98,7 @@ public class JobDeclarationRetriesTest {
     job = managementService.createJobQuery().processInstanceId(processInstanceId).singleResult();
 
     // then
-    Assert.assertEquals(4, job.getRetries());
+    Assertions.assertEquals(4, job.getRetries());
   }
 
   @Test
@@ -118,7 +115,7 @@ public class JobDeclarationRetriesTest {
     Job job = managementService.createJobQuery().processInstanceId(processInstanceId).singleResult();
 
     // then
-    Assert.assertEquals(4, job.getRetries());
+    Assertions.assertEquals(4, job.getRetries());
 
     // when
     try {
@@ -129,7 +126,7 @@ public class JobDeclarationRetriesTest {
 
     // then
     job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(3, job.getRetries());
+    Assertions.assertEquals(3, job.getRetries());
   }
 
   private static BpmnModelInstance getBpmnModelInstance(String processDefinitionName, String retryStrategy) {

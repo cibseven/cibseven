@@ -30,10 +30,10 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.MultiInstanceProcessModels;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -44,8 +44,8 @@ public class MigrationRemoveMultiInstanceTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testRemoveParallelMultiInstanceBody() {
@@ -81,7 +81,7 @@ public class MigrationRemoveMultiInstanceTest {
         .done());
 
     List<Task> migratedTasks = testHelper.snapshotAfterMigration.getTasks();
-    Assert.assertEquals(3, migratedTasks.size());
+    Assertions.assertEquals(3, migratedTasks.size());
 
     // and it is possible to successfully complete the migrated instance
     for (Task migratedTask : migratedTasks) {
@@ -107,15 +107,15 @@ public class MigrationRemoveMultiInstanceTest {
     testHelper.createProcessInstanceAndMigrate(migrationPlan);
 
     // then
-    Assert.assertEquals(0, rule.getRuntimeService().createVariableInstanceQuery().variableName("nrOfInstances").count());
+    Assertions.assertEquals(0, rule.getRuntimeService().createVariableInstanceQuery().variableName("nrOfInstances").count());
 
     // the MI body variables are gone
-    Assert.assertEquals(0, rule.getRuntimeService().createVariableInstanceQuery().variableName("nrOfInstances").count());
-    Assert.assertEquals(0, rule.getRuntimeService().createVariableInstanceQuery().variableName("nrOfActiveInstances").count());
-    Assert.assertEquals(0, rule.getRuntimeService().createVariableInstanceQuery().variableName("nrOfCompletedInstances").count());
+    Assertions.assertEquals(0, rule.getRuntimeService().createVariableInstanceQuery().variableName("nrOfInstances").count());
+    Assertions.assertEquals(0, rule.getRuntimeService().createVariableInstanceQuery().variableName("nrOfActiveInstances").count());
+    Assertions.assertEquals(0, rule.getRuntimeService().createVariableInstanceQuery().variableName("nrOfCompletedInstances").count());
 
     // and the loop counters are still there (because they logically belong to the inner activity instances)
-    Assert.assertEquals(3, rule.getRuntimeService().createVariableInstanceQuery().variableName("loopCounter").count());
+    Assertions.assertEquals(3, rule.getRuntimeService().createVariableInstanceQuery().variableName("loopCounter").count());
   }
 
   @Test
@@ -163,7 +163,7 @@ public class MigrationRemoveMultiInstanceTest {
         .done());
 
     List<Task> migratedTasks = testHelper.snapshotAfterMigration.getTasks();
-    Assert.assertEquals(3, migratedTasks.size());
+    Assertions.assertEquals(3, migratedTasks.size());
 
     // and it is possible to successfully complete the migrated instance
     for (Task migratedTask : migratedTasks) {
@@ -210,7 +210,7 @@ public class MigrationRemoveMultiInstanceTest {
         .done());
 
     List<Task> migratedTasks = testHelper.snapshotAfterMigration.getTasks();
-    Assert.assertEquals(2, migratedTasks.size());
+    Assertions.assertEquals(2, migratedTasks.size());
 
     // and it is possible to successfully complete the migrated instance
     for (Task migratedTask : migratedTasks) {
@@ -246,7 +246,7 @@ public class MigrationRemoveMultiInstanceTest {
         .done());
 
     Task migratedTask = testHelper.snapshotAfterMigration.getTaskForKey("userTask");
-    Assert.assertNotNull(migratedTask);
+    Assertions.assertNotNull(migratedTask);
 
     // and it is possible to successfully complete the migrated instance
     rule.getTaskService().complete(migratedTask.getId());
@@ -268,7 +268,7 @@ public class MigrationRemoveMultiInstanceTest {
     testHelper.createProcessInstanceAndMigrate(migrationPlan);
 
     // then all MI variables are gone
-    Assert.assertEquals(0, rule.getRuntimeService().createVariableInstanceQuery().count());
+    Assertions.assertEquals(0, rule.getRuntimeService().createVariableInstanceQuery().count());
   }
 
   @Test
@@ -303,7 +303,7 @@ public class MigrationRemoveMultiInstanceTest {
         .done());
 
     Task migratedTask = testHelper.snapshotAfterMigration.getTaskForKey("userTask");
-    Assert.assertNotNull(migratedTask);
+    Assertions.assertNotNull(migratedTask);
 
     // and it is possible to successfully complete the migrated instance
     rule.getTaskService().complete(migratedTask.getId());

@@ -24,8 +24,8 @@ import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE;
 import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE_INSTANCE;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_INSTANCE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Date;
 import java.util.List;
@@ -42,8 +42,8 @@ import org.cibseven.bpm.engine.runtime.Incident;
 import org.cibseven.bpm.engine.runtime.IncidentQuery;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -56,7 +56,7 @@ public class IncidentAuthorizationTest extends AuthorizationTest {
   protected static final String ANOTHER_ONE_INCIDENT_PROCESS_KEY = "anotherOneIncidentProcess";
 
   @Override
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     testRule.deploy(
         "org/cibseven/bpm/engine/test/api/authorization/timerStartEventProcess.bpmn20.xml",

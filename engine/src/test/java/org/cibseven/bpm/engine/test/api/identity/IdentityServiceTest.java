@@ -18,12 +18,12 @@ package org.cibseven.bpm.engine.test.api.identity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -58,10 +58,10 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.cibseven.commons.testing.WatchLogger;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Frederik Heremans
@@ -73,21 +73,21 @@ public class IdentityServiceTest {
   private final static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
   private static final String INDENTITY_LOGGER = "org.cibseven.bpm.engine.identity";
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
-  @Rule
+//  @Rule
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
 
   protected IdentityService identityService;
   protected ProcessEngine processEngine;
 
-  @Before
+  @BeforeEach
   public void init() {
     identityService = engineRule.getIdentityService();
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     for (User user : identityService.createUserQuery().list()) {
       identityService.deleteUser(user.getId());
@@ -263,7 +263,7 @@ public class IdentityServiceTest {
 
     // Fetch and update the user
     user = identityService.createUserQuery().userId("johndoe").singleResult();
-    assertTrue("byte arrays differ", Arrays.equals("niceface".getBytes(), picture.getBytes()));
+    assertTrue(Arrays.equals("niceface".getBytes(), picture.getBytes()), "byte arrays differ");
     assertEquals("image/string", picture.getMimeType());
 
     identityService.deleteUserPicture("johndoe");

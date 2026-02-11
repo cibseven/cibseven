@@ -34,9 +34,9 @@ import org.cibseven.bpm.engine.impl.metrics.MetricsReporterIdProvider;
 import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.management.MetricIntervalValue;
 import org.cibseven.bpm.engine.runtime.Job;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -77,7 +77,7 @@ public class HostnameProviderTest {
   protected ProcessEngine engine;
   protected ManagementService managementService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     configuration =
         (ProcessEngineConfigurationImpl) ProcessEngineConfiguration
@@ -97,7 +97,7 @@ public class HostnameProviderTest {
     managementService = configuration.getManagementService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     closeProcessEngine();
   }

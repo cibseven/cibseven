@@ -42,7 +42,7 @@ import org.cibseven.bpm.engine.impl.interceptor.CommandExecutor;
 import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.runtime.Job;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.AfterClass;
 
 /**
@@ -78,7 +78,7 @@ public abstract class AbstractHistoryCleanupSchedulerTest {
     engineConfiguration.initHistoryCleanup();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     clearMeterLog();
 

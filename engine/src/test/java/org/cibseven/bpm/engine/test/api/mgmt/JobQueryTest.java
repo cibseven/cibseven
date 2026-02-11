@@ -18,11 +18,11 @@ package org.cibseven.bpm.engine.test.api.mgmt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -64,11 +64,11 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -82,8 +82,8 @@ public class JobQueryTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RuntimeService runtimeService;
@@ -126,7 +126,7 @@ public class JobQueryTest {
    *   - 3 process instances, each with one timer, each firing at t1/t2/t3 + 1 hour (see process)
    *   - 1 message
    */
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     processEngineConfiguration = rule.getProcessEngineConfiguration();
     runtimeService = rule.getRuntimeService();
@@ -185,7 +185,7 @@ public class JobQueryTest {
     });
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     repositoryService.deleteDeployment(deploymentId, true);
     commandExecutor.execute(new DeleteJobsCmd(messageId, true));
@@ -940,7 +940,7 @@ public class JobQueryTest {
       .processInstanceId(processInstance.getId())
       .singleResult();
 
-    assertNotNull("No job found for process instance", timerJob);
+    assertNotNull(timerJob, "No job found for process instance");
 
     try {
       managementService.executeJob(timerJob.getId());

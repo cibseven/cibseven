@@ -23,13 +23,12 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.hamcrest.CoreMatchers;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_AUDIT)
 public class ProcessEngineRuleRequiredHistoryLevelClassTest {
 
-  @Rule
+//  @Rule
   public final ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   @Test

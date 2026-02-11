@@ -17,8 +17,8 @@
 package org.cibseven.bpm.engine.test.standalone.history;
 
 import static org.cibseven.bpm.engine.ProcessEngineConfiguration.DB_SCHEMA_UPDATE_CREATE_DROP;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,12 +38,12 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
@@ -77,8 +77,8 @@ public class CustomHistoryLevelIdentityLinkTest {
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected HistoryService historyService;
   protected RuntimeService runtimeService;
@@ -86,7 +86,7 @@ public class CustomHistoryLevelIdentityLinkTest {
   protected RepositoryService repositoryService;
   protected TaskService taskService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     runtimeService = engineRule.getRuntimeService();
     historyService = engineRule.getHistoryService();
@@ -97,7 +97,7 @@ public class CustomHistoryLevelIdentityLinkTest {
     customHisstoryLevelIL.setEventTypes(eventTypes);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     customHisstoryLevelIL.setEventTypes(null);
   }

@@ -27,11 +27,11 @@ import org.cibseven.bpm.engine.history.UserOperationLogEntry;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Tobias Metzke
@@ -49,17 +49,17 @@ public class PropertyUserOperationLogTest {
   protected IdentityService identityService;
   protected ManagementService managementService;
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule);
 
-  @Before
+  @BeforeEach
   public void setUp() {
     historyService = engineRule.getHistoryService();
     identityService = engineRule.getIdentityService();
     managementService = engineRule.getManagementService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     managementService.deleteProperty(PROPERTY_NAME);
   }

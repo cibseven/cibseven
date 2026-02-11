@@ -17,8 +17,8 @@
 package org.cibseven.bpm.engine.test.api.runtime.migration;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,23 +33,23 @@ import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 public class MigrationProcessInstanceTest {
 
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testRule = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
 
   protected RuntimeService runtimeService;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     runtimeService = rule.getRuntimeService();
   }
@@ -72,7 +72,7 @@ public class MigrationProcessInstanceTest {
       .execute();
 
     // then
-    Assert.assertEquals(2, runtimeService.createProcessInstanceQuery()
+    Assertions.assertEquals(2, runtimeService.createProcessInstanceQuery()
         .processDefinitionId(targetDefinition.getId()).count());
 
   }

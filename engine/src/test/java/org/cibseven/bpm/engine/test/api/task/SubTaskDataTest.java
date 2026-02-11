@@ -24,10 +24,10 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -35,14 +35,14 @@ import org.junit.Test;
  */
 public class SubTaskDataTest {
 
-  @Rule
+//  @Rule
   public ProcessEngineRule rule = new ProvidedProcessEngineRule();
 
   protected RepositoryService repositoryService;
   protected RuntimeService runtimeService;
   protected TaskService taskService;
 
-  @Before
+  @BeforeEach
   public void init() {
     repositoryService = rule.getRepositoryService();
     runtimeService = rule.getRuntimeService();
@@ -60,7 +60,7 @@ public class SubTaskDataTest {
     taskService.setVariable(task.getId(), "testVariable", "testValue");
 
     // then variable is set in the scope of execution
-    Assert.assertEquals("testValue", runtimeService.getVariable(task.getExecutionId(), "testVariable"));
+    Assertions.assertEquals("testValue", runtimeService.getVariable(task.getExecutionId(), "testVariable"));
 
     // when sub task is created create subtask for user task
     Task subTask = taskService.newTask("123456789");
@@ -72,6 +72,6 @@ public class SubTaskDataTest {
     taskService.setVariable(subTask.getId(), "testVariable", "newTestValue");
 
     //then variable is also updated in the scope execution
-    Assert.assertEquals("newTestValue", runtimeService.getVariable(task.getExecutionId(), "testVariable"));
+    Assertions.assertEquals("newTestValue", runtimeService.getVariable(task.getExecutionId(), "testVariable"));
   }
 }

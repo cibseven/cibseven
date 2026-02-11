@@ -20,18 +20,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Assertions;
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.ManagementService;
@@ -68,12 +68,12 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  *
@@ -89,8 +89,8 @@ public class RestartProcessInstanceAsyncTest {
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   protected BatchRestartHelper helper = new BatchRestartHelper(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RuntimeService runtimeService;
@@ -100,7 +100,7 @@ public class RestartProcessInstanceAsyncTest {
   protected TenantIdProvider defaultTenantIdProvider;
   protected boolean defaultEnsureJobDueDateSet;
 
-  @Before
+  @BeforeEach
   public void init() {
     runtimeService = engineRule.getRuntimeService();
     taskService = engineRule.getTaskService();
@@ -112,14 +112,14 @@ public class RestartProcessInstanceAsyncTest {
     defaultEnsureJobDueDateSet = processEngineConfiguration.isEnsureJobDueDateNotNull();
   }
 
-  @After
+  @AfterEach
   public void reset() {
     helper.removeAllRunningAndHistoricBatches();
     processEngineConfiguration.setTenantIdProvider(defaultTenantIdProvider);
     processEngineConfiguration.setEnsureJobDueDateNotNull(defaultEnsureJobDueDateSet);
   }
 
-  @After
+  @AfterEach
   public void resetClock() {
     ClockUtil.reset();
   }
@@ -242,11 +242,11 @@ public class RestartProcessInstanceAsyncTest {
     List<ProcessInstance> restartedProcessInstances = runtimeService.createProcessInstanceQuery().active().list();
     ProcessInstance restartedProcessInstance = restartedProcessInstances.get(0);
     Task restartedTask = engineRule.getTaskService().createTaskQuery().processInstanceId(restartedProcessInstance.getId()).active().singleResult();
-    Assert.assertEquals(task1.getTaskDefinitionKey(), restartedTask.getTaskDefinitionKey());
+    Assertions.assertEquals(task1.getTaskDefinitionKey(), restartedTask.getTaskDefinitionKey());
 
     restartedProcessInstance = restartedProcessInstances.get(1);
     restartedTask = engineRule.getTaskService().createTaskQuery().processInstanceId(restartedProcessInstance.getId()).active().singleResult();
-    Assert.assertEquals(task2.getTaskDefinitionKey(), restartedTask.getTaskDefinitionKey());
+    Assertions.assertEquals(task2.getTaskDefinitionKey(), restartedTask.getTaskDefinitionKey());
   }
 
   @Test
@@ -521,11 +521,11 @@ public class RestartProcessInstanceAsyncTest {
     List<ProcessInstance> restartedProcessInstances = runtimeService.createProcessInstanceQuery().active().list();
     ProcessInstance restartedProcessInstance = restartedProcessInstances.get(0);
     Task restartedTask = taskService.createTaskQuery().processInstanceId(restartedProcessInstance.getId()).active().singleResult();
-    Assert.assertEquals(task1.getTaskDefinitionKey(), restartedTask.getTaskDefinitionKey());
+    Assertions.assertEquals(task1.getTaskDefinitionKey(), restartedTask.getTaskDefinitionKey());
 
     restartedProcessInstance = restartedProcessInstances.get(1);
     restartedTask = taskService.createTaskQuery().processInstanceId(restartedProcessInstance.getId()).active().singleResult();
-    Assert.assertEquals(task2.getTaskDefinitionKey(), restartedTask.getTaskDefinitionKey());
+    Assertions.assertEquals(task2.getTaskDefinitionKey(), restartedTask.getTaskDefinitionKey());
   }
 
   @Test
@@ -1187,8 +1187,8 @@ public class RestartProcessInstanceAsyncTest {
     HistoricBatch historicBatch = historyService.createHistoricBatchQuery().singleResult();
     batch = managementService.createBatchQuery().singleResult();
 
-    Assertions.assertThat(batch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
-    Assertions.assertThat(historicBatch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
+    assertThat(batch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
+    assertThat(historicBatch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
   }
 
   protected void assertBatchCreated(Batch batch, int processInstanceCount) {

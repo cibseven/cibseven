@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Assertions;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.batch.Batch;
@@ -39,12 +39,12 @@ import org.cibseven.bpm.engine.test.api.AbstractAsyncOperationsTest;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.hamcrest.collection.IsIn;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Askar Akhmerov
@@ -56,8 +56,8 @@ public class ManagementServiceAsyncOperationsTest extends AbstractAsyncOperation
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected final Date TEST_DUE_DATE = new Date(1675752840000L);
 
@@ -66,7 +66,7 @@ public class ManagementServiceAsyncOperationsTest extends AbstractAsyncOperation
 
   boolean tearDownEnsureJobDueDateNotNull;
 
-  @Before
+  @BeforeEach
   public void setup() {
     initDefaults(engineRule);
     prepareData();
@@ -81,7 +81,7 @@ public class ManagementServiceAsyncOperationsTest extends AbstractAsyncOperation
     ids = getAllJobIds();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processInstanceIds = null;
     if(tearDownEnsureJobDueDateNotNull) {
@@ -113,7 +113,7 @@ public class ManagementServiceAsyncOperationsTest extends AbstractAsyncOperation
     Batch batch = managementService.setJobRetriesAsync(ids, RETRIES);
 
     // then
-    Assertions.assertThat(batch.getInvocationsPerBatchJob()).isEqualTo(42);
+    assertThat(batch.getInvocationsPerBatchJob()).isEqualTo(42);
 
     // clear
     engineRule.getProcessEngineConfiguration()
@@ -149,8 +149,8 @@ public class ManagementServiceAsyncOperationsTest extends AbstractAsyncOperation
     // then batch jobs with different deployment ids exist
     List<Job> batchJobs = managementService.createJobQuery().jobDefinitionId(batch.getBatchJobDefinitionId()).list();
     assertThat(batchJobs).hasSize(2);
-    Assert.assertThat(batchJobs.get(0).getDeploymentId(), IsIn.isOneOf(firstDeploymentId, secondDeploymentId));
-    Assert.assertThat(batchJobs.get(1).getDeploymentId(), IsIn.isOneOf(firstDeploymentId, secondDeploymentId));
+    assertThat(batchJobs.get(0).getDeploymentId()).isIn(firstDeploymentId, secondDeploymentId);
+    assertThat(batchJobs.get(1).getDeploymentId()).isIn(firstDeploymentId, secondDeploymentId);
     assertThat(batchJobs.get(0).getDeploymentId()).isNotEqualTo(batchJobs.get(1).getDeploymentId());
 
     // when the batch jobs for the first deployment are executed
@@ -563,7 +563,7 @@ public class ManagementServiceAsyncOperationsTest extends AbstractAsyncOperation
         historicProcessInstanceQuery, RETRIES);
 
     // then
-    Assertions.assertThat(batch.getInvocationsPerBatchJob()).isEqualTo(42);
+    assertThat(batch.getInvocationsPerBatchJob()).isEqualTo(42);
 
     // clear
     engineRule.getProcessEngineConfiguration()

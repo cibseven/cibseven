@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.tasklistener;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.delegate.BpmnError;
@@ -32,8 +32,8 @@ import org.cibseven.bpm.engine.test.bpmn.tasklistener.util.RecorderTaskListener;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.builder.ProcessBuilder;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TaskListenerErrorThrowTest extends AbstractTaskListenerTest {
   /*
@@ -42,7 +42,7 @@ public class TaskListenerErrorThrowTest extends AbstractTaskListenerTest {
 
   public static final String ERROR_CODE = "208";
 
-  @Before
+  @BeforeEach
   public void resetListenerCounters() {
     ThrowBPMNErrorListener.reset();
   }

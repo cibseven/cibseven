@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.test.api.authorization.batch.creation;
 
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario.scenario;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec.grant;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,7 +34,7 @@ import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runners.Parameterized;
 
 public class ModificationBatchAuthorizationTest extends BatchCreationAuthorizationTest {
@@ -63,7 +63,7 @@ public class ModificationBatchAuthorizationTest extends BatchCreationAuthorizati
   public void createBatchModification() {
     //given
     BpmnModelInstance instance = Bpmn.createExecutableProcess("process1").startEvent().userTask("user1").userTask("user2").endEvent().done();
-    ProcessDefinition processDefinition = testHelper.deployAndGetDefinition(instance);
+    ProcessDefinition processDefinition = testRule.deployAndGetDefinition(instance);
 
     List<String> instances = new ArrayList<String>();
     for (int i = 0; i < 2; i++) {

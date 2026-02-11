@@ -16,13 +16,13 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.sequenceflow;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.cibseven.bpm.engine.impl.util.CollectionUtil;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.bpmn.gateway.ExclusiveGatewayTest;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 
 /**

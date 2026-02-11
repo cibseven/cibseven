@@ -22,8 +22,8 @@ import org.cibseven.bpm.engine.test.cmmn.handler.specification.AbstractExecution
 import org.cibseven.bpm.model.cmmn.instance.DiscretionaryItem;
 import org.cibseven.bpm.model.cmmn.instance.PlanningTable;
 import org.cibseven.bpm.model.cmmn.instance.Stage;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -51,7 +51,7 @@ public class StageDiscretionaryItemExecutionListenerHandlerTest extends CmmnElem
     this.testSpecification = testSpecification;
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     stage = createElement(casePlanModel, "aStage", Stage.class);
 

@@ -19,8 +19,8 @@ package org.cibseven.bpm.engine.test.api.authorization.externaltask;
 import org.cibseven.bpm.engine.externaltask.ExternalTask;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -49,7 +49,7 @@ public class LockExternalTaskAuthorizationTest extends HandleExternalTaskAuthori
     // then
     if (authRule.assertScenario(scenario)) {
       ExternalTask lockedTask = engineRule.getExternalTaskService().createExternalTaskQuery().locked().singleResult();
-      Assert.assertNotNull(lockedTask);
+      Assertions.assertNotNull(lockedTask);
     }
   }
 }

@@ -24,7 +24,7 @@ import org.cibseven.bpm.engine.authorization.Resource;
 import org.cibseven.bpm.engine.identity.Group;
 import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
@@ -64,8 +64,8 @@ public class AuthorizationTestBaseRule extends TestWatcher {
 
     super.finished(description);
 
-    Assert.assertTrue("Users have been created but not deleted", users.isEmpty());
-    Assert.assertTrue("Groups have been created but not deleted", groups.isEmpty());
+    Assertions.assertTrue(users.isEmpty(), "Users have been created but not deleted");
+    Assertions.assertTrue(groups.isEmpty(), "Groups have been created but not deleted");
   }
 
   public void manageAuthorization(Authorization authorization) {

@@ -28,9 +28,9 @@ import org.cibseven.bpm.engine.impl.TaskQueryImpl;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.task.TaskQuery;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class MultiTenancyFilterServiceTest extends PluggableProcessEngineTest {
 
@@ -41,7 +41,7 @@ public class MultiTenancyFilterServiceTest extends PluggableProcessEngineTest {
   protected String filterId = null;
   protected final List<String> taskIds = new ArrayList<String>();
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     createTaskWithoutTenantId();
     createTaskForTenant(TENANT_ONE);
@@ -226,7 +226,7 @@ public class MultiTenancyFilterServiceTest extends PluggableProcessEngineTest {
     return filterService.saveFilter(newFilter).getId();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     filterService.deleteFilter(filterId);
     identityService.clearAuthentication();

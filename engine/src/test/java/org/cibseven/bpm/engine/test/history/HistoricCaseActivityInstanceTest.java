@@ -23,16 +23,13 @@ import static org.cibseven.bpm.engine.impl.cmmn.execution.CaseExecutionState.DIS
 import static org.cibseven.bpm.engine.impl.cmmn.execution.CaseExecutionState.ENABLED;
 import static org.cibseven.bpm.engine.impl.cmmn.execution.CaseExecutionState.SUSPENDED;
 import static org.cibseven.bpm.engine.impl.cmmn.execution.CaseExecutionState.TERMINATED;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,8 +63,7 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.cmmn.CmmnTest;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.hamcrest.Matcher;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Sebastian Menski
@@ -84,13 +80,13 @@ public class HistoricCaseActivityInstanceTest extends CmmnTest {
     CaseExecution stage = queryCaseExecutionByActivityId(activityId);
     HistoricCaseActivityInstance historicStage = queryHistoricActivityCaseInstance(activityId);
 
-    assertEquals(stage.getId(), historicStage.getId());
-    assertEquals(stage.getParentId(), historicStage.getParentCaseActivityInstanceId());
-    assertEquals(stage.getCaseDefinitionId(), historicStage.getCaseDefinitionId());
-    assertEquals(stage.getCaseInstanceId(), historicStage.getCaseInstanceId());
-    assertEquals(stage.getActivityId(), historicStage.getCaseActivityId());
-    assertEquals(stage.getActivityName(), historicStage.getCaseActivityName());
-    assertEquals(stage.getActivityType(), historicStage.getCaseActivityType());
+    assertThat(stage.getId()).isEqualTo(historicStage.getId());
+    assertThat(stage.getParentId()).isEqualTo(historicStage.getParentCaseActivityInstanceId());
+    assertThat(stage.getCaseDefinitionId()).isEqualTo(historicStage.getCaseDefinitionId());
+    assertThat(stage.getCaseInstanceId()).isEqualTo(historicStage.getCaseInstanceId());
+    assertThat(stage.getActivityId()).isEqualTo(historicStage.getCaseActivityId());
+    assertThat(stage.getActivityName()).isEqualTo(historicStage.getCaseActivityName());
+    assertThat(stage.getActivityType()).isEqualTo(historicStage.getCaseActivityType());
 
     manualStart(stage.getId());
 
@@ -965,7 +961,7 @@ public class HistoricCaseActivityInstanceTest extends CmmnTest {
     HistoricCaseActivityInstance historicActivityInstance = historicQuery()
       .caseActivityId(activityId)
       .singleResult();
-    assertNotNull("No historic activity instance found for activity id: " + activityId, historicActivityInstance);
+    assertNotNull(historicActivityInstance, "No historic activity instance found for activity id: " + activityId);
     return historicActivityInstance;
   }
 
@@ -973,7 +969,7 @@ public class HistoricCaseActivityInstanceTest extends CmmnTest {
     HistoricCaseActivityInstanceEventEntity historicActivityInstance = (HistoricCaseActivityInstanceEventEntity) queryHistoricActivityCaseInstance(activityId);
     int actualStateCode = historicActivityInstance.getCaseActivityInstanceState();
     CaseExecutionState actualState = CaseExecutionState.CaseExecutionStateImpl.getStateForCode(actualStateCode);
-    assertEquals("The state of historic case activity '" + activityId + "' wasn't as expected", expectedState, actualState);
+    assertEquals(expectedState, actualState, "The state of historic case activity '" + activityId + "' wasn't as expected");
   }
 
   protected void assertHistoricCreateTime(String activityId, Date expectedCreateTime) {
@@ -1076,26 +1072,24 @@ public class HistoricCaseActivityInstanceTest extends CmmnTest {
     List<? extends Comparable> sortedList = Arrays.asList(items);
     Collections.sort(sortedList);
 
-    List<Matcher<Object>> matchers = new ArrayList<Matcher<Object>>();
-    for (Comparable comparable : sortedList) {
-      matchers.add(hasProperty(property, equalTo(comparable)));
-    }
-
     List<?> instances = query.asc().list();
     assertEquals(sortedList.size(), instances.size());
-    assertThat(instances, contains(matchers.toArray(new Matcher[matchers.size()])));
+    assertThat(instances)
+      .extracting(property)
+      .containsExactlyElementsOf(sortedList);
 
     // reverse ordering
     for (QueryOrderingProperty orderingProperty : orderProperties) {
       orderingProperty.setDirection(Direction.DESCENDING);
     }
 
-    // reverse matchers
-    Collections.reverse(matchers);
+    Collections.reverse(sortedList);
 
     instances = query.list();
     assertEquals(sortedList.size(), instances.size());
-    assertThat(instances, contains(matchers.toArray(new Matcher[matchers.size()])));
+    assertThat(instances)
+      .extracting(property)
+      .containsExactlyElementsOf(sortedList);
   }
 
   @Deployment(resources = {"org/cibseven/bpm/engine/test/history/HistoricCaseActivityInstanceTest.oneStageAndOneTaskCaseWithManualActivation.cmmn"})

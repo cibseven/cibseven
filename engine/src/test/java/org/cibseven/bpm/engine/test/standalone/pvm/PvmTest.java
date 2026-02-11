@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.standalone.pvm;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.cibseven.bpm.engine.impl.pvm.ProcessDefinitionBuilder;
 import org.cibseven.bpm.engine.impl.pvm.PvmExecution;
@@ -25,7 +25,7 @@ import org.cibseven.bpm.engine.impl.pvm.PvmProcessInstance;
 import org.cibseven.bpm.engine.test.standalone.pvm.activities.Automatic;
 import org.cibseven.bpm.engine.test.standalone.pvm.activities.Decision;
 import org.cibseven.bpm.engine.test.standalone.pvm.activities.WaitState;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Tom Baeyens

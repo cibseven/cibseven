@@ -17,9 +17,9 @@
 package org.cibseven.bpm.engine.test.standalone.entity;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,8 +38,8 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.value.StringValue;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -48,9 +48,9 @@ import org.junit.Test;
  */
 public class ExecutionEntityTest {
 
-  @Rule
+//  @Rule
   public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
-  @Rule
+//  @Rule
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(processEngineRule);
 
   @Test

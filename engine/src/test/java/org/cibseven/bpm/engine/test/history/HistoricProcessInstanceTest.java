@@ -25,11 +25,11 @@ import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.historic
 import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.historicProcessInstanceByProcessInstanceId;
 import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.verifySorting;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -79,10 +79,10 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Tom Baeyens
@@ -111,8 +111,8 @@ public class HistoricProcessInstanceTest {
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(testHelper);
+//  @Rule
+//  public RuleChain chain = RuleChain.outerRule(engineRule).around(testHelper);
 
   protected RepositoryService repositoryService;
   protected RuntimeService runtimeService;
@@ -121,7 +121,7 @@ public class HistoricProcessInstanceTest {
   protected TaskService taskService;
   protected CaseService caseService;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     repositoryService = engineRule.getRepositoryService();
     runtimeService = engineRule.getRuntimeService();

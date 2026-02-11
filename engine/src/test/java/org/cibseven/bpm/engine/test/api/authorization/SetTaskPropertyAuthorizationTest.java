@@ -37,9 +37,9 @@ import org.cibseven.bpm.engine.test.util.EntityRemoveRule;
 import org.cibseven.bpm.engine.test.util.ObjectProperty;
 import org.cibseven.bpm.engine.test.util.RemoveAfter;
 import org.cibseven.bpm.engine.test.util.TriConsumer;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
@@ -50,7 +50,7 @@ public class SetTaskPropertyAuthorizationTest extends AuthorizationTest {
 
   protected static final String PROCESS_KEY = "oneTaskProcess";
 
-  @Rule
+//  @Rule
   public EntityRemoveRule entityRemoveRule = EntityRemoveRule.of(testRule);
 
   @Parameter(0)
@@ -90,7 +90,7 @@ public class SetTaskPropertyAuthorizationTest extends AuthorizationTest {
   }
 
   @Override
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     testRule.deploy("org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml");
     super.setUp();

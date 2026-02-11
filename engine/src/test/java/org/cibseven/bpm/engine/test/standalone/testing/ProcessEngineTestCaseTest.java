@@ -17,13 +17,14 @@
 package org.cibseven.bpm.engine.test.standalone.testing;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineTestCase;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -38,7 +39,7 @@ public class ProcessEngineTestCaseTest extends ProcessEngineTestCase {
     runtimeService.startProcessInstanceByKey("simpleProcess");
 
     Task task = taskService.createTaskQuery().singleResult();
-    assertEquals("My Task", task.getName());
+    assertEquals(task.getName(), "My Task");
 
     taskService.complete(task.getId());
     assertEquals(0, runtimeService.createProcessInstanceQuery().count());

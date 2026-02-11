@@ -16,21 +16,17 @@
  */
 package org.cibseven.bpm.engine.test.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import org.assertj.core.api.Assertions;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import org.cibseven.bpm.engine.migration.MigratingActivityInstanceValidationReport;
 import org.cibseven.bpm.engine.migration.MigratingProcessInstanceValidationReport;
 import org.cibseven.bpm.engine.migration.MigratingTransitionInstanceValidationReport;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
-import org.junit.Assert;
 
 public class MigratingProcessInstanceValidationReportAssert {
 
@@ -41,7 +37,7 @@ public class MigratingProcessInstanceValidationReportAssert {
   }
 
   public MigratingProcessInstanceValidationReportAssert isNotNull() {
-    assertNotNull("Expected report to be not null", actual);
+    assertNotNull(actual, "Expected report to be not null");
 
     return this;
   }
@@ -53,7 +49,7 @@ public class MigratingProcessInstanceValidationReportAssert {
   public MigratingProcessInstanceValidationReportAssert hasProcessInstanceId(String processInstanceId) {
     isNotNull();
 
-    assertEquals("Expected report to be for process instance", processInstanceId, actual.getProcessInstanceId());
+    assertEquals(processInstanceId, actual.getProcessInstanceId(), "Expected report to be for process instance");
 
     return this;
   }
@@ -63,14 +59,7 @@ public class MigratingProcessInstanceValidationReportAssert {
 
     List<String> actualFailures = actual.getFailures();
 
-    Collection<Matcher<? super String>> matchers = new ArrayList<Matcher<? super String>>();
-    for (String expectedFailure : expectedFailures) {
-      matchers.add(Matchers.containsString(expectedFailure));
-    }
-
-    Assert.assertThat("Expected failures:\n" + joinFailures(Arrays.asList(expectedFailures)) +
-        "But found failures:\n" + joinFailures(actualFailures),
-      actualFailures, Matchers.containsInAnyOrder(matchers));
+    Assertions.assertThat(actualFailures).containsExactlyInAnyOrder(expectedFailures);
 
     return this;
   }
@@ -86,7 +75,7 @@ public class MigratingProcessInstanceValidationReportAssert {
       }
     }
 
-    assertNotNull("No validation report found for source scope: " + sourceScopeId, actualReport);
+    assertNotNull(actualReport, "No validation report found for source scope: " + sourceScopeId);
 
     assertFailures(sourceScopeId, Arrays.asList(expectedFailures), actualReport.getFailures());
 
@@ -104,7 +93,7 @@ public class MigratingProcessInstanceValidationReportAssert {
       }
     }
 
-    assertNotNull("No validation report found for source scope: " + sourceScopeId, actualReport);
+    assertNotNull(actualReport, "No validation report found for source scope: " + sourceScopeId);
 
     assertFailures(sourceScopeId, Arrays.asList(expectedFailures), actualReport.getFailures());
 
@@ -113,14 +102,7 @@ public class MigratingProcessInstanceValidationReportAssert {
 
   protected void assertFailures(String sourceScopeId, List<String> expectedFailures, List<String> actualFailures) {
 
-    Collection<Matcher<? super String>> matchers = new ArrayList<Matcher<? super String>>();
-    for (String expectedFailure : expectedFailures) {
-      matchers.add(Matchers.containsString(expectedFailure));
-    }
-
-    Assert.assertThat("Expected failures for source scope: " + sourceScopeId + "\n" + joinFailures(expectedFailures) +
-        "But found failures:\n" + joinFailures(actualFailures),
-      actualFailures, Matchers.containsInAnyOrder(matchers));
+	  Assertions.assertThat(actualFailures).containsExactlyInAnyOrderElementsOf(expectedFailures);
   }
 
   public static MigratingProcessInstanceValidationReportAssert assertThat(MigratingProcessInstanceValidationReport report) {

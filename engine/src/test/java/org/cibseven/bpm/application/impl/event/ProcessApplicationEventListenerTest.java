@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.application.impl.event;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,13 +37,13 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
+import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapClassExtension;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Daniel Meyer
@@ -51,11 +51,12 @@ import org.junit.Test;
  */
 public class ProcessApplicationEventListenerTest {
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
-      "org/cibseven/bpm/application/impl/event/pa.event.listener.camunda.cfg.xml");
-  @Rule
-  public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  public static ProcessEngineBootstrapClassExtension processEngineBootstrapClassExtension = ProcessEngineBootstrapClassExtension.builder()
+    .setConfigurationResource("org/cibseven/bpm/application/impl/event/pa.event.listener.camunda.cfg.xml")
+    .build();
+
+  public ProvidedProcessEngineRule engineRule = null;
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RuntimeService runtimeService;
@@ -65,7 +66,7 @@ public class ProcessApplicationEventListenerTest {
 
   protected String deploymentId;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     runtimeService = engineRule.getRuntimeService();
@@ -75,7 +76,7 @@ public class ProcessApplicationEventListenerTest {
     deploymentId = repositoryService.createDeploymentQuery().singleResult().getId();
   }
 
-  @After
+  @AfterEach
   public void closeDownProcessEngine() {
     managementService.unregisterProcessApplication(deploymentId, false);
   }

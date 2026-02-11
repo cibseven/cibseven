@@ -23,7 +23,7 @@ import static org.cibseven.bpm.engine.impl.util.ProcessEngineDetails.EDITION_ENT
 
 import org.cibseven.bpm.engine.impl.util.ProcessEngineDetails;
 import org.cibseven.bpm.engine.test.util.TestconfigProperties;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ProcessEngineDetailsTest {
 

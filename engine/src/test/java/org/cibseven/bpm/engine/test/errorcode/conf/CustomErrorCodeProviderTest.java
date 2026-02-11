@@ -33,12 +33,12 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+
+import org.junit.jupiter.api.AfterEach;
 
 import java.sql.SQLException;
 
@@ -67,7 +67,7 @@ public class CustomErrorCodeProviderTest {
     });
   });
 
-  @Rule
+//  @Rule
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch("org.cibseven.bpm.engine.cmd")
       .level(Level.WARN);
@@ -75,19 +75,19 @@ public class CustomErrorCodeProviderTest {
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected RuntimeService runtimeService;
   protected IdentityService identityService;
 
-  @Before
+  @BeforeEach
   public void assignServices() {
     runtimeService = engineRule.getRuntimeService();
     identityService = engineRule.getIdentityService();
   }
 
-  @After
+  @AfterEach
   public void clear() {
     engineRule.getIdentityService().deleteUser("kermit");
   }

@@ -26,9 +26,9 @@ import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.exception.NotValidException;
 import org.cibseven.bpm.engine.repository.CaseDefinition;
 import org.cibseven.bpm.engine.repository.CaseDefinitionQuery;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -50,12 +50,12 @@ public class CaseDefinitionQueryTest extends AbstractDefinitionQueryTest {
     return "org/cibseven/bpm/engine/test/api/repository/three_.cmmn";
   }
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     deploymentThreeId = repositoryService.createDeployment().name("thirdDeployment").addClasspathResource(getResourceThreePath()).deploy().getId();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     repositoryService.deleteDeployment(deploymentThreeId, true);
   }

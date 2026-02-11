@@ -18,8 +18,8 @@ package org.cibseven.bpm.engine.test.concurrency;
 
 import static org.cibseven.bpm.engine.variable.Variables.createVariables;
 import static org.cibseven.bpm.model.bpmn.Bpmn.createExecutableProcess;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +29,7 @@ import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.ByteArrayEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * This test makes sure that if one thread loads a variable
@@ -128,13 +128,13 @@ public class CompetingVariableFetchingAndDeletionTest extends ConcurrencyTestCas
       CachedDbEntity cachedByteArray = commandContext.getDbEntityManager().getDbEntityCache()
         .getCachedEntity(ByteArrayEntity.class, byteArrayValueId);
 
-      assertNull("Byte array is expected to be not fetched yet / lazily fetched.", cachedByteArray);
+      assertNull(cachedByteArray, "Byte array is expected to be not fetched yet / lazily fetched.");
 
       monitor.sync();
 
       // now trigger the fetching of the byte array
       Object value = varInstance.getValue();
-      assertNull("Expecting the value to be null (deleted)", value);
+      assertNull(value, "Expecting the value to be null (deleted)");
 
       return null;
     }

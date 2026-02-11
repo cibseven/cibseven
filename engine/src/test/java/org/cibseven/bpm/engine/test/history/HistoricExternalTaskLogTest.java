@@ -22,7 +22,7 @@ import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.builder.DefaultExternalTaskModelBuilder.DEFAULT_TOPIC;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.builder.DefaultExternalTaskModelBuilder.createDefaultExternalTaskModel;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 import java.util.List;
@@ -41,16 +41,18 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
+import org.cibseven.bpm.engine.test.util.AuthorizationRuleTripleExtension;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.AfterEach;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
+@ExtendWith(AuthorizationRuleTripleExtension.class)
 public class HistoricExternalTaskLogTest {
 
   protected final String WORKER_ID = "aWorkerId";
@@ -58,24 +60,24 @@ public class HistoricExternalTaskLogTest {
   protected final String ERROR_DETAILS = "These are the error details!";
   protected final long LOCK_DURATION = 5 * 60L * 1000L;
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
+  protected ProcessEngineRule engineRule;
+  protected AuthorizationTestRule authRule;
+  protected ProcessEngineTestRule testHelper;
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
   protected ProcessInstance processInstance;
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
   protected ExternalTaskService externalTaskService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     runtimeService = engineRule.getRuntimeService();
     historyService = engineRule.getHistoryService();
     externalTaskService = engineRule.getExternalTaskService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     List<ExternalTask> list = externalTaskService.createExternalTaskQuery().workerId(WORKER_ID).list();
     for (ExternalTask externalTask : list) {

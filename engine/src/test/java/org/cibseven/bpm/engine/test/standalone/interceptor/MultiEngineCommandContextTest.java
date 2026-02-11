@@ -20,9 +20,9 @@ import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
@@ -33,7 +33,7 @@ public class MultiEngineCommandContextTest {
   protected ProcessEngine engine1;
   protected ProcessEngine engine2;
 
-  @Before
+  @BeforeEach
   public void startEngines() {
     engine1 = createProcessEngine("engine1");
     engine2 = createProcessEngine("engine2");
@@ -41,7 +41,7 @@ public class MultiEngineCommandContextTest {
     StartProcessInstanceOnEngineDelegate.ENGINES.put("engine2", engine2);
   }
 
-  @After
+  @AfterEach
   public void closeEngine1() {
     try {
       engine1.close();
@@ -51,7 +51,7 @@ public class MultiEngineCommandContextTest {
     }
   }
 
-  @After
+  @AfterEach
   public void closeEngine2() {
     try {
       engine2.close();
@@ -61,7 +61,7 @@ public class MultiEngineCommandContextTest {
     }
   }
 
-  @After
+  @AfterEach
   public void removeEngines() {
     StartProcessInstanceOnEngineDelegate.ENGINES.clear();
   }

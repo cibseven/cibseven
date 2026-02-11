@@ -22,10 +22,10 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -36,8 +36,8 @@ public class MigrationFlipScopesTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testCannotFlipAncestorScopes() {
@@ -54,9 +54,9 @@ public class MigrationFlipScopesTest {
         .mapActivities("userTask", "userTask")
         .build();
 
-      Assert.fail("should not validate");
+      Assertions.fail("should not validate");
     } catch (MigrationPlanValidationException e) {
-      MigrationPlanValidationReportAssert.assertThat(e.getValidationReport())
+      MigrationPlanValidationReportAssert.assertReport(e.getValidationReport())
         .hasInstructionFailures("innerSubProcess",
           "The closest mapped ancestor 'outerSubProcess' is mapped to scope 'innerSubProcess' which is not an ancestor of target scope 'outerSubProcess'"
         );

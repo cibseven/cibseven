@@ -18,19 +18,19 @@ package org.cibseven.bpm.engine.test.standalone.calendar;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.cibseven.bpm.engine.impl.calendar.DurationHelper;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class DurationHelperTest {
 
-  @After
+  @AfterEach
   public void tearDown() {
     ClockUtil.reset();
   }

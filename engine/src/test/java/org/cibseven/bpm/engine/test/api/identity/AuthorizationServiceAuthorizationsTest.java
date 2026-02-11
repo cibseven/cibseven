@@ -26,10 +26,10 @@ import static org.cibseven.bpm.engine.authorization.Permissions.DELETE;
 import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE;
 import static org.cibseven.bpm.engine.authorization.Resources.AUTHORIZATION;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestUtil.assertExceptionInfo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.AuthorizationService;
@@ -44,8 +44,8 @@ import org.cibseven.bpm.engine.authorization.Resource;
 import org.cibseven.bpm.engine.authorization.Resources;
 import org.cibseven.bpm.engine.impl.persistence.entity.AuthorizationEntity;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * <p>Ensures authorizations are properly
@@ -58,7 +58,7 @@ public class AuthorizationServiceAuthorizationsTest extends PluggableProcessEngi
 
   private final static String jonny2 = "jonny2";
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     processEngineConfiguration.setAuthorizationEnabled(false);
     cleanupAfterTest();

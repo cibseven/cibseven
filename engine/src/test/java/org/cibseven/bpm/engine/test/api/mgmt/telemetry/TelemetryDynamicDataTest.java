@@ -36,18 +36,18 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 public class TelemetryDynamicDataTest {
 
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule);
 
   protected ProcessEngineConfigurationImpl configuration;
   protected RuntimeService runtimeService;
@@ -56,7 +56,7 @@ public class TelemetryDynamicDataTest {
 
   protected ProcessEngine processEngineInMem;
 
-  @Before
+  @BeforeEach
   public void init() {
     configuration = engineRule.getProcessEngineConfiguration();
     runtimeService = configuration.getRuntimeService();
@@ -65,7 +65,7 @@ public class TelemetryDynamicDataTest {
     clearMetrics();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     clearMetrics();
 

@@ -30,11 +30,11 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 public class ReducedJobExceptionLoggingTest {
 
@@ -42,21 +42,21 @@ public class ReducedJobExceptionLoggingTest {
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().watch("org.cibseven.bpm.engine.jobexecutor", Level.DEBUG);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(loggingRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(loggingRule);
 
   private RuntimeService runtimeService;
   private ManagementService managementService;
   private ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void init() {
     runtimeService = engineRule.getRuntimeService();
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     managementService = engineRule.getProcessEngine().getManagementService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processEngineConfiguration.setEnableReducedJobExceptionLogging(false);
     List<Job> jobs = managementService.createJobQuery().processDefinitionKey("failingProcess").list();

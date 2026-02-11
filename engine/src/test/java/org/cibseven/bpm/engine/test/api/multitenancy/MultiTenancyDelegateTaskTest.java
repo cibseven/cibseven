@@ -23,8 +23,8 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.test.api.delegate.AssertingTaskListener;
 import org.cibseven.bpm.engine.test.api.delegate.AssertingTaskListener.DelegateTaskAsserter;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests if a {@link DelegateTask} has the correct tenant-id. The
@@ -54,7 +54,7 @@ public class MultiTenancyDelegateTaskTest extends PluggableProcessEngineTest {
     };
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     AssertingTaskListener.clear();
 

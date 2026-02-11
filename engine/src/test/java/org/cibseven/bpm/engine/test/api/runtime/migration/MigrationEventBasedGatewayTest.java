@@ -19,8 +19,8 @@ package org.cibseven.bpm.engine.test.api.runtime.migration;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.cibseven.bpm.engine.migration.MigrationPlan;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
@@ -30,10 +30,10 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.EventBasedGatewayModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -44,8 +44,8 @@ public class MigrationEventBasedGatewayTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testMigrateGatewayExecutionTree() {
@@ -532,7 +532,7 @@ public class MigrationEventBasedGatewayTest {
     testHelper.migrateProcessInstance(migrationPlan, processInstance);
 
     // then the incident is gone
-    Assert.assertEquals(0, rule.getRuntimeService().createIncidentQuery().count());
+    Assertions.assertEquals(0, rule.getRuntimeService().createIncidentQuery().count());
   }
 
 }

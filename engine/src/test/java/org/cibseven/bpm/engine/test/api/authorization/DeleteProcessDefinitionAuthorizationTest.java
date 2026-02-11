@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.test.api.authorization;
 
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario.scenario;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec.grant;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,17 +33,19 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.history.HistoryLevel;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
+import org.cibseven.bpm.engine.test.util.AuthorizationRuleExtension;
+
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -52,20 +54,18 @@ import org.junit.runners.Parameterized;
  * @author Christopher Zell <christopher.zell@camunda.com>
  */
 @RunWith(Parameterized.class)
+@ExtendWith(AuthorizationRuleExtension.class)
 public class DeleteProcessDefinitionAuthorizationTest {
 
   public static final String PROCESS_DEFINITION_KEY = "one";
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  public ProcessEngineRule engineRule;
+  public AuthorizationTestRule authRule;
   public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
   protected RepositoryService repositoryService;
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
-
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
 
   @Parameterized.Parameter
   public AuthorizationScenario scenario;
@@ -88,7 +88,7 @@ public class DeleteProcessDefinitionAuthorizationTest {
       );
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     authRule.createUserAndGroup("userId", "groupId");
     repositoryService = engineRule.getRepositoryService();
@@ -97,7 +97,7 @@ public class DeleteProcessDefinitionAuthorizationTest {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
     repositoryService = null;

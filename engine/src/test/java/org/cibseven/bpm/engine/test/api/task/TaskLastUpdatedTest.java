@@ -17,10 +17,10 @@
 package org.cibseven.bpm.engine.test.api.task;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Date;
 import java.util.List;
-import org.assertj.core.api.Assertions;
 import org.cibseven.bpm.engine.OptimisticLockingException;
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.TaskService;
@@ -35,27 +35,27 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 
 @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
 public class TaskLastUpdatedTest {
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   TaskService taskService;
   RuntimeService runtimeService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     taskService = engineRule.getTaskService();
     runtimeService = engineRule.getRuntimeService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     List<Task> tasks = taskService.createTaskQuery().list();
     for (Task task : tasks) {
@@ -411,7 +411,7 @@ public class TaskLastUpdatedTest {
     taskService.createComment(task.getId(), null, "");
 
     // when/then
-    Assertions.assertThatThrownBy(() -> taskService.saveTask(task))
+    assertThatThrownBy(() -> taskService.saveTask(task))
       .isInstanceOf(OptimisticLockingException.class);
   }
 

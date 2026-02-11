@@ -33,17 +33,18 @@ import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.management.Metrics;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
+import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapClassExtension;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+//
+
+@ExtendWith(ProcessEngineBootstrapClassExtension.class)
 
 public class HistoryCleanupTaskMetricsTest {
 
@@ -58,23 +59,15 @@ public class HistoryCleanupTaskMetricsTest {
       .endEvent("end")
       .done();
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
-      configuration.setTaskMetricsEnabled(true).setHistoryCleanupDegreeOfParallelism(3));
-
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
-
+  protected ProvidedProcessEngineRule engineRule;
+  protected ProcessEngineTestRule testRule;
   protected HistoryService historyService;
   protected RuntimeService runtimeService;
   protected ManagementService managementService;
   protected TaskService taskService;
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void init() {
     historyService = engineRule.getHistoryService();
     runtimeService = engineRule.getRuntimeService();
@@ -85,14 +78,14 @@ public class HistoryCleanupTaskMetricsTest {
     processEngineConfiguration.setHistoryCleanupStrategy(HISTORY_CLEANUP_STRATEGY_END_TIME_BASED);
   }
 
-  @After
+  @AfterEach
   public void clearDatabase() {
     testRule.deleteHistoryCleanupJobs();
     managementService.deleteTaskMetrics(null);
     managementService.deleteMetrics(null);
   }
 
-  @After
+  @AfterEach
   public void resetConfiguration() {
     processEngineConfiguration.setHistoryCleanupStrategy(HISTORY_CLEANUP_STRATEGY_REMOVAL_TIME_BASED);
     processEngineConfiguration.setTaskMetricsTimeToLive(null);
@@ -163,7 +156,6 @@ public class HistoryCleanupTaskMetricsTest {
   private void prepareTaskMetrics(int taskMetricsCount, int daysInThePast) {
     Date startDate = ClockUtil.getCurrentTime();
     ClockUtil.setCurrentTime(DateUtils.addDays(startDate, daysInThePast));
-
     testRule.deploy(PROCESS);
     runtimeService.startProcessInstanceByKey("process");
     String taskId = taskService.createTaskQuery().singleResult().getId();

@@ -56,19 +56,20 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 public class SuppressSqlExceptionsTest {
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule);
 
   protected RuntimeService runtimeService;
   protected ManagementService managementService;
@@ -82,7 +83,7 @@ public class SuppressSqlExceptionsTest {
 
   protected Map<String, String> keptStatementMappings;
 
-  @Before
+  @BeforeEach
   public void assignServices() {
     runtimeService = engineRule.getRuntimeService();
     managementService = engineRule.getManagementService();
@@ -95,7 +96,7 @@ public class SuppressSqlExceptionsTest {
     batchProcessingEnabled = engineConfig.isJdbcBatchProcessing();
   }
 
-  @Before
+  @BeforeEach
   public void keepStatementMappings() {
     Map<String, String> statementMappings = engineRule.getProcessEngineConfiguration()
         .getDbSqlSessionFactory()
@@ -111,7 +112,7 @@ public class SuppressSqlExceptionsTest {
             new HashMap<>(keptStatementMappings));
   }
 
-  @After
+  @AfterEach
   public void resetStatementMappings() {
     engineConfig.getDbSqlSessionFactory().setStatementMappings(keptStatementMappings);
   }

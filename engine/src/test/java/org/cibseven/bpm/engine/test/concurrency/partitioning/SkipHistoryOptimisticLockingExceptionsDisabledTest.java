@@ -16,14 +16,13 @@
  */
 package org.cibseven.bpm.engine.test.concurrency.partitioning;
 
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.HistoricVariableInstanceEntity;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Tassilo Weidner
@@ -59,7 +58,7 @@ public class SkipHistoryOptimisticLockingExceptionsDisabledTest extends Abstract
     });
 
     // assume
-    assertThat(historyService.createHistoricVariableInstanceQuery().singleResult(), nullValue());
+    assertThat(historyService.createHistoricVariableInstanceQuery().singleResult()).isNull();
 
     asyncThread.waitUntilDone();
 

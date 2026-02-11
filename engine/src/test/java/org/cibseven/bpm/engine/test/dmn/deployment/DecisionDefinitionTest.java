@@ -48,12 +48,13 @@ import org.cibseven.bpm.model.dmn.instance.Input;
 import org.cibseven.bpm.model.dmn.instance.InputExpression;
 import org.cibseven.bpm.model.dmn.instance.Output;
 import org.cibseven.bpm.model.dmn.instance.Text;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+
+import org.junit.jupiter.api.AfterEach;
 
 public class DecisionDefinitionTest {
 
@@ -66,15 +67,15 @@ public class DecisionDefinitionTest {
 
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule)
-      .around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule)
+//      .around(testRule);
 
   protected RepositoryService repositoryService;
   protected DecisionService decisionService;
   protected HistoryService historyService;
 
-  @Before
+  @BeforeEach
   public void init() throws ParseException {
     this.repositoryService = engineRule.getRepositoryService();
     this.decisionService = engineRule.getDecisionService();
@@ -86,7 +87,7 @@ public class DecisionDefinitionTest {
     ClockUtil.setCurrentTime(fixedDate);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ClockUtil.reset();
   }

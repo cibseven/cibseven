@@ -21,9 +21,9 @@ import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.batchSta
 import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.batchStatisticsByStartTime;
 import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.inverted;
 import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.verifySorting;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,32 +42,30 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.MigrationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.batch.BatchMigrationHelper;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.hamcrest.CoreMatchers;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+//TODO: createa MigrationExtension2 with a ProvidedProcessEngineRule(); and new MigrationTestRule(engineRule);
 public class BatchStatisticsQueryTest {
 
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
   protected BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule);
+//  @Rule
+  // public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule);
 
   protected ManagementService managementService;
   protected int defaultBatchJobsPerSeed;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     managementService = engineRule.getManagementService();
   }
 
-  @Before
+  @BeforeEach
   public void saveAndReduceBatchJobsPerSeed() {
     ProcessEngineConfigurationImpl configuration = engineRule.getProcessEngineConfiguration();
     defaultBatchJobsPerSeed = configuration.getBatchJobsPerSeed();
@@ -75,14 +73,14 @@ public class BatchStatisticsQueryTest {
     configuration.setBatchJobsPerSeed(10);
   }
 
-  @After
+  @AfterEach
   public void resetBatchJobsPerSeed() {
     engineRule.getProcessEngineConfiguration()
       .setBatchJobsPerSeed(defaultBatchJobsPerSeed);
     ClockUtil.reset();
   }
 
-  @After
+  @AfterEach
   public void removeBatches() {
     helper.removeAllRunningAndHistoricBatches();
   }
@@ -166,10 +164,10 @@ public class BatchStatisticsQueryTest {
       managementService.createBatchStatisticsQuery()
         .batchId(null)
         .singleResult();
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     }
     catch (NullValueException e) {
-      Assert.assertThat(e.getMessage(), CoreMatchers.containsString("Batch id is null"));
+      assertTrue(e.getMessage().contains("Batch id is null"));
     }
   }
 
@@ -209,10 +207,10 @@ public class BatchStatisticsQueryTest {
       managementService.createBatchStatisticsQuery()
         .type(null)
         .list();
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     }
     catch (NullValueException e) {
-      Assert.assertThat(e.getMessage(), CoreMatchers.containsString("Type is null"));
+      Assertions.assertTrue(e.getMessage().contains("Type is null"));
     }
   }
 
@@ -301,10 +299,10 @@ public class BatchStatisticsQueryTest {
       managementService.createBatchStatisticsQuery()
         .orderById()
         .list();
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     }
     catch (NotValidException e) {
-      Assert.assertThat(e.getMessage(), CoreMatchers.containsString("Invalid query: "
+      Assertions.assertTrue(e.getMessage().contains("Invalid query: "
         + "call asc() or desc() after using orderByXX()"));
     }
   }
@@ -315,10 +313,10 @@ public class BatchStatisticsQueryTest {
       managementService.createBatchStatisticsQuery()
         .asc()
         .list();
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     }
     catch (NotValidException e) {
-      Assert.assertThat(e.getMessage(), CoreMatchers.containsString("You should call any of the orderBy methods "
+      Assertions.assertTrue(e.getMessage().contains("You should call any of the orderBy methods "
         + "first before specifying a direction"));
     }
   }
@@ -607,9 +605,9 @@ public class BatchStatisticsQueryTest {
 
     // then
     BatchStatisticsQuery query = managementService.createBatchStatisticsQuery().suspended();
-    Assert.assertEquals(1, query.count());
-    Assert.assertEquals(1, query.list().size());
-    Assert.assertEquals(batch2.getId(), query.singleResult().getId());
+    Assertions.assertEquals(1, query.count());
+    Assertions.assertEquals(1, query.list().size());
+    Assertions.assertEquals(batch2.getId(), query.singleResult().getId());
   }
 
   @Test
@@ -626,8 +624,8 @@ public class BatchStatisticsQueryTest {
 
     // then
     BatchStatisticsQuery query = managementService.createBatchStatisticsQuery().active();
-    Assert.assertEquals(2, query.count());
-    Assert.assertEquals(2, query.list().size());
+    Assertions.assertEquals(2, query.count());
+    Assertions.assertEquals(2, query.list().size());
 
     List<String> foundIds = new ArrayList<String>();
     for (Batch batch : query.list()) {

@@ -28,10 +28,10 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -42,8 +42,8 @@ public class MigrationSignallableServiceTaskTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testCannotMigrateActivityInstance() {
@@ -66,7 +66,7 @@ public class MigrationSignallableServiceTaskTest {
     // when
     try {
       testHelper.createProcessInstanceAndMigrate(migrationPlan);
-      Assert.fail("should fail");
+      Assertions.fail("should fail");
     }
     catch (MigratingProcessInstanceValidationException e) {
       // then
@@ -105,7 +105,7 @@ public class MigrationSignallableServiceTaskTest {
         .processInstanceIds(processInstanceId)
         .execute();
 
-      Assert.fail("should fail");
+      Assertions.fail("should fail");
     }
     catch (MigratingProcessInstanceValidationException e) {
       // then

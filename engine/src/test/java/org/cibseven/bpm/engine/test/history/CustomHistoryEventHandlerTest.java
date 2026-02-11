@@ -48,11 +48,12 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class CustomHistoryEventHandlerTest {
@@ -64,18 +65,18 @@ public class CustomHistoryEventHandlerTest {
     c.setHistoryEventHandler(recorderHandler);
   });
 
-  @Rule
+//  @Rule
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   private RuntimeService runtimeService;
   private TaskService taskService;
 
-  @After
+  @AfterEach
   public void clearHistoryEvents() {
     recorderHandler.clear();
   }
 
-  @Before
+  @BeforeEach
   public void initServices() {
     recorderHandler.clear();
 

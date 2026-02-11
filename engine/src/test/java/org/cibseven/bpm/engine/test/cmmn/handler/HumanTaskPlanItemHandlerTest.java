@@ -22,13 +22,13 @@ import static org.cibseven.bpm.engine.impl.cmmn.handler.ItemHandler.PROPERTY_IS_
 import static org.cibseven.bpm.engine.impl.cmmn.handler.ItemHandler.PROPERTY_MANUAL_ACTIVATION_RULE;
 import static org.cibseven.bpm.engine.impl.cmmn.handler.ItemHandler.PROPERTY_REPETITION_RULE;
 import static org.cibseven.bpm.engine.impl.cmmn.handler.ItemHandler.PROPERTY_REQUIRED_RULE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import java.util.Set;
@@ -69,8 +69,8 @@ import org.cibseven.bpm.model.cmmn.instance.RepetitionRule;
 import org.cibseven.bpm.model.cmmn.instance.RequiredRule;
 import org.cibseven.bpm.model.cmmn.instance.Sentry;
 import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaTaskListener;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -83,7 +83,7 @@ public class HumanTaskPlanItemHandlerTest extends CmmnElementHandlerTest {
   protected PlanItem planItem;
   protected HumanTaskItemHandler handler = new HumanTaskItemHandler();
 
-  @Before
+  @BeforeEach
   public void setUp() {
     humanTask = createElement(casePlanModel, "aHumanTask", HumanTask.class);
 

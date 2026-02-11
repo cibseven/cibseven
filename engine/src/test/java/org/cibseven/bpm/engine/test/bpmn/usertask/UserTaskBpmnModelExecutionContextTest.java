@@ -17,10 +17,10 @@
 package org.cibseven.bpm.engine.test.bpmn.usertask;
 
 import static org.cibseven.bpm.model.bpmn.impl.BpmnModelConstants.CAMUNDA_NS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
@@ -41,11 +41,11 @@ import org.cibseven.bpm.model.bpmn.instance.Process;
 import org.cibseven.bpm.model.bpmn.instance.Task;
 import org.cibseven.bpm.model.bpmn.instance.UserTask;
 import org.cibseven.bpm.model.xml.instance.ModelElementInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Daniel Meyer
@@ -63,17 +63,17 @@ public class UserTaskBpmnModelExecutionContextTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
 
-  @Before
+  @BeforeEach
   public void setup() {
     runtimeService = rule.getRuntimeService();
     repositoryService = rule.getRepositoryService();
     taskService = rule.getTaskService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ModelExecutionContextTaskListener.clear();
   }

@@ -31,12 +31,12 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -51,8 +51,8 @@ public class ReuseEntityCacheTest {
       configuration.setJobExecutor(new ControllableJobExecutor()));
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule);
 
   protected boolean defaultSetting;
 
@@ -76,7 +76,7 @@ public class ReuseEntityCacheTest {
       .endEvent()
       .done();
 
-  @Before
+  @BeforeEach
   public void setUp() {
     defaultSetting = getEngineConfig().isDbEntityCacheReuseEnabled();
     getEngineConfig().setDbEntityCacheReuseEnabled(true);
@@ -85,12 +85,12 @@ public class ReuseEntityCacheTest {
     acquisitionThreadControl = jobExecutor.getAcquisitionThreadControl();
   }
 
-  @After
+  @AfterEach
   public void resetEngineConfiguration() {
     getEngineConfig().setDbEntityCacheReuseEnabled(defaultSetting);
   }
 
-  @After
+  @AfterEach
   public void shutdownJobExecutor() {
     jobExecutor.shutdown();
   }
@@ -130,7 +130,7 @@ public class ReuseEntityCacheTest {
     acquisitionThreadControl.waitForSync();
 
     // then the job has been successfully executed
-    Assert.assertEquals(0, engineRule.getManagementService().createJobQuery().count());
+    Assertions.assertEquals(0, engineRule.getManagementService().createJobQuery().count());
   }
 
   protected ProcessEngineConfigurationImpl getEngineConfig() {

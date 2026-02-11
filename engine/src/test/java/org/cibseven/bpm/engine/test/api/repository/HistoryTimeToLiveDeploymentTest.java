@@ -37,11 +37,11 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 public class HistoryTimeToLiveDeploymentTest {
 
@@ -57,10 +57,10 @@ public class HistoryTimeToLiveDeploymentTest {
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
-  @Rule
+//  @Rule
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch(CONFIG_LOGGER)
       .level(Level.DEBUG);
@@ -72,7 +72,7 @@ public class HistoryTimeToLiveDeploymentTest {
 
   protected String historyTimeToLive;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     processEngine = engineRule.getProcessEngine();
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
@@ -83,7 +83,7 @@ public class HistoryTimeToLiveDeploymentTest {
     processEngineConfiguration.setEnforceHistoryTimeToLive(true);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     processEngineConfiguration.setHistoryTimeToLive(historyTimeToLive);
     processEngineConfiguration.setEnforceHistoryTimeToLive(false);

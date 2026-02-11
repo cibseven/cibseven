@@ -18,14 +18,12 @@ package org.cibseven.bpm.engine.test.bpmn.parse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 
@@ -69,12 +67,13 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.cibseven.commons.testing.WatchLogger;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 /**
  *
@@ -82,23 +81,23 @@ import org.junit.rules.RuleChain;
  */
 public class BpmnParseTest {
 
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(testRule);
 
-  @Rule
+  @RegisterExtension
   public SystemPropertiesRule systemProperties = SystemPropertiesRule.resetPropsAfterTest();
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
 
   public RepositoryService repositoryService;
   public RuntimeService runtimeService;
   public ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void setup() {
     repositoryService = engineRule.getRepositoryService();
     runtimeService = engineRule.getRuntimeService();
@@ -106,7 +105,7 @@ public class BpmnParseTest {
     processEngineConfiguration.setEnableXxeProcessing(false);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     for (org.cibseven.bpm.engine.repository.Deployment deployment : repositoryService.createDeploymentQuery().list()) {
       repositoryService.deleteDeployment(deployment.getId(), true);
@@ -1234,7 +1233,7 @@ public class BpmnParseTest {
   @Test
   public void testFeatureSecureProcessingRejectsDefinitionDueToAttributeLimit() {
     // IBM JDKs do not check on attribute number limits, skip the test there
-    Assume.assumeThat(System.getProperty("java.vm.vendor"), not(containsString("IBM")));
+    assertThat(System.getProperty("java.vm.vendor")).doesNotContain("IBM");
     try {
       String resource = TestHelper.getBpmnProcessDefinitionResource(getClass(), "testParseProcessDefinitionFSP");
       repositoryService.createDeployment().name(resource).addClasspathResource(resource).deploy();

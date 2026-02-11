@@ -29,11 +29,11 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
@@ -46,7 +46,7 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class ExternalTaskSupportTest {
 
-  @Rule
+//  @Rule
   public ProcessEngineRule rule = new ProvidedProcessEngineRule();
 
   @Parameters
@@ -64,7 +64,7 @@ public class ExternalTaskSupportTest {
 
   protected String deploymentId;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     deploymentId = rule.getRepositoryService()
         .createDeployment()
@@ -73,7 +73,7 @@ public class ExternalTaskSupportTest {
         .getId();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (deploymentId != null) {
       rule.getRepositoryService().deleteDeployment(deploymentId, true);
@@ -95,13 +95,13 @@ public class ExternalTaskSupportTest {
         .topic("externalTaskTopic", 5000L)
         .execute();
 
-    Assert.assertEquals(1, externalTasks.size());
-    Assert.assertEquals(processInstance.getId(), externalTasks.get(0).getProcessInstanceId());
+    Assertions.assertEquals(1, externalTasks.size());
+    Assertions.assertEquals(processInstance.getId(), externalTasks.get(0).getProcessInstanceId());
 
     // and it is possible to complete the external task successfully and end the process instance
     rule.getExternalTaskService().complete(externalTasks.get(0).getId(), "aWorker");
 
-    Assert.assertEquals(0L, rule.getRuntimeService().createProcessInstanceQuery().count());
+    Assertions.assertEquals(0L, rule.getRuntimeService().createProcessInstanceQuery().count());
   }
 
   @Test

@@ -20,13 +20,10 @@ import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.assertTha
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -43,8 +40,8 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.ExecutionTree;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.test.util.TestExecutionListener;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -54,7 +51,7 @@ import org.junit.Test;
  */
 public class MessageEventSubprocessTest extends PluggableProcessEngineTest {
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     try {
 
@@ -942,11 +939,11 @@ public class MessageEventSubprocessTest extends PluggableProcessEngineTest {
   public void testNonInterruptingWithTerminatingEndEvent() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("process");
     Task task = taskService.createTaskQuery().singleResult();
-    assertThat(task.getName(), is("Inner User Task"));
+    assertEquals(task.getName(), "Inner User Task");
     runtimeService.correlateMessage("message");
 
     Task eventSubprocessTask = taskService.createTaskQuery().taskName("Event User Task").singleResult();
-    assertThat(eventSubprocessTask, is(notNullValue()));
+    assertNotNull(eventSubprocessTask);
     taskService.complete(eventSubprocessTask.getId());
 
     ActivityInstance tree = runtimeService.getActivityInstance(processInstance.getId());

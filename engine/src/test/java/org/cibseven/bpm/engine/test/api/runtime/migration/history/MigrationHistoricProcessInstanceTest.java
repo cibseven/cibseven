@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.test.api.runtime.migration.history;
 
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
@@ -33,10 +33,10 @@ import org.cibseven.bpm.engine.test.api.runtime.migration.MigrationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  *
@@ -47,8 +47,8 @@ public class MigrationHistoricProcessInstanceTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
@@ -60,7 +60,7 @@ public class MigrationHistoricProcessInstanceTest {
   protected ProcessDefinition targetProcessDefinition;
   protected MigrationPlan migrationPlan;
 
-  @Before
+  @BeforeEach
   public void initTest() {
     runtimeService = rule.getRuntimeService();
     historyService = rule.getHistoryService();

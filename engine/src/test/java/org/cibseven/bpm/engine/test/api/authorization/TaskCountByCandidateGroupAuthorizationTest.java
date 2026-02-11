@@ -20,8 +20,8 @@ import static org.cibseven.bpm.engine.authorization.Authorization.ANY;
 import static org.cibseven.bpm.engine.authorization.Authorization.AUTH_TYPE_GRANT;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ;
 import static org.cibseven.bpm.engine.authorization.Resources.TASK;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 
@@ -36,10 +36,10 @@ import org.cibseven.bpm.engine.task.TaskCountByCandidateGroupResult;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Stefan Hentschel.
@@ -49,10 +49,10 @@ public class TaskCountByCandidateGroupAuthorizationTest {
   public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
   public ProcessEngineTestRule processEngineTestRule = new ProcessEngineTestRule(processEngineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain
-    .outerRule(processEngineTestRule)
-    .around(processEngineRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain
+//    .outerRule(processEngineTestRule)
+//    .around(processEngineRule);
 
 
   protected TaskService taskService;
@@ -62,7 +62,7 @@ public class TaskCountByCandidateGroupAuthorizationTest {
 
   protected String userId = "user";
 
-  @Before
+  @BeforeEach
   public void setUp() {
     taskService = processEngineRule.getTaskService();
     identityService = processEngineRule.getIdentityService();

@@ -16,10 +16,11 @@
  */
 package org.cibseven.bpm.engine.test.api.history;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Assertions;
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.DecisionService;
 import org.cibseven.bpm.engine.HistoryService;
@@ -53,11 +54,11 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -72,8 +73,8 @@ public class BatchHistoricDecisionInstanceDeletionTest {
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
   protected BatchDeletionHelper helper = new BatchDeletionHelper(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
 
   private int defaultBatchJobsPerSeed;
   private int defaultInvocationsPerBatchJob;
@@ -99,7 +100,7 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     });
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     ClockUtil.setCurrentTime(TEST_DATE);
     historyService = rule.getHistoryService();
@@ -107,7 +108,7 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     decisionInstanceIds = new ArrayList<>();
   }
 
-  @Before
+  @BeforeEach
   public void storeEngineSettings() {
     configuration = rule.getProcessEngineConfiguration();
     defaultEnsureJobDueDateSet = configuration.isEnsureJobDueDateNotNull();
@@ -116,7 +117,7 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     configuration.setEnsureJobDueDateNotNull(ensureJobDueDateSet);
   }
 
-  @Before
+  @BeforeEach
   public void executeDecisionInstances() {
     testRule.deploy("org/cibseven/bpm/engine/test/api/dmn/Example.dmn");
 
@@ -134,14 +135,14 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     }
   }
 
-  @After
+  @AfterEach
   public void restoreEngineSettings() {
     configuration.setBatchJobsPerSeed(defaultBatchJobsPerSeed);
     configuration.setInvocationsPerBatchJob(defaultInvocationsPerBatchJob);
     configuration.setEnsureJobDueDateNotNull(defaultEnsureJobDueDateSet);
   }
 
-  @After
+  @AfterEach
   public void removeBatches() {
     helper.removeAllRunningAndHistoricBatches();
     ClockUtil.reset();
@@ -622,7 +623,7 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     Batch batch = historyService.deleteHistoricDecisionInstancesAsync(query, null);
 
     // then
-    Assertions.assertThat(batch.getInvocationsPerBatchJob()).isEqualTo(42);
+    assertThat(batch.getInvocationsPerBatchJob()).isEqualTo(42);
 
     // clear
     configuration.setInvocationsPerBatchJobByBatchType(new HashMap<>());
@@ -643,8 +644,8 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     HistoricBatch historicBatch = historyService.createHistoricBatchQuery().singleResult();
     batch = rule.getManagementService().createBatchQuery().singleResult();
 
-    Assertions.assertThat(batch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
-    Assertions.assertThat(historicBatch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
+    assertThat(batch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
+    assertThat(historicBatch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
   }
 
   protected void assertBatchCreated(Batch batch, int decisionInstanceCount) {

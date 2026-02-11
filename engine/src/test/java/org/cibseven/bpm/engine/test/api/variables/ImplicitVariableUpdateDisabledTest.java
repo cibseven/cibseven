@@ -23,35 +23,33 @@ import org.cibseven.bpm.engine.test.history.UpdateValueDelegate;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
+import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapClassExtension;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+@ExtendWith(ProcessEngineBootstrapClassExtension.class)
 public class ImplicitVariableUpdateDisabledTest {
 
-  @ClassRule
-  public static final ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
-      c -> c.setImplicitVariableUpdateDetectionEnabled(false) // turn off implicit variable update detection.
-  );
+  public static ProcessEngineBootstrapClassExtension processEngineBootstrapClassExtension = ProcessEngineBootstrapClassExtension.builder()
+		    .useConsumer(c -> c.setImplicitVariableUpdateDetectionEnabled(false)) // turn off implicit variable update detection.
+		    .addProcessEngineTestRule()
+		    .build();
 
-  private final ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  private final ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public final RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  protected ProvidedProcessEngineRule engineRule;
+  protected ProcessEngineTestRule testRule;
 
   private RuntimeService runtimeService;
 
-  @Before
+  @BeforeEach
   public void createProcessEngine() {
     runtimeService = engineRule.getRuntimeService();
   }

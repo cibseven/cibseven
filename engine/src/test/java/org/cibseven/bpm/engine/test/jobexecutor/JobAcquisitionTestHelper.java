@@ -21,7 +21,7 @@ import java.util.List;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * @author Thorben Lindhauer
@@ -61,8 +61,7 @@ public class JobAcquisitionTestHelper {
   }
 
   public static void assertInBetween(long minimum, long maximum, long actualValue) {
-    Assert.assertTrue("Expected '" + actualValue + "' to be between '" + minimum + "' and '" + maximum + "'",
-      actualValue >= minimum && actualValue <= maximum);
+    Assertions.assertTrue(actualValue >= minimum && actualValue <= maximum, "Expected '" + actualValue + "' to be between '" + minimum + "' and '" + maximum + "'");
   }
 
 }

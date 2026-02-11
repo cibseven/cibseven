@@ -23,10 +23,10 @@ import static org.cibseven.bpm.engine.authorization.Authorization.AUTH_TYPE_REVO
 import static org.cibseven.bpm.engine.authorization.Permissions.ALL;
 import static org.cibseven.bpm.engine.authorization.Resources.AUTHORIZATION;
 import static org.cibseven.bpm.engine.authorization.Resources.USER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,8 +55,9 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -74,7 +75,7 @@ public abstract class AuthorizationTest extends PluggableProcessEngineTest {
 
   protected List<String> deploymentIds = new ArrayList<>();
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     user = createUser(userId);
     group = createGroup(groupId);
@@ -85,7 +86,7 @@ public abstract class AuthorizationTest extends PluggableProcessEngineTest {
     processEngineConfiguration.setAuthorizationEnabled(true);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processEngineConfiguration.setAuthorizationEnabled(false);
     for (User user : identityService.createUserQuery().list()) {

@@ -21,21 +21,21 @@ import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class BpmnBehaviorLoggerTest extends PluggableProcessEngineTest {
 
-  @After
+  @AfterEach
   public void tearDown() {
     processEngineConfiguration.setEnableExceptionsAfterUnhandledBpmnError(false);
   }
 
-  @Rule
+//  @Rule
   public ProcessEngineLoggingRule processEngineLoggingRule = new ProcessEngineLoggingRule().watch(
       "org.cibseven.bpm.engine.bpmn.behavior", Level.INFO);
 

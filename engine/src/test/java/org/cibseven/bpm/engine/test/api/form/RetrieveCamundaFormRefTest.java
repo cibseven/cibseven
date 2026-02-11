@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.test.util.CamundaFormUtils.findAllCamundaFormDefinitionEntities;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,12 +48,13 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.util.CamundaFormUtils;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+
 
 public class RetrieveCamundaFormRefTest {
 
@@ -63,9 +65,8 @@ public class RetrieveCamundaFormRefTest {
 
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-  protected TemporaryFolder tempFolder = new TemporaryFolder();
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(tempFolder);
+  @TempDir
+  protected File tempFolder;
 
   private RuntimeService runtimeService;
   private TaskService taskService;
@@ -73,7 +74,7 @@ public class RetrieveCamundaFormRefTest {
   private FormService formService;
   private ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void init() {
     runtimeService = engineRule.getRuntimeService();
     taskService = engineRule.getTaskService();
@@ -82,7 +83,7 @@ public class RetrieveCamundaFormRefTest {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     List<org.cibseven.bpm.engine.repository.Deployment> deployments = repositoryService.createDeploymentQuery().list();
     for (org.cibseven.bpm.engine.repository.Deployment deployment : deployments) {

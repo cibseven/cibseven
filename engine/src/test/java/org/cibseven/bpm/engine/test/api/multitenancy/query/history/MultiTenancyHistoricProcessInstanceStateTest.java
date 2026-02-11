@@ -28,9 +28,9 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Askar Akhmerov
@@ -44,10 +44,10 @@ public class MultiTenancyHistoricProcessInstanceStateTest {
   public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
   public ProcessEngineTestRule processEngineTestRule = new ProcessEngineTestRule(processEngineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain
-      .outerRule(processEngineTestRule)
-      .around(processEngineRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain
+//      .outerRule(processEngineTestRule)
+//      .around(processEngineRule);
 
   @Test
   public void testSuspensionWithTenancy() throws Exception {

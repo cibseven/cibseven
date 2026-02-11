@@ -26,15 +26,15 @@ import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.AcquirableJobEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.runtime.Job;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class JobExecutorAcquireCleanupJobsTest extends AbstractJobExecutorAcquireJobsTest {
 
   public HistoryService historyService;
 
-  @Before
+  @BeforeEach
   public void assignServices() {
     historyService = rule.getHistoryService();
   }
@@ -77,7 +77,7 @@ public class JobExecutorAcquireCleanupJobsTest extends AbstractJobExecutorAcquir
     assertThat(acquirableJobs).isNotEmpty();
   }
 
-  @After
+  @AfterEach
   public void resetDatabase() {
     configuration.getCommandExecutorTxRequired().execute(new Command<Void>() {
       public Void execute(CommandContext commandContext) {

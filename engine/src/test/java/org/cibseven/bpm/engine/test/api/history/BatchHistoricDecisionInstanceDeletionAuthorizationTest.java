@@ -19,7 +19,7 @@ package org.cibseven.bpm.engine.test.api.history;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario.scenario;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec.grant;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec.revoke;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,38 +39,37 @@ import org.cibseven.bpm.engine.history.HistoricDecisionInstanceQuery;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
+import org.cibseven.bpm.engine.test.util.AuthorizationRuleTripleExtension;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 @RunWith(Parameterized.class)
+@ExtendWith(AuthorizationRuleTripleExtension.class)
 public class BatchHistoricDecisionInstanceDeletionAuthorizationTest {
 
   protected static String DECISION = "decision";
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  protected ProcessEngineRule engineRule;
+  protected AuthorizationTestRule authRule;
+  protected ProcessEngineTestRule testRule;
 
   protected DecisionService decisionService;
   protected HistoryService historyService;
   protected ManagementService managementService;
 
   protected List<String> decisionInstanceIds;
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testRule);
 
   @Parameterized.Parameter
   public AuthorizationScenario scenario;
@@ -114,7 +113,7 @@ public class BatchHistoricDecisionInstanceDeletionAuthorizationTest {
     );
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     historyService = engineRule.getHistoryService();
     decisionService = engineRule.getDecisionService();
@@ -122,7 +121,7 @@ public class BatchHistoricDecisionInstanceDeletionAuthorizationTest {
     decisionInstanceIds = new ArrayList<String>();
   }
 
-  @Before
+  @BeforeEach
   public void executeDecisionInstances() {
     testRule.deploy("org/cibseven/bpm/engine/test/api/dmn/Example.dmn");
 
@@ -140,12 +139,12 @@ public class BatchHistoricDecisionInstanceDeletionAuthorizationTest {
     }
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
   }
 
-  @After
+  @AfterEach
   public void removeBatches() {
     for (Batch batch : managementService.createBatchQuery().list()) {
       managementService.deleteBatch(batch.getId(), true);

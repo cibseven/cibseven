@@ -18,10 +18,10 @@ package org.cibseven.bpm.engine.test.api.history;
 
 import static org.cibseven.bpm.engine.history.UserOperationLogEntry.CATEGORY_OPERATOR;
 import static org.cibseven.bpm.engine.history.UserOperationLogEntry.OPERATION_TYPE_DELETE_HISTORY;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
@@ -76,11 +76,11 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ResetDmnConfigUtil;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Svetlana Dorokhova
@@ -105,10 +105,10 @@ public class BulkHistoryDeleteTest {
 
   public static final String USER_ID = "demo";
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
-  @Before
+  @BeforeEach
   public void init() {
     runtimeService = engineRule.getRuntimeService();
     historyService = engineRule.getHistoryService();
@@ -121,7 +121,7 @@ public class BulkHistoryDeleteTest {
     identityService.setAuthenticatedUserId(USER_ID);
   }
 
-  @Before
+  @BeforeEach
   public void enableDmnFeelLegacyBehavior() {
     DefaultDmnEngineConfiguration dmnEngineConfiguration =
         engineRule.getProcessEngineConfiguration()
@@ -132,7 +132,7 @@ public class BulkHistoryDeleteTest {
         .init();
   }
 
-  @After
+  @AfterEach
   public void disableDmnFeelLegacyBehavior() {
 
     DefaultDmnEngineConfiguration dmnEngineConfiguration =
@@ -144,7 +144,7 @@ public class BulkHistoryDeleteTest {
         .init();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     identityService.clearAuthentication();
   }

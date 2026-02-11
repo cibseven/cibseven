@@ -22,7 +22,7 @@ import static org.cibseven.bpm.engine.test.util.MigrationPlanAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.MigrationPlanAssert.migrate;
 import static org.cibseven.bpm.engine.test.util.MigrationPlanAssert.variable;
 import static org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.RuntimeService;
@@ -37,10 +37,10 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.builder.UserTaskBuilder;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,12 +61,12 @@ public class MigrationPlanCreationTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   protected RuntimeService runtimeService;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     runtimeService = rule.getRuntimeService();
   }

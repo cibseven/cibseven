@@ -16,13 +16,10 @@
  */
 package org.cibseven.bpm.engine.test.api.filter;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,17 +32,17 @@ import org.cibseven.bpm.engine.filter.Filter;
 import org.cibseven.bpm.engine.impl.persistence.entity.FilterEntity;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Sebastian Menski
  */
 public class FilterPropertiesTest {
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected FilterService filterService;
@@ -53,13 +50,13 @@ public class FilterPropertiesTest {
   protected String nestedJsonObject = "{\"id\":\"nested\"}";
   protected String nestedJsonArray = "[\"a\",\"b\"]";
 
-  @Before
+  @BeforeEach
   public void setUp() {
     filterService = engineRule.getFilterService();
     filter = filterService.newTaskFilter("name").setOwner("owner").setProperties(new HashMap<>());
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     for (Filter filter : filterService.createFilterQuery().list()) {
       filterService.deleteFilter(filter.getId());
@@ -89,7 +86,7 @@ public class FilterPropertiesTest {
         .singleResult();
 
     // then
-    assertThat(noPropsFilterEntity.getPropertiesInternal(), is("{}"));
+    assertThat(noPropsFilterEntity.getPropertiesInternal()).isEqualTo("{}");
   }
 
   @Test
@@ -140,9 +137,9 @@ public class FilterPropertiesTest {
     Object string = list.get(0);
 
     // then
-    assertThat(deserialisedProperties.size(), is(1));
-    assertThat(string, instanceOf(String.class));
-    assertThat(string.toString(), is("bar"));
+    assertThat(deserialisedProperties).hasSize(1);
+    assertThat(string).isInstanceOf(String.class);
+    assertThat(string.toString()).isEqualTo("bar");
   }
 
   @Test
@@ -162,8 +159,8 @@ public class FilterPropertiesTest {
     Object string = map.get("bar");
 
     // then
-    assertThat(deserialisedProperties.size(), is(1));
-    assertThat(string.toString(), is("foo"));
+    assertThat(deserialisedProperties).hasSize(1);
+    assertThat(string.toString()).isEqualTo("foo");
   }
 
   @Test
@@ -184,8 +181,8 @@ public class FilterPropertiesTest {
     Object string = list.get(0);
 
     // then
-    assertThat(deserialisedProperties.size(), is(1));
-    assertThat(string.toString(), is("foo"));
+    assertThat(deserialisedProperties).hasSize(1);
+    assertThat(string.toString()).isEqualTo("foo");
   }
 
   @Test
@@ -214,14 +211,14 @@ public class FilterPropertiesTest {
     Map map = (Map) list.get(0);
 
     // then
-    assertThat(deserialisedProperties.size(), is(1));
-    assertThat(map.get("string"), is("aStringValue"));
-    assertThat(map.get("int"), is(47));
-    assertThat(map.get("intOutOfRange"), is(Integer.MAX_VALUE + 1L));
-    assertThat(map.get("long"), is(Long.MAX_VALUE));
-    assertThat(map.get("double"), is(3.14159265359D));
-    assertThat(map.get("boolean"), is(true));
-    assertThat(map.get("null"), nullValue());
+    assertThat(deserialisedProperties).hasSize(1);
+    assertThat(map.get("string")).isEqualTo("aStringValue");
+    assertThat(map.get("int")).isEqualTo(47);
+    assertThat(map.get("intOutOfRange")).isEqualTo(Integer.MAX_VALUE + 1L);
+    assertThat(map.get("long")).isEqualTo(Long.MAX_VALUE);
+    assertThat(map.get("double")).isEqualTo(3.14159265359D);
+    assertThat(map.get("boolean")).isEqualTo(true);
+    assertThat(map.get("null")).isNull();
   }
 
   @Test
@@ -249,15 +246,14 @@ public class FilterPropertiesTest {
     List list = (List) ((Map) deserialisedProperties.get("foo")).get("bar");
 
     // then
-    assertThat(deserialisedProperties.size(), is(1));
-
-    assertThat(list.get(0), is("aStringValue"));
-    assertThat(list.get(1), is(47));
-    assertThat(list.get(2), is(Integer.MAX_VALUE + 1L));
-    assertThat(list.get(3), is(Long.MAX_VALUE));
-    assertThat(list.get(4), is(3.14159265359D));
-    assertThat(list.get(5), is(true));
-    assertThat(list.get(6), nullValue());
+    assertThat(deserialisedProperties).hasSize(1);
+    assertThat(list.get(0)).isEqualTo("aStringValue");
+    assertThat(list.get(1)).isEqualTo(47);
+    assertThat(list.get(2)).isEqualTo(Integer.MAX_VALUE + 1L);
+    assertThat(list.get(3)).isEqualTo(Long.MAX_VALUE);
+    assertThat(list.get(4)).isEqualTo(3.14159265359D);
+    assertThat(list.get(5)).isEqualTo(true);
+    assertThat(list.get(6)).isNull();
   }
 
   protected void assertTestProperties() {

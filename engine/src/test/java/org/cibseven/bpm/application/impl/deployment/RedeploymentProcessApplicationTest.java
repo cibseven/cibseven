@@ -17,14 +17,13 @@
 package org.cibseven.bpm.application.impl.deployment;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import org.cibseven.bpm.application.ProcessApplicationExecutionException;
@@ -38,22 +37,22 @@ import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
+//import org.cibseven.bpm.engine.test.ProvidedProcessEngineRuleSingleExtension;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Roman Smirnov
  *
  */
-@RunWith(Parameterized.class)
+//@ExtendWith(ProvidedProcessEngineRuleSingleExtension.class)
 public class RedeploymentProcessApplicationTest {
 
   protected static final String DEPLOYMENT_NAME = "my-deployment";
@@ -70,7 +69,7 @@ public class RedeploymentProcessApplicationTest {
   protected static final String DRD_RESOURCE_1 = "org/cibseven/bpm/engine/test/dmn/deployment/drdScore.dmn11.xml";
   protected static final String DRD_RESOURCE_2 = "org/cibseven/bpm/engine/test/dmn/deployment/drdDish.dmn11.xml";
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected static RepositoryService repositoryService;
@@ -79,36 +78,20 @@ public class RedeploymentProcessApplicationTest {
   protected static DecisionService decisionService;
   protected static ManagementService managementService;
 
-  @Parameter(0)
-  public String resource1;
-
-  @Parameter(1)
-  public String resource2;
-
-  @Parameter(2)
-  public String definitionKey1;
-
-  @Parameter(3)
-  public String definitionKey2;
-
-  @Parameter(4)
-  public TestProvider testProvider;
-
   public boolean enforceHistoryTimeToLive;
 
   public final List<Deployment> deploymentsToCleanup = new ArrayList<>();
 
-  @Parameters(name = "scenario {index}")
-  public static Collection<Object[]> scenarios() {
-    return Arrays.asList(new Object[][] {
-      { BPMN_RESOURCE_1, BPMN_RESOURCE_2, "processOne", "processTwo", processDefinitionTestProvider() },
-      { CMMN_RESOURCE_1, CMMN_RESOURCE_2, "oneTaskCase", "twoTaskCase", caseDefinitionTestProvider() },
-      { DMN_RESOURCE_1, DMN_RESOURCE_2, "decision", "score-decision", decisionDefinitionTestProvider() },
-      { DRD_RESOURCE_1, DRD_RESOURCE_2, "score", "dish", decisionRequirementsDefinitionTestProvider() }
-    });
+  public static java.util.stream.Stream<org.junit.jupiter.params.provider.Arguments> scenarios() {
+    return java.util.stream.Stream.of(
+      org.junit.jupiter.params.provider.Arguments.of(BPMN_RESOURCE_1, BPMN_RESOURCE_2, "processOne", "processTwo", processDefinitionTestProvider()),
+      org.junit.jupiter.params.provider.Arguments.of(CMMN_RESOURCE_1, CMMN_RESOURCE_2, "oneTaskCase", "twoTaskCase", caseDefinitionTestProvider()),
+      org.junit.jupiter.params.provider.Arguments.of(DMN_RESOURCE_1, DMN_RESOURCE_2, "decision", "score-decision", decisionDefinitionTestProvider()),
+      org.junit.jupiter.params.provider.Arguments.of(DRD_RESOURCE_1, DRD_RESOURCE_2, "score", "dish", decisionRequirementsDefinitionTestProvider())
+    );
   }
 
-  @Before
+  @BeforeEach
   public void init() throws Exception {
     repositoryService = engineRule.getRepositoryService();
     runtimeService = engineRule.getRuntimeService();
@@ -119,7 +102,7 @@ public class RedeploymentProcessApplicationTest {
     enforceHistoryTimeToLive = engineRule.getProcessEngineConfiguration().isEnforceHistoryTimeToLive();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     engineRule.getProcessEngineConfiguration().setEnforceHistoryTimeToLive(enforceHistoryTimeToLive);
 
@@ -128,8 +111,9 @@ public class RedeploymentProcessApplicationTest {
     }
   }
 
-  @Test
-  public void definitionOnePreviousDeploymentWithPA() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void definitionOnePreviousDeploymentWithPA(String resource1, String resource2, String definitionKey1, String definitionKey2, TestProvider testProvider) {
     // given
 
     MyEmbeddedProcessApplication application = new MyEmbeddedProcessApplication();
@@ -172,7 +156,7 @@ public class RedeploymentProcessApplicationTest {
       deployment1 = repositoryService
           .createDeployment(application.getReference())
           .name(DEPLOYMENT_NAME)
-          .addClasspathResource(resource1)
+          .addClasspathResource(BPMN_RESOURCE_1)
           .deploy();
 
       // enforceHistoryTimeToLive=true should prevent deployment2 from getting deployed
@@ -204,8 +188,9 @@ public class RedeploymentProcessApplicationTest {
     }
   }
 
-  @Test
-  public void definitionTwoPreviousDeploymentWithPA() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void definitionTwoPreviousDeploymentWithPA(String resource1, String resource2, String definitionKey1, String definitionKey2, TestProvider testProvider) {
     // given
 
     // first deployment
@@ -243,8 +228,9 @@ public class RedeploymentProcessApplicationTest {
     deploymentsToCleanup.addAll(Arrays.asList(deployment1, deployment2, deployment3));
   }
 
-  @Test
-  public void definitionTwoPreviousDeploymentFirstDeploymentWithPA() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void definitionTwoPreviousDeploymentFirstDeploymentWithPA(String resource1, String resource2, String definitionKey1, String definitionKey2, TestProvider testProvider) {
     // given
 
     // first deployment
@@ -280,8 +266,9 @@ public class RedeploymentProcessApplicationTest {
     deploymentsToCleanup.addAll(Arrays.asList(deployment1, deployment2, deployment3));
   }
 
-  @Test
-  public void definitionTwoPreviousDeploymentDeleteSecondDeployment() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void definitionTwoPreviousDeploymentDeleteSecondDeployment(String resource1, String resource2, String definitionKey1, String definitionKey2, TestProvider testProvider) {
     // given
 
     // first deployment
@@ -320,8 +307,9 @@ public class RedeploymentProcessApplicationTest {
     deploymentsToCleanup.addAll(Arrays.asList(deployment1, deployment3));
   }
 
-  @Test
-  public void definitionTwoPreviousDeploymentUnregisterSecondPA() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void definitionTwoPreviousDeploymentUnregisterSecondPA(String resource1, String resource2, String definitionKey1, String definitionKey2, TestProvider testProvider) {
     // given
 
     // first deployment
@@ -360,8 +348,9 @@ public class RedeploymentProcessApplicationTest {
     deploymentsToCleanup.addAll(Arrays.asList(deployment1, deployment2, deployment3));
   }
 
-  @Test
-  public void definitionTwoDifferentPreviousDeploymentsWithDifferentPA() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void definitionTwoDifferentPreviousDeploymentsWithDifferentPA(String resource1, String resource2, String definitionKey1, String definitionKey2, TestProvider testProvider) {
     // given
 
     // first deployment
@@ -411,8 +400,9 @@ public class RedeploymentProcessApplicationTest {
     deploymentsToCleanup.addAll(Arrays.asList(deployment1, deployment2, deployment3));
   }
 
-  @Test
-  public void definitionTwoPreviousDeploymentsWithDifferentPA() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void definitionTwoPreviousDeploymentsWithDifferentPA(String resource1, String resource2, String definitionKey1, String definitionKey2, TestProvider testProvider) {
     // given
 
     // first deployment

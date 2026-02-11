@@ -28,10 +28,10 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+
+import org.junit.jupiter.api.Test;
+
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -42,22 +42,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels.USER_TASK_ID;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SetVariablesMigrationTest {
 
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
-  @After
+  @AfterEach
   public void clearAuthentication() {
     rule.getIdentityService().clearAuthentication();
   }
 
-  @After
+  @AfterEach
   public void resetEngineConfig() {
     rule.getProcessEngineConfiguration()
         .setRestrictUserOperationLogToAuthenticatedUsers(true);

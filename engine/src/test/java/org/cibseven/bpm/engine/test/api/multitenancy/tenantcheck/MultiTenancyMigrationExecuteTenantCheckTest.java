@@ -25,33 +25,34 @@ import org.cibseven.bpm.engine.migration.MigrationPlan;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
+import org.cibseven.bpm.engine.test.util.MigrationRuleExtension;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-
+import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRuleExtension;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 /**
  * @author Thorben Lindhauer
  *
  */
+@ExtendWith(ProvidedProcessEngineRuleExtension.class)
 public class MultiTenancyMigrationExecuteTenantCheckTest {
 
   protected static final String TENANT_ONE = "tenant1";
   protected static final String TENANT_TWO = "tenant2";
 
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  protected ProvidedProcessEngineRule engineRule;
+  protected ProcessEngineTestRule testRule;
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
 
   @Test
   public void canMigrateWithAuthenticatedTenant() {
     // given
-    ProcessDefinition sourceDefinition = testHelper.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
-    ProcessDefinition targetDefinition = testHelper.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
+    ProcessDefinition sourceDefinition = testRule.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
+    ProcessDefinition targetDefinition = testRule.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
 
     MigrationPlan migrationPlan = engineRule
         .getRuntimeService()
@@ -76,8 +77,8 @@ public class MultiTenancyMigrationExecuteTenantCheckTest {
   @Test
   public void cannotMigrateOfNonAuthenticatedTenant() {
     // given
-    ProcessDefinition sourceDefinition = testHelper.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
-    ProcessDefinition targetDefinition = testHelper.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
+    ProcessDefinition sourceDefinition = testRule.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
+    ProcessDefinition targetDefinition = testRule.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
 
     MigrationPlan migrationPlan = engineRule
         .getRuntimeService()
@@ -102,8 +103,8 @@ public class MultiTenancyMigrationExecuteTenantCheckTest {
   @Test
   public void cannotMigrateWithNoAuthenticatedTenant() {
     // given
-    ProcessDefinition sourceDefinition = testHelper.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
-    ProcessDefinition targetDefinition = testHelper.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
+    ProcessDefinition sourceDefinition = testRule.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
+    ProcessDefinition targetDefinition = testRule.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
 
     MigrationPlan migrationPlan = engineRule
         .getRuntimeService()
@@ -127,8 +128,8 @@ public class MultiTenancyMigrationExecuteTenantCheckTest {
   @Test
   public void canMigrateSharedInstanceWithNoTenant() {
     // given
-    ProcessDefinition sourceDefinition = testHelper.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
-    ProcessDefinition targetDefinition = testHelper.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
+    ProcessDefinition sourceDefinition = testRule.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
+    ProcessDefinition targetDefinition = testRule.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
 
     MigrationPlan migrationPlan = engineRule
         .getRuntimeService()
@@ -153,8 +154,8 @@ public class MultiTenancyMigrationExecuteTenantCheckTest {
   @Test
   public void canMigrateInstanceWithTenantCheckDisabled() {
     // given
-    ProcessDefinition sourceDefinition = testHelper.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
-    ProcessDefinition targetDefinition = testHelper.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
+    ProcessDefinition sourceDefinition = testRule.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
+    ProcessDefinition targetDefinition = testRule.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
 
     MigrationPlan migrationPlan = engineRule
         .getRuntimeService()
@@ -178,7 +179,7 @@ public class MultiTenancyMigrationExecuteTenantCheckTest {
   }
 
   protected void assertMigratedTo(ProcessInstance processInstance, ProcessDefinition targetDefinition) {
-    Assert.assertEquals(1, engineRule.getRuntimeService()
+    Assertions.assertEquals(1, engineRule.getRuntimeService()
       .createProcessInstanceQuery()
       .processInstanceId(processInstance.getId())
       .processDefinitionId(targetDefinition.getId())

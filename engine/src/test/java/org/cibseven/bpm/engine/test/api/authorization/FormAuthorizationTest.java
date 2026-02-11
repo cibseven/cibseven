@@ -28,10 +28,10 @@ import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_INSTANCE;
 import static org.cibseven.bpm.engine.authorization.Resources.TASK;
 import static org.cibseven.bpm.engine.authorization.TaskPermissions.READ_VARIABLE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.InputStream;
 
@@ -42,9 +42,9 @@ import org.cibseven.bpm.engine.form.TaskFormData;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.variable.VariableMap;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -71,7 +71,7 @@ public class FormAuthorizationTest extends AuthorizationTest {
     super.setUp();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     super.tearDown();
     processEngineConfiguration.setEnforceSpecificVariablePermission(ensureSpecificVariablePermission);

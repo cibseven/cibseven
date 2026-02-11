@@ -18,12 +18,12 @@ package org.cibseven.bpm.engine.test.api.mgmt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.EntityTypes.BATCH;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.HistoryService;
@@ -44,11 +44,11 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.runtime.migration.MigrationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.batch.BatchMigrationHelper;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 public class BatchSuspensionTest {
 
@@ -58,8 +58,8 @@ public class BatchSuspensionTest {
   protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
   protected BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule);
 
   protected RuntimeService runtimeService;
   protected ManagementService managementService;
@@ -68,7 +68,7 @@ public class BatchSuspensionTest {
 
   protected int defaultBatchJobsPerSeed;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     runtimeService = engineRule.getRuntimeService();
     managementService = engineRule.getManagementService();
@@ -76,7 +76,7 @@ public class BatchSuspensionTest {
     identityService = engineRule.getIdentityService();
   }
 
-  @Before
+  @BeforeEach
   public void saveAndReduceBatchJobsPerSeed() {
     ProcessEngineConfigurationImpl configuration = engineRule.getProcessEngineConfiguration();
     defaultBatchJobsPerSeed = configuration.getBatchJobsPerSeed();
@@ -84,12 +84,12 @@ public class BatchSuspensionTest {
     configuration.setBatchJobsPerSeed(1);
   }
 
-  @After
+  @AfterEach
   public void removeBatches() {
     helper.removeAllRunningAndHistoricBatches();
   }
 
-  @After
+  @AfterEach
   public void resetBatchJobsPerSeed() {
     engineRule.getProcessEngineConfiguration()
       .setBatchJobsPerSeed(defaultBatchJobsPerSeed);

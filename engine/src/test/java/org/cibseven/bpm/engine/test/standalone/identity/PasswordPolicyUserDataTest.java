@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.test.standalone.identity;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -32,21 +32,22 @@ import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.impl.identity.DefaultPasswordPolicyImpl;
 import org.cibseven.bpm.engine.impl.identity.PasswordPolicyUserDataRuleImpl;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
 
 public class PasswordPolicyUserDataTest {
 
   public static final String CANDIDATE_PASSWORD = "mypassword";
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProcessEngineRule(true);
 
   protected IdentityService identityService;
 
-  @Before
+  @BeforeEach
   public void init() {
     engineRule.getProcessEngineConfiguration()
         .setEnablePasswordPolicy(true)
@@ -55,7 +56,7 @@ public class PasswordPolicyUserDataTest {
     identityService = engineRule.getIdentityService();
   }
 
-  @After
+  @AfterEach
   public void reset() {
     engineRule.getProcessEngineConfiguration()
         .setEnablePasswordPolicy(false)

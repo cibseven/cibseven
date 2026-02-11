@@ -19,10 +19,10 @@ package org.cibseven.bpm.engine.test.bpmn.event.error;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.test.bpmn.event.error.ThrowErrorDelegate.throwError;
 import static org.cibseven.bpm.engine.test.bpmn.event.error.ThrowErrorDelegate.throwException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.runtime.Job;
@@ -32,7 +32,7 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -56,9 +56,9 @@ public class ErrorEventSubProcessTest extends PluggableProcessEngineTest {
 
     // The process will throw an error event,
     // which is caught and escalated by a User Task
-    assertEquals("No tasks found in task list.", 1, taskService.createTaskQuery()
+    assertEquals(1, taskService.createTaskQuery()
             .taskDefinitionKey("taskAfterErrorCatch2") // <!>
-            .count());
+            .count(), "No tasks found in task list.");
     Task task = taskService.createTaskQuery().singleResult();
     assertEquals("Escalated Task", task.getName());
 
@@ -293,7 +293,7 @@ public class ErrorEventSubProcessTest extends PluggableProcessEngineTest {
   private void assertThatErrorHasBeenCaught(String procId) {
     // The process will throw an error event,
     // which is caught and escalated by a User Task
-    assertEquals("No tasks found in task list.", 1, taskService.createTaskQuery().count());
+    assertEquals(1, taskService.createTaskQuery().count(), "No tasks found in task list.");
     Task task = taskService.createTaskQuery().singleResult();
     assertEquals("Escalated Task", task.getName());
 

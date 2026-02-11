@@ -18,10 +18,10 @@ package org.cibseven.bpm.engine.test.api.runtime.migration.batch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Assertions;
 import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.ManagementService;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
@@ -66,12 +66,12 @@ import org.cibseven.bpm.engine.test.bpmn.multiinstance.DelegateEvent;
 import org.cibseven.bpm.engine.test.bpmn.multiinstance.DelegateExecutionListener;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -94,8 +94,8 @@ public class BatchMigrationTest {
   protected int defaultInvocationsPerBatchJob;
   protected boolean defaultEnsureJobDueDateSet;
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule).around(testRule);
 
   @Parameterized.Parameter(0)
   public boolean ensureJobDueDateSet;
@@ -111,14 +111,14 @@ public class BatchMigrationTest {
     });
   }
 
-  @Before
+  @BeforeEach
   public void initServices() {
     runtimeService = engineRule.getRuntimeService();
     managementService = engineRule.getManagementService();
     historyService = engineRule.getHistoryService();
   }
 
-  @Before
+  @BeforeEach
   public void storeEngineSettings() {
     configuration = engineRule.getProcessEngineConfiguration();
     defaultBatchJobsPerSeed = configuration.getBatchJobsPerSeed();
@@ -127,17 +127,17 @@ public class BatchMigrationTest {
     configuration.setEnsureJobDueDateNotNull(ensureJobDueDateSet);
   }
 
-  @After
+  @AfterEach
   public void removeBatches() {
     helper.removeAllRunningAndHistoricBatches();
   }
 
-  @After
+  @AfterEach
   public void resetClock() {
     ClockUtil.reset();
   }
 
-  @After
+  @AfterEach
   public void restoreEngineSettings() {
     configuration.setBatchJobsPerSeed(defaultBatchJobsPerSeed);
     configuration.setInvocationsPerBatchJob(defaultInvocationsPerBatchJob);
@@ -791,7 +791,7 @@ public class BatchMigrationTest {
 
     // then
     VariableInstance inputVariable = engineRule.getRuntimeService().createVariableInstanceQuery().singleResult();
-    Assert.assertNotNull(inputVariable);
+    Assertions.assertNotNull(inputVariable);
     assertEquals("foo", inputVariable.getName());
     assertEquals("bar", inputVariable.getValue());
 
@@ -903,7 +903,7 @@ public class BatchMigrationTest {
     helper.executeMonitorJob(batch);
 
     // then
-    Assert.assertEquals(2, runtimeService.createProcessInstanceQuery()
+    Assertions.assertEquals(2, runtimeService.createProcessInstanceQuery()
         .processDefinitionId(targetDefinition.getId()).count());
   }
 
@@ -939,8 +939,8 @@ public class BatchMigrationTest {
     HistoricBatch historicBatch = historyService.createHistoricBatchQuery().singleResult();
     batch = managementService.createBatchQuery().singleResult();
 
-    Assertions.assertThat(batch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
-    Assertions.assertThat(historicBatch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
+    assertThat(batch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
+    assertThat(historicBatch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
   }
 
   protected void assertBatchCreated(Batch batch, int processInstanceCount) {

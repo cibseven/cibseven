@@ -17,8 +17,8 @@
 package org.cibseven.bpm.engine.test.api.externaltask;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,12 +45,12 @@ import org.cibseven.bpm.engine.test.api.AbstractAsyncOperationsTest;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.hamcrest.collection.IsIn;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 public class SetExternalTasksRetriesTest extends AbstractAsyncOperationsTest {
 
@@ -59,8 +59,8 @@ public class SetExternalTasksRetriesTest extends AbstractAsyncOperationsTest {
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
 
   private static String PROCESS_DEFINITION_KEY = "oneExternalTaskProcess";
   private static String PROCESS_DEFINITION_KEY_2 = "twoExternalTaskWithPriorityProcess";
@@ -69,7 +69,7 @@ public class SetExternalTasksRetriesTest extends AbstractAsyncOperationsTest {
 
   protected List<String> processInstanceIds;
 
-  @Before
+  @BeforeEach
   public void setup() {
     initDefaults(engineRule);
     externalTaskService = engineRule.getExternalTaskService();
@@ -94,7 +94,7 @@ public class SetExternalTasksRetriesTest extends AbstractAsyncOperationsTest {
     processInstanceIds.add(runtimeService.startProcessInstanceByKey(PROCESS_DEFINITION_KEY_2).getId());
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processInstanceIds = null;
   }
@@ -113,7 +113,7 @@ public class SetExternalTasksRetriesTest extends AbstractAsyncOperationsTest {
     // then
     externalTasks = externalTaskService.createExternalTaskQuery().list();
     for (ExternalTask task : externalTasks) {
-     Assert.assertEquals(10, (int) task.getRetries());
+     Assertions.assertEquals(10, (int) task.getRetries());
     }
   }
 
@@ -255,7 +255,7 @@ public class SetExternalTasksRetriesTest extends AbstractAsyncOperationsTest {
     executeSeedAndBatchJobs(batch);
 
     for (ExternalTask task : externalTaskQuery.list()) {
-      Assert.assertEquals(RETRIES, (int) task.getRetries());
+      Assertions.assertEquals(RETRIES, (int) task.getRetries());
     }
   }
 
@@ -275,7 +275,7 @@ public class SetExternalTasksRetriesTest extends AbstractAsyncOperationsTest {
 
     externalTasks = externalTaskService.createExternalTaskQuery().list();
     for (ExternalTask task : externalTasks) {
-      Assert.assertEquals(RETRIES, (int) task.getRetries());
+      Assertions.assertEquals(RETRIES, (int) task.getRetries());
     }
   }
 
@@ -302,8 +302,8 @@ public class SetExternalTasksRetriesTest extends AbstractAsyncOperationsTest {
     // then batch jobs with different deployment ids exist
     List<Job> batchJobs = managementService.createJobQuery().jobDefinitionId(batch.getBatchJobDefinitionId()).list();
     assertThat(batchJobs).hasSize(2);
-    Assert.assertThat(batchJobs.get(0).getDeploymentId(), IsIn.isOneOf(firstDeploymentId, secondDeploymentId));
-    Assert.assertThat(batchJobs.get(1).getDeploymentId(), IsIn.isOneOf(firstDeploymentId, secondDeploymentId));
+    assertThat(batchJobs.get(0).getDeploymentId()).isIn(firstDeploymentId, secondDeploymentId);
+    assertThat(batchJobs.get(1).getDeploymentId()).isIn(firstDeploymentId, secondDeploymentId);
     assertThat(batchJobs.get(0).getDeploymentId()).isNotEqualTo(batchJobs.get(1).getDeploymentId());
 
     // when the batch jobs for the first deployment are executed
@@ -317,7 +317,7 @@ public class SetExternalTasksRetriesTest extends AbstractAsyncOperationsTest {
     // then
     externalTasks = externalTaskService.createExternalTaskQuery().list();
     for (ExternalTask task : externalTasks) {
-      Assert.assertEquals(RETRIES, (int) task.getRetries());
+      Assertions.assertEquals(RETRIES, (int) task.getRetries());
     }
   }
 
@@ -339,7 +339,7 @@ public class SetExternalTasksRetriesTest extends AbstractAsyncOperationsTest {
 
     externalTasks = externalTaskService.createExternalTaskQuery().list();
     for (ExternalTask task : externalTasks) {
-      Assert.assertEquals(RETRIES, (int) task.getRetries());
+      Assertions.assertEquals(RETRIES, (int) task.getRetries());
     }
   }
 
@@ -387,10 +387,10 @@ public class SetExternalTasksRetriesTest extends AbstractAsyncOperationsTest {
 
     // then
     ExternalTask task = externalTaskService.createExternalTaskQuery().processInstanceId(processInstanceIds.get(0)).singleResult();
-    Assert.assertEquals(8, (int) task.getRetries());
+    Assertions.assertEquals(8, (int) task.getRetries());
     List<ExternalTask> tasks = externalTaskService.createExternalTaskQuery().processInstanceId(processInstanceIds.get(processInstanceIds.size()-1)).list();
     for (ExternalTask t : tasks) {
-      Assert.assertEquals(8, (int) t.getRetries());
+      Assertions.assertEquals(8, (int) t.getRetries());
     }
   }
 

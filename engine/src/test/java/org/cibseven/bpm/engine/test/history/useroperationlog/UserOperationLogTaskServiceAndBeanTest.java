@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.history.useroperationlog;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.cibseven.bpm.engine.history.UserOperationLogEntry.OPERATION_TYPE_CREATE;
 import static org.cibseven.bpm.engine.history.UserOperationLogEntry.OPERATION_TYPE_DELETE;
 import static org.cibseven.bpm.engine.history.UserOperationLogEntry.OPERATION_TYPE_UPDATE;
@@ -30,12 +31,6 @@ import static org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity.NAME;
 import static org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity.OWNER;
 import static org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity.PARENT_TASK;
 import static org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity.PRIORITY;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 import java.util.List;
@@ -49,8 +44,8 @@ import org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.task.DelegationState;
 import org.cibseven.bpm.engine.task.Task;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 /**
  * @author Danny Gräf
  */
@@ -58,7 +53,7 @@ public class UserOperationLogTaskServiceAndBeanTest extends AbstractUserOperatio
 
   protected Task task;
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
 
 
@@ -74,23 +69,23 @@ public class UserOperationLogTaskServiceAndBeanTest extends AbstractUserOperatio
     // assign and validate changes
     entity.setAssignee("icke");
     Map<String, PropertyChange> changes = entity.getPropertyChanges();
-    assertEquals(1, changes.size());
-    assertNull(changes.get(ASSIGNEE).getOrgValue());
-    assertEquals("icke", changes.get(ASSIGNEE).getNewValue());
+    assertThat(changes).hasSize(1);
+    assertThat(changes.get(ASSIGNEE).getOrgValue()).isNull();
+    assertThat(changes.get(ASSIGNEE).getNewValue()).isEqualTo("icke");
 
     // assign it again
     entity.setAssignee("er");
     changes = entity.getPropertyChanges();
-    assertEquals(1, changes.size());
+    assertThat(changes).hasSize(1);
 
     // original value is still null because the task was not saved
-    assertNull(changes.get(ASSIGNEE).getOrgValue());
-    assertEquals("er", changes.get(ASSIGNEE).getNewValue());
+    assertThat(changes.get(ASSIGNEE).getOrgValue()).isNull();
+    assertThat(changes.get(ASSIGNEE).getNewValue()).isEqualTo("er");
 
     // set a due date
     entity.setDueDate(new Date());
     changes = entity.getPropertyChanges();
-    assertEquals(2, changes.size());
+    assertThat(changes).hasSize(2);
   }
 
   @Test
@@ -103,7 +98,7 @@ public class UserOperationLogTaskServiceAndBeanTest extends AbstractUserOperatio
     entity.setFollowUpDate(entity.getFollowUpDate());
 
     // should not track this change
-    assertTrue(entity.getPropertyChanges().isEmpty());
+    assertThat(entity.getPropertyChanges()).isEmpty();
   }
 
   @Test
@@ -114,13 +109,13 @@ public class UserOperationLogTaskServiceAndBeanTest extends AbstractUserOperatio
     entity.setOwner("icke");
 
     // should track this change
-    assertFalse(entity.getPropertyChanges().isEmpty());
+    assertThat(entity.getPropertyChanges()).isNotEmpty();
 
     // reset the owner
     entity.setOwner(null);
 
     // the change is removed
-    assertTrue(entity.getPropertyChanges().isEmpty());
+    assertThat(entity.getPropertyChanges()).isEmpty();
   }
 
   @Test
@@ -144,15 +139,15 @@ public class UserOperationLogTaskServiceAndBeanTest extends AbstractUserOperatio
 
     // and validate the change list
     Map<String, PropertyChange> changes = entity.getPropertyChanges();
-    assertEquals("er", changes.get(ASSIGNEE).getNewValue());
-    assertSame(DelegationState.PENDING, changes.get(DELEGATION).getNewValue());
-    assertEquals("a description", changes.get(DESCRIPTION).getNewValue());
-    assertEquals(tomorrow, changes.get(DUE_DATE).getNewValue());
-    assertEquals(yesterday, changes.get(FOLLOW_UP_DATE).getNewValue());
-    assertEquals("to do", changes.get(NAME).getNewValue());
-    assertEquals("icke", changes.get(OWNER).getNewValue());
-    assertEquals("parent", changes.get(PARENT_TASK).getNewValue());
-    assertEquals(73, changes.get(PRIORITY).getNewValue());
+    assertThat(changes.get(ASSIGNEE).getNewValue()).isEqualTo("er");
+    assertThat(changes.get(DELEGATION).getNewValue()).isSameAs(DelegationState.PENDING);
+    assertThat(changes.get(DESCRIPTION).getNewValue()).isEqualTo("a description");
+    assertThat(changes.get(DUE_DATE).getNewValue()).isEqualTo(tomorrow);
+    assertThat(changes.get(FOLLOW_UP_DATE).getNewValue()).isEqualTo(yesterday);
+    assertThat(changes.get(NAME).getNewValue()).isEqualTo("to do");
+    assertThat(changes.get(OWNER).getNewValue()).isEqualTo("icke");
+    assertThat(changes.get(PARENT_TASK).getNewValue()).isEqualTo("parent");
+    assertThat(changes.get(PRIORITY).getNewValue()).isEqualTo(73);
 
     // DELETE property is not validated here; it is set directly on task deletion
   }
@@ -168,14 +163,14 @@ public class UserOperationLogTaskServiceAndBeanTest extends AbstractUserOperatio
 
     // expect: one entry for the deletion
     UserOperationLogQuery query = queryOperationDetails(OPERATION_TYPE_DELETE);
-    assertEquals(1, query.count());
+    assertThat(query.count()).isEqualTo(1);
 
     // assert: details
     UserOperationLogEntry delete = query.singleResult();
-    assertEquals(DELETE, delete.getProperty());
-    assertFalse(Boolean.parseBoolean(delete.getOrgValue()));
-    assertTrue(Boolean.parseBoolean(delete.getNewValue()));
-    assertEquals(UserOperationLogEntry.CATEGORY_TASK_WORKER, delete.getCategory());
+    assertThat(delete.getProperty()).isEqualTo(DELETE);
+    assertThat(Boolean.parseBoolean(delete.getOrgValue())).isFalse();
+    assertThat(Boolean.parseBoolean(delete.getNewValue())).isTrue();
+    assertThat(delete.getCategory()).isEqualTo(UserOperationLogEntry.CATEGORY_TASK_WORKER);
   }
 
   @Test
@@ -189,12 +184,12 @@ public class UserOperationLogTaskServiceAndBeanTest extends AbstractUserOperatio
     // expect: no entry
     UserOperationLogQuery query = queryOperationDetails(OPERATION_TYPE_CREATE);
     UserOperationLogEntry create = query.singleResult();
-    assertNotNull(create);
-    assertEquals(EntityTypes.TASK, create.getEntityType());
-    assertNull(create.getOrgValue());
-    assertNull(create.getNewValue());
-    assertNull(create.getProperty());
-    assertEquals(UserOperationLogEntry.CATEGORY_TASK_WORKER, create.getCategory());
+    assertThat(create).isNotNull();
+    assertThat(create.getEntityType()).isEqualTo(EntityTypes.TASK);
+    assertThat(create.getOrgValue()).isNull();
+    assertThat(create.getNewValue()).isNull();
+    assertThat(create.getProperty()).isNull();
+    assertThat(create.getCategory()).isEqualTo(UserOperationLogEntry.CATEGORY_TASK_WORKER);
 
     task.setAssignee("icke");
     task.setName("to do");
@@ -204,10 +199,10 @@ public class UserOperationLogTaskServiceAndBeanTest extends AbstractUserOperatio
 
     // expect: two update entries with the same operation id
     List<UserOperationLogEntry> entries = queryOperationDetails(OPERATION_TYPE_UPDATE).list();
-    assertEquals(2, entries.size());
-    assertEquals(entries.get(0).getOperationId(), entries.get(1).getOperationId());
-    assertEquals(UserOperationLogEntry.CATEGORY_TASK_WORKER, entries.get(0).getCategory());
-    assertEquals(UserOperationLogEntry.CATEGORY_TASK_WORKER, entries.get(1).getCategory());
+    assertThat(entries).hasSize(2);
+    assertThat(entries.get(0).getOperationId()).isEqualTo(entries.get(1).getOperationId());
+    assertThat(entries.get(0).getCategory()).isEqualTo(UserOperationLogEntry.CATEGORY_TASK_WORKER);
+    assertThat(entries.get(1).getCategory()).isEqualTo(UserOperationLogEntry.CATEGORY_TASK_WORKER);
   }
 
   @Test
@@ -221,9 +216,9 @@ public class UserOperationLogTaskServiceAndBeanTest extends AbstractUserOperatio
     task.setName("to do");
     taskService.saveTask(task);
     UserOperationLogEntry update = queryOperationDetails(OPERATION_TYPE_UPDATE).singleResult();
-    assertNull(update.getOrgValue());
-    assertEquals("to do", update.getNewValue());
-    assertEquals(UserOperationLogEntry.CATEGORY_TASK_WORKER, update.getCategory());
+    assertThat(update.getOrgValue()).isNull();
+    assertThat(update.getNewValue()).isEqualTo("to do");
+    assertThat(update.getCategory()).isEqualTo(UserOperationLogEntry.CATEGORY_TASK_WORKER);
   }
 
   @Test
@@ -235,7 +230,7 @@ public class UserOperationLogTaskServiceAndBeanTest extends AbstractUserOperatio
     taskService.saveTask(task);
 
     UserOperationLogEntry logEntry = historyService.createUserOperationLogQuery().singleResult();
-    assertEquals(String.valueOf(now.getTime()), logEntry.getNewValue());
+    assertThat(logEntry.getNewValue()).isEqualTo(String.valueOf(now.getTime()));
   }
 
   @Test
@@ -249,8 +244,8 @@ public class UserOperationLogTaskServiceAndBeanTest extends AbstractUserOperatio
     task.setName(name);
     taskService.saveTask(task);
     UserOperationLogEntry update = queryOperationDetails(OPERATION_TYPE_UPDATE).singleResult();
-    assertNull(update.getOrgValue());
-    assertEquals(name, update.getNewValue());
+    assertThat(update.getOrgValue()).isNull();
+    assertThat(update.getNewValue()).isEqualTo(name);
 
     // then: change the name some times and set it back to the original value
     task.setName("to do 1");
@@ -260,8 +255,8 @@ public class UserOperationLogTaskServiceAndBeanTest extends AbstractUserOperatio
 
     // expect: there is no additional change tracked
     update = queryOperationDetails(OPERATION_TYPE_UPDATE).singleResult();
-    assertNull(update.getOrgValue());
-    assertEquals(name, update.getNewValue());
+    assertThat(update.getOrgValue()).isNull();
+    assertThat(update.getNewValue()).isEqualTo(name);
   }
 
   @Test
@@ -279,7 +274,7 @@ public class UserOperationLogTaskServiceAndBeanTest extends AbstractUserOperatio
     try { // now try to save the task and overwrite the change
       taskService.saveTask(task);
     } catch (Exception e) {
-      assertNotNull(e); // concurrent modification
+      assertThat(e).isNotNull(); // concurrent modification
     }
   }
 
@@ -290,35 +285,35 @@ public class UserOperationLogTaskServiceAndBeanTest extends AbstractUserOperatio
     taskService.saveTask(task);
 
     UserOperationLogQuery query = queryOperationDetails(OPERATION_TYPE_UPDATE);
-    assertEquals(0, query.count());
+    assertThat(query.count()).isEqualTo(0);
 
     // set case instance id and save task
     task.setCaseInstanceId("aCaseInstanceId");
     taskService.saveTask(task);
 
-    assertEquals(1, query.count());
+    assertThat(query.count()).isEqualTo(1);
 
     UserOperationLogEntry entry = query.singleResult();
-    assertNotNull(entry);
+    assertThat(entry).isNotNull();
 
-    assertNull(entry.getOrgValue());
-    assertEquals("aCaseInstanceId", entry.getNewValue());
-    assertEquals(CASE_INSTANCE_ID, entry.getProperty());
+    assertThat(entry.getOrgValue()).isNull();
+    assertThat(entry.getNewValue()).isEqualTo("aCaseInstanceId");
+    assertThat(entry.getProperty()).isEqualTo(CASE_INSTANCE_ID);
 
     // change case instance id and save task
     task.setCaseInstanceId("anotherCaseInstanceId");
     taskService.saveTask(task);
 
-    assertEquals(2, query.count());
+    assertThat(query.count()).isEqualTo(2);
 
     List<UserOperationLogEntry> entries = query.list();
-    assertEquals(2, entries.size());
+    assertThat(entries).hasSize(2);
 
     for (UserOperationLogEntry currentEntry : entries) {
       if (!currentEntry.getId().equals(entry.getId())) {
-        assertEquals("aCaseInstanceId", currentEntry.getOrgValue());
-        assertEquals("anotherCaseInstanceId", currentEntry.getNewValue());
-        assertEquals(CASE_INSTANCE_ID, currentEntry.getProperty());
+        assertThat(currentEntry.getOrgValue()).isEqualTo("aCaseInstanceId");
+        assertThat(currentEntry.getNewValue()).isEqualTo("anotherCaseInstanceId");
+        assertThat(currentEntry.getProperty()).isEqualTo(CASE_INSTANCE_ID);
       }
     }
   }

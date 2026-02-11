@@ -30,10 +30,10 @@ import org.cibseven.bpm.engine.repository.DecisionRequirementsDefinition;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  *
@@ -50,8 +50,8 @@ public class MultiTenancyDecisionRequirementsDefinitionCmdsTenantCheckTest {
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected String decisionRequirementsDefinitionId;
 
@@ -59,7 +59,7 @@ public class MultiTenancyDecisionRequirementsDefinitionCmdsTenantCheckTest {
   protected IdentityService identityService;
   protected ProcessEngineConfiguration processEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     repositoryService = engineRule.getRepositoryService();

@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.history;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,12 +49,13 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+
+import org.junit.jupiter.api.AfterEach;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class CleanableHistoricBatchReportTest {
@@ -68,8 +69,8 @@ public class CleanableHistoricBatchReportTest {
   protected BatchMigrationHelper migrationHelper = new BatchMigrationHelper(engineRule, migrationRule);
   protected BatchModificationHelper modificationHelper = new BatchModificationHelper(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(testRule).around(engineRule).around(migrationRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(testRule).around(engineRule).around(migrationRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected HistoryService historyService;
@@ -77,7 +78,7 @@ public class CleanableHistoricBatchReportTest {
   protected RuntimeService runtimeService;
   protected ManagementService managementService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     historyService = engineRule.getHistoryService();
     processEngineConfiguration = (ProcessEngineConfigurationImpl)bootstrapRule.getProcessEngine().getProcessEngineConfiguration();
@@ -86,7 +87,7 @@ public class CleanableHistoricBatchReportTest {
     managementService = engineRule.getManagementService();
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     ClockUtil.reset();
     migrationHelper.removeAllRunningAndHistoricBatches();

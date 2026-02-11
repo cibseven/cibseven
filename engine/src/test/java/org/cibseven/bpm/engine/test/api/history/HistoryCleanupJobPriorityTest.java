@@ -27,32 +27,34 @@ import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.runtime.Job;
+import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineExtension;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+
+@ExtendWith(ProvidedProcessEngineExtension.class)
 public class HistoryCleanupJobPriorityTest {
 
   private static final Long CUSTOM_PRIORITY = 10L;
 
-  @Rule
-  public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  public ProvidedProcessEngineRule engineRule;
 
   protected ProcessEngineConfigurationImpl config;
   protected HistoryService historyService;
 
   protected long defaultHistoryCleanupJobPriority;
 
-  @Before
+  @BeforeEach
   public void setup() {
     config = engineRule.getProcessEngineConfiguration();
     historyService = engineRule.getHistoryService();
     defaultHistoryCleanupJobPriority = config.getHistoryCleanupJobPriority();
   }
 
-  @After
+  @AfterEach
   public void reset() {
     config.setHistoryCleanupJobPriority(defaultHistoryCleanupJobPriority);
     resetDatabase();

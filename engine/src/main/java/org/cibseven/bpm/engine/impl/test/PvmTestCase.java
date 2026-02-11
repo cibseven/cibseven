@@ -16,17 +16,16 @@
  */
 package org.cibseven.bpm.engine.impl.test;
 
-import junit.framework.AssertionFailedError;
-import junit.framework.TestCase;
 import org.cibseven.bpm.engine.delegate.Expression;
 import org.cibseven.bpm.engine.impl.cmmn.behavior.CaseControlRuleImpl;
 import org.cibseven.bpm.engine.impl.el.FixedValue;
+import org.opentest4j.AssertionFailedError;
 
 
 /**
  * @author Tom Baeyens
  */
-public class PvmTestCase extends TestCase {
+public class PvmTestCase {
   /**
    * This class isn't used in the Process Engine test suite anymore.
    * However, some Test classes in the following modules still use it:
@@ -42,10 +41,8 @@ public class PvmTestCase extends TestCase {
    * Asserts if the provided text is part of some text.
    */
   public void assertTextPresent(String expected, String actual) {
-    if ( (actual==null)
-         || (actual.indexOf(expected)==-1)
-       ) {
-      throw new AssertionFailedError("expected presence of ["+expected+"], but was ["+actual+"]");
+    if ((actual == null) || (!actual.contains(expected))) {
+      throw new AssertionFailedError("expected presence of [" + expected + "], but was [" + actual + "]");
     }
   }
 
@@ -61,5 +58,4 @@ public class PvmTestCase extends TestCase {
     CaseControlRuleImpl caseControlRule = new CaseControlRuleImpl(expression);
     return caseControlRule;
   }
-
 }

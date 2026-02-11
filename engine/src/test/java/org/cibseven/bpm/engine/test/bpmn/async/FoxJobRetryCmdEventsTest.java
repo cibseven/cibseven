@@ -31,11 +31,11 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -48,8 +48,8 @@ public class FoxJobRetryCmdEventsTest {
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
 
   @Parameterized.Parameter
@@ -71,7 +71,7 @@ public class FoxJobRetryCmdEventsTest {
 
   private Deployment currentDeployment;
 
-  @Before
+  @BeforeEach
   public void setUp () {
     currentDeployment = testRule.deploy(deployment.getBpmnModelInstances());
   }
@@ -82,7 +82,7 @@ public class FoxJobRetryCmdEventsTest {
     assertJobRetries(pi);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     engineRule.getRepositoryService().deleteDeployment(currentDeployment.getId(),true,true);
   }

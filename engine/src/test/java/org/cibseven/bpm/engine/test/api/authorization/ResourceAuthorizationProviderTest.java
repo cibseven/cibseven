@@ -22,8 +22,8 @@ import static org.cibseven.bpm.engine.authorization.Permissions.ALL;
 import static org.cibseven.bpm.engine.authorization.Resources.AUTHORIZATION;
 import static org.cibseven.bpm.engine.authorization.Resources.TASK;
 import static org.cibseven.bpm.engine.authorization.Resources.USER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Collections;
 
@@ -39,13 +39,13 @@ import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.task.IdentityLinkType;
 import org.cibseven.bpm.engine.task.Task;
-import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
+import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapClassExtension;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Roman Smirnov
@@ -53,11 +53,12 @@ import org.junit.Test;
  */
 public class ResourceAuthorizationProviderTest {
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
-      "org/cibseven/bpm/engine/test/api/authorization/resource.authorization.provider.camunda.cfg.xml");
-  @Rule
-  public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  public static ProcessEngineBootstrapClassExtension processEngineBootstrapClassExtension = ProcessEngineBootstrapClassExtension.builder()
+    .setConfigurationResource("org/cibseven/bpm/engine/test/api/authorization/resource.authorization.provider.camunda.cfg.xml")
+    .build();
+
+  public ProvidedProcessEngineRule engineRule = null;
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected IdentityService identityService;
@@ -69,7 +70,7 @@ public class ResourceAuthorizationProviderTest {
   protected User user;
   protected Group group;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     processEngineConfiguration.setResourceAuthorizationProvider(new MyResourceAuthorizationProvider());
@@ -87,7 +88,7 @@ public class ResourceAuthorizationProviderTest {
     processEngineConfiguration.setAuthorizationEnabled(true);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processEngineConfiguration.setAuthorizationEnabled(false);
     for (User user : identityService.createUserQuery().list()) {

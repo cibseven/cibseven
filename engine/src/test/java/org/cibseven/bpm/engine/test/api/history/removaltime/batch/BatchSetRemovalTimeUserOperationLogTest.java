@@ -40,11 +40,12 @@ import org.cibseven.bpm.engine.test.api.history.removaltime.batch.helper.BatchSe
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 /**
  * @author Tassilo Weidner
@@ -52,12 +53,15 @@ import org.junit.rules.RuleChain;
 @RequiredHistoryLevel(HISTORY_FULL)
 public class BatchSetRemovalTimeUserOperationLogTest {
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
   protected BatchSetRemovalTimeRule testRule = new BatchSetRemovalTimeRule(engineRule, engineTestRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule).around(testRule);
 
   protected RuntimeService runtimeService;
   protected DecisionService decisionService;
@@ -65,7 +69,7 @@ public class BatchSetRemovalTimeUserOperationLogTest {
   protected ManagementService managementService;
   protected IdentityService identityService;
 
-  @Before
+  @BeforeEach
   public void assignServices() {
     runtimeService = engineRule.getRuntimeService();
     decisionService = engineRule.getDecisionService();
@@ -74,12 +78,12 @@ public class BatchSetRemovalTimeUserOperationLogTest {
     identityService = engineRule.getIdentityService();
   }
 
-  @After
+  @AfterEach
   public void clearAuth() {
     identityService.clearAuthentication();
   }
 
-  @After
+  @AfterEach
   public void clearDatabase() {
     List<Batch> batches = managementService.createBatchQuery()
       .type(Batch.TYPE_HISTORIC_PROCESS_INSTANCE_DELETION)

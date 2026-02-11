@@ -22,7 +22,7 @@ import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.AttachmentEntity;
 import org.cibseven.bpm.engine.task.Attachment;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Tassilo Weidner

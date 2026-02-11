@@ -31,12 +31,13 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+
 
 public class ConcurrentHistoryCleanupUpdateOfFailingJobTest extends ConcurrencyTestHelper {
 
@@ -46,21 +47,21 @@ public class ConcurrentHistoryCleanupUpdateOfFailingJobTest extends ConcurrencyT
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected HistoryService historyService;
   protected ManagementService managementService;
   protected int retries = 5;
 
-  @Before
+  @BeforeEach
   public void initializeProcessEngine() {
     processEngineConfiguration =engineRule.getProcessEngineConfiguration();
     managementService = engineRule.getManagementService();
     historyService = engineRule.getHistoryService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     testRule.deleteHistoryCleanupJobs();
   }

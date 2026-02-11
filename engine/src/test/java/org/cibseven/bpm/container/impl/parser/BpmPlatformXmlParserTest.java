@@ -17,8 +17,8 @@
 package org.cibseven.bpm.container.impl.parser;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.net.URL;
 import java.util.List;
@@ -30,8 +30,8 @@ import org.cibseven.bpm.container.impl.metadata.spi.JobAcquisitionXml;
 import org.cibseven.bpm.container.impl.metadata.spi.JobExecutorXml;
 import org.cibseven.bpm.container.impl.metadata.spi.ProcessEnginePluginXml;
 import org.cibseven.bpm.container.impl.metadata.spi.ProcessEngineXml;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * <p>The testcases for the {@link BpmPlatformXmlParser}</p>
@@ -43,7 +43,7 @@ public class BpmPlatformXmlParserTest {
 
   private BpmPlatformXmlParser parser;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     parser = new BpmPlatformXmlParser();
   }

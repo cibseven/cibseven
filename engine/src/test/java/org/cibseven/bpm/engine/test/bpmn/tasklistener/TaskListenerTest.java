@@ -18,11 +18,11 @@ package org.cibseven.bpm.engine.test.bpmn.tasklistener;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl.HISTORYLEVEL_AUDIT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -56,9 +56,9 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.utils.IoUtil;
 import org.joda.time.LocalDateTime;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -69,7 +69,7 @@ public class TaskListenerTest extends AbstractTaskListenerTest {
   Testing use-cases when Task Events are thrown and caught by Task Listeners
    */
 
-  @Before
+  @BeforeEach
   public void resetListenerCounters() {
     VariablesCollectingListener.reset();
   }
@@ -148,7 +148,7 @@ public class TaskListenerTest extends AbstractTaskListenerTest {
     runtimeService.startProcessInstanceByKey("mainProc");
     Task task = taskService.createTaskQuery().singleResult();
 
-    Assert.assertEquals(task.getTaskDefinitionKey(), "calledTask");
+    Assertions.assertEquals(task.getTaskDefinitionKey(), "calledTask");
   }
 
   // COMPLETE Task Listener tests

@@ -32,8 +32,8 @@ import org.cibseven.bpm.engine.repository.DeploymentQuery;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * <p>Tests the deployment from two threads simultaneously.</p>
@@ -137,7 +137,7 @@ public class ConcurrentDeploymentTest extends ConcurrencyTestCase {
     thread2.waitUntilDone();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
 
     for(Deployment deployment : repositoryService.createDeploymentQuery().list()) {

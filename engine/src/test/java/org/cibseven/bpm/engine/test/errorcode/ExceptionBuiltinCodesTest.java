@@ -39,11 +39,11 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 import java.util.List;
 
@@ -53,7 +53,7 @@ import static org.cibseven.bpm.engine.authorization.Authorization.AUTH_TYPE_GRAN
 
 public class ExceptionBuiltinCodesTest {
 
-  @Rule
+//  @Rule
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch("org.cibseven.bpm.engine.cmd")
       .level(Level.WARN);
@@ -61,21 +61,21 @@ public class ExceptionBuiltinCodesTest {
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule);
 
   protected RuntimeService runtimeService;
   protected IdentityService identityService;
   protected AuthorizationService authorizationService;
 
-  @Before
+  @BeforeEach
   public void assignServices() {
     runtimeService = engineRule.getRuntimeService();
     identityService = engineRule.getIdentityService();
     authorizationService = engineRule.getAuthorizationService();
   }
 
-  @After
+  @AfterEach
   public void clear() {
     engineRule.getIdentityService().deleteUser("kermit");
     engineRule.getAuthorizationService().createAuthorizationQuery().list()

@@ -32,10 +32,10 @@ import org.cibseven.bpm.engine.test.api.delegate.AssertingJavaDelegate.DelegateE
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+
+import org.junit.jupiter.api.Test;
+
 
 public class MultiTenancyJobExecutorTest {
 
@@ -45,8 +45,8 @@ public class MultiTenancyJobExecutorTest {
 
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   @Test
   public void setAuthenticatedTenantForTimerStartEvent() {
@@ -175,7 +175,7 @@ public class MultiTenancyJobExecutorTest {
     return calendar.getTime();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     AssertingJavaDelegate.clear();
   }

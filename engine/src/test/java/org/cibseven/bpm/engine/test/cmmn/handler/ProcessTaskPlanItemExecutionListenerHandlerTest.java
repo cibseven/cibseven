@@ -21,8 +21,8 @@ import org.cibseven.bpm.engine.impl.cmmn.model.CmmnActivity;
 import org.cibseven.bpm.engine.test.cmmn.handler.specification.AbstractExecutionListenerSpec;
 import org.cibseven.bpm.model.cmmn.instance.PlanItem;
 import org.cibseven.bpm.model.cmmn.instance.ProcessTask;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -49,7 +49,7 @@ public class ProcessTaskPlanItemExecutionListenerHandlerTest extends CmmnElement
     this.testSpecification = testSpecification;
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     processTask = createElement(casePlanModel, "aProcessTask", ProcessTask.class);
 

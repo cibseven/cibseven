@@ -34,8 +34,8 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Represents a test class, which uses parse listeners
@@ -63,7 +63,7 @@ public class JobDefinitionDeletionWithParseListenerTest {
     configuration.setCustomPreBPMNParseListeners(listeners);
   });
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   @Test

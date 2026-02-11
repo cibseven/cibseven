@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.test.jobexecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,30 +29,25 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class JobExecutorExceptionLoggingHandlerTest {
 
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
-
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected ExecuteJobHelper.ExceptionLoggingHandler originalHandler;
 
-  @Before
+  @BeforeEach
   public void init() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     originalHandler = ExecuteJobHelper.LOGGING_HANDLER;
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     // cleanup
     ExecuteJobHelper.LOGGING_HANDLER = originalHandler;
@@ -60,7 +55,7 @@ public class JobExecutorExceptionLoggingHandlerTest {
 
   @Test
   public void shouldBeAbleToReplaceLoggingHandler() {
- // given
+    // given
     CollectingHandler collectingHandler = new CollectingHandler();
     ExecuteJobHelper.LOGGING_HANDLER = collectingHandler;
     BpmnModelInstance modelInstance = Bpmn.createExecutableProcess("failingDelegate")

@@ -19,7 +19,7 @@ package org.cibseven.bpm.engine.test.api.runtime.migration;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
-import static org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert.assertThat;
+import static org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert.assertReport;
 
 import org.cibseven.bpm.engine.migration.MigrationPlan;
 import org.cibseven.bpm.engine.migration.MigrationPlanValidationException;
@@ -28,10 +28,10 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.GatewayModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -42,8 +42,8 @@ public class MigrationGatewayTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testParallelGatewayContinueExecution() {
@@ -67,8 +67,8 @@ public class MigrationGatewayTest {
     testHelper.migrateProcessInstance(migrationPlan, processInstance);
 
     // then
-    Assert.assertEquals(1, rule.getTaskService().createTaskQuery().count());
-    Assert.assertEquals(0, rule.getTaskService().createTaskQuery().taskDefinitionKey("afterJoin").count());
+    Assertions.assertEquals(1, rule.getTaskService().createTaskQuery().count());
+    Assertions.assertEquals(0, rule.getTaskService().createTaskQuery().taskDefinitionKey("afterJoin").count());
 
     testHelper.completeTask("parallel1");
     testHelper.completeTask("afterJoin");
@@ -134,8 +134,8 @@ public class MigrationGatewayTest {
     testHelper.migrateProcessInstance(migrationPlan, processInstance);
 
     // then
-    Assert.assertEquals(1, rule.getTaskService().createTaskQuery().count());
-    Assert.assertEquals(0, rule.getTaskService().createTaskQuery().taskDefinitionKey("afterJoin").count());
+    Assertions.assertEquals(1, rule.getTaskService().createTaskQuery().count());
+    Assertions.assertEquals(0, rule.getTaskService().createTaskQuery().taskDefinitionKey("afterJoin").count());
 
     testHelper.completeTask("parallel1");
     testHelper.completeTask("afterJoin");
@@ -164,8 +164,8 @@ public class MigrationGatewayTest {
     testHelper.migrateProcessInstance(migrationPlan, processInstance);
 
     // then
-    Assert.assertEquals(1, rule.getTaskService().createTaskQuery().count());
-    Assert.assertEquals(0, rule.getTaskService().createTaskQuery().taskDefinitionKey("afterJoin").count());
+    Assertions.assertEquals(1, rule.getTaskService().createTaskQuery().count());
+    Assertions.assertEquals(0, rule.getTaskService().createTaskQuery().taskDefinitionKey("afterJoin").count());
 
     testHelper.completeTask("parallel1");
     testHelper.completeTask("afterJoin");
@@ -231,8 +231,8 @@ public class MigrationGatewayTest {
     testHelper.migrateProcessInstance(migrationPlan, processInstance);
 
     // then
-    Assert.assertEquals(1, rule.getTaskService().createTaskQuery().count());
-    Assert.assertEquals(0, rule.getTaskService().createTaskQuery().taskDefinitionKey("afterJoin").count());
+    Assertions.assertEquals(1, rule.getTaskService().createTaskQuery().count());
+    Assertions.assertEquals(0, rule.getTaskService().createTaskQuery().taskDefinitionKey("afterJoin").count());
 
     testHelper.completeTask("parallel1");
     testHelper.completeTask("afterJoin");
@@ -250,10 +250,10 @@ public class MigrationGatewayTest {
         .createMigrationPlan(sourceProcessDefinition.getId(), targetProcessDefinition.getId())
         .mapActivities("join", "join")
         .build();
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     } catch (MigrationPlanValidationException e) {
       // then
-      assertThat(e.getValidationReport())
+      assertReport(e.getValidationReport())
       .hasInstructionFailures("join",
         "Activities have incompatible types "
         + "(ParallelGatewayActivityBehavior is not compatible with InclusiveGatewayActivityBehavior)"
@@ -272,10 +272,10 @@ public class MigrationGatewayTest {
         .createMigrationPlan(sourceProcessDefinition.getId(), targetProcessDefinition.getId())
         .mapActivities("join", "join")
         .build();
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     } catch (MigrationPlanValidationException e) {
       // then
-      assertThat(e.getValidationReport())
+      assertReport(e.getValidationReport())
       .hasInstructionFailures("join",
         "Activities have incompatible types "
         + "(InclusiveGatewayActivityBehavior is not compatible with ParallelGatewayActivityBehavior)"
@@ -299,10 +299,10 @@ public class MigrationGatewayTest {
         .createMigrationPlan(sourceProcessDefinition.getId(), targetProcessDefinition.getId())
         .mapActivities("join", "join")
         .build();
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     } catch (MigrationPlanValidationException e) {
       // then
-      assertThat(e.getValidationReport())
+      assertReport(e.getValidationReport())
       .hasInstructionFailures("join",
         "The target gateway must have at least the same number of incoming sequence flows that the source gateway has"
       );
@@ -339,13 +339,13 @@ public class MigrationGatewayTest {
     testHelper.migrateProcessInstance(migrationPlan, processInstance);
 
     // then
-    Assert.assertEquals(1, rule.getTaskService().createTaskQuery().count());
-    Assert.assertEquals(0, rule.getTaskService().createTaskQuery().taskDefinitionKey("afterJoin").count());
+    Assertions.assertEquals(1, rule.getTaskService().createTaskQuery().count());
+    Assertions.assertEquals(0, rule.getTaskService().createTaskQuery().taskDefinitionKey("afterJoin").count());
 
     rule.getRuntimeService().createProcessInstanceModification(processInstance.getId())
       .startBeforeActivity("join")
       .execute();
-    Assert.assertEquals(0, rule.getTaskService().createTaskQuery().taskDefinitionKey("afterJoin").count());
+    Assertions.assertEquals(0, rule.getTaskService().createTaskQuery().taskDefinitionKey("afterJoin").count());
 
     testHelper.completeTask("parallel1");
     testHelper.completeTask("afterJoin");
@@ -367,10 +367,10 @@ public class MigrationGatewayTest {
         .createMigrationPlan(sourceProcessDefinition.getId(), targetProcessDefinition.getId())
         .mapActivities("join", "join")
         .build();
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     } catch (MigrationPlanValidationException e) {
       // then
-      assertThat(e.getValidationReport())
+      assertReport(e.getValidationReport())
       .hasInstructionFailures("join",
         "The gateway's flow scope 'subProcess' must be mapped"
       );
@@ -393,14 +393,13 @@ public class MigrationGatewayTest {
         .mapActivities("join", "join")
         .mapActivities("fork", "join")
         .build();
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     } catch (MigrationPlanValidationException e) {
       // then
-      assertThat(e.getValidationReport())
+      assertReport(e.getValidationReport())
       .hasInstructionFailures("join",
         "Only one gateway can be mapped to gateway 'join'"
        );
     }
   }
 }
-

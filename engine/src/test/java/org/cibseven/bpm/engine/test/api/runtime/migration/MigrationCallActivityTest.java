@@ -29,11 +29,11 @@ import org.cibseven.bpm.engine.test.api.runtime.migration.models.CallActivityMod
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -44,17 +44,17 @@ public class MigrationCallActivityTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
-  @Before
+  @BeforeEach
   public void deployOneTaskProcess() {
     testHelper.deployAndGetDefinition(
         modify(ProcessModels.ONE_TASK_PROCESS)
           .changeElementId(ProcessModels.PROCESS_KEY, "oneTaskProcess"));
   }
 
-  @Before
+  @BeforeEach
   public void deployOneTaskCase() {
     testHelper.deploy("org/cibseven/bpm/engine/test/api/cmmn/oneTaskCase.cmmn");
   }
@@ -546,7 +546,7 @@ public class MigrationCallActivityTest {
       .createProcessInstanceQuery()
       .processDefinitionKey("oneTaskProcess")
       .singleResult();
-    Assert.assertNotNull(calledInstance);
+    Assertions.assertNotNull(calledInstance);
 
     // and it is possible to complete the called process instance
     testHelper.completeTask("userTask");

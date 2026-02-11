@@ -16,11 +16,11 @@
  */
 package org.cibseven.bpm.engine.test.api.authorization.history;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -44,9 +44,9 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the operationId field in historic tables, which helps to correlate records from different tables.
@@ -57,10 +57,10 @@ import org.junit.Test;
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class UserOperationIdTest {
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
-  @Rule
+//  @Rule
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected static final String PROCESS_KEY = "oneTaskProcess";
@@ -73,7 +73,7 @@ public class UserOperationIdTest {
   protected FormService formService;
   protected IdentityService identityService;
 
-  @Before
+  @BeforeEach
   public void init() {
     runtimeService = engineRule.getRuntimeService();
     repositoryService = engineRule.getRepositoryService();
@@ -237,10 +237,10 @@ public class UserOperationIdTest {
   }
 
   private void verifySameOperationId(List<UserOperationLogEntry> userOperationLogEntries, List<HistoricDetail> historicDetails) {
-    assertTrue("Operation log entry must exist", userOperationLogEntries.size() > 0);
+    assertTrue(userOperationLogEntries.size() > 0, "Operation log entry must exist");
     String operationId = userOperationLogEntries.get(0).getOperationId();
     assertNotNull(operationId);
-    assertTrue("Some historic details are expected to be present", historicDetails.size() > 0);
+    assertTrue(historicDetails.size() > 0, "Some historic details are expected to be present");
     for (UserOperationLogEntry userOperationLogEntry: userOperationLogEntries) {
       assertEquals("OperationIds must be the same", operationId, userOperationLogEntry.getOperationId());
     }

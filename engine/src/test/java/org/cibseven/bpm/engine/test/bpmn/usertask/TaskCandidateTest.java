@@ -17,8 +17,8 @@
 package org.cibseven.bpm.engine.test.bpmn.usertask;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -28,9 +28,9 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Joram Barrez
@@ -43,7 +43,7 @@ public class TaskCandidateTest extends PluggableProcessEngineTest {
 
   private static final String GONZO = "gonzo";
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
 
 
@@ -65,7 +65,7 @@ public class TaskCandidateTest extends PluggableProcessEngineTest {
     identityService.createMembership(GONZO, "sales");
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     identityService.deleteUser(KERMIT);
     identityService.deleteUser(GONZO);

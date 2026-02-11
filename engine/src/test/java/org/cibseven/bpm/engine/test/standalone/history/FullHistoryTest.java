@@ -17,13 +17,14 @@
 package org.cibseven.bpm.engine.test.standalone.history;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.Assertions;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -68,16 +69,14 @@ import org.cibseven.bpm.engine.test.api.runtime.util.FailingSerializable;
 import org.cibseven.bpm.engine.test.history.SerializableVariable;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
+import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRuleExtension;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.engine.variable.value.FileValue;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
-import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 
 /**
@@ -87,13 +86,11 @@ import org.junit.rules.RuleChain;
  * @author Christian Lipphardt (camunda)
  */
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
+@ExtendWith(ProvidedProcessEngineRuleExtension.class)
 public class FullHistoryTest {
 
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
+  protected ProvidedProcessEngineRule engineRule;
+  protected ProcessEngineTestRule testRule;
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
@@ -102,7 +99,7 @@ public class FullHistoryTest {
   protected RepositoryService repositoryService;
   protected CaseService caseService;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     runtimeService = engineRule.getRuntimeService();
     historyService = engineRule.getHistoryService();
@@ -219,7 +216,7 @@ public class FullHistoryTest {
 
     // trigger receive task
     runtimeService.signal(processInstance.getId());
-    testHelper.assertProcessEnded(processInstance.getId());
+    testRule.assertProcessEnded(processInstance.getId());
 
     // check for historic process variables set
     HistoricVariableInstanceQuery historicProcessVariableQuery = historyService
@@ -395,7 +392,7 @@ public class FullHistoryTest {
     List<Task> tasks = taskService.createTaskQuery().list();
     assertEquals(1, tasks.size());
     taskService.complete(tasks.get(0).getId());
-    testHelper.assertProcessEnded(processInstance.getId());
+    testRule.assertProcessEnded(processInstance.getId());
 
     // check for historic process variables set
     HistoricVariableInstanceQuery historicProcessVariableQuery = historyService
@@ -557,7 +554,7 @@ public class FullHistoryTest {
     List<Task> tasks = taskService.createTaskQuery().list();
     assertEquals(1, tasks.size());
     taskService.complete(tasks.get(0).getId());
-    testHelper.assertProcessEnded(processInstance.getId());
+    testRule.assertProcessEnded(processInstance.getId());
 
     assertEquals(2, historyService.createHistoricVariableInstanceQuery().count());
 
@@ -953,7 +950,7 @@ public class FullHistoryTest {
     assertEquals(2, details.size());
 
     // Should have 2 different historic activity instance ID's, with the same activityId
-    Assert.assertNotSame(details.get(0).getActivityInstanceId(), details.get(1).getActivityInstanceId());
+    Assertions.assertNotSame(details.get(0).getActivityInstanceId(), details.get(1).getActivityInstanceId());
 
     HistoricActivityInstance historicActInst1 = historyService.createHistoricActivityInstanceQuery()
       .activityInstanceId(details.get(0).getActivityInstanceId())
@@ -1247,7 +1244,7 @@ public class FullHistoryTest {
     taskService.complete(task.getId(), variables);
 
     // now we are ended
-    testHelper.assertProcessEnded(pi.getId());
+    testRule.assertProcessEnded(pi.getId());
 
     // check history
     List<HistoricDetail> updates = historyService.createHistoricDetailQuery().variableUpdates().list();

@@ -31,10 +31,8 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.joda.time.DateTime;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Represents the abstract metrics interval test class, which contains methods
@@ -51,9 +49,6 @@ public abstract class AbstractMetricsIntervalTest {
   protected static final int DEFAULT_INTERVAL_MILLIS = 15 * 60 * 1000;
   protected static final int MIN_OCCURENCE = 1;
   protected static final int MAX_OCCURENCE = 250;
-
-  @Rule
-  public RuleChain RULE_CHAIN = RuleChain.outerRule(ENGINE_RULE).around(TEST_RULE);
 
   protected RuntimeService runtimeService;
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
@@ -111,7 +106,7 @@ public abstract class AbstractMetricsIntervalTest {
     }
   }
 
-  @Before
+  @BeforeEach
   public void initMetrics() throws Exception {
     runtimeService = ENGINE_RULE.getRuntimeService();
     processEngineConfiguration = ENGINE_RULE.getProcessEngineConfiguration();
@@ -129,7 +124,7 @@ public abstract class AbstractMetricsIntervalTest {
     generateMeterData(3, DEFAULT_INTERVAL_MILLIS);
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     ClockUtil.reset();
     processEngineConfiguration.setDbMetricsReporterActivate(false);

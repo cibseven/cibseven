@@ -21,11 +21,11 @@ import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.assertTha
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Assertions;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.batch.Batch;
 import org.cibseven.bpm.engine.exception.NotValidException;
@@ -50,8 +50,8 @@ import org.cibseven.bpm.engine.test.bpmn.tasklistener.util.RecorderTaskListener;
 import org.cibseven.bpm.engine.test.util.ExecutionTree;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yana Vasileva
@@ -69,7 +69,7 @@ public class SingleProcessInstanceModificationAsyncTest extends PluggableProcess
   protected static final String CALL_ACTIVITY_PARENT_PROCESS = "org/cibseven/bpm/engine/test/api/runtime/ProcessInstanceModificationTest.testCancelCallActivityParentProcess.bpmn";
   protected static final String CALL_ACTIVITY_CHILD_PROCESS = "org/cibseven/bpm/engine/test/api/runtime/ProcessInstanceModificationTest.testCancelCallActivityChildProcess.bpmn";
 
-  @After
+  @AfterEach
   public void tearDown() {
     List<Batch> batches = managementService.createBatchQuery().list();
     for (Batch batch : batches) {
@@ -1009,7 +1009,7 @@ public class SingleProcessInstanceModificationAsyncTest extends PluggableProcess
         .executeAsync();
 
     // then
-    Assertions.assertThat(batch.getInvocationsPerBatchJob()).isEqualTo(42);
+    Assertions.assertEquals(batch.getInvocationsPerBatchJob(), 42);
 
     // clear
     processEngineConfiguration.setInvocationsPerBatchJobByBatchType(new HashMap<>());
@@ -1052,7 +1052,7 @@ public class SingleProcessInstanceModificationAsyncTest extends PluggableProcess
     for (String taskName : taskNames) {
       // complete any task with that name
       List<Task> tasks = taskService.createTaskQuery().taskDefinitionKey(taskName).listPage(0, 1);
-      assertTrue("task for activity " + taskName + " does not exist", !tasks.isEmpty());
+      assertTrue(!tasks.isEmpty(), "task for activity " + taskName + " does not exist");
       taskService.complete(tasks.get(0).getId());
     }
   }

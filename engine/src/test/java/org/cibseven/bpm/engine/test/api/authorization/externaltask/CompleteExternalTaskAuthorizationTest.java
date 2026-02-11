@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.test.api.authorization.externaltask;
 
 import org.cibseven.bpm.engine.externaltask.LockedExternalTask;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -35,6 +35,6 @@ public class CompleteExternalTaskAuthorizationTest extends HandleLockedExternalT
 
   @Override
   public void assertExternalTaskResults() {
-    Assert.assertEquals(0, engineRule.getExternalTaskService().createExternalTaskQuery().count());
+    Assertions.assertEquals(0, engineRule.getExternalTaskService().createExternalTaskQuery().count());
   }
 }

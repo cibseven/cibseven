@@ -19,7 +19,9 @@ package org.cibseven.bpm.engine.test.api.authorization.batch;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario.scenario;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec.grant;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,27 +37,22 @@ import org.cibseven.bpm.engine.batch.history.HistoricBatch;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 
 /**
  * @author Askar Akhmerov
  */
-@RunWith(Parameterized.class)
 public class DeleteProcessInstancesBatchAuthorizationTest extends AbstractBatchAuthorizationTest {
 
   protected static final long BATCH_OPERATIONS = 3L;
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
+  @RegisterExtension
+  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  public ProcessEngineTestRule testHelper = new org.cibseven.bpm.engine.test.util.ProcessEngineTestRule(engineRule);
 
-  @Parameterized.Parameter
   public AuthorizationScenario scenario;
 
-  @Parameterized.Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
         scenario()

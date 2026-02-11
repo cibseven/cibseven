@@ -30,15 +30,16 @@ import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
+import org.cibseven.bpm.engine.test.util.AuthorizationRuleExtension;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
@@ -50,13 +51,14 @@ import org.junit.runners.Parameterized.Parameters;
  *
  */
 @RunWith(Parameterized.class)
+@ExtendWith(AuthorizationRuleExtension.class)
 public class RedeployDeploymentAuthorizationTest {
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  public ProcessEngineRule engineRule ;
+  public AuthorizationTestRule authRule;
 
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule);
+//  @Rule
+//  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule);
 
   @Parameter
   public AuthorizationScenario scenario;
@@ -81,12 +83,12 @@ public class RedeployDeploymentAuthorizationTest {
       );
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     authRule.createUserAndGroup("userId", "groupId");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
   }
@@ -120,7 +122,7 @@ public class RedeployDeploymentAuthorizationTest {
 
     // then
     if (authRule.assertScenario(scenario)) {
-      Assert.assertEquals(2, repositoryService.createDeploymentQuery().count());
+      Assertions.assertEquals(2, repositoryService.createDeploymentQuery().count());
       deleteDeployments(deployment2);
       deleteAuthorizations();
     }

@@ -23,11 +23,11 @@ import org.cibseven.bpm.engine.identity.Group;
 import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Before;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Simon Jonischkeit
@@ -38,12 +38,12 @@ public class WriteMultipleEntitiesInOneTransactionTest {
   @ClassRule
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
       "org/cibseven/bpm/engine/test/api/identity/WriteMultipleEntitiesInOneTransactionTest.camunda.cfg.xml");
-  @Rule
+//  @Rule
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   protected IdentityService identityService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     identityService = engineRule.getIdentityService();
   }
@@ -53,19 +53,19 @@ public class WriteMultipleEntitiesInOneTransactionTest {
 
     // the identity service provider registered with the engine creates a user, a group, and a membership
     // in the following call:
-    Assert.assertTrue(identityService.checkPassword("multipleEntities", "inOneStep"));
+    Assertions.assertTrue(identityService.checkPassword("multipleEntities", "inOneStep"));
     User user = identityService.createUserQuery().userId("multipleEntities").singleResult();
 
-    Assert.assertNotNull(user);
-    Assert.assertEquals("multipleEntities", user.getId());
-    Assert.assertEquals("{SHA}pfdzmt+49nwknTy7xhZd7ZW5suI=", user.getPassword());
+    Assertions.assertNotNull(user);
+    Assertions.assertEquals("multipleEntities", user.getId());
+    Assertions.assertEquals("{SHA}pfdzmt+49nwknTy7xhZd7ZW5suI=", user.getPassword());
 
     // It is expected, that the User is in exactly one Group
     List<Group> groups = this.identityService.createGroupQuery().groupMember("multipleEntities").list();
-    Assert.assertEquals(1, groups.size());
+    Assertions.assertEquals(1, groups.size());
 
     Group group = groups.get(0);
-    Assert.assertEquals("multipleEntities_group", group.getId());
+    Assertions.assertEquals("multipleEntities_group", group.getId());
 
     // clean the Db
     identityService.deleteMembership("multipleEntities", "multipleEntities_group");

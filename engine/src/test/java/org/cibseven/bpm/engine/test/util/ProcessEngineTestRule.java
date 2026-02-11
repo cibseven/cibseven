@@ -17,8 +17,8 @@
 package org.cibseven.bpm.engine.test.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,12 +54,13 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 import junit.framework.AssertionFailedError;
 
-public class ProcessEngineTestRule extends TestWatcher {
+public class ProcessEngineTestRule implements BeforeEachCallback, AfterEachCallback {
 
   public static final String DEFAULT_BPMN_RESOURCE_NAME = "process.bpmn20.xml";
 
@@ -71,12 +72,12 @@ public class ProcessEngineTestRule extends TestWatcher {
   }
 
   @Override
-  protected void starting(Description description) {
+  public void beforeEach(ExtensionContext context) {
     this.processEngine = processEngineRule.getProcessEngine();
   }
 
   @Override
-  protected void finished(Description description) {
+  public void afterEach(ExtensionContext context) {
     this.processEngine = null;
   }
 
@@ -297,7 +298,7 @@ public class ProcessEngineTestRule extends TestWatcher {
   public void completeTask(String taskKey) {
     TaskService taskService = processEngine.getTaskService();
     Task task = taskService.createTaskQuery().taskDefinitionKey(taskKey).singleResult();
-    assertNotNull("Expected a task with key '" + taskKey + "' to exist", task);
+    assertNotNull(task, "Expected a task with key '" + taskKey + "' to exist");
     taskService.complete(task.getId());
   }
 

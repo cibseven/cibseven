@@ -33,11 +33,11 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.CompensationModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -48,8 +48,8 @@ public class MigrationCompensationAddSubProcessTest {
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
+//  @Rule
+//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testCase1() {
@@ -251,10 +251,10 @@ public class MigrationCompensationAddSubProcessTest {
     testHelper.migrateProcessInstance(migrationPlan, processInstance);
 
     // then
-    Assert.assertEquals(0, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(0, testHelper.snapshotAfterMigration.getVariables().size());
   }
 
-  @Ignore("CAM-6035")
+  @Disabled("CAM-6035")
   @Test
   public void testNoInputMappingExecuted() {
     // given
@@ -276,7 +276,7 @@ public class MigrationCompensationAddSubProcessTest {
     testHelper.migrateProcessInstance(migrationPlan, processInstance);
 
     // then
-    Assert.assertEquals(0, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(0, testHelper.snapshotAfterMigration.getVariables().size());
   }
 
   @Test
@@ -305,7 +305,7 @@ public class MigrationCompensationAddSubProcessTest {
 
     // then the variable snapshot is available
     Task compensationTask = rule.getTaskService().createTaskQuery().singleResult();
-    Assert.assertEquals("bar", rule.getTaskService().getVariable(compensationTask.getId(), "foo"));
+    Assertions.assertEquals("bar", rule.getTaskService().getVariable(compensationTask.getId(), "foo"));
   }
 
   @Test
@@ -332,7 +332,7 @@ public class MigrationCompensationAddSubProcessTest {
         .mapActivities("compensationBoundary", "compensationBoundary")
         .mapActivities("userTask2", "userTask2")
         .build();
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     } catch (MigrationPlanValidationException e) {
       // then
       assertThat(e.getValidationReport())

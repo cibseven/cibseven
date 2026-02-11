@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.api.form;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +30,7 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class FormPropertyDefaultValueTest extends PluggableProcessEngineTest {
 
@@ -54,7 +54,7 @@ public class FormPropertyDefaultValueTest extends PluggableProcessEngineTest {
       } else if ("longExpressionProperty".equals(prop.getId())) {
         assertEquals("23", prop.getValue());
       } else {
-        assertTrue("Invalid form property: " + prop.getId(), false);
+        assertTrue(false, "Invalid form property: " + prop.getId());
       }
     }
 
@@ -94,7 +94,7 @@ public class FormPropertyDefaultValueTest extends PluggableProcessEngineTest {
       } else if ("longExpressionProperty".equals(prop.getId())) {
         assertEquals("23", prop.getValue());
       } else {
-        assertTrue("Invalid form property: " + prop.getId(), false);
+        assertTrue(false, "Invalid form property: " + prop.getId());
       }
     }
 

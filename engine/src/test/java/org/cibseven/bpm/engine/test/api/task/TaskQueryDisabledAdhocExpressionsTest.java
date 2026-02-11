@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.api.task;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 
@@ -26,8 +26,8 @@ import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.filter.Filter;
 import org.cibseven.bpm.engine.task.TaskQuery;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -48,7 +48,7 @@ public class TaskQueryDisabledAdhocExpressionsTest extends PluggableProcessEngin
     assertFalse(processEngineConfiguration.isEnableExpressionsInAdhocQueries());
   }
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     MUTABLE_FIELD = 0;
   }

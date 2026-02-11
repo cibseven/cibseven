@@ -29,10 +29,8 @@ import org.cibseven.bpm.engine.impl.metrics.Meter;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author Thorben Lindhauer
@@ -43,9 +41,6 @@ public abstract class AbstractMetricsTest {
   protected final ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected final ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
-
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RuntimeService runtimeService;
   protected TaskService taskService;
@@ -54,7 +49,7 @@ public abstract class AbstractMetricsTest {
   protected RepositoryService repositoryService;
   protected ManagementService managementService;
 
-  @Before
+  @BeforeEach
   public void initializeServices() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     runtimeService = engineRule.getRuntimeService();
@@ -67,7 +62,7 @@ public abstract class AbstractMetricsTest {
     clearMetrics();
   }
 
-  @After
+  @AfterEach
   public void cleanUpMetrics() {
     clearMetrics();
   }

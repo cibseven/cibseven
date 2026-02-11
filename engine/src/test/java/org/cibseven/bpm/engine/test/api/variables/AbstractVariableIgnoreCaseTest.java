@@ -25,8 +25,8 @@ import java.util.Map;
 import org.cibseven.bpm.engine.impl.AbstractVariableQueryImpl;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("unchecked")
 public abstract class AbstractVariableIgnoreCaseTest<T extends AbstractVariableQueryImpl, U> {
@@ -46,7 +46,7 @@ public abstract class AbstractVariableIgnoreCaseTest<T extends AbstractVariableQ
     VARIABLES.put(VARIABLE_NAME, VARIABLE_VALUE);
   }
 
-  @Rule
+//  @Rule
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   public U instance;
