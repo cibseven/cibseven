@@ -27,34 +27,34 @@ import java.util.List;
 /**
  * SCIM User Query Implementation.
  */
-public class ScimUserQueryImpl extends UserQueryImpl {
+public class ScimUserQuery extends UserQueryImpl {
 
   private static final long serialVersionUID = 1L;
   protected final ScimConfiguration scimConfiguration;
 
-  public ScimUserQueryImpl(ScimConfiguration scimConfiguration) {
+  public ScimUserQuery(ScimConfiguration scimConfiguration) {
     super();
     this.scimConfiguration = scimConfiguration;
   }
 
-  public ScimUserQueryImpl(CommandExecutor commandExecutor, ScimConfiguration scimConfiguration) {
+  public ScimUserQuery(CommandExecutor commandExecutor, ScimConfiguration scimConfiguration) {
     super(commandExecutor);
     this.scimConfiguration = scimConfiguration;
   }
 
   @Override
   public long executeCount(CommandContext commandContext) {
-    final ScimIdentityProviderSession provider = getScimIdentityProvider(commandContext);
+    final ScimIdentityProviderReadOnly provider = getScimIdentityProvider(commandContext);
     return provider.findUserCountByQueryCriteria(this);
   }
 
   @Override
   public List<User> executeList(CommandContext commandContext, Page page) {
-    final ScimIdentityProviderSession provider = getScimIdentityProvider(commandContext);
+    final ScimIdentityProviderReadOnly provider = getScimIdentityProvider(commandContext);
     return provider.findUserByQueryCriteria(this);
   }
 
-  protected ScimIdentityProviderSession getScimIdentityProvider(CommandContext commandContext) {
-    return (ScimIdentityProviderSession) commandContext.getReadOnlyIdentityProvider();
+  protected ScimIdentityProviderReadOnly getScimIdentityProvider(CommandContext commandContext) {
+    return (ScimIdentityProviderReadOnly) commandContext.getReadOnlyIdentityProvider();
   }
 }

@@ -13,8 +13,6 @@
   </parent>
 
   <properties>
-    <version.httpclient5>5.3.1</version.httpclient5>
-    <version.jackson>2.15.2</version.jackson>
     <version.scimple>1.0.0-M1</version.scimple>
   </properties>
 
@@ -29,22 +27,23 @@
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5</artifactId>
       <version>${version.httpclient5}</version>
+      <scope>compile</scope>
     </dependency>
 
-  <!-- Apache SCIMple: Spring Boot auto-config + REST endpoints -->
-  <!-- <dependency>
-    <groupId>org.apache.directory.scimple</groupId>
-    <artifactId>scim-spring-boot-starter</artifactId>
-    <version>${version.scimple}</version>
-    <scope>test</scope>
-  </dependency>
-  
-  <dependency>
-    <groupId>org.apache.directory.scimple</groupId>
-    <artifactId>scim-server</artifactId>
-    <version>${version.scimple}</version>
-    <scope>test</scope>
-  </dependency> -->
+    <dependency>
+      <groupId>org.apache.httpcomponents.core5</groupId>
+      <artifactId>httpcore5</artifactId>
+      <version>${version.httpcore5}</version>
+      <scope>compile</scope>
+    </dependency> 
+
+  <!-- Apache SCIMple -->
+  <!--<dependency>
+      <groupId>org.apache.directory.scimple</groupId>
+      <artifactId>scim-server</artifactId>
+      <version>${version.scimple}</version>
+      <scope>test</scope>
+    </dependency> -->
 
     <!-- Jackson for JSON processing -->
     <dependency>
@@ -71,8 +70,9 @@
       <groupId>com.github.tomakehurst</groupId>
       <artifactId>wiremock</artifactId>
       <scope>test</scope>
-    </dependency>
-  </dependencies>
+    </dependency> 
+  </dependencies> 
+  
 
   <build>
     <testResources>

@@ -62,8 +62,8 @@ public class ScimGroupQueryTest {
   @Before
   public void setup() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
-    identityService = engineRule.getIdentityService();
     scimTestEnvironment = scimRule.getScimTestEnvironment();
+    identityService = engineRule.getIdentityService();
     
     // Configure SCIM plugin with actual test server URL
     ScimIdentityProviderPlugin scimPlugin = new ScimIdentityProviderPlugin();
@@ -71,11 +71,10 @@ public class ScimGroupQueryTest {
     scimPlugin.setAuthenticationType("bearer");
     scimPlugin.setBearerToken("test-token");
     scimPlugin.setUserIdAttribute("userName");
-    scimPlugin.setGroupIdAttribute("displayName");
+    scimPlugin.setGroupIdAttribute("externalId");
     scimPlugin.setGroupNameAttribute("displayName");
     scimPlugin.setAuthorizationCheckEnabled(false);
-
-    scimPlugin.preInit((ProcessEngineConfigurationImpl) processEngineConfiguration);
+    scimPlugin.preInit((ProcessEngineConfigurationImpl) processEngineConfiguration); 
   }
 
   @Test

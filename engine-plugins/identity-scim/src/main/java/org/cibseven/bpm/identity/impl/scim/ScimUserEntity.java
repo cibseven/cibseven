@@ -27,6 +27,14 @@ public class ScimUserEntity extends UserEntity {
 
   protected String scimId;
 
+  public ScimUserEntity() {
+    super();
+  }
+  
+  public ScimUserEntity(String userID) {
+    super(userID);
+  }
+  
   public String getScimId() {
     return scimId;
   }
@@ -37,7 +45,7 @@ public class ScimUserEntity extends UserEntity {
 
   @Override
   public String toString() {
-    return this.getClass().getSimpleName() + " [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName
-        + ", email=" + email + ", scimId=" + scimId + "]";
+    return this.getClass().getSimpleName() + " [scimId=" + scimId + ", id=" + id + ", firstName=" + firstName + ", lastName=" + lastName
+        + ", email=" + email + "]";
   }
 }

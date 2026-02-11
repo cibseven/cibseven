@@ -33,8 +33,10 @@ public class ScimConfigurationTest {
     assertThat(config.getAuthenticationType()).isEqualTo("bearer");
     assertThat(config.getUsersEndpoint()).isEqualTo("/Users");
     assertThat(config.getGroupsEndpoint()).isEqualTo("/Groups");
-    assertThat(config.getUserIdAttribute()).isEqualTo("id");
-    assertThat(config.getUserNameAttribute()).isEqualTo("userName");
+    assertThat(config.getUserScimIdAttribute()).isEqualTo("id");
+    assertThat(config.getUserIdAttribute()).isEqualTo("userName");
+    assertThat(config.getUserFirstnameAttribute()).isEqualTo("name.givenName");
+    assertThat(config.getUserLastnameAttribute()).isEqualTo("name.familyName");
     assertThat(config.getPageSize()).isEqualTo(100);
     assertThat(config.isUseSsl()).isTrue();
     assertThat(config.isAuthorizationCheckEnabled()).isTrue();

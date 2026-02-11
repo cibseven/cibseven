@@ -18,8 +18,13 @@ package org.cibseven.bpm.identity.impl.scim;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.apache.hc.client5.http.classic.methods.HttpDelete;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPatch;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
@@ -30,6 +35,7 @@ import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.ParseException;
 import org.cibseven.bpm.engine.impl.identity.IdentityProviderException;
 import org.cibseven.bpm.identity.impl.scim.util.ScimPluginLogger;
@@ -56,7 +62,8 @@ public class ScimClient {
   protected final ObjectMapper objectMapper;
   protected CloseableHttpClient httpClient;
   protected String cachedOAuth2Token;
-  protected long tokenExpiryTime;
+  protected long tokenExpiryTime;  
+  protected enum HttpMethod {GET, POST, PUT, PATCH, DEL};
 
   public ScimClient(ScimConfiguration configuration) {
     this.configuration = configuration;
@@ -66,11 +73,15 @@ public class ScimClient {
   }
 
   protected void checkConfiguration() {
+    if (configuration == null) {
+      throw new IdentityProviderException("Failed to check SCIM configuration: configurtion is empty.");
+    }   
     if (configuration.getServerUrl() == null || configuration.getServerUrl().isEmpty()) {
-      throw new IdentityProviderException("Failed to check SCIM configuration: serverUrl is not set");
-    }  
+      throw new IdentityProviderException("Failed to check SCIM configuration: serverUrl is not set.");
+    }
   }
-  
+
+  @SuppressWarnings("deprecation")
   protected void initializeHttpClient() {
     try {
       PoolingHttpClientConnectionManagerBuilder connectionManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create();
@@ -126,7 +137,7 @@ public class ScimClient {
   /**
    * Search for users using SCIM filter.
    */
-  public JsonNode searchUsers(String filter, int startIndex, int count) {
+  public JsonNode searchUsers(String filter, int startIndex, int count, String sorting) {
     StringBuilder url = new StringBuilder(configuration.getServerUrl());
     url.append(configuration.getUsersEndpoint());
     
@@ -138,6 +149,11 @@ public class ScimClient {
     
     url.append(hasParams ? "&" : "?").append("startIndex=").append(startIndex);
     url.append("&count=").append(count);
+    
+    // sorting, contains sortby and orderby
+    if (sorting != null) {
+      url.append("&").append(sorting);
+    }
 
     ScimPluginLogger.INSTANCE.scimFilterQuery(filter);
     return executeGet(url.toString());
@@ -146,7 +162,7 @@ public class ScimClient {
   /**
    * Search for groups using SCIM filter.
    */
-  public JsonNode searchGroups(String filter, int startIndex, int count) {
+  public JsonNode searchGroups(String filter, int startIndex, int count, String sorting) {
     StringBuilder url = new StringBuilder(configuration.getServerUrl());
     url.append(configuration.getGroupsEndpoint());
     
@@ -158,58 +174,122 @@ public class ScimClient {
     
     url.append(hasParams ? "&" : "?").append("startIndex=").append(startIndex);
     url.append("&count=").append(count);
+    
+   // sorting, contains sortby and orderby
+    if (sorting != null) {
+      url.append("&").append(sorting);
+    }
 
     ScimPluginLogger.INSTANCE.scimFilterQuery(filter);
     return executeGet(url.toString());
   }
 
   /**
-   * Get a specific user by ID.
+   * Get a specific user by scim ID.
    */
-  public JsonNode getUserById(String userId) {
-    String url = configuration.getServerUrl() + configuration.getUsersEndpoint() + "/" + encodeUrlParameter(userId);
+  public JsonNode getUserByScimId(String scimId) {
+    String url = configuration.getServerUrl() + configuration.getUsersEndpoint() + "/" + encodeUrlParameter(scimId);
     return executeGet(url);
+  }
+  
+  /**
+   * Patch a specific user by scim ID.
+   */
+  public JsonNode patchUserByScimId(String scimId, JsonNode patchBody) {
+    String url = configuration.getServerUrl() + configuration.getUsersEndpoint() + "/" + encodeUrlParameter(scimId);
+    return executePatch(url, patchBody);
+  }
+   
+  /**
+   * Delete a specific user by scim ID.
+   */
+  public JsonNode deleteUserByScimId(String scimId) {
+    String url = configuration.getServerUrl() + configuration.getUsersEndpoint() + "/" + encodeUrlParameter(scimId);
+    return executeDel(url);
   }
 
   /**
-   * Get a specific group by ID.
+   * Get a specific group by scim ID.
    */
-  public JsonNode getGroupById(String groupId) {
-    String url = configuration.getServerUrl() + configuration.getGroupsEndpoint() + "/" + encodeUrlParameter(groupId);
+  public JsonNode getGroupByScimId(String scimId) {
+    String url = configuration.getServerUrl() + configuration.getGroupsEndpoint() + "/" + encodeUrlParameter(scimId);
     return executeGet(url);
+  }
+  
+  /**
+   * Patch a specific group by scim ID.
+   */
+  public JsonNode patchGroupByScimId(String scimId, JsonNode patchBody) {
+    String url = configuration.getServerUrl() + configuration.getGroupsEndpoint() + "/" + encodeUrlParameter(scimId);
+    return executePatch(url, patchBody);
+  }
+  
+  /**
+   * Delete a specific group by scim ID.
+   */
+  public JsonNode deleteGroupByScimId(String scimId) {
+    String url = configuration.getServerUrl() + configuration.getGroupsEndpoint() + "/" + encodeUrlParameter(scimId);
+    return executeDel(url);
   }
 
   protected JsonNode executeGet(String url) {
-    return executeGet(url, false);
+    return executeHttpRequest(HttpMethod.GET, url, null, false);
   }
-
+  
+  protected JsonNode executePost(String url, JsonNode postBody) {
+    return executeHttpRequest(HttpMethod.POST, url, postBody, false);
+  }
+  
+  protected JsonNode executeDel(String url) {
+    return executeHttpRequest(HttpMethod.DEL, url, null, false);
+  }
+  
+  protected JsonNode executePatch(String url, JsonNode patchBody) {
+    return executeHttpRequest(HttpMethod.PATCH, url, patchBody, false);
+  }
+  
   @SuppressWarnings("deprecation")
-  protected JsonNode executeGet(String url, boolean isRetry) {
-    HttpGet request = new HttpGet(url);
+  protected JsonNode executeHttpRequest(HttpMethod method, String url, JsonNode body, boolean isRetry) {
+    HttpUriRequestBase request = 
+        method == HttpMethod.GET ? new HttpGet(url) :
+        method == HttpMethod.POST ? new HttpPost(url) : 
+        method == HttpMethod.PUT ? new HttpPut(url) :
+        method == HttpMethod.PATCH ? new HttpPatch(url) :
+        method == HttpMethod.DEL ? new HttpDelete(url) : null;
+       
     addAuthenticationHeader(request);
     addCustomHeaders(request);
 
+    if (body != null) {
+      request.setEntity(new StringEntity(body.toString(), ContentType.APPLICATION_JSON));
+    }
+
+    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!! ScimClient " + method.toString() + ": " + url);
     try (CloseableHttpResponse response = httpClient.execute(request)) {
       int statusCode = response.getCode();
-      String responseBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+      String responseBody = response.getEntity() != null ? 
+          EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8) : "";
 
-      if (statusCode == 200) {
+      System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!! ScimClient " + method.toString() + " status code: " + statusCode);
+
+      if (statusCode == 200 || statusCode == 201 || statusCode == 204) {
         return objectMapper.readTree(responseBody);
       } else if (statusCode == 401 && isOAuth2Authentication() && !isRetry) {
         // Try to refresh OAuth2 token and retry once
         refreshOAuth2Token();
-        return executeGet(url, true);
+        return executeHttpRequest(method, url, body, true);
       } else {
         ScimPluginLogger.INSTANCE.scimRequestError(statusCode, responseBody);
         throw new IdentityProviderException("SCIM request failed with status: " + statusCode);
       }
     } catch (IOException | ParseException e) {
-      ScimPluginLogger.INSTANCE.httpClientException("GET " + url, e);
+      ScimPluginLogger.INSTANCE.httpClientException(method.toString() + " " + url, e);
+      System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!! ScimClient " + method.toString() + " error: " + e.toString());
       throw new IdentityProviderException("SCIM HTTP request failed", e);
     }
   }
 
-  protected void addAuthenticationHeader(HttpGet request) {
+  protected void addAuthenticationHeader(HttpUriRequestBase request) {
     String authType = configuration.getAuthenticationType().toLowerCase();
     
     switch (authType) {
@@ -234,7 +314,7 @@ public class ScimClient {
     }
   }
 
-  protected void addCustomHeaders(HttpGet request) {
+  protected void addCustomHeaders(HttpUriRequestBase request) {
     request.setHeader("Accept", "application/scim+json");
     request.setHeader("Content-Type", "application/scim+json");
     

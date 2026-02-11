@@ -26,6 +26,14 @@ public class ScimGroupEntity extends GroupEntity {
   private static final long serialVersionUID = 1L;
 
   protected String scimId;
+  
+  public ScimGroupEntity() {
+    super();
+  }
+	  
+  public ScimGroupEntity(String groupID) {
+    super(groupID);
+  }
 
   public String getScimId() {
     return scimId;
@@ -34,10 +42,10 @@ public class ScimGroupEntity extends GroupEntity {
   public void setScimId(String scimId) {
     this.scimId = scimId;
   }
+  
 
   @Override
   public String toString() {
-    return "ScimGroupEntity [id=" + id + ", name=" + name + ", type=" + type
-        + ", scimId=" + scimId + "]";
+    return this.getClass().getSimpleName() + " [scimId=" + scimId + ", id=" + id + ", name=" + name + ", type=" + type + "]";
   }
 }

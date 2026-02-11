@@ -17,6 +17,7 @@
 package org.cibseven.bpm.identity.impl.scim;
 
 import org.cibseven.bpm.engine.impl.identity.ReadOnlyIdentityProvider;
+import org.cibseven.bpm.engine.impl.identity.WritableIdentityProvider;
 import org.cibseven.bpm.engine.impl.interceptor.Session;
 import org.cibseven.bpm.engine.impl.interceptor.SessionFactory;
 
@@ -29,12 +30,20 @@ public class ScimIdentityProviderFactory implements SessionFactory {
 
   @Override
   public Class<?> getSessionType() {
-    return ReadOnlyIdentityProvider.class;
+    if (scimConfiguration != null && !scimConfiguration.isReadOnlyAccess()) {
+      return WritableIdentityProvider.class;
+    } else {
+      return ReadOnlyIdentityProvider.class;
+    }
   }
 
   @Override
   public Session openSession() {
-    return new ScimIdentityProviderSession(scimConfiguration);
+    if (scimConfiguration != null && !scimConfiguration.isReadOnlyAccess()) {
+      return new ScimIdentityProviderWritable(scimConfiguration);
+    } else {
+      return new ScimIdentityProviderReadOnly(scimConfiguration);
+    }
   }
 
   public ScimConfiguration getScimConfiguration() {

@@ -41,17 +41,17 @@ public class ScimGroupQuery extends GroupQueryImpl {
 
   @Override
   public long executeCount(CommandContext commandContext) {
-    final ScimIdentityProviderSession provider = getScimIdentityProvider(commandContext);
+    final ScimIdentityProviderReadOnly provider = getScimIdentityProvider(commandContext);
     return provider.findGroupCountByQueryCriteria(this);
   }
 
   @Override
   public List<Group> executeList(CommandContext commandContext, Page page) {
-    final ScimIdentityProviderSession provider = getScimIdentityProvider(commandContext);
+    final ScimIdentityProviderReadOnly provider = getScimIdentityProvider(commandContext);
     return provider.findGroupByQueryCriteria(this);
   }
 
-  protected ScimIdentityProviderSession getScimIdentityProvider(CommandContext commandContext) {
-    return (ScimIdentityProviderSession) commandContext.getReadOnlyIdentityProvider();
+  protected ScimIdentityProviderReadOnly getScimIdentityProvider(CommandContext commandContext) {
+    return (ScimIdentityProviderReadOnly) commandContext.getReadOnlyIdentityProvider();
   }
 }

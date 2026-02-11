@@ -424,16 +424,17 @@ public class ScimTestEnvironment {
                 "  \"totalResults\": 1,\n" +
                 "  \"Resources\": [{\n" +
                 "    \"id\": \"group-development\",\n" +
+                "    \"externalId\": \"group-development\",\n" +
                 "    \"displayName\": \"development\",\n" +
                 "    \"members\": [\n" +
-                "      {\"value\": \"oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
-                "      {\"value\": \"daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
+                "      {\"value\": \"user-oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
+                "      {\"value\": \"user-daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
                 "    ]\n" +
                 "  }]\n" +
                 "}")));
 
     wireMockServer.stubFor(get(urlPathEqualTo("/Groups"))
-            .withQueryParam("filter", equalTo("id eq \"group-development\""))
+            .withQueryParam("filter", equalTo("externalId eq \"group-development\""))
             .withQueryParam("startIndex", equalTo("1"))
             .withQueryParam("count", matching(".*"))
             .willReturn(aResponse()
@@ -444,10 +445,11 @@ public class ScimTestEnvironment {
                     "  \"totalResults\": 1,\n" +
                     "  \"Resources\": [{\n" +
                     "    \"id\": \"group-development\",\n" +
+                    "    \"externalId\": \"group-development\",\n" +
                     "    \"displayName\": \"development\",\n" +
                     "    \"members\": [\n" +
-                    "      {\"value\": \"oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
-                    "      {\"value\": \"daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
+                    "      {\"value\": \"user-oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
+                    "      {\"value\": \"user-daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
                     "    ]\n" +
                     "  }]\n" +
                     "}")));
@@ -465,15 +467,16 @@ public class ScimTestEnvironment {
                 "  \"totalResults\": 1,\n" +
                 "  \"Resources\": [{\n" +
                 "    \"id\": \"group-management\",\n" +
+                "    \"externalId\": \"group-management\",\n" +
                 "    \"displayName\": \"management\",\n" +
                 "    \"members\": [\n" +
-                "      {\"value\": \"daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
+                "      {\"value\": \"user-daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
                 "    ]\n" +
                 "  }]\n" +
                 "}")));
 
     wireMockServer.stubFor(get(urlPathEqualTo("/Groups"))
-            .withQueryParam("filter", equalTo("id eq \"management\""))
+            .withQueryParam("filter", equalTo("externalId eq \"group-management\""))
             .withQueryParam("startIndex", equalTo("1"))
             .withQueryParam("count", matching(".*"))
             .willReturn(aResponse()
@@ -484,9 +487,10 @@ public class ScimTestEnvironment {
                     "  \"totalResults\": 1,\n" +
                     "  \"Resources\": [{\n" +
                     "    \"id\": \"group-management\",\n" +
+                    "    \"externalId\": \"group-management\",\n" +
                     "    \"displayName\": \"management\",\n" +
                     "    \"members\": [\n" +
-                    "      {\"value\": \"daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
+                    "      {\"value\": \"user-daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
                     "    ]\n" +
                     "  }]\n" +
                     "}")));
@@ -494,7 +498,7 @@ public class ScimTestEnvironment {
 
     // All groups query
     wireMockServer.stubFor(get(urlPathEqualTo("/Groups"))
-            .withQueryParam("filter", equalTo("id eq \"non-existing\""))
+            .withQueryParam("filter", equalTo("externalId eq \"non-existing\""))
             .withQueryParam("startIndex", equalTo("1"))
             .withQueryParam("count", matching(".*"))
             .willReturn(aResponse()
@@ -525,15 +529,15 @@ public class ScimTestEnvironment {
                 "      \"id\": \"group-development\",\n" +
                 "      \"displayName\": \"development\",\n" +
                 "      \"members\": [\n" +
-                "        {\"value\": \"oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
-                "        {\"value\": \"daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
+                "        {\"value\": \"user-oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
+                "        {\"value\": \"user-daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
                 "      ]\n" +
                 "    },\n" +
                 "    {\n" +
                 "      \"id\": \"group-management\",\n" +
                 "      \"displayName\": \"management\",\n" +
                 "      \"members\": [\n" +
-                "        {\"value\": \"daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
+                "        {\"value\": \"user-daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
                 "      ]\n" +
                 "    }\n" +
                 "  ]\n" +
@@ -541,7 +545,7 @@ public class ScimTestEnvironment {
 
     // Groups by user filter - oscar
     wireMockServer.stubFor(get(urlPathEqualTo("/Groups"))
-        .withQueryParam("filter", equalTo("members[value eq \"oscar\"]"))
+        .withQueryParam("filter", equalTo("members[value eq \"user-oscar\"]"))
         .withQueryParam("startIndex", equalTo("1"))
         .withQueryParam("count", matching(".*"))
         .willReturn(aResponse()
@@ -554,15 +558,15 @@ public class ScimTestEnvironment {
                 "    \"id\": \"group-development\",\n" +
                 "    \"displayName\": \"development\",\n" +
                 "    \"members\": [\n" +
-                "      {\"value\": \"oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
-                "      {\"value\": \"daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
+                "      {\"value\": \"user-oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
+                "      {\"value\": \"user-daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
                 "    ]\n" +
                 "  }]\n" +
                 "}")));
 
     // Groups by user filter - daniel (member of both)
     wireMockServer.stubFor(get(urlPathEqualTo("/Groups"))
-        .withQueryParam("filter", equalTo("members[value eq \"daniel\"]"))
+        .withQueryParam("filter", equalTo("members[value eq \"user-daniel\"]"))
         .withQueryParam("startIndex", equalTo("1"))
         .withQueryParam("count", matching(".*"))        
         .willReturn(aResponse()
@@ -574,17 +578,19 @@ public class ScimTestEnvironment {
                 "  \"Resources\": [\n" +
                 "    {\n" +
                 "      \"id\": \"group-development\",\n" +
+                "      \"externalId\": \"group-development\",\n" +
                 "      \"displayName\": \"development\",\n" +
                 "      \"members\": [\n" +
-                "        {\"value\": \"oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
-                "        {\"value\": \"daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
+                "        {\"value\": \"user-oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
+                "        {\"value\": \"user-daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
                 "      ]\n" +
                 "    },\n" +
                 "    {\n" +
                 "      \"id\": \"group-management\",\n" +
+                "      \"externalId\": \"group-management\",\n" +
                 "      \"displayName\": \"management\",\n" +
                 "      \"members\": [\n" +
-                "        {\"value\": \"daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
+                "        {\"value\": \"user-daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
                 "      ]\n" +
                 "    }\n" +
                 "  ]\n" +
@@ -603,14 +609,16 @@ public class ScimTestEnvironment {
                     "  \"Resources\": [\n" +
                     "    {\n" +
                     "      \"id\": \"group-development\",\n" +
+                    "      \"externalId\": \"group-development\",\n" +
                     "      \"displayName\": \"development\",\n" +
                     "      \"members\": [\n" +
-                    "        {\"value\": \"oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
-                    "        {\"value\": \"daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
+                    "        {\"value\": \"user-oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
+                    "        {\"value\": \"user-daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
                     "      ]\n" +
                     "    },\n" +
                     "    {\n" +
                     "      \"id\": \"group-management\",\n" +
+                    "      \"externalId\": \"group-management\",\n" +
                     "      \"displayName\": \"management\",\n" +
                     "      \"members\": [\n" +
                     "        {\"value\": \"daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
@@ -628,8 +636,8 @@ public class ScimTestEnvironment {
                 "  \"id\": \"group-development\",\n" +
                 "  \"displayName\": \"development\",\n" +
                 "  \"members\": [\n" +
-                "    {\"value\": \"oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
-                "    {\"value\": \"daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
+                "    {\"value\": \"user-oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
+                "    {\"value\": \"user-daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
                 "  ]\n" +
                 "}")));*/
 

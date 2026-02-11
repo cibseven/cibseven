@@ -24,9 +24,6 @@ import java.util.Map;
  */
 public class ScimConfiguration {
 
-  public static String SCIM_QUERY_WILDCARD = "*";
-  public static String DB_QUERY_WILDCARD = "%";
-
   // SCIM server settings
   protected String serverUrl;
   protected String scimVersion = "2.0";
@@ -40,23 +37,25 @@ public class ScimConfiguration {
   protected String oauth2ClientId;
   protected String oauth2ClientSecret;
   protected String oauth2Scope;
+  protected boolean scimAuthenticationEnabled = false;
   
   // Endpoint configuration
   protected String usersEndpoint = "/Users";
   protected String groupsEndpoint = "/Groups";
   
-  // User attribute mapping
-  protected String userIdAttribute = "id";
-  protected String userNameAttribute = "userName";
+  // User attribute mapping: our ScimUserEntity attributes to real scim attributes
+  protected final String userScimIdAttribute = "id";
+  protected String userIdAttribute = "userName";
   protected String userFirstnameAttribute = "name.givenName";
   protected String userLastnameAttribute = "name.familyName";
+  protected String userPasswordAttribute = "password";
   protected String userEmailAttribute = "emails[type eq \"work\"].value";
-  protected String userDisplayNameAttribute = "displayName";
   
   // Group attribute mapping
-  protected String groupIdAttribute = "id";
+  protected final String groupScimIdAttribute = "id";
+  protected String groupIdAttribute = "externalId";
   protected String groupNameAttribute = "displayName";
-  protected String groupMemberAttribute = "members";
+  protected String groupMembersAttribute = "members";
   
   // Connection settings
   protected int connectionTimeout = 30000; // milliseconds
@@ -72,6 +71,9 @@ public class ScimConfiguration {
   
   // Pagination
   protected Integer pageSize = 100;
+  
+  // Read only session
+  protected boolean readOnlyAccess = true;
   
   // Additional custom headers
   protected Map<String, String> customHeaders = new HashMap<>();
@@ -157,6 +159,14 @@ public class ScimConfiguration {
   public void setOauth2Scope(String oauth2Scope) {
     this.oauth2Scope = oauth2Scope;
   }
+ 
+  public boolean getScimAuthenticationEnabled() {
+    return scimAuthenticationEnabled;
+  }
+
+  public void setScimAuthenticationEnabled(boolean scimAuthenticationEnabled) {
+   this.scimAuthenticationEnabled = scimAuthenticationEnabled;
+  }
 
   public String getUsersEndpoint() {
     return usersEndpoint;
@@ -174,6 +184,10 @@ public class ScimConfiguration {
     this.groupsEndpoint = groupsEndpoint;
   }
 
+  public String getUserScimIdAttribute() {
+    return userScimIdAttribute;
+  }
+
   public String getUserIdAttribute() {
     return userIdAttribute;
   }
@@ -182,14 +196,6 @@ public class ScimConfiguration {
     this.userIdAttribute = userIdAttribute;
   }
   
-  public String getUserNameAttribute() {
-    return userNameAttribute;
-  }
-
-  public void setUserNameAttribute(String userIdAttribute) {
-    this.userNameAttribute = userIdAttribute;
-  }
-
   public String getUserFirstnameAttribute() {
     return userFirstnameAttribute;
   }
@@ -214,14 +220,10 @@ public class ScimConfiguration {
     this.userEmailAttribute = userEmailAttribute;
   }
 
-  public String getUserDisplayNameAttribute() {
-    return userDisplayNameAttribute;
+  public String getGroupScimIdAttribute() {
+    return groupScimIdAttribute;
   }
-
-  public void setUserDisplayNameAttribute(String userDisplayNameAttribute) {
-    this.userDisplayNameAttribute = userDisplayNameAttribute;
-  }
-
+  
   public String getGroupIdAttribute() {
     return groupIdAttribute;
   }
@@ -238,12 +240,12 @@ public class ScimConfiguration {
     this.groupNameAttribute = groupNameAttribute;
   }
 
-  public String getGroupMemberAttribute() {
-    return groupMemberAttribute;
+  public String getGroupMembersAttribute() {
+    return groupMembersAttribute;
   }
 
-  public void setGroupMemberAttribute(String groupMemberAttribute) {
-    this.groupMemberAttribute = groupMemberAttribute;
+  public void setGroupMembersAttribute(String groupMembersAttribute) {
+    this.groupMembersAttribute = groupMembersAttribute;
   }
 
   public int getConnectionTimeout() {
@@ -292,6 +294,14 @@ public class ScimConfiguration {
 
   public void setAuthorizationCheckEnabled(boolean authorizationCheckEnabled) {
     this.authorizationCheckEnabled = authorizationCheckEnabled;
+  }
+  
+  public boolean isReadOnlyAccess() {
+    return readOnlyAccess;
+  }
+
+  public void setReadOnlyAccess(boolean readOnlyAccess) {
+    this.readOnlyAccess = readOnlyAccess;
   }
 
   public Integer getPageSize() {

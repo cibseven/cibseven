@@ -70,13 +70,15 @@ public class ScimUserQueryTest {
     scimPlugin.setServerUrl(scimTestEnvironment.getServerUrl());
     scimPlugin.setAuthenticationType("bearer");
     scimPlugin.setBearerToken("test-token");
-    scimPlugin.setUserIdAttribute("id");
-    scimPlugin.setUserNameAttribute("userName");
+    
+    scimPlugin.setUserIdAttribute("userName");
     scimPlugin.setUserFirstnameAttribute("name.givenName");
     scimPlugin.setUserLastnameAttribute("name.familyName");
     scimPlugin.setUserEmailAttribute("emails[type eq \"work\"].value");
-    scimPlugin.setGroupIdAttribute("displayName");
+    
+    scimPlugin.setGroupIdAttribute("id");
     scimPlugin.setGroupNameAttribute("displayName");
+    
     scimPlugin.setAuthorizationCheckEnabled(false);
 
     scimPlugin.preInit((ProcessEngineConfigurationImpl) processEngineConfiguration);
@@ -104,11 +106,11 @@ public class ScimUserQueryTest {
   @Test
   public void testFilterByUserId() {
     // when
-    User user = identityService.createUserQuery().userId("user-oscar").singleResult();
+    User user = identityService.createUserQuery().userId("oscar").singleResult();
 
     // then
     assertThat(user).isNotNull();
-    assertThat(user.getId()).isEqualTo("user-oscar");
+    assertThat(user.getId()).isEqualTo("oscar");
     assertThat(user.getFirstName()).isEqualTo("Oscar");
     assertThat(user.getLastName()).isEqualTo("The Crouch");
     assertThat(user.getEmail()).isEqualTo("oscar@camunda.org");
@@ -126,11 +128,11 @@ public class ScimUserQueryTest {
   @Test
   public void testFilterByUserIdIn() {
     // when
-    List<User> users = identityService.createUserQuery().userIdIn("user-oscar", "user-monster").list();
+    List<User> users = identityService.createUserQuery().userIdIn("oscar", "monster").list();
 
     // then
     assertThat(users).hasSize(2);
-    assertThat(users).extracting("id").containsOnly("user-oscar", "user-monster");
+    assertThat(users).extracting("id").containsOnly("oscar", "monster");
   }
 
   @Test
@@ -140,7 +142,7 @@ public class ScimUserQueryTest {
 
     // then
     assertThat(users).hasSize(1);
-    assertThat(users.get(0).getId()).isEqualTo("user-oscar");
+    assertThat(users.get(0).getId()).isEqualTo("oscar");
     assertThat(users.get(0).getFirstName()).isEqualTo("Oscar");
   }
 
@@ -151,7 +153,7 @@ public class ScimUserQueryTest {
 
     // then
     assertThat(users).hasSize(1);
-    assertThat(users.get(0).getId()).isEqualTo("user-monster");
+    assertThat(users.get(0).getId()).isEqualTo("monster");
     assertThat(users.get(0).getLastName()).isEqualTo("Monster");
   }
 
@@ -162,7 +164,7 @@ public class ScimUserQueryTest {
 
     // then
     assertThat(users).hasSize(1);
-    assertThat(users.get(0).getId()).isEqualTo("user-oscar");
+    assertThat(users.get(0).getId()).isEqualTo("oscar");
     assertThat(users.get(0).getEmail()).isEqualTo("oscar@camunda.org");
   }
 
@@ -186,11 +188,11 @@ public class ScimUserQueryTest {
   @Test
   public void testFindUserById() {
     // when
-    User user = identityService.createUserQuery().userId("user-oscar").singleResult();
+    User user = identityService.createUserQuery().userId("oscar").singleResult();
 
     // then
     assertThat(user).isNotNull();
-    assertThat(user.getId()).isEqualTo("user-oscar");
+    assertThat(user.getId()).isEqualTo("oscar");
     assertThat(user.getFirstName()).isEqualTo("Oscar");
   }
 }
