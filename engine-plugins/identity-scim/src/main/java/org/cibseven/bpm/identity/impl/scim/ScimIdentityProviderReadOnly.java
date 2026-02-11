@@ -525,22 +525,32 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
   public boolean checkPassword(String userId, String password) {
     // TODO: need clarification !!!!!
     // SCIM is a provisioning protocol, not an authentication protocol
-    // Authentication is optionally supported by SCIM service extension
-    // with using GET /USERS end-point or POST /Users/.Search end-point.
+    // Authentication is optionally supported by a SCIM service extension
+    // with using POST on the search sub-endpoint: /Users/.search.
     // For now, optionally use this SCIM extension.
-	String userIdAttr = scimConfiguration.getUserIdAttribute();
-	String filter = userIdAttr + " eq \"" + userId +"\"";
-	if (scimConfiguration.getScimAuthenticationEnabled() ) {
-		filter +=" and password eq \"" + password + "\"";
-	}
-	boolean result = false;
-	try {
-      JsonNode response = scimClient.searchUsers(filter, 1, 1, null);
-      result = (response != null && response.has("Resources") && response.get("Resources").size() > 0);
+    boolean result = false;
+    try {
+      if (scimConfiguration.getScimAuthenticationEnabled() ) {
+        String url = scimConfiguration.getServerUrl() + "/" + scimConfiguration.getUsersEndpoint() + "/.search";
+        String userIdAttrib = scimConfiguration.getUserIdAttribute();
+        String filter = userIdAttrib + " eq \"" + userId + "\" and password eq \"" + password + "\"";
+ 
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode root = mapper.createObjectNode();
+        ArrayNode schemas = mapper.createArrayNode().add("urn:ietf:params:scim:api:messages:2.0:SearchRequest");
+        root.set("schemas", schemas);
+        root.put("filter", filter);
+        
+        JsonNode response = scimClient.executePost(url, root);
+        result = (response != null && response.has("Resources") && response.get("Resources").size() == 1);
+      } else { // scim authentication is disabled: simply check that the user really exists
+        ScimUserEntity scimUser = (ScimUserEntity) findUserById(userId);
+        result = scimUser.getScimId() != null && !scimUser.getScimId().isEmpty();
+      }
     } catch(Exception e) {
-    	ScimPluginLogger.INSTANCE.httpClientException("authentication request", e);
-	}
-	return result;
+      ScimPluginLogger.INSTANCE.httpClientException("authentication request", e);
+    }
+    return result;
   }
 
   // Utility methods  

@@ -34,6 +34,7 @@ import org.cibseven.bpm.engine.impl.identity.WritableIdentityProvider;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import static org.cibseven.bpm.engine.impl.context.Context.getCommandContext;
 import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
@@ -110,7 +111,10 @@ public class ScimIdentityProviderWritable extends ScimIdentityProviderReadOnly i
       //    return null;
       //  }
       //});
-  
+
+      // remove authorizations for the group from the database
+      getCommandContext().getAuthorizationManager().deleteAuthorizationsByResourceId(Resources.USER, userId);
+      // remove the user itself
       scimClient.deleteUserByScimId(scimUser.getScimId());
       return new IdentityOperationResult(null, IdentityOperationResult.OPERATION_DELETE);
     }
@@ -160,7 +164,7 @@ public class ScimIdentityProviderWritable extends ScimIdentityProviderReadOnly i
       // copied from DB identity provider, commented out, probably not needed for SCIM
       //deleteMembershipsByGroupId(groupId);
       //deleteTenantMembershipsOfGroup(groupId);
-      // deleteAuthorizations(Resources.GROUP, groupId);
+      //deleteAuthorizations(Resources.GROUP, groupId);
 
       //Context.getCommandContext().runWithoutAuthorization(new Callable<Void>() {
       //  @Override
@@ -175,6 +179,9 @@ public class ScimIdentityProviderWritable extends ScimIdentityProviderReadOnly i
       //  }
       //});
 
+      // remove authorizations for the group from the database
+      getCommandContext().getAuthorizationManager().deleteAuthorizationsByResourceId(Resources.GROUP, groupId);
+      // remove the group itself from the scim servcice
       scimClient.deleteGroupByScimId(scimGroup.getScimId());
       return new IdentityOperationResult(null, IdentityOperationResult.OPERATION_DELETE);
     }
@@ -229,6 +236,15 @@ public class ScimIdentityProviderWritable extends ScimIdentityProviderReadOnly i
     return new IdentityOperationResult(null, IdentityOperationResult.OPERATION_DELETE);
   }
 
+  public void deleteMembershipsByUserId(String userId) {
+    ScimGroupQuery groupQuery = (ScimGroupQuery) createGroupQuery();
+    groupQuery.groupMember(userId);
+    List<Group> userGroups = findGroupByQueryCriteria(groupQuery);
+    for (Group group : userGroups) {
+      deleteMembership(userId, group.getId());
+    }
+  }
+
   @Override
   public IdentityOperationResult createTenantUserMembership(String tenantId, String userId) {
     throw new IdentityProviderException("This operation is not supported for SCIM identity provider.");
@@ -263,6 +279,7 @@ public class ScimIdentityProviderWritable extends ScimIdentityProviderReadOnly i
     return createDiffNode(transformGroup(before), transformGroup(after));
   }
   
+  // patch for a member: operation is add/remove/update, membership type is User/Group 
   protected JsonNode createMembershipPatch(String memberScimId, String operation, String memberType) {
     ObjectMapper mapper = new ObjectMapper();
     ObjectNode root = mapper.createObjectNode();
