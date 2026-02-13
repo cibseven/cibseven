@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.connect.Connectors;
 import org.cibseven.connect.dummy.DummyConnector;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ConnectorsTest {
 

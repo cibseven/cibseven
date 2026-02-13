@@ -55,7 +55,9 @@
     <version.junit5>5.12.2</version.junit5>
     <version.assertj>3.27.7</version.assertj>
     <version.mockito>5.17.0</version.mockito>
-    <version.wiremock>2.27.2</version.wiremock>
+    <version.wiremock>3.13.2</version.wiremock>
+
+    <wiremock.version>3.9.2</wiremock.version>
     <version.testcontainers>1.20.5</version.testcontainers>
     <version.surefire>3.2.5</version.surefire>
     <version.unirest-java>2.3.10</version.unirest-java>

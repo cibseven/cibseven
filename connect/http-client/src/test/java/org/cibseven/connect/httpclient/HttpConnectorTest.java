@@ -17,7 +17,7 @@
 package org.cibseven.connect.httpclient;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.IOException;
 
@@ -37,8 +37,8 @@ import org.cibseven.connect.Connectors;
 import org.cibseven.connect.httpclient.impl.HttpConnectorImpl;
 import org.cibseven.connect.impl.DebugRequestInterceptor;
 import org.cibseven.connect.spi.Connector;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class HttpConnectorTest {
 
@@ -49,7 +49,7 @@ public class HttpConnectorTest {
   protected HttpConnector connector;
   protected DebugRequestInterceptor interceptor;
 
-  @Before
+  @BeforeEach
   public void createConnector() {
     connector = new HttpConnectorImpl();
     interceptor = new DebugRequestInterceptor(false);

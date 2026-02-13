@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH
  * under one or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information regarding copyright
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 package org.cibseven.connect.httpclient.soap;
-
+  
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -28,13 +28,15 @@ import java.util.Set;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+
 import org.apache.hc.core5.http.HttpHeaders;
 import org.cibseven.connect.httpclient.soap.impl.SoapHttpConnectorImpl;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 
 /**
  * Since Apache HTTP client makes it extremely hard to test the proper configuration
@@ -43,23 +45,24 @@ import org.junit.Test;
  *
  * @author Thorben Lindhauer
  */
+@WireMockTest(httpPort=51234)
 public class SoapHttpConnectorSystemPropertiesTest {
 
   public static final int PORT = 51234;
 
-  @Rule
-  public WireMockRule wireMockRule = new WireMockRule(
-      WireMockConfiguration.wireMockConfig().port(PORT));
+//  @Rule
+//  public WireMockRule wireMockRule = new WireMockRule(
+//      WireMockConfiguration.wireMockConfig().port(PORT));
 
   protected Set<String> updatedSystemProperties;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     updatedSystemProperties = new HashSet<>();
-    wireMockRule.stubFor(get(urlEqualTo("/")).willReturn(aResponse().withStatus(200)));
+    stubFor(get(urlEqualTo("/")).willReturn(aResponse().withStatus(200)));
   }
 
-  @After
+  @AfterEach
   public void clearCustomSystemProperties() {
     for (String property : updatedSystemProperties) {
       System.getProperties().remove(property);
