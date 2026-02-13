@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.cibseven.commons.testing;
 
 import java.util.ArrayList;
@@ -23,8 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
@@ -32,7 +34,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 
-public class ProcessEngineLoggingRule extends TestWatcher {
+public class ProcessEngineLoggingRule implements BeforeEachCallback, AfterEachCallback {
 
   public static final String LOGGER_NOT_FOUND_ERROR = "no logger found with name ";
   public static final String NOT_WATCHING_ERROR = "not watching any logger with name: ";
@@ -103,9 +105,12 @@ public class ProcessEngineLoggingRule extends TestWatcher {
   }
 
   @Override
-  protected void starting(Description description) {
+  public void beforeEach(ExtensionContext context) throws Exception {
     Map<String, Logger> toWatch = new HashMap<>(globallyWatched);
-    WatchLogger watchLoggerAnnotation = description.getAnnotation(WatchLogger.class);
+    WatchLogger watchLoggerAnnotation = null;
+    if (context.getTestMethod().isPresent()) {
+      watchLoggerAnnotation = context.getTestMethod().get().getAnnotation(WatchLogger.class);
+    }
     if (watchLoggerAnnotation != null) {
       Level level = Level.toLevel(watchLoggerAnnotation.level());
       if (level == null) {
@@ -121,12 +126,12 @@ public class ProcessEngineLoggingRule extends TestWatcher {
   }
 
   @Override
-  protected void finished(Description description) {
-    // reset logback configuration
+  public void afterEach(ExtensionContext context) throws Exception {
     for (Logger logger : allWatched.values()) {
       logger.detachAppender(APPENDER_NAME);
       logger.setLevel(null);
     }
+    allWatched.clear();
   }
 
   private void watchLoggers(Map<String, Logger> loggers) {

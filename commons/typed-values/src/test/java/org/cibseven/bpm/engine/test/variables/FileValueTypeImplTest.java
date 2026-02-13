@@ -16,13 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.variables;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.collection.IsMapContaining.hasEntry;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
@@ -41,8 +36,8 @@ import org.cibseven.bpm.engine.variable.impl.type.FileValueTypeImpl;
 import org.cibseven.bpm.engine.variable.value.FileValue;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.cibseven.commons.utils.IoUtil;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Ronny Bräunlich
@@ -52,48 +47,51 @@ public class FileValueTypeImplTest {
 
   private FileValueTypeImpl type;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     type = new FileValueTypeImpl();
   }
 
   @Test
   public void nameShouldBeFile() {
-    assertThat(type.getName(), is("file"));
+    assertThat(type.getName()).isEqualTo("file");
   }
 
   @Test
   public void shouldNotHaveParent() {
-    assertThat(type.getParent(), is(nullValue()));
+    assertThat(type.getParent()).isNull();
   }
 
   @Test
   public void isPrimitiveValue() {
-    assertThat(type.isPrimitiveValueType(), is(true));
+    assertThat(type.isPrimitiveValueType()).isEqualTo(true);
   }
 
   @Test
   public void isNotAnAbstractType() {
-    assertThat(type.isAbstract(), is(false));
+    assertThat(type.isAbstract()).isEqualTo(false);
   }
 
   @Test
   public void canNotConvertFromAnyValue() {
     // we just use null to make sure false is always returned
-    assertThat(type.canConvertFromTypedValue(null), is(false));
+    assertThat(type.canConvertFromTypedValue(null)).isEqualTo(false);
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void convertingThrowsException() {
-    type.convertFromTypedValue(Variables.untypedNullValue());
-  }
+  @Test
+	public void convertingThrowsException() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			type.convertFromTypedValue(Variables.untypedNullValue());
+		});
+
+	}
 
   @Test
   public void createValueFromFile() throws URISyntaxException {
     File file = new File(this.getClass().getClassLoader().getResource("org/cibseven/bpm/engine/test/variables/simpleFile.txt").toURI());
     TypedValue value = type.createValue(file, Collections.<String, Object> singletonMap(FileValueTypeImpl.VALUE_INFO_FILE_NAME, "simpleFile.txt"));
-    assertThat(value, is(instanceOf(FileValue.class)));
-    assertThat(value.getType(), is(instanceOf(FileValueTypeImpl.class)));
+    assertThat(value).isInstanceOf(FileValue.class);
+    assertThat(value.getType()).isInstanceOf(FileValueTypeImpl.class);
     checkStreamFromValue(value, "text");
   }
 
@@ -101,8 +99,8 @@ public class FileValueTypeImplTest {
   public void createValueFromStream() {
     InputStream file = this.getClass().getClassLoader().getResourceAsStream("org/cibseven/bpm/engine/test/variables/simpleFile.txt");
     TypedValue value = type.createValue(file, Collections.<String, Object> singletonMap(FileValueTypeImpl.VALUE_INFO_FILE_NAME, "simpleFile.txt"));
-    assertThat(value, is(instanceOf(FileValue.class)));
-    assertThat(value.getType(), is(instanceOf(FileValueTypeImpl.class)));
+    assertThat(value).isInstanceOf(FileValue.class);
+    assertThat(value.getType()).isInstanceOf(FileValueTypeImpl.class);
     checkStreamFromValue(value, "text");
   }
 
@@ -110,15 +108,18 @@ public class FileValueTypeImplTest {
   public void createValueFromBytes() throws IOException, URISyntaxException {
     File file = new File(this.getClass().getClassLoader().getResource("org/cibseven/bpm/engine/test/variables/simpleFile.txt").toURI());
     TypedValue value = type.createValue(file, Collections.<String, Object> singletonMap(FileValueTypeImpl.VALUE_INFO_FILE_NAME, "simpleFile.txt"));
-    assertThat(value, is(instanceOf(FileValue.class)));
-    assertThat(value.getType(), is(instanceOf(FileValueTypeImpl.class)));
+    assertThat(value).isInstanceOf(FileValue.class);
+    assertThat(value.getType()).isInstanceOf(FileValueTypeImpl.class);
     checkStreamFromValue(value, "text");
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void createValueFromObject() throws IOException, URISyntaxException {
-    type.createValue(new Object(), Collections.<String, Object> singletonMap(FileValueTypeImpl.VALUE_INFO_FILE_NAME, "simpleFile.txt"));
-  }
+	@Test
+	public void createValueFromObject() throws IOException, URISyntaxException {
+		assertThrows(IllegalArgumentException.class, () -> {
+			type.createValue(new Object(),
+					Collections.<String, Object>singletonMap(FileValueTypeImpl.VALUE_INFO_FILE_NAME, "simpleFile.txt"));
+		});
+	}
 
   @Test
   public void createValueWithProperties() {
@@ -131,11 +132,11 @@ public class FileValueTypeImplTest {
 
     TypedValue value = type.createValue(file, properties);
 
-    assertThat(value, is(instanceOf(FileValue.class)));
+    assertThat(value).isInstanceOf(FileValue.class);
     FileValue fileValue = (FileValue) value;
-    assertThat(fileValue.getFilename(), is("someFileName"));
-    assertThat(fileValue.getMimeType(), is("someMimeType"));
-    assertThat(fileValue.getEncoding(), is("someEncoding"));
+    assertThat(fileValue.getFilename()).isEqualTo("someFileName");
+    assertThat(fileValue.getMimeType()).isEqualTo("someMimeType");
+    assertThat(fileValue.getEncoding()).isEqualTo("someEncoding");
   }
 
 
@@ -154,7 +155,7 @@ public class FileValueTypeImplTest {
       fail("expected exception");
     } catch (IllegalArgumentException e) {
       // then
-      assertThat(e.getMessage(), containsString("The provided mime type is null. Set a non-null value info property with key 'filename'"));
+      assertThat(e.getMessage()).contains("The provided mime type is null. Set a non-null value info property with key 'filename'");
     }
 
     // given
@@ -169,21 +170,27 @@ public class FileValueTypeImplTest {
       fail("expected exception");
     } catch (IllegalArgumentException e) {
       // then
-      assertThat(e.getMessage(), containsString("The provided encoding is null. Set a non-null value info property with key 'encoding'"));
+      assertThat(e.getMessage()).contains("The provided encoding is null. Set a non-null value info property with key 'encoding'");
     }
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void cannotCreateFileWithoutName() {
-    InputStream file = this.getClass().getClassLoader().getResourceAsStream("org/cibseven/bpm/engine/test/variables/simpleFile.txt");
-    type.createValue(file, Collections.<String, Object> emptyMap());
-  }
+  @Test
+	public void cannotCreateFileWithoutName() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			InputStream file = this.getClass().getClassLoader()
+					.getResourceAsStream("org/cibseven/bpm/engine/test/variables/simpleFile.txt");
+			type.createValue(file, Collections.<String, Object>emptyMap());
+		});
+	}
 
-  @Test(expected = IllegalArgumentException.class)
-  public void cannotCreateFileWithoutValueInfo() {
-    InputStream file = this.getClass().getClassLoader().getResourceAsStream("org/cibseven/bpm/engine/test/variables/simpleFile.txt");
-    type.createValue(file, null);
-  }
+  @Test
+	public void cannotCreateFileWithoutValueInfo() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			InputStream file = this.getClass().getClassLoader()
+					.getResourceAsStream("org/cibseven/bpm/engine/test/variables/simpleFile.txt");
+			type.createValue(file, null);
+		});
+	}
 
   @Test
   public void cannotCreateFileWithInvalidTransientFlag() {
@@ -194,7 +201,7 @@ public class FileValueTypeImplTest {
     try {
       type.createValue(file, info);
     } catch (IllegalArgumentException e) {
-      assertThat(e.getMessage(), containsString("The property 'transient' should have a value of type 'boolean'."));
+      assertThat(e.getMessage()).contains("The property 'transient' should have a value of type 'boolean'.");
     }
     
   }
@@ -208,10 +215,10 @@ public class FileValueTypeImplTest {
     FileValue fileValue = Variables.fileValue(fileName).file(file).mimeType(fileType).encoding(encoding).setTransient(true).create();
     Map<String, Object> info = type.getValueInfo(fileValue);
 
-    assertThat(info, hasEntry(FileValueTypeImpl.VALUE_INFO_FILE_NAME, (Object) fileName));
-    assertThat(info, hasEntry(FileValueTypeImpl.VALUE_INFO_FILE_MIME_TYPE, (Object) fileType));
-    assertThat(info, hasEntry(FileValueTypeImpl.VALUE_INFO_FILE_ENCODING, (Object) encoding.name()));
-    assertThat(info, hasEntry(FileValueTypeImpl.VALUE_INFO_TRANSIENT, (Object) true));
+    assertThat(info).containsEntry(FileValueTypeImpl.VALUE_INFO_FILE_NAME, (Object) fileName);
+    assertThat(info).containsEntry(FileValueTypeImpl.VALUE_INFO_FILE_MIME_TYPE, (Object) fileType);
+    assertThat(info).containsEntry(FileValueTypeImpl.VALUE_INFO_FILE_ENCODING, (Object) encoding.name());
+    assertThat(info).containsEntry(FileValueTypeImpl.VALUE_INFO_TRANSIENT, (Object) true);
   }
 
   @Test
@@ -223,9 +230,9 @@ public class FileValueTypeImplTest {
     FileValue fileValue = Variables.fileValue(fileName).file(file).mimeType(fileType).encoding(encoding).create();
     Map<String, Object> info = type.getValueInfo(fileValue);
 
-    assertThat(info, hasEntry(FileValueTypeImpl.VALUE_INFO_FILE_NAME, (Object) fileName));
-    assertThat(info, hasEntry(FileValueTypeImpl.VALUE_INFO_FILE_MIME_TYPE, (Object) fileType));
-    assertThat(info, hasEntry(FileValueTypeImpl.VALUE_INFO_FILE_ENCODING, (Object) encoding));
+    assertThat(info).containsEntry(FileValueTypeImpl.VALUE_INFO_FILE_NAME, (Object) fileName);
+    assertThat(info).containsEntry(FileValueTypeImpl.VALUE_INFO_FILE_MIME_TYPE, (Object) fileType);
+    assertThat(info).containsEntry(FileValueTypeImpl.VALUE_INFO_FILE_ENCODING, (Object) encoding);
   }
 
   @Test
@@ -235,7 +242,7 @@ public class FileValueTypeImplTest {
 
     FileValue fileValue = Variables.fileValue(fileName).file(file).create();
     file = this.getClass().getClassLoader().getResourceAsStream("org/cibseven/bpm/engine/test/variables/simpleFile.txt");
-    assertThat(IoUtil.inputStreamAsByteArray(fileValue.getValue()), equalTo(IoUtil.inputStreamAsByteArray(file)));
+    assertThat(IoUtil.inputStreamAsByteArray(fileValue.getValue())).isEqualTo(IoUtil.inputStreamAsByteArray(file));
   }
 
   @Test
@@ -247,18 +254,18 @@ public class FileValueTypeImplTest {
     String fileName = "simpleFile.txt";
 
     FileValue fileValue = Variables.fileValue(fileName).file(byteStream).create();
-    assertThat(IoUtil.inputStreamAsByteArray(fileValue.getValue()), equalTo(bytes));
+    assertThat(IoUtil.inputStreamAsByteArray(fileValue.getValue())).isEqualTo(bytes);
   }
 
   @Test
   public void doesNotHaveParent(){
-    assertThat(type.getParent(), is(nullValue()));
+    assertThat(type.getParent()).isNull();
   }
 
 
   private void checkStreamFromValue(TypedValue value, String expected) {
     InputStream stream = (InputStream) value.getValue();
     Scanner scanner = new Scanner(stream);
-    assertThat(scanner.nextLine(), is(expected));
+    assertThat(scanner.nextLine()).isEqualTo(expected);
   }
 }
