@@ -17,6 +17,7 @@
 package org.cibseven.bpm.client.variable;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.client.util.ProcessModels.EXTERNAL_TASK_TOPIC_BAR;
 import static org.cibseven.bpm.client.util.ProcessModels.EXTERNAL_TASK_TOPIC_FOO;
@@ -32,7 +33,7 @@ import org.cibseven.bpm.client.ExternalTaskClient;
 import org.cibseven.bpm.client.dto.ProcessDefinitionDto;
 import org.cibseven.bpm.client.dto.ProcessInstanceDto;
 import org.cibseven.bpm.client.exception.ValueMapperException;
-import org.cibseven.bpm.client.rule.ClientRule;
+import org.cibseven.bpm.client.rule.ClientExtension;
 import org.cibseven.bpm.client.rule.EngineRule;
 import org.cibseven.bpm.client.task.ExternalTask;
 import org.cibseven.bpm.client.task.ExternalTaskService;
@@ -42,12 +43,9 @@ import org.cibseven.bpm.client.util.RecordingInvocationHandler.RecordedInvocatio
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.json.JSONException;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.RuleChain;
 import org.skyscreamer.jsonassert.JSONAssert;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class JsonSerializationIT {
 
@@ -71,12 +69,8 @@ public class JsonSerializationIT {
       .serializationDataFormat(JSON_DATAFORMAT_NAME)
       .create();
 
-  protected ClientRule clientRule = new ClientRule();
+  protected ClientExtension clientRule = new ClientExtension();
   protected EngineRule engineRule = new EngineRule();
-  protected ExpectedException thrown = ExpectedException.none();
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule).around(thrown);
 
   protected ExternalTaskClient client;
 
@@ -86,7 +80,7 @@ public class JsonSerializationIT {
   protected RecordingExternalTaskHandler handler = new RecordingExternalTaskHandler();
   protected RecordingInvocationHandler invocationHandler = new RecordingInvocationHandler();
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     client = clientRule.client();
     processDefinition = engineRule.deploy(TWO_EXTERNAL_TASK_PROCESS).get(0);
@@ -233,8 +227,6 @@ public class JsonSerializationIT {
     engineRule.startProcessInstance(processDefinition.getId(), VARIABLE_NAME_JSON, objectValue);
 
     // then
-    thrown.expect(ValueMapperException.class);
-
     // when
     client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
       .handler(handler)
@@ -257,17 +249,17 @@ public class JsonSerializationIT {
     engineRule.startProcessInstance(processDefinition.getId(), VARIABLE_NAME_JSON, objectValue);
 
     // then
-    thrown.expect(ValueMapperException.class);
-
-    // when
-    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
-      .handler(handler)
-      .open();
-
-    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
-
-    ExternalTask task = handler.getHandledTasks().get(0);
-    task.getVariableTyped(VARIABLE_NAME_JSON);
+    assertThatExceptionOfType(ValueMapperException.class).isThrownBy(() -> {
+	    // when
+	    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
+	      .handler(handler)
+	      .open();
+	
+	    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
+	
+	    ExternalTask task = handler.getHandledTasks().get(0);
+	    task.getVariableTyped(VARIABLE_NAME_JSON);
+    });
   }
 
   @Test
@@ -338,17 +330,17 @@ public class JsonSerializationIT {
     engineRule.startProcessInstance(processDefinition.getId(), VARIABLE_NAME_JSON, serializedValue);
 
     // then
-    thrown.expect(ValueMapperException.class);
-
-    // when
-    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
-      .handler(handler)
-      .open();
-
-    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
-
-    ExternalTask task = handler.getHandledTasks().get(0);
-    task.getVariable(VARIABLE_NAME_JSON);
+    assertThatExceptionOfType(ValueMapperException.class).isThrownBy(() -> {
+	    // when
+	    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
+	      .handler(handler)
+	      .open();
+	
+	    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
+	
+	    ExternalTask task = handler.getHandledTasks().get(0);
+	    task.getVariable(VARIABLE_NAME_JSON);
+    });
   }
 
   @Test
@@ -362,17 +354,18 @@ public class JsonSerializationIT {
     engineRule.startProcessInstance(processDefinition.getId(), VARIABLE_NAME_JSON, serializedValue);
 
     // then
-    thrown.expect(ValueMapperException.class);
-
-    // when
-    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
-      .handler(handler)
-      .open();
-
-    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
-
-    ExternalTask task = handler.getHandledTasks().get(0);
-    task.getVariable(VARIABLE_NAME_JSON);
+    assertThatExceptionOfType(ValueMapperException.class).isThrownBy(() -> {
+	
+	    // when
+	    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
+	      .handler(handler)
+	      .open();
+	
+	    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
+	
+	    ExternalTask task = handler.getHandledTasks().get(0);
+	    task.getVariable(VARIABLE_NAME_JSON);
+	    });
   }
 
   @Test
@@ -775,15 +768,15 @@ public class JsonSerializationIT {
       .open();
 
     // then
-    thrown.expect(ValueMapperException.class);
-
-    // when
-    Map<String, Object> variables = Variables.createVariables();
-    ObjectValue objectValue = Variables.objectValue(VARIABLE_VALUE_JSON_DESERIALIZED)
-        .serializationDataFormat("not existing data format")
-        .create();
-    variables.put(VARIABLE_NAME_JSON, objectValue);
-    fooService.complete(fooTask, variables);
+    assertThatExceptionOfType(ValueMapperException.class).isThrownBy(() -> {
+	    // when
+	    Map<String, Object> variables = Variables.createVariables();
+	    ObjectValue objectValue = Variables.objectValue(VARIABLE_VALUE_JSON_DESERIALIZED)
+	        .serializationDataFormat("not existing data format")
+	        .create();
+	    variables.put(VARIABLE_NAME_JSON, objectValue);
+	    fooService.complete(fooTask, variables);
+	    });
   }
 
 }

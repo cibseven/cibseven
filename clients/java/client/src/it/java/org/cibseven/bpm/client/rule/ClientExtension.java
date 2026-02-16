@@ -26,20 +26,22 @@ import java.util.function.Supplier;
 import org.cibseven.bpm.client.ExternalTaskClient;
 import org.cibseven.bpm.client.ExternalTaskClientBuilder;
 import org.cibseven.bpm.client.util.PropertyUtil;
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
-public class ClientRule extends ExternalResource {
+public class ClientExtension implements BeforeEachCallback, AfterEachCallback {
 
   public static final long LOCK_DURATION = 1000 * 60 * 5;
 
   protected ExternalTaskClientBuilder builder;
   protected ExternalTaskClient client;
 
-  public ClientRule() {
+  public ClientExtension() {
     this(PropertyUtil.loadProperties(DEFAULT_PROPERTIES_PATH));
   }
 
-  public ClientRule(Properties properties) {
+  public ClientExtension(Properties properties) {
     this(() -> {
       String endpoint = properties.getProperty(CAMUNDA_ENGINE_REST);
       String engine = properties.getProperty(CAMUNDA_ENGINE_NAME);
@@ -49,16 +51,18 @@ public class ClientRule extends ExternalResource {
     });
   }
 
-  public ClientRule(Supplier<ExternalTaskClientBuilder> builderSupplier) {
+  public ClientExtension(Supplier<ExternalTaskClientBuilder> builderSupplier) {
     this.builder = builderSupplier.get();
   }
 
-  public void before() {
+  @Override
+  public void beforeEach(ExtensionContext context) {
     builder.disableAutoFetching();
     client = builder.build();
   }
 
-  public void after() {
+  @Override
+  public void afterEach(ExtensionContext context) {
     client.stop();
     client = null;
   }
