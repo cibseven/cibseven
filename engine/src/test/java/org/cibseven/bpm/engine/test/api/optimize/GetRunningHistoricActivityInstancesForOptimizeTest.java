@@ -16,6 +16,11 @@
  */
 package org.cibseven.bpm.engine.test.api.optimize;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssertions.assertThat;
+
 import java.util.Date;
 import java.util.List;
 
@@ -42,8 +47,8 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Assertions;
 
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
@@ -112,7 +117,7 @@ public class GetRunningHistoricActivityInstancesForOptimizeTest {
       optimizeService.getRunningHistoricActivityInstances(pastDate(), null, 10);
 
     // then
-    Assertions.assertEquals(1, runningHistoricActivityInstances.size());
+    assertThat(runningHistoricActivityInstances.size(), is(1));
     HistoricActivityInstance activityInstance = runningHistoricActivityInstances.get(0);
     assertThatActivitiesHaveAllImportantInformation(activityInstance);
   }
@@ -139,8 +144,8 @@ public class GetRunningHistoricActivityInstancesForOptimizeTest {
       optimizeService.getRunningHistoricActivityInstances(now, null, 10);
 
     // then
-    Assertions.assertEquals(1, runningHistoricActivityInstances.size());
-    Assertions.assertEquals(secondProcessInstance.getId(), runningHistoricActivityInstances.get(0).getProcessInstanceId());
+    assertThat(runningHistoricActivityInstances.size(), is(1));
+    assertThat(runningHistoricActivityInstances.get(0).getProcessInstanceId(), is(secondProcessInstance.getId()));
   }
 
   @Test
@@ -165,8 +170,8 @@ public class GetRunningHistoricActivityInstancesForOptimizeTest {
       optimizeService.getRunningHistoricActivityInstances(null, now, 10);
 
     // then
-    Assertions.assertEquals(1, runningHistoricActivityInstances.size());
-    Assertions.assertEquals(firstProcessInstance.getId(), runningHistoricActivityInstances.get(0).getProcessInstanceId());
+    assertThat(runningHistoricActivityInstances.size(), is(1));
+    assertThat(runningHistoricActivityInstances.get(0).getProcessInstanceId(), is(firstProcessInstance.getId()));
   }
 
   @Test
@@ -190,7 +195,7 @@ public class GetRunningHistoricActivityInstancesForOptimizeTest {
       optimizeService.getRunningHistoricActivityInstances(now, now, 10);
 
     // then
-    Assertions.assertEquals(0, runningHistoricActivityInstances.size());
+    assertThat(runningHistoricActivityInstances.size(), is(0));
   }
 
   @Test
@@ -212,7 +217,7 @@ public class GetRunningHistoricActivityInstancesForOptimizeTest {
       optimizeService.getRunningHistoricActivityInstances(pastDate(), null, 3);
 
     // then
-    Assertions.assertEquals(3, runningHistoricActivityInstances.size());
+    assertThat(runningHistoricActivityInstances.size(), is(3));
   }
 
   @Test
@@ -239,10 +244,10 @@ public class GetRunningHistoricActivityInstancesForOptimizeTest {
       optimizeService.getRunningHistoricActivityInstances(pastDate(), null, 4);
 
     // then
-    Assertions.assertEquals(3, runningHistoricActivityInstances.size());
-    Assertions.assertEquals(firstProcessInstance.getId(), runningHistoricActivityInstances.get(0).getProcessInstanceId());
-    Assertions.assertEquals(secondProcessInstance.getId(), runningHistoricActivityInstances.get(1).getProcessInstanceId());
-    Assertions.assertEquals(thirdProcessInstance.getId(), runningHistoricActivityInstances.get(2).getProcessInstanceId());
+    assertThat(runningHistoricActivityInstances.size(), is(3));
+    assertThat(runningHistoricActivityInstances.get(0).getProcessInstanceId(), is(firstProcessInstance.getId()));
+    assertThat(runningHistoricActivityInstances.get(1).getProcessInstanceId(), is(secondProcessInstance.getId()));
+    assertThat(runningHistoricActivityInstances.get(2).getProcessInstanceId(), is(thirdProcessInstance.getId()));
   }
 
   public void shiftTimeByOneMinute() {
@@ -267,8 +272,8 @@ public class GetRunningHistoricActivityInstancesForOptimizeTest {
       optimizeService.getRunningHistoricActivityInstances(pastDate(), null, 10);
 
     // then
-    Assertions.assertEquals(1, runningHistoricActivityInstances.size());
-    Assertions.assertEquals("userTask", runningHistoricActivityInstances.get(0).getActivityId());
+    assertThat(runningHistoricActivityInstances.size(), is(1));
+    assertThat(runningHistoricActivityInstances.get(0).getActivityId(), is("userTask"));
 
     // when
     completeAllUserTasks();
@@ -276,7 +281,7 @@ public class GetRunningHistoricActivityInstancesForOptimizeTest {
       optimizeService.getRunningHistoricActivityInstances(pastDate(), null, 10);
 
     // then
-    Assertions.assertEquals(0, runningHistoricActivityInstances.size());
+    assertThat(runningHistoricActivityInstances.size(), is(0));
   }
 
   private Date pastDate() {
@@ -299,14 +304,14 @@ public class GetRunningHistoricActivityInstancesForOptimizeTest {
   }
 
   private void assertThatActivitiesHaveAllImportantInformation(HistoricActivityInstance activityInstance) {
-    Assertions.assertNotNull(activityInstance);
-    Assertions.assertEquals("task", activityInstance.getActivityName());
-    Assertions.assertEquals("userTask", activityInstance.getActivityType());
-    Assertions.assertNotNull(activityInstance.getStartTime());
-    Assertions.assertNull(activityInstance.getEndTime());
-    Assertions.assertEquals("process", activityInstance.getProcessDefinitionKey());
-    Assertions.assertNotNull(activityInstance.getProcessDefinitionId());
-    Assertions.assertNotNull(((HistoryEvent) activityInstance).getSequenceCounter());
+    assertThat(activityInstance, notNullValue());
+    assertThat(activityInstance.getActivityName(), is("task"));
+    assertThat(activityInstance.getActivityType(), is("userTask"));
+    assertThat(activityInstance.getStartTime(), notNullValue());
+    assertThat(activityInstance.getEndTime(), nullValue());
+    assertThat(activityInstance.getProcessDefinitionKey(), is("process"));
+    assertThat(activityInstance.getProcessDefinitionId(), notNullValue());
+    assertThat(((HistoryEvent) activityInstance).getSequenceCounter(), notNullValue());
   }
 
 }

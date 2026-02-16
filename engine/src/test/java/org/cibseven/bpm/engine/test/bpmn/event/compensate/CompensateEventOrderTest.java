@@ -94,7 +94,7 @@ public class CompensateEventOrderTest {
     assertNotEquals(-1, indexA);
     assertNotEquals(-1, indexB);
 
-    assertTrue(indexA > indexB, "Compensation activities were executed in wrong order.");
+    assertTrue("Compensation activities were executed in wrong order.", indexA > indexB);
 
   }
 

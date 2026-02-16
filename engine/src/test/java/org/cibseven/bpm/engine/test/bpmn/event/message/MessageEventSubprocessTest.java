@@ -20,9 +20,12 @@ import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.assertTha
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -939,11 +942,11 @@ public class MessageEventSubprocessTest extends PluggableProcessEngineTest {
   public void testNonInterruptingWithTerminatingEndEvent() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("process");
     Task task = taskService.createTaskQuery().singleResult();
-    assertEquals(task.getName(), "Inner User Task");
+    assertThat(task.getName(), is("Inner User Task"));
     runtimeService.correlateMessage("message");
 
     Task eventSubprocessTask = taskService.createTaskQuery().taskName("Event User Task").singleResult();
-    assertNotNull(eventSubprocessTask);
+    assertThat(eventSubprocessTask, is(notNullValue()));
     taskService.complete(eventSubprocessTask.getId());
 
     ActivityInstance tree = runtimeService.getActivityInstance(processInstance.getId());

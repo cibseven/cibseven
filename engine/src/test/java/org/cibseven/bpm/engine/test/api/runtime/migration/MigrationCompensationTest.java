@@ -21,7 +21,6 @@ import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.assertTha
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
 import static org.cibseven.bpm.engine.test.util.MigratingProcessInstanceValidationReportAssert.assertThat;
-import static org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert.assertReport;
 import static org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert.assertThat;
 
 import java.util.List;
@@ -467,14 +466,12 @@ public class MigrationCompensationTest {
 
     ProcessInstance processInstance = rule.getRuntimeService().startProcessInstanceById(sourceProcessDefinition.getId());
     testHelper.completeTask("userTask1");
-
-    // a migrated process instance
     testHelper.migrateProcessInstance(migrationPlan, processInstance);
 
-    // when triggering compensation
+    // when
     testHelper.completeTask("userTask2");
 
-    // then the activity instance tree is correct
+    // then
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(processInstance.getId());
 
     assertThat(activityInstance).hasStructure(

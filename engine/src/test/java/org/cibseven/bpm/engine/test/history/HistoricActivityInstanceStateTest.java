@@ -506,14 +506,14 @@ public class HistoricActivityInstanceStateTest extends PluggableProcessEngineTes
     for (HistoricActivityInstance instance : allInstances) {
       if (instance.getActivityId().equals(activityId)) {
         found++;
-        assertEquals(canceled, instance.isCanceled(), String.format("expect <%s> to be %scanceled", activityId, (canceled ? "" : "non-")));
+        assertEquals(String.format("expect <%s> to be %scanceled", activityId, (canceled ? "" : "non-")), canceled, instance.isCanceled());
       }
     }
 
-    assertTrue(found > 0, "contains entry for activity <" + activityId + ">");
+    assertTrue("contains entry for activity <" + activityId + ">", found > 0);
 
     if (expectedCount != -1) {
-      assertTrue(found == expectedCount, "contains <" + expectedCount + "> entries for activity <" + activityId + ">");
+      assertTrue("contains <" + expectedCount + "> entries for activity <" + activityId + ">", found == expectedCount);
     }
   }
 
@@ -539,14 +539,14 @@ public class HistoricActivityInstanceStateTest extends PluggableProcessEngineTes
     for (HistoricActivityInstance instance : allInstances) {
       if (instance.getActivityId().equals(activityId)) {
         found++;
-        assertEquals(completing, instance.isCompleteScope(), String.format("expect <%s> to be %scompleting", activityId, (completing ? "" : "non-")));
+        assertEquals(String.format("expect <%s> to be %scompleting", activityId, (completing ? "" : "non-")), completing, instance.isCompleteScope());
       }
     }
 
-    assertTrue(found > 0, "contains entry for activity <" + activityId + ">");
+    assertTrue("contains entry for activity <" + activityId + ">", found > 0);
 
     if (expectedCount != -1) {
-      assertTrue(found == expectedCount, "contains <" + expectedCount + "> entries for activity <" + activityId + ">");
+      assertTrue("contains <" + expectedCount + "> entries for activity <" + activityId + ">", found == expectedCount);
     }
   }
 

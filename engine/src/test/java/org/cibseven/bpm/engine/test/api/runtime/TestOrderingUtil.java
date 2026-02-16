@@ -916,7 +916,7 @@ public class TestOrderingUtil {
 
     // and one where the values with null properties are at the end of the list
     boolean trailingNullOrdering = orderingConsistent(actualElements, expectedOrdering, false);
-    org.junit.jupiter.api.Assertions.assertTrue(trailingNullOrdering, "Ordering not consistent with comparator");
+    TestCase.assertTrue("Ordering not consistent with comparator", trailingNullOrdering);
   }
 
   public static <T> boolean orderingConsistent(List<T> actualElements, NullTolerantComparator<T> expectedOrdering, boolean nullPrecedes) {

@@ -19,7 +19,7 @@ package org.cibseven.bpm.engine.test.api.runtime.migration;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
-import static org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert.assertReport;
+import static org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -279,7 +279,7 @@ public class MigrationExternalTaskTest {
       Assertions.fail("exception expected");
     } catch (MigrationPlanValidationException e) {
       // then
-      assertReport(e.getValidationReport())
+      assertThat(e.getValidationReport())
       .hasInstructionFailures("externalTask",
         "Activities have incompatible types (ExternalTaskActivityBehavior is not compatible with"
         + " ClassDelegateActivityBehavior)"

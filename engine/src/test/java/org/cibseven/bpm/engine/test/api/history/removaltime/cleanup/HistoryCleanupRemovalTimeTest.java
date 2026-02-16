@@ -24,6 +24,10 @@ import static org.cibseven.bpm.engine.ProcessEngineConfiguration.HISTORY_FULL;
 import static org.cibseven.bpm.engine.ProcessEngineConfiguration.HISTORY_REMOVAL_TIME_STRATEGY_END;
 import static org.cibseven.bpm.engine.ProcessEngineConfiguration.HISTORY_REMOVAL_TIME_STRATEGY_START;
 import static org.cibseven.bpm.engine.impl.jobexecutor.historycleanup.HistoryCleanupHandler.MAX_BATCH_SIZE;
+import static org.hamcrest.MatcherAssertions.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.notNullValue;
+import static org.hamcrest.core.IsNull.nullValue;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -283,7 +287,7 @@ public class HistoryCleanupRemovalTimeTest {
     List<HistoricDecisionInstance> historicDecisionInstances = historyService.createHistoricDecisionInstanceQuery().list();
 
     // assume
-    assertThat(historicDecisionInstances.size()).isEqualTo(3);
+    assertThat(historicDecisionInstances.size(), is(3));
 
     ClockUtil.setCurrentTime(addDays(END_DATE, 5));
 
@@ -293,7 +297,7 @@ public class HistoryCleanupRemovalTimeTest {
     historicDecisionInstances = historyService.createHistoricDecisionInstanceQuery().list();
 
     // then
-    assertThat(historicDecisionInstances.size()).isEqualTo(0);
+    assertThat(historicDecisionInstances.size(), is(0));
   }
 
   @Test
@@ -321,7 +325,7 @@ public class HistoryCleanupRemovalTimeTest {
       .list();
 
     // assume
-    assertThat(historicDecisionInstances.size()).isEqualTo(3);
+    assertThat(historicDecisionInstances.size(), is(3));
 
     ClockUtil.setCurrentTime(addDays(END_DATE, 6));
 
@@ -334,7 +338,7 @@ public class HistoryCleanupRemovalTimeTest {
       .list();
 
     // then
-    assertThat(historicDecisionInstances.size()).isEqualTo(0);
+    assertThat(historicDecisionInstances.size(), is(0));
   }
 
   @Test
@@ -366,7 +370,7 @@ public class HistoryCleanupRemovalTimeTest {
       .sum();
 
     // then
-    assertThat(removedDecisionInstancesSum).isEqualTo(3L);
+    assertThat(removedDecisionInstancesSum, is(3L));
   }
 
   @Test
@@ -393,7 +397,7 @@ public class HistoryCleanupRemovalTimeTest {
       .list();
 
     // assume
-    assertThat(historicDecisionInstances.size()).isEqualTo(3);
+    assertThat(historicDecisionInstances.size(), is(3));
 
     ClockUtil.setCurrentTime(addDays(END_DATE, 5));
 
@@ -405,7 +409,7 @@ public class HistoryCleanupRemovalTimeTest {
       .list();
 
     // then
-    assertThat(historicDecisionInstances.size()).isEqualTo(0);
+    assertThat(historicDecisionInstances.size(), is(0));
   }
 
   @Test
@@ -432,7 +436,7 @@ public class HistoryCleanupRemovalTimeTest {
       .list();
 
     // assume
-    assertThat(historicDecisionInstances.size()).isEqualTo(3);
+    assertThat(historicDecisionInstances.size(), is(3));
 
     Date removalTime = addDays(END_DATE, 5);
     ClockUtil.setCurrentTime(removalTime);
@@ -445,7 +449,7 @@ public class HistoryCleanupRemovalTimeTest {
       .list();
 
     // then
-    assertThat(historicDecisionInstances.size()).isEqualTo(0);
+    assertThat(historicDecisionInstances.size(), is(0));
   }
 
   @Test
@@ -468,7 +472,7 @@ public class HistoryCleanupRemovalTimeTest {
       .list();
 
     // assume
-    assertThat(historicProcessInstances.size()).isEqualTo(1);
+    assertThat(historicProcessInstances.size(), is(1));
 
     Date removalTime = addDays(END_DATE, 5);
     ClockUtil.setCurrentTime(removalTime);
@@ -481,7 +485,7 @@ public class HistoryCleanupRemovalTimeTest {
       .list();
 
     // then
-    assertThat(historicProcessInstances.size()).isEqualTo(0);
+    assertThat(historicProcessInstances.size(), is(0));
   }
 
   @Test
@@ -504,7 +508,7 @@ public class HistoryCleanupRemovalTimeTest {
       .list();
 
     // assume
-    assertThat(historicProcessInstances.size()).isEqualTo(1);
+    assertThat(historicProcessInstances.size(), is(1));
 
     Date removalTime = addDays(END_DATE, 5);
     ClockUtil.setCurrentTime(removalTime);
@@ -517,7 +521,7 @@ public class HistoryCleanupRemovalTimeTest {
       .list();
 
     // then
-    assertThat(historicProcessInstances.size()).isEqualTo(1);
+    assertThat(historicProcessInstances.size(), is(1));
   }
 
   @Test
@@ -541,7 +545,7 @@ public class HistoryCleanupRemovalTimeTest {
       .list();
 
     // assume
-    assertThat(historicProcessInstances.size()).isEqualTo(1);
+    assertThat(historicProcessInstances.size(), is(1));
 
     Date removalTime = addDays(END_DATE, 5);
     ClockUtil.setCurrentTime(removalTime);
@@ -554,7 +558,7 @@ public class HistoryCleanupRemovalTimeTest {
       .list();
 
     // then
-    assertThat(historicProcessInstances.size()).isEqualTo(0);
+    assertThat(historicProcessInstances.size(), is(0));
   }
 
   @Test
@@ -582,7 +586,7 @@ public class HistoryCleanupRemovalTimeTest {
       .sum();
 
     // then
-    assertThat(removedProcessInstancesSum).isEqualTo(2L);
+    assertThat(removedProcessInstancesSum, is(2L));
   }
 
   @Test
@@ -603,7 +607,7 @@ public class HistoryCleanupRemovalTimeTest {
     List<HistoricActivityInstance> historicActivityInstances = historyService.createHistoricActivityInstanceQuery().list();
 
     // assume
-    assertThat(historicActivityInstances.size()).isEqualTo(6);
+    assertThat(historicActivityInstances.size(), is(6));
 
     ClockUtil.setCurrentTime(addDays(END_DATE, 5));
 
@@ -613,7 +617,7 @@ public class HistoryCleanupRemovalTimeTest {
     historicActivityInstances = historyService.createHistoricActivityInstanceQuery().list();
 
     // then
-    assertThat(historicActivityInstances.size()).isEqualTo(0);
+    assertThat(historicActivityInstances.size(), is(0));
   }
 
   @Test
@@ -634,7 +638,7 @@ public class HistoryCleanupRemovalTimeTest {
     List<HistoricTaskInstance> historicTaskInstances = historyService.createHistoricTaskInstanceQuery().list();
 
     // assume
-    assertThat(historicTaskInstances.size()).isEqualTo(1);
+    assertThat(historicTaskInstances.size(), is(1));
 
     ClockUtil.setCurrentTime(addDays(END_DATE, 5));
 
@@ -644,7 +648,7 @@ public class HistoryCleanupRemovalTimeTest {
     historicTaskInstances = historyService.createHistoricTaskInstanceQuery().list();
 
     // then
-    assertThat(historicTaskInstances.size()).isEqualTo(0);
+    assertThat(historicTaskInstances.size(), is(0));
   }
 
   @Test
@@ -673,7 +677,7 @@ public class HistoryCleanupRemovalTimeTest {
         .list();
 
     // assume
-    assertThat(authorizations.size()).isEqualTo(1);
+    assertThat(authorizations.size(), is(1));
 
     ClockUtil.setCurrentTime(addDays(END_DATE, 5));
 
@@ -685,7 +689,7 @@ public class HistoryCleanupRemovalTimeTest {
         .list();
 
     // then
-    assertThat(authorizations.size()).isEqualTo(0);
+    assertThat(authorizations.size(), is(0));
 
     // clear
     clearAuthorization();
@@ -711,7 +715,7 @@ public class HistoryCleanupRemovalTimeTest {
     List<HistoricVariableInstance> historicVariableInstances = historyService.createHistoricVariableInstanceQuery().list();
 
     // assume
-    assertThat(historicVariableInstances.size()).isEqualTo(1);
+    assertThat(historicVariableInstances.size(), is(1));
 
     ClockUtil.setCurrentTime(addDays(END_DATE, 5));
 
@@ -721,7 +725,7 @@ public class HistoryCleanupRemovalTimeTest {
     historicVariableInstances = historyService.createHistoricVariableInstanceQuery().list();
 
     // then
-    assertThat(historicVariableInstances.size()).isEqualTo(0);
+    assertThat(historicVariableInstances.size(), is(0));
   }
 
   @Test
@@ -742,7 +746,7 @@ public class HistoryCleanupRemovalTimeTest {
       .list();
 
     // assume
-    assertThat(historicDetails.size()).isEqualTo(2);
+    assertThat(historicDetails.size(), is(2));
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -760,7 +764,7 @@ public class HistoryCleanupRemovalTimeTest {
       .list();
 
     // then
-    assertThat(historicDetails.size()).isEqualTo(0);
+    assertThat(historicDetails.size(), is(0));
   }
 
   @Test
@@ -783,7 +787,7 @@ public class HistoryCleanupRemovalTimeTest {
     List<HistoricIncident> historicIncidents = historyService.createHistoricIncidentQuery().list();
 
     // assume
-    assertThat(historicIncidents.size()).isEqualTo(2);
+    assertThat(historicIncidents.size(), is(2));
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -799,7 +803,7 @@ public class HistoryCleanupRemovalTimeTest {
     historicIncidents = historyService.createHistoricIncidentQuery().list();
 
     // then
-    assertThat(historicIncidents.size()).isEqualTo(0);
+    assertThat(historicIncidents.size(), is(0));
   }
 
   @Test
@@ -827,7 +831,7 @@ public class HistoryCleanupRemovalTimeTest {
     List<HistoricExternalTaskLog> externalTaskLogs = historyService.createHistoricExternalTaskLogQuery().list();
 
     // assume
-    assertThat(externalTaskLogs.size()).isEqualTo(1);
+    assertThat(externalTaskLogs.size(), is(1));
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -841,7 +845,7 @@ public class HistoryCleanupRemovalTimeTest {
     externalTaskLogs = historyService.createHistoricExternalTaskLogQuery().list();
 
     // then
-    assertThat(externalTaskLogs.size()).isEqualTo(0);
+    assertThat(externalTaskLogs.size(), is(0));
   }
 
   @Test
@@ -869,7 +873,7 @@ public class HistoryCleanupRemovalTimeTest {
       .list();
 
     // assume
-    assertThat(jobLogs.size()).isEqualTo(2);
+    assertThat(jobLogs.size(), is(2));
 
     String taskId = taskService.createTaskQuery().singleResult().getId();
 
@@ -885,7 +889,7 @@ public class HistoryCleanupRemovalTimeTest {
       .list();
 
     // then
-    assertThat(jobLogs.size()).isEqualTo(0);
+    assertThat(jobLogs.size(), is(0));
   }
 
   @Test
@@ -948,7 +952,7 @@ public class HistoryCleanupRemovalTimeTest {
     List<UserOperationLogEntry> userOperationLogs = historyService.createUserOperationLogQuery().list();
 
     // assume
-    assertThat(userOperationLogs.size()).isEqualTo(1);
+    assertThat(userOperationLogs.size(), is(1));
 
     managementService.executeJob(jobId);
 
@@ -966,7 +970,7 @@ public class HistoryCleanupRemovalTimeTest {
     userOperationLogs = historyService.createUserOperationLogQuery().list();
 
     // then
-    assertThat(userOperationLogs.size()).isEqualTo(0);
+    assertThat(userOperationLogs.size(), is(0));
   }
 
   @Test
@@ -985,7 +989,7 @@ public class HistoryCleanupRemovalTimeTest {
     List<HistoricIdentityLinkLog> historicIdentityLinkLogs = historyService.createHistoricIdentityLinkLogQuery().list();
 
     // assume
-    assertThat(historicIdentityLinkLogs.size()).isEqualTo(1);
+    assertThat(historicIdentityLinkLogs.size(), is(1));
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -999,7 +1003,7 @@ public class HistoryCleanupRemovalTimeTest {
     historicIdentityLinkLogs = historyService.createHistoricIdentityLinkLogQuery().list();
 
     // then
-    assertThat(historicIdentityLinkLogs.size()).isEqualTo(0);
+    assertThat(historicIdentityLinkLogs.size(), is(0));
   }
 
   @Test
@@ -1021,7 +1025,7 @@ public class HistoryCleanupRemovalTimeTest {
     List<Comment> comments = taskService.getProcessInstanceComments(processInstanceId);
 
     // assume
-    assertThat(comments.size()).isEqualTo(1);
+    assertThat(comments.size(), is(1));
 
     String taskId = taskService.createTaskQuery().singleResult().getId();
 
@@ -1037,7 +1041,7 @@ public class HistoryCleanupRemovalTimeTest {
     comments = taskService.getProcessInstanceComments(processInstanceId);
 
     // then
-    assertThat(comments.size()).isEqualTo(0);
+    assertThat(comments.size(), is(0));
   }
 
   @Test
@@ -1059,7 +1063,7 @@ public class HistoryCleanupRemovalTimeTest {
     List<Attachment> attachments = taskService.getProcessInstanceAttachments(processInstanceId);
 
     // assume
-    assertThat(attachments.size()).isEqualTo(1);
+    assertThat(attachments.size(), is(1));
 
     String taskId = taskService.createTaskQuery().singleResult().getId();
 
@@ -1075,7 +1079,7 @@ public class HistoryCleanupRemovalTimeTest {
     attachments = taskService.getProcessInstanceAttachments(processInstanceId);
 
     // then
-    assertThat(attachments.size()).isEqualTo(0);
+    assertThat(attachments.size(), is(0));
   }
 
   @Test
@@ -1102,7 +1106,7 @@ public class HistoryCleanupRemovalTimeTest {
     ByteArrayEntity byteArray = findByteArrayById(jobLog.getExceptionByteArrayId());
 
     // assume
-    assertThat(byteArray).isNotNull();
+    assertThat(byteArray, notNullValue());
 
     managementService.setJobRetries(jobId, 0);
 
@@ -1121,7 +1125,7 @@ public class HistoryCleanupRemovalTimeTest {
     byteArray = findByteArrayById(jobLog.getExceptionByteArrayId());
 
     // then
-    assertThat(byteArray).isNull();
+    assertThat(byteArray, nullValue());
   }
 
   @Test
@@ -1153,14 +1157,14 @@ public class HistoryCleanupRemovalTimeTest {
     // assume
     List<HistoricBatch> historicBatches = historyService.createHistoricBatchQuery().list();
 
-    assertThat(historicBatches.size()).isEqualTo(1);
+    assertThat(historicBatches.size(), is(1));
 
     // assume
     List<HistoricJobLog> historicJobLogs = historyService.createHistoricJobLogQuery()
       .jobDefinitionConfiguration(batchId)
       .list();
 
-    assertThat(historicJobLogs.size()).isEqualTo(6);
+    assertThat(historicJobLogs.size(), is(6));
 
     ClockUtil.setCurrentTime(addDays(END_DATE, 5));
 
@@ -1173,8 +1177,8 @@ public class HistoryCleanupRemovalTimeTest {
       .list();
 
     // then
-    assertThat(historicBatches.size()).isEqualTo(0);
-    assertThat(historicJobLogs.size()).isEqualTo(0);
+    assertThat(historicBatches.size(), is(0));
+    assertThat(historicJobLogs.size(), is(0));
   }
 
   @Test
@@ -1208,7 +1212,7 @@ public class HistoryCleanupRemovalTimeTest {
     List<HistoricBatch> historicBatches = historyService.createHistoricBatchQuery().list();
 
     // assume
-    assertThat(historicBatches.size()).isEqualTo(1);
+    assertThat(historicBatches.size(), is(1));
 
     // when
     runHistoryCleanup();
@@ -1218,7 +1222,7 @@ public class HistoryCleanupRemovalTimeTest {
       .sum();
 
     // then
-    assertThat(removedBatchesSum).isEqualTo(1L);
+    assertThat(removedBatchesSum, is(1L));
   }
 
   @Test
@@ -1281,7 +1285,7 @@ public class HistoryCleanupRemovalTimeTest {
       .sum();
 
     // then
-    assertThat(removedMetricsSum).isEqualTo(1L);
+    assertThat(removedMetricsSum, is(1L));
   }
 
   // parallelism test cases ////////////////////////////////////////////////////////////////////////////////////////////
@@ -1980,8 +1984,8 @@ public class HistoryCleanupRemovalTimeTest {
       .singleResult();
 
     // then
-    assertThat(report.getCleanableProcessInstanceCount()).isEqualTo(5L);
-    assertThat(report.getFinishedProcessInstanceCount()).isEqualTo(0L);
+    assertThat(report.getCleanableProcessInstanceCount(), is(5L));
+    assertThat(report.getFinishedProcessInstanceCount(), is(0L));
   }
 
   @Test
@@ -2008,8 +2012,8 @@ public class HistoryCleanupRemovalTimeTest {
       .singleResult();
 
     // then
-    assertThat(report.getFinishedProcessInstanceCount()).isEqualTo(5L);
-    assertThat(report.getCleanableProcessInstanceCount()).isEqualTo(0L);
+    assertThat(report.getFinishedProcessInstanceCount(), is(5L));
+    assertThat(report.getCleanableProcessInstanceCount(), is(0L));
   }
 
   @Test
@@ -2035,7 +2039,7 @@ public class HistoryCleanupRemovalTimeTest {
       .singleResult();
 
     // then
-    assertThat(report).isNull();
+    assertThat(report, nullValue());
   }
 
   @Test
@@ -2068,8 +2072,8 @@ public class HistoryCleanupRemovalTimeTest {
       .singleResult();
 
     // then
-    assertThat(report.getCleanableDecisionInstanceCount()).isEqualTo(5L);
-    assertThat(report.getFinishedDecisionInstanceCount()).isEqualTo(5L);
+    assertThat(report.getCleanableDecisionInstanceCount(), is(5L));
+    assertThat(report.getFinishedDecisionInstanceCount(), is(5L));
   }
 
   @Test
@@ -2102,8 +2106,8 @@ public class HistoryCleanupRemovalTimeTest {
       .singleResult();
 
     // then
-    assertThat(report.getCleanableDecisionInstanceCount()).isEqualTo(0L);
-    assertThat(report.getFinishedDecisionInstanceCount()).isEqualTo(5L);
+    assertThat(report.getCleanableDecisionInstanceCount(), is(0L));
+    assertThat(report.getFinishedDecisionInstanceCount(), is(5L));
   }
 
   @Test
@@ -2130,8 +2134,8 @@ public class HistoryCleanupRemovalTimeTest {
     CleanableHistoricBatchReportResult report = historyService.createCleanableHistoricBatchReport().singleResult();
 
     // then
-    assertThat(report.getCleanableBatchesCount()).isEqualTo(1L);
-    assertThat(report.getFinishedBatchesCount()).isEqualTo(0L);
+    assertThat(report.getCleanableBatchesCount(), is(1L));
+    assertThat(report.getFinishedBatchesCount(), is(0L));
 
     // cleanup
     managementService.deleteBatch(batch.getId(), true);
@@ -2161,8 +2165,8 @@ public class HistoryCleanupRemovalTimeTest {
     CleanableHistoricBatchReportResult report = historyService.createCleanableHistoricBatchReport().singleResult();
 
     // then
-    assertThat(report.getCleanableBatchesCount()).isEqualTo(0L);
-    assertThat(report.getFinishedBatchesCount()).isEqualTo(0L);
+    assertThat(report.getCleanableBatchesCount(), is(0L));
+    assertThat(report.getFinishedBatchesCount(), is(0L));
 
     // cleanup
     managementService.deleteBatch(batch.getId(), true);
@@ -2173,8 +2177,8 @@ public class HistoryCleanupRemovalTimeTest {
   protected void assumeWhenThenParallelizedCleanup(List<Job> jobs, Supplier<Long> supplier,
                                                    long initialInstanceCount) {
     // assume
-    assertThat(jobs.size()).isEqualTo(3);
-    assertThat(supplier.get()).isEqualTo(initialInstanceCount);
+    assertThat(jobs.size(), is(3));
+    assertThat(supplier.get(), is(initialInstanceCount));
 
     long expectedInstanceCount = initialInstanceCount-(initialInstanceCount/3);
 
@@ -2186,7 +2190,7 @@ public class HistoryCleanupRemovalTimeTest {
       managementService.executeJob(jobId);
 
       // then
-      assertThat(supplier.get()).isEqualTo(expectedInstanceCount);
+      assertThat(supplier.get(), is(expectedInstanceCount));
 
       expectedInstanceCount = expectedInstanceCount - (initialInstanceCount / 3);
     }

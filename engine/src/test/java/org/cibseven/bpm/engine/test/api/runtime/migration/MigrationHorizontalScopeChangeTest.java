@@ -59,7 +59,7 @@ public class MigrationHorizontalScopeChangeTest {
       Assertions.fail("should fail");
     }
     catch (MigrationPlanValidationException e) {
-      MigrationPlanValidationReportAssert.assertReport(e.getValidationReport())
+      MigrationPlanValidationReportAssert.assertThat(e.getValidationReport())
         .hasInstructionFailures("userTask1",
           "The closest mapped ancestor 'subProcess1' is mapped to scope 'subProcess1' which is not an ancestor of target scope 'userTask2'"
         )

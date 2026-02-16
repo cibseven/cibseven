@@ -40,7 +40,12 @@ import org.junit.jupiter.params.provider.MethodSource;
  */
 public class ClassPathScannerTest {
 
+  private final String url;
   private static ClassPathProcessApplicationScanner scanner;
+
+  public ClassPathScannerTest(String url) {
+    this.url = url;
+  }
 
   @BeforeAll
   public static void setup() {

@@ -16,7 +16,10 @@
  */
 package org.cibseven.bpm.engine.test.api.identity;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssertions.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.hamcrest.core.IsNull.nullValue;
 
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.identity.DefaultPasswordPolicyImpl;
@@ -58,8 +61,8 @@ public class PasswordPolicyConfigurationTest {
     processEngineConfiguration.initPasswordPolicy();
 
     // then
-    assertThat(processEngineConfiguration.getPasswordPolicy()).isNull();
-    assertThat(processEngineConfiguration.isEnablePasswordPolicy()).isFalse();
+    assertThat(processEngineConfiguration.getPasswordPolicy(), nullValue());
+    assertThat(processEngineConfiguration.isEnablePasswordPolicy(), is(false));
   }
 
   @Test
@@ -72,8 +75,8 @@ public class PasswordPolicyConfigurationTest {
     processEngineConfiguration.initPasswordPolicy();
 
     // then
-    assertThat(processEngineConfiguration.isEnablePasswordPolicy()).isTrue();
-    assertThat(processEngineConfiguration.getPasswordPolicy()).isInstanceOf(DefaultPasswordPolicyImpl.class);
+    assertThat(processEngineConfiguration.isEnablePasswordPolicy(), is(true));
+    assertThat(processEngineConfiguration.getPasswordPolicy(), is(instanceOf(DefaultPasswordPolicyImpl.class)));
   }
 
   @Test
@@ -86,7 +89,7 @@ public class PasswordPolicyConfigurationTest {
     processEngineConfiguration.initPasswordPolicy();
 
     // then
-    assertThat(processEngineConfiguration.isEnablePasswordPolicy()).isTrue();
-    assertThat(processEngineConfiguration.getPasswordPolicy()).isInstanceOf(DefaultPasswordPolicyImpl.class);
+    assertThat(processEngineConfiguration.isEnablePasswordPolicy(), is(true));
+    assertThat(processEngineConfiguration.getPasswordPolicy(), is(instanceOf(DefaultPasswordPolicyImpl.class)));
   }
 }

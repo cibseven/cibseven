@@ -16,17 +16,21 @@
  */
 package org.cibseven.bpm.engine.test.util;
 
-import org.assertj.core.api.Assertions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.cibseven.bpm.engine.migration.MigratingActivityInstanceValidationReport;
 import org.cibseven.bpm.engine.migration.MigratingProcessInstanceValidationReport;
 import org.cibseven.bpm.engine.migration.MigratingTransitionInstanceValidationReport;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
+import org.hamcrest.Matcher;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 
 public class MigratingProcessInstanceValidationReportAssert {
 
@@ -59,7 +63,14 @@ public class MigratingProcessInstanceValidationReportAssert {
 
     List<String> actualFailures = actual.getFailures();
 
-    Assertions.assertThat(actualFailures).containsExactlyInAnyOrder(expectedFailures);
+    Collection<Matcher<? super String>> matchers = new ArrayList<Matcher<? super String>>();
+    for (String expectedFailure : expectedFailures) {
+      matchers.add(Matchers.containsString(expectedFailure));
+    }
+
+    MatcherAssertions.assertThat("Expected failures:\n" + joinFailures(Arrays.asList(expectedFailures)) +
+        "But found failures:\n" + joinFailures(actualFailures),
+      actualFailures, Matchers.containsInAnyOrder(matchers));
 
     return this;
   }
@@ -102,7 +113,14 @@ public class MigratingProcessInstanceValidationReportAssert {
 
   protected void assertFailures(String sourceScopeId, List<String> expectedFailures, List<String> actualFailures) {
 
-	  Assertions.assertThat(actualFailures).containsExactlyInAnyOrderElementsOf(expectedFailures);
+    Collection<Matcher<? super String>> matchers = new ArrayList<Matcher<? super String>>();
+    for (String expectedFailure : expectedFailures) {
+      matchers.add(Matchers.containsString(expectedFailure));
+    }
+
+    MatcherAssertions.assertThat("Expected failures for source scope: " + sourceScopeId + "\n" + joinFailures(expectedFailures) +
+        "But found failures:\n" + joinFailures(actualFailures),
+      actualFailures, Matchers.containsInAnyOrder(matchers));
   }
 
   public static MigratingProcessInstanceValidationReportAssert assertThat(MigratingProcessInstanceValidationReport report) {

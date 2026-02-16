@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.api.runtime.migration;
 
-import static org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert.assertReport;
+import static org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import org.cibseven.bpm.engine.migration.MigrationPlanValidationException;
@@ -55,7 +55,7 @@ public class MigrationAddMultiInstanceTest {
       fail("Should not succeed");
     }
     catch (MigrationPlanValidationException e) {
-      assertReport(e.getValidationReport())
+      assertThat(e.getValidationReport())
         .hasInstructionFailures("userTask",
           "Target activity 'userTask' is a descendant of multi-instance body 'userTask#multiInstanceBody' "
           + "that is not mapped from the source process definition"
@@ -77,7 +77,7 @@ public class MigrationAddMultiInstanceTest {
       fail("Should not succeed");
     }
     catch (MigrationPlanValidationException e) {
-      assertReport(e.getValidationReport())
+      assertThat(e.getValidationReport())
         .hasInstructionFailures("userTask",
           "Target activity 'userTask' is a descendant of multi-instance body 'userTask#multiInstanceBody' "
           + "that is not mapped from the source process definition"
@@ -100,7 +100,7 @@ public class MigrationAddMultiInstanceTest {
     }
     catch (MigrationPlanValidationException e) {
       e.printStackTrace();
-      assertReport(e.getValidationReport())
+      assertThat(e.getValidationReport())
         .hasInstructionFailures("userTask",
           "Target activity 'userTask' is a descendant of multi-instance body 'subProcess#multiInstanceBody' "
           + "that is not mapped from the source process definition"

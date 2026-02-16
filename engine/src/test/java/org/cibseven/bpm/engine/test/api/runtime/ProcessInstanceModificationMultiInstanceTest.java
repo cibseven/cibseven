@@ -744,6 +744,15 @@ public class ProcessInstanceModificationMultiInstanceTest extends PluggableProce
     assertEquals(1, beforeTaskStatistics.getInstances());
   }
 
+  protected ActivityStatistics getStatisticsForActivity(List<ActivityStatistics> statistics, String activityId) {
+    for (ActivityStatistics statisticsInstance : statistics) {
+      if (statisticsInstance.getId().equals(activityId)) {
+        return statisticsInstance;
+      }
+    }
+    return null;
+  }
+
   @Deployment(resources = SEQUENTIAL_MULTI_INSTANCE_SUBPROCESS_PROCESS)
   @Test
   public void testStartBeforeInnerActivityWithMiBodySequentialSubprocess() {
@@ -794,6 +803,31 @@ public class ProcessInstanceModificationMultiInstanceTest extends PluggableProce
 
   @Deployment(resources = SEQUENTIAL_MULTI_INSTANCE_SUBPROCESS_PROCESS)
   @Test
+  public void testStartBeforeInnerActivityWithMiBodySequentialSubprocessActivityStatistics() {
+    // given the mi body is not yet instantiated
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("miSequentialSubprocess");
+
+    // when
+    runtimeService
+      .createProcessInstanceModification(processInstance.getId())
+      .startBeforeActivity("subProcessTask")
+      .execute();
+
+    // then the activity instance statistics are correct
+    List<ActivityStatistics> statistics = managementService.createActivityStatisticsQuery(processInstance.getProcessDefinitionId()).list();
+    assertEquals(2, statistics.size());
+
+    ActivityStatistics miTasksStatistics = getStatisticsForActivity(statistics, "subProcessTask");
+    assertNotNull(miTasksStatistics);
+    assertEquals(1, miTasksStatistics.getInstances());
+
+    ActivityStatistics beforeTaskStatistics = getStatisticsForActivity(statistics, "beforeTask");
+    assertNotNull(beforeTaskStatistics);
+    assertEquals(1, beforeTaskStatistics.getInstances());
+  }
+
+  @Deployment(resources = SEQUENTIAL_MULTI_INSTANCE_SUBPROCESS_PROCESS)
+  @Test
   public void testStartBeforeInnerActivityWithMiBodySetNrOfInstancesSequentialSubprocess() {
     // given the mi body is not yet instantiated
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("miSequentialSubprocess");
@@ -831,8 +865,7 @@ public class ProcessInstanceModificationMultiInstanceTest extends PluggableProce
         .child("beforeTask").concurrent().noScope().up()
         .child(null).concurrent().noScope()
           .child(null).scope()
-            .child(null).concurrent().noScope()
-              .child("subProcessTask").scope()
+            .child("subProcessTask").scope()
       .done()
       );
 
@@ -1141,20 +1174,11 @@ public class ProcessInstanceModificationMultiInstanceTest extends PluggableProce
     testRule.assertProcessEnded(processInstance.getId());
   }
 
-  protected ActivityStatistics getStatisticsForActivity(List<ActivityStatistics> statistics, String activityId) {
-    for (ActivityStatistics statisticsInstance : statistics) {
-      if (statisticsInstance.getId().equals(activityId)) {
-        return statisticsInstance;
-      }
-    }
-    return null;
-  }
-
   protected void completeTasksInOrder(String... taskNames) {
     for (String taskName : taskNames) {
       // complete any task with that name
       List<Task> tasks = taskService.createTaskQuery().taskDefinitionKey(taskName).listPage(0, 1);
-      assertTrue(!tasks.isEmpty(), "task for activity " + taskName + " does not exist");
+      assertTrue("task for activity " + taskName + " does not exist", !tasks.isEmpty());
       taskService.complete(tasks.get(0).getId());
     }
   }
@@ -1162,8 +1186,8 @@ public class ProcessInstanceModificationMultiInstanceTest extends PluggableProce
 
   protected void assertVariable(Execution execution, String variableName, Object expectedValue) {
     Object variableValue = runtimeService.getVariable(execution.getId(), variableName);
-    assertEquals(expectedValue, variableValue, "Value for variable '" + variableName + "' and " + execution + " "
-            + "does not match.");
+    assertEquals("Value for variable '" + variableName + "' and " + execution + " "
+        + "does not match.", expectedValue, variableValue);
   }
 
   protected void assertVariableSet(List<Execution> executions, String variableName, List<?> expectedValues) {
@@ -1174,9 +1198,11 @@ public class ProcessInstanceModificationMultiInstanceTest extends PluggableProce
 
     for (Object expectedValue : expectedValues) {
       boolean valueFound = actualValues.remove(expectedValue);
-      assertTrue(valueFound, "Expected variable value '" + expectedValue + "' not contained in the list of actual values. ");
+      assertTrue("Expected variable value '" + expectedValue + "' not contained in the list of actual values. "
+          + "Unmatched actual values: " + actualValues,
+          valueFound);
     }
-    assertTrue(actualValues.isEmpty(), "There are more actual than expected values.");
+    assertTrue("There are more actual than expected values.", actualValues.isEmpty());
   }
 
 }

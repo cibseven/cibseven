@@ -16,7 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.api.mgmt;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssertions.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
@@ -114,8 +115,8 @@ public class JobEntityTest {
     Job messageJob = managementService.createJobQuery().singleResult();
 
     // then
-    assertThat(messageJob.getCreateTime()).isEqualTo(CREATE_DATE);
-    assertThat(messageJob.getClass().getSimpleName()).isEqualTo("MessageEntity");
+    assertThat(messageJob.getCreateTime(), is(CREATE_DATE));
+    assertThat(messageJob.getClass().getSimpleName(), is("MessageEntity"));
 
     // cleanup
     jobIds.add(messageJob.getId());
@@ -137,8 +138,8 @@ public class JobEntityTest {
     Job timerJob = managementService.createJobQuery().singleResult();
 
     // then
-    assertThat(timerJob.getCreateTime()).isEqualTo(CREATE_DATE);
-    assertThat(timerJob.getClass().getSimpleName()).isEqualTo("TimerEntity");
+    assertThat(timerJob.getCreateTime(), is(CREATE_DATE));
+    assertThat(timerJob.getClass().getSimpleName(), is("TimerEntity"));
 
     // cleanup
     jobIds.add(timerJob.getId());
@@ -153,8 +154,8 @@ public class JobEntityTest {
     Job everLivingJob = managementService.createJobQuery().singleResult();
 
     // then
-    assertThat(everLivingJob.getCreateTime()).isEqualTo(CREATE_DATE);
-    assertThat(everLivingJob.getClass().getSimpleName()).isEqualTo("EverLivingJobEntity");
+    assertThat(everLivingJob.getCreateTime(), is(CREATE_DATE));
+    assertThat(everLivingJob.getClass().getSimpleName(), is("EverLivingJobEntity"));
 
     // cleanup
     jobIds.add(everLivingJob.getId());
@@ -185,7 +186,7 @@ public class JobEntityTest {
 
     // then
     job = (JobEntity) managementService.createJobQuery().jobId(job.getId()).singleResult();
-    assertThat(job.getFailedActivityId()).isEqualTo("theTask");
+    assertThat(job.getFailedActivityId(), is("theTask"));
   }
 
   @Test
@@ -215,7 +216,7 @@ public class JobEntityTest {
 
     // then
     job = (JobEntity) managementService.createJobQuery().jobId(job.getId()).singleResult();
-    assertThat(job.getFailedActivityId()).isEqualTo("theTask");
+    assertThat(job.getFailedActivityId(), is("theTask"));
   }
 
   @Test
@@ -247,7 +248,7 @@ public class JobEntityTest {
 
     // then
     job = (JobEntity) managementService.createJobQuery().jobId(job.getId()).singleResult();
-    assertThat(job.getFailedActivityId()).isEqualTo("theTask3");
+    assertThat(job.getFailedActivityId(), is("theTask3"));
   }
 
   // helper ////////////////////////////////////////////////////////////////////////////////////////////////////////////

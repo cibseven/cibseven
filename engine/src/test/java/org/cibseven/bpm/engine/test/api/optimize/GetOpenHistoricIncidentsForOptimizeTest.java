@@ -40,7 +40,10 @@ import org.junit.jupiter.api.Test;
 import java.util.Date;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssertions.assertThat;
 
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
@@ -91,7 +94,7 @@ public class GetOpenHistoricIncidentsForOptimizeTest {
       optimizeService.getOpenHistoricIncidents(pastDate(), null, 10);
 
     // then
-    assertThat(openIncidents).hasSize(1);
+    assertThat(openIncidents.size(), is(1));
     assertThatInstanceHasAllImportantInformation(openIncidents.get(0));
   }
 
@@ -112,8 +115,8 @@ public class GetOpenHistoricIncidentsForOptimizeTest {
       optimizeService.getOpenHistoricIncidents(now, null, 10);
 
     // then
-    assertThat(openIncidents).hasSize(1);
-    assertThat(openIncidents.get(0).getProcessInstanceId()).isEqualTo(processInstance.getId());
+    assertThat(openIncidents.size(), is(1));
+    assertThat(openIncidents.get(0).getProcessInstanceId(), is(processInstance.getId()));
 
   }
 
@@ -133,8 +136,8 @@ public class GetOpenHistoricIncidentsForOptimizeTest {
       optimizeService.getOpenHistoricIncidents(null, now, 10);
 
     // then
-    assertThat(openIncidents).hasSize(1);
-    assertThat(openIncidents.get(0).getProcessInstanceId()).isEqualTo(processInstance.getId());
+    assertThat(openIncidents.size(), is(1));
+    assertThat(openIncidents.get(0).getProcessInstanceId(), is(processInstance.getId()));
   }
 
   @Test
@@ -153,7 +156,7 @@ public class GetOpenHistoricIncidentsForOptimizeTest {
       optimizeService.getOpenHistoricIncidents(now, now, 10);
 
     // then
-    assertThat(openIncidents).hasSize(0);
+    assertThat(openIncidents.size(), is(0));
   }
 
   @Test
@@ -169,7 +172,7 @@ public class GetOpenHistoricIncidentsForOptimizeTest {
       optimizeService.getOpenHistoricIncidents(pastDate(), null, 3);
 
     // then
-    assertThat(openIncidents).hasSize(3);
+    assertThat(openIncidents.size(), is(3));
   }
 
   @Test
@@ -194,10 +197,10 @@ public class GetOpenHistoricIncidentsForOptimizeTest {
       optimizeService.getOpenHistoricIncidents(now, null, 10);
 
     // then
-    assertThat(openIncidents).hasSize(3);
-    assertThat(openIncidents.get(0).getProcessInstanceId()).isEqualTo(processInstance1.getId());
-    assertThat(openIncidents.get(1).getProcessInstanceId()).isEqualTo(processInstance2.getId());
-    assertThat(openIncidents.get(2).getProcessInstanceId()).isEqualTo(processInstance3.getId());
+    assertThat(openIncidents.size(), is(3));
+    assertThat(openIncidents.get(0).getProcessInstanceId(), is(processInstance1.getId()));
+    assertThat(openIncidents.get(1).getProcessInstanceId(), is(processInstance2.getId()));
+    assertThat(openIncidents.get(2).getProcessInstanceId(), is(processInstance3.getId()));
   }
 
   @Test
@@ -213,8 +216,8 @@ public class GetOpenHistoricIncidentsForOptimizeTest {
       optimizeService.getOpenHistoricIncidents(pastDate(), null, 10);
 
     // then
-    assertThat(openIncidents).hasSize(1);
-    assertThat(openIncidents.get(0).getProcessInstanceId()).isEqualTo(processInstanceWithOpenIncident.getId());
+    assertThat(openIncidents.size(), is(1));
+    assertThat(openIncidents.get(0).getProcessInstanceId(), is(processInstanceWithOpenIncident.getId()));
   }
 
   private Date pastDate() {
@@ -222,13 +225,13 @@ public class GetOpenHistoricIncidentsForOptimizeTest {
   }
 
   private void assertThatInstanceHasAllImportantInformation(HistoricIncidentEntity historicIncidentEntity) {
-    assertThat(historicIncidentEntity).isNotNull();
-    assertThat(historicIncidentEntity.getId()).isNotNull();
-    assertThat(historicIncidentEntity.getProcessDefinitionKey()).isEqualTo(PROCESS_DEFINITION_KEY);
-    assertThat(historicIncidentEntity.getProcessDefinitionVersion()).isNull();
-    assertThat(historicIncidentEntity.getProcessDefinitionId()).isNotNull();
-    assertThat(historicIncidentEntity.getCreateTime()).isNotNull();
-    assertThat(historicIncidentEntity.getEndTime()).isNull();
+    assertThat(historicIncidentEntity, notNullValue());
+    assertThat(historicIncidentEntity.getId(), notNullValue());
+    assertThat(historicIncidentEntity.getProcessDefinitionKey(), is(PROCESS_DEFINITION_KEY));
+    assertThat(historicIncidentEntity.getProcessDefinitionVersion(), nullValue());
+    assertThat(historicIncidentEntity.getProcessDefinitionId(), notNullValue());
+    assertThat(historicIncidentEntity.getCreateTime(), notNullValue());
+    assertThat(historicIncidentEntity.getEndTime(), nullValue());
   }
 
   private void retryAndSucceed(final ProcessInstance processInstance) {

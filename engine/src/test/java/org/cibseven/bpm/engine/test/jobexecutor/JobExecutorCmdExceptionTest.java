@@ -199,7 +199,7 @@ public class JobExecutorCmdExceptionTest extends PluggableProcessEngineTest {
 
     String stacktrace = managementService.getJobExceptionStacktrace(job.getId());
     assertNotNull(stacktrace);
-    assertTrue(stacktrace.contains("java.lang.RuntimeException: exception in transaction listener"), "unexpected stacktrace, was <" + stacktrace + ">");
+    assertTrue("unexpected stacktrace, was <" + stacktrace + ">", stacktrace.contains("java.lang.RuntimeException: exception in transaction listener"));
   }
 
   protected void createJob(final String handlerType) {

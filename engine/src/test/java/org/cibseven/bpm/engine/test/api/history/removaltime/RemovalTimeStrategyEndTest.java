@@ -8,7 +8,7 @@
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed in writing, software
+ * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
@@ -16,9 +16,12 @@
  */
 package org.cibseven.bpm.engine.test.api.history.removaltime;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.cibseven.bpm.engine.ProcessEngineConfiguration.HISTORY_REMOVAL_TIME_STRATEGY_END;
+import static org.hamcrest.MatcherAssertions.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.notNullValue;
+import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
@@ -143,9 +146,9 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     List<HistoricDecisionInstance> historicDecisionInstances = historyService.createHistoricDecisionInstanceQuery().list();
 
     // assume
-    assertThat(historicDecisionInstances.get(0).getRemovalTime()).isNull();
-    assertThat(historicDecisionInstances.get(1).getRemovalTime()).isNull();
-    assertThat(historicDecisionInstances.get(2).getRemovalTime()).isNull();
+    assertThat(historicDecisionInstances.get(0).getRemovalTime(), nullValue());
+    assertThat(historicDecisionInstances.get(1).getRemovalTime(), nullValue());
+    assertThat(historicDecisionInstances.get(2).getRemovalTime(), nullValue());
 
     String jobId = managementService.createJobQuery().singleResult().getId();
 
@@ -157,9 +160,9 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(historicDecisionInstances.get(0).getRemovalTime()).isEqualTo(removalTime);
-    assertThat(historicDecisionInstances.get(1).getRemovalTime()).isEqualTo(removalTime);
-    assertThat(historicDecisionInstances.get(2).getRemovalTime()).isEqualTo(removalTime);
+    assertThat(historicDecisionInstances.get(0).getRemovalTime(), is(removalTime));
+    assertThat(historicDecisionInstances.get(1).getRemovalTime(), is(removalTime));
+    assertThat(historicDecisionInstances.get(2).getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -193,8 +196,8 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     List<HistoricDecisionInputInstance> historicDecisionInputInstances = historicDecisionInstance.getInputs();
 
     // assume
-    assertThat(historicDecisionInputInstances.get(0).getRemovalTime()).isNull();
-    assertThat(historicDecisionInputInstances.get(1).getRemovalTime()).isNull();
+    assertThat(historicDecisionInputInstances.get(0).getRemovalTime(), nullValue());
+    assertThat(historicDecisionInputInstances.get(1).getRemovalTime(), nullValue());
 
     String jobId = managementService.createJobQuery().singleResult().getId();
 
@@ -211,8 +214,8 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(historicDecisionInputInstances.get(0).getRemovalTime()).isEqualTo(removalTime);
-    assertThat(historicDecisionInputInstances.get(1).getRemovalTime()).isEqualTo(removalTime);
+    assertThat(historicDecisionInputInstances.get(0).getRemovalTime(), is(removalTime));
+    assertThat(historicDecisionInputInstances.get(1).getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -246,7 +249,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     List<HistoricDecisionOutputInstance> historicDecisionOutputInstances = historicDecisionInstance.getOutputs();
 
     // assume
-    assertThat(historicDecisionOutputInstances.get(0).getRemovalTime()).isNull();
+    assertThat(historicDecisionOutputInstances.get(0).getRemovalTime(), nullValue());
 
     String jobId = managementService.createJobQuery().singleResult().getId();
 
@@ -263,7 +266,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(historicDecisionOutputInstances.get(0).getRemovalTime()).isEqualTo(removalTime);
+    assertThat(historicDecisionOutputInstances.get(0).getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -282,7 +285,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
       .singleResult();
 
     // assume
-    assertThat(historicProcessInstance.getRemovalTime()).isNull();
+    assertThat(historicProcessInstance.getRemovalTime(), nullValue());
 
     String taskId = historyService.createHistoricTaskInstanceQuery().singleResult().getId();
 
@@ -298,7 +301,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(historicProcessInstance.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(historicProcessInstance.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -321,7 +324,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
       .singleResult();
 
     // assume
-    assertThat(historicActivityInstance.getRemovalTime()).isNull();
+    assertThat(historicActivityInstance.getRemovalTime(), nullValue());
 
     // when
     taskService.complete(taskId);
@@ -333,7 +336,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(historicActivityInstance.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(historicActivityInstance.getRemovalTime(), is(removalTime));
   }
 
   /**
@@ -378,7 +381,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     HistoricTaskInstance historicTaskInstance = historyService.createHistoricTaskInstanceQuery().singleResult();
 
     // assume
-    assertThat(historicTaskInstance.getRemovalTime()).isNull();
+    assertThat(historicTaskInstance.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -392,7 +395,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(historicTaskInstance.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(historicTaskInstance.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -425,7 +428,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
         .singleResult();
 
     // assume
-    assertThat(authorization.getRemovalTime()).isNull();
+    assertThat(authorization.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -439,7 +442,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
         .singleResult();
 
     // then
-    assertThat(authorization.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(authorization.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -470,8 +473,8 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // assume
-    assertThat(authorization.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
-    assertThat(authorization.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(authorization.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
+    assertThat(authorization.getRemovalTime(), is(removalTime));
 
     authorization.setResourceId("*");
 
@@ -483,8 +486,8 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
         .singleResult();
 
     // then
-    assertThat(authorization.getRootProcessInstanceId()).isNull();
-    assertThat(authorization.getRemovalTime()).isNull();
+    assertThat(authorization.getRootProcessInstanceId(), nullValue());
+    assertThat(authorization.getRemovalTime(), nullValue());
   }
 
   @Test
@@ -518,8 +521,8 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
         .singleResult();
 
     // assume
-    assertThat(authorization.getRootProcessInstanceId()).isNull();
-    assertThat(authorization.getRemovalTime()).isNull();
+    assertThat(authorization.getRootProcessInstanceId(), nullValue());
+    assertThat(authorization.getRemovalTime(), nullValue());
 
     taskId = historyService.createHistoricTaskInstanceQuery().singleResult().getId();
 
@@ -535,8 +538,8 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(authorization.getRootProcessInstanceId()).isEqualTo(processInstance.getRootProcessInstanceId());
-    assertThat(authorization.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(authorization.getRootProcessInstanceId(), is(processInstance.getRootProcessInstanceId()));
+    assertThat(authorization.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -572,7 +575,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     AuthorizationQuery authQuery = authorizationService.createAuthorizationQuery()
         .resourceType(Resources.HISTORIC_PROCESS_INSTANCE);
 
-    assertThat(authQuery.list())
+    Assertions.assertThat(authQuery.list())
         .extracting("removalTime", "resourceId", "rootProcessInstanceId")
         .containsExactly(tuple(null, processInstanceId, rootProcessInstanceId));
 
@@ -589,7 +592,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     authQuery = authorizationService.createAuthorizationQuery()
         .resourceType(Resources.HISTORIC_PROCESS_INSTANCE);
 
-    assertThat(authQuery.list())
+    Assertions.assertThat(authQuery.list())
         .extracting("removalTime", "resourceId", "rootProcessInstanceId")
         .containsExactly(tuple(removalTime, processInstanceId, rootProcessInstanceId));
   }
@@ -636,7 +639,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
         .resourceType(Resources.HISTORIC_PROCESS_INSTANCE);
 
     Date removalTime = addDays(END_DATE, 5);
-    assertThat(authQuery.list())
+    Assertions.assertThat(authQuery.list())
         .extracting("removalTime", "resourceId", "rootProcessInstanceId")
         .containsExactly(tuple(removalTime, processInstanceId, rootProcessInstanceId));
 
@@ -648,7 +651,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     authQuery = authorizationService.createAuthorizationQuery()
         .resourceType(Resources.HISTORIC_PROCESS_INSTANCE);
 
-    assertThat(authQuery.list())
+    Assertions.assertThat(authQuery.list())
         .extracting("removalTime", "resourceId", "rootProcessInstanceId")
         .containsExactly(tuple(null, "*", null));
   }
@@ -685,7 +688,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     AuthorizationQuery authQuery = authorizationService.createAuthorizationQuery()
         .resourceType(Resources.HISTORIC_PROCESS_INSTANCE);
 
-    assertThat(authQuery.list())
+    Assertions.assertThat(authQuery.list())
         .extracting("removalTime", "resourceId", "rootProcessInstanceId")
         .containsExactly(tuple(null, "*", null));
 
@@ -705,7 +708,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
 
     Date removalTime = addDays(END_DATE, 5);
     String rootProcessInstanceId = rootProcessInstance.getRootProcessInstanceId();
-    assertThat(authQuery.list())
+    Assertions.assertThat(authQuery.list())
         .extracting("removalTime", "resourceId", "rootProcessInstanceId")
         .containsExactly(tuple(removalTime, processInstanceId, rootProcessInstanceId));
   }
@@ -734,7 +737,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
         .singleResult();
 
     // assume
-    assertThat(authorization.getRemovalTime()).isNull();
+    assertThat(authorization.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -748,7 +751,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(authorization.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(authorization.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -773,7 +776,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
         .singleResult();
 
     // assume
-    assertThat(authorization.getRemovalTime()).isNull();
+    assertThat(authorization.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -787,7 +790,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(authorization.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(authorization.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -808,7 +811,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     HistoricVariableInstance historicVariableInstance = historyService.createHistoricVariableInstanceQuery().singleResult();
 
     // assume
-    assertThat(historicVariableInstance.getRemovalTime()).isNull();
+    assertThat(historicVariableInstance.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -822,7 +825,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(historicVariableInstance.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(historicVariableInstance.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -845,8 +848,8 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
       .list();
 
     // assume
-    assertThat(historicDetails.get(0).getRemovalTime()).isNull();
-    assertThat(historicDetails.get(1).getRemovalTime()).isNull();
+    assertThat(historicDetails.get(0).getRemovalTime(), nullValue());
+    assertThat(historicDetails.get(1).getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -862,8 +865,8 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(historicDetails.get(0).getRemovalTime()).isEqualTo(removalTime);
-    assertThat(historicDetails.get(1).getRemovalTime()).isEqualTo(removalTime);
+    assertThat(historicDetails.get(0).getRemovalTime(), is(removalTime));
+    assertThat(historicDetails.get(1).getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -884,7 +887,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     HistoricDetail historicDetail = historyService.createHistoricDetailQuery().formFields().singleResult();
 
     // assume
-    assertThat(historicDetail.getRemovalTime()).isNull();
+    assertThat(historicDetail.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -898,7 +901,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(historicDetail.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(historicDetail.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -930,8 +933,8 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     List<HistoricIncident> historicIncidents = historyService.createHistoricIncidentQuery().list();
 
     // assume
-    assertThat(historicIncidents.get(0).getRemovalTime()).isNull();
-    assertThat(historicIncidents.get(1).getRemovalTime()).isNull();
+    assertThat(historicIncidents.get(0).getRemovalTime(), nullValue());
+    assertThat(historicIncidents.get(1).getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -945,8 +948,8 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(historicIncidents.get(0).getRemovalTime()).isEqualTo(removalTime);
-    assertThat(historicIncidents.get(1).getRemovalTime()).isEqualTo(removalTime);
+    assertThat(historicIncidents.get(0).getRemovalTime(), is(removalTime));
+    assertThat(historicIncidents.get(1).getRemovalTime(), is(removalTime));
   }
 
   /**
@@ -986,8 +989,8 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     List<HistoricIncident> historicIncidents = historyService.createHistoricIncidentQuery().list();
 
     // then
-    assertThat(historicIncidents.get(0).getCreateTime()).isEqualTo(START_DATE);
-    assertThat(historicIncidents.get(1).getCreateTime()).isEqualTo(START_DATE);
+    assertThat(historicIncidents.get(0).getCreateTime(), is(START_DATE));
+    assertThat(historicIncidents.get(1).getCreateTime(), is(START_DATE));
   }
 
   @Test
@@ -1011,10 +1014,10 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     HistoricIncident historicIncident = historyService.createHistoricIncidentQuery().singleResult();
 
     // assume
-    assertThat(historicIncident).isNotNull();
+    assertThat(historicIncident, notNullValue());
 
     // then
-    assertThat(historicIncident.getRemovalTime()).isNull();
+    assertThat(historicIncident.getRemovalTime(), nullValue());
 
     // cleanup
     clearJobLog(jobId);
@@ -1048,7 +1051,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     HistoricExternalTaskLog externalTaskLog = historyService.createHistoricExternalTaskLogQuery().singleResult();
 
     // assume
-    assertThat(externalTaskLog.getRemovalTime()).isNull();
+    assertThat(externalTaskLog.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -1060,8 +1063,8 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     List<HistoricExternalTaskLog> externalTaskLogs = historyService.createHistoricExternalTaskLogQuery().list();
 
     // then
-    assertThat(externalTaskLogs.get(0).getRemovalTime()).isEqualTo(removalTime);
-    assertThat(externalTaskLogs.get(1).getRemovalTime()).isEqualTo(removalTime);
+    assertThat(externalTaskLogs.get(0).getRemovalTime(), is(removalTime));
+    assertThat(externalTaskLogs.get(1).getRemovalTime(), is(removalTime));
   }
 
   /**
@@ -1097,8 +1100,8 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     List<HistoricExternalTaskLog> externalTaskLogs = historyService.createHistoricExternalTaskLogQuery().list();
 
     // then
-    assertThat(externalTaskLogs.get(0).getTimestamp()).isEqualTo(START_DATE);
-    assertThat(externalTaskLogs.get(1).getTimestamp()).isEqualTo(START_DATE);
+    assertThat(externalTaskLogs.get(0).getTimestamp(), is(START_DATE));
+    assertThat(externalTaskLogs.get(1).getTimestamp(), is(START_DATE));
   }
 
   @Test
@@ -1126,8 +1129,8 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     List<HistoricJobLog> jobLog = historyService.createHistoricJobLogQuery().list();
 
     // assume
-    assertThat(jobLog.get(0).getRemovalTime()).isNull();
-    assertThat(jobLog.get(1).getRemovalTime()).isNull();
+    assertThat(jobLog.get(0).getRemovalTime(), nullValue());
+    assertThat(jobLog.get(1).getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -1141,8 +1144,8 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(jobLog.get(0).getRemovalTime()).isEqualTo(removalTime);
-    assertThat(jobLog.get(1).getRemovalTime()).isEqualTo(removalTime);
+    assertThat(jobLog.get(0).getRemovalTime(), is(removalTime));
+    assertThat(jobLog.get(1).getRemovalTime(), is(removalTime));
   }
 
   /**
@@ -1178,8 +1181,8 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     List<HistoricJobLog> jobLog = historyService.createHistoricJobLogQuery().list();
 
     // then
-    assertThat(jobLog.get(0).getTimestamp()).isEqualTo(START_DATE);
-    assertThat(jobLog.get(1).getTimestamp()).isEqualTo(START_DATE);
+    assertThat(jobLog.get(0).getTimestamp(), is(START_DATE));
+    assertThat(jobLog.get(1).getTimestamp(), is(START_DATE));
   }
 
   @Test
@@ -1207,7 +1210,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     UserOperationLogEntry userOperationLog = historyService.createUserOperationLogQuery().singleResult();
 
     // assume
-    assertThat(userOperationLog.getRemovalTime()).isNull();
+    assertThat(userOperationLog.getRemovalTime(), nullValue());
 
     managementService.executeJob(jobId);
 
@@ -1223,7 +1226,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(userOperationLog.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(userOperationLog.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -1254,7 +1257,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     UserOperationLogEntry userOperationLog = historyService.createUserOperationLogQuery().singleResult();
 
     // assume
-    assertThat(userOperationLog.getRemovalTime()).isNull();
+    assertThat(userOperationLog.getRemovalTime(), nullValue());
 
     LockedExternalTask externalTask = externalTaskService.fetchAndLock(1, "aWorkerId")
       .topic("anExternalTaskTopic", 2000)
@@ -1271,7 +1274,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     userOperationLog = historyService.createUserOperationLogQuery().singleResult();
 
     // then
-    assertThat(userOperationLog.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(userOperationLog.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -1294,7 +1297,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     UserOperationLogEntry userOperationLog = historyService.createUserOperationLogQuery().singleResult();
 
     // assume
-    assertThat(userOperationLog.getRemovalTime()).isNull();
+    assertThat(userOperationLog.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -1306,7 +1309,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(userOperationLog.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(userOperationLog.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -1329,7 +1332,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     UserOperationLogEntry userOperationLog = historyService.createUserOperationLogQuery().singleResult();
 
     // assume
-    assertThat(userOperationLog.getRemovalTime()).isNull();
+    assertThat(userOperationLog.getRemovalTime(), nullValue());
 
     String taskId = taskService.createTaskQuery().singleResult().getId();
 
@@ -1343,7 +1346,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(userOperationLog.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(userOperationLog.getRemovalTime(), is(removalTime));
   }
 
   /**
@@ -1374,7 +1377,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     UserOperationLogEntry userOperationLog = historyService.createUserOperationLogQuery().singleResult();
 
     // then
-    assertThat(userOperationLog.getTimestamp()).isEqualTo(START_DATE);
+    assertThat(userOperationLog.getTimestamp(), is(START_DATE));
   }
 
   @Test
@@ -1398,7 +1401,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
             .singleResult();
 
     // assume
-    assertThat(historicIdentityLinkLog.getRemovalTime()).isNull();
+    assertThat(historicIdentityLinkLog.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -1412,7 +1415,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(historicIdentityLinkLog.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(historicIdentityLinkLog.getRemovalTime(), is(removalTime));
   }
 
   /**
@@ -1442,7 +1445,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
             .singleResult();
 
     // then
-    assertThat(historicIdentityLinkLog.getTime()).isEqualTo(START_DATE);
+    assertThat(historicIdentityLinkLog.getTime(), is(START_DATE));
   }
 
   @Test
@@ -1459,10 +1462,10 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     HistoricIdentityLinkLog historicIdentityLinkLog = historyService.createHistoricIdentityLinkLogQuery().singleResult();
 
     // assume
-    assertThat(historicIdentityLinkLog).isNotNull();
+    assertThat(historicIdentityLinkLog, notNullValue());
 
     // then
-    assertThat(historicIdentityLinkLog.getRemovalTime()).isNull();
+    assertThat(historicIdentityLinkLog.getRemovalTime(), nullValue());
 
     // cleanup
     taskService.complete(aTask.getId());
@@ -1490,7 +1493,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Comment comment = taskService.getProcessInstanceComments(processInstanceId).get(0);
 
     // assume
-    assertThat(comment.getRemovalTime()).isNull();
+    assertThat(comment.getRemovalTime(), nullValue());
 
     String taskId = taskService.createTaskQuery().singleResult().getId();
 
@@ -1504,7 +1507,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(comment.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(comment.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -1525,7 +1528,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Comment comment = taskService.getTaskComments(taskId).get(0);
 
     // assume
-    assertThat(comment.getRemovalTime()).isNull();
+    assertThat(comment.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -1537,7 +1540,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(comment.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(comment.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -1568,7 +1571,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     taskService.complete(taskId);
 
     // then
-    assertThat(comment.getRemovalTime()).isNull();
+    assertThat(comment.getRemovalTime(), nullValue());
   }
 
   @Test
@@ -1589,7 +1592,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Comment comment = taskService.getTaskComments(taskId).get(0);
 
     // assume
-    assertThat(comment.getRemovalTime()).isNull();
+    assertThat(comment.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -1601,7 +1604,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(comment.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(comment.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -1625,7 +1628,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Attachment attachment = taskService.getAttachment(attachmentId);
 
     // assume
-    assertThat(attachment.getRemovalTime()).isNull();
+    assertThat(attachment.getRemovalTime(), nullValue());
 
     String taskId = taskService.createTaskQuery().singleResult().getId();
 
@@ -1639,7 +1642,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     attachment = taskService.getAttachment(attachmentId);
 
     // then
-    assertThat(attachment.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(attachment.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -1660,7 +1663,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Attachment attachment = taskService.getAttachment(attachmentId);
 
     // assume
-    assertThat(attachment.getRemovalTime()).isNull();
+    assertThat(attachment.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -1672,7 +1675,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(attachment.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(attachment.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -1703,7 +1706,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     taskService.complete(taskId);
 
     // then
-    assertThat(attachment.getRemovalTime()).isNull();
+    assertThat(attachment.getRemovalTime(), nullValue());
   }
 
   @Test
@@ -1726,7 +1729,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Attachment attachment = taskService.getAttachment(attachmentId);
 
     // assume
-    assertThat(attachment.getRemovalTime()).isNull();
+    assertThat(attachment.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -1738,7 +1741,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(attachment.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(attachment.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -1759,7 +1762,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     ByteArrayEntity byteArray = findByteArrayById(attachment.getContentId());
 
     // assume
-    assertThat(byteArray.getRemovalTime()).isNull();
+    assertThat(byteArray.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -1771,7 +1774,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(byteArray.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(byteArray.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -1795,7 +1798,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     ByteArrayEntity byteArray = findByteArrayById(attachment.getContentId());
 
     // assume
-    assertThat(byteArray.getRemovalTime()).isNull();
+    assertThat(byteArray.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -1809,7 +1812,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(byteArray.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(byteArray.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -1830,7 +1833,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     ByteArrayEntity byteArray = findByteArrayById(historicVariableInstance.getByteArrayId());
 
     // assume
-    assertThat(byteArray.getRemovalTime()).isNull();
+    assertThat(byteArray.getRemovalTime(), nullValue());
 
     String taskId = taskService.createTaskQuery().singleResult().getId();
 
@@ -1844,7 +1847,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(byteArray.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(byteArray.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -1870,7 +1873,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     ByteArrayEntity byteArray = findByteArrayById(historicDetails.getByteArrayValueId());
 
     // assume
-    assertThat(byteArray.getRemovalTime()).isNull();
+    assertThat(byteArray.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -1884,7 +1887,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(byteArray.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(byteArray.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -1916,12 +1919,10 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
       .failureLog()
       .singleResult();
 
-    String byteArrayId = jobLog.getExceptionByteArrayId();
-
-    ByteArrayEntity byteArray = findByteArrayById(byteArrayId);
+    ByteArrayEntity byteArray = findByteArrayById(jobLog.getExceptionByteArrayId());
 
     // assume
-    assertThat(byteArray.getRemovalTime()).isNull();
+    assertThat(byteArray.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -1934,10 +1935,10 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
 
     Date removalTime = addDays(END_DATE, 5);
 
-    byteArray = findByteArrayById(byteArrayId);
+    byteArray = findByteArrayById(jobLog.getExceptionByteArrayId());
 
     // then
-    assertThat(byteArray.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(byteArray.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -1974,7 +1975,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     ByteArrayEntity byteArrayEntity = findByteArrayById(externalTaskLog.getErrorDetailsByteArrayId());
 
     // assume
-    assertThat(byteArrayEntity.getRemovalTime()).isNull();
+    assertThat(byteArrayEntity.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -1986,7 +1987,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(byteArrayEntity.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(byteArrayEntity.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -2018,7 +2019,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     ByteArrayEntity byteArrayEntity = findByteArrayById(historicDecisionInputInstanceEntity.getByteArrayValueId());
 
     // assume
-    assertThat(byteArrayEntity.getRemovalTime()).isNull();
+    assertThat(byteArrayEntity.getRemovalTime(), nullValue());
 
     String taskId = taskService.createTaskQuery().singleResult().getId();
 
@@ -2032,7 +2033,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(byteArrayEntity.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(byteArrayEntity.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -2064,7 +2065,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     ByteArrayEntity byteArrayEntity = findByteArrayById(historicDecisionOutputInstanceEntity.getByteArrayValueId());
 
     // assume
-    assertThat(byteArrayEntity.getRemovalTime()).isNull();
+    assertThat(byteArrayEntity.getRemovalTime(), nullValue());
 
     ClockUtil.setCurrentTime(END_DATE);
 
@@ -2078,7 +2079,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(byteArrayEntity.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(byteArrayEntity.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -2110,7 +2111,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     ByteArrayEntity byteArrayEntity = findByteArrayById(historicDecisionOutputInstanceEntity.getByteArrayValueId());
 
     // assume
-    assertThat(byteArrayEntity.getRemovalTime()).isNull();
+    assertThat(byteArrayEntity.getRemovalTime(), nullValue());
 
     String taskId = taskService.createTaskQuery().singleResult().getId();
 
@@ -2124,7 +2125,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     Date removalTime = addDays(END_DATE, 5);
 
     // then
-    assertThat(byteArrayEntity.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(byteArrayEntity.getRemovalTime(), is(removalTime));
   }
 
   @Test
@@ -2154,7 +2155,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     HistoricBatch historicBatch = historyService.createHistoricBatchQuery().singleResult();
 
     // then
-    assertThat(historicBatch.getRemovalTime()).isEqualTo(addDays(END_DATE, 5));
+    assertThat(historicBatch.getRemovalTime(), is(addDays(END_DATE, 5)));
 
     // cleanup
     historyService.deleteHistoricBatch(batch.getId());
@@ -2187,9 +2188,9 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     List<HistoricJobLog> jobLogs = historyService.createHistoricJobLogQuery().list();
 
     // then
-    assertThat(jobLogs.get(0).getRemovalTime()).isEqualTo(addDays(END_DATE, 5));
-    assertThat(jobLogs.get(1).getRemovalTime()).isEqualTo(addDays(END_DATE, 5));
-    assertThat(jobLogs.get(2).getRemovalTime()).isEqualTo(addDays(END_DATE, 5));
+    assertThat(jobLogs.get(0).getRemovalTime(), is(addDays(END_DATE, 5)));
+    assertThat(jobLogs.get(1).getRemovalTime(), is(addDays(END_DATE, 5)));
+    assertThat(jobLogs.get(2).getRemovalTime(), is(addDays(END_DATE, 5)));
 
     // cleanup
     historyService.deleteHistoricBatch(batch.getId());
@@ -2243,7 +2244,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     ByteArrayEntity byteArray = findByteArrayById(byteArrayId);
 
     // then
-    assertThat(byteArray.getRemovalTime()).isEqualTo(addDays(END_DATE, 5));
+    assertThat(byteArray.getRemovalTime(), is(addDays(END_DATE, 5)));
 
     // cleanup
     historyService.deleteHistoricBatch(batch.getId());
@@ -2282,9 +2283,9 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     List<HistoricJobLog> jobLogs = historyService.createHistoricJobLogQuery().list();
 
     // then
-    assertThat(jobLogs.get(0).getTimestamp()).isEqualTo(START_DATE);
-    assertThat(jobLogs.get(1).getTimestamp()).isEqualTo(START_DATE);
-    assertThat(jobLogs.get(2).getTimestamp()).isEqualTo(START_DATE);
+    assertThat(jobLogs.get(0).getTimestamp(), is(START_DATE));
+    assertThat(jobLogs.get(1).getTimestamp(), is(START_DATE));
+    assertThat(jobLogs.get(2).getTimestamp(), is(START_DATE));
 
     // cleanup
     historyService.deleteHistoricBatch(batch.getId());
@@ -2308,7 +2309,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     HistoricJobLog jobLog = historyService.createHistoricJobLogQuery().singleResult();
 
     // assume
-    assertThat(jobLog.getRemovalTime()).isNull();
+    assertThat(jobLog.getRemovalTime(), nullValue());
 
     managementService.setJobRetries(jobLog.getJobId(), 0);
 
@@ -2321,7 +2322,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     HistoricIncident historicIncident = historyService.createHistoricIncidentQuery().singleResult();
 
     // then
-    assertThat(historicIncident.getRemovalTime()).isEqualTo(addDays(START_DATE, 5));
+    assertThat(historicIncident.getRemovalTime(), is(addDays(START_DATE, 5)));
 
     // cleanup
     historyService.deleteHistoricBatch(batch.getId());
@@ -2345,7 +2346,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     HistoricJobLog jobLog = historyService.createHistoricJobLogQuery().singleResult();
 
     // assume
-    assertThat(jobLog.getRemovalTime()).isNull();
+    assertThat(jobLog.getRemovalTime(), nullValue());
 
     // when
     runtimeService.deleteProcessInstance(processInstanceId, "aDeleteReason");
@@ -2371,7 +2372,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     HistoricIncident historicIncident = historyService.createHistoricIncidentQuery().singleResult();
 
     // then
-    assertThat(historicIncident.getRemovalTime()).isEqualTo(addDays(START_DATE, 5));
+    assertThat(historicIncident.getRemovalTime(), is(addDays(START_DATE, 5)));
 
     // cleanup
     historyService.deleteHistoricBatch(batch.getId());
@@ -2395,7 +2396,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     HistoricJobLog jobLog = historyService.createHistoricJobLogQuery().singleResult();
 
     // assume
-    assertThat(jobLog.getRemovalTime()).isNull();
+    assertThat(jobLog.getRemovalTime(), nullValue());
 
     managementService.executeJob(jobLog.getJobId());
 
@@ -2415,7 +2416,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     HistoricIncident historicIncident = historyService.createHistoricIncidentQuery().singleResult();
 
     // then
-    assertThat(historicIncident.getRemovalTime()).isEqualTo(addDays(START_DATE, 5));
+    assertThat(historicIncident.getRemovalTime(), is(addDays(START_DATE, 5)));
 
     // cleanup
     historyService.deleteHistoricBatch(batch.getId());
@@ -2442,7 +2443,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     HistoricJobLog jobLog = historyService.createHistoricJobLogQuery().singleResult();
 
     // assume
-    assertThat(jobLog.getRemovalTime()).isNull();
+    assertThat(jobLog.getRemovalTime(), nullValue());
 
     managementService.setJobRetries(jobLog.getJobId(), 0);
 
@@ -2455,7 +2456,7 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     HistoricIncident historicIncident = historyService.createHistoricIncidentQuery().singleResult();
 
     // then
-    assertThat(historicIncident.getCreateTime()).isEqualTo(START_DATE);
+    assertThat(historicIncident.getCreateTime(), is(START_DATE));
 
     // cleanup
     historyService.deleteHistoricBatch(batch.getId());

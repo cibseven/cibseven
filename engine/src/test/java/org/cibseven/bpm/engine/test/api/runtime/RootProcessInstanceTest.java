@@ -16,7 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.api.runtime;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssertions.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.notNullValue;
 
 import java.util.HashMap;
 import java.util.List;
@@ -86,10 +88,10 @@ public class RootProcessInstanceTest {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(CALLED_PROCESS_KEY);
 
     // assume
-    assertThat(processInstance.getRootProcessInstanceId()).isNotNull();
+    assertThat(processInstance.getRootProcessInstanceId(), notNullValue());
 
     // then
-    assertThat(processInstance.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
+    assertThat(processInstance.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
   }
 
   @Test
@@ -104,10 +106,10 @@ public class RootProcessInstanceTest {
     ProcessInstance processInstance = formService.submitStartForm(processDefinitionId, properties);
 
     // assume
-    assertThat(processInstance.getRootProcessInstanceId()).isNotNull();
+    assertThat(processInstance.getRootProcessInstanceId(), notNullValue());
 
     // then
-    assertThat(processInstance.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
+    assertThat(processInstance.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
   }
 
   @Test
@@ -121,10 +123,10 @@ public class RootProcessInstanceTest {
       .execute();
 
     // assume
-    assertThat(processInstance.getRootProcessInstanceId()).isNotNull();
+    assertThat(processInstance.getRootProcessInstanceId(), notNullValue());
 
     // then
-    assertThat(processInstance.getRootProcessInstanceId()).isEqualTo(processInstance.getProcessInstanceId());
+    assertThat(processInstance.getRootProcessInstanceId(), is(processInstance.getProcessInstanceId()));
   }
 
   @Test
@@ -150,13 +152,16 @@ public class RootProcessInstanceTest {
       .singleResult();
 
     // assume
-    assertThat(runtimeService.createProcessInstanceQuery().count()).isEqualTo(3L);
-    assertThat(callingProcessInstance.getRootProcessInstanceId()).isNotNull();
+    assertThat(runtimeService.createProcessInstanceQuery().count(), is(3L));
+    assertThat(callingProcessInstance.getRootProcessInstanceId(), notNullValue());
 
     // then
-    assertThat(callingProcessInstance.getRootProcessInstanceId()).isEqualTo(callingProcessInstance.getProcessInstanceId());
-    assertThat(calledProcessInstance.getRootProcessInstanceId()).isEqualTo(callingProcessInstance.getProcessInstanceId());
-    assertThat(calledAndCallingProcessInstance.getRootProcessInstanceId()).isEqualTo(callingProcessInstance.getProcessInstanceId());
+    assertThat(callingProcessInstance.getRootProcessInstanceId(),
+      is(callingProcessInstance.getProcessInstanceId()));
+    assertThat(calledProcessInstance.getRootProcessInstanceId(),
+      is(callingProcessInstance.getProcessInstanceId()));
+    assertThat(calledAndCallingProcessInstance.getRootProcessInstanceId(),
+      is(callingProcessInstance.getProcessInstanceId()));
   }
 
   @Test
@@ -192,20 +197,25 @@ public class RootProcessInstanceTest {
       .singleResult();
 
     // assume
-    assertThat(runtimeService.createProcessInstanceQuery().count()).isEqualTo(5L);
-    assertThat(callingProcessInstance.getProcessInstanceId()).isNotNull();
+    assertThat(runtimeService.createProcessInstanceQuery().count(), is(5L));
+    assertThat(callingProcessInstance.getProcessInstanceId(), notNullValue());
 
-    assertThat(calledProcessInstances.size()).isEqualTo(2);
-    assertThat(calledAndCallingProcessInstances.size()).isEqualTo(2);
+    assertThat(calledProcessInstances.size(), is(2));
+    assertThat(calledAndCallingProcessInstances.size(), is(2));
 
     // then
-    assertThat(callingProcessInstance.getRootProcessInstanceId()).isEqualTo(callingProcessInstance.getProcessInstanceId());
+    assertThat(callingProcessInstance.getRootProcessInstanceId(),
+      is(callingProcessInstance.getProcessInstanceId()));
 
-    assertThat(calledProcessInstances.get(0).getRootProcessInstanceId()).isEqualTo(callingProcessInstance.getProcessInstanceId());
-    assertThat(calledProcessInstances.get(1).getRootProcessInstanceId()).isEqualTo(callingProcessInstance.getProcessInstanceId());
+    assertThat(calledProcessInstances.get(0).getRootProcessInstanceId(),
+      is(callingProcessInstance.getProcessInstanceId()));
+    assertThat(calledProcessInstances.get(1).getRootProcessInstanceId(),
+      is(callingProcessInstance.getProcessInstanceId()));
 
-    assertThat(calledAndCallingProcessInstances.get(0).getRootProcessInstanceId()).isEqualTo(callingProcessInstance.getProcessInstanceId());
-    assertThat(calledAndCallingProcessInstances.get(1).getRootProcessInstanceId()).isEqualTo(callingProcessInstance.getProcessInstanceId());
+    assertThat(calledAndCallingProcessInstances.get(0).getRootProcessInstanceId(),
+      is(callingProcessInstance.getProcessInstanceId()));
+    assertThat(calledAndCallingProcessInstances.get(1).getRootProcessInstanceId(),
+      is(callingProcessInstance.getProcessInstanceId()));
   }
 
 }

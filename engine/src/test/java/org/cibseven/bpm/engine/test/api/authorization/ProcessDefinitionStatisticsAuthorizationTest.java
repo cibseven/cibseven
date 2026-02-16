@@ -244,16 +244,16 @@ public class ProcessDefinitionStatisticsAuthorizationTest extends AuthorizationT
   // helper ///////////////////////////////////////////////////////////////////////////
 
   protected void verifyStatisticsResult(ProcessDefinitionStatistics statistics, int instances, int failedJobs, int incidents) {
-    assertEquals(instances, statistics.getInstances(), "Instances");
-    assertEquals(failedJobs, statistics.getFailedJobs(), "Failed Jobs");
+    assertEquals("Instances", instances, statistics.getInstances());
+    assertEquals("Failed Jobs", failedJobs, statistics.getFailedJobs());
 
     List<IncidentStatistics> incidentStatistics = statistics.getIncidentStatistics();
     if (incidents == 0) {
-      assertTrue(incidentStatistics.isEmpty(), "Incidents supposed to be empty");
+      assertTrue("Incidents supposed to be empty", incidentStatistics.isEmpty());
     }
     else {
       // the test does have only one type of incidents
-      assertEquals(incidents, incidentStatistics.get(0).getIncidentCount(), "Incidents");
+      assertEquals("Incidents", incidents, incidentStatistics.get(0).getIncidentCount());
     }
   }
 

@@ -19,7 +19,7 @@ package org.cibseven.bpm.engine.test.api.runtime.migration;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
-import static org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert.assertReport;
+import static org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert.assertThat;
 
 import org.cibseven.bpm.engine.migration.MigrationPlan;
 import org.cibseven.bpm.engine.migration.MigrationPlanValidationException;
@@ -253,7 +253,7 @@ public class MigrationGatewayTest {
       Assertions.fail("exception expected");
     } catch (MigrationPlanValidationException e) {
       // then
-      assertReport(e.getValidationReport())
+      assertThat(e.getValidationReport())
       .hasInstructionFailures("join",
         "Activities have incompatible types "
         + "(ParallelGatewayActivityBehavior is not compatible with InclusiveGatewayActivityBehavior)"
@@ -275,7 +275,7 @@ public class MigrationGatewayTest {
       Assertions.fail("exception expected");
     } catch (MigrationPlanValidationException e) {
       // then
-      assertReport(e.getValidationReport())
+      assertThat(e.getValidationReport())
       .hasInstructionFailures("join",
         "Activities have incompatible types "
         + "(InclusiveGatewayActivityBehavior is not compatible with ParallelGatewayActivityBehavior)"
@@ -302,7 +302,7 @@ public class MigrationGatewayTest {
       Assertions.fail("exception expected");
     } catch (MigrationPlanValidationException e) {
       // then
-      assertReport(e.getValidationReport())
+      assertThat(e.getValidationReport())
       .hasInstructionFailures("join",
         "The target gateway must have at least the same number of incoming sequence flows that the source gateway has"
       );
@@ -370,7 +370,7 @@ public class MigrationGatewayTest {
       Assertions.fail("exception expected");
     } catch (MigrationPlanValidationException e) {
       // then
-      assertReport(e.getValidationReport())
+      assertThat(e.getValidationReport())
       .hasInstructionFailures("join",
         "The gateway's flow scope 'subProcess' must be mapped"
       );
@@ -396,10 +396,11 @@ public class MigrationGatewayTest {
       Assertions.fail("exception expected");
     } catch (MigrationPlanValidationException e) {
       // then
-      assertReport(e.getValidationReport())
+      assertThat(e.getValidationReport())
       .hasInstructionFailures("join",
         "Only one gateway can be mapped to gateway 'join'"
        );
     }
   }
 }
+

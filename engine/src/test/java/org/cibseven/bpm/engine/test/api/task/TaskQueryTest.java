@@ -4992,23 +4992,22 @@ public class TaskQueryTest extends PluggableProcessEngineTest {
     }
   }
 
-    /**
-     * verify that either the first or the last task of the list belong to the given process instance
-     */
-    protected void verifyFirstOrLastTask(List<Task> tasks, ProcessInstance belongingProcessInstance) {
+  /**
+   * verify that either the first or the last task of the list belong to the given process instance
+   */
+  protected void verifyFirstOrLastTask(List<Task> tasks, ProcessInstance belongingProcessInstance) {
     if (tasks.size() == 0) {
       fail("no tasks given");
     }
 
     int numTasks = tasks.size();
-    Task firstTask = tasks.get(0);
-    Task lastTask = tasks.get(numTasks - 1);
+    boolean matches = tasks.get(0).getProcessInstanceId().equals(belongingProcessInstance.getId());
+    matches = matches || tasks.get(numTasks - 1).getProcessInstanceId()
+        .equals(belongingProcessInstance.getId());
 
-    assertTrue(
-        firstTask.getProcessInstanceId().equals(belongingProcessInstance.getId()) ||
-        lastTask.getProcessInstanceId().equals(belongingProcessInstance.getId()),
-        "neither first nor last task belong to process instance " + belongingProcessInstance.getId());
-    }
+    assertTrue("neither first nor last task belong to process instance " + belongingProcessInstance.getId(),
+        matches);
+  }
 
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/task/TaskQueryTest.testProcessDefinition.bpmn20.xml")
   @Test

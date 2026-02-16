@@ -19,8 +19,10 @@ package org.cibseven.bpm.engine.test.api.runtime;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -149,7 +151,7 @@ public class ProcessInstanceModificationSubProcessTest {
       .execute();
 
     // then the process should be finished
-    assertEquals(runtimeService.createProcessInstanceQuery().count(), 0L);
+    assertThat(runtimeService.createProcessInstanceQuery().count(), is(0L));
   }
 
   @Test
@@ -187,10 +189,10 @@ public class ProcessInstanceModificationSubProcessTest {
       .execute();
 
     // then the parent process instance is still active
-    assertEquals(runtimeService.createProcessInstanceQuery().count(), 1L);
+    assertThat(runtimeService.createProcessInstanceQuery().count(), is(1L));
 
     Task task = taskService.createTaskQuery().singleResult();
-    assertEquals(task.getProcessInstanceId(), parentPI.getId());
+    assertThat(task.getProcessInstanceId(), is(parentPI.getId()));
   }
 
   @Test
@@ -235,7 +237,7 @@ public class ProcessInstanceModificationSubProcessTest {
       .execute();
 
     // then the process should be finished
-    assertEquals(runtimeService.createProcessInstanceQuery().count(), 0L);
+    assertThat(runtimeService.createProcessInstanceQuery().count(), is(0L));
 
   }
 
@@ -282,10 +284,10 @@ public class ProcessInstanceModificationSubProcessTest {
       .execute();
 
     // then the parent process instance is still active
-    assertEquals(runtimeService.createProcessInstanceQuery().count(), 1L);
+    assertThat(runtimeService.createProcessInstanceQuery().count(), is(1L));
 
     Task task = taskService.createTaskQuery().singleResult();
-    assertEquals(task.getProcessInstanceId(), parentPI.getId());
+    assertThat(task.getProcessInstanceId(), is(parentPI.getId()));
 
   }
 
@@ -324,7 +326,7 @@ public class ProcessInstanceModificationSubProcessTest {
       .execute();
 
     // then the process should be finished
-    assertEquals(runtimeService.createProcessInstanceQuery().count(), 0L);
+    assertThat(runtimeService.createProcessInstanceQuery().count(), is(0L));
 
   }
 
@@ -364,10 +366,10 @@ public class ProcessInstanceModificationSubProcessTest {
       .execute();
 
     // then the parent process instance is still active
-    assertEquals(runtimeService.createProcessInstanceQuery().count(), 1L);
+    assertThat(runtimeService.createProcessInstanceQuery().count(), is(1L));
 
     Task task = taskService.createTaskQuery().singleResult();
-    assertEquals(task.getProcessInstanceId(), parentPI.getId());
+    assertThat(task.getProcessInstanceId(), is(parentPI.getId()));
 
   }
 
@@ -414,7 +416,7 @@ public class ProcessInstanceModificationSubProcessTest {
       .execute();
 
     // then the process should be finished
-    assertEquals(runtimeService.createProcessInstanceQuery().count(), 0L);
+    assertThat(runtimeService.createProcessInstanceQuery().count(), is(0L));
   }
 
   @Test
@@ -461,10 +463,10 @@ public class ProcessInstanceModificationSubProcessTest {
       .execute();
 
     // then the parent process instance is still active
-    assertEquals(runtimeService.createProcessInstanceQuery().count(), 1L);
+    assertThat(runtimeService.createProcessInstanceQuery().count(), is(1L));
 
     Task task = taskService.createTaskQuery().singleResult();
-    assertEquals(task.getProcessInstanceId(), parentPI.getId());
+    assertThat(task.getProcessInstanceId(), is(parentPI.getId()));
   }
 
   @Test
@@ -510,7 +512,7 @@ public class ProcessInstanceModificationSubProcessTest {
       .execute();
 
     // then the process should be finished
-    assertEquals(runtimeService.createProcessInstanceQuery().count(), 0L);
+    assertThat(runtimeService.createProcessInstanceQuery().count(), is(0L));
   }
 
   @Test
@@ -557,10 +559,10 @@ public class ProcessInstanceModificationSubProcessTest {
       .execute();
 
     // then the parent process instance is still active
-    assertEquals(runtimeService.createProcessInstanceQuery().count(), 1L);
+    assertThat(runtimeService.createProcessInstanceQuery().count(), is(1L));
 
     Task task = taskService.createTaskQuery().singleResult();
-    assertEquals(task.getProcessInstanceId(), parentPI.getId());
+    assertThat(task.getProcessInstanceId(), is(parentPI.getId()));
   }
 
   @Test
@@ -605,7 +607,7 @@ public class ProcessInstanceModificationSubProcessTest {
       .execute();
 
     // then
-    assertEquals(runtimeService.createProcessInstanceQuery().count(), 0L);
+    assertThat(runtimeService.createProcessInstanceQuery().count(), is(0L));
   }
 
   @Test
@@ -655,7 +657,7 @@ public class ProcessInstanceModificationSubProcessTest {
       .execute();
 
     // then
-    assertEquals(runtimeService.createProcessInstanceQuery().count(), 0L);
+    assertThat(runtimeService.createProcessInstanceQuery().count(), is(0L));
   }
 
   @Test
@@ -747,11 +749,11 @@ public class ProcessInstanceModificationSubProcessTest {
                   .execute();
 
     // then the parent process instance is still active
-    assertEquals(runtimeService.createProcessInstanceQuery().count(), 1L);
+    assertThat(runtimeService.createProcessInstanceQuery().count(), is(1L));
     assertNotNull(taskService.createTaskQuery().taskName("escalationTask").singleResult());
 
     Task task = taskService.createTaskQuery().singleResult();
-    assertEquals(task.getProcessInstanceId(), parentPI.getId());
+    assertThat(task.getProcessInstanceId(), is(parentPI.getId()));
   }
 
   @Test
@@ -786,7 +788,7 @@ public class ProcessInstanceModificationSubProcessTest {
     final ProcessInstance subprocess = runtimeService.createProcessInstanceQuery().processDefinitionKey("subprocess").singleResult();
     assertNotNull(subprocess);
 
-    // when i do process instance modification
+    // when I do process instance modification
     runtimeService.createProcessInstanceModification(
             subprocess.getProcessInstanceId())
                   .cancelAllForActivity("userTask")
@@ -794,11 +796,11 @@ public class ProcessInstanceModificationSubProcessTest {
                   .execute();
 
     // then the parent process instance is still active
-    assertEquals(runtimeService.createProcessInstanceQuery().count(), 1L);
+    assertThat(runtimeService.createProcessInstanceQuery().count(), is(1L));
     assertNotNull(taskService.createTaskQuery().taskName("errorTask").singleResult());
 
     Task task = taskService.createTaskQuery().singleResult();
-    assertEquals(task.getProcessInstanceId(), parentPI.getId());
+    assertThat(task.getProcessInstanceId(), is(parentPI.getId()));
   }
 
 

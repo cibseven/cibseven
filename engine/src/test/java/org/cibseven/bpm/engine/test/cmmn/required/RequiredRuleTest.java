@@ -17,6 +17,7 @@
 package org.cibseven.bpm.engine.test.cmmn.required;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;

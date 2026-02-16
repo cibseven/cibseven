@@ -56,7 +56,7 @@ public class MigrationFlipScopesTest {
 
       Assertions.fail("should not validate");
     } catch (MigrationPlanValidationException e) {
-      MigrationPlanValidationReportAssert.assertReport(e.getValidationReport())
+      MigrationPlanValidationReportAssert.assertThat(e.getValidationReport())
         .hasInstructionFailures("innerSubProcess",
           "The closest mapped ancestor 'outerSubProcess' is mapped to scope 'innerSubProcess' which is not an ancestor of target scope 'outerSubProcess'"
         );

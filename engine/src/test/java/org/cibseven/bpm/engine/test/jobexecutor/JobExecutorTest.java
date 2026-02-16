@@ -97,7 +97,7 @@ public class JobExecutorTest extends JobExecutorTestCase {
     ProcessEngineConfiguration engineConfig1 =
         ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration();
 
-    assertTrue(engineConfig1.isHintJobExecutor(), "default setting is true");
+    assertTrue("default setting is true", engineConfig1.isHintJobExecutor());
 
     ProcessEngineConfiguration engineConfig2 =
         ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration().setHintJobExecutor(false);

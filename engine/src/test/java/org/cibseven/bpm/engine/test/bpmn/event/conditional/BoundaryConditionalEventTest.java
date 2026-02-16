@@ -1576,9 +1576,7 @@ public class BoundaryConditionalEventTest extends AbstractConditionalEventTestCa
     assertEquals(1, taskService.createTaskQuery().count());
     tasksAfterVariableIsSet = taskService.createTaskQuery().list();
     String taskDefinitionKey = tasksAfterVariableIsSet.get(0).getTaskDefinitionKey();
-    Assertions.assertTrue(
-        "afterBoundary1".equals(taskDefinitionKey) || "afterBoundary2".equals(taskDefinitionKey),
-        "taskDefinitionKey is neither 'afterBoundary1' nor 'afterBoundary2'");
+    Assertions.assertTrue("afterBoundary1".equals(taskDefinitionKey) || "afterBoundary2".equals(taskDefinitionKey));
   }
 
   @Test

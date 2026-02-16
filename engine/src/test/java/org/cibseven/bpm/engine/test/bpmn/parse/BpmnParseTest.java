@@ -18,6 +18,8 @@ package org.cibseven.bpm.engine.test.bpmn.parse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -72,7 +74,6 @@ import org.junit.Assume;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -81,16 +82,16 @@ import org.junit.jupiter.api.extension.RegisterExtension;
  */
 public class BpmnParseTest {
 
-  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  @RegisterExtension
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
+//  @Rule
+//  public RuleChain chain = RuleChain.outerRule(engineRule).around(testRule);
 
-  @RegisterExtension
+//  @Rule
   public SystemPropertiesRule systemProperties = SystemPropertiesRule.resetPropsAfterTest();
 
-  @RegisterExtension
+//  @Rule
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
 
   public RepositoryService repositoryService;
@@ -1233,7 +1234,7 @@ public class BpmnParseTest {
   @Test
   public void testFeatureSecureProcessingRejectsDefinitionDueToAttributeLimit() {
     // IBM JDKs do not check on attribute number limits, skip the test there
-    assertThat(System.getProperty("java.vm.vendor")).doesNotContain("IBM");
+    Assume.assumeThat(System.getProperty("java.vm.vendor"), not(containsString("IBM")));
     try {
       String resource = TestHelper.getBpmnProcessDefinitionResource(getClass(), "testParseProcessDefinitionFSP");
       repositoryService.createDeployment().name(resource).addClasspathResource(resource).deploy();

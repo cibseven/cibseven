@@ -16,13 +16,18 @@
  */
 package org.cibseven.bpm.engine.test.util;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.hamcrest.Matcher;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import org.junit.jupiter.api.Assertions;
 import org.cibseven.bpm.engine.migration.MigrationInstructionValidationReport;
 import org.cibseven.bpm.engine.migration.MigrationPlanValidationReport;
-
-import org.assertj.core.api.Assertions;
 
 public class MigrationPlanValidationReportAssert {
 
@@ -33,7 +38,7 @@ public class MigrationPlanValidationReportAssert {
   }
 
   public MigrationPlanValidationReportAssert isNotNull() {
-	 Assertions.assertThat(actual).as("Expected report to be not null").isNotNull();
+    assertNotNull(actual, "Expected report to be not null");
 
     return this;
   }
@@ -70,10 +75,15 @@ public class MigrationPlanValidationReportAssert {
       }
     }
 
-    Assertions.assertThat(failuresFound)
-        .as("Expected failures for activity id '%s':\n%sBut found failures:\n%s",
-            activityId, joinFailures(expectedFailures), joinFailures(failuresFound.toArray()))
-        .containsExactlyInAnyOrder(expectedFailures);
+    Collection<Matcher<? super String>> matchers = new ArrayList<Matcher<? super String>>();
+    for (String expectedFailure : expectedFailures) {
+      matchers.add(Matchers.containsString(expectedFailure));
+    }
+
+    MatcherAssertions.assertThat(
+      "Expected failures for activity id '" + activityId + "':\n" + joinFailures(expectedFailures) +
+      "But found failures:\n" + joinFailures(failuresFound.toArray()),
+      failuresFound, Matchers.containsInAnyOrder(matchers));
 
     return this;
   }
@@ -89,10 +99,6 @@ public class MigrationPlanValidationReportAssert {
     }
 
     return builder.toString();
-  }
-
-  public static MigrationPlanValidationReportAssert assertReport(MigrationPlanValidationReport report) {
-    return new MigrationPlanValidationReportAssert(report);
   }
 
 }

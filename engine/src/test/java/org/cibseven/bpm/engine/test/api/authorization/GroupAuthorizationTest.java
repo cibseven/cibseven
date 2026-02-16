@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.api.authorization;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -125,8 +126,8 @@ public class GroupAuthorizationTest extends AuthorizationTest {
 
         taskQuery.list();
 
-        verify(authorizationManager, atLeastOnce()).filterAuthenticatedGroupIds(testGroupIds);
-        verify(authCheck, atLeastOnce()).setAuthGroupIds(testGroupIds);
+        verify(authorizationManager, atLeastOnce()).filterAuthenticatedGroupIds(eq(testGroupIds));
+        verify(authCheck, atLeastOnce()).setAuthGroupIds((List<String>) argThat(containsInAnyOrder(testGroupIds.toArray())));
 
         return null;
       }

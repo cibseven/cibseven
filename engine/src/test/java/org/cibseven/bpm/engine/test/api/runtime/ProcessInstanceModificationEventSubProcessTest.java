@@ -885,7 +885,7 @@ public class ProcessInstanceModificationEventSubProcessTest extends PluggablePro
     for (String taskName : taskNames) {
       // complete any task with that name
       List<Task> tasks = taskService.createTaskQuery().taskDefinitionKey(taskName).listPage(0, 1);
-      assertTrue(!tasks.isEmpty(), "task for activity " + taskName + " does not exist");
+      assertTrue("task for activity " + taskName + " does not exist", !tasks.isEmpty());
       taskService.complete(tasks.get(0).getId());
     }
   }

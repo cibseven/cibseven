@@ -16,7 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.api.identity;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssertions.assertThat;
 
 import org.cibseven.bpm.engine.impl.digest.DatabasePrefixHandler;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +43,7 @@ public class DatabasePrefixHandlerTest {
     String prefix = prefixHandler.generatePrefix(algorithmName);
 
     // then
-    assertThat(prefix).isEqualTo("{test}");
+    assertThat(prefix, is("{test}"));
   }
 
   @Test
@@ -54,7 +56,7 @@ public class DatabasePrefixHandlerTest {
     String algorithmName = prefixHandler.retrieveAlgorithmName(encryptedPasswordWithPrefix);
 
     // then
-    assertThat(algorithmName).isEqualTo("SHA");
+    assertThat(algorithmName, is("SHA"));
   }
 
   @Test
@@ -67,7 +69,7 @@ public class DatabasePrefixHandlerTest {
     String algorithmName = prefixHandler.retrieveAlgorithmName(encryptedPasswordWithPrefix);
 
     // then
-    assertThat(algorithmName).isNull();
+    assertThat(algorithmName, is(nullValue()));
   }
 
   @Test
@@ -80,7 +82,7 @@ public class DatabasePrefixHandlerTest {
     String algorithmName = prefixHandler.retrieveAlgorithmName(encryptedPasswordWithPrefix);
 
     // then
-    assertThat(algorithmName).isNull();
+    assertThat(algorithmName, is(nullValue()));
   }
 
   @Test
@@ -93,7 +95,7 @@ public class DatabasePrefixHandlerTest {
     String algorithmName = prefixHandler.retrieveAlgorithmName(encryptedPasswordWithPrefix);
 
     // then
-    assertThat(algorithmName).isNull();
+    assertThat(algorithmName, is(nullValue()));
   }
 
   @Test
@@ -106,7 +108,7 @@ public class DatabasePrefixHandlerTest {
     String encryptedPassword = prefixHandler.removePrefix(encryptedPasswordWithPrefix);
 
     // then
-    assertThat(encryptedPassword).isEqualTo("n3fE9/7XOmgD3BkeJlC+JLyb/Qg=");
+    assertThat(encryptedPassword, is("n3fE9/7XOmgD3BkeJlC+JLyb/Qg="));
 
   }
 
@@ -120,7 +122,7 @@ public class DatabasePrefixHandlerTest {
     String encryptedPassword = prefixHandler.removePrefix(encryptedPasswordWithPrefix);
 
     // then
-    assertThat(encryptedPassword).isNull();
+    assertThat(encryptedPassword, is(nullValue()));
 
   }
 
@@ -134,7 +136,7 @@ public class DatabasePrefixHandlerTest {
     String encryptedPassword = prefixHandler.removePrefix(encryptedPasswordWithPrefix);
 
     // then
-    assertThat(encryptedPassword).isNull();
+    assertThat(encryptedPassword, is(nullValue()));
 
   }
 
@@ -148,7 +150,7 @@ public class DatabasePrefixHandlerTest {
     String encryptedPassword = prefixHandler.removePrefix(encryptedPasswordWithPrefix);
 
     // then
-    assertThat(encryptedPassword).isNull();
+    assertThat(encryptedPassword, is(nullValue()));
   }
 
 

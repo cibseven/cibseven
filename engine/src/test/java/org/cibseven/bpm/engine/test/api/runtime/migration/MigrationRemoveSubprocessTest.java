@@ -379,7 +379,7 @@ public class MigrationRemoveSubprocessTest {
 
       Assertions.fail("should not validate");
     } catch (MigrationPlanValidationException e) {
-      MigrationPlanValidationReportAssert.assertReport(e.getValidationReport())
+      MigrationPlanValidationReportAssert.assertThat(e.getValidationReport())
         .hasInstructionFailures("userTask2",
           "The closest mapped ancestor 'subProcess' is mapped to scope 'subProcess' which is not an ancestor of target scope 'userTask2'"
         );
@@ -565,7 +565,7 @@ public class MigrationRemoveSubprocessTest {
 
       Assertions.fail("should not validate");
     } catch (MigrationPlanValidationException e) {
-      MigrationPlanValidationReportAssert.assertReport(e.getValidationReport())
+      MigrationPlanValidationReportAssert.assertThat(e.getValidationReport())
         .hasInstructionFailures("subProcess3",
           "The closest mapped ancestor 'subProcess1' is mapped to scope 'subProcess1' which is not an ancestor of target scope 'subProcess1'"
         );
