@@ -1,0 +1,15 @@
+<module xmlns="urn:jboss:module:1.0" name="org.cibseven.bpm.identity.cibseven-identity-scim">
+  <resources>
+    <resource-root path="cibseven-identity-scim-@project.version@.jar" />
+  </resources>
+
+  <dependencies>
+
+    <module name="java.base" />
+    <module name="org.slf4j" />		
+
+    <module name="org.cibseven.bpm.cibseven-engine" />
+    <module name="org.cibseven.commons.cibseven-commons-logging" />
+
+  </dependencies>
+</module>
