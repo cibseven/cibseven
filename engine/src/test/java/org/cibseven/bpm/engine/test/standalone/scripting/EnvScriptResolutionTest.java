@@ -57,10 +57,8 @@ public class EnvScriptResolutionTest extends AbstractScriptEnvironmentTest {
     Map<String, List<ExecutableScript>> environmentScripts = processApplication.getEnvironmentScripts();
     assertThat(environmentScripts)
       .hasSize(1)
-      .containsKey(ECMASCRIPT_LANGUAGE)
-      .extracting(ECMASCRIPT_LANGUAGE)
-        .hasSize(1);
-
+      .containsKey(ECMASCRIPT_LANGUAGE);
+    assertThat(environmentScripts.get(ECMASCRIPT_LANGUAGE)).hasSize(1);
     repositoryService.deleteDeployment(deployment.getId(), true);
   }
 
@@ -79,9 +77,9 @@ public class EnvScriptResolutionTest extends AbstractScriptEnvironmentTest {
     assertThat(environmentScripts)
       .hasSize(2)
       .containsKeys(ECMASCRIPT_LANGUAGE, SCRIPT_LANGUAGE)
-      .containsEntry(SCRIPT_LANGUAGE, Collections.emptyList())
-      .extracting(ECMASCRIPT_LANGUAGE)
-        .hasSize(1);
+      .containsEntry(SCRIPT_LANGUAGE, Collections.emptyList());
+    
+    assertThat(environmentScripts.get(ECMASCRIPT_LANGUAGE)).hasSize(1);
 
     repositoryService.deleteDeployment(deployment.getId(), true);
   }

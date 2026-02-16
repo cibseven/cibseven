@@ -1593,7 +1593,7 @@ public class BatchSetRemovalTimeTest {
       .singleResult();
 
     // then
-    assertThat(historicDecisionInstance.getRemovalTime()).isEqualTo(null);
+    assertThat(historicDecisionInstance.getRemovalTime()).isNull();
   }
 
   @Test
@@ -1704,7 +1704,7 @@ public class BatchSetRemovalTimeTest {
       .singleResult();
 
     // then
-    assertThat(historicDecisionInstance.getRemovalTime()).isEqualTo(null);
+    assertThat(historicDecisionInstance.getRemovalTime()).isNull();
   }
 
   @Test

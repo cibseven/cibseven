@@ -237,10 +237,10 @@ public class UserOperationIdTest {
   }
 
   private void verifySameOperationId(List<UserOperationLogEntry> userOperationLogEntries, List<HistoricDetail> historicDetails) {
-    assertTrue("Operation log entry must exist", userOperationLogEntries.size() > 0);
+    assertTrue(userOperationLogEntries.size() > 0, "Operation log entry must exist");
     String operationId = userOperationLogEntries.get(0).getOperationId();
     assertNotNull(operationId);
-    assertTrue("Some historic details are expected to be present", historicDetails.size() > 0);
+    assertTrue(historicDetails.size() > 0, "Some historic details are expected to be present");
     for (UserOperationLogEntry userOperationLogEntry: userOperationLogEntries) {
       assertEquals("OperationIds must be the same", operationId, userOperationLogEntry.getOperationId());
     }

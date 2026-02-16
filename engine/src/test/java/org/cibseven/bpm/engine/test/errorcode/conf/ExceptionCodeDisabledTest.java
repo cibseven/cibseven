@@ -80,8 +80,8 @@ public class ExceptionCodeDisabledTest {
 
     // when/then
     assertThatThrownBy(() -> runtimeService.startProcessInstanceByKey("process", businessKey))
-        .extracting("code")
-        .contains(BuiltinExceptionCode.FALLBACK.getCode());
+    .satisfies(ex -> assertThat(ex)
+            .hasFieldOrPropertyWithValue("code",BuiltinExceptionCode.FALLBACK.getCode()));
   }
 
   @Test
@@ -100,8 +100,8 @@ public class ExceptionCodeDisabledTest {
 
     // when/then
     assertThatThrownBy(() -> identityService.saveUser(user2))
-        .extracting("code")
-        .contains(BuiltinExceptionCode.FALLBACK.getCode());
+    .satisfies(ex -> assertThat(ex)
+            .hasFieldOrPropertyWithValue("code",BuiltinExceptionCode.FALLBACK.getCode()));
   }
 
   @Test
@@ -123,8 +123,8 @@ public class ExceptionCodeDisabledTest {
 
     // then
     assertThatThrownBy(callable)
-        .extracting("code")
-        .contains(999_999);
+    .satisfies(ex -> assertThat(ex)
+    	      .hasFieldOrPropertyWithValue("code", 999_999));
   }
 
   @Test
@@ -146,8 +146,8 @@ public class ExceptionCodeDisabledTest {
 
     // then
     assertThatThrownBy(callable)
-        .extracting("code")
-        .contains(1000);
+      .satisfies(ex -> assertThat(ex)
+      .hasFieldOrPropertyWithValue("code", 1000));
   }
 
   // helper ////////////////////////////////////////////////////////////////////////////////////////

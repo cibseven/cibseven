@@ -16,11 +16,11 @@
  */
 package org.cibseven.bpm.engine.test.api.runtime;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -590,7 +590,7 @@ public class RestartProcessInstanceSyncTest {
       runtimeService.restartProcessInstances(null).execute();
       fail("exception expected");
     } catch (BadUserRequestException e) {
-      Assertions.assertThat(e.getMessage(), containsString("processDefinitionId is null"));
+      assertThat(e.getMessage()).contains("processDefinitionId is null");
     }
   }
 
@@ -600,7 +600,7 @@ public class RestartProcessInstanceSyncTest {
       runtimeService.restartProcessInstances("foo").startAfterActivity("bar").execute();
       fail("exception expected");
     } catch (BadUserRequestException e) {
-      Assertions.assertThat(e.getMessage(), containsString("processInstanceIds is empty"));
+      assertThat(e.getMessage()).contains("processInstanceIds is empty");
     }
   }
 
@@ -610,7 +610,7 @@ public class RestartProcessInstanceSyncTest {
       runtimeService.restartProcessInstances("foo").processInstanceIds("bar").execute();
       fail("exception expected");
     } catch (BadUserRequestException e) {
-      Assertions.assertThat(e.getMessage(), containsString("Restart instructions cannot be empty"));
+      assertThat(e.getMessage()).contains("Restart instructions cannot be empty");
     }
   }
 
@@ -621,7 +621,7 @@ public class RestartProcessInstanceSyncTest {
       runtimeService.restartProcessInstances(processDefinition.getId()).startAfterActivity("bar").processInstanceIds((String) null).execute();
       fail("exception expected");
     } catch (BadUserRequestException e) {
-      Assertions.assertThat(e.getMessage(), containsString("Process instance ids cannot be null"));
+      assertThat(e.getMessage()).contains("Process instance ids cannot be null");
     }
   }
 
@@ -632,7 +632,7 @@ public class RestartProcessInstanceSyncTest {
       runtimeService.restartProcessInstances(processDefinition.getId()).startBeforeActivity("bar").processInstanceIds("aaa").execute();
       fail("exception expected");
     } catch (BadUserRequestException e) {
-      Assertions.assertThat(e.getMessage(), containsString("Historic process instance cannot be found"));
+      assertThat(e.getMessage()).contains("Historic process instance cannot be found");
     }
   }
 
@@ -647,7 +647,7 @@ public class RestartProcessInstanceSyncTest {
       runtimeService.restartProcessInstances(processDefinition.getId()).startBeforeActivity("userTask").processInstanceIds(processInstance.getId()).execute();
       fail("exception expected");
     } catch (ProcessEngineException e) {
-      Assertions.assertThat(e.getMessage(), containsString("Its process definition '" + processDefinition2.getId() + "' does not match given process definition '" + processDefinition.getId() +"'" ));
+      assertThat(e.getMessage()).contains("Its process definition '" + processDefinition2.getId() + "' does not match given process definition '" + processDefinition.getId() +"'" );
     }
   }
 

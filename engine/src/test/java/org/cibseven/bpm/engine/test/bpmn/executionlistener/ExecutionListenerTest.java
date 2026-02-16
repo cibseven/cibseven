@@ -285,8 +285,8 @@ public class ExecutionListenerTest {
       String[] variableNames = new String[]{"start-start", "start-end", "start-take", "end-start", "end-end"};
       for (String variableName : variableNames) {
         variableInstance = query.variableName(variableName).singleResult();
-        assertNotNull("Unable ot find variable with name '" + variableName + "'", variableInstance);
-        assertTrue("Variable '" + variableName + "' should be set to true", (Boolean) variableInstance.getValue());
+        assertNotNull(variableInstance, "Unable ot find variable with name '" + variableName + "'");
+        assertTrue((Boolean) variableInstance.getValue(), "Variable '" + variableName + "' should be set to true");
       }
     }
   }
@@ -309,8 +309,8 @@ public class ExecutionListenerTest {
       String[] variableNames = new String[]{"start-start", "start-end", "start-take", "end-start", "end-end"};
       for (String variableName : variableNames) {
         variableInstance = query.variableName(variableName).singleResult();
-        assertNotNull("Unable ot find variable with name '" + variableName + "'", variableInstance);
-        assertTrue("Variable '" + variableName + "' should be set to true", (Boolean) variableInstance.getValue());
+        assertNotNull(variableInstance, "Unable ot find variable with name '" + variableName + "'");
+        assertTrue((Boolean) variableInstance.getValue(), "Variable '" + variableName + "' should be set to true");
       }
     }
   }

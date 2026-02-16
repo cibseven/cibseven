@@ -1202,7 +1202,7 @@ public class CompensateEventTest extends PluggableProcessEngineTest {
   private void completeTasks(String taskName, int times) {
     List<Task> tasks = taskService.createTaskQuery().taskName(taskName).list();
 
-    assertTrue("Actual there are " + tasks.size() + " open tasks with name '" + taskName + "'. Expected at least " + times, times <= tasks.size());
+    assertTrue(times <= tasks.size(), "Actual there are " + tasks.size() + " open tasks with name '" + taskName + "'. Expected at least " + times);
 
     Iterator<Task> taskIterator = tasks.iterator();
     for (int i = 0; i < times; i++) {
@@ -1213,7 +1213,7 @@ public class CompensateEventTest extends PluggableProcessEngineTest {
 
   private void completeTaskWithVariable(String taskName, String variable, Object value) {
     Task task = taskService.createTaskQuery().taskName(taskName).singleResult();
-    assertNotNull("No open task with name '" + taskName + "'", task);
+    assertNotNull(task, "No open task with name '" + taskName + "'");
 
     Map<String, Object> variables = new HashMap<String, Object>();
     if (variable != null) {

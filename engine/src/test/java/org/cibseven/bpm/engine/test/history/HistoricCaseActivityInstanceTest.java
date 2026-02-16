@@ -23,14 +23,11 @@ import static org.cibseven.bpm.engine.impl.cmmn.execution.CaseExecutionState.DIS
 import static org.cibseven.bpm.engine.impl.cmmn.execution.CaseExecutionState.ENABLED;
 import static org.cibseven.bpm.engine.impl.cmmn.execution.CaseExecutionState.SUSPENDED;
 import static org.cibseven.bpm.engine.impl.cmmn.execution.CaseExecutionState.TERMINATED;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -66,7 +63,6 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.cmmn.CmmnTest;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.hamcrest.Matcher;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -965,7 +961,7 @@ public class HistoricCaseActivityInstanceTest extends CmmnTest {
     HistoricCaseActivityInstance historicActivityInstance = historicQuery()
       .caseActivityId(activityId)
       .singleResult();
-    assertNotNull("No historic activity instance found for activity id: " + activityId, historicActivityInstance);
+    assertNotNull(historicActivityInstance, "No historic activity instance found for activity id: " + activityId);
     return historicActivityInstance;
   }
 
@@ -973,7 +969,7 @@ public class HistoricCaseActivityInstanceTest extends CmmnTest {
     HistoricCaseActivityInstanceEventEntity historicActivityInstance = (HistoricCaseActivityInstanceEventEntity) queryHistoricActivityCaseInstance(activityId);
     int actualStateCode = historicActivityInstance.getCaseActivityInstanceState();
     CaseExecutionState actualState = CaseExecutionState.CaseExecutionStateImpl.getStateForCode(actualStateCode);
-    assertEquals("The state of historic case activity '" + activityId + "' wasn't as expected", expectedState, actualState);
+    assertEquals(expectedState, actualState, "The state of historic case activity '" + activityId + "' wasn't as expected");
   }
 
   protected void assertHistoricCreateTime(String activityId, Date expectedCreateTime) {
@@ -1067,37 +1063,32 @@ public class HistoricCaseActivityInstanceTest extends CmmnTest {
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  protected void assertQuerySorting(String property, Query<?, ?> query, Comparable... items) {
+  private void assertQuerySorting(String property, Query<?, ?> query, Comparable... items) {
     AbstractQuery<?, ?> queryImpl = (AbstractQuery<?, ?>) query;
-
+   
     // save order properties to later reverse ordering
     List<QueryOrderingProperty> orderProperties = queryImpl.getOrderingProperties();
-
+   
     List<? extends Comparable> sortedList = Arrays.asList(items);
     Collections.sort(sortedList);
-
-    List<Matcher<Object>> matchers = new ArrayList<Matcher<Object>>();
-    for (Comparable comparable : sortedList) {
-      matchers.add(hasProperty(property, equalTo(comparable)));
-    }
-
+   
     List<?> instances = query.asc().list();
     assertEquals(sortedList.size(), instances.size());
-    assertThat(instances, contains(matchers.toArray(new Matcher[matchers.size()])));
-
+    assertThat(instances).extracting(property).containsExactlyElementsOf(sortedList);
+   
     // reverse ordering
     for (QueryOrderingProperty orderingProperty : orderProperties) {
       orderingProperty.setDirection(Direction.DESCENDING);
     }
-
-    // reverse matchers
-    Collections.reverse(matchers);
-
+   
+    // reverse sorted list
+    Collections.reverse(sortedList);
+   
     instances = query.list();
     assertEquals(sortedList.size(), instances.size());
-    assertThat(instances, contains(matchers.toArray(new Matcher[matchers.size()])));
+    assertThat(instances).extracting(property).containsExactlyElementsOf(sortedList);
   }
-
+  
   @Deployment(resources = {"org/cibseven/bpm/engine/test/history/HistoricCaseActivityInstanceTest.oneStageAndOneTaskCaseWithManualActivation.cmmn"})
   @Test
   public void testHistoricActivityInstanceWithinStageIsMarkedTerminatedOnComplete() {

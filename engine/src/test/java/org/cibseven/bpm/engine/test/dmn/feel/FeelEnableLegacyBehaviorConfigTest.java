@@ -86,8 +86,8 @@ public class FeelEnableLegacyBehaviorConfigTest {
     assertThatThrownBy(() -> decisionService.evaluateDecisionTableByKey("c",
         Variables.putValue("cellInput", 6)).getSingleEntry())
       .hasCauseInstanceOf(FeelSyntaxException.class)
-      .extracting("cause.message")
-      .contains("FEEL-01010 Syntax error in expression 'for x in 1..3 return x * 2'");
+      .satisfies(ex -> assertThat(ex)
+    	      .hasFieldOrPropertyWithValue("cause.message", "FEEL-01010 Syntax error in expression 'for x in 1..3 return x * 2'"));
   }
 
   @Test

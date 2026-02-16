@@ -116,8 +116,8 @@ public abstract class AbstractCompetingTransactionsOptimisticLockingTest {
     // then
     assertThat(thread1.exception)
       .isInstanceOf(ProcessEngineException.class)
-      .extracting("code")
-      .contains(BuiltinExceptionCode.FOREIGN_KEY_CONSTRAINT_VIOLATION.getCode());
+      .satisfies(ex -> assertThat(ex)
+        .hasFieldOrPropertyWithValue("code", BuiltinExceptionCode.FOREIGN_KEY_CONSTRAINT_VIOLATION.getCode()));
   }
 
   public class CompleteTaskThread extends ControllableThread {

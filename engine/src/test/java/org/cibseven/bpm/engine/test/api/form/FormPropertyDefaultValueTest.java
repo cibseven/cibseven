@@ -54,7 +54,7 @@ public class FormPropertyDefaultValueTest extends PluggableProcessEngineTest {
       } else if ("longExpressionProperty".equals(prop.getId())) {
         assertEquals("23", prop.getValue());
       } else {
-        assertTrue("Invalid form property: " + prop.getId(), false);
+        assertEquals(prop.getId(), false, "Invalid form property: " );
       }
     }
 
@@ -94,7 +94,7 @@ public class FormPropertyDefaultValueTest extends PluggableProcessEngineTest {
       } else if ("longExpressionProperty".equals(prop.getId())) {
         assertEquals("23", prop.getValue());
       } else {
-        assertTrue("Invalid form property: " + prop.getId(), false);
+        assertTrue(false, "Invalid form property: " + prop.getId());
       }
     }
 

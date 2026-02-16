@@ -16,12 +16,11 @@
  */
 package org.cibseven.bpm.engine.test.api.optimize;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssertions.assertThat;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Date;
 import java.util.List;
@@ -108,7 +107,7 @@ public class GetCompletedHistoricProcessInstancesForOptimizeTest {
       optimizeService.getCompletedHistoricProcessInstances(pastDate(), null, 10);
 
     // then
-    assertThat(completedHistoricProcessInstances.size(), is(1));
+    assertThat(completedHistoricProcessInstances.size()).isEqualTo(1);
     assertThatInstanceHasAllImportantInformation(completedHistoricProcessInstances.get(0));
   }
 
@@ -132,7 +131,7 @@ public class GetCompletedHistoricProcessInstancesForOptimizeTest {
       optimizeService.getCompletedHistoricProcessInstances(now, null, 10);
 
     // then
-    assertThat(completedHistoricProcessInstances.size(), is(1));
+    assertThat(completedHistoricProcessInstances.size()).isEqualTo(1);
   }
 
   @Test
@@ -156,8 +155,8 @@ public class GetCompletedHistoricProcessInstancesForOptimizeTest {
       optimizeService.getCompletedHistoricProcessInstances(null, now, 10);
 
     // then
-    assertThat(completedHistoricProcessInstances.size(), is(1));
-    assertThat(completedHistoricProcessInstances.get(0).getId(), is(processInstance.getId()));
+    assertThat(completedHistoricProcessInstances.size()).isEqualTo(1);
+    assertThat(completedHistoricProcessInstances.get(0).getId()).isEqualTo(processInstance.getId());
   }
 
   @Test
@@ -180,7 +179,7 @@ public class GetCompletedHistoricProcessInstancesForOptimizeTest {
       optimizeService.getCompletedHistoricProcessInstances(now, now, 10);
 
     // then
-    assertThat(completedHistoricProcessInstances.size(), is(0));
+    assertThat(completedHistoricProcessInstances.size()).isEqualTo(0);
   }
 
   @Test
@@ -202,7 +201,7 @@ public class GetCompletedHistoricProcessInstancesForOptimizeTest {
       optimizeService.getCompletedHistoricProcessInstances(pastDate(), null, 3);
 
     // then
-    assertThat(completedHistoricProcessInstances.size(), is(3));
+    assertThat(completedHistoricProcessInstances.size()).isEqualTo(3);
   }
 
   @Test
@@ -232,10 +231,10 @@ public class GetCompletedHistoricProcessInstancesForOptimizeTest {
       optimizeService.getCompletedHistoricProcessInstances(now, null, 10);
 
     // then
-    assertThat(completedHistoricProcessInstances.size(), is(3));
-    assertThat(completedHistoricProcessInstances.get(0).getId(), is(processInstance1.getId()));
-    assertThat(completedHistoricProcessInstances.get(1).getId(), is(processInstance2.getId()));
-    assertThat(completedHistoricProcessInstances.get(2).getId(), is(processInstance3.getId()));
+    assertThat(completedHistoricProcessInstances.size()).isEqualTo(3);
+    assertThat(completedHistoricProcessInstances.get(0).getId()).isEqualTo(processInstance1.getId());
+    assertThat(completedHistoricProcessInstances.get(1).getId()).isEqualTo(processInstance2.getId());
+    assertThat(completedHistoricProcessInstances.get(2).getId()).isEqualTo(processInstance3.getId());
   }
 
   @Test
@@ -258,8 +257,8 @@ public class GetCompletedHistoricProcessInstancesForOptimizeTest {
       optimizeService.getCompletedHistoricProcessInstances(pastDate(), null, 10);
 
     // then
-    assertThat(completedHistoricProcessInstances.size(), is(1));
-        assertThat(completedHistoricProcessInstances.get(0).getId(), is(processInstanceToComplete.getId()));
+    assertThat(completedHistoricProcessInstances.size()).isEqualTo(1);
+        assertThat(completedHistoricProcessInstances.get(0).getId()).isEqualTo(processInstanceToComplete.getId());
 
   }
 
@@ -281,14 +280,14 @@ public class GetCompletedHistoricProcessInstancesForOptimizeTest {
   }
 
   private void assertThatInstanceHasAllImportantInformation(HistoricProcessInstance historicProcessInstance) {
-    assertThat(historicProcessInstance, notNullValue());
-    assertThat(historicProcessInstance.getId(), notNullValue());
-    assertThat(historicProcessInstance.getProcessDefinitionKey(), is("process"));
-    assertThat(historicProcessInstance.getProcessDefinitionVersion(), notNullValue());
-    assertThat(historicProcessInstance.getProcessDefinitionId(), notNullValue());
-    assertThat(historicProcessInstance.getDurationInMillis(), notNullValue());
-    assertThat(historicProcessInstance.getStartTime(), notNullValue());
-    assertThat(historicProcessInstance.getEndTime(), notNullValue());
+    assertThat(historicProcessInstance).isNotNull();
+    assertThat(historicProcessInstance.getId()).isNotNull();
+    assertThat(historicProcessInstance.getProcessDefinitionKey()).isEqualTo("process");
+    assertThat(historicProcessInstance.getProcessDefinitionVersion()).isNotNull();
+    assertThat(historicProcessInstance.getProcessDefinitionId()).isNotNull();
+    assertThat(historicProcessInstance.getDurationInMillis()).isNotNull();
+    assertThat(historicProcessInstance.getStartTime()).isNotNull();
+    assertThat(historicProcessInstance.getEndTime()).isNotNull();
   }
 
 

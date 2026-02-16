@@ -258,7 +258,7 @@ public class MessageStartEventTest extends PluggableProcessEngineTest {
       runtimeService.startProcessInstanceByKey("testProcess");
       fail("exception expected");
     } catch (ProcessEngineException e) {
-      assertTrue("different exception expected, not " + e.getMessage(), e.getMessage().contains("has no default start activity"));
+      assertTrue(e.getMessage().contains("has no default start activity"), "different exception expected, not " + e.getMessage());
     }
 
   }

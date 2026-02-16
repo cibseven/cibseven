@@ -5005,8 +5005,8 @@ public class TaskQueryTest extends PluggableProcessEngineTest {
     matches = matches || tasks.get(numTasks - 1).getProcessInstanceId()
         .equals(belongingProcessInstance.getId());
 
-    assertTrue("neither first nor last task belong to process instance " + belongingProcessInstance.getId(),
-        matches);
+    assertTrue(matches,
+    		"neither first nor last task belong to process instance " + belongingProcessInstance.getId());
   }
 
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/task/TaskQueryTest.testProcessDefinition.bpmn20.xml")

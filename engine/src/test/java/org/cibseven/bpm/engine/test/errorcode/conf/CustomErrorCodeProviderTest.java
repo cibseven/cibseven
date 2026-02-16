@@ -177,8 +177,8 @@ public class CustomErrorCodeProviderTest {
 
     // then
     assertThatThrownBy(callable)
-        .extracting("code")
-        .contains(BuiltinExceptionCode.OPTIMISTIC_LOCKING.getCode());
+    .satisfies(ex -> assertThat(ex)
+            .hasFieldOrPropertyWithValue("code", BuiltinExceptionCode.OPTIMISTIC_LOCKING.getCode()));
     assertThat(loggingRule.getLog().get(0).getMessage())
         .contains("Falling back to built-in code");
   }
@@ -202,8 +202,8 @@ public class CustomErrorCodeProviderTest {
 
     // then
     assertThatThrownBy(callable)
-        .extracting("code")
-        .contains(PROVIDED_CUSTOM_CODE);
+    .satisfies(ex -> assertThat(ex)
+            .hasFieldOrPropertyWithValue("code", PROVIDED_CUSTOM_CODE));
   }
 
   @Test
@@ -225,8 +225,8 @@ public class CustomErrorCodeProviderTest {
 
     // then
     assertThatThrownBy(callable)
-        .extracting("code")
-        .contains(BuiltinExceptionCode.FALLBACK.getCode());
+    .satisfies(ex -> assertThat(ex)
+            .hasFieldOrPropertyWithValue("code", BuiltinExceptionCode.FALLBACK.getCode()));
     assertThat(loggingRule.getLog().get(0).getMessage())
         .contains("Falling back to default error code 0.");
   }
@@ -250,8 +250,8 @@ public class CustomErrorCodeProviderTest {
 
     // then
     assertThatThrownBy(callable)
-        .extracting("code")
-        .contains(BuiltinExceptionCode.FALLBACK.getCode());
+    .satisfies(ex -> assertThat(ex)
+            .hasFieldOrPropertyWithValue("code", BuiltinExceptionCode.FALLBACK.getCode()));
     assertThat(loggingRule.getLog().get(0).getMessage())
         .contains("Falling back to default error code 0.");
   }
@@ -275,8 +275,8 @@ public class CustomErrorCodeProviderTest {
 
     // then
     assertThatThrownBy(callable)
-        .extracting("code")
-        .contains(BuiltinExceptionCode.FALLBACK.getCode());
+    .satisfies(ex -> assertThat(ex)
+            .hasFieldOrPropertyWithValue("code", BuiltinExceptionCode.FALLBACK.getCode()));
     assertThat(loggingRule.getLog().get(0).getMessage())
         .contains("Falling back to default error code 0.");
   }
@@ -300,8 +300,8 @@ public class CustomErrorCodeProviderTest {
 
     // then
     assertThatThrownBy(callable)
-        .extracting("code")
-        .contains(22_222);
+    .satisfies(ex -> assertThat(ex)
+            .hasFieldOrPropertyWithValue("code", 22_222));
   }
 
   @Test
@@ -319,8 +319,8 @@ public class CustomErrorCodeProviderTest {
     // when/then
     assertThatThrownBy(() -> runtimeService.startProcessInstanceByKey("process", businessKey))
         .isInstanceOf(ProcessEngineException.class)
-        .extracting("code")
-        .contains(BuiltinExceptionCode.COLUMN_SIZE_TOO_SMALL.getCode());
+        .satisfies(ex -> assertThat(ex)
+                .hasFieldOrPropertyWithValue("code",BuiltinExceptionCode.COLUMN_SIZE_TOO_SMALL.getCode()));
   }
 
   // helper ////////////////////////////////////////////////////////////////////////////////////////

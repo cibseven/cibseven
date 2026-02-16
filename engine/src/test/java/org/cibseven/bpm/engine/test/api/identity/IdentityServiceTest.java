@@ -263,7 +263,7 @@ public class IdentityServiceTest {
 
     // Fetch and update the user
     user = identityService.createUserQuery().userId("johndoe").singleResult();
-    assertTrue("byte arrays differ", Arrays.equals("niceface".getBytes(), picture.getBytes()));
+    assertTrue(Arrays.equals("niceface".getBytes(), picture.getBytes()), "byte arrays differ");
     assertEquals("image/string", picture.getMimeType());
 
     identityService.deleteUserPicture("johndoe");

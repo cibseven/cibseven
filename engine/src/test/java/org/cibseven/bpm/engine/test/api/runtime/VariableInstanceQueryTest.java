@@ -464,7 +464,7 @@ public class VariableInstanceQueryTest extends PluggableProcessEngineTest {
     for (VariableInstance var : result) {
       assertEquals("stringVar", var.getName());
       assertEquals("string", var.getTypeName());
-      assertTrue("Unexpected value found: " + var.getValue(), expected.contains(var.getValue()));
+      assertTrue(expected.contains(var.getValue()), "Unexpected value found: " + var.getValue());
     }
   }
 

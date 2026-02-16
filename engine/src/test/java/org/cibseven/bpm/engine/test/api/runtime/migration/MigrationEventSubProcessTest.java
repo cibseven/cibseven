@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.api.runtime.migration;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.impl.migration.validation.instruction.ConditionalEventUpdateEventTriggerValidator.MIGRATION_CONDITIONAL_VALIDATION_ERROR_MSG;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
@@ -720,8 +721,8 @@ public class MigrationEventSubProcessTest {
         .singleResult();
 
     // assume
-    Assertions.assertThat(activityStatistics.getId()).isEqualTo(EVENT_SUB_PROCESS_TASK_ID);
-    Assertions.assertThat(activityStatistics.getInstances()).isEqualTo(1);
+    assertThat(activityStatistics.getId()).isEqualTo(EVENT_SUB_PROCESS_TASK_ID);
+    assertThat(activityStatistics.getInstances()).isEqualTo(1);
 
     MigrationPlan migrationPlan = rule.getRuntimeService()
         .createMigrationPlan(sourceProcessDefinition.getId(), targetProcessDefinition.getId())
@@ -737,8 +738,8 @@ public class MigrationEventSubProcessTest {
         .singleResult();
 
     // assume
-    Assertions.assertThat(activityStatistics.getId()).isEqualTo(EVENT_SUB_PROCESS_TASK_ID);
-    Assertions.assertThat(activityStatistics.getInstances()).isEqualTo(1);
+    assertThat(activityStatistics.getId()).isEqualTo(EVENT_SUB_PROCESS_TASK_ID);
+    assertThat(activityStatistics.getInstances()).isEqualTo(1);
   }
 
   @Test
@@ -770,8 +771,8 @@ public class MigrationEventSubProcessTest {
         .singleResult();
 
     // assume
-    Assertions.assertThat(activityStatistics.getId()).isEqualTo(EVENT_SUB_PROCESS_TASK_ID);
-    Assertions.assertThat(activityStatistics.getInstances()).isEqualTo(1);
+    assertThat(activityStatistics.getId()).isEqualTo(EVENT_SUB_PROCESS_TASK_ID);
+    assertThat(activityStatistics.getInstances()).isEqualTo(1);
 
     MigrationPlan migrationPlan = rule.getRuntimeService()
         .createMigrationPlan(sourceProcessDefinition.getId(), targetProcessDefinition.getId())
@@ -787,8 +788,8 @@ public class MigrationEventSubProcessTest {
         .singleResult();
 
     // assume
-    Assertions.assertThat(activityStatistics.getId()).isEqualTo(EVENT_SUB_PROCESS_TASK_ID);
-    Assertions.assertThat(activityStatistics.getInstances()).isEqualTo(1);
+    assertThat(activityStatistics.getId()).isEqualTo(EVENT_SUB_PROCESS_TASK_ID);
+    assertThat(activityStatistics.getInstances()).isEqualTo(1);
   }
 
 }

@@ -56,7 +56,6 @@ import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -812,7 +811,7 @@ public class HistoryServiceTest extends PluggableProcessEngineTest {
       fail("Exception expected");
     } catch (ProcessEngineException e) {
       //expected
-      Assertions.assertThat(e.getMessage(), CoreMatchers.containsString("No historic process instance found with id: [aFake]" ));
+      assertThat(e.getMessage()).contains("No historic process instance found with id: [aFake]" );
     }
 
     //then expect no instance is deleted

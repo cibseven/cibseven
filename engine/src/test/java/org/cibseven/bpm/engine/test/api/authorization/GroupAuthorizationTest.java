@@ -16,11 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.api.authorization;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.spy;
@@ -127,7 +125,10 @@ public class GroupAuthorizationTest extends AuthorizationTest {
         taskQuery.list();
 
         verify(authorizationManager, atLeastOnce()).filterAuthenticatedGroupIds(eq(testGroupIds));
-        verify(authCheck, atLeastOnce()).setAuthGroupIds((List<String>) argThat(containsInAnyOrder(testGroupIds.toArray())));
+        // Instead of argThat(containsInAnyOrder(...)), capture the argument and assert with AssertJ
+        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        verify(authCheck, atLeastOnce()).setAuthGroupIds(captor.capture());
+        assertThat(captor.getValue()).containsExactlyInAnyOrderElementsOf(testGroupIds);
 
         return null;
       }

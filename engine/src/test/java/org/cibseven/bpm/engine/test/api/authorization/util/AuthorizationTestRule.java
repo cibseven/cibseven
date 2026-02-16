@@ -26,13 +26,14 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.interceptor.CommandExecutor;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.junit.jupiter.api.Assertions;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-public class AuthorizationTestRule extends AuthorizationTestBaseRule {
+public class AuthorizationTestRule extends AuthorizationTestBaseRule implements BeforeEachCallback{
 
   protected AuthorizationExceptionInterceptor interceptor;
   protected CommandExecutor replacedCommandExecutor;
@@ -83,20 +84,19 @@ public class AuthorizationTestRule extends AuthorizationTestBaseRule {
     return interceptor.getLastException() != null;
   }
 
-  protected void starting(Description description) {
+  @Override
+  public void beforeEach(ExtensionContext context) throws Exception {
     ProcessEngineConfigurationImpl engineConfiguration =
         (ProcessEngineConfigurationImpl) engineRule.getProcessEngine().getProcessEngineConfiguration();
 
     interceptor.reset();
     engineConfiguration.getCommandInterceptorsTxRequired().get(0).setNext(interceptor);
     interceptor.setNext(engineConfiguration.getCommandInterceptorsTxRequired().get(1));
-
-    super.starting(description);
   }
 
-  protected void finished(Description description) {
-    super.finished(description);
-
+  @Override
+  public void afterEach(ExtensionContext context) throws Exception {
+    super.afterEach(context);
     ProcessEngineConfigurationImpl engineConfiguration =
         (ProcessEngineConfigurationImpl) engineRule.getProcessEngine().getProcessEngineConfiguration();
 

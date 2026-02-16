@@ -796,16 +796,16 @@ public class DeploymentStatisticsAuthorizationTest extends AuthorizationTest {
   // helper ///////////////////////////////////////////////////////////////////////////
 
   protected void verifyStatisticsResult(DeploymentStatistics statistics, int instances, int failedJobs, int incidents) {
-    assertEquals("Instances", instances, statistics.getInstances());
-    assertEquals("Failed Jobs", failedJobs, statistics.getFailedJobs());
+    assertEquals(instances, statistics.getInstances(), "Instances");
+    assertEquals(failedJobs, statistics.getFailedJobs(), "Failed Jobs");
 
     List<IncidentStatistics> incidentStatistics = statistics.getIncidentStatistics();
     if (incidents == 0) {
-      assertTrue("Incidents supposed to be empty", incidentStatistics.isEmpty());
+      assertTrue(incidentStatistics.isEmpty(), "Incidents supposed to be empty");
     }
     else {
       // the test does have only one type of incidents
-      assertEquals("Incidents", incidents, incidentStatistics.get(0).getIncidentCount());
+      assertEquals(incidents, incidentStatistics.get(0).getIncidentCount(), "Incidents");
     }
   }
 

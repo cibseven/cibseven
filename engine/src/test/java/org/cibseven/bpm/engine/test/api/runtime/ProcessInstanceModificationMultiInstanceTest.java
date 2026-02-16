@@ -1178,7 +1178,7 @@ public class ProcessInstanceModificationMultiInstanceTest extends PluggableProce
     for (String taskName : taskNames) {
       // complete any task with that name
       List<Task> tasks = taskService.createTaskQuery().taskDefinitionKey(taskName).listPage(0, 1);
-      assertTrue("task for activity " + taskName + " does not exist", !tasks.isEmpty());
+      assertTrue(!tasks.isEmpty(), "task for activity " + taskName + " does not exist");
       taskService.complete(tasks.get(0).getId());
     }
   }
@@ -1186,8 +1186,9 @@ public class ProcessInstanceModificationMultiInstanceTest extends PluggableProce
 
   protected void assertVariable(Execution execution, String variableName, Object expectedValue) {
     Object variableValue = runtimeService.getVariable(execution.getId(), variableName);
-    assertEquals("Value for variable '" + variableName + "' and " + execution + " "
-        + "does not match.", expectedValue, variableValue);
+    assertEquals(expectedValue, variableValue,
+    		"Value for variable '" + variableName + "' and " + execution + " "
+    		        + "does not match.");
   }
 
   protected void assertVariableSet(List<Execution> executions, String variableName, List<?> expectedValues) {
@@ -1198,11 +1199,10 @@ public class ProcessInstanceModificationMultiInstanceTest extends PluggableProce
 
     for (Object expectedValue : expectedValues) {
       boolean valueFound = actualValues.remove(expectedValue);
-      assertTrue("Expected variable value '" + expectedValue + "' not contained in the list of actual values. "
-          + "Unmatched actual values: " + actualValues,
-          valueFound);
+      assertTrue(valueFound, "Expected variable value '" + expectedValue + "' not contained in the list of actual values. "
+              + "Unmatched actual values: " + actualValues);
     }
-    assertTrue("There are more actual than expected values.", actualValues.isEmpty());
+    assertTrue(actualValues.isEmpty(), "There are more actual than expected values.");
   }
 
 }
