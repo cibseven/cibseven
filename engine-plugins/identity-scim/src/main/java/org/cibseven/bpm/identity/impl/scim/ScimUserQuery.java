@@ -30,16 +30,23 @@ import java.util.List;
 public class ScimUserQuery extends UserQueryImpl {
 
   private static final long serialVersionUID = 1L;
-  protected final ScimConfiguration scimConfiguration;
-
-  public ScimUserQuery(ScimConfiguration scimConfiguration) {
-    super();
-    this.scimConfiguration = scimConfiguration;
+  
+  private int totalResults = 0;
+  
+  public int getTotalResults() {
+    return totalResults;
+  }
+  
+  public void setTotalResults(int totalResults) {
+    this.totalResults = totalResults;
   }
 
-  public ScimUserQuery(CommandExecutor commandExecutor, ScimConfiguration scimConfiguration) {
+  public ScimUserQuery() {
+    super();
+  }
+
+  public ScimUserQuery(CommandExecutor commandExecutor) {
     super(commandExecutor);
-    this.scimConfiguration = scimConfiguration;
   }
 
   @Override

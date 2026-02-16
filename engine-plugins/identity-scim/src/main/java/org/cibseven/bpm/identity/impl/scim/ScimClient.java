@@ -264,13 +264,13 @@ public class ScimClient {
       request.setEntity(new StringEntity(body.toString(), ContentType.APPLICATION_JSON));
     }
 
-    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!! ScimClient " + method.toString() + ": " + url);
+    // System.out.println(">>>>>>> ScimClient " + method.toString() + ": " + url);
     try (CloseableHttpResponse response = httpClient.execute(request)) {
       int statusCode = response.getCode();
       String responseBody = response.getEntity() != null ? 
           EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8) : "";
 
-      System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!! ScimClient " + method.toString() + " status code: " + statusCode);
+      // System.out.println("<<<<<<< ScimClient " + method.toString() + " status code: " + statusCode);
 
       if (statusCode == 200 || statusCode == 201 || statusCode == 204) {
         return objectMapper.readTree(responseBody);
@@ -284,7 +284,7 @@ public class ScimClient {
       }
     } catch (IOException | ParseException e) {
       ScimPluginLogger.INSTANCE.httpClientException(method.toString() + " " + url, e);
-      System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!! ScimClient " + method.toString() + " error: " + e.toString());
+      // System.out.println("<<<<<<< ScimClient " + method.toString() + " error: " + e.toString());
       throw new IdentityProviderException("SCIM HTTP request failed", e);
     }
   }

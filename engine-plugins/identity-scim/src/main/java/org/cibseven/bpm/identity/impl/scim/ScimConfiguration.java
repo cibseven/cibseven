@@ -50,12 +50,16 @@ public class ScimConfiguration {
   protected String userLastnameAttribute = "name.familyName";
   protected String userPasswordAttribute = "password";
   protected String userEmailAttribute = "emails[type eq \"work\"].value";
-  
+
   // Group attribute mapping
   protected final String groupScimIdAttribute = "id";
   protected String groupIdAttribute = "externalId";
   protected String groupNameAttribute = "displayName";
   protected String groupMembersAttribute = "members";
+  
+  // base filters for users and groups
+  protected String userBaseFilter = "";
+  protected String groupBaseFilter = "";
   
   // Connection settings
   protected int connectionTimeout = 30000; // milliseconds
@@ -73,7 +77,7 @@ public class ScimConfiguration {
   protected Integer pageSize = 100;
   
   // Read only session
-  protected boolean readOnlyAccess = true;
+  protected boolean allowModifications = false;
   
   // Additional custom headers
   protected Map<String, String> customHeaders = new HashMap<>();
@@ -173,7 +177,7 @@ public class ScimConfiguration {
   }
 
   public void setUsersEndpoint(String usersEndpoint) {
-    this.usersEndpoint = usersEndpoint;
+    this.usersEndpoint = usersEndpoint.replaceAll ("/+$", "");
   }
 
   public String getGroupsEndpoint() {
@@ -181,7 +185,7 @@ public class ScimConfiguration {
   }
 
   public void setGroupsEndpoint(String groupsEndpoint) {
-    this.groupsEndpoint = groupsEndpoint;
+    this.groupsEndpoint = groupsEndpoint.replaceAll ("/+$", "");
   }
 
   public String getUserScimIdAttribute() {
@@ -296,12 +300,12 @@ public class ScimConfiguration {
     this.authorizationCheckEnabled = authorizationCheckEnabled;
   }
   
-  public boolean isReadOnlyAccess() {
-    return readOnlyAccess;
+  public boolean getAllowModifications() {
+    return allowModifications;
   }
 
-  public void setReadOnlyAccess(boolean readOnlyAccess) {
-    this.readOnlyAccess = readOnlyAccess;
+  public void setAllowModifications(boolean allowModifications) {
+    this.allowModifications = allowModifications;
   }
 
   public Integer getPageSize() {
@@ -318,5 +322,21 @@ public class ScimConfiguration {
 
   public void setCustomHeaders(Map<String, String> customHeaders) {
     this.customHeaders = customHeaders;
+  }
+
+  protected String getGroupBaseFilter() {
+    return groupBaseFilter;
+  }
+
+  protected void setGroupBaseFilter(String groupBaseFilter) {
+    this.groupBaseFilter = groupBaseFilter;
+  }
+
+  protected String getUserBaseFilter() {
+    return userBaseFilter;
+  }
+
+  protected void setUserBaseFilter(String userBaseFilter) {
+    this.userBaseFilter = userBaseFilter;
   }
 }

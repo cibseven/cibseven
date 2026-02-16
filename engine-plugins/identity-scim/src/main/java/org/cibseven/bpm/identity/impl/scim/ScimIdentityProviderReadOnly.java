@@ -33,7 +33,6 @@ import org.cibseven.bpm.engine.identity.UserQuery;
 import org.cibseven.bpm.engine.impl.Direction;
 import org.cibseven.bpm.engine.impl.GroupQueryProperty;
 import org.cibseven.bpm.engine.impl.QueryOrderingProperty;
-import org.cibseven.bpm.engine.impl.UserQueryImpl;
 import org.cibseven.bpm.engine.impl.UserQueryProperty;
 import org.cibseven.bpm.engine.impl.identity.ReadOnlyIdentityProvider;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
@@ -84,12 +83,12 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
 
   @Override
   public UserQuery createUserQuery() {
-    return new ScimUserQuery(getProcessEngineConfiguration().getCommandExecutorTxRequired(), scimConfiguration);
+    return new ScimUserQuery(getProcessEngineConfiguration().getCommandExecutorTxRequired());
   }
 
   @Override
-  public UserQueryImpl createUserQuery(CommandContext commandContext) {
-    return new ScimUserQuery(scimConfiguration);
+  public UserQuery createUserQuery(CommandContext commandContext) {
+    return new ScimUserQuery();
   }
 
   @Override
@@ -98,7 +97,13 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
   }
 
   public long findUserCountByQueryCriteria(ScimUserQuery query) {
-    return findUserByQueryCriteria(query).size();
+    // SCIM 2.0 returns total number of filtered resources as a parameter of the response
+    // therefore restrict the number of returned elements to decrease network usage
+    if (query.getMaxResults() >= Short.MAX_VALUE) {
+      query.setMaxResults(scimConfiguration.getPageSize());
+    }
+    List<User> users = findUserByQueryCriteria(query);
+    return Math.max(users.size(), query.getTotalResults());
   }
 
   public List<User> findUserByQueryCriteria(ScimUserQuery query) {
@@ -116,8 +121,7 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
     int count = query.getMaxResults();
 
     List<User> users = new ArrayList<>();
-    JsonNode response = scimClient.searchUsers(filter, startIndex, count, sorting);
-
+    JsonNode response = scimClient.searchUsers(filter, startIndex, count, sorting);    
     if (response != null && response.has("Resources")) {
       JsonNode resources = response.get("Resources");
       for (JsonNode resource : resources) {
@@ -128,6 +132,11 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
           ScimPluginLogger.INSTANCE.invalidScimEntityReturned("User", user.toString());          
         }
       }
+    }
+    
+    // set total result
+    if (response != null && response.has("totalResults")) {
+      query.setTotalResults(response.get("totalResults").asInt());
     }
 
     return users;
@@ -146,9 +155,8 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
 
     String membersAttrib = scimConfiguration.getGroupMembersAttribute();
     if (groupData != null && groupData.has(membersAttrib)) {
-      JsonNode members = groupData.get(membersAttrib);
       int resultCount = 0;
-      
+      JsonNode members = groupData.get(membersAttrib);
       for (JsonNode member : members) {
         if (resultCount >= query.getFirstResult() && users.size() < query.getMaxResults()) {
           String memberType = getJsonValue(member, "type"); // treat as user type by default if the type is absent
@@ -166,6 +174,9 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
         }
         resultCount++;
       }
+
+      // set total result
+      query.setTotalResults(members.size());
     }
 
     return users;
@@ -174,18 +185,22 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
   protected String buildUserFilter(ScimUserQuery query) {
     List<String> filters = new ArrayList<>();
 
+    String baseFilter = scimConfiguration.getUserBaseFilter();
+    if (baseFilter != null && !baseFilter.isEmpty()) {
+      filters.add(escapeScimFilter(baseFilter));
+    }
     if (query.getId() != null) {
-      filters.add(scimConfiguration.getUserIdAttribute() + " eq \"" + query.getId() + "\"");
+      filters.add(scimConfiguration.getUserIdAttribute() + " eq \"" + escapeScimFilter(query.getId()) + "\"");
     }
     if (query.getIds() != null && query.getIds().length > 0) {
       List<String> idFilters = new ArrayList<>();
       for (String userId : query.getIds()) {
-        idFilters.add(scimConfiguration.getUserIdAttribute() + " eq \"" + userId + "\"");
+        idFilters.add(scimConfiguration.getUserIdAttribute() + " eq \"" + escapeScimFilter(userId) + "\"");
       }
       filters.add("(" + String.join(" or ", idFilters) + ")");
     }
     if (query.getEmail() != null) {
-      filters.add(scimConfiguration.getUserEmailAttribute() + " eq \"" + query.getEmail() + "\"");
+      filters.add(scimConfiguration.getUserEmailAttribute() + " eq \"" + escapeScimFilter(query.getEmail()) + "\"");
     }
     if (query.getEmailLike() != null) {
       String emailLike = query.getEmailLike();
@@ -193,10 +208,10 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
           emailLike.startsWith("%") ? "sw" : emailLike.endsWith("%") ? "ew" : "eq";
           
       emailLike = emailLike.replaceAll("^%|%$", "");
-      filters.add(scimConfiguration.getUserEmailAttribute() + " " + op + " \"" + emailLike + "\"");
+      filters.add(scimConfiguration.getUserEmailAttribute() + " " + op + " \"" + escapeScimFilter(emailLike) + "\"");
     }
     if (query.getFirstName() != null) {
-      filters.add(scimConfiguration.getUserFirstnameAttribute() + " eq \"" + query.getFirstName() + "\"");
+      filters.add(scimConfiguration.getUserFirstnameAttribute() + " eq \"" + escapeScimFilter(query.getFirstName()) + "\"");
     }
     if (query.getFirstNameLike() != null) {
       String nameLike = query.getFirstNameLike();
@@ -204,10 +219,10 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
           nameLike.startsWith("%") ? "sw" : nameLike.endsWith("%") ? "ew" : "eq";
       
       nameLike = nameLike.replaceAll("^%|%$", "");
-      filters.add(scimConfiguration.getUserFirstnameAttribute() + " " + op + " \"" + nameLike + "\"");
+      filters.add(scimConfiguration.getUserFirstnameAttribute() + " " + op + " \"" +escapeScimFilter(nameLike) + "\"");
     }
     if (query.getLastName() != null) {
-      filters.add(scimConfiguration.getUserLastnameAttribute() + " eq \"" + query.getLastName() + "\"");
+      filters.add(scimConfiguration.getUserLastnameAttribute() + " eq \"" + escapeScimFilter(query.getLastName()) + "\"");
     }
     if (query.getLastNameLike() != null) {
       String nameLike = query.getLastNameLike();
@@ -215,7 +230,7 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
           nameLike.startsWith("%") ? "sw" : nameLike.endsWith("%") ? "ew" : "eq";
         
       nameLike = nameLike.replaceAll("^%|%$", "");
-      filters.add(scimConfiguration.getUserLastnameAttribute() + " " + op + " \"" + nameLike + "\"");
+      filters.add(scimConfiguration.getUserLastnameAttribute() + " " + op + " \"" + escapeScimFilter(nameLike) + "\"");
     }
 
     return filters.isEmpty() ? null : String.join(" and ", filters);
@@ -346,7 +361,13 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
   }
 
   public long findGroupCountByQueryCriteria(ScimGroupQuery query) {
-    return findGroupByQueryCriteria(query).size();
+    // SCIM 2.0 returns total number of filtered resources as a parameter of the response
+    // therefore restrict the number of returned elements to decrease network usage
+    if (query.getMaxResults() >= Short.MAX_VALUE) {
+      query.setMaxResults(scimConfiguration.getPageSize());
+    }
+    List<Group> groups = findGroupByQueryCriteria(query);
+    return Math.max(groups.size(), query.getTotalResults());
   }
 
   public List<Group> findGroupByQueryCriteria(ScimGroupQuery query) {
@@ -357,7 +378,6 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
 
     List<Group> groups = new ArrayList<>();
     JsonNode response = scimClient.searchGroups(filter, startIndex, count, sorting);
-
     if (response != null && response.has("Resources")) {
       JsonNode resources = response.get("Resources");
       for (JsonNode resource : resources) {
@@ -370,59 +390,73 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
       }
     }
     
-    // TODO: remove this fallback for SCIMPLE, because it doesn't correctly filter by an users
-    if (groups.isEmpty() && query.getUserId() != null) {
-    	groups = findGroupByUserId(query);
+    // set total result
+    if (response != null && response.has("totalResults")) {
+      query.setTotalResults(response.get("totalResults").asInt());
     }
+    
+    //// TODO: remove this fallback for SCIMPLE, because it doesn't correctly filter by an users
+    //if (groups.isEmpty() && query.getUserId() != null) {
+    //	groups = findGroupByUserId(query);
+    //}
 
     return groups;
   }
   
-  // TODO: remove this fallback for SCIMPLE, because it doesn't correctly filter by an users 
-  public List<Group> findGroupByUserId(ScimGroupQuery query) {
-	List<Group> groups = new ArrayList<>();
-	ScimUserEntity scimUser = (ScimUserEntity) findUserById(query.getUserId());
-	if (scimUser.getScimId() != null) {
-      ScimGroupQuery queryNew = new ScimGroupQuery();
-      String filter = buildGroupFilter(queryNew);
-      String sorting = buildGroupSorting(queryNew);
-      int startIndex = queryNew.getFirstResult() + 1; // SCIM uses 1-based indexing
-      int count = queryNew.getMaxResults();
-      JsonNode response = scimClient.searchGroups(filter, startIndex, count, sorting);
-
-      if (response != null && response.has("Resources")) {
-        JsonNode resources = response.get("Resources");
-        for (JsonNode resource : resources) {
-          JsonNode members = resource.get(scimConfiguration.getGroupMembersAttribute());          
-	      for (JsonNode member : members) {
-            String userScimId = getJsonValue(member, "value");
-            if (scimUser.getScimId().equals(userScimId)) {
-              groups.add(transformGroup(resource));
-              break;
-            }  
-          }
-	    }
-      }
-    }
-	
-    return groups;
-  }
+//  // TODO: remove this fallback for SCIMPLE, because it doesn't correctly filter by an users 
+//  public List<Group> findGroupByUserId(ScimGroupQuery query) {
+//    List<Group> groups = new ArrayList<>();
+//    ScimUserEntity scimUser = (ScimUserEntity) findUserById(query.getUserId());
+//    if (scimUser != null) {
+//      ScimGroupQuery queryNew = new ScimGroupQuery();
+//      String filter = buildGroupFilter(queryNew);
+//      String sorting = buildGroupSorting(queryNew);
+//      int startIndex = queryNew.getFirstResult() + 1; // SCIM uses 1-based indexing
+//      int count = queryNew.getMaxResults();
+//      JsonNode response = scimClient.searchGroups(filter, startIndex, count, sorting);
+//      int groupCount = 0;
+//      if (response != null && response.has("Resources")) {
+//        JsonNode resources = response.get("Resources");
+//        for (JsonNode resource : resources) {
+//          JsonNode members = resource.get(scimConfiguration.getGroupMembersAttribute());
+//          if (members != null) {
+//            for (JsonNode member : members) {
+//              String userScimId = getJsonValue(member, "value");
+//              if (scimUser.getScimId().equals(userScimId)) {
+//                groups.add(transformGroup(resource));
+//                groupCount++;
+//                break;
+//              }  
+//            }
+//          }
+//        }
+//      }
+//      // set total result
+//      query.setTotalResults(groupCount);
+//    }
+//
+//    return groups;
+//  }
 
   protected String buildGroupFilter(ScimGroupQuery query) {
     List<String> filters = new ArrayList<>();
-
+    
+    String baseFilter = scimConfiguration.getGroupBaseFilter();
+    if (baseFilter != null && !baseFilter.isEmpty()) {
+      filters.add(escapeScimFilter(baseFilter));
+    }
     if (query.getId() != null) {
-      filters.add(scimConfiguration.getGroupIdAttribute() + " eq \"" + query.getId() + "\"");
+      filters.add(scimConfiguration.getGroupIdAttribute() + " eq \"" + escapeScimFilter(query.getId()) + "\"");
     }
     if (query.getIds() != null && query.getIds().length > 0) {
       List<String> idFilters = new ArrayList<>();
       for (String groupId : query.getIds()) {
-        idFilters.add(scimConfiguration.getGroupIdAttribute() + " eq \"" + groupId + "\"");
+        idFilters.add(scimConfiguration.getGroupIdAttribute() + " eq \"" + escapeScimFilter(groupId) + "\"");
       }
       filters.add("(" + String.join(" or ", idFilters) + ")");
     }
     if (query.getName() != null) {
-      filters.add(scimConfiguration.getGroupNameAttribute() + " eq \"" + query.getName() + "\"");
+      filters.add(scimConfiguration.getGroupNameAttribute() + " eq \"" + escapeScimFilter(query.getName()) + "\"");
     }
     if (query.getNameLike() != null) {
       String nameLike = query.getNameLike();
@@ -430,12 +464,12 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
           nameLike.startsWith("%") ? "sw" : nameLike.endsWith("%") ? "ew" : "eq";
       
       nameLike = nameLike.replaceAll("^%|%$", "");
-      filters.add(scimConfiguration.getGroupNameAttribute() + " " + op + " \"" + nameLike + "\"");
+      filters.add(scimConfiguration.getGroupNameAttribute() + " " + op + " \"" + escapeScimFilter(nameLike) + "\"");
     }
     if (query.getUserId() != null) {
       ScimUserEntity scimUser = (ScimUserEntity)findUserById(query.getUserId());
       String skimUserId = scimUser != null ? scimUser.getScimId() : "null";
-      filters.add("members[value eq \"" + skimUserId + "\"]");
+      filters.add("members[value eq \"" + escapeScimFilter(skimUserId) + "\"]");
     }
 
     return filters.isEmpty() ? null : String.join(" and ", filters);
@@ -457,7 +491,7 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
           key = scimConfiguration.getGroupNameAttribute();
           direction = Direction.ASCENDING.equals(orderingProperty.getDirection()) ? "ascending" : "descending";
         }
-		    	        
+
         // only single key is supported by SCIM for sorting
         if (key != null && direction != null) {
           sorting = "sortBy=" + key + "&sortOrder=" + direction;
@@ -533,7 +567,7 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
       if (scimConfiguration.getScimAuthenticationEnabled() ) {
         String url = scimConfiguration.getServerUrl() + "/" + scimConfiguration.getUsersEndpoint() + "/.search";
         String userIdAttrib = scimConfiguration.getUserIdAttribute();
-        String filter = userIdAttrib + " eq \"" + userId + "\" and password eq \"" + password + "\"";
+        String filter = userIdAttrib + " eq \"" + escapeScimFilter(userId) + "\" and password eq \"" + escapeScimFilter(password) + "\"";
  
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode root = mapper.createObjectNode();
@@ -545,7 +579,7 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
         result = (response != null && response.has("Resources") && response.get("Resources").size() == 1);
       } else { // scim authentication is disabled: simply check that the user really exists
         ScimUserEntity scimUser = (ScimUserEntity) findUserById(userId);
-        result = scimUser.getScimId() != null && !scimUser.getScimId().isEmpty();
+        result = scimUser != null && scimUser.getScimId() != null;
       }
     } catch(Exception e) {
       ScimPluginLogger.INSTANCE.httpClientException("authentication request", e);
@@ -612,5 +646,13 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
     }
 
     current.put(parts[parts.length - 1], value);
+  }
+
+  protected String escapeScimFilter(String value) {
+    if (value == null) {
+      return "";
+    }
+    // Escape special characters in SCIM filter values
+    return value.replace("\\", "\\\\").replace("\"", "\\\"");
   }
 }

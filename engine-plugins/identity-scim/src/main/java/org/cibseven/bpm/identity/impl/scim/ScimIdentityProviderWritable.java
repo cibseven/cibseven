@@ -69,21 +69,23 @@ public class ScimIdentityProviderWritable extends ScimIdentityProviderReadOnly i
  
   @Override
   public IdentityOperationResult saveUser(User user) {
-    ScimUserEntity scimUser = (ScimUserEntity) user;
-    String operation = null;
-    if(scimUser.getScimId() == null || scimUser.getScimId().isEmpty()) {
+    ScimUserEntity scimUserNew = (ScimUserEntity) user;
+    String operation = IdentityOperationResult.OPERATION_NONE;
+    if(scimUserNew.getScimId() == null || scimUserNew.getScimId().isEmpty()) {
       operation = IdentityOperationResult.OPERATION_CREATE;
       checkAuthorization(Permissions.CREATE, Resources.USER, null);
       String postUrl = scimConfiguration.getServerUrl() + scimConfiguration.getUsersEndpoint();
-      JsonNode postBody = transformUser(scimUser);
+      JsonNode postBody = transformUser(scimUserNew);
       scimClient.executePost(postUrl, postBody);
       //createDefaultAuthorizations(userEntity);
     } else {
-      operation = IdentityOperationResult.OPERATION_UPDATE;
-      checkAuthorization(Permissions.UPDATE, Resources.USER, user.getId());
-      ScimUserEntity scimUserOld = (ScimUserEntity)findUserById(scimUser.getId());
-      JsonNode patchBody = createUserPatch(scimUserOld, scimUser);     
-      scimClient.patchUserByScimId(scimUser.getScimId(), patchBody);
+      ScimUserEntity scimUserOld = (ScimUserEntity)findUserById(scimUserNew.getId());
+      if (scimUserOld != null) {
+        operation = IdentityOperationResult.OPERATION_UPDATE;
+        checkAuthorization(Permissions.UPDATE, Resources.USER, user.getId());
+        JsonNode patchBody = createUserPatch(scimUserOld, scimUserNew);     
+        scimClient.patchUserByScimId(scimUserNew.getScimId(), patchBody);
+      }
     }
 
     return new IdentityOperationResult(user, operation);
@@ -136,24 +138,26 @@ public class ScimIdentityProviderWritable extends ScimIdentityProviderReadOnly i
 
   @Override
   public IdentityOperationResult saveGroup(Group group) {
-    ScimGroupEntity scimGroup =  (ScimGroupEntity) group;
-    String operation = null;
-    if (scimGroup.getScimId() == null || scimGroup.getScimId().isEmpty()) {
+    ScimGroupEntity scimGroupNew =  (ScimGroupEntity) group;
+    String operation = IdentityOperationResult.OPERATION_NONE;
+    if (scimGroupNew.getScimId() == null || scimGroupNew.getScimId().isEmpty()) {
       operation = IdentityOperationResult.OPERATION_CREATE;
       checkAuthorization(Permissions.CREATE, Resources.GROUP, null);
       String postUrl = scimConfiguration.getServerUrl() + scimConfiguration.getGroupsEndpoint();
-      JsonNode postBody = transformGroup(scimGroup);
+      JsonNode postBody = transformGroup(scimGroupNew);
       scimClient.executePost(postUrl, postBody);
       // createDefaultAuthorizations(group);
     } else {
-      operation = IdentityOperationResult.OPERATION_UPDATE;
-      checkAuthorization(Permissions.UPDATE, Resources.GROUP, group.getId());
-      ScimGroupEntity scimGroupOld = (ScimGroupEntity)findGroupById(scimGroup.getId());
-      JsonNode patchBody = createGroupPatch(scimGroupOld, scimGroup);
-      scimClient.patchGroupByScimId(scimGroup.getScimId(), patchBody);
+      ScimGroupEntity scimGroupOld = (ScimGroupEntity)findGroupById(scimGroupNew.getId());
+      if (scimGroupOld != null) {
+        operation = IdentityOperationResult.OPERATION_UPDATE;
+        checkAuthorization(Permissions.UPDATE, Resources.GROUP, group.getId());
+        JsonNode patchBody = createGroupPatch(scimGroupOld, scimGroupNew);
+        scimClient.patchGroupByScimId(scimGroupNew.getScimId(), patchBody);
+      }
     }
 
-    return new IdentityOperationResult(scimGroup, operation);
+    return new IdentityOperationResult(group, operation);
   }
 
   @Override

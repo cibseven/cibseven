@@ -30,7 +30,7 @@ public class ScimIdentityProviderFactory implements SessionFactory {
 
   @Override
   public Class<?> getSessionType() {
-    if (scimConfiguration != null && !scimConfiguration.isReadOnlyAccess()) {
+    if (scimConfiguration != null && scimConfiguration.getAllowModifications()) {
       return WritableIdentityProvider.class;
     } else {
       return ReadOnlyIdentityProvider.class;
@@ -39,7 +39,7 @@ public class ScimIdentityProviderFactory implements SessionFactory {
 
   @Override
   public Session openSession() {
-    if (scimConfiguration != null && !scimConfiguration.isReadOnlyAccess()) {
+    if (scimConfiguration != null && scimConfiguration.getAllowModifications()) {
       return new ScimIdentityProviderWritable(scimConfiguration);
     } else {
       return new ScimIdentityProviderReadOnly(scimConfiguration);

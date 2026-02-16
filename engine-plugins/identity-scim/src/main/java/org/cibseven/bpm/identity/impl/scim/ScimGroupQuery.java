@@ -30,6 +30,16 @@ import java.util.List;
 public class ScimGroupQuery extends GroupQueryImpl {
 
   private static final long serialVersionUID = 1L;
+  
+  private int totalResults = 0;
+  
+  public int getTotalResults() {
+    return totalResults;
+  }
+  
+  public void setTotalResults(int totalResults) {
+    this.totalResults = totalResults;
+  }
 
   public ScimGroupQuery() {
     super();
@@ -38,7 +48,7 @@ public class ScimGroupQuery extends GroupQueryImpl {
   public ScimGroupQuery(CommandExecutor commandExecutor) {
     super(commandExecutor);
   }
-
+  
   @Override
   public long executeCount(CommandContext commandContext) {
     final ScimIdentityProviderReadOnly provider = getScimIdentityProvider(commandContext);

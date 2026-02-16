@@ -27,15 +27,26 @@
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5</artifactId>
       <version>${version.httpclient5}</version>
-      <scope>compile</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.httpcomponents.core5</groupId>
       <artifactId>httpcore5</artifactId>
       <version>${version.httpcore5}</version>
-      <scope>compile</scope>
-    </dependency> 
+    </dependency>
+   
+    <!-- Jackson for JSON processing -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${version.jackson}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${version.jackson}</version>
+    </dependency>
 
   <!-- Apache SCIMple -->
   <!--<dependency>
@@ -44,13 +55,6 @@
       <version>${version.scimple}</version>
       <scope>test</scope>
     </dependency> -->
-
-    <!-- Jackson for JSON processing -->
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>${version.jackson}</version>
-    </dependency>
 
     <dependency>
       <groupId>ch.qos.logback</groupId>
@@ -89,6 +93,32 @@
           <trimStackTrace>false</trimStackTrace>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
         </configuration>
+      </plugin>
+  
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+            <!-- Use artifactSet to control dependencies -->
+              <artifactSet>
+                <includes>
+                  <include>org.apache.httpcomponents.client5:httpclient5</include>
+                  <include>org.apache.httpcomponents.core5:httpcore5-h2</include>
+                  <include>org.apache.httpcomponents.core5:httpcore5</include>
+                  <include>com.fasterxml.jackson.core:jackson-databind</include>
+                  <include>com.fasterxml.jackson.core:jackson-core</include>
+                  <include>com.fasterxml.jackson.core:jackson-annotations</include>
+                </includes>
+              </artifactSet>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
