@@ -19,6 +19,7 @@ package org.cibseven.bpm.engine.test.api.authorization;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +29,7 @@ import org.cibseven.bpm.engine.authorization.Groups;
 import org.cibseven.bpm.engine.authorization.Resources;
 import org.cibseven.bpm.engine.authorization.SystemPermissions;
 import org.cibseven.bpm.engine.authorization.TaskPermissions;
+import org.cibseven.bpm.engine.impl.ManagementServiceImpl;
 import org.cibseven.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.cibseven.bpm.engine.management.Metrics;
 import org.cibseven.bpm.engine.management.SchemaLogEntry;
@@ -36,7 +38,7 @@ import org.cibseven.bpm.engine.management.TablePage;
 import org.cibseven.bpm.engine.telemetry.TelemetryData;
 import org.junit.After;
 import org.junit.Test;
-
+import org.junit.Ignore;
 
 /**
  * @author Roman Smirnov
@@ -49,6 +51,9 @@ public class ManagementAuthorizationTest extends AuthorizationTest {
   protected static final String DUMMY_VALUE = "aPropertyValue";
   protected static final String DUMMY_METRIC = "dummyMetric";
   private static final String LICENSE_KEY = "{\"customer\":\"testCompany\"}";
+  private static final String LICENSE_KEY_WITH_SECRET = "{\"customer\":\"testCompany\",\"signature\":\"aSecret\"}";
+  private static final String LICENSE_SECRET = "2cf2b6c82423a0737b735cd44d12e9f0d7e9b48ba0dd1d81088eda070711f534";
+
 
   @Override
   @After
@@ -594,6 +599,7 @@ public class ManagementAuthorizationTest extends AuthorizationTest {
     assertThat(licenseKey).isEqualTo(LICENSE_KEY);
   }
 
+  @Ignore("Access to license key is not protected anymore")
   @Test
   public void shouldNotGetLicenseKeyWithoutAuthorization() {
     // given
@@ -720,6 +726,34 @@ public class ManagementAuthorizationTest extends AuthorizationTest {
 
   // delete metrics //////////////////////////////////////
 
+  @Test
+  public void checkLicenseKeyEncryptionRoundtrip() {
+    createGrantAuthorization(Resources.SYSTEM, "*", userId, SystemPermissions.READ);
+    disableAuthorization();
+
+    ManagementServiceImpl managementServiceImpl = (ManagementServiceImpl)managementService;
+    String encryptedLicense = managementServiceImpl.encryptSignature(LICENSE_KEY_WITH_SECRET, LICENSE_SECRET);
+    
+    managementService.setLicenseKeyEncrypted(encryptedLicense, LICENSE_SECRET);
+    String licenseKey = managementService.getLicenseKeyEncrypted(LICENSE_SECRET);
+    enableAuthorization();
+    String decryptedLicense = managementServiceImpl.decryptSignature(licenseKey, LICENSE_SECRET);
+
+    assertEquals(decryptedLicense, LICENSE_KEY_WITH_SECRET);
+  }
+  
+  @Test
+  public void checkLicenseKeyEncryption() {
+    ManagementServiceImpl managementServiceImpl = (ManagementServiceImpl)managementService;
+    disableAuthorization();
+    String encryptedLicense = managementServiceImpl.encryptSignature(LICENSE_KEY_WITH_SECRET, LICENSE_SECRET);
+    assertNotEquals(LICENSE_KEY_WITH_SECRET, encryptedLicense);
+
+    String decryptedLicense = managementServiceImpl.decryptSignature(encryptedLicense, LICENSE_SECRET);
+    enableAuthorization();
+    assertEquals(LICENSE_KEY_WITH_SECRET, decryptedLicense);
+  }
+  
   @Test
   public void shouldDeleteMetricsAsCamundaAdmin() {
     // given
