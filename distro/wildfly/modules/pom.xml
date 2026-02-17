@@ -19,11 +19,6 @@
     <skip-third-party-bom>false</skip-third-party-bom>
     <!-- json-smart and accessors-smart are runtime dependencies of json-path -->
     <third-party-bom-scopes>compile|runtime</third-party-bom-scopes>
-    
-    <!-- versions to fix CVE-2025-66566-->
-    <version.lz4-java>1.10.1</version.lz4-java>
-    <version.kafka-clients>3.9.1</version.kafka-clients>
-    <version.netty>4.1.130.Final</version.netty>
   </properties>
   
   <dependencies>
@@ -136,110 +131,7 @@
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
     </dependency>
-    
-    <!-- Kafka client -->
-    <dependency>
-      <groupId>org.apache.kafka</groupId>
-      <artifactId>kafka-clients</artifactId>
-      <version>${version.kafka-clients}</version>
-    </dependency>
 
-    <!-- LZ4 (at.yawk) -->
-    <dependency>
-      <groupId>at.yawk.lz4</groupId>
-      <artifactId>lz4-java</artifactId>
-      <version>${version.lz4-java}</version>
-    </dependency>
-
-    <!-- Netty deps (exclusions to adapt it to wildfly modules)-->
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-all</artifactId>
-      <version>${version.netty}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-haproxy</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-memcache</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-mqtt</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-redis</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-smtp</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-stomp</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-xml</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-handler-ssl-ocsp</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-resolver-dns-classes-macos</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-resolver-dns-native-macos</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-transport-rxtx</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-transport-sctp</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-transport-udt</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-transport-native-unix-common</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-transport-native-unix-common</artifactId>
-      <version>${version.netty}</version>
-      <classifier>linux-x86_64</classifier>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-transport-native-unix-common</artifactId>
-      <version>${version.netty}</version>
-      <classifier>linux-aarch_64</classifier>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-transport-native-unix-common</artifactId>
-      <version>${version.netty}</version>
-      <classifier>osx-x86_64</classifier>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-transport-native-unix-common</artifactId>
-      <version>${version.netty}</version>
-      <classifier>osx-aarch_64</classifier>
-    </dependency>
   </dependencies>
 
   <build>
@@ -368,99 +260,6 @@
                 </copy>
                 <delete dir="target/modules/org/apache/httpcomponents/core5/httpcore5-h2" />
 
-                <!-- copy Kafka dependencies to module slot -->
-                <delete dir="target/modules/org/apache/kafka/kafka-clients" />
-                <copy todir="target/modules" flatten="false">
-                    <fileset refid="maven.project.dependencies" />
-                    <mapper>
-                        <chainedmapper>
-                            <regexpmapper from="^(.*)/([^/]+)/([^/]*)$$" to="\1/main/\3" handledirsep="yes" />
-                            <regexpmapper 
-                                from="^(org.apache.kafka.*)/((kafka-clients-)[0-9\.]*).*.jar$$" 
-                                to="org/apache/kafka/client/main/\3${version.kafka-clients}.jar" 
-                                handledirsep="yes" />
-                        </chainedmapper>
-                    </mapper>
-                </copy>
-
-                <!-- remove org.lz4 dependency in favor of at.yawk.lz4 -->
-                <delete dir="target/modules/org/lz4" />
-
-                <!-- move netty-transport-classes-epoll to netty-transport-native-epoll -->
-                <copy todir="target/modules" flatten="false">
-                  <fileset dir="target/modules">
-                    <include name="io/netty/netty-transport-classes-epoll/main/*.jar"/>
-                  </fileset>
-                  <chainedmapper>
-                    <regexpmapper 
-                      from="^io/netty/netty-transport-classes-epoll/main/(.*)$$" 
-                      to="io/netty/netty-transport-native-epoll/main/\1" 
-                      handledirsep="yes" />
-                  </chainedmapper>
-                </copy>
-                <delete dir="target/modules/io/netty/netty-transport-classes-epoll" />
-                <!-- unpack native .so files from netty-transport-native-epoll jars -->
-                <unzip dest="target/modules/io/netty/netty-transport-native-epoll/main/lib">
-                  <fileset dir="target/modules/io/netty/netty-transport-native-epoll/main">
-                    <include name="netty-transport-native-epoll-${version.netty}-linux-aarch_64.jar"/>
-                    <include name="netty-transport-native-epoll-${version.netty}-linux-x86_64.jar"/>
-                  </fileset>
-                  <patternset>
-                    <include name="META-INF/native/**/*.so"/>
-                  </patternset>
-                </unzip>
-                <!-- remove all jars except netty-transport-classes-epoll -->
-                <delete>
-                  <fileset dir="target/modules/io/netty/netty-transport-native-epoll/main">
-                    <include name="*.jar"/>
-                    <exclude name="netty-transport-classes-epoll-${version.netty}.jar"/>
-                  </fileset>
-                </delete>
-
-                <!-- move netty-transport-classes-kqueue to netty-transport-native-kqueue -->
-                <copy todir="target/modules" flatten="false">
-                  <fileset dir="target/modules">
-                    <include name="io/netty/netty-transport-classes-kqueue/main/*.jar"/>
-                  </fileset>
-                  <chainedmapper>
-                    <regexpmapper 
-                      from="^io/netty/netty-transport-classes-kqueue/main/(.*)$$" 
-                      to="io/netty/netty-transport-native-kqueue/main/\1" 
-                      handledirsep="yes" />
-                  </chainedmapper>
-                </copy>
-                <delete dir="target/modules/io/netty/netty-transport-classes-kqueue" />
-                <!-- unpack native .so files from netty-transport-native-kqueue jars -->
-                <unzip dest="target/modules/io/netty/netty-transport-native-kqueue/main/lib">
-                  <fileset dir="target/modules/io/netty/netty-transport-native-kqueue/main">
-                    <include name="netty-transport-native-kqueue-${version.netty}-osx-aarch_64.jar"/>
-                    <include name="netty-transport-native-kqueue-${version.netty}-osx-x86_64.jar"/>
-                  </fileset>
-                  <patternset>
-                    <include name="META-INF/native/**/*.jnilib"/>
-                  </patternset>
-                </unzip>
-                <!-- remove all jars except netty-transport-classes-epoll -->
-                <delete>
-                  <fileset dir="target/modules/io/netty/netty-transport-native-kqueue/main">
-                    <include name="*.jar"/>
-                    <exclude name="netty-transport-classes-kqueue-${version.netty}.jar"/>
-                  </fileset>
-                </delete>
-
-                <!-- move netty-transport-native-unix-common specific artifacts to netty-transport-native-unix-common -->
-                <copy todir="target/modules/io/netty/netty-transport-native-unix-common/main" flatten="true">
-                  <fileset dir="target/modules/io/netty">
-                    <include name="netty-transport-native-unix-common-*/main/*.jar"/>
-                  </fileset>
-                </copy>
-                <!-- delete the classifier-specific parent directories but keep the main one -->
-                <delete includeemptydirs="true">
-                  <fileset dir="target/modules/io/netty" includes="netty-transport-native-unix-common-*/**"/>
-                </delete>
-
-                <delete dir="target/modules/io/netty/netty-all" />
-
                 <!-- copy groovy dependencies to single dir -->
                 <delete dir="target/modules/org/apache/groovy" />
                 <copy todir="target/modules" flatten="false">
@@ -514,18 +313,6 @@
                 </replace>
 
                 <replace dir="target/modules" token="@version.jackson@" value="${version.jackson}">
-                  <include name="**/module.xml" />
-                </replace>
-                
-                <replace dir="target/modules" token="@version.lz4-java@" value="${version.lz4-java}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.kafka-clients@" value="${version.kafka-clients}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.netty@" value="${version.netty}">
                   <include name="**/module.xml" />
                 </replace>
 
