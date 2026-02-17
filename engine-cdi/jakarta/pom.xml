@@ -14,8 +14,7 @@
   </parent>
 
   <properties>
-    <arquillian.container.version>3.0.2.Final</arquillian.container.version>
-    <arquillian.junit.version>1.7.0.Alpha14</arquillian.junit.version>
+    <arquillian.container.version>4.0.0.Final</arquillian.container.version>
     <weld.version>5.0.1.Final</weld.version>
   </properties>
 
@@ -112,12 +111,11 @@
     <dependency>
       <groupId>org.jboss.arquillian.junit</groupId>
       <artifactId>arquillian-junit-container</artifactId>
-      <version>${arquillian.junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.jboss.arquillian.junit</groupId>
+      <artifactId>arquillian-junit-core</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

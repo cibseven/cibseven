@@ -16,10 +16,10 @@
  */
 package org.cibseven.bpm.engine.cdi.test.api.annotation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
 import org.cibseven.bpm.engine.cdi.impl.annotation.StartProcessInterceptor;
@@ -29,9 +29,9 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.engine.variable.value.StringValue;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.jboss.arquillian.junit5.ArquillianExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Testcase for assuring that the {@link StartProcessInterceptor} behaves as
@@ -39,7 +39,7 @@ import org.junit.runner.RunWith;
  *
  * @author Daniel Meyer
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class StartProcessTest extends CdiProcessEngineTestCase {
 
   @Test

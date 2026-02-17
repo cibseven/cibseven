@@ -14,11 +14,10 @@
   </parent>
 
   <properties>
-    <arquillian.container.version>2.1.0.Final</arquillian.container.version>
-    <arquillian.junit.version>1.6.0.Final</arquillian.junit.version>
-    <weld.version>3.1.9.Final</weld.version>
-    <javaee.spec>jboss-javaee-8.0</javaee.spec>
-    <javaee.spec.version>1.0.4.Final</javaee.spec.version>
+    <arquillian.container.version>4.0.0.Final</arquillian.container.version>
+    <weld.version>5.0.1.Final</weld.version>
+    <jakarta.enterprise.version>4.0.1</jakarta.enterprise.version>
+
   </properties>
 
   <dependencyManagement>
@@ -52,20 +51,25 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>org.jboss.spec</groupId>
-      <artifactId>${javaee.spec}</artifactId>
-      <version>${javaee.spec.version}</version>
-      <type>pom</type>
-      <scope>provided</scope>
-    </dependency>
 
     <dependency>
-      <groupId>org.jboss.arquillian.container</groupId>
-      <artifactId>arquillian-weld-embedded</artifactId>
-      <version>${arquillian.container.version}</version>
+      <groupId>org.jboss.arquillian.junit5</groupId>
+      <artifactId>arquillian-junit5-container</artifactId>
       <scope>test</scope>
     </dependency>
+	<dependency>
+	  <groupId>org.jboss.arquillian.container</groupId>
+	  <artifactId>arquillian-weld-embedded</artifactId>
+	  <version>${arquillian.container.version}</version>
+	  <scope>test</scope>
+	</dependency>
+<!-- proposed by AI but not available on nexus	
+	<dependency>
+	  <groupId>org.jboss.weld.arquillian</groupId>
+	  <artifactId>weld-junit5</artifactId>
+	  <version>3.0.0.Final</version>
+	  <scope>test</scope>
+	</dependency>-->
     <dependency>
       <groupId>org.jboss.weld</groupId>
       <artifactId>weld-core-impl</artifactId>
@@ -82,17 +86,68 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.jboss.arquillian.junit</groupId>
-      <artifactId>arquillian-junit-container</artifactId>
-      <version>${arquillian.junit.version}</version>
+      <groupId>org.jboss.arquillian.junit5</groupId>
+      <artifactId>arquillian-junit5-core</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.jboss.arquillian.core</groupId>
+      <artifactId>arquillian-core-spi</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.enterprise</groupId>
+      <artifactId>jakarta.enterprise.cdi-api</artifactId>
+      <version>${jakarta.enterprise.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
+      <version>2.0.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.enterprise</groupId>
+      <artifactId>jakarta.enterprise.cdi-api</artifactId>
+      <version>${jakarta.enterprise.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.faces</groupId>
+      <artifactId>jakarta.faces-api</artifactId>
+      <version>${jakarta.enterprise.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+        <groupId>jakarta.platform</groupId>
+        <artifactId>jakarta.jakartaee-api</artifactId>
+        <version>10.0.0</version>
+        <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.arquillian.junit5</groupId>
+      <artifactId>arquillian-junit5-container</artifactId>
+      <scope>test</scope>
+    </dependency>
+        <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
       <scope>test</scope>

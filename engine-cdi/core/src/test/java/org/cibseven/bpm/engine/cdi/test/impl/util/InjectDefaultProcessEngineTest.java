@@ -23,24 +23,22 @@ import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
 import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.InjectedProcessEngineBean;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
-import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.junit.*;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Christopher Zell <christopher.zell@camunda.com>
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class InjectDefaultProcessEngineTest extends CdiProcessEngineTestCase {
 
   protected ProcessEngine defaultProcessEngine = null;
   protected ProcessEngine processEngine = null;
 
-  @Before
+  @BeforeEach
   public void init() {
     processEngine = TestHelper.getProcessEngine("activiti.cfg.xml");
     defaultProcessEngine = BpmPlatform.getProcessEngineService().getDefaultProcessEngine();
@@ -52,7 +50,7 @@ public class InjectDefaultProcessEngineTest extends CdiProcessEngineTestCase {
     RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(processEngine);
   }
 
-  @After
+  @AfterEach
   public void tearDownCdiProcessEngineTestCase() {
     RuntimeContainerDelegate.INSTANCE.get().unregisterProcessEngine(processEngine);
 

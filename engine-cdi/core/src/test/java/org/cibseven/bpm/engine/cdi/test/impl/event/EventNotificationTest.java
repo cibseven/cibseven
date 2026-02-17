@@ -21,19 +21,18 @@ import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.jboss.arquillian.junit5.ArquillianExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class EventNotificationTest extends CdiProcessEngineTestCase {
 
   @Test
@@ -132,12 +131,12 @@ public class EventNotificationTest extends CdiProcessEngineTestCase {
     TestEventListener listenerBean = getBeanInstance(TestEventListener.class);
     listenerBean.reset();
 
-    assertThat(listenerBean.getEventsReceived().size(), is(0));
+    assertThat(listenerBean.getEventsReceived().size()).isEqualTo(0);
     runtimeService.startProcessInstanceByKey("process1");
     waitForJobExecutorToProcessAllJobs(TimeUnit.SECONDS.toMillis(5L), 500L);
 
     Task task = taskService.createTaskQuery().singleResult();
-    assertThat(task.getName(), is("User Task"));
+    assertThat(task.getName()).isEqualTo("User Task");
 
     // 2: start event (start + end)
     // 1: transition to first mi activity
@@ -149,7 +148,7 @@ public class EventNotificationTest extends CdiProcessEngineTestCase {
     // 1: transition to the user task
     // 2: user task (start + task create event)
     // = 19
-    assertThat(listenerBean.getEventsReceived().size(), is(19));
+    assertThat(listenerBean.getEventsReceived().size()).isEqualTo(19);
   }
 
   @Test
@@ -174,7 +173,7 @@ public class EventNotificationTest extends CdiProcessEngineTestCase {
     // 2: one end event instance (start + end)
     // = 5
     Set<BusinessProcessEvent> eventsReceived = listenerBean.getEventsReceived();
-    assertThat(eventsReceived.size(), is(10));
+    assertThat(eventsReceived.size()).isEqualTo(10);
   }
 
 }

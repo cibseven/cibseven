@@ -21,10 +21,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
-import javax.inject.Inject;
-import javax.interceptor.AroundInvoke;
-import javax.interceptor.Interceptor;
-import javax.interceptor.InvocationContext;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.interceptor.AroundInvoke;
+import jakarta.interceptor.Interceptor;
+import jakarta.interceptor.InvocationContext;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
@@ -45,7 +46,8 @@ public class StartProcessInterceptor implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  @Inject BusinessProcess businessProcess;
+  @Inject
+  BusinessProcess businessProcess;
 
   @AroundInvoke
   public Object invoke(InvocationContext ctx) throws Exception {

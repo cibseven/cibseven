@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.cdi.impl.event;
 
 import java.lang.annotation.Annotation;
-import javax.enterprise.inject.spi.BeanManager;
+import jakarta.enterprise.inject.spi.BeanManager;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.cdi.BusinessProcessEvent;
 import org.cibseven.bpm.engine.cdi.impl.util.BeanManagerLookup;
