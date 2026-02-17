@@ -51,6 +51,7 @@ public interface LicenseKeyData {
    */
   public Boolean isUnlimited();
 
+
   /**
    * A collection of features that are enabled through this license. Features
    * could be Camunda BPM, Optimize or Cawemo.

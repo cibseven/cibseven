@@ -127,7 +127,7 @@ public class TelemetryRestServiceTest extends AbstractRestServiceTest {
         .body("product.internals.license-key.features.camundaBPM", equalTo("true"))
         .body("product.internals.license-key.raw", equalTo(MockProvider.EXAMPLE_TELEMETRY_LICENSE_RAW))
         .body("product.internals.license-key.unlimited", equalTo(MockProvider.EXAMPLE_TELEMETRY_LICENSE_UNLIMITED))
-        .body("product.internals.license-key.valid-until", equalTo(MockProvider.EXAMPLE_TELEMETRY_LICENSE_VALID_UNTIL))
+        .body("product.internals.license-key.expires", equalTo(MockProvider.EXAMPLE_TELEMETRY_LICENSE_VALID_UNTIL))
         .body("product.internals.camunda-integration[0]", equalTo("spring-boot"))
         .body("product.internals.data-collection-start-date", equalTo(MockProvider.EXAMPLE_TELEMETRY_DATA_COLLECTION_START_DATE))
     .when()

@@ -62,8 +62,8 @@
     <version.bouncycastle>1.47</version.bouncycastle>
 
     <!-- application servers -->
-    <version.wildfly>37.0.1.Final</version.wildfly>
-    <version.wildfly.core>29.0.1.Final</version.wildfly.core>
+    <version.wildfly>39.0.0.Final</version.wildfly>
+    <version.wildfly.core>31.0.1.Final</version.wildfly.core>
     
     <version.wildfly28>28.0.1.Final</version.wildfly28>
     <version.wildfly28.core>20.0.2.Final</version.wildfly28.core>
@@ -81,8 +81,8 @@
     <version.jakarta-ee-spec>10.0.0</version.jakarta-ee-spec>
 
     <version.eirslett.frontend.maven.plugin>1.12.1</version.eirslett.frontend.maven.plugin>
-    <version.nodejs>20.14.0</version.nodejs>
-    <version.npm>10.7.0</version.npm>
+    <version.nodejs>24.13.1</version.nodejs>
+    <version.npm>11.8.0</version.npm>
 
     <!-- OSGi bundles properties -->
     <cibseven.artifact />

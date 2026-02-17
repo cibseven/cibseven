@@ -101,7 +101,7 @@ public class TelemetryConfigurationTest {
   @RequiredDatabase(includes = DbSqlSessionFactory.H2) // it's h2-specific test
   public void shouldStartEngineWithLicenseKeyAlreadyPresent() {
     // given license key persisted
-    String testLicenseKey = "signature=;my company;unlimited";
+    String testLicenseKey = "{\"expires\":\"2026-12-31\",\"signature\":\"signature_code\",\"customer\":\"Licensed company\"}";
     inMemoryConfiguration = new StandaloneInMemProcessEngineConfiguration();
     inMemoryConfiguration
         .setJdbcUrl("jdbc:h2:mem:camunda-test" + getClass().getSimpleName())
@@ -117,7 +117,7 @@ public class TelemetryConfigurationTest {
 
     // then the license key is picked up
     assertThat(inMemoryConfiguration.getDiagnosticsRegistry().getLicenseKey())
-        .isEqualToComparingFieldByField(new LicenseKeyDataImpl(null, null, null, null, null, "my company;unlimited"));
+        .isEqualToComparingFieldByField(new LicenseKeyDataImpl("Licensed company", null, "2026-12-31",  null, null, null));
   }
 
 }

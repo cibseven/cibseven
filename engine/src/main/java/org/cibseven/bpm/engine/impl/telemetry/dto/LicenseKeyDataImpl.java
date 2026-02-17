@@ -18,23 +18,33 @@ package org.cibseven.bpm.engine.impl.telemetry.dto;
 
 import java.util.Map;
 
+import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
+import org.cibseven.bpm.engine.impl.telemetry.TelemetryLogger;
 import org.cibseven.bpm.engine.telemetry.LicenseKeyData;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
-
 public class LicenseKeyDataImpl implements LicenseKeyData {
 
-  public static final String SERIALIZED_VALID_UNTIL = "valid-until";
+  private final static TelemetryLogger LOG = ProcessEngineLogger.TELEMETRY_LOGGER;
+
+  public static final String SERIALIZED_EXPIRES = "expires";
   public static final String SERIALIZED_IS_UNLIMITED = "unlimited";
+  public static final String SERIALIZED_SIGNATURE = "signature";
 
   protected String customer;
   protected String type;
-  @SerializedName(value = SERIALIZED_VALID_UNTIL)
+  @SerializedName(value = SERIALIZED_EXPIRES)
   protected String validUntil;
   @SerializedName(value = SERIALIZED_IS_UNLIMITED)
   protected Boolean isUnlimited;
   protected Map<String, String> features;
+  @SerializedName(value = SERIALIZED_SIGNATURE)
   protected String raw;
+
+  public LicenseKeyDataImpl() {
+  }
 
   public LicenseKeyDataImpl(String customer, String type, String validUntil, Boolean isUnlimited, Map<String, String> features, String raw) {
     this.customer = customer;
@@ -46,10 +56,27 @@ public class LicenseKeyDataImpl implements LicenseKeyData {
   }
 
   public static LicenseKeyDataImpl fromRawString(String rawLicense) {
-    String licenseKeyRawString = rawLicense.contains(";") ? rawLicense.split(";", 2)[1] : rawLicense;
-    return new LicenseKeyDataImpl(null, null, null, null, null, licenseKeyRawString);
+    try {
+      LicenseKeyDataImpl resultLicense = new Gson().fromJson(rawLicense, LicenseKeyDataImpl.class);
+      resultLicense.setRaw(null);
+      return resultLicense;
+    } catch (JsonSyntaxException e) {
+      LOG.exceptionWhileReadingLicenseKey(e);
+      return null;
+    }
   }
 
+  public boolean equals(LicenseKeyDataImpl other) {
+    if (this == other) return true;
+    if (other == null) return false;
+    return java.util.Objects.equals(customer, other.customer)
+        && java.util.Objects.equals(type, other.type)
+        && java.util.Objects.equals(validUntil, other.validUntil)
+        && java.util.Objects.equals(isUnlimited, other.isUnlimited)
+        && java.util.Objects.equals(features, other.features)
+        && java.util.Objects.equals(raw, other.raw);
+  }
+  
   public String getCustomer() {
     return customer;
   }
@@ -65,6 +92,7 @@ public class LicenseKeyDataImpl implements LicenseKeyData {
   public void setType(String type) {
     this.type = type;
   }
+
 
   public String getValidUntil() {
     return validUntil;

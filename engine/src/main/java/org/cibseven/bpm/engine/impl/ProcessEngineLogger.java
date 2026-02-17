@@ -43,6 +43,7 @@ import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.impl.plugin.AdministratorAuthorizationPluginLogger;
 import org.cibseven.bpm.engine.impl.pvm.PvmLogger;
 import org.cibseven.bpm.engine.impl.scripting.ScriptLogger;
+import org.cibseven.bpm.engine.impl.telemetry.TelemetryLogger;
 import org.cibseven.bpm.engine.impl.test.TestLogger;
 import org.cibseven.bpm.engine.impl.util.EngineUtilLogger;
 import org.cibseven.commons.logging.BaseLogger;
@@ -134,7 +135,9 @@ public class ProcessEngineLogger extends BaseLogger {
 
   public static final IndentityLogger INDENTITY_LOGGER = BaseLogger.createLogger(
       IndentityLogger.class, PROJECT_CODE, "org.cibseven.bpm.engine.identity", "27");
-  // Use code 29 for the next logger. Skip 28 as it's previously used for telemetry feature that is removed from the code base now
+
+  public static final TelemetryLogger TELEMETRY_LOGGER = BaseLogger.createLogger(
+		  TelemetryLogger.class, PROJECT_CODE, "org.cibseven.bpm.engine.telemetry", "28");
 
   public static boolean shouldLogJobException(ProcessEngineConfiguration processEngineConfiguration, JobEntity currentJob) {
     boolean enableReducedJobExceptionLogging = processEngineConfiguration.isEnableReducedJobExceptionLogging();
