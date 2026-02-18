@@ -284,18 +284,42 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
     // Handle email which might be in an array
     String emailAttr = scimConfiguration.getUserEmailAttribute();
     if (emailAttr.contains("[")) {
-      // Extract from complex path like emails[type eq "work"].value
-      if (resource.has("emails") && resource.get("emails").isArray()) {
-        for (JsonNode email : resource.get("emails")) {
-          if (email.has("type") && "work".equals(email.get("type").asText())) {
-            user.setEmail(email.has("value") ? email.get("value").asText() : null);
-            break;
+      // Extract from complex path like emails[type eq "work"].value or emails[primary eq true].value
+      String arrayName = emailAttr.substring(0, emailAttr.indexOf('['));
+      String filterPart = emailAttr.substring(emailAttr.indexOf('[') + 1, emailAttr.indexOf(']'));
+      String valuePath = emailAttr.contains("].") ? emailAttr.substring(emailAttr.indexOf("].") + 2) : null;
+      
+      if (resource.has(arrayName) && resource.get(arrayName).isArray()) {
+        // Parse the filter: "type eq \"work\"" or "primary eq true"
+        String[] filterParts = filterPart.split(" eq ");
+        if (filterParts.length == 2) {
+          String filterKey = filterParts[0].trim();
+          String filterValue = filterParts[1].trim().replace("\"", "");
+          
+          for (JsonNode item : resource.get(arrayName)) {
+            if (item.has(filterKey)) {
+              String itemValue = item.get(filterKey).asText();
+              if (filterValue.equals(itemValue) || 
+                  ("true".equalsIgnoreCase(filterValue) && item.get(filterKey).asBoolean())) {
+                if (valuePath != null && item.has(valuePath)) {
+                  user.setEmail(item.get(valuePath).asText());
+                } else if (valuePath == null) {
+                  user.setEmail(item.asText());
+                }
+                break;
+              }
+            }
           }
         }
-        // Fallback to first email if no work email found
-        if (user.getEmail() == null && resource.get("emails").size() > 0) {
-          JsonNode firstEmail = resource.get("emails").get(0);
-          user.setEmail(firstEmail.has("value") ? firstEmail.get("value").asText() : null);
+        
+        // Fallback to first item if no match found
+        if (user.getEmail() == null && resource.get(arrayName).size() > 0) {
+          JsonNode firstItem = resource.get(arrayName).get(0);
+          if (valuePath != null && firstItem.has(valuePath)) {
+            user.setEmail(firstItem.get(valuePath).asText());
+          } else {
+            user.setEmail(firstItem.asText());
+          }
         }
       }
     } else {

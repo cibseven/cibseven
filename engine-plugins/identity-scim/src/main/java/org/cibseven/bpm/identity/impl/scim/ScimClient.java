@@ -276,6 +276,10 @@ public class ScimClient {
       // System.out.println("<<<<<<< ScimClient " + method.toString() + " status code: " + statusCode);
 
       if (statusCode == 200 || statusCode == 201 || statusCode == 204) {
+        // Handle 204 No Content - return null for empty response
+        if (statusCode == 204 || responseBody.isEmpty()) {
+          return null;
+        }
         return objectMapper.readTree(responseBody);
       } else if (statusCode == 401 && isOAuth2Authentication() && !isRetry) {
         // Try to refresh OAuth2 token and retry once
