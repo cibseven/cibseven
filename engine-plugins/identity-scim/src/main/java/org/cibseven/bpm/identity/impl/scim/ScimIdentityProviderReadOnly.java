@@ -283,42 +283,56 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
     
     // Handle email which might be in an array
     String emailAttr = scimConfiguration.getUserEmailAttribute();
-    if (emailAttr.contains("[")) {
+    if (emailAttr != null && emailAttr.contains("[") && emailAttr.contains("]")) {
       // Extract from complex path like emails[type eq "work"].value or emails[primary eq true].value
-      String arrayName = emailAttr.substring(0, emailAttr.indexOf('['));
-      String filterPart = emailAttr.substring(emailAttr.indexOf('[') + 1, emailAttr.indexOf(']'));
-      String valuePath = emailAttr.contains("].") ? emailAttr.substring(emailAttr.indexOf("].") + 2) : null;
+      int bracketStart = emailAttr.indexOf('[');
+      int bracketEnd = emailAttr.indexOf(']');
       
-      if (resource.has(arrayName) && resource.get(arrayName).isArray()) {
-        // Parse the filter: "type eq \"work\"" or "primary eq true"
-        String[] filterParts = filterPart.split(" eq ");
-        if (filterParts.length == 2) {
-          String filterKey = filterParts[0].trim();
-          String filterValue = filterParts[1].trim().replace("\"", "");
-          
-          for (JsonNode item : resource.get(arrayName)) {
-            if (item.has(filterKey)) {
-              String itemValue = item.get(filterKey).asText();
-              if (filterValue.equals(itemValue) || 
-                  ("true".equalsIgnoreCase(filterValue) && item.get(filterKey).asBoolean())) {
-                if (valuePath != null && item.has(valuePath)) {
-                  user.setEmail(item.get(valuePath).asText());
-                } else if (valuePath == null) {
-                  user.setEmail(item.asText());
+      if (bracketStart >= 0 && bracketEnd > bracketStart) {
+        String arrayName = emailAttr.substring(0, bracketStart);
+        String filterPart = emailAttr.substring(bracketStart + 1, bracketEnd);
+        String valuePath = emailAttr.contains("].") ? emailAttr.substring(emailAttr.indexOf("].") + 2) : null;
+        
+        if (resource.has(arrayName) && resource.get(arrayName).isArray()) {
+          // Parse the filter: "type eq \"work\"" or "primary eq true"
+          String[] filterParts = filterPart.split(" eq ");
+          if (filterParts.length == 2) {
+            String filterKey = filterParts[0].trim();
+            String filterValue = filterParts[1].trim().replace("\"", "");
+            
+            for (JsonNode item : resource.get(arrayName)) {
+              if (item.has(filterKey)) {
+                JsonNode filterNode = item.get(filterKey);
+                if (filterNode != null && !filterNode.isNull()) {
+                  String itemValue = filterNode.asText();
+                  if (filterValue.equals(itemValue) || 
+                      ("true".equalsIgnoreCase(filterValue) && filterNode.asBoolean())) {
+                    if (valuePath != null && item.has(valuePath)) {
+                      JsonNode valueNode = item.get(valuePath);
+                      if (valueNode != null && !valueNode.isNull()) {
+                        user.setEmail(valueNode.asText());
+                      }
+                    } else if (valuePath == null) {
+                      user.setEmail(item.asText());
+                    }
+                    break;
+                  }
                 }
-                break;
               }
             }
           }
-        }
-        
-        // Fallback to first item if no match found
-        if (user.getEmail() == null && resource.get(arrayName).size() > 0) {
-          JsonNode firstItem = resource.get(arrayName).get(0);
-          if (valuePath != null && firstItem.has(valuePath)) {
-            user.setEmail(firstItem.get(valuePath).asText());
-          } else {
-            user.setEmail(firstItem.asText());
+          
+          // Fallback to first item if no match found
+          if (user.getEmail() == null && resource.get(arrayName).size() > 0) {
+            JsonNode firstItem = resource.get(arrayName).get(0);
+            if (valuePath != null && firstItem.has(valuePath)) {
+              JsonNode valueNode = firstItem.get(valuePath);
+              if (valueNode != null && !valueNode.isNull()) {
+                user.setEmail(valueNode.asText());
+              }
+            } else if (!firstItem.isNull()) {
+              user.setEmail(firstItem.asText());
+            }
           }
         }
       }
