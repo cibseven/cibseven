@@ -34,7 +34,7 @@ public class ScimTestEnvironment {
   private int numberOfGroupsCreated = 0;
 
   public ScimTestEnvironment() {
-    this.port = 8443;
+    this.port = 0; // Use dynamic port by default
   }
 
   public ScimTestEnvironment(int port) {

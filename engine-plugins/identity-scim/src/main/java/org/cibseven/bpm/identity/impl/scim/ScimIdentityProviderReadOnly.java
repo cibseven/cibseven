@@ -283,19 +283,63 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
     
     // Handle email which might be in an array
     String emailAttr = scimConfiguration.getUserEmailAttribute();
-    if (emailAttr.contains("[")) {
-      // Extract from complex path like emails[type eq "work"].value
-      if (resource.has("emails") && resource.get("emails").isArray()) {
-        for (JsonNode email : resource.get("emails")) {
-          if (email.has("type") && "work".equals(email.get("type").asText())) {
-            user.setEmail(email.has("value") ? email.get("value").asText() : null);
-            break;
+    if (emailAttr != null && emailAttr.contains("[") && emailAttr.contains("]")) {
+      // Extract from complex path like emails[type eq "work"].value or emails[primary eq true].value
+      int bracketStart = emailAttr.indexOf('[');
+      int bracketEnd = emailAttr.indexOf(']');
+      
+      if (bracketStart >= 0 && bracketEnd > bracketStart) {
+        String arrayName = emailAttr.substring(0, bracketStart);
+        String filterPart = emailAttr.substring(bracketStart + 1, bracketEnd);
+        
+        // Check for value path after bracket (e.g., "].value")
+        int valuePathStart = emailAttr.indexOf("].");
+        String valuePath = (valuePathStart >= 0 && valuePathStart == bracketEnd) ? 
+            emailAttr.substring(valuePathStart + 2) : null;
+        
+        if (resource.has(arrayName) && resource.get(arrayName).isArray()) {
+          // Parse the filter: "type eq \"work\"" or "primary eq true"
+          // Using regex to handle variable whitespace
+          String[] filterParts = filterPart.split("\\s+eq\\s+", 2);
+          if (filterParts.length == 2) {
+            String filterKey = filterParts[0].trim();
+            // Remove only surrounding quotes from filter value
+            String filterValue = filterParts[1].trim().replaceAll("^\"|\"$", "");
+            
+            for (JsonNode item : resource.get(arrayName)) {
+              if (item.has(filterKey)) {
+                JsonNode filterNode = item.get(filterKey);
+                if (filterNode != null && !filterNode.isNull()) {
+                  String itemValue = filterNode.asText();
+                  if (filterValue.equals(itemValue) || 
+                      ("true".equalsIgnoreCase(filterValue) && filterNode.asBoolean())) {
+                    if (valuePath != null && item.has(valuePath)) {
+                      JsonNode valueNode = item.get(valuePath);
+                      if (valueNode != null && !valueNode.isNull()) {
+                        user.setEmail(valueNode.asText());
+                      }
+                    } else if (valuePath == null) {
+                      user.setEmail(item.asText());
+                    }
+                    break;
+                  }
+                }
+              }
+            }
           }
-        }
-        // Fallback to first email if no work email found
-        if (user.getEmail() == null && resource.get("emails").size() > 0) {
-          JsonNode firstEmail = resource.get("emails").get(0);
-          user.setEmail(firstEmail.has("value") ? firstEmail.get("value").asText() : null);
+          
+          // Fallback to first item if no match found
+          if (user.getEmail() == null && resource.get(arrayName).size() > 0) {
+            JsonNode firstItem = resource.get(arrayName).get(0);
+            if (valuePath != null && firstItem.has(valuePath)) {
+              JsonNode valueNode = firstItem.get(valuePath);
+              if (valueNode != null && !valueNode.isNull()) {
+                user.setEmail(valueNode.asText());
+              }
+            } else if (!firstItem.isNull()) {
+              user.setEmail(firstItem.asText());
+            }
+          }
         }
       }
     } else {

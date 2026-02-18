@@ -67,7 +67,7 @@ public class ScimConfiguration {
   protected int maxConnections = 100;
   
   // SSL/TLS settings
-  protected boolean useSsl = true;
+  // Note: SSL/TLS is determined by the serverUrl scheme (https://)
   protected boolean acceptUntrustedCertificates = false;
   
   // Authorization settings
@@ -274,14 +274,6 @@ public class ScimConfiguration {
 
   public void setMaxConnections(int maxConnections) {
     this.maxConnections = maxConnections;
-  }
-
-  public boolean isUseSsl() {
-    return useSsl;
-  }
-
-  public void setUseSsl(boolean useSsl) {
-    this.useSsl = useSsl;
   }
 
   public boolean isAcceptUntrustedCertificates() {
