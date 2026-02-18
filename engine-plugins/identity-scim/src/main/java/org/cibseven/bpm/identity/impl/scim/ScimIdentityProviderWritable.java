@@ -125,8 +125,8 @@ public class ScimIdentityProviderWritable extends ScimIdentityProviderReadOnly i
 
   @Override
   public IdentityOperationResult unlockUser(String userId) {
-    // TODO Auto-generated method stub
-    return null;
+    // Unlocking users is not supported via SCIM; treat as a no-op.
+    return new IdentityOperationResult(null, IdentityOperationResult.OPERATION_NONE);
   }
 
   // Groups

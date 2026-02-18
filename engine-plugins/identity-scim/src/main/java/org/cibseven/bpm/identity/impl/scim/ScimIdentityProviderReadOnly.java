@@ -187,7 +187,7 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
 
     String baseFilter = scimConfiguration.getUserBaseFilter();
     if (baseFilter != null && !baseFilter.isEmpty()) {
-      filters.add(escapeScimFilter(baseFilter));
+      filters.add(baseFilter);
     }
     if (query.getId() != null) {
       filters.add(scimConfiguration.getUserIdAttribute() + " eq \"" + escapeScimFilter(query.getId()) + "\"");

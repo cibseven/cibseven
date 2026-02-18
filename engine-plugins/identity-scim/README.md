@@ -82,10 +82,9 @@ This plugin provides integration with SCIM 2.0 (System for Cross-domain Identity
 - `userFirstnameAttribute`: SCIM attribute for first name (default: "name.givenName")
 - `userLastnameAttribute`: SCIM attribute for last name (default: "name.familyName")
 - `userEmailAttribute`: SCIM attribute for email (default: "emails[type eq \"work\"].value")
-- `userDisplayNameAttribute`: SCIM attribute for display name (default: "displayName")
 
 ### Group Attribute Mapping
-- `groupIdAttribute`: SCIM attribute for group ID (default: "displayName")
+- `groupIdAttribute`: SCIM attribute for group ID (default: "externalId")
 - `groupNameAttribute`: SCIM attribute for group name (default: "displayName")
 - `groupMemberAttribute`: SCIM attribute for group members (default: "members")
 
