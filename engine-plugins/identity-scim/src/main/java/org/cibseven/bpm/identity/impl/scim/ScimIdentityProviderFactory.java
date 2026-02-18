@@ -30,14 +30,20 @@ public class ScimIdentityProviderFactory implements SessionFactory {
 
   @Override
   public Class<?> getSessionType() {
-    // Writable mode is temporarily disabled until it is properly covered by tests.
-    return ReadOnlyIdentityProvider.class;
+    if (scimConfiguration != null && scimConfiguration.getAllowModifications()) {
+      return WritableIdentityProvider.class;
+    } else {
+      return ReadOnlyIdentityProvider.class;
+    }
   }
 
   @Override
   public Session openSession() {
-    // Writable mode is temporarily disabled until it is properly covered by tests.
-    return new ScimIdentityProviderReadOnly(scimConfiguration);
+    if (scimConfiguration != null && scimConfiguration.getAllowModifications()) {
+      return new ScimIdentityProviderWritable(scimConfiguration);
+    } else {
+      return new ScimIdentityProviderReadOnly(scimConfiguration);
+    }
   }
 
   public ScimConfiguration getScimConfiguration() {
