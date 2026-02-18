@@ -324,19 +324,19 @@ public class ScimConfiguration {
     this.customHeaders = customHeaders;
   }
 
-  protected String getGroupBaseFilter() {
+  public String getGroupBaseFilter() {
     return groupBaseFilter;
   }
 
-  protected void setGroupBaseFilter(String groupBaseFilter) {
+  public void setGroupBaseFilter(String groupBaseFilter) {
     this.groupBaseFilter = groupBaseFilter;
   }
 
-  protected String getUserBaseFilter() {
+  public String getUserBaseFilter() {
     return userBaseFilter;
   }
 
-  protected void setUserBaseFilter(String userBaseFilter) {
+  public void setUserBaseFilter(String userBaseFilter) {
     this.userBaseFilter = userBaseFilter;
   }
 }
