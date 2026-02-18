@@ -271,7 +271,7 @@ public class ScimClient {
     try (CloseableHttpResponse response = httpClient.execute(request)) {
       int statusCode = response.getCode();
       String responseBody = response.getEntity() != null ? 
-          EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8) : "";
+          EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8) : "{}";
 
       // System.out.println("<<<<<<< ScimClient " + method.toString() + " status code: " + statusCode);
 
