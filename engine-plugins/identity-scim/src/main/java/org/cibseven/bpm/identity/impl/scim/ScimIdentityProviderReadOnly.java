@@ -291,14 +291,20 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
       if (bracketStart >= 0 && bracketEnd > bracketStart) {
         String arrayName = emailAttr.substring(0, bracketStart);
         String filterPart = emailAttr.substring(bracketStart + 1, bracketEnd);
-        String valuePath = emailAttr.contains("].") ? emailAttr.substring(emailAttr.indexOf("].") + 2) : null;
+        
+        // Check for value path after bracket (e.g., "].value")
+        int valuePathStart = emailAttr.indexOf("].");
+        String valuePath = (valuePathStart >= 0 && valuePathStart == bracketEnd) ? 
+            emailAttr.substring(valuePathStart + 2) : null;
         
         if (resource.has(arrayName) && resource.get(arrayName).isArray()) {
           // Parse the filter: "type eq \"work\"" or "primary eq true"
-          String[] filterParts = filterPart.split(" eq ");
+          // Using regex to handle variable whitespace
+          String[] filterParts = filterPart.split("\\s+eq\\s+", 2);
           if (filterParts.length == 2) {
             String filterKey = filterParts[0].trim();
-            String filterValue = filterParts[1].trim().replace("\"", "");
+            // Remove only surrounding quotes from filter value
+            String filterValue = filterParts[1].trim().replaceAll("^\"|\"$", "");
             
             for (JsonNode item : resource.get(arrayName)) {
               if (item.has(filterKey)) {
