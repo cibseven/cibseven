@@ -5,6 +5,7 @@ This plugin provides integration with SCIM 2.0 (System for Cross-domain Identity
 ## Features
 
 - Query users and groups from SCIM 2.0 servers
+- Basic functionality for creating/deleting users and groups (useful in a test environment)
 - Support for multiple authentication methods:
   - Bearer Token
   - Basic Authentication
@@ -126,7 +127,7 @@ If your SCIM server uses custom attribute names, you can map them accordingly:
 
 ## Limitations
 
-- This is a **read-only** identity provider. User and group management must be done through your SCIM server.
+- In production, user and group management should be done through your SCIM server, allow modifications in test environment only
 - Password validation via `checkPassword()` is not supported as SCIM is a provisioning protocol, not an authentication protocol.
 - Multi-tenancy is not supported.
 
@@ -142,7 +143,7 @@ This plugin should work with any SCIM 2.0 compliant identity provider, including
 
 ## Security Considerations
 
-- Always use SSL/TLS in production (`useSsl=true`)
+- Always use SSL/TLS in production
 - Only use `acceptUntrustedCertificates=true` for development/testing
 - Store credentials securely and consider using environment variables or secure vaults
 - Regularly rotate OAuth2 client secrets and access tokens
