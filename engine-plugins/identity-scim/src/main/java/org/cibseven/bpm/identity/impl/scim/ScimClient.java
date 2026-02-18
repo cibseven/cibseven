@@ -74,7 +74,7 @@ public class ScimClient {
 
   protected void checkConfiguration() {
     if (configuration == null) {
-      throw new IdentityProviderException("Failed to check SCIM configuration: configurtion is empty.");
+      throw new IdentityProviderException("Failed to check SCIM configuration: configuration is empty.");
     }   
     if (configuration.getServerUrl() == null || configuration.getServerUrl().isEmpty()) {
       throw new IdentityProviderException("Failed to check SCIM configuration: serverUrl is not set.");
