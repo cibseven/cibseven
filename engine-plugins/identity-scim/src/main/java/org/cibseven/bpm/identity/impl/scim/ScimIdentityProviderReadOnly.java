@@ -199,17 +199,6 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
       }
       filters.add("(" + String.join(" or ", idFilters) + ")");
     }
-    if (query.getEmail() != null) {
-      filters.add(scimConfiguration.getUserEmailAttribute() + " eq \"" + escapeScimFilter(query.getEmail()) + "\"");
-    }
-    if (query.getEmailLike() != null) {
-      String emailLike = query.getEmailLike();
-      String op = emailLike.startsWith("%") && emailLike.endsWith("%") ? "co" : 
-          emailLike.startsWith("%") ? "sw" : emailLike.endsWith("%") ? "ew" : "eq";
-          
-      emailLike = emailLike.replaceAll("^%|%$", "");
-      filters.add(scimConfiguration.getUserEmailAttribute() + " " + op + " \"" + escapeScimFilter(emailLike) + "\"");
-    }
     if (query.getFirstName() != null) {
       filters.add(scimConfiguration.getUserFirstnameAttribute() + " eq \"" + escapeScimFilter(query.getFirstName()) + "\"");
     }
@@ -233,6 +222,20 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
       filters.add(scimConfiguration.getUserLastnameAttribute() + " " + op + " \"" + escapeScimFilter(nameLike) + "\"");
     }
 
+    // filter by user work email
+    String workEmailAttrib = scimConfiguration.getUserEmailsAttribute() + "[type eq \"work\"].value";
+    if (query.getEmail() != null) {
+      filters.add(workEmailAttrib + " eq \"" + escapeScimFilter(query.getEmail()) + "\"");
+    }
+    if (query.getEmailLike() != null) {
+      String emailLike = query.getEmailLike();
+      String op = emailLike.startsWith("%") && emailLike.endsWith("%") ? "co" : 
+          emailLike.startsWith("%") ? "sw" : emailLike.endsWith("%") ? "ew" : "eq";
+           
+      emailLike = emailLike.replaceAll("^%|%$", "");
+      filters.add(workEmailAttrib + " " + op + " \"" + escapeScimFilter(emailLike) + "\"");
+    }
+
     return filters.isEmpty() ? null : String.join(" and ", filters);
   }
   
@@ -249,7 +252,7 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
           key = scimConfiguration.getUserIdAttribute();
           direction = Direction.ASCENDING.equals(orderingProperty.getDirection()) ? "ascending" : "descending";
         } else if (UserQueryProperty.EMAIL.getName().equals(propertyName)) {
-          key = scimConfiguration.getUserEmailAttribute().contains("[") ? "emails" : scimConfiguration.getUserEmailAttribute();
+          key = scimConfiguration.getUserEmailsAttribute() + "[type eq \"work\"].value";
           direction = Direction.ASCENDING.equals(orderingProperty.getDirection()) ? "ascending" : "descending";
         } else if (UserQueryProperty.FIRST_NAME.getName().equals(propertyName)) {
           key = scimConfiguration.getUserFirstnameAttribute();
@@ -281,71 +284,23 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
     user.setFirstName(getJsonValue(resource, scimConfiguration.getUserFirstnameAttribute()));
     user.setLastName(getJsonValue(resource, scimConfiguration.getUserLastnameAttribute()));
     
-    // Handle email which might be in an array
-    String emailAttr = scimConfiguration.getUserEmailAttribute();
-    if (emailAttr != null && emailAttr.contains("[") && emailAttr.contains("]")) {
-      // Extract from complex path like emails[type eq "work"].value or emails[primary eq true].value
-      int bracketStart = emailAttr.indexOf('[');
-      int bracketEnd = emailAttr.indexOf(']');
-      
-      if (bracketStart >= 0 && bracketEnd > bracketStart) {
-        String arrayName = emailAttr.substring(0, bracketStart);
-        String filterPart = emailAttr.substring(bracketStart + 1, bracketEnd);
-        
-        // Check for value path after bracket (e.g., "].value")
-        int valuePathStart = emailAttr.indexOf("].");
-        String valuePath = (valuePathStart >= 0 && valuePathStart == bracketEnd) ? 
-            emailAttr.substring(valuePathStart + 2) : null;
-        
-        if (resource.has(arrayName) && resource.get(arrayName).isArray()) {
-          // Parse the filter: "type eq \"work\"" or "primary eq true"
-          // Using regex to handle variable whitespace
-          String[] filterParts = filterPart.split("\\s+eq\\s+", 2);
-          if (filterParts.length == 2) {
-            String filterKey = filterParts[0].trim();
-            // Remove only surrounding quotes from filter value
-            String filterValue = filterParts[1].trim().replaceAll("^\"|\"$", "");
-            
-            for (JsonNode item : resource.get(arrayName)) {
-              if (item.has(filterKey)) {
-                JsonNode filterNode = item.get(filterKey);
-                if (filterNode != null && !filterNode.isNull()) {
-                  String itemValue = filterNode.asText();
-                  if (filterValue.equals(itemValue) || 
-                      ("true".equalsIgnoreCase(filterValue) && filterNode.asBoolean())) {
-                    if (valuePath != null && item.has(valuePath)) {
-                      JsonNode valueNode = item.get(valuePath);
-                      if (valueNode != null && !valueNode.isNull()) {
-                        user.setEmail(valueNode.asText());
-                      }
-                    } else if (valuePath == null) {
-                      user.setEmail(item.asText());
-                    }
-                    break;
-                  }
-                }
-              }
-            }
-          }
-          
-          // Fallback to first item if no match found
-          if (user.getEmail() == null && resource.get(arrayName).size() > 0) {
-            JsonNode firstItem = resource.get(arrayName).get(0);
-            if (valuePath != null && firstItem.has(valuePath)) {
-              JsonNode valueNode = firstItem.get(valuePath);
-              if (valueNode != null && !valueNode.isNull()) {
-                user.setEmail(valueNode.asText());
-              }
-            } else if (!firstItem.isNull()) {
-              user.setEmail(firstItem.asText());
-            }
-          }
+    // Get user work email: the standard SCIM email attribute is an array
+    String emailsAttr = scimConfiguration.getUserEmailsAttribute();
+    if (resource.has(emailsAttr) && resource.get(emailsAttr).isArray()) {
+      JsonNode emailList = resource.get(emailsAttr);
+      for (JsonNode email : emailList) {
+        if (email.has("type") && "work".equals(email.get("type").asText())) {
+          user.setEmail(email.has("value") ? email.get("value").asText() : null);
+          break;
         }
       }
-    } else {
-      user.setEmail(getJsonValue(resource, emailAttr));
+      // Fallback to first email if no work email found
+      if (user.getEmail() == null && emailList.size() > 0) {
+        JsonNode firstEmail = resource.get(emailsAttr).get(0);
+        user.setEmail(firstEmail.has("value") ? firstEmail.get("value").asText() : null);
+      }
     }
-    
+
     return user;
   }
 
@@ -369,21 +324,13 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
     String lastNameAttr = scimConfiguration.getUserLastnameAttribute();
     setJsonValue(root, lastNameAttr, user.getLastName(), mapper);
 
-    String emailAttr = scimConfiguration.getUserEmailAttribute();
-
-    if (emailAttr.contains("[")) {
-        // SCIM complex structure: emails[type eq "work"].value
-        ArrayNode emailsArray = root.putArray("emails");
-        ObjectNode emailObj = mapper.createObjectNode();
-        emailObj.put("type", "work");
-        emailObj.put("value", user.getEmail());
-        emailsArray.add(emailObj);
-
-    } else {
-        // Simple nested JSON path
-        setJsonValue(root, emailAttr, user.getEmail(), mapper);
-    }
-
+    // set email as work email in the SCIM email list
+    String emailsAttr = scimConfiguration.getUserEmailsAttribute();
+    ArrayNode emailsArray = root.putArray(emailsAttr);
+    ObjectNode emailObj = emailsArray.addObject();
+    emailObj.put("type", "work");
+    emailObj.put("value", user.getEmail());
+  
     return root;
   }
    

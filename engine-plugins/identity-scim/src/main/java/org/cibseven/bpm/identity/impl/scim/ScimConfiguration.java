@@ -45,11 +45,11 @@ public class ScimConfiguration {
   
   // User attribute mapping: our ScimUserEntity attributes to real scim attributes
   protected final String userScimIdAttribute = "id";
+  protected final String userEmailsAttribute = "emails";
+  protected final String userPasswordAttribute = "password";
   protected String userIdAttribute = "userName";
   protected String userFirstnameAttribute = "name.givenName";
   protected String userLastnameAttribute = "name.familyName";
-  protected String userPasswordAttribute = "password";
-  protected String userEmailAttribute = "emails[type eq \"work\"].value";
 
   // Group attribute mapping
   protected final String groupScimIdAttribute = "id";
@@ -215,13 +215,13 @@ public class ScimConfiguration {
   public void setUserLastnameAttribute(String userLastnameAttribute) {
     this.userLastnameAttribute = userLastnameAttribute;
   }
-
-  public String getUserEmailAttribute() {
-    return userEmailAttribute;
+ 
+  public String getUserEmailsAttribute() {
+    return userEmailsAttribute;
   }
 
-  public void setUserEmailAttribute(String userEmailAttribute) {
-    this.userEmailAttribute = userEmailAttribute;
+  public String getUserPasswordAttribute() {
+    return userPasswordAttribute;
   }
 
   public String getGroupScimIdAttribute() {
