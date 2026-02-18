@@ -565,7 +565,7 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
     boolean result = false;
     try {
       if (scimConfiguration.getScimAuthenticationEnabled() ) {
-        String url = scimConfiguration.getServerUrl() + "/" + scimConfiguration.getUsersEndpoint() + "/.search";
+        String url = scimConfiguration.getServerUrl() + scimConfiguration.getUsersEndpoint() + "/.search";
         String userIdAttrib = scimConfiguration.getUserIdAttribute();
         String filter = userIdAttrib + " eq \"" + escapeScimFilter(userId) + "\" and password eq \"" + escapeScimFilter(password) + "\"";
  
