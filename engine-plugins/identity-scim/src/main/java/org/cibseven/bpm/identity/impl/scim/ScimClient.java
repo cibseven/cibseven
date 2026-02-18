@@ -261,7 +261,10 @@ public class ScimClient {
     addCustomHeaders(request);
 
     if (body != null) {
-      request.setEntity(new StringEntity(body.toString(), ContentType.APPLICATION_JSON));
+      request.setEntity(new StringEntity(
+          body.toString(),
+          ContentType.create("application/scim+json", StandardCharsets.UTF_8)
+      ));
     }
 
     // System.out.println(">>>>>>> ScimClient " + method.toString() + ": " + url);
