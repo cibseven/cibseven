@@ -468,7 +468,7 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
     }
     if (query.getUserId() != null) {
       ScimUserEntity scimUser = (ScimUserEntity)findUserById(query.getUserId());
-      String skimUserId = scimUser != null ? scimUser.getScimId() : "null";
+      String skimUserId = scimUser != null ? scimUser.getScimId() : "";
       filters.add("members[value eq \"" + escapeScimFilter(skimUserId) + "\"]");
     }
 

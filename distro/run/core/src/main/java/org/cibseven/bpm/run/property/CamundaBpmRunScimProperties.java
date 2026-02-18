@@ -38,7 +38,7 @@ public class CamundaBpmRunScimProperties extends ScimIdentityProviderPlugin {
         ", scimVersion=" + scimVersion +
         ", serverUrl=******" + // sensitive for logging
         ", authenticationType=******" + // sensitive for logging
-        ", user=******" + // sensitive for logging
+        ", username=******" + // sensitive for logging
         ", password=******" + // sensitive for logging
         ", bearerToken=******" + // sensitive for logging
         ", oauth2TokenUrl=******" + // sensitive for logging
@@ -52,13 +52,12 @@ public class CamundaBpmRunScimProperties extends ScimIdentityProviderPlugin {
         ", userIdAttribute=" + userIdAttribute +
         ", userFirstnameAttribute=" + userFirstnameAttribute +
         ", userLastnameAttribute=" + userLastnameAttribute +
-        ", userLastnameAttribute=" + userLastnameAttribute +
-        ", userPasswordAttribute=" + userPasswordAttribute +
         ", userPasswordAttribute=" + userPasswordAttribute +
         ", userEmailAttribute=" + userEmailAttribute +
         ", groupIdAttribute=" + groupIdAttribute +
         ", groupNameAttribute=" + groupNameAttribute +
         ", groupMembersAttribute=" + groupMembersAttribute +
+        ", allowModifications=" + allowModifications +
         ", connectionTimeout=" + connectionTimeout +
         ", useSsl=" + useSsl +
         ", acceptUntrustedCertificates=" + acceptUntrustedCertificates +
