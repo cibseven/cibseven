@@ -27,7 +27,7 @@ import org.cibseven.bpm.model.cmmn.instance.PlanItem;
 import org.cibseven.bpm.model.cmmn.instance.PlanItemDefinition;
 import org.cibseven.bpm.model.cmmn.util.CmmnModelResource;
 import org.cibseven.bpm.model.xml.instance.ModelElementInstance;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov

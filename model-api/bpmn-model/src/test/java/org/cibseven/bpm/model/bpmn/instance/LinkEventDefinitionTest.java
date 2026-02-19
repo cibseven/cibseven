@@ -18,7 +18,7 @@ package org.cibseven.bpm.model.bpmn.instance;
 
 import org.cibseven.bpm.model.bpmn.impl.instance.Source;
 import org.cibseven.bpm.model.bpmn.impl.instance.Target;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collection;

@@ -18,7 +18,7 @@ package org.cibseven.bpm.model.xml.testmodel;
 
 import org.cibseven.bpm.model.xml.Model;
 import org.cibseven.bpm.model.xml.ModelBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.model.xml.testmodel.TestModelConstants.MODEL_NAME;

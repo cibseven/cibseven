@@ -20,7 +20,7 @@ import org.cibseven.bpm.model.bpmn.instance.Process;
 import org.cibseven.bpm.model.bpmn.instance.RootElement;
 import org.cibseven.bpm.model.bpmn.util.BpmnModelResource;
 import org.cibseven.bpm.model.xml.instance.ModelElementInstance;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 

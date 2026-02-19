@@ -22,7 +22,7 @@ import org.cibseven.bpm.model.dmn.instance.Decision;
 import org.cibseven.bpm.model.dmn.instance.DecisionTable;
 import org.cibseven.bpm.model.dmn.instance.InputEntry;
 import org.cibseven.bpm.model.dmn.instance.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DmnWriterTest extends DmnModelTest {
 

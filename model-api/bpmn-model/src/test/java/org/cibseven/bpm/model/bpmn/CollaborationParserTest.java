@@ -18,8 +18,8 @@ package org.cibseven.bpm.model.bpmn;
 
 import org.cibseven.bpm.model.bpmn.instance.*;
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 
@@ -33,7 +33,7 @@ public class CollaborationParserTest {
   private static BpmnModelInstance modelInstance;
   private static Collaboration collaboration;
 
-  @BeforeClass
+  @BeforeAll
   public static void parseModel() {
     modelInstance = Bpmn.readModelFromStream(CollaborationParserTest.class.getResourceAsStream("CollaborationParserTest.bpmn"));
     collaboration = modelInstance.getModelElementById("collaboration1");

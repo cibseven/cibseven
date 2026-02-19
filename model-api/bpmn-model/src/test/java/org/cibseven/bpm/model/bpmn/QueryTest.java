@@ -21,8 +21,8 @@ import org.cibseven.bpm.model.bpmn.instance.Gateway;
 import org.cibseven.bpm.model.bpmn.instance.Task;
 import org.cibseven.bpm.model.xml.type.ModelElementType;
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -37,7 +37,7 @@ public class QueryTest {
   private static Query<FlowNode> gateway1Succeeding;
   private static Query<FlowNode> gateway2Succeeding;
 
-  @BeforeClass
+  @BeforeAll
   public static void createModelInstance() {
     modelInstance = Bpmn.createProcess()
       .startEvent().id("start")

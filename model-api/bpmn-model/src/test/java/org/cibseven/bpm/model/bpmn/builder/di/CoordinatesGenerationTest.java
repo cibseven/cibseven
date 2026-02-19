@@ -36,7 +36,7 @@ import org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnEdge;
 import org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnShape;
 import org.cibseven.bpm.model.bpmn.instance.dc.Bounds;
 import org.cibseven.bpm.model.bpmn.instance.di.Waypoint;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CoordinatesGenerationTest {
 

@@ -17,17 +17,14 @@
 package org.cibseven.bpm.model.bpmn.instance;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Collection;
 
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Filip Hrisafov
@@ -52,8 +49,8 @@ public class TextAnnotationTest extends BpmnModelElementInstanceTest {
     );
   }
 
-  @BeforeClass
-  public static void parseModel() {
+  @BeforeAll
+  static void parseModel() {
     modelInstance = Bpmn.readModelFromStream(TextAnnotationTest.class
       .getResourceAsStream("TextAnnotationTest.bpmn"));
   }

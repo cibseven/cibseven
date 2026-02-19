@@ -21,27 +21,33 @@ import org.cibseven.bpm.model.xml.UnsupportedModelOperationException;
 import org.cibseven.bpm.model.xml.impl.parser.AbstractModelParser;
 import org.cibseven.bpm.model.xml.impl.type.child.ChildElementCollectionImpl;
 import org.cibseven.bpm.model.xml.impl.type.child.ChildElementImpl;
+import org.cibseven.bpm.model.xml.instance.ModelElementInstanceTest;
 import org.cibseven.bpm.model.xml.testmodel.Gender;
 import org.cibseven.bpm.model.xml.testmodel.TestModelParser;
 import org.cibseven.bpm.model.xml.testmodel.TestModelTest;
+import org.cibseven.bpm.model.xml.testmodel.TestModelTest.ParsedModel;
 import org.cibseven.bpm.model.xml.testmodel.instance.*;
 import org.cibseven.bpm.model.xml.type.ModelElementType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.model.xml.test.assertions.ModelAssertions.assertThat;
-import static org.junit.Assert.fail;
-import static org.junit.runners.Parameterized.Parameters;
 
 /**
  * @author Sebastian Menski
  */
 public class ChildElementCollectionTest extends TestModelTest {
 
+  private ModelInstance modelInstance;
   private Bird tweety;
   private Bird daffy;
   private Bird daisy;
@@ -50,39 +56,34 @@ public class ChildElementCollectionTest extends TestModelTest {
   private ChildElement<FlightInstructor> flightInstructorChild;
   private ChildElementCollection<FlightPartnerRef> flightPartnerRefCollection;
 
-  public ChildElementCollectionTest(String testName, ModelInstance testModelInstance, AbstractModelParser modelParser) {
-    super(testName, testModelInstance, modelParser);
+  public static Stream<Arguments> models() {
+    return Stream.of(createModel(), parseModel(ChildElementCollectionTest.class)).map(Arguments::of);
   }
 
-  @Parameters(name="Model {0}")
-  public static Collection<Object[]> models() {
-    Object[][] models = {createModel(), parseModel(ChildElementCollectionTest.class)};
-    return Arrays.asList(models);
-  }
-
-  public static Object[] createModel() {
+  public static ParsedModel createModel() {
     TestModelParser modelParser = new TestModelParser();
     ModelInstance modelInstance = modelParser.getEmptyModel();
 
     Animals animals = modelInstance.newInstance(Animals.class);
     modelInstance.setDocumentElement(animals);
 
-    Bird tweety = createBird(modelInstance, "tweety", Gender.Female);
-    Bird daffy = createBird(modelInstance, "daffy", Gender.Male);
-    Bird daisy = createBird(modelInstance, "daisy", Gender.Female);
-    Bird plucky = createBird(modelInstance, "plucky", Gender.Male);
-    createBird(modelInstance, "birdo", Gender.Female);
+    Bird tweety = TestModelTest.createBird(modelInstance, "tweety", Gender.Female);
+    Bird daffy = TestModelTest.createBird(modelInstance, "daffy", Gender.Male);
+    Bird daisy = TestModelTest.createBird(modelInstance, "daisy", Gender.Female);
+    Bird plucky = TestModelTest.createBird(modelInstance, "plucky", Gender.Male);
+    TestModelTest.createBird(modelInstance, "birdo", Gender.Female);
 
     tweety.setFlightInstructor(daffy);
     tweety.getFlightPartnerRefs().add(daisy);
     tweety.getFlightPartnerRefs().add(plucky);
 
-    return new Object[]{"created", modelInstance, modelParser};
+    return new ParsedModel("created model instance", modelInstance, modelParser);
   }
 
-  @Before
-  public void copyModelInstance() {
-    modelInstance = cloneModelInstance();
+  public void setUp(ParsedModel parsedModel) {
+    // For demonstration, always use the first model from createModel()
+    initializeTestModelTest(parsedModel);
+    this.modelInstance = (ModelInstance) parsedModel.modelInstance;
 
     tweety = modelInstance.getModelElementById("tweety");
     daffy = modelInstance.getModelElementById("daffy");
@@ -94,8 +95,10 @@ public class ChildElementCollectionTest extends TestModelTest {
     flightPartnerRefCollection = FlyingAnimal.flightPartnerRefsColl.getReferenceSourceCollection();
   }
 
-  @Test
-  public void testImmutable() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testImmutable(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(flightInstructorChild).isMutable();
     assertThat(flightPartnerRefCollection).isMutable();
 
@@ -110,34 +113,44 @@ public class ChildElementCollectionTest extends TestModelTest {
     assertThat(flightPartnerRefCollection).isMutable();
   }
 
-  @Test
-  public void testMinOccurs() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testMinOccurs(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(flightInstructorChild).isOptional();
     assertThat(flightPartnerRefCollection).isOptional();
   }
 
-  @Test
-  public void testMaxOccurs() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testMaxOccurs(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(flightInstructorChild).occursMaximal(1);
     assertThat(flightPartnerRefCollection).isUnbounded();
   }
 
-  @Test
-  public void testChildElementType() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testChildElementType(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(flightInstructorChild).containsType(FlightInstructor.class);
     assertThat(flightPartnerRefCollection).containsType(FlightPartnerRef.class);
   }
 
-  @Test
-  public void testParentElementType() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testParentElementType(ParsedModel parsedModel) {
+    setUp(parsedModel);
     ModelElementType flyingAnimalType = modelInstance.getModel().getType(FlyingAnimal.class);
 
     assertThat(flightInstructorChild).hasParentElementType(flyingAnimalType);
     assertThat(flightPartnerRefCollection).hasParentElementType(flyingAnimalType);
   }
 
-  @Test
-  public void testGetChildElements() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testGetChildElements(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(flightInstructorChild).hasSize(tweety, 1);
     assertThat(flightPartnerRefCollection).hasSize(tweety, 2);
 
@@ -149,8 +162,10 @@ public class ChildElementCollectionTest extends TestModelTest {
     }
   }
 
-  @Test
-  public void testRemoveChildElements() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testRemoveChildElements(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(flightInstructorChild).isNotEmpty(tweety);
     assertThat(flightPartnerRefCollection).isNotEmpty(tweety);
 
@@ -161,8 +176,10 @@ public class ChildElementCollectionTest extends TestModelTest {
     assertThat(flightPartnerRefCollection).isEmpty(tweety);
   }
 
-  @Test
-  public void testChildElementsCollection() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testChildElementsCollection(ParsedModel parsedModel) {
+    setUp(parsedModel);
     Collection<FlightPartnerRef> flightPartnerRefs = flightPartnerRefCollection.get(tweety);
 
     Iterator<FlightPartnerRef> iterator = flightPartnerRefs.iterator();

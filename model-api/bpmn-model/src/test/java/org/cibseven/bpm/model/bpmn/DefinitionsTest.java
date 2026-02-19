@@ -24,7 +24,7 @@ import org.cibseven.bpm.model.xml.ModelReferenceException;
 import org.cibseven.bpm.model.xml.ModelValidationException;
 import org.cibseven.bpm.model.xml.impl.util.IoUtil;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

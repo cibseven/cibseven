@@ -22,8 +22,8 @@ import static org.junit.Assert.fail;
 import java.util.Collection;
 
 import org.cibseven.bpm.model.bpmn.instance.BpmnModelElementInstanceTest;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 public class CamundaListTest extends BpmnModelElementInstanceTest {
 
@@ -39,7 +39,7 @@ public class CamundaListTest extends BpmnModelElementInstanceTest {
     return null;
   }
 
-  @Ignore("Test ignored. CAM-9441: Bug fix needed")
+  @Disabled("Test ignored. CAM-9441: Bug fix needed")
   @Test
   public void testListValueChildAssignment() {
     try {
