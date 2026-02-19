@@ -542,8 +542,26 @@
               <shadedPattern>camundajar.impl.com.cronutils</shadedPattern>
             </relocation>
           </relocations>
+          <filters>
+            <filter>
+              <artifact>*:*</artifact>
+              <excludes>
+                <exclude>META-INF/services/shadedjackson.core.JsonFactory</exclude>
+              </excludes>
+            </filter>
+					  <filter>
+					    <artifact>*:*</artifact>
+					    <excludes>
+					      <exclude>META-INF/services/shadedjackson.core.JsonFactory</exclude>
+					    </excludes>
+					  </filter>
+          </filters>
           <transformers>
-            <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+            <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"/>
+            <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+              <resource>META-INF/services/shadedjackson.core.JsonFactory</resource>
+            </transformer>
           </transformers>
           <shadeTestJar>true</shadeTestJar>
         </configuration>
