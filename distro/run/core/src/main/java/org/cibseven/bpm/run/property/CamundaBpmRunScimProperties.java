@@ -53,13 +53,12 @@ public class CamundaBpmRunScimProperties extends ScimIdentityProviderPlugin {
         ", userFirstnameAttribute=" + userFirstnameAttribute +
         ", userLastnameAttribute=" + userLastnameAttribute +
         ", userPasswordAttribute=" + userPasswordAttribute +
-        ", userEmailAttribute=" + userEmailAttribute +
+        ", userEmailsAttribute=" + userEmailsAttribute +
         ", groupIdAttribute=" + groupIdAttribute +
         ", groupNameAttribute=" + groupNameAttribute +
         ", groupMembersAttribute=" + groupMembersAttribute +
         ", allowModifications=" + allowModifications +
         ", connectionTimeout=" + connectionTimeout +
-        ", useSsl=" + useSsl +
         ", acceptUntrustedCertificates=" + acceptUntrustedCertificates +
         ", pageSize=" + pageSize +
         ", authorizationCheckEnabled=" + authorizationCheckEnabled +

@@ -38,7 +38,6 @@ public class ScimConfigurationTest {
     assertThat(config.getUserFirstnameAttribute()).isEqualTo("name.givenName");
     assertThat(config.getUserLastnameAttribute()).isEqualTo("name.familyName");
     assertThat(config.getPageSize()).isEqualTo(100);
-    assertThat(config.isUseSsl()).isTrue();
     assertThat(config.isAuthorizationCheckEnabled()).isTrue();
   }
 
@@ -92,12 +91,10 @@ public class ScimConfigurationTest {
     config.setUserIdAttribute("id");
     config.setUserFirstnameAttribute("name.givenName");
     config.setUserLastnameAttribute("name.familyName");
-    config.setUserEmailAttribute("emails[type eq \"work\"].value");
 
     assertThat(config.getUserIdAttribute()).isEqualTo("id");
     assertThat(config.getUserFirstnameAttribute()).isEqualTo("name.givenName");
     assertThat(config.getUserLastnameAttribute()).isEqualTo("name.familyName");
-    assertThat(config.getUserEmailAttribute()).isEqualTo("emails[type eq \"work\"].value");
   }
 
   @Test

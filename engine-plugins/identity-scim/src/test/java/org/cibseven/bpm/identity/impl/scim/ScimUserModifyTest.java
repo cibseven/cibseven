@@ -25,6 +25,7 @@ import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.identity.UserQuery;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import org.cibseven.bpm.engine.impl.identity.IdentityOperationResult;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.identity.scim.util.ScimTestEnvironment;
 import org.cibseven.bpm.identity.scim.util.ScimTestEnvironmentRule;
@@ -37,13 +38,13 @@ import org.junit.Test;
 /**
  * Tests for SCIM user queries.
  */
-public class ScimUserQueryTest {
+public class ScimUserModifyTest {
 
   @ClassRule
   public static ScimTestEnvironmentRule scimRule = new ScimTestEnvironmentRule();
 
   @Rule
-  public ProcessEngineRule engineRule = new ProcessEngineRule();
+  public ProcessEngineRule engineRule = new ProcessEngineRule("camunda.modify.cfg.xml");
 
   ProcessEngineConfiguration processEngineConfiguration;
   IdentityService identityService;
@@ -84,114 +85,29 @@ public class ScimUserQueryTest {
   }
 
   @Test
-  public void testCountUsers() {
-    // when
-    UserQuery userQuery = identityService.createUserQuery();
-
-    // then
-    long count = userQuery.count();
-    assertThat(count).isEqualTo(scimTestEnvironment.getTotalNumberOfUsersCreated());
+  public void testCreateUser() {
+    assertThat(!identityService.isReadOnly());
+    ScimUserEntity user = (ScimUserEntity) identityService.newUser("oscar");
+    user.setFirstName("Oscar");
+    user.setLastName("The Crouch");
+    user.setEmail("oscar@camunda.org");
+    identityService.saveUser(user);
   }
 
   @Test
-  public void testQueryNoFilter() {
-    // when
-    List<User> result = identityService.createUserQuery().list();
-
-    // then
-    assertThat(result).hasSize(scimTestEnvironment.getTotalNumberOfUsersCreated());
+  public void testUpdateUser() {
+    assertThat(!identityService.isReadOnly());
+    ScimUserEntity user = (ScimUserEntity) identityService.newUser("oscar");
+    user.setScimId("user-oscar");
+    user.setFirstName("Oscar");
+    user.setLastName("The (Even Cleaner) Crouch");
+    user.setEmail("oscar@camunda.org");
+    identityService.saveUser(user);
   }
 
   @Test
-  public void testFilterByUserId() {
-    // when
-    User user = identityService.createUserQuery().userId("oscar").singleResult();
-
-    // then
-    assertThat(user).isNotNull();
-    assertThat(user.getId()).isEqualTo("oscar");
-    assertThat(user.getFirstName()).isEqualTo("Oscar");
-    assertThat(user.getLastName()).isEqualTo("The Crouch");
-    assertThat(user.getEmail()).isEqualTo("oscar@camunda.org");
-  }
-
-  @Test
-  public void testFilterByNonexistentUserId() {
-    // when
-    User user = identityService.createUserQuery().userId("non-existing").singleResult();
-
-    // then
-    assertThat(user).isNull();
-  }
-
-  @Test
-  public void testFilterByUserIdIn() {
-    // when
-    List<User> users = identityService.createUserQuery().userIdIn("oscar", "monster").list();
-
-    // then
-    assertThat(users).hasSize(2);
-    assertThat(users).extracting("id").containsOnly("oscar", "monster");
-  }
-
-  @Test
-  public void testFilterByUserFirstName() {
-    // when
-    List<User> users = identityService.createUserQuery().userFirstName("Oscar").list();
-
-    // then
-    assertThat(users).hasSize(1);
-    assertThat(users.get(0).getId()).isEqualTo("oscar");
-    assertThat(users.get(0).getFirstName()).isEqualTo("Oscar");
-  }
-
-  @Test
-  public void testFilterByUserLastName() {
-    // when
-    List<User> users = identityService.createUserQuery().userLastName("Monster").list();
-
-    // then
-    assertThat(users).hasSize(1);
-    assertThat(users.get(0).getId()).isEqualTo("monster");
-    assertThat(users.get(0).getLastName()).isEqualTo("Monster");
-  }
-
-  @Test
-  public void testFilterByUserEmail() {
-    // when
-    List<User> users = identityService.createUserQuery().userEmail("oscar@camunda.org").list();
-
-    // then
-    assertThat(users).hasSize(1);
-    assertThat(users.get(0).getId()).isEqualTo("oscar");
-    assertThat(users.get(0).getEmail()).isEqualTo("oscar@camunda.org");
-  }
-
-  @Test
-  public void testPagination() {
-    // when - get first 2 users
-    List<User> firstPage = identityService.createUserQuery()
-        .listPage(0, 2);
-
-    // then
-    assertThat(firstPage).hasSize(2);
-
-    // when - get next page
-    List<User> secondPage = identityService.createUserQuery()
-        .listPage(2, 2);
-
-    // then
-    assertThat(secondPage).hasSize(1);
-  }
-
-  @Test
-  public void testFindUserById() {
-    // when
-    User user = identityService.createUserQuery().userId("oscar").singleResult();
-
-    // then
-    assertThat(user).isNotNull();
-    assertThat(user.getId()).isEqualTo("oscar");
-    assertThat(user.getFirstName()).isEqualTo("Oscar");
+  public void testDeleteUser() {
+    assertThat(!identityService.isReadOnly());  
+    identityService.deleteUser("oscar");
   }
 }

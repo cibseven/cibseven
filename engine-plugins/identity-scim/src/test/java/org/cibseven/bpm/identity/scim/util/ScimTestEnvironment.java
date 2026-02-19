@@ -34,7 +34,7 @@ public class ScimTestEnvironment {
   private int numberOfGroupsCreated = 0;
 
   public ScimTestEnvironment() {
-    this.port = 0; // Use dynamic port by default
+    this.port = 8443; // Use fixed port by default
   }
 
   public ScimTestEnvironment(int port) {
@@ -83,7 +83,9 @@ public class ScimTestEnvironment {
             "    \"displayName\": \"Oscar The Crouch\"\n" +
             "  }]\n" +
             "}";
+
     
+    // Stub for GET /Users (oscar by userName)
     wireMockServer.stubFor(get(urlPathEqualTo("/Users"))
         .withQueryParam("filter", equalTo("userName eq \"oscar\""))
         .withQueryParam("startIndex", equalTo("1"))
@@ -92,6 +94,39 @@ public class ScimTestEnvironment {
             .withStatus(200)
             .withHeader("Content-Type", "application/scim+json")
             .withBody(oscarBody)));
+
+    // Stub for POST /Users (oscar)
+    wireMockServer.stubFor(post(urlPathEqualTo("/Users"))
+        .withHeader("Content-Type", containing("application/scim+json"))
+        .withRequestBody(matchingJsonPath("$.schemas[?(@ == 'urn:ietf:params:scim:schemas:core:2.0:User')]"))
+        .withRequestBody(matchingJsonPath("$.id", absent()))
+        .withRequestBody(matchingJsonPath("$.userName", equalTo("oscar")))
+        .withRequestBody(matchingJsonPath("$.name.givenName", equalTo("Oscar")))
+        .withRequestBody(matchingJsonPath("$.name.familyName", equalTo("The Crouch")))
+        .willReturn(aResponse()
+            .withStatus(201)
+            .withHeader("Content-Type", "application/scim+json")
+            .withHeader("Location", "/Users/user-oscar")
+            .withBody(oscarBody)));  
+ 
+    // Stub for PATCH /Users (oscar)
+    wireMockServer.stubFor(patch(urlPathEqualTo("/Users/user-oscar"))
+        .withHeader("Content-Type", containing("application/scim+json"))
+        .withRequestBody(matchingJsonPath("$.schemas[?(@ == 'urn:ietf:params:scim:api:messages:2.0:PatchOp')]"))
+        .withRequestBody(matchingJsonPath("$.Operations[0].op", equalTo("replace")))
+        .withRequestBody(matchingJsonPath("$.Operations[0].path", equalTo("name")))
+        .withRequestBody(matchingJsonPath("$.Operations[0].value.givenName", equalTo("Oscar")))
+        .withRequestBody(matchingJsonPath("$.Operations[0].value.familyName", equalTo("The (Even Cleaner) Crouch")))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/scim+json")
+            .withBody(oscarBody)));
+
+    // Stub for DELETE /Users/user-oscar (delete user)
+    wireMockServer.stubFor(delete(urlPathEqualTo("/Users/user-oscar"))
+        .withHeader("Content-Type", containing("application/scim+json"))
+        .willReturn(aResponse()
+            .withStatus(204))); // SCIM DELETE = 204 No Content by default
 
     wireMockServer.stubFor(get(urlPathEqualTo("/Users"))
             .withQueryParam("filter", equalTo("id eq \"user-oscar\""))
@@ -412,6 +447,20 @@ public class ScimTestEnvironment {
 
   protected void setupGroups() {
     // Group 1: development
+    String devGroupBody = "{\n" +
+            "  \"schemas\": [\"urn:ietf:params:scim:api:messages:2.0:ListResponse\"],\n" +
+            "  \"totalResults\": 1,\n" +
+            "  \"Resources\": [{\n" +
+            "    \"id\": \"group-development\",\n" +
+            "    \"externalId\": \"group-development\",\n" +
+            "    \"displayName\": \"development\",\n" +
+            "    \"members\": [\n" +
+            "      {\"value\": \"user-oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
+            "      {\"value\": \"user-daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
+            "    ]\n" +
+            "  }]\n" +
+            "}";
+    
     wireMockServer.stubFor(get(urlPathEqualTo("/Groups"))
         .withQueryParam("filter", equalTo("displayName eq \"development\""))
         .withQueryParam("startIndex", equalTo("1"))
@@ -419,19 +468,38 @@ public class ScimTestEnvironment {
         .willReturn(aResponse()
             .withStatus(200)
             .withHeader("Content-Type", "application/scim+json")
-            .withBody("{\n" +
-                "  \"schemas\": [\"urn:ietf:params:scim:api:messages:2.0:ListResponse\"],\n" +
-                "  \"totalResults\": 1,\n" +
-                "  \"Resources\": [{\n" +
-                "    \"id\": \"group-development\",\n" +
-                "    \"externalId\": \"group-development\",\n" +
-                "    \"displayName\": \"development\",\n" +
-                "    \"members\": [\n" +
-                "      {\"value\": \"user-oscar\", \"$ref\": \"/Users/user-oscar\"},\n" +
-                "      {\"value\": \"user-daniel\", \"$ref\": \"/Users/user-daniel\"}\n" +
-                "    ]\n" +
-                "  }]\n" +
-                "}")));
+            .withBody(devGroupBody)));
+    
+    // Stub for POST /Groups (development)
+    wireMockServer.stubFor(post(urlPathEqualTo("/Groups"))
+        .withHeader("Content-Type", containing("application/scim+json"))
+        .withRequestBody(matchingJsonPath("$.schemas[?(@ == 'urn:ietf:params:scim:schemas:core:2.0:Group')]"))
+        .withRequestBody(matchingJsonPath("$.id", absent()))
+        .withRequestBody(matchingJsonPath("$.externalId", equalTo("group-development")))
+        .withRequestBody(matchingJsonPath("$.displayName", equalTo("development")))
+        .willReturn(aResponse()
+            .withStatus(201)
+            .withHeader("Content-Type", "application/scim+json")
+            .withHeader("Location", "/Users/user-oscar")
+            .withBody(devGroupBody)));  
+ 
+    // Stub for PATCH /Groups (development)
+    wireMockServer.stubFor(patch(urlPathEqualTo("/Groups/group-development"))
+        .withHeader("Content-Type", containing("application/scim+json"))
+        .withRequestBody(matchingJsonPath("$.schemas[?(@ == 'urn:ietf:params:scim:api:messages:2.0:PatchOp')]"))
+        .withRequestBody(matchingJsonPath("$.Operations[0].op", equalTo("replace")))
+        .withRequestBody(matchingJsonPath("$.Operations[0].path", equalTo("displayName")))
+        .withRequestBody(matchingJsonPath("$.Operations[0].value", equalTo("DEVELOPMENT")))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/scim+json")
+            .withBody(devGroupBody)));
+
+    // Stub for DELETE /Groups/group-development (delete group)
+    wireMockServer.stubFor(delete(urlPathEqualTo("/Groups/group-development"))
+        .withHeader("Content-Type", containing("application/scim+json"))
+        .willReturn(aResponse()
+            .withStatus(204))); // SCIM DELETE = 204 No Content by default
 
     wireMockServer.stubFor(get(urlPathEqualTo("/Groups"))
             .withQueryParam("filter", equalTo("externalId eq \"group-development\""))
@@ -453,7 +521,7 @@ public class ScimTestEnvironment {
                     "    ]\n" +
                     "  }]\n" +
                     "}")));
-
+    
     // Group 2: management
     wireMockServer.stubFor(get(urlPathEqualTo("/Groups"))
         .withQueryParam("filter", equalTo("displayName eq \"management\""))
