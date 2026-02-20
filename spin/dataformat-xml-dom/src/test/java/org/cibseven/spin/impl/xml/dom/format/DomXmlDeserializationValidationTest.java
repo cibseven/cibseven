@@ -16,13 +16,14 @@
  */
 package org.cibseven.spin.impl.xml.dom.format;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 import org.cibseven.spin.DeserializationTypeValidator;
 import org.cibseven.spin.SpinRuntimeException;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.cibseven.spin.xml.SpinXmlDataFormatException;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class DomXmlDeserializationValidationTest {
@@ -30,15 +31,12 @@ public class DomXmlDeserializationValidationTest {
   protected DeserializationTypeValidator validator;
   protected static DomXmlDataFormat format;
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
-  @BeforeClass
+  @BeforeAll
   public static void setUpMocks() {
     format = new DomXmlDataFormat("test");
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDown() {
     format = null;
   }
@@ -99,12 +97,10 @@ public class DomXmlDeserializationValidationTest {
     // given
     validator = createValidatorMock(false);
 
-    // then
-    thrown.expect(SpinRuntimeException.class);
-    thrown.expectMessage("'java.lang.String'");
-
     // when
-    format.getMapper().validateType(String.class, validator);
+    assertThatExceptionOfType(SpinRuntimeException.class).isThrownBy(() ->
+      format.getMapper().validateType(String.class, validator)
+      ).withMessageContaining("'java.lang.String'");
   }
 
   @Test
@@ -112,12 +108,10 @@ public class DomXmlDeserializationValidationTest {
     // given
     validator = createValidatorMock(false);
 
-    // then
-    thrown.expect(SpinRuntimeException.class);
-    thrown.expectMessage("'org.cibseven.spin.impl.xml.dom.format.DomXmlDeserializationValidationTest$Complex'");
-
     // when
-    format.getMapper().validateType(Complex.class, validator);
+    assertThatExceptionOfType(SpinRuntimeException.class).isThrownBy(() ->
+      format.getMapper().validateType(Complex.class, validator)
+     ).withMessageContaining("'org.cibseven.spin.impl.xml.dom.format.DomXmlDeserializationValidationTest$Complex'");
   }
 
   @Test
@@ -125,12 +119,10 @@ public class DomXmlDeserializationValidationTest {
     // given
     validator = createValidatorMock(false);
 
-    // then
-    thrown.expect(SpinRuntimeException.class);
-    thrown.expectMessage("'java.lang.Integer'");
-
     // when
-    format.getMapper().validateType(Integer[].class, validator);
+    assertThatExceptionOfType(SpinRuntimeException.class).isThrownBy(() ->
+      format.getMapper().validateType(Integer[].class, validator)
+    ).withMessageContaining("'java.lang.Integer'");
   }
 
   public static class Complex {

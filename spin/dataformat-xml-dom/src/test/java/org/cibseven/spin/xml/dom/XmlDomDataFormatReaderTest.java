@@ -26,9 +26,9 @@ import java.io.StringReader;
 import org.cibseven.spin.DataFormats;
 import org.cibseven.spin.impl.xml.dom.format.DomXmlDataFormat;
 import org.cibseven.spin.impl.xml.dom.format.DomXmlDataFormatReader;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class XmlDomDataFormatReaderTest {
 
@@ -37,7 +37,7 @@ public class XmlDomDataFormatReaderTest {
 
   private static final int REWINDING_LIMIT = 256;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     DomXmlDataFormat domXmlDataFormat = new DomXmlDataFormat(DataFormats.XML_DATAFORMAT_NAME);
     reader = domXmlDataFormat.getReader();
@@ -70,7 +70,7 @@ public class XmlDomDataFormatReaderTest {
     return new StringReader(input);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws IOException {
     if (inputReader != null) {
       inputReader.close();

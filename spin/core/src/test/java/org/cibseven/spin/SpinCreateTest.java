@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.spin.Spin.S;
 
 import org.cibseven.spin.spi.DataFormat;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer

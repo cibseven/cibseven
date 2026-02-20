@@ -24,7 +24,7 @@ import org.cibseven.spin.SpinList;
 import org.cibseven.spin.impl.test.Script;
 import org.cibseven.spin.impl.test.ScriptTest;
 import org.cibseven.spin.json.SpinJsonNode;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public abstract class JsonTreeMapObjectToJsonScriptTest extends ScriptTest {
 

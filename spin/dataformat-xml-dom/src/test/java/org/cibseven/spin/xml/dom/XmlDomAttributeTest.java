@@ -17,6 +17,7 @@
 package org.cibseven.spin.xml.dom;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.cibseven.spin.Spin.XML;
 
 import java.io.StringWriter;
@@ -25,8 +26,8 @@ import org.cibseven.spin.xml.SpinXmlAttribute;
 import org.cibseven.spin.xml.SpinXmlAttributeException;
 import org.cibseven.spin.xml.SpinXmlElement;
 import org.cibseven.spin.xml.XmlTestConstants;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Sebastian Menski
@@ -35,7 +36,7 @@ public class XmlDomAttributeTest {
 
   private SpinXmlAttribute attribute;
 
-  @Before
+  @BeforeEach
   public void getAttribute() {
     attribute = XML(XmlTestConstants.EXAMPLE_XML).attr("order");
   }
@@ -65,9 +66,11 @@ public class XmlDomAttributeTest {
     assertThat(attribute.value("order2").value()).isEqualTo("order2");
   }
 
-  @Test(expected = SpinXmlAttributeException.class)
+  @Test
   public void setNullValue() {
-    attribute.value(null);
+    assertThatExceptionOfType(SpinXmlAttributeException.class).isThrownBy(() -> 
+      attribute.value(null)
+    );
   }
 
   @Test

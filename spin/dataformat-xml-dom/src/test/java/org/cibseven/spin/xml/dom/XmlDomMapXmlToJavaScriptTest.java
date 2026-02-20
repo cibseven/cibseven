@@ -16,6 +16,7 @@
  */
 package org.cibseven.spin.xml.dom;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.cibseven.spin.xml.XmlTestConstants.EXAMPLE_VALIDATION_XML_FILE_NAME;
 import static org.cibseven.spin.xml.XmlTestConstants.assertIsExampleOrder;
 
@@ -24,7 +25,7 @@ import org.cibseven.spin.impl.test.ScriptTest;
 import org.cibseven.spin.impl.test.ScriptVariable;
 import org.cibseven.spin.xml.SpinXmlDataFormatException;
 import org.cibseven.spin.xml.mapping.Order;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Stefan Hentschel.
@@ -39,11 +40,13 @@ public abstract class XmlDomMapXmlToJavaScriptTest extends ScriptTest {
     assertIsExampleOrder(order);
   }
 
-  @Test(expected = SpinXmlDataFormatException.class)
+  @Test
   @Script(execute = false)
   @ScriptVariable(name = "input", file = EXAMPLE_VALIDATION_XML_FILE_NAME)
   public void shouldFailMappingMalformedTypeString() throws Throwable {
-    failingWithException();
+    assertThatExceptionOfType(SpinXmlDataFormatException.class).isThrownBy(() ->
+        failingWithException()
+    );
   }
 
 }

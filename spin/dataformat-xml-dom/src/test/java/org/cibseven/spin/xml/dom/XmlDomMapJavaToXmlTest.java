@@ -25,7 +25,7 @@ import static org.cibseven.spin.xml.XmlTestConstants.createExampleOrder;
 import org.cibseven.spin.xml.XmlTestUtil;
 import org.cibseven.spin.xml.mapping.NonXmlRootElementType;
 import org.cibseven.spin.xml.mapping.Order;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class XmlDomMapJavaToXmlTest {
 

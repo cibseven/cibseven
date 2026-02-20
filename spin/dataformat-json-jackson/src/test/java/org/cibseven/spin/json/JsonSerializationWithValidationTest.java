@@ -18,14 +18,14 @@ package org.cibseven.spin.json;
 
 import org.cibseven.spin.DeserializationTypeValidator;
 import org.cibseven.spin.spi.DataFormatMapper;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
 
 public class JsonSerializationWithValidationTest extends JsonSerializationTest {
 
   protected DeserializationTypeValidator validator;
 
-  @Before
+  @BeforeEach
   public void setUpValidator() {
     validator = Mockito.mock(DeserializationTypeValidator.class);
     Mockito.when(validator.validate(Mockito.anyString())).thenReturn(true);

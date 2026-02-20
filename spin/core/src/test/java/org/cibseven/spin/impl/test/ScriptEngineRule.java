@@ -23,10 +23,8 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 
-import org.junit.ClassRule;
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * A jUnit4 {@link ClassRule} to define create a {@link ScriptEngine}
@@ -34,7 +32,7 @@ import org.junit.runners.model.Statement;
  *
  * @author Sebastian Menski
  */
-public class ScriptEngineRule implements TestRule {
+public class ScriptEngineRule implements BeforeAllCallback {
 
   private static final SpinTestLogger LOG = SpinTestLogger.TEST_LOGGER;
 
@@ -45,16 +43,12 @@ public class ScriptEngineRule implements TestRule {
   private javax.script.ScriptEngine scriptEngine;
 
 
-  public Statement apply(final Statement base, final Description description) {
-    return new Statement() {
-      public void evaluate() throws Throwable {
-        scriptEngine = createScriptEngine(description);
-        if (scriptEngine != null) {
-          LOG.scriptEngineFoundForLanguage(scriptEngine.getFactory().getLanguageName());
-        }
-        base.evaluate();
-      }
-    };
+  @Override
+  public void beforeAll(ExtensionContext context) throws Exception {
+    scriptEngine = createScriptEngine(context);
+    if (scriptEngine != null) {
+      LOG.scriptEngineFoundForLanguage(scriptEngine.getFactory().getLanguageName());
+    }
   }
 
   /**
@@ -64,8 +58,8 @@ public class ScriptEngineRule implements TestRule {
    * @param description the {@link Description} of the test method
    * @return the script engine or null if no suitable found
    */
-  private ScriptEngine createScriptEngine(Description description) {
-    org.cibseven.spin.impl.test.ScriptEngine annotation = description.getTestClass().getAnnotation(org.cibseven.spin.impl.test.ScriptEngine.class);
+  private ScriptEngine createScriptEngine(ExtensionContext context) {
+    org.cibseven.spin.impl.test.ScriptEngine annotation = context.getTestClass().get().getAnnotation(org.cibseven.spin.impl.test.ScriptEngine.class);
     if (annotation == null) {
       return null;
     }
@@ -99,4 +93,5 @@ public class ScriptEngineRule implements TestRule {
     scriptEngine.getContext().setAttribute("polyglot.js.allowHostAccess", true, ScriptContext.ENGINE_SCOPE);
     scriptEngine.getContext().setAttribute("polyglot.js.allowHostClassLookup", true, ScriptContext.ENGINE_SCOPE);
   }
+
 }

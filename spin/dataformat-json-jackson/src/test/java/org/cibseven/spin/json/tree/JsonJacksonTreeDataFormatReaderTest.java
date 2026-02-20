@@ -27,9 +27,9 @@ import java.io.StringReader;
 import org.cibseven.spin.DataFormats;
 import org.cibseven.spin.impl.json.jackson.format.JacksonJsonDataFormat;
 import org.cibseven.spin.impl.json.jackson.format.JacksonJsonDataFormatReader;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class JsonJacksonTreeDataFormatReaderTest {
 
@@ -38,7 +38,7 @@ public class JsonJacksonTreeDataFormatReaderTest {
 
   private static final int REWINDING_LIMIT = 256;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     reader = new JacksonJsonDataFormatReader(new JacksonJsonDataFormat(DataFormats.JSON_DATAFORMAT_NAME));
   }
@@ -73,7 +73,7 @@ public class JsonJacksonTreeDataFormatReaderTest {
     return new StringReader(input);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws IOException {
     if (inputReader != null) {
       inputReader.close();

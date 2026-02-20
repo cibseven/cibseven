@@ -16,15 +16,15 @@
  */
 package org.cibseven.spin.impl.json.jackson.format;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.times;
 
 import org.cibseven.spin.DeserializationTypeValidator;
 import org.cibseven.spin.SpinRuntimeException;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.cibseven.spin.json.SpinJsonPathException;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.fasterxml.jackson.databind.JavaType;
@@ -35,15 +35,12 @@ public class JsonDeserializationValidationTest {
   protected DeserializationTypeValidator validator;
   protected static JacksonJsonDataFormat format;
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
-  @BeforeClass
+  @BeforeAll
   public static void setUpMocks() {
     format = new JacksonJsonDataFormat("test");
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDown() {
     format = null;
   }
@@ -155,12 +152,10 @@ public class JsonDeserializationValidationTest {
     JavaType type = TypeFactory.defaultInstance().constructType(String.class);
     validator = createValidatorMock(false);
 
-    // then
-    thrown.expect(SpinRuntimeException.class);
-    thrown.expectMessage("[java.lang.String]");
-
     // when
-    format.getMapper().validateType(type, validator);
+    assertThatExceptionOfType(SpinRuntimeException.class).isThrownBy(() ->
+      format.getMapper().validateType(type, validator)
+    ).withMessageContaining("[java.lang.String]");
   }
 
   @Test
@@ -169,12 +164,11 @@ public class JsonDeserializationValidationTest {
     JavaType type = TypeFactory.defaultInstance().constructType(Complex.class);
     validator = createValidatorMock(false);
 
-    // then
-    thrown.expect(SpinRuntimeException.class);
-    thrown.expectMessage("[org.cibseven.spin.impl.json.jackson.format.JsonDeserializationValidationTest$Complex]");
-
     // when
-    format.getMapper().validateType(type, validator);
+    assertThatExceptionOfType(SpinRuntimeException.class).isThrownBy(() ->
+      format.getMapper().validateType(type, validator)
+    ).withMessageContaining("[org.cibseven.spin.impl.json.jackson.format.JsonDeserializationValidationTest$Complex]");
+    
   }
 
   @Test
@@ -183,12 +177,10 @@ public class JsonDeserializationValidationTest {
     JavaType type = TypeFactory.defaultInstance().constructType(Integer[].class);
     validator = createValidatorMock(false);
 
-    // then
-    thrown.expect(SpinRuntimeException.class);
-    thrown.expectMessage("[java.lang.Integer]");
-
     // when
-    format.getMapper().validateType(type, validator);
+    assertThatExceptionOfType(SpinRuntimeException.class).isThrownBy(() ->
+      format.getMapper().validateType(type, validator)
+      ).withMessageContaining("[java.lang.Integer]");
   }
 
   @Test
@@ -197,12 +189,10 @@ public class JsonDeserializationValidationTest {
     JavaType type = TypeFactory.defaultInstance().constructFromCanonical("java.util.ArrayList<java.lang.String>");
     validator = createValidatorMock(false);
 
-    // then
-    thrown.expect(SpinRuntimeException.class);
-    thrown.expectMessage("[java.util.ArrayList, java.lang.String]");
-
     // when
-    format.getMapper().validateType(type, validator);
+    assertThatExceptionOfType(SpinRuntimeException.class).isThrownBy(() ->
+      format.getMapper().validateType(type, validator)
+    ).withMessageContaining("[java.util.ArrayList, java.lang.String]");
   }
 
   @Test
@@ -211,12 +201,10 @@ public class JsonDeserializationValidationTest {
     JavaType type = TypeFactory.defaultInstance().constructFromCanonical("java.util.HashMap<java.lang.String, java.lang.Integer>");
     validator = createValidatorMock(false);
 
-    // then
-    thrown.expect(SpinRuntimeException.class);
-    thrown.expectMessage("[java.util.HashMap, java.lang.String, java.lang.Integer]");
-
     // when
-    format.getMapper().validateType(type, validator);
+    assertThatExceptionOfType(SpinRuntimeException.class).isThrownBy(() ->
+      format.getMapper().validateType(type, validator)
+    ).withMessageContaining("[java.util.HashMap, java.lang.String, java.lang.Integer]");
   }
 
   @Test
@@ -225,12 +213,10 @@ public class JsonDeserializationValidationTest {
     JavaType type = TypeFactory.defaultInstance().constructFromCanonical("java.util.HashMap<java.lang.String, java.lang.String>");
     validator = createValidatorMock(false);
 
-    // then
-    thrown.expect(SpinRuntimeException.class);
-    thrown.expectMessage("[java.util.HashMap, java.lang.String]");
-
     // when
-    format.getMapper().validateType(type, validator);
+    assertThatExceptionOfType(SpinRuntimeException.class).isThrownBy(() ->
+      format.getMapper().validateType(type, validator)
+    ).withMessageContaining("[java.util.HashMap, java.lang.String]");
   }
 
   public static class Complex {

@@ -31,7 +31,7 @@ import java.io.Reader;
 import org.cibseven.spin.DataFormats;
 import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.spi.SpinDataFormatException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer

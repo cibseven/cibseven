@@ -27,8 +27,8 @@ import java.util.Iterator;
 import java.util.ServiceLoader;
 
 import org.cibseven.spin.DataFormats;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.mockito.invocation.InvocationOnMock;
@@ -52,7 +52,7 @@ public class DataFormatLoadingTest {
   @SuppressWarnings("rawtypes")
   protected ServiceLoader<DataFormatConfigurator> mockConfiguratorLoader;
 
-  @Before
+  @BeforeEach
   @SuppressWarnings("unchecked")
   public void setUp() {
     mockStatic(ServiceLoader.class);
