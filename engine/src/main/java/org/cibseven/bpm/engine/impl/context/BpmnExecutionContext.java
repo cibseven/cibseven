@@ -23,6 +23,7 @@ import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
  * @author Daniel Meyer
  *
  */
+@SuppressWarnings("deprecation")
 public class BpmnExecutionContext extends ExecutionContext {
 
   public BpmnExecutionContext(ExecutionEntity execution) {

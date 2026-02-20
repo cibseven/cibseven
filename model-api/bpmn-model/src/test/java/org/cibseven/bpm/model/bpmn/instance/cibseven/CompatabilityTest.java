@@ -18,7 +18,7 @@ package org.cibseven.bpm.model.bpmn.instance.cibseven;
 
 import static org.cibseven.bpm.model.bpmn.BpmnTestConstants.PROCESS_ID;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.Collection;
 
@@ -41,6 +41,7 @@ import org.junit.Test;
  */
 public class CompatabilityTest {
 
+  @SuppressWarnings("deprecation")
   @Test
   public void modifyingElementWithActivitiNsKeepsIt() {
     BpmnModelInstance modelInstance = Bpmn.readModelFromStream(CamundaExtensionsTest.class.getResourceAsStream("CamundaExtensionsCompatabilityTest.xml"));
@@ -56,6 +57,7 @@ public class CompatabilityTest {
     }
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void modifyingAttributeWithActivitiNsKeepsIt() {
     BpmnModelInstance modelInstance = Bpmn.readModelFromStream(CamundaExtensionsTest.class.getResourceAsStream("CamundaExtensionsCompatabilityTest.xml"));

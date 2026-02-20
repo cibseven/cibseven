@@ -41,14 +41,17 @@ public class ProcessApplicationEventParseListener implements BpmnParseListener {
   public final static ExecutionListener EXECUTION_LISTENER = new ProcessApplicationEventListenerDelegate();
   public final static TaskListener TASK_LISTENER = new ProcessApplicationEventListenerDelegate();
 
+  @SuppressWarnings("deprecation")
   protected void addEndEventListener(ScopeImpl activity) {
     activity.addExecutionListener(ExecutionListener.EVENTNAME_END, EXECUTION_LISTENER);
   }
 
+  @SuppressWarnings("deprecation")
   protected void addStartEventListener(ScopeImpl activity) {
     activity.addExecutionListener(ExecutionListener.EVENTNAME_START, EXECUTION_LISTENER);
   }
 
+  @SuppressWarnings("deprecation")
   protected void addTakeEventListener(TransitionImpl transition) {
     transition.addExecutionListener(EXECUTION_LISTENER);
   }
@@ -177,7 +180,7 @@ public class ProcessApplicationEventParseListener implements BpmnParseListener {
   }
 
   @Override
-  public void parseProperty(Element propertyElement, VariableDeclaration variableDeclaration, ActivityImpl activity) {
+  public void parseProperty(Element propertyElement, @SuppressWarnings("deprecation") VariableDeclaration variableDeclaration, ActivityImpl activity) {
   }
 
   @Override

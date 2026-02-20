@@ -59,6 +59,7 @@ public class HistoryCleanupRestServiceInteractionTest extends AbstractRestServic
 
   private HistoryService historyServiceMock;
 
+  @SuppressWarnings("deprecation")
   @Before
   public void setUpRuntimeData() {
     historyServiceMock = mock(HistoryService.class);
@@ -75,6 +76,7 @@ public class HistoryCleanupRestServiceInteractionTest extends AbstractRestServic
     when(processEngine.getHistoryService()).thenReturn(historyServiceMock);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testFindHistoryCleanupJob() {
     given().contentType(ContentType.JSON)
@@ -85,6 +87,7 @@ public class HistoryCleanupRestServiceInteractionTest extends AbstractRestServic
    verify(historyServiceMock).findHistoryCleanupJob();
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testFindNoHistoryCleanupJob() {
     when(historyServiceMock.findHistoryCleanupJob())

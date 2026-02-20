@@ -208,6 +208,7 @@ public class BoundaryErrorEventTest extends PluggableProcessEngineTest {
     testRule.assertProcessEnded(procId);
   }
 
+  @SuppressWarnings("deprecation")
   @Deployment
   @Test
   public void testDeeplyNestedErrorThrownOnlyAutomaticSteps() {
@@ -254,6 +255,7 @@ public class BoundaryErrorEventTest extends PluggableProcessEngineTest {
     testRule.assertProcessEnded(procId);
   }
 
+  @SuppressWarnings("deprecation")
   @Deployment(resources = {
       "org/cibseven/bpm/engine/test/bpmn/event/error/BoundaryErrorEventTest.testCatchErrorOnCallActivity-parent.bpmn20.xml",
       "org/cibseven/bpm/engine/test/bpmn/event/error/BoundaryErrorEventTest.subprocess.bpmn20.xml"
