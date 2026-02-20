@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.qa.upgrade.authorization;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Collections;
 
@@ -31,8 +31,8 @@ import org.cibseven.bpm.engine.impl.test.RequiredDatabase;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Disabled;
 
 public class AuthorizationTest {
@@ -45,7 +45,7 @@ public class AuthorizationTest {
 
   protected boolean defaultAuthorizationEnabled;
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule rule = new ProcessEngineRule();
 
   @BeforeEach

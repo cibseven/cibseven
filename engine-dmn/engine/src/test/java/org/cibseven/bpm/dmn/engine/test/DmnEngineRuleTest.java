@@ -22,18 +22,14 @@ import org.cibseven.bpm.dmn.engine.DmnEngine;
 import org.cibseven.bpm.dmn.engine.DmnEngineConfiguration;
 import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngine;
 import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 
 public class DmnEngineRuleTest {
 
-  @Rule
   public DmnEngineRule engineRule = new DmnEngineRule();
 
-  @Rule
   public DmnEngineRule nullEngineRule = new DmnEngineRule(null);
 
-  @Rule
   public DmnEngineRule customEngineRule = new DmnEngineRule(initConfiguration());
 
   public DmnEngineConfiguration customConfiguration;

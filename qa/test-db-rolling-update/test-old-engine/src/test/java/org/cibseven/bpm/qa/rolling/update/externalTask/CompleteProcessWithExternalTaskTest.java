@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 import static junit.framework.TestCase.assertEquals;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  *

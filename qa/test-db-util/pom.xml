@@ -35,6 +35,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+      <version>${version.junit4}</version>
     </dependency>
   </dependencies>
 

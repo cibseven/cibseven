@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.qa.rolling.update.batch;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 import java.util.List;

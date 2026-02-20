@@ -22,7 +22,7 @@ import org.cibseven.bpm.engine.task.TaskQuery;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.junit.jupiter.api.Test;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  *

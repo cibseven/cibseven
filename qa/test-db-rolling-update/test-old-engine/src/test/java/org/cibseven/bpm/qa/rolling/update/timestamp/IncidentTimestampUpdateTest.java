@@ -21,9 +21,7 @@ import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Nikola Koevski
@@ -44,13 +42,13 @@ public class IncidentTimestampUpdateTest extends AbstractTimestampUpdateTest {
       .singleResult();
 
     // assume
-    assertNotNull(incident);
+    assertThat(incident).isNotNull();
 
     long incidentCount = runtimeService.createIncidentQuery()
       .processInstanceId(processInstanceId)
       .count();
 
     // then
-    assertThat(incident.getIncidentTimestamp(), is(TIMESTAMP));
+    assertThat(incident.getIncidentTimestamp()).isEqualTo(TIMESTAMP);
   }
 }

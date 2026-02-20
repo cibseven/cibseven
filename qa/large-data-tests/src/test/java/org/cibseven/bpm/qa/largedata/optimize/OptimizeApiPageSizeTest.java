@@ -16,30 +16,26 @@
  */
 package org.cibseven.bpm.qa.largedata.optimize;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import org.cibseven.bpm.engine.impl.OptimizeService;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.qa.largedata.util.EngineDataGenerator;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.ClassRule;
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.function.Function;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-
-@RunWith(JUnitParamsRunner.class)
 public class OptimizeApiPageSizeTest {
 
   private static OptimizeService optimizeService;
   private static final int OPTIMIZE_PAGE_SIZE = 10_000;
 
-  @ClassRule
-  public static ProcessEngineRule processEngineRule = new ProcessEngineRule("camunda.cfg.xml");
+  @RegisterExtension
+  static ProcessEngineRule processEngineRule = new ProcessEngineRule("camunda.cfg.xml");
 
   @BeforeAll
   public static void init() {
@@ -51,17 +47,17 @@ public class OptimizeApiPageSizeTest {
     generator.generateData();
   }
 
-  @Test
-  @Parameters(method = "optimizeServiceFunctions")
+  @ParameterizedTest
+  @MethodSource("optimizeServiceFunctions")
   public void databaseCanCopeWithPageSize(TestScenario scenario) {
     // when
     final List<?> pageOfEntries = scenario.getOptimizeServiceFunction().apply(OPTIMIZE_PAGE_SIZE);
 
     // then
-    assertThat(pageOfEntries.size(), is(OPTIMIZE_PAGE_SIZE));
+    assertThat(pageOfEntries.size()).isEqualTo(OPTIMIZE_PAGE_SIZE);
   }
 
-  private Object[] optimizeServiceFunctions() {
+  static TestScenario[] optimizeServiceFunctions() {
     return new TestScenario[]{
       new TestScenario(
         (pageSize) -> optimizeService.getRunningHistoricActivityInstances(null, null, pageSize),

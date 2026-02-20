@@ -17,8 +17,8 @@
     <wildfly.container.adapter.version>5.0.1.Final</wildfly.container.adapter.version>
     <version.spring.framework>${version.spring.framework6}</version.spring.framework>
 
-    <version.arquillian>1.7.0.Final</version.arquillian>
-
+    <version.arquillian>1.10.0.Final</version.arquillian>
+	<version.arquillian.protocol>10.0.0.Final</version.arquillian.protocol>
     <redirect.test.output>true</redirect.test.output>
 
     <weld.version>5.1.0.Final</weld.version>
@@ -88,19 +88,27 @@
     </dependency>
 
     <dependency>
-      <groupId>org.jboss.arquillian.junit</groupId>
-      <artifactId>arquillian-junit-container</artifactId>
+      <groupId>org.jboss.arquillian.junit5</groupId>
+      <artifactId>arquillian-junit5-container</artifactId>
+	  <version>${version.arquillian}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.jboss.arquillian.protocol</groupId>
       <artifactId>arquillian-protocol-servlet-jakarta</artifactId>
+	  <version>${version.arquillian.protocol}</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${version.assertj}</version>
       <scope>test</scope>
     </dependency>
 
@@ -608,7 +616,7 @@
         <dependency>
           <groupId>org.jboss.arquillian.container</groupId>
           <artifactId>arquillian-tomcat-managed-8</artifactId>
-          <version>1.1.0.Final</version>
+          <version>${version.arquillian}</version>
           <scope>test</scope>
         </dependency>
 
@@ -618,11 +626,11 @@
           <artifactId>arquillian-protocol-servlet-jakarta</artifactId>
         </dependency>
 
-        <dependency>
-          <groupId>org.jboss.arquillian.junit</groupId>
-          <artifactId>arquillian-junit-container</artifactId>
-          <scope>test</scope>
-        </dependency>
+	    <dependency>
+	      <groupId>org.jboss.arquillian.junit5</groupId>
+	      <artifactId>arquillian-junit5-container</artifactId>
+	      <scope>test</scope>
+	    </dependency>
 
       </dependencies>
 

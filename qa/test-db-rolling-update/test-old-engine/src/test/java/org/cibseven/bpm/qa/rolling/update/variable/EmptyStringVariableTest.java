@@ -16,14 +16,14 @@
  */
 package org.cibseven.bpm.qa.rolling.update.variable;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstanceQuery;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.jupiter.api.Test;
 
 /**
  * This test ensures that the old engine can read an empty String variable created by the new engine.
@@ -43,7 +43,7 @@ public class EmptyStringVariableTest extends AbstractRollingUpdateTestCase {
         .singleResult();
 
     // then
-    assertThat(variableInstance.getValue(), is(""));
+    assertThat(variableInstance.getValue()).isEqualTo("");
   }
 
   @Test
@@ -54,7 +54,7 @@ public class EmptyStringVariableTest extends AbstractRollingUpdateTestCase {
         .variableValueEquals("myStringVar", "");
 
     // then
-    assertThat(variableInstanceQuery.count(), is(1L));
+    assertThat(variableInstanceQuery.count()).isEqualTo(1L);
   }
 
   @Test
@@ -65,7 +65,7 @@ public class EmptyStringVariableTest extends AbstractRollingUpdateTestCase {
         .variableValueNotEquals("myStringVar", "");
 
     // then
-    assertThat(variableInstanceQuery.count(), is(0L));
+    assertThat(variableInstanceQuery.count()).isEqualTo(0L);
   }
 
 }
