@@ -36,6 +36,9 @@ public class CamundaBpmRunProperties {
 
   @NestedConfigurationProperty
   protected CamundaBpmRunLdapProperties ldap = new CamundaBpmRunLdapProperties();
+  
+  @NestedConfigurationProperty
+  protected CamundaBpmRunScimProperties scim = new CamundaBpmRunScimProperties();
 
   @NestedConfigurationProperty
   protected List<CamundaBpmRunProcessEnginePluginProperty> processEnginePlugins = new ArrayList<>();
@@ -71,6 +74,14 @@ public class CamundaBpmRunProperties {
 
   public void setLdap(CamundaBpmRunLdapProperties ldap) {
     this.ldap = ldap;
+  }
+  
+  public CamundaBpmRunScimProperties getScim() {
+    return scim;
+  }
+
+  public void setScim(CamundaBpmRunScimProperties scim) {
+    this.scim = scim;
   }
 
   public CamundaBpmRunAdministratorAuthorizationProperties getAdminAuth() {
@@ -112,6 +123,7 @@ public class CamundaBpmRunProperties {
         "auth=" + auth +
         ", cors=" + cors +
         ", ldap=" + ldap +
+        ", scim=" + scim +
         ", adminAuth=" + adminAuth +
         ", plugins=" + processEnginePlugins +
         ", rest=" + rest +
