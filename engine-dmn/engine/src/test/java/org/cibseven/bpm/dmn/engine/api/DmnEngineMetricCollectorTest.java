@@ -30,7 +30,8 @@ import org.cibseven.bpm.dmn.engine.spi.DmnEngineMetricCollector;
 import org.cibseven.bpm.dmn.engine.test.DecisionResource;
 import org.cibseven.bpm.dmn.engine.test.DmnEngineTest;
 import org.cibseven.bpm.engine.variable.VariableMap;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -53,7 +54,7 @@ public class DmnEngineMetricCollectorTest extends DmnEngineTest {
     variables.putValue("sum", 100);
   }
 
-  @After
+  @AfterEach
   public void clearEngineMetrics() {
     metricCollector.clearExecutedDecisionElements();
   }
