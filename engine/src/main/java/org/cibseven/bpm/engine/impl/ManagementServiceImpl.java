@@ -16,6 +16,9 @@
  */
 package org.cibseven.bpm.engine.impl;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.util.Date;
 import java.util.HashSet;
@@ -23,10 +26,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.crypto.spec.SecretKeySpec;
+
 import org.cibseven.bpm.application.ProcessApplicationReference;
 import org.cibseven.bpm.application.ProcessApplicationRegistration;
 import org.cibseven.bpm.engine.ManagementService;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
+import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.batch.Batch;
 import org.cibseven.bpm.engine.batch.BatchQuery;
 import org.cibseven.bpm.engine.batch.BatchStatisticsQuery;
@@ -98,6 +104,14 @@ import org.cibseven.bpm.engine.management.UpdateJobSuspensionStateSelectBuilder;
 import org.cibseven.bpm.engine.runtime.JobQuery;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.telemetry.TelemetryData;
+
+import com.google.gson.JsonObject;
+
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+
+import com.google.gson.JsonParser;
 
 
 /**
@@ -294,6 +308,16 @@ public class ManagementServiceImpl extends ServiceImpl implements ManagementServ
   @Override
   public String getLicenseKey() {
     return commandExecutor.execute(new GetLicenseKeyCmd());
+  }
+  @Override
+  public void setLicenseKeyEncrypted(String licenseKey, String jwtSecret) {
+    licenseKey = decryptSignature(licenseKey, jwtSecret);
+    commandExecutor.execute(new SetLicenseKeyCmd(licenseKey));
+  }
+
+  @Override
+  public String getLicenseKeyEncrypted(String jwtSecret) {
+    return encryptSignature(commandExecutor.execute(new GetLicenseKeyCmd()), jwtSecret);  
   }
 
   @Override
@@ -770,6 +794,58 @@ public class ManagementServiceImpl extends ServiceImpl implements ManagementServ
       commandContext.getAuthorizationManager().checkCamundaAdminOrPermission(CommandChecker::checkReadRegisteredDeployments);
       Set<String> registeredDeployments = Context.getProcessEngineConfiguration().getRegisteredDeployments();
       return new HashSet<>(registeredDeployments);
+    }
+  }
+
+  private SecretKeySpec getAesKey(String secret) {
+    try {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] keyBytes = digest.digest(secret.getBytes(StandardCharsets.UTF_8));
+        return new SecretKeySpec(keyBytes, "AES");
+    } catch (NoSuchAlgorithmException e) {
+      throw new ProcessEngineException("SHA-256 not available", e);
+    }
+  }
+
+  public String encryptSignature(String licenseKey, String jwtSecret) {
+    try {
+      JsonObject jsonObject = JsonParser.parseString(licenseKey)
+          .getAsJsonObject();
+      if (!jsonObject.has("signature")) {
+        throw new ProcessEngineException("JWT secret must contain a 'signature' field");
+      }
+      String signature = jsonObject.get("signature").getAsString();
+      SecretKeySpec key = getAesKey(jwtSecret);
+      String jwe = Jwts.builder()
+        .content(signature)
+        .encryptWith(key, Jwts.ENC.A256GCM)
+        .compact();
+      jsonObject.addProperty("signature", jwe);
+      return jsonObject.toString();
+    } catch (JwtException e) {
+      throw new ProcessEngineException("Failed to decrypt license key signature", e);
+    }
+  }
+
+  public String decryptSignature(String licenseKey, String jwtSecret) {
+    try {
+       JsonObject jsonObject = JsonParser.parseString(licenseKey)
+         .getAsJsonObject();
+       if (!jsonObject.has("signature")) {
+         throw new ProcessEngineException("JWT secret must contain a 'signature' field");
+       }
+       String signature = jsonObject.get("signature").getAsString();
+       SecretKeySpec key = getAesKey(jwtSecret);
+       byte[] payload = Jwts.parser()
+           .decryptWith(key)
+           .build()
+           .parseEncryptedContent(signature)
+           .getPayload();
+       signature = new String(payload, StandardCharsets.UTF_8);
+       jsonObject.addProperty("signature", signature);
+       return jsonObject.toString();
+       } catch (JwtException e) {
+      throw new ProcessEngineException("Failed to decrypt license key signature", e);
     }
   }
 

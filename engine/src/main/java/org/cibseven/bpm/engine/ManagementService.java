@@ -1213,6 +1213,24 @@ public interface ManagementService {
   String getLicenseKey();
 
   /**
+   * Set the license key.
+   *
+   * @param licenseKey the license key string.
+   *
+   * @throws AuthorizationException
+   *          If the user is not a member of the group {@link Groups#CAMUNDA_ADMIN}.
+   */
+  void setLicenseKeyEncrypted(String licenseKey, String jwtSecret);
+
+  /**
+   * Get the stored license key string or <code>null</code> if no license is set.
+   *
+   * @throws AuthorizationException
+   *          If the user is not a member of the group {@link Groups#CAMUNDA_ADMIN}.
+   */
+  String getLicenseKeyEncrypted(String jwtSecret);
+
+  /**
    * Deletes the stored license key. If no license key is set, the request is ignored.
    *
    * @throws AuthorizationException

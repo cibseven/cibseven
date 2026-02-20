@@ -18,8 +18,10 @@ package org.cibseven.bpm.engine.rest.impl;
 
 import org.cibseven.bpm.engine.rest.LicenseRestService;
 import org.cibseven.bpm.engine.rest.dto.license.LicenseKeyDto;
+import org.cibseven.bpm.engine.rest.security.auth.impl.jwt.Configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware implements LicenseRestService {
 
@@ -29,12 +31,13 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
 
   @Override
   public void setLicenseKey(LicenseKeyDto licenseKey) {
-    getProcessEngine().getManagementService().setLicenseKey(licenseKey.getLicenseKey());
+    getProcessEngine().getManagementService().setLicenseKeyEncrypted(licenseKey.getLicenseKey(), Configuration.getInstance().getSecret());
   }
 
   @Override
   public String getLicenseKey() {
-    return getProcessEngine().getManagementService().getLicenseKey();
+    String licenseKey = getProcessEngine().getManagementService().getLicenseKeyEncrypted(Configuration.getInstance().getSecret());
+    return licenseKey;
   }
-
+  
 }
