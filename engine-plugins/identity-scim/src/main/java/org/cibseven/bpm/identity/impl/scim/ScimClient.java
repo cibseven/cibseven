@@ -266,14 +266,16 @@ public class ScimClient {
           ContentType.create("application/scim+json", StandardCharsets.UTF_8)
       ));
     }
+    
+    boolean verbose = configuration.isVerbose();
+    ScimPluginLogger.INSTANCE.httpClientRequest(verbose, method.toString(), url, body != null ? body.toString() : "");
 
-    // System.out.println(">>>>>>> ScimClient " + method.toString() + ": " + url);
     try (CloseableHttpResponse response = httpClient.execute(request)) {
       int statusCode = response.getCode();
       String responseBody = response.getEntity() != null ? 
           EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8) : "{}";
 
-      // System.out.println("<<<<<<< ScimClient " + method.toString() + " status code: " + statusCode);
+      ScimPluginLogger.INSTANCE.httpClientResponse(verbose, method.toString(), statusCode);
 
       if (statusCode == 200 || statusCode == 201 || statusCode == 204) {
         return objectMapper.readTree(responseBody);
@@ -287,7 +289,6 @@ public class ScimClient {
       }
     } catch (IOException | ParseException e) {
       ScimPluginLogger.INSTANCE.httpClientException(method.toString() + " " + url, e);
-      // System.out.println("<<<<<<< ScimClient " + method.toString() + " error: " + e.toString());
       throw new IdentityProviderException("SCIM HTTP request failed", e);
     }
   }
@@ -342,7 +343,8 @@ public class ScimClient {
       throw new IdentityProviderException("OAuth2 token URL not configured");
     }
 
-    ScimPluginLogger.INSTANCE.oauth2TokenRefresh();
+    boolean verbose = configuration.isVerbose();
+    ScimPluginLogger.INSTANCE.oauth2TokenRefresh(verbose);
 
     HttpPost request = new HttpPost(configuration.getOauth2TokenUrl());
     request.setHeader("Content-Type", "application/x-www-form-urlencoded");

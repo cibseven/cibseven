@@ -126,10 +126,10 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
       JsonNode resources = response.get("Resources");
       for (JsonNode resource : resources) {
         ScimUserEntity user = transformUser(resource);
-        if (user.getScimId() != null) {
+        if (user.getScimId() == null || user.getScimId().isEmpty()) {
+          ScimPluginLogger.INSTANCE.invalidScimEntityReturned("User", user.toString());    
+        } else if (isAuthenticatedAndAuthorizedToRead(user.getId())) {
           users.add(user);
-        } else {
-          ScimPluginLogger.INSTANCE.invalidScimEntityReturned("User", user.toString());          
         }
       }
     }
@@ -164,10 +164,10 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
             String userScimId = getJsonValue(member, "value");
             if (userScimId != null) {
               ScimUserEntity user = transformUser(scimClient.getUserByScimId(userScimId));
-              if (user.getScimId() != null) {
-                users.add(user);
-              } else {
-                ScimPluginLogger.INSTANCE.invalidScimEntityReturned("User", user.toString());          
+              if (user.getScimId() == null || user.getScimId().isEmpty()) {
+                ScimPluginLogger.INSTANCE.invalidScimEntityReturned("User", user.toString()); 
+              } else if (isAuthenticatedAndAuthorizedToRead(user.getId())) {
+                users.add(user);         
               }
             }
           }
@@ -323,6 +323,11 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
 
     String lastNameAttr = scimConfiguration.getUserLastnameAttribute();
     setJsonValue(root, lastNameAttr, user.getLastName(), mapper);
+    
+    String passwordAttr = scimConfiguration.getUserPasswordAttribute();
+    if (user.getPassword() != null) {
+      setJsonValue(root, passwordAttr, user.getPassword(), mapper);
+    }
 
     // set email as work email in the SCIM email list
     String emailsAttr = scimConfiguration.getUserEmailsAttribute();
@@ -373,10 +378,10 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
       JsonNode resources = response.get("Resources");
       for (JsonNode resource : resources) {
         ScimGroupEntity group = transformGroup(resource);
-        if (group.getScimId() != null) {
-          groups.add(group);
-        } else if (isAuthorizedToReadGroup(group.getId())) {
+        if (group.getScimId() == null || group.getScimId().isEmpty()) {
           ScimPluginLogger.INSTANCE.invalidScimEntityReturned("group", resource.toString());
+        } else if (isAuthorizedToReadGroup(group.getId())) {
+          groups.add(group);
         }
       }
     }
@@ -388,7 +393,7 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
     
     //// TODO: remove this fallback for SCIMPLE, because it doesn't correctly filter by an users
     //if (groups.isEmpty() && query.getUserId() != null) {
-    //	groups = findGroupByUserId(query);
+    //  groups = findGroupByUserId(query);
     //}
 
     return groups;
@@ -526,6 +531,28 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
     return root;
   }
   
+  // Membership
+  boolean isGroupMember(ScimGroupEntity group, ScimUserEntity user) {
+    if (group == null || user == null) {
+      return false;
+    } 
+    
+    boolean found = false;
+    JsonNode groupData = scimClient.getGroupByScimId(group.getScimId());
+    String membersAttrib = scimConfiguration.getGroupMembersAttribute();
+    if (groupData != null && groupData.has(membersAttrib)) {
+      JsonNode members = groupData.get(membersAttrib);
+      for (JsonNode member : members) {
+        String memberId = getJsonValue(member, "value");
+        if (memberId != null && memberId.equals(user.getScimId())) {
+          found = true;
+          break;
+        }         
+      }
+    }
+    return found;
+  }
+  
   // Tenants
 
   @Override
@@ -580,7 +607,7 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
 
   // Utility methods  
   
-  protected boolean isAuthenticatedAndAuthorized(String userId) {
+  protected boolean isAuthenticatedAndAuthorizedToRead(String userId) {
     return isAuthenticatedUser(userId) || isAuthorizedToRead(USER, userId);
   }
 

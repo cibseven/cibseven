@@ -81,6 +81,9 @@ public class ScimConfiguration {
   
   // Additional custom headers
   protected Map<String, String> customHeaders = new HashMap<>();
+  
+  // Output scim requests
+  protected boolean verbose = false;
 
   // Getters and Setters
 
@@ -292,6 +295,14 @@ public class ScimConfiguration {
     this.authorizationCheckEnabled = authorizationCheckEnabled;
   }
   
+  public boolean isVerbose() {
+    return verbose;
+  }
+
+  public void setVerbose(boolean verbose) {
+    this.verbose = verbose;
+  }
+
   public boolean getAllowModifications() {
     return allowModifications;
   }

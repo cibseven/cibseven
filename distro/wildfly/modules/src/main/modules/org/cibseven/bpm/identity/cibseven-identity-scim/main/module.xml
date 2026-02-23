@@ -6,7 +6,7 @@
   <dependencies>
 
     <module name="java.base" />
-    <module name="org.slf4j" />	
+    <module name="org.slf4j" />
 
     <module name="org.cibseven.bpm.cibseven-engine" />
     <module name="org.cibseven.commons.cibseven-commons-logging" />

@@ -77,11 +77,14 @@ public class ScimIdentityProviderWritable extends ScimIdentityProviderReadOnly i
       String postUrl = scimConfiguration.getServerUrl() + scimConfiguration.getUsersEndpoint();
       JsonNode postBody = transformUser(scimUserNew);
       scimClient.executePost(postUrl, postBody);
-      //createDefaultAuthorizations(userEntity);
+      //createDefaultAuthorizations(user);
     } else {
       ScimUserEntity scimUserOld = (ScimUserEntity)findUserById(scimUserNew.getId());
       if (scimUserOld != null) {
-        operation = IdentityOperationResult.OPERATION_UPDATE;
+        // use op_update for ID update and op_none for other attribs update to prevent not needed auth update
+        if (!scimUserNew.getId().equals(scimUserOld.getId())) {
+          operation = IdentityOperationResult.OPERATION_UPDATE;
+        }
         checkAuthorization(Permissions.UPDATE, Resources.USER, user.getId());
         JsonNode patchBody = createUserPatch(scimUserOld, scimUserNew);     
         scimClient.patchUserByScimId(scimUserNew.getScimId(), patchBody);
@@ -96,24 +99,6 @@ public class ScimIdentityProviderWritable extends ScimIdentityProviderReadOnly i
     checkAuthorization(Permissions.DELETE, Resources.USER, userId);
     ScimUserEntity scimUser = (ScimUserEntity)findUserById(userId);
     if(scimUser != null) {
-      // copied from DB identity provider, commented out, probably not needed for SCIM
-      //deleteMembershipsByUserId(userId);
-      //deleteTenantMembershipsOfUser(userId);
-      //deleteAuthorizations(Resources.USER, userId);
-
-      //Context.getCommandContext().runWithoutAuthorization(new Callable<Void>() {
-      //  @Override
-      //  public Void call() throws Exception {
-      //    final List<Tenant> tenants = createTenantQuery().userMember(userId).list();
-      //    if (tenants != null && !tenants.isEmpty()) {
-      //      for (Tenant tenant : tenants) {
-      //        deleteAuthorizationsForUser(Resources.TENANT, tenant.getId(), userId);
-      //      }
-      //    }
-      //    return null;
-      //  }
-      //});
-
       // remove authorizations for the group from the database
       getCommandContext().getAuthorizationManager().deleteAuthorizationsByResourceId(Resources.USER, userId);
       // remove the user itself
@@ -150,7 +135,10 @@ public class ScimIdentityProviderWritable extends ScimIdentityProviderReadOnly i
     } else {
       ScimGroupEntity scimGroupOld = (ScimGroupEntity)findGroupById(scimGroupNew.getId());
       if (scimGroupOld != null) {
-        operation = IdentityOperationResult.OPERATION_UPDATE;
+        // use op_update for ID update and op_none for other attribs update to prevent not needed auth update
+        if (!scimGroupNew.getId().equals(scimGroupOld.getId())) {
+          operation = IdentityOperationResult.OPERATION_UPDATE;
+        }
         checkAuthorization(Permissions.UPDATE, Resources.GROUP, group.getId());
         JsonNode patchBody = createGroupPatch(scimGroupOld, scimGroupNew);
         scimClient.patchGroupByScimId(scimGroupNew.getScimId(), patchBody);
@@ -165,24 +153,6 @@ public class ScimIdentityProviderWritable extends ScimIdentityProviderReadOnly i
     checkAuthorization(Permissions.DELETE, Resources.GROUP, groupId);
     ScimGroupEntity scimGroup =  (ScimGroupEntity) findGroupById(groupId);
     if(scimGroup != null) {
-      // copied from DB identity provider, commented out, probably not needed for SCIM
-      //deleteMembershipsByGroupId(groupId);
-      //deleteTenantMembershipsOfGroup(groupId);
-      //deleteAuthorizations(Resources.GROUP, groupId);
-
-      //Context.getCommandContext().runWithoutAuthorization(new Callable<Void>() {
-      //  @Override
-      //  public Void call() throws Exception {
-      //    final List<Tenant> tenants = createTenantQuery().groupMember(groupId).list();
-      //    if (tenants != null && !tenants.isEmpty()) {
-      //      for (Tenant tenant : tenants) {
-      //        deleteAuthorizationsForGroup(Resources.TENANT, tenant.getId(), groupId);
-      //      }
-      //    }
-      //    return null;
-      //  }
-      //});
-
       // remove authorizations for the group from the database
       getCommandContext().getAuthorizationManager().deleteAuthorizationsByResourceId(Resources.GROUP, groupId);
       // remove the group itself from the scim servcice
@@ -220,10 +190,13 @@ public class ScimIdentityProviderWritable extends ScimIdentityProviderReadOnly i
     ScimGroupEntity group = (ScimGroupEntity)findGroupById(groupId);
     ensureNotNull("No group found with id '" + groupId + "'.", "group", group);
     
-    JsonNode patchBody = createMembershipPatch(user.getScimId(), "add", "User");
-    scimClient.patchGroupByScimId(group.getScimId(), patchBody);
-    //createDefaultMembershipAuthorizations(userId, groupId);   
-    return new IdentityOperationResult(null, IdentityOperationResult.OPERATION_CREATE);
+    if (!isGroupMember(group, user)) {
+      JsonNode patchBody = createMembershipPatch(user.getScimId(), "add", "User");
+      scimClient.patchGroupByScimId(group.getScimId(), patchBody);
+      //createDefaultMembershipAuthorizations(userId, groupId);
+      return new IdentityOperationResult(null, IdentityOperationResult.OPERATION_CREATE);
+    }
+    return new IdentityOperationResult(null, IdentityOperationResult.OPERATION_NONE);
   }
 
   @Override
@@ -234,10 +207,12 @@ public class ScimIdentityProviderWritable extends ScimIdentityProviderReadOnly i
     ScimGroupEntity group = (ScimGroupEntity)findGroupById(groupId);
     ensureNotNull("No group found with id '" + groupId + "'.", "group", group);
     
-    JsonNode patchBody = createMembershipPatch(user.getScimId(), "remove", null);
-    scimClient.patchGroupByScimId(group.getScimId(), patchBody);
-    //createDefaultMembershipAuthorizations(userId, groupId);  
-    return new IdentityOperationResult(null, IdentityOperationResult.OPERATION_DELETE);
+    if (isGroupMember(group, user)) {
+      JsonNode patchBody = createMembershipPatch(user.getScimId(), "remove", null);
+      scimClient.patchGroupByScimId(group.getScimId(), patchBody);
+      return new IdentityOperationResult(null, IdentityOperationResult.OPERATION_DELETE);
+    }
+    return new IdentityOperationResult(null, IdentityOperationResult.OPERATION_NONE);
   }
 
   public void deleteMembershipsByUserId(String userId) {

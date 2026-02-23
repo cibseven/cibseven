@@ -48,7 +48,8 @@
       <version>${version.jackson}</version>
     </dependency>
 
-  <!-- Apache SCIMple -->
+  <!-- Apache SCIMple: real lightweight SCIM server: 
+       can be used as an alternative to the wiremock for testing -->
   <!--<dependency>
       <groupId>org.apache.directory.scimple</groupId>
       <artifactId>scim-server</artifactId>
@@ -86,12 +87,14 @@
       </testResource>
     </testResources>
     <plugins>
+
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <failIfNoTests>false</failIfNoTests>
           <trimStackTrace>false</trimStackTrace>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <argLine>-Xshare:off</argLine>    
         </configuration>
       </plugin>
   
@@ -123,8 +126,8 @@
                   <pattern>org.apache.hc</pattern>
                   <shadedPattern>scimplugin.org.apache.httpcomponents</shadedPattern>
                   <excludes>
-                    <exclude>org.apache.logging.**</exclude>
-                    <exclude>org.slf4j.**</exclude>
+                    <exclude>org.apache.logging:*</exclude>
+                    <exclude>org.slf4j:*</exclude>
                   </excludes>
                 </relocation>
 

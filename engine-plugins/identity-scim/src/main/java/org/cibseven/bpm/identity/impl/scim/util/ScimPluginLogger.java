@@ -48,8 +48,12 @@ public class ScimPluginLogger extends BaseLogger {
     logDebug("005", result);
   }
 
-  public void oauth2TokenRefresh() {
-    logDebug("006", "Refreshing OAuth2 access token");
+  public void oauth2TokenRefresh(boolean verbose) {
+    if (verbose) {
+      logInfo("006", "Refreshing OAuth2 access token");
+    } else {
+      logDebug("006", "Refreshing OAuth2 access token");
+    }
   }
 
   public void scimFilterQuery(String filter) {
@@ -62,5 +66,21 @@ public class ScimPluginLogger extends BaseLogger {
 
   public void authenticationFailure(String message) {
     logError("009", "SCIM authentication failure: {}", message);
+  }
+ 
+  public void httpClientRequest(boolean verbose, String method, String url, String body) {
+    if (verbose) {
+      logInfo("010", ">>>>>>> ScimClient {}: {} => body: {}", method, url, (body != null ? body : "empty"));
+    } else {
+      logDebug("010", ">>>>>>> ScimClient {}: {} => body: {}", method, url, (body != null ? body : "empty"));
+    }
+  }
+
+  public void httpClientResponse(boolean verbose, String method, int code) {
+    if (verbose) {
+      logInfo("011", "<<<<<<< ScimClient {}: status code {}", method, code);
+    } else {
+      logDebug("011", "<<<<<<< ScimClient {}: status code {}", method, code);
+    }
   }
 }
