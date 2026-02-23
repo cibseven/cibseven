@@ -18,12 +18,8 @@ package org.cibseven.bpm.identity.impl.scim;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.List;
-
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
-import org.cibseven.bpm.engine.identity.Group;
-import org.cibseven.bpm.engine.identity.GroupQuery;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.identity.scim.util.ScimTestEnvironment;
