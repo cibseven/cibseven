@@ -2304,4 +2304,43 @@ public class TaskRestServiceQueryTest extends AbstractRestServiceTest {
     assertEquals(MockProvider.EXAMPLE_TASK_DESCRIPTION, argument.getValue().getDescription());
   }
 
+  @Test
+  public void testQueryWithLikeIgnoreCaseGetRequest() {
+    String assigneeLike = "testUser%";
+    
+    given()
+      .queryParam("assigneeLike", assigneeLike)
+      .queryParam("likeIgnoreCase", true)
+      .header("accept", MediaType.APPLICATION_JSON)
+    .then()
+      .expect()
+        .statusCode(Status.OK.getStatusCode())
+    .when()
+      .get(TASK_QUERY_URL);
+
+    verify(mockQuery).likeIgnoreCase();
+    verify(mockQuery).taskAssigneeLike(assigneeLike);
+  }
+
+  @Test
+  public void testQueryWithLikeIgnoreCasePostRequest() {
+    Map<String, Object> json = new HashMap<>();
+    String assigneeLike = "testUser%";
+    json.put("assigneeLike", assigneeLike);
+    json.put("likeIgnoreCase", true);
+
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .header(ACCEPT_JSON_HEADER)
+      .body(json)
+    .then()
+      .expect()
+        .statusCode(Status.OK.getStatusCode())
+    .when()
+      .post(TASK_QUERY_URL);
+
+    verify(mockQuery).likeIgnoreCase();
+    verify(mockQuery).taskAssigneeLike(assigneeLike);
+  }
+
 }
