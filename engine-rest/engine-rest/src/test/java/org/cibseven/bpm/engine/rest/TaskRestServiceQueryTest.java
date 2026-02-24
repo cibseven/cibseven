@@ -2310,7 +2310,7 @@ public class TaskRestServiceQueryTest extends AbstractRestServiceTest {
     
     given()
       .queryParam("assigneeLike", assigneeLike)
-      .queryParam("likeIgnoreCase", true)
+      .queryParam("likePatternIgnoreCase", true)
       .header("accept", MediaType.APPLICATION_JSON)
     .then()
       .expect()
@@ -2318,7 +2318,7 @@ public class TaskRestServiceQueryTest extends AbstractRestServiceTest {
     .when()
       .get(TASK_QUERY_URL);
 
-    verify(mockQuery).likeIgnoreCase();
+    verify(mockQuery).likePatternIgnoreCase();
     verify(mockQuery).taskAssigneeLike(assigneeLike);
   }
 
@@ -2327,7 +2327,7 @@ public class TaskRestServiceQueryTest extends AbstractRestServiceTest {
     Map<String, Object> json = new HashMap<>();
     String assigneeLike = "testUser%";
     json.put("assigneeLike", assigneeLike);
-    json.put("likeIgnoreCase", true);
+    json.put("likePatternIgnoreCase", true);
 
     given()
       .contentType(POST_JSON_CONTENT_TYPE)
@@ -2339,7 +2339,7 @@ public class TaskRestServiceQueryTest extends AbstractRestServiceTest {
     .when()
       .post(TASK_QUERY_URL);
 
-    verify(mockQuery).likeIgnoreCase();
+    verify(mockQuery).likePatternIgnoreCase();
     verify(mockQuery).taskAssigneeLike(assigneeLike);
   }
 

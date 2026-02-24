@@ -207,7 +207,7 @@ public class TaskQueryDto extends AbstractQueryDto<TaskQuery> {
 
   protected Boolean variableNamesIgnoreCase;
   protected Boolean variableValuesIgnoreCase;
-  protected Boolean likeIgnoreCase;
+  protected Boolean likePatternIgnoreCase;
 
   private List<VariableQueryParameterDto> taskVariables;
   private List<VariableQueryParameterDto> processVariables;
@@ -727,9 +727,9 @@ public class TaskQueryDto extends AbstractQueryDto<TaskQuery> {
     this.variableValuesIgnoreCase = variableValuesCaseInsensitive;
   }
 
-  @CamundaQueryParam(value = "likeIgnoreCase", converter = BooleanConverter.class)
-  public void setLikeIgnoreCase(Boolean likeIgnoreCase) {
-    this.likeIgnoreCase = likeIgnoreCase;
+  @CamundaQueryParam(value = "likePatternIgnoreCase", converter = BooleanConverter.class)
+  public void setLikePatternIgnoreCase(Boolean likePatternIgnoreCase) {
+    this.likePatternIgnoreCase = likePatternIgnoreCase;
   }
 
   @CamundaQueryParam(value = "withCommentAttachmentInfo", converter = BooleanConverter.class)
@@ -1125,8 +1125,8 @@ public class TaskQueryDto extends AbstractQueryDto<TaskQuery> {
     return variableValuesIgnoreCase;
   }
 
-  public Boolean isLikeIgnoreCase() {
-    return likeIgnoreCase;
+  public Boolean isLikePatternIgnoreCase() {
+    return likePatternIgnoreCase;
   }
 
   public Boolean getWithCommentAttachmentInfo() { return withCommentAttachmentInfo;}
@@ -1427,8 +1427,8 @@ public class TaskQueryDto extends AbstractQueryDto<TaskQuery> {
     if(variableNamesIgnoreCase != null && variableNamesIgnoreCase) {
       query.matchVariableNamesIgnoreCase();
     }
-    if(likeIgnoreCase != null && likeIgnoreCase) {
-      query.likeIgnoreCase();
+    if(likePatternIgnoreCase != null && likePatternIgnoreCase) {
+      query.likePatternIgnoreCase();
     }
 
     if (taskVariables != null) {
@@ -1691,7 +1691,7 @@ public class TaskQueryDto extends AbstractQueryDto<TaskQuery> {
 
     dto.variableNamesIgnoreCase = taskQuery.isVariableNamesIgnoreCase();
     dto.variableValuesIgnoreCase = taskQuery.isVariableValuesIgnoreCase();
-    dto.likeIgnoreCase = taskQuery.isLikeIgnoreCase();
+    dto.likePatternIgnoreCase = taskQuery.isLikePatternIgnoreCase();
 
     if (taskQuery.isFollowUpNullAccepted()) {
       dto.followUpBeforeOrNotExistent = taskQuery.getFollowUpBefore();

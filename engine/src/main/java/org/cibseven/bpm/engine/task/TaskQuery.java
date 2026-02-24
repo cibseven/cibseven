@@ -566,7 +566,7 @@ public interface TaskQuery extends Query<TaskQuery, Task> {
    * taskDefinitionKeyLike, processDefinitionNameLike, caseDefinitionNameLike, and candidateGroupLike.
    * Note: taskNameLike, taskNameNotLike, and taskDescriptionLike are already case-insensitive by default.
    */
-  TaskQuery likeIgnoreCase();
+  TaskQuery likePatternIgnoreCase();
 
   /**
    * Only select tasks which have a local task variable with the given name

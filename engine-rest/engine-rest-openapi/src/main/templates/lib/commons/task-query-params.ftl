@@ -665,7 +665,7 @@
       desc = "Match all variable values in this query case-insensitively. If set
               `variableValue` and `variablevalue` are treated as equal." />
 
-  <@lib.parameter name = "likeIgnoreCase"
+  <@lib.parameter name = "likePatternIgnoreCase"
       location = "query"
       type = "boolean"
       defaultValue = "false"

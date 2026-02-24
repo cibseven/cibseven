@@ -156,7 +156,7 @@ public class TaskQueryImpl extends AbstractQuery<TaskQuery, Task> implements Tas
 
   protected Boolean variableNamesIgnoreCase;
   protected Boolean variableValuesIgnoreCase;
-  protected Boolean likeIgnoreCase;
+  protected Boolean likePatternIgnoreCase;
 
   protected String parentTaskId;
   protected boolean isWithoutTenantId = false;
@@ -1833,8 +1833,8 @@ public class TaskQueryImpl extends AbstractQuery<TaskQuery, Task> implements Tas
     return variableValuesIgnoreCase;
   }
 
-  public Boolean isLikeIgnoreCase() {
-    return likeIgnoreCase;
+  public Boolean isLikePatternIgnoreCase() {
+    return likePatternIgnoreCase;
   }
 
   public List<TaskQueryImpl> getQueries() {
@@ -2483,8 +2483,8 @@ public class TaskQueryImpl extends AbstractQuery<TaskQuery, Task> implements Tas
   }
 
   @Override
-  public TaskQuery likeIgnoreCase() {
-    this.likeIgnoreCase = true;
+  public TaskQuery likePatternIgnoreCase() {
+    this.likePatternIgnoreCase = true;
     return this;
   }
 }

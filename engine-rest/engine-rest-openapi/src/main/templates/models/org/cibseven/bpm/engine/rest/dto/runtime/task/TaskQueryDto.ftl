@@ -678,7 +678,7 @@
                 `variableValue` and `variablevalue` are treated as equal." />
   
     <@lib.property
-        name = "likeIgnoreCase"
+        name = "likePatternIgnoreCase"
         type = "boolean"
         defaultValue = "false"
         desc = "Makes LIKE comparisons case-insensitive for fields that are case-sensitive by default.
