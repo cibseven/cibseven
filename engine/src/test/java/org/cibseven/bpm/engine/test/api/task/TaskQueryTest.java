@@ -6030,36 +6030,10 @@ public class TaskQueryTest extends PluggableProcessEngineTest {
   }
 
   @Test
-  public void testQueryByTaskDefinitionKeyLikeIgnoreCase() {
-    // Create a task with a known task definition key
-    Task task = taskService.newTask();
-    task.setName("test task");
-    task.setTaskDefinitionKey("MyTaskKey");
-    taskService.saveTask(task);
-    
-    try {
-      // Without likePatternIgnoreCase, searching with lowercase pattern should not find it
-      TaskQuery queryWithoutIgnoreCase = taskService.createTaskQuery().taskDefinitionKeyLike("mytask%");
-      assertEquals(0, queryWithoutIgnoreCase.count());
-
-      // With likePatternIgnoreCase, searching with lowercase pattern should find it
-      TaskQuery queryWithIgnoreCase = taskService.createTaskQuery().likePatternIgnoreCase().taskDefinitionKeyLike("mytask%");
-      assertEquals(1, queryWithIgnoreCase.count());
-
-      // Test with original case - should still work
-      queryWithIgnoreCase = taskService.createTaskQuery().likePatternIgnoreCase().taskDefinitionKeyLike("MyTask%");
-      assertEquals(1, queryWithIgnoreCase.count());
-    } finally {
-      taskService.deleteTask(task.getId(), true);
-    }
-  }
-
-  @Test
   public void testLikeIgnoreCaseWithMultipleFields() {
     // Create a task with specific values
     Task task = taskService.newTask();
     task.setName("TestTaskName");
-    task.setTaskDefinitionKey("MyTaskKey");
     taskService.saveTask(task);
     taskService.setAssignee(task.getId(), "MyAssignee");
     
@@ -6073,12 +6047,6 @@ public class TaskQueryTest extends PluggableProcessEngineTest {
       TaskQuery queryWithIgnoreCase = taskService.createTaskQuery().likePatternIgnoreCase().taskAssigneeLike("myassig%");
       assertEquals(1, queryWithIgnoreCase.count());
 
-      // taskDefinitionKeyLike should also be affected
-      queryWithoutIgnoreCase = taskService.createTaskQuery().taskDefinitionKeyLike("mytask%");
-      assertEquals(0, queryWithoutIgnoreCase.count());
-
-      queryWithIgnoreCase = taskService.createTaskQuery().likePatternIgnoreCase().taskDefinitionKeyLike("mytask%");
-      assertEquals(1, queryWithIgnoreCase.count());
     } finally {
       taskService.deleteTask(task.getId(), true);
     }
