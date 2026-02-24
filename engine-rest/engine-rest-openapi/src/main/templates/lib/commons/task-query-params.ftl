@@ -669,11 +669,11 @@
       location = "query"
       type = "boolean"
       defaultValue = "false"
-      desc = "Match all LIKE expressions in this query case-insensitively. If set,
-              `%test%` will match `Test` and `TEST` as well. This affects fields
-              like `assigneeLike`, `taskDefinitionKeyLike`, `processInstanceBusinessKeyLike`,
+      desc = "Makes LIKE comparisons case-insensitive for fields that are case-sensitive by default.
+              This affects: `assigneeLike`, `taskDefinitionKeyLike`, `processInstanceBusinessKeyLike`,
               `caseInstanceBusinessKeyLike`, `processDefinitionNameLike`, `caseDefinitionNameLike`,
-              and `candidateGroupLike`." />
+              and `candidateGroupLike`. Note: `nameLike`, `nameNotLike`, and `descriptionLike`
+              are already case-insensitive by default." />
 
   <@lib.parameter name = "parentTaskId"
       location = "query"
