@@ -6065,11 +6065,11 @@ public class TaskQueryTest extends PluggableProcessEngineTest {
     
     try {
       // Test that likeIgnoreCase affects assigneeLike (which is NOT case-insensitive by default)
-      // Without likeIgnoreCase, uppercase pattern should not match
+      // Without likeIgnoreCase, lowercase pattern should not match data stored with mixed case
       TaskQuery queryWithoutIgnoreCase = taskService.createTaskQuery().taskAssigneeLike("myassig%");
       assertEquals(0, queryWithoutIgnoreCase.count());
 
-      // With likeIgnoreCase, uppercase pattern should match
+      // With likeIgnoreCase, lowercase pattern should match data stored with mixed case
       TaskQuery queryWithIgnoreCase = taskService.createTaskQuery().likeIgnoreCase().taskAssigneeLike("myassig%");
       assertEquals(1, queryWithIgnoreCase.count());
 
