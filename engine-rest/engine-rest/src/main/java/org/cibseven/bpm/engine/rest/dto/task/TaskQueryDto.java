@@ -727,7 +727,7 @@ public class TaskQueryDto extends AbstractQueryDto<TaskQuery> {
     this.variableValuesIgnoreCase = variableValuesCaseInsensitive;
   }
 
-  @CamundaQueryParam(value ="likeIgnoreCase", converter = BooleanConverter.class)
+  @CamundaQueryParam(value = "likeIgnoreCase", converter = BooleanConverter.class)
   public void setLikeIgnoreCase(Boolean likeIgnoreCase) {
     this.likeIgnoreCase = likeIgnoreCase;
   }
