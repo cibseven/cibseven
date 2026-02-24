@@ -6011,4 +6011,77 @@ public class TaskQueryTest extends PluggableProcessEngineTest {
     return ids;
   }
 
+  @Test
+  public void testQueryByAssigneeLikeIgnoreCase() {
+    // The gonzo_ task has assignee "gonzo_"
+    // Without likePatternIgnoreCase, searching with uppercase pattern should not find it
+    TaskQuery queryWithoutIgnoreCase = taskService.createTaskQuery().taskAssigneeLike("GONZO%");
+    assertEquals(0, queryWithoutIgnoreCase.count());
+
+    // With likePatternIgnoreCase, searching with uppercase pattern should find it
+    TaskQuery queryWithIgnoreCase = taskService.createTaskQuery().likePatternIgnoreCase().taskAssigneeLike("GONZO%");
+    assertEquals(1, queryWithIgnoreCase.count());
+    assertNotNull(queryWithIgnoreCase.singleResult());
+    assertEquals("gonzo_", queryWithIgnoreCase.singleResult().getAssignee());
+
+    // Test with mixed case pattern
+    queryWithIgnoreCase = taskService.createTaskQuery().likePatternIgnoreCase().taskAssigneeLike("GoNzO%");
+    assertEquals(1, queryWithIgnoreCase.count());
+  }
+
+  @Test
+  public void testQueryByTaskDefinitionKeyLikeIgnoreCase() {
+    // Create a task with a known task definition key
+    Task task = taskService.newTask();
+    task.setName("test task");
+    task.setTaskDefinitionKey("MyTaskKey");
+    taskService.saveTask(task);
+    
+    try {
+      // Without likePatternIgnoreCase, searching with lowercase pattern should not find it
+      TaskQuery queryWithoutIgnoreCase = taskService.createTaskQuery().taskDefinitionKeyLike("mytask%");
+      assertEquals(0, queryWithoutIgnoreCase.count());
+
+      // With likePatternIgnoreCase, searching with lowercase pattern should find it
+      TaskQuery queryWithIgnoreCase = taskService.createTaskQuery().likePatternIgnoreCase().taskDefinitionKeyLike("mytask%");
+      assertEquals(1, queryWithIgnoreCase.count());
+
+      // Test with original case - should still work
+      queryWithIgnoreCase = taskService.createTaskQuery().likePatternIgnoreCase().taskDefinitionKeyLike("MyTask%");
+      assertEquals(1, queryWithIgnoreCase.count());
+    } finally {
+      taskService.deleteTask(task.getId(), true);
+    }
+  }
+
+  @Test
+  public void testLikeIgnoreCaseWithMultipleFields() {
+    // Create a task with specific values
+    Task task = taskService.newTask();
+    task.setName("TestTaskName");
+    task.setTaskDefinitionKey("MyTaskKey");
+    taskService.saveTask(task);
+    taskService.setAssignee(task.getId(), "MyAssignee");
+    
+    try {
+      // Test that likePatternIgnoreCase affects assigneeLike (which is NOT case-insensitive by default)
+      // Without likePatternIgnoreCase, lowercase pattern should not match data stored with mixed case
+      TaskQuery queryWithoutIgnoreCase = taskService.createTaskQuery().taskAssigneeLike("myassig%");
+      assertEquals(0, queryWithoutIgnoreCase.count());
+
+      // With likePatternIgnoreCase, lowercase pattern should match data stored with mixed case
+      TaskQuery queryWithIgnoreCase = taskService.createTaskQuery().likePatternIgnoreCase().taskAssigneeLike("myassig%");
+      assertEquals(1, queryWithIgnoreCase.count());
+
+      // taskDefinitionKeyLike should also be affected
+      queryWithoutIgnoreCase = taskService.createTaskQuery().taskDefinitionKeyLike("mytask%");
+      assertEquals(0, queryWithoutIgnoreCase.count());
+
+      queryWithIgnoreCase = taskService.createTaskQuery().likePatternIgnoreCase().taskDefinitionKeyLike("mytask%");
+      assertEquals(1, queryWithIgnoreCase.count());
+    } finally {
+      taskService.deleteTask(task.getId(), true);
+    }
+  }
+
 }
