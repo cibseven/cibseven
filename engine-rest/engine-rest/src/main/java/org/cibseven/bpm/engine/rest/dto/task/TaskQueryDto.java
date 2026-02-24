@@ -207,6 +207,7 @@ public class TaskQueryDto extends AbstractQueryDto<TaskQuery> {
 
   protected Boolean variableNamesIgnoreCase;
   protected Boolean variableValuesIgnoreCase;
+  protected Boolean likeIgnoreCase;
 
   private List<VariableQueryParameterDto> taskVariables;
   private List<VariableQueryParameterDto> processVariables;
@@ -726,6 +727,11 @@ public class TaskQueryDto extends AbstractQueryDto<TaskQuery> {
     this.variableValuesIgnoreCase = variableValuesCaseInsensitive;
   }
 
+  @CamundaQueryParam(value ="likeIgnoreCase", converter = BooleanConverter.class)
+  public void setLikeIgnoreCase(Boolean likeIgnoreCase) {
+    this.likeIgnoreCase = likeIgnoreCase;
+  }
+
   @CamundaQueryParam(value = "withCommentAttachmentInfo", converter = BooleanConverter.class)
   public void setWithCommentAttachmentInfo(Boolean withCommentAttachmentInfo) {
     this.withCommentAttachmentInfo = withCommentAttachmentInfo;
@@ -1119,6 +1125,10 @@ public class TaskQueryDto extends AbstractQueryDto<TaskQuery> {
     return variableValuesIgnoreCase;
   }
 
+  public Boolean isLikeIgnoreCase() {
+    return likeIgnoreCase;
+  }
+
   public Boolean getWithCommentAttachmentInfo() { return withCommentAttachmentInfo;}
 
   public Boolean getWithTaskVariablesInReturn() {
@@ -1417,6 +1427,9 @@ public class TaskQueryDto extends AbstractQueryDto<TaskQuery> {
     if(variableNamesIgnoreCase != null && variableNamesIgnoreCase) {
       query.matchVariableNamesIgnoreCase();
     }
+    if(likeIgnoreCase != null && likeIgnoreCase) {
+      query.likeIgnoreCase();
+    }
 
     if (taskVariables != null) {
       for (VariableQueryParameterDto variableQueryParam : taskVariables) {
@@ -1678,6 +1691,7 @@ public class TaskQueryDto extends AbstractQueryDto<TaskQuery> {
 
     dto.variableNamesIgnoreCase = taskQuery.isVariableNamesIgnoreCase();
     dto.variableValuesIgnoreCase = taskQuery.isVariableValuesIgnoreCase();
+    dto.likeIgnoreCase = taskQuery.isLikeIgnoreCase();
 
     if (taskQuery.isFollowUpNullAccepted()) {
       dto.followUpBeforeOrNotExistent = taskQuery.getFollowUpBefore();
