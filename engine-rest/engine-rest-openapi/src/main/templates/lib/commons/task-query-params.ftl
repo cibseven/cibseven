@@ -665,6 +665,16 @@
       desc = "Match all variable values in this query case-insensitively. If set
               `variableValue` and `variablevalue` are treated as equal." />
 
+  <@lib.parameter name = "likeIgnoreCase"
+      location = "query"
+      type = "boolean"
+      defaultValue = "false"
+      desc = "Match all LIKE expressions in this query case-insensitively. If set,
+              `%test%` will match `Test` and `TEST` as well. This affects fields
+              like `assigneeLike`, `taskDefinitionKeyLike`, `processInstanceBusinessKeyLike`,
+              `caseInstanceBusinessKeyLike`, `processDefinitionNameLike`, `caseDefinitionNameLike`,
+              and `candidateGroupLike`." />
+
   <@lib.parameter name = "parentTaskId"
       location = "query"
       type = "string"

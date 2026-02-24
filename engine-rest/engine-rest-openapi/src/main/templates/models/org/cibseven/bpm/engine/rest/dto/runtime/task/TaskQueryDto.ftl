@@ -678,6 +678,16 @@
                 `variableValue` and `variablevalue` are treated as equal." />
   
     <@lib.property
+        name = "likeIgnoreCase"
+        type = "boolean"
+        defaultValue = "false"
+        desc = "Match all LIKE expressions in this query case-insensitively. If set,
+                `%test%` will match `Test` and `TEST` as well. This affects fields
+                like `assigneeLike`, `taskDefinitionKeyLike`, `processInstanceBusinessKeyLike`,
+                `caseInstanceBusinessKeyLike`, `processDefinitionNameLike`, `caseDefinitionNameLike`,
+                and `candidateGroupLike`." />
+  
+    <@lib.property
         name = "parentTaskId"
         type = "string"
         desc = "Restrict query to all tasks that are sub tasks of the given task. Takes a task id." />
