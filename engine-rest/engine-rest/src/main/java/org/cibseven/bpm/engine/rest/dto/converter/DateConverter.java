@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.rest.dto.converter;
 
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import java.util.Date;
 
 public class DateConverter extends JacksonAwareStringToTypeConverter<Date> {

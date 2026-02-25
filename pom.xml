@@ -32,6 +32,7 @@
     <version.license-maven-plugin>2.4.0</version.license-maven-plugin>
     <!-- Version for cibseven-webclient-web -->
     <cibseven-webapp.version>${project.version}</cibseven-webapp.version>
+    <version.junit5>5.12.2</version.junit5>
   </properties>
 
   <build>

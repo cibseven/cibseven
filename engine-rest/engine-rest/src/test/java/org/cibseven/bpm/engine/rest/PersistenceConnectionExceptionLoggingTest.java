@@ -30,8 +30,6 @@ import static org.mockito.Mockito.when;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.ibatis.exceptions.PersistenceException;
@@ -39,45 +37,29 @@ import org.cibseven.bpm.engine.ProcessEnginePersistenceException;
 import org.cibseven.bpm.engine.identity.UserQuery;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Test for Connection Exceptions that originate from the persistence layer.
  */
-@RunWith(Parameterized.class)
 public class PersistenceConnectionExceptionLoggingTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch(REST_API);
 
   protected static final String USER_QUERY_URL = TEST_RESOURCE_ROOT_PATH + "/user";
 
-  private final ConnectionSubclass subclass;
-
-  public PersistenceConnectionExceptionLoggingTest(ConnectionSubclass subclass) {
-    this.subclass = subclass;
-  }
-
-  @Parameters(name = "{index}: {0}")
-  public static Collection<Object[]> data() {
-    ConnectionSubclass[] values = ConnectionSubclass.values();
-
-    return Arrays.stream(values)
-        .map(c -> new Object[] {c})
-        .collect(Collectors.toList());
-  }
-
-  @Test
-  public void shouldLogPersistenceConnectionExceptionOnError() {
+  // JUnit 5 parameterized test
+  @ParameterizedTest(name = "{index}: {0}")
+  @MethodSource("data")
+  public void shouldLogPersistenceConnectionExceptionOnError(ConnectionSubclass subclass) {
     stubFailingUserQuery(subclass);
 
     String expectedMessage = PERSISTENCE_EXCEPTION_MESSAGE;
@@ -91,6 +73,11 @@ public class PersistenceConnectionExceptionLoggingTest extends AbstractRestServi
         .when().get(USER_QUERY_URL);
 
     verifyLogs(Level.ERROR, expectedMessage);
+  }
+
+  // JUnit 5 method source for parameterized test
+  public static java.util.stream.Stream<ConnectionSubclass> data() {
+    return java.util.Arrays.stream(ConnectionSubclass.values());
   }
 
   protected void verifyLogs(Level logLevel, String message) {

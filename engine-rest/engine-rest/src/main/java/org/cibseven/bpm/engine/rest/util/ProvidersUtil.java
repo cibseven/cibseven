@@ -18,9 +18,9 @@ package org.cibseven.bpm.engine.rest.util;
 
 import org.cibseven.bpm.engine.rest.exception.RestException;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Providers;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.ext.ContextResolver;
+import jakarta.ws.rs.ext.Providers;
 
 /**
  * @author Thorben Lindhauer

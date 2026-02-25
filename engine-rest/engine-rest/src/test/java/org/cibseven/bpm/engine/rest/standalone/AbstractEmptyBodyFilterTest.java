@@ -34,18 +34,18 @@ import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceWithVariables;
 import org.cibseven.bpm.engine.runtime.ProcessInstantiationBuilder;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.mock;
@@ -67,7 +67,7 @@ public abstract class AbstractEmptyBodyFilterTest extends AbstractRestServiceTes
   protected CloseableHttpClient client;
   protected RequestConfig reqConfig;
 
-  @Before
+  @BeforeEach
   public void setUpHttpClientAndRuntimeData() {
     client = HttpClients.createDefault();
     reqConfig = RequestConfig.custom().setConnectTimeout(3 * 60 * 1000).setSocketTimeout(10 * 60 * 1000).build();
@@ -97,7 +97,7 @@ public abstract class AbstractEmptyBodyFilterTest extends AbstractRestServiceTes
     when(repositoryServiceMock.createProcessDefinitionQuery()).thenReturn(processDefinitionQueryMock);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws IOException {
     client.close();
   }
@@ -142,7 +142,7 @@ public abstract class AbstractEmptyBodyFilterTest extends AbstractRestServiceTes
     assertEquals(expectedStatusCode, response.getStatusLine().getStatusCode());
 
     if(assertResponseBody) {
-      assertThat(EntityUtils.toString(response.getEntity(), "UTF-8"), containsString(MockProvider.EXAMPLE_PROCESS_INSTANCE_ID));
+      assertThat(EntityUtils.toString(response.getEntity(), "UTF-8")).contains(MockProvider.EXAMPLE_PROCESS_INSTANCE_ID);
     }
 
     response.close();

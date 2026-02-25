@@ -20,7 +20,7 @@ import static io.restassured.RestAssured.given;
 import static org.cibseven.bpm.engine.rest.util.DateTimeUtils.DATE_FORMAT_WITH_TIMEZONE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -66,15 +66,15 @@ import org.cibseven.bpm.engine.variable.type.SerializableValueType;
 import org.cibseven.bpm.engine.variable.value.BooleanValue;
 import org.cibseven.bpm.engine.variable.value.FileValue;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
@@ -88,7 +88,7 @@ import io.restassured.response.Response;
 */
 public class CaseExecutionRestServiceInteractionTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String CASE_EXECUTION_URL = TEST_RESOURCE_ROOT_PATH + "/case-execution";
@@ -111,7 +111,7 @@ public class CaseExecutionRestServiceInteractionTest extends AbstractRestService
   private CaseExecutionQuery caseExecutionQueryMock;
   private CaseExecutionCommandBuilder caseExecutionCommandBuilderMock;
 
-  @Before
+  @BeforeEach
   public void setUpRuntime() {
     CaseExecution mockCaseExecution = MockProvider.createMockCaseExecution();
 
@@ -1370,7 +1370,7 @@ public class CaseExecutionRestServiceInteractionTest extends AbstractRestService
       .when()
         .get(CASE_EXECUTION_LOCAL_VARIABLES_URL);
 
-    Assert.assertEquals("Should return exactly one variable", 1, response.jsonPath().getMap("").size());
+    Assertions.assertEquals(1, response.jsonPath().getMap("").size(),"Should return exactly one variable");
 
     verify(caseServiceMock).getVariablesLocalTyped(MockProvider.EXAMPLE_CASE_EXECUTION_ID, true);
   }
@@ -1389,7 +1389,7 @@ public class CaseExecutionRestServiceInteractionTest extends AbstractRestService
       .when()
         .get(CASE_EXECUTION_VARIABLES_URL);
 
-    Assert.assertEquals("Should return exactly one variable", 1, response.jsonPath().getMap("").size());
+    Assertions.assertEquals(1, response.jsonPath().getMap("").size(),"Should return exactly one variable");
 
     verify(caseServiceMock).getVariablesTyped(MockProvider.EXAMPLE_CASE_EXECUTION_ID, true);
   }
@@ -1577,7 +1577,7 @@ public class CaseExecutionRestServiceInteractionTest extends AbstractRestService
     .when().get(SINGLE_CASE_EXECUTION_BINARY_VARIABLE_URL);
 
     String contentType = response.contentType().replaceAll(" ", "");
-    assertThat(contentType, is(ContentType.TEXT + ";charset=" + encoding));
+    assertThat(contentType).isEqualTo(ContentType.TEXT + ";charset=" + encoding);
   }
 
   @Test
@@ -2952,10 +2952,10 @@ public class CaseExecutionRestServiceInteractionTest extends AbstractRestService
     verify(caseExecutionCommandBuilderMock).setVariableLocal(eq(variableKey),
         captor.capture());
     FileValue captured = captor.getValue();
-    assertThat(captured.getEncoding(), is(encoding));
-    assertThat(captured.getFilename(), is(filename));
-    assertThat(captured.getMimeType(), is(mimetype));
-    assertThat(IoUtil.readInputStream(captured.getValue(), null), is(value));
+    assertThat(captured.getEncoding()).isEqualTo(encoding);
+    assertThat(captured.getFilename()).isEqualTo(filename);
+    assertThat(captured.getMimeType()).isEqualTo(mimetype);
+    assertThat(IoUtil.readInputStream(captured.getValue(), null)).isEqualTo(value);
   }
 
   @Test
@@ -2981,10 +2981,10 @@ public class CaseExecutionRestServiceInteractionTest extends AbstractRestService
     verify(caseExecutionCommandBuilderMock).setVariableLocal(eq(variableKey),
         captor.capture());
     FileValue captured = captor.getValue();
-    assertThat(captured.getEncoding(), is(nullValue()));
-    assertThat(captured.getFilename(), is(filename));
-    assertThat(captured.getMimeType(), is(mimetype));
-    assertThat(IoUtil.readInputStream(captured.getValue(), null), is(value));
+    assertThat(captured.getEncoding()).isNull();
+    assertThat(captured.getFilename()).isEqualTo(filename);
+    assertThat(captured.getMimeType()).isEqualTo(mimetype);
+    assertThat(IoUtil.readInputStream(captured.getValue(), null)).isEqualTo(value);
   }
 
   @Test
@@ -3028,10 +3028,10 @@ public class CaseExecutionRestServiceInteractionTest extends AbstractRestService
     verify(caseExecutionCommandBuilderMock).setVariableLocal(eq(variableKey),
         captor.capture());
     FileValue captured = captor.getValue();
-    assertThat(captured.getEncoding(), is(nullValue()));
-    assertThat(captured.getFilename(), is(filename));
-    assertThat(captured.getMimeType(), is(MediaType.APPLICATION_OCTET_STREAM));
-    assertThat(captured.getValue().available(), is(0));
+    assertThat(captured.getEncoding()).isNull();
+    assertThat(captured.getFilename()).isEqualTo(filename);
+    assertThat(captured.getMimeType()).isEqualTo(MediaType.APPLICATION_OCTET_STREAM);
+    assertThat(captured.getValue().available()).isEqualTo(0);
   }
 
   @Test
@@ -3058,10 +3058,10 @@ public class CaseExecutionRestServiceInteractionTest extends AbstractRestService
     verify(caseExecutionCommandBuilderMock).setVariable(eq(variableKey),
         captor.capture());
     FileValue captured = captor.getValue();
-    assertThat(captured.getEncoding(), is(encoding));
-    assertThat(captured.getFilename(), is(filename));
-    assertThat(captured.getMimeType(), is(mimetype));
-    assertThat(IoUtil.readInputStream(captured.getValue(), null), is(value));
+    assertThat(captured.getEncoding()).isEqualTo(encoding);
+    assertThat(captured.getFilename()).isEqualTo(filename);
+    assertThat(captured.getMimeType()).isEqualTo(mimetype);
+    assertThat(IoUtil.readInputStream(captured.getValue(), null)).isEqualTo(value);
   }
 
   @Test

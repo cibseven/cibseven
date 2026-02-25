@@ -20,11 +20,10 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.UriBuilder;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 
 public class JerseyServerBootstrap extends EmbeddedServerBootstrap {
@@ -41,17 +40,23 @@ public class JerseyServerBootstrap extends EmbeddedServerBootstrap {
 
   @Override
   public void stop() {
-    server.shutdownNow();
+    if (server != null) {
+      server.shutdownNow();
+    }
   }
 
   @Override
   protected void startServerInternal() throws Exception {
-    server.start();
+    if (server != null) {
+      server.start();
+    } else {
+      throw new IllegalStateException("Server not initialized. Call setupServer() first.");
+    }
   }
 
   @Override
   protected void setupServer(Application application) {
-    ResourceConfig rc = ResourceConfig.forApplication(application);
+    org.glassfish.jersey.server.ResourceConfig rc = org.glassfish.jersey.server.ResourceConfig.forApplication(application);
 
     Map<String, Object> properties = new HashMap<String, Object>();
     properties.put(ServerProperties.TRACING, "ALL");

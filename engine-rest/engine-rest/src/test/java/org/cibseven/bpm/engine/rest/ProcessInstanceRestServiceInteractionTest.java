@@ -25,11 +25,11 @@ import static org.cibseven.bpm.engine.rest.helper.MockProvider.createMockBatch;
 import static org.cibseven.bpm.engine.rest.helper.MockProvider.createMockHistoricProcessInstance;
 import static org.cibseven.bpm.engine.rest.util.DateTimeUtils.DATE_FORMAT_WITH_TIMEZONE;
 import static org.cibseven.bpm.engine.rest.util.DateTimeUtils.withTimezone;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -58,8 +58,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 import org.assertj.core.api.Assertions;
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.BadUserRequestException;
@@ -122,10 +122,9 @@ import org.cibseven.bpm.engine.variable.value.FileValue;
 import org.cibseven.bpm.engine.variable.value.LongValue;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.hamcrest.Matchers;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
@@ -139,7 +138,7 @@ public class ProcessInstanceRestServiceInteractionTest extends AbstractRestServi
   protected static final String DELETE_REASON = "deleteReason";
   protected static final String SKIP_IO_MAPPINGS = "skipIoMappings";
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String PROCESS_INSTANCE_URL = TEST_RESOURCE_ROOT_PATH + "/process-instance";
@@ -198,7 +197,7 @@ public class ProcessInstanceRestServiceInteractionTest extends AbstractRestServi
 
   private SetJobRetriesByProcessAsyncBuilder mockSetJobRetriesByProcessAsyncBuilder;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     runtimeServiceMock = mock(RuntimeServiceImpl.class);
     mockManagementService = mock(ManagementServiceImpl.class);
@@ -305,8 +304,7 @@ public class ProcessInstanceRestServiceInteractionTest extends AbstractRestServi
         .body("childTransitionInstances[0].incidents[0].activityId", Matchers.equalTo("anActivityId"))
         .when().get(PROCESS_INSTANCE_ACTIVIY_INSTANCES_URL);
 
-    Assert.assertEquals("Should return right number of properties", 13,
-        response.jsonPath().getMap("").size());
+    assertEquals(13,response.jsonPath().getMap("").size(), "Should return right number of properties");
   }
 
   @Test
@@ -356,7 +354,7 @@ public class ProcessInstanceRestServiceInteractionTest extends AbstractRestServi
       .body(EXAMPLE_VARIABLE_KEY + ".type", Matchers.equalTo(String.class.getSimpleName()))
       .when().get(PROCESS_INSTANCE_VARIABLES_URL);
 
-    Assert.assertEquals("Should return exactly one variable", 1, response.jsonPath().getMap("").size());
+    assertEquals(1, response.jsonPath().getMap("").size(), "Should return exactly one variable");
   }
 
   @Test
@@ -809,7 +807,7 @@ public class ProcessInstanceRestServiceInteractionTest extends AbstractRestServi
       .body(EXAMPLE_ANOTHER_VARIABLE_KEY + ".type", Matchers.equalTo("Null"))
       .when().get(PROCESS_INSTANCE_VARIABLES_URL);
 
-    Assert.assertEquals("Should return exactly one variable", 1, response.jsonPath().getMap("").size());
+    assertEquals(1, response.jsonPath().getMap("").size(),"Should return exactly one variable");
   }
 
   @Test
@@ -1265,7 +1263,7 @@ public class ProcessInstanceRestServiceInteractionTest extends AbstractRestServi
     .when().get(SINGLE_PROCESS_INSTANCE_BINARY_VARIABLE_URL);
 
     String contentType = response.contentType().replaceAll(" ", "");
-    assertThat(contentType, Matchers.is(ContentType.TEXT + ";charset=" + encoding));
+    assertThat(contentType).isEqualTo(ContentType.TEXT + ";charset=" + encoding);
   }
 
   @Test
@@ -1320,7 +1318,7 @@ public class ProcessInstanceRestServiceInteractionTest extends AbstractRestServi
       .body(EXAMPLE_VARIABLE_KEY + ".valueInfo." + SerializableValueType.VALUE_INFO_SERIALIZATION_DATA_FORMAT, Matchers.equalTo("application/json"))
       .when().get(PROCESS_INSTANCE_VARIABLES_URL);
 
-    Assert.assertEquals("Should return exactly one variable", 1, response.jsonPath().getMap("").size());
+    assertEquals(1, response.jsonPath().getMap("").size(), "Should return exactly one variable");
   }
 
   @Test
@@ -2434,10 +2432,10 @@ public class ProcessInstanceRestServiceInteractionTest extends AbstractRestServi
     verify(runtimeServiceMock).setVariable(eq(MockProvider.EXAMPLE_TASK_ID), eq(variableKey),
         captor.capture());
     FileValue captured = captor.getValue();
-    assertThat(captured.getEncoding(), Matchers.is(encoding));
-    assertThat(captured.getFilename(), Matchers.is(filename));
-    assertThat(captured.getMimeType(), Matchers.is(mimetype));
-    assertThat(IoUtil.readInputStream(captured.getValue(), null), Matchers.is(value));
+    assertThat(captured.getEncoding()).isEqualTo(encoding);
+    assertThat(captured.getFilename()).isEqualTo(filename);
+    assertThat(captured.getMimeType()).isEqualTo(mimetype);
+    assertThat(IoUtil.readInputStream(captured.getValue(), null)).isEqualTo(value);
   }
 
   @Test
@@ -2462,10 +2460,10 @@ public class ProcessInstanceRestServiceInteractionTest extends AbstractRestServi
     verify(runtimeServiceMock).setVariable(eq(MockProvider.EXAMPLE_TASK_ID), eq(variableKey),
         captor.capture());
     FileValue captured = captor.getValue();
-    assertThat(captured.getEncoding(), Matchers.is(Matchers.nullValue()));
-    assertThat(captured.getFilename(), Matchers.is(filename));
-    assertThat(captured.getMimeType(), Matchers.is(mimetype));
-    assertThat(IoUtil.readInputStream(captured.getValue(), null), Matchers.is(value));
+    assertThat(captured.getEncoding()).isNull();
+    assertThat(captured.getFilename()).isEqualTo(filename);
+    assertThat(captured.getMimeType()).isEqualTo(mimetype);
+    assertThat(IoUtil.readInputStream(captured.getValue(), null)).isEqualTo(value);
   }
 
   @Test
@@ -2508,10 +2506,10 @@ public class ProcessInstanceRestServiceInteractionTest extends AbstractRestServi
     verify(runtimeServiceMock).setVariable(eq(MockProvider.EXAMPLE_TASK_ID), eq(variableKey),
         captor.capture());
     FileValue captured = captor.getValue();
-    assertThat(captured.getEncoding(), Matchers.is(Matchers.nullValue()));
-    assertThat(captured.getFilename(), Matchers.is(filename));
-    assertThat(captured.getMimeType(), Matchers.is(MediaType.APPLICATION_OCTET_STREAM));
-    assertThat(captured.getValue().available(), Matchers.is(0));
+    assertThat(captured.getEncoding()).isNull();
+    assertThat(captured.getFilename()).isEqualTo(filename);
+    assertThat(captured.getMimeType()).isEqualTo(MediaType.APPLICATION_OCTET_STREAM);
+    assertThat(captured.getValue().available()).isEqualTo(0);
   }
 
   @Test
@@ -4414,7 +4412,7 @@ public class ProcessInstanceRestServiceInteractionTest extends AbstractRestServi
         captor.capture()
     );
 
-    Assertions.assertThat(captor.getValue().get("foo")).isEqualTo("bar");
+    assertThat(captor.getValue().get("foo")).isEqualTo("bar");
 
     verifyBatchJson(response.asString());
   }
@@ -4860,7 +4858,7 @@ public class ProcessInstanceRestServiceInteractionTest extends AbstractRestServi
 
   protected void verifyBatchJson(String batchJson) {
     BatchDto batch = JsonPathUtil.from(batchJson).getObject("", BatchDto.class);
-    assertNotNull("The returned batch should not be null.", batch);
+    assertNotNull(batch, "The returned batch should not be null.");
     assertEquals(MockProvider.EXAMPLE_BATCH_ID, batch.getId());
     assertEquals(MockProvider.EXAMPLE_BATCH_TYPE, batch.getType());
     assertEquals(MockProvider.EXAMPLE_BATCH_TOTAL_JOBS, batch.getTotalJobs());

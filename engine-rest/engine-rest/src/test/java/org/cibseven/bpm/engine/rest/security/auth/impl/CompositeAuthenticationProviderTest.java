@@ -18,12 +18,11 @@ package org.cibseven.bpm.engine.rest.security.auth.impl;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.rest.security.auth.AuthenticationResult;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.mock.web.MockHttpServletRequest;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import static org.mockito.Mockito.*;
 
@@ -34,7 +33,7 @@ public class CompositeAuthenticationProviderTest {
   private CompositeAuthenticationProvider compositeProvider;
   private ProcessEngine mockEngine;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     basicProvider = mock(HttpBasicAuthenticationProvider.class);
     jwtProvider = mock(JwtTokenAuthenticationProvider.class);
@@ -44,45 +43,34 @@ public class CompositeAuthenticationProviderTest {
 
   @Test
   public void testPrimaryProviderSucceeds() {
-    
     String expectedUserId = "jwtUser";
-    
     // Mock the primary provider to succeed
-    HttpServletRequest request = new MockHttpServletRequest();
+    HttpServletRequest request = mock(HttpServletRequest.class);
     when(jwtProvider.extractAuthenticatedUser(request, mockEngine))
         .thenReturn(AuthenticationResult.successful(expectedUserId));
-
     // Test the composite provider
     AuthenticationResult result = compositeProvider.extractAuthenticatedUser(request, mockEngine);
-
     // Verify the result
-    Assert.assertTrue(result.isAuthenticated());
-    Assert.assertEquals(expectedUserId, result.getAuthenticatedUser());
-
+    Assertions.assertTrue(result.isAuthenticated());
+    Assertions.assertEquals(expectedUserId, result.getAuthenticatedUser());
     // Verify that the fallback provider was not called
     verify(basicProvider, never()).extractAuthenticatedUser(request, mockEngine);
   }
 
   @Test
   public void testFallbackProviderSucceeds() {
-    
     String expectedUserId = "basicUser";
-    
     // Mock the primary provider to fail
-    HttpServletRequest request = new MockHttpServletRequest();
+    HttpServletRequest request = mock(HttpServletRequest.class);
     when(jwtProvider.extractAuthenticatedUser(request, mockEngine)).thenReturn(AuthenticationResult.unsuccessful());
-
     // Mock the fallback provider to succeed
     when(basicProvider.extractAuthenticatedUser(request, mockEngine))
         .thenReturn(AuthenticationResult.successful(expectedUserId));
-
     // Test the composite provider
     AuthenticationResult result = compositeProvider.extractAuthenticatedUser(request, mockEngine);
-
     // Verify the result
-    Assert.assertTrue(result.isAuthenticated());
-    Assert.assertEquals(expectedUserId, result.getAuthenticatedUser());
-
+    Assertions.assertTrue(result.isAuthenticated());
+    Assertions.assertEquals(expectedUserId, result.getAuthenticatedUser());
     // Verify that both providers were called
     verify(jwtProvider).extractAuthenticatedUser(request, mockEngine);
     verify(basicProvider).extractAuthenticatedUser(request, mockEngine);
@@ -91,16 +79,13 @@ public class CompositeAuthenticationProviderTest {
   @Test
   public void testBothProvidersFail() {
     // Mock both providers to fail
-    HttpServletRequest request = new MockHttpServletRequest();
+    HttpServletRequest request = mock(HttpServletRequest.class);
     when(jwtProvider.extractAuthenticatedUser(request, mockEngine)).thenReturn(AuthenticationResult.unsuccessful());
     when(basicProvider.extractAuthenticatedUser(request, mockEngine)).thenReturn(AuthenticationResult.unsuccessful());
-
     // Test the composite provider
     AuthenticationResult result = compositeProvider.extractAuthenticatedUser(request, mockEngine);
-
     // Verify the result
-    Assert.assertFalse(result.isAuthenticated());
-
+    Assertions.assertFalse(result.isAuthenticated());
     // Verify that both providers were called
     verify(jwtProvider).extractAuthenticatedUser(request, mockEngine);
     verify(basicProvider).extractAuthenticatedUser(request, mockEngine);

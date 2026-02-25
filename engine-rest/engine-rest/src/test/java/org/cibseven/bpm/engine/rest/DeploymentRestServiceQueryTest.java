@@ -34,17 +34,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.repository.DeploymentQuery;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -53,14 +53,14 @@ import io.restassured.response.Response;
 
 public class DeploymentRestServiceQueryTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String DEPLOYMENT_QUERY_URL = TEST_RESOURCE_ROOT_PATH + "/deployment";
   protected static final String DEPLOYMENT_COUNT_QUERY_URL = DEPLOYMENT_QUERY_URL + "/count";
   private DeploymentQuery mockedQuery;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     mockedQuery = setUpMockDeploymentQuery(MockProvider.createMockDeployments());
   }
@@ -135,18 +135,18 @@ public class DeploymentRestServiceQueryTest extends AbstractRestServiceTest {
 
     String content = response.asString();
     List<String> deployments = from(content).getList("");
-    Assert.assertEquals("There should be one deployment returned.", 1, deployments.size());
-    Assert.assertNotNull("There should be one deployment returned", deployments.get(0));
+    Assertions.assertEquals( 1, deployments.size(), "There should be one deployment returned.");
+    Assertions.assertNotNull(deployments.get(0), "There should be one deployment returned");
 
     String returnedId = from(content).getString("[0].id");
     String returnedName = from(content).getString("[0].name");
     String returnedSource = from(content).getString("[0].source");
     String returnedDeploymentTime  = from(content).getString("[0].deploymentTime");
 
-    Assert.assertEquals(MockProvider.EXAMPLE_DEPLOYMENT_ID, returnedId);
-    Assert.assertEquals(MockProvider.EXAMPLE_DEPLOYMENT_NAME, returnedName);
-    Assert.assertEquals(MockProvider.EXAMPLE_DEPLOYMENT_SOURCE, returnedSource);
-    Assert.assertEquals(MockProvider.EXAMPLE_DEPLOYMENT_TIME, returnedDeploymentTime);
+    Assertions.assertEquals(MockProvider.EXAMPLE_DEPLOYMENT_ID, returnedId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_DEPLOYMENT_NAME, returnedName);
+    Assertions.assertEquals(MockProvider.EXAMPLE_DEPLOYMENT_SOURCE, returnedSource);
+    Assertions.assertEquals(MockProvider.EXAMPLE_DEPLOYMENT_TIME, returnedDeploymentTime);
   }
 
   @Test

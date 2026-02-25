@@ -20,11 +20,11 @@ import static io.restassured.RestAssured.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.ManagementService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class LicenseRestServiceTest extends AbstractRestServiceTest {
 
@@ -32,7 +32,7 @@ public class LicenseRestServiceTest extends AbstractRestServiceTest {
 
   protected static final String LICENSE_KEY = "{}";
 
-  @Before
+  @BeforeEach
   public void setupMocks() {
     managementServiceMock = mock(ManagementService.class);
     when(processEngine.getManagementService()).thenReturn(managementServiceMock);

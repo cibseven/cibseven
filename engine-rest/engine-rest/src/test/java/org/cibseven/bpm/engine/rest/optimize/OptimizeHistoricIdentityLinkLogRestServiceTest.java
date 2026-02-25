@@ -24,13 +24,13 @@ import org.cibseven.bpm.engine.impl.persistence.entity.optimize.OptimizeHistoric
 import org.cibseven.bpm.engine.rest.AbstractRestServiceTest;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 import java.util.Collections;
 import java.util.Date;
 
@@ -50,10 +50,10 @@ public class OptimizeHistoricIdentityLinkLogRestServiceTest extends AbstractRest
   protected OptimizeService mockedOptimizeService;
   protected ProcessEngine namedProcessEngine;
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     mockedOptimizeService = mock(OptimizeService.class);
     ProcessEngineConfigurationImpl mockedConfig = mock(ProcessEngineConfigurationImpl.class);
@@ -161,7 +161,7 @@ public class OptimizeHistoricIdentityLinkLogRestServiceTest extends AbstractRest
     String content = response.asString();
     String processInstanceId = from(content).getString("[0].processInstanceId");
 
-    Assert.assertEquals(MockProvider.EXAMPLE_PROCESS_INSTANCE_ID, processInstanceId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_PROCESS_INSTANCE_ID, processInstanceId);
   }
 
 }

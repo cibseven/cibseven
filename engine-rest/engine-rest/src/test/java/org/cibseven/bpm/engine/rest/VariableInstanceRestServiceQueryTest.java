@@ -36,8 +36,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
@@ -48,10 +48,10 @@ import org.cibseven.bpm.engine.rest.util.OrderingBuilder;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstanceQuery;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -60,7 +60,7 @@ import io.restassured.response.Response;
 
 public class VariableInstanceRestServiceQueryTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String VARIABLE_INSTANCE_QUERY_URL = TEST_RESOURCE_ROOT_PATH + "/variable-instance";
@@ -70,7 +70,7 @@ public class VariableInstanceRestServiceQueryTest extends AbstractRestServiceTes
   protected VariableInstance mockInstance;
   protected MockVariableInstanceBuilder mockInstanceBuilder;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     mockInstanceBuilder = MockProvider.mockVariableInstance();
     mockInstance = mockInstanceBuilder.build();
@@ -333,8 +333,8 @@ public class VariableInstanceRestServiceQueryTest extends AbstractRestServiceTes
 
     String content = response.asString();
     List<String> variables = from(content).getList("");
-    Assert.assertEquals("There should be one variable instance returned.", 1, variables.size());
-    Assert.assertNotNull("There should be one variable instance returned", variables.get(0));
+    Assertions.assertEquals( 1, variables.size(), "There should be one variable instance returned.");
+    Assertions.assertNotNull(variables.get(0), "There should be one variable instance returned");
 
     verify(mockedQuery).disableBinaryFetching();
     // requirement to not break existing API; should be:
@@ -376,8 +376,8 @@ public class VariableInstanceRestServiceQueryTest extends AbstractRestServiceTes
 
     String content = response.asString();
     List<String> variables = from(content).getList("");
-    Assert.assertEquals("There should be one process definition returned.", 1, variables.size());
-    Assert.assertNotNull("There should be one process definition returned", variables.get(0));
+    Assertions.assertEquals( 1, variables.size(), "There should be one process definition returned.");
+    Assertions.assertNotNull(variables.get(0), "There should be one process definition returned");
 
     verify(mockedQuery).disableBinaryFetching();
 

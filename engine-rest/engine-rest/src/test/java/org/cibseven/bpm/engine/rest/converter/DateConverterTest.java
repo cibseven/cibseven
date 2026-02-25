@@ -17,40 +17,46 @@
 package org.cibseven.bpm.engine.rest.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.engine.impl.calendar.DateTimeUtil;
 import org.cibseven.bpm.engine.rest.dto.converter.DateConverter;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 
 public class DateConverterTest {
   private DateConverter converter;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     converter = new DateConverter();
   }
 
-  @Test(expected = InvalidRequestException.class)
-  public void shouldFailForDoubleQuotedValue() {
-    //when
-    converter.convertQueryParameterToType("\"pizza\"");
-  }
+  @Test
+	public void shouldFailForDoubleQuotedValue() {
+		assertThrows(InvalidRequestException.class, () -> {
+			// when
+			converter.convertQueryParameterToType("\"pizza\"");
+		});
+	}
 
-  @Test(expected = InvalidRequestException.class)
-  public void shouldFailForSingleDoubleQuotedValue() {
-    //when
-    converter.convertQueryParameterToType("2014-01-01T00:00:00+0200\"");
-  }
+  @Test
+	public void shouldFailForSingleDoubleQuotedValue() {
+		assertThrows(InvalidRequestException.class, () -> {
+			// when
+			converter.convertQueryParameterToType("2014-01-01T00:00:00+0200\"");
+		});
+	}
 
   @Test
   public void shouldConvertDate() throws JsonProcessingException {

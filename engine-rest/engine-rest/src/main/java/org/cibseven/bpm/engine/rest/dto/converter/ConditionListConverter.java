@@ -19,7 +19,7 @@ package org.cibseven.bpm.engine.rest.dto.converter;
 import org.cibseven.bpm.engine.rest.dto.ConditionQueryParameterDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.history.CleanableHistoricBatchReport;
@@ -36,10 +36,10 @@ import org.cibseven.bpm.engine.history.CleanableHistoricBatchReportResult;
 import org.cibseven.bpm.engine.rest.AbstractRestServiceTest;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -53,7 +53,7 @@ public class CleanableHistoricBatchReportServiceTest extends AbstractRestService
   private static final long EXAMPLE_FINISHED_COUNT = 10l;
   private static final long EXAMPLE_CLEANABLE_COUNT = 5l;
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String HISTORY_URL = TEST_RESOURCE_ROOT_PATH + "/history/batch";
@@ -62,7 +62,7 @@ public class CleanableHistoricBatchReportServiceTest extends AbstractRestService
 
   private CleanableHistoricBatchReport historicBatchReport;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     setupHistoryReportMock();
   }
@@ -121,18 +121,18 @@ public class CleanableHistoricBatchReportServiceTest extends AbstractRestService
 
     String content = response.asString();
     List<String> reportResults = from(content).getList("");
-    Assert.assertEquals("There should be two report results returned.", 2, reportResults.size());
-    Assert.assertNotNull(reportResults.get(0));
+    Assertions.assertEquals( 2, reportResults.size(), "There should be two report results returned.");
+    Assertions.assertNotNull(reportResults.get(0));
 
     String returnedBatchType = from(content).getString("[0].batchType");
     int returnedTTL = from(content).getInt("[0].historyTimeToLive");
     long returnedFinishedCount= from(content).getLong("[0].finishedBatchesCount");
     long returnedCleanableCount = from(content).getLong("[0].cleanableBatchesCount");
 
-    Assert.assertEquals(EXAMPLE_TYPE, returnedBatchType);
-    Assert.assertEquals(EXAMPLE_TTL, returnedTTL);
-    Assert.assertEquals(EXAMPLE_FINISHED_COUNT, returnedFinishedCount);
-    Assert.assertEquals(EXAMPLE_CLEANABLE_COUNT, returnedCleanableCount);
+    Assertions.assertEquals(EXAMPLE_TYPE, returnedBatchType);
+    Assertions.assertEquals(EXAMPLE_TTL, returnedTTL);
+    Assertions.assertEquals(EXAMPLE_FINISHED_COUNT, returnedFinishedCount);
+    Assertions.assertEquals(EXAMPLE_CLEANABLE_COUNT, returnedCleanableCount);
   }
 
   @Test

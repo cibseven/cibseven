@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.rest.dto.runtime;
 
 import java.util.List;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.batch.Batch;

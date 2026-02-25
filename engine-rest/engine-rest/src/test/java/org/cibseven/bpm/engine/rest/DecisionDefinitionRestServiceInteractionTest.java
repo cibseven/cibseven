@@ -39,7 +39,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.dmn.engine.DmnDecisionResult;
 import org.cibseven.bpm.dmn.engine.DmnEngineException;
@@ -64,17 +64,17 @@ import org.cibseven.bpm.engine.rest.sub.repository.impl.ProcessDefinitionResourc
 import org.cibseven.bpm.engine.rest.util.VariablesBuilder;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 
 public class DecisionDefinitionRestServiceInteractionTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String DECISION_DEFINITION_URL = TEST_RESOURCE_ROOT_PATH + "/decision-definition";
@@ -97,7 +97,7 @@ public class DecisionDefinitionRestServiceInteractionTest extends AbstractRestSe
   private DecisionService decisionServiceMock;
   private DecisionsEvaluationBuilder decisionEvaluationBuilderMock;
 
-  @Before
+  @BeforeEach
   public void setUpRuntime() {
     DecisionDefinition mockDecisionDefinition = MockProvider.createMockDecisionDefinition();
 
@@ -125,7 +125,7 @@ public class DecisionDefinitionRestServiceInteractionTest extends AbstractRestSe
   private InputStream createMockDecisionDefinitionDmnXml() {
     // do not close the input stream, will be done in implementation
     InputStream dmnXmlInputStream = ReflectUtil.getResourceAsStream("decisions/decision-model.dmn");
-    Assert.assertNotNull(dmnXmlInputStream);
+    Assertions.assertNotNull(dmnXmlInputStream);
     return dmnXmlInputStream;
   }
 
@@ -151,8 +151,8 @@ public class DecisionDefinitionRestServiceInteractionTest extends AbstractRestSe
         .get(XML_DEFINITION_URL);
 
     String responseContent = response.asString();
-    Assert.assertTrue(responseContent.contains(MockProvider.EXAMPLE_DECISION_DEFINITION_ID));
-    Assert.assertTrue(responseContent.contains("<?xml"));
+    Assertions.assertTrue(responseContent.contains(MockProvider.EXAMPLE_DECISION_DEFINITION_ID));
+    Assertions.assertTrue(responseContent.contains("<?xml"));
   }
 
   @Test
@@ -189,8 +189,8 @@ public class DecisionDefinitionRestServiceInteractionTest extends AbstractRestSe
         .get(XML_DEFINITION_BY_KEY_URL);
 
     String responseContent = response.asString();
-    Assert.assertTrue(responseContent.contains(MockProvider.EXAMPLE_DECISION_DEFINITION_ID));
-    Assert.assertTrue(responseContent.contains("<?xml"));
+    Assertions.assertTrue(responseContent.contains(MockProvider.EXAMPLE_DECISION_DEFINITION_ID));
+    Assertions.assertTrue(responseContent.contains("<?xml"));
   }
 
   @Test
@@ -339,7 +339,7 @@ public class DecisionDefinitionRestServiceInteractionTest extends AbstractRestSe
 
     // compare input stream with response body bytes
     byte[] expected = IoUtil.readInputStream(new FileInputStream(file), "decision diagram");
-    Assert.assertArrayEquals(expected, actual);
+    Assertions.assertArrayEquals(expected, actual);
   }
 
   @Test
@@ -366,7 +366,7 @@ public class DecisionDefinitionRestServiceInteractionTest extends AbstractRestSe
 
     // compare input stream with response body bytes
     byte[] expected = IoUtil.readInputStream(new FileInputStream(file), "decision diagram");
-    Assert.assertArrayEquals(expected, actual);
+    Assertions.assertArrayEquals(expected, actual);
   }
 
   @Test
@@ -386,14 +386,14 @@ public class DecisionDefinitionRestServiceInteractionTest extends AbstractRestSe
 
   @Test
   public void testDecisionDiagramMediaType() {
-    Assert.assertEquals("image/png", ProcessDefinitionResourceImpl.getMediaTypeForFileSuffix("decision.png"));
-    Assert.assertEquals("image/png", ProcessDefinitionResourceImpl.getMediaTypeForFileSuffix("decision.PNG"));
-    Assert.assertEquals("image/svg+xml", ProcessDefinitionResourceImpl.getMediaTypeForFileSuffix("decision.svg"));
-    Assert.assertEquals("image/jpeg", ProcessDefinitionResourceImpl.getMediaTypeForFileSuffix("decision.jpeg"));
-    Assert.assertEquals("image/jpeg", ProcessDefinitionResourceImpl.getMediaTypeForFileSuffix("decision.jpg"));
-    Assert.assertEquals("image/gif", ProcessDefinitionResourceImpl.getMediaTypeForFileSuffix("decision.gif"));
-    Assert.assertEquals("image/bmp", ProcessDefinitionResourceImpl.getMediaTypeForFileSuffix("decision.bmp"));
-    Assert.assertEquals("application/octet-stream", ProcessDefinitionResourceImpl.getMediaTypeForFileSuffix("decision.UNKNOWN"));
+    Assertions.assertEquals("image/png", ProcessDefinitionResourceImpl.getMediaTypeForFileSuffix("decision.png"));
+    Assertions.assertEquals("image/png", ProcessDefinitionResourceImpl.getMediaTypeForFileSuffix("decision.PNG"));
+    Assertions.assertEquals("image/svg+xml", ProcessDefinitionResourceImpl.getMediaTypeForFileSuffix("decision.svg"));
+    Assertions.assertEquals("image/jpeg", ProcessDefinitionResourceImpl.getMediaTypeForFileSuffix("decision.jpeg"));
+    Assertions.assertEquals("image/jpeg", ProcessDefinitionResourceImpl.getMediaTypeForFileSuffix("decision.jpg"));
+    Assertions.assertEquals("image/gif", ProcessDefinitionResourceImpl.getMediaTypeForFileSuffix("decision.gif"));
+    Assertions.assertEquals("image/bmp", ProcessDefinitionResourceImpl.getMediaTypeForFileSuffix("decision.bmp"));
+    Assertions.assertEquals("application/octet-stream", ProcessDefinitionResourceImpl.getMediaTypeForFileSuffix("decision.UNKNOWN"));
   }
 
   @Test

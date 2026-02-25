@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
 import java.util.Date;
 import java.util.List;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.history.HistoricActivityStatistics;
 import org.cibseven.bpm.engine.history.HistoricActivityStatisticsQuery;
@@ -40,10 +40,10 @@ import org.cibseven.bpm.engine.rest.AbstractRestServiceTest;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -57,7 +57,7 @@ import io.restassured.response.Response;
  */
 public class HistoricActivityStatisticsRestServiceQueryTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String HISTORY_URL = TEST_RESOURCE_ROOT_PATH + "/history";
@@ -65,7 +65,7 @@ public class HistoricActivityStatisticsRestServiceQueryTest extends AbstractRest
 
   private HistoricActivityStatisticsQuery historicActivityStatisticsQuery;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     setupHistoricActivityStatisticsMock();
   }
@@ -319,10 +319,10 @@ public class HistoricActivityStatisticsRestServiceQueryTest extends AbstractRest
 
     String content = response.asString();
     List<String> result = from(content).getList("");
-    Assert.assertEquals(2, result.size());
+    Assertions.assertEquals(2, result.size());
 
-    Assert.assertNotNull(result.get(0));
-    Assert.assertNotNull(result.get(1));
+    Assertions.assertNotNull(result.get(0));
+    Assertions.assertNotNull(result.get(1));
 
     String id = from(content).getString("[0].id");
     long instances = from(content).getLong("[0].instances");
@@ -333,14 +333,14 @@ public class HistoricActivityStatisticsRestServiceQueryTest extends AbstractRest
     long resolvedIncidents = from(content).getLong("[0].resolvedIncidents");
     long deletedIncidents = from(content).getLong("[0].deletedIncidents");
 
-    Assert.assertEquals(MockProvider.EXAMPLE_ACTIVITY_ID, id);
-    Assert.assertEquals(MockProvider.EXAMPLE_INSTANCES_LONG, instances);
-    Assert.assertEquals(MockProvider.EXAMPLE_CANCELED_LONG, canceled);
-    Assert.assertEquals(MockProvider.EXAMPLE_FINISHED_LONG, finished);
-    Assert.assertEquals(MockProvider.EXAMPLE_COMPLETE_SCOPE_LONG, completeScope);
-    Assert.assertEquals(MockProvider.EXAMPLE_OPEN_INCIDENTS_LONG, openIncidents);
-    Assert.assertEquals(MockProvider.EXAMPLE_RESOLVED_INCIDENTS_LONG, resolvedIncidents);
-    Assert.assertEquals(MockProvider.EXAMPLE_DELETED_INCIDENTS_LONG, deletedIncidents);
+    Assertions.assertEquals(MockProvider.EXAMPLE_ACTIVITY_ID, id);
+    Assertions.assertEquals(MockProvider.EXAMPLE_INSTANCES_LONG, instances);
+    Assertions.assertEquals(MockProvider.EXAMPLE_CANCELED_LONG, canceled);
+    Assertions.assertEquals(MockProvider.EXAMPLE_FINISHED_LONG, finished);
+    Assertions.assertEquals(MockProvider.EXAMPLE_COMPLETE_SCOPE_LONG, completeScope);
+    Assertions.assertEquals(MockProvider.EXAMPLE_OPEN_INCIDENTS_LONG, openIncidents);
+    Assertions.assertEquals(MockProvider.EXAMPLE_RESOLVED_INCIDENTS_LONG, resolvedIncidents);
+    Assertions.assertEquals(MockProvider.EXAMPLE_DELETED_INCIDENTS_LONG, deletedIncidents);
 
     id = from(content).getString("[1].id");
     instances = from(content).getLong("[1].instances");
@@ -351,14 +351,14 @@ public class HistoricActivityStatisticsRestServiceQueryTest extends AbstractRest
     resolvedIncidents = from(content).getLong("[1].resolvedIncidents");
     deletedIncidents = from(content).getLong("[1].deletedIncidents");
 
-    Assert.assertEquals(MockProvider.ANOTHER_EXAMPLE_ACTIVITY_ID, id);
-    Assert.assertEquals(MockProvider.ANOTHER_EXAMPLE_INSTANCES_LONG, instances);
-    Assert.assertEquals(MockProvider.ANOTHER_EXAMPLE_CANCELED_LONG, canceled);
-    Assert.assertEquals(MockProvider.ANOTHER_EXAMPLE_FINISHED_LONG, finished);
-    Assert.assertEquals(MockProvider.ANOTHER_EXAMPLE_COMPLETE_SCOPE_LONG, completeScope);
-    Assert.assertEquals(MockProvider.ANOTHER_EXAMPLE_OPEN_INCIDENTS_LONG, openIncidents);
-    Assert.assertEquals(MockProvider.ANOTHER_EXAMPLE_RESOLVED_INCIDENTS_LONG, resolvedIncidents);
-    Assert.assertEquals(MockProvider.ANOTHER_EXAMPLE_DELETED_INCIDENTS_LONG, deletedIncidents);
+    Assertions.assertEquals(MockProvider.ANOTHER_EXAMPLE_ACTIVITY_ID, id);
+    Assertions.assertEquals(MockProvider.ANOTHER_EXAMPLE_INSTANCES_LONG, instances);
+    Assertions.assertEquals(MockProvider.ANOTHER_EXAMPLE_CANCELED_LONG, canceled);
+    Assertions.assertEquals(MockProvider.ANOTHER_EXAMPLE_FINISHED_LONG, finished);
+    Assertions.assertEquals(MockProvider.ANOTHER_EXAMPLE_COMPLETE_SCOPE_LONG, completeScope);
+    Assertions.assertEquals(MockProvider.ANOTHER_EXAMPLE_OPEN_INCIDENTS_LONG, openIncidents);
+    Assertions.assertEquals(MockProvider.ANOTHER_EXAMPLE_RESOLVED_INCIDENTS_LONG, resolvedIncidents);
+    Assertions.assertEquals(MockProvider.ANOTHER_EXAMPLE_DELETED_INCIDENTS_LONG, deletedIncidents);
 
   }
 

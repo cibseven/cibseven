@@ -17,11 +17,11 @@
 package org.cibseven.bpm.engine.rest.standalone;
 
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class ServletAuthenticationFilterTest extends AbstractAuthenticationFilterTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule testContainer = new TestContainerRule();
 
 }

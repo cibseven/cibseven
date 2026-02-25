@@ -25,7 +25,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.ServiceLoader;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.apache.http.entity.ContentType;
 import org.cibseven.bpm.engine.ProcessEngine;
@@ -43,7 +43,7 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.BytesValue;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 import io.restassured.RestAssured;
 import io.restassured.http.Header;
@@ -152,7 +152,7 @@ public abstract class AbstractRestServiceTest {
   private static Properties connectionProperties = null;
   private static MockedProcessEngineProvider processEngineProvider = null;
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException {
     setupTestScenario();
   }

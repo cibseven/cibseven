@@ -18,22 +18,22 @@ package org.cibseven.bpm.engine.rest;
 
 import io.restassured.response.Response;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 import java.util.Arrays;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.path.json.JsonPath.from;
-import static org.junit.Assert.assertEquals;
-import javax.ws.rs.core.Response.Status;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import jakarta.ws.rs.core.Response.Status;
 import static org.mockito.Mockito.when;
 
 public class ExternalTaskTopicNamesRestServiceTest extends AbstractRestServiceTest {
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String EXTERNAL_TASK_QUERY_URL = TEST_RESOURCE_ROOT_PATH + "/external-task";
@@ -43,7 +43,7 @@ public class ExternalTaskTopicNamesRestServiceTest extends AbstractRestServiceTe
   protected static final String WITH_UNLOCKED_TASKS = "withUnlockedTasks";
   protected static final String WITH_RETRIES_LEFT = "withRetriesLeft";
 
-  @Before
+  @BeforeEach
   public void setupMocks(){
     when(processEngine.getExternalTaskService().getTopicNames(false,false,false)).thenReturn(Arrays.asList("allTopics"));
     when(processEngine.getExternalTaskService().getTopicNames(true,false,false)).thenReturn(Arrays.asList("lockedTasks"));

@@ -22,33 +22,31 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.openapitools.client.ApiException;
 import org.openapitools.client.api.DeploymentApi;
 import org.openapitools.client.model.DeploymentWithDefinitionsDto;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
+@WireMockTest(httpPort=8080)
 public class DeploymentTest {
 
   private static final String ENGINE_REST_DEPLOYMENT = "/engine-rest/deployment";
 
   final DeploymentApi api = new DeploymentApi();
 
-  @Rule
-  public WireMockRule wireMockRule = new WireMockRule(8080);
-
   @Test
   public void shouldCreateDeployment() throws ApiException {
     // given
     String deploymentSource = "test-source";
     String deploymentName = "deployment-test-name";
-    wireMockRule.stubFor(
+    stubFor(
         post(urlEqualTo(ENGINE_REST_DEPLOYMENT + "/create"))
         .willReturn(aResponse()
             .withStatus(200)

@@ -19,15 +19,15 @@ package org.cibseven.bpm.engine.rest.util.container;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.core.Application;
 
 import org.cibseven.bpm.engine.rest.CustomJacksonDateFormatTest;
 import org.cibseven.bpm.engine.rest.ExceptionHandlerTest;
 import org.cibseven.bpm.engine.rest.application.TestCustomResourceApplication;
-import org.junit.rules.ExternalResource;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TemporaryFolder;
-import org.junit.rules.TestRule;
+import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.Extension;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * @author Thorben Lindhauer
@@ -46,14 +46,15 @@ public class JerseySpecifics implements ContainerSpecifics {
     TEST_RULE_FACTORIES.put(CustomJacksonDateFormatTest.class, new ServletContainerRuleFactory("custom-date-format-web.xml"));
   }
 
-  public TestRule getTestRule(Class<?> testClass) {
+  @Override
+  public Extension getTestExtension(Class<?> testClass) {
     TestRuleFactory ruleFactory = DEFAULT_RULE_FACTORY;
 
     if (TEST_RULE_FACTORIES.containsKey(testClass)) {
       ruleFactory = TEST_RULE_FACTORIES.get(testClass);
     }
 
-    return ruleFactory.createTestRule();
+    return ruleFactory.createExtension();
   }
 
   public static class EmbeddedServerRuleFactory implements TestRuleFactory {
@@ -64,23 +65,25 @@ public class JerseySpecifics implements ContainerSpecifics {
       this.jaxRsApplication = jaxRsApplication;
     }
 
-    public TestRule createTestRule() {
-      return new ExternalResource() {
+    public Extension createExtension() {
+      return new BeforeAfterExtension() {
 
         JerseyServerBootstrap bootstrap = new JerseyServerBootstrap(jaxRsApplication);
 
-        protected void before() throws Throwable {
+        @Override
+        protected void before() throws Exception {
           bootstrap.start();
         }
 
-        protected void after() {
+        @Override
+        protected void after() throws Exception {
           bootstrap.stop();
         }
       };
     }
   }
 
-  public TestRule getTestRule(String webXmlResource) {
+  public Extension getTestRule(String webXmlResource) {
     throw new UnsupportedOperationException();
   }
 
@@ -92,26 +95,44 @@ public class JerseySpecifics implements ContainerSpecifics {
       this.webXmlResource = webXmlResource;
     }
 
-    public TestRule createTestRule() {
-      final TemporaryFolder tempFolder = new TemporaryFolder();
+    public Extension createExtension() {
+      return new BeforeAfterExtension() {
+        java.nio.file.Path tempFolder;
+        TomcatServerBootstrap bootstrap = new JerseyTomcatServerBootstrap(webXmlResource);
 
-      return RuleChain
-        .outerRule(tempFolder)
-        .around(new ExternalResource() {
+        @Override
+        protected void before() throws Exception {
+          tempFolder = java.nio.file.Files.createTempDirectory("junit-temp");
+          bootstrap.setWorkingDir(tempFolder.toAbsolutePath().toString());
+          bootstrap.start();
+        }
 
-          TomcatServerBootstrap bootstrap = new JerseyTomcatServerBootstrap(webXmlResource);
-
-          protected void before() throws Throwable {
-            bootstrap.setWorkingDir(tempFolder.getRoot().getAbsolutePath());
-            bootstrap.start();
+        @Override
+        protected void after() throws Exception {
+          bootstrap.stop();
+          if (tempFolder != null) {
+            java.nio.file.Files.walk(tempFolder)
+              .sorted(java.util.Comparator.reverseOrder())
+              .map(java.nio.file.Path::toFile)
+              .forEach(java.io.File::delete);
           }
-
-          protected void after() {
-            bootstrap.stop();
-          }
-        });
+        }
+      };
     }
 
   }
 
+  // Add this abstract helper for JUnit 5 before/after logic
+  abstract static class BeforeAfterExtension implements Extension, BeforeAllCallback, AfterAllCallback {
+    protected abstract void before() throws Exception;
+    protected abstract void after() throws Exception;
+    @Override
+    public void beforeAll(ExtensionContext context) throws Exception {
+      before();
+    }
+    @Override
+    public void afterAll(ExtensionContext context) throws Exception {
+      after();
+    }
+  }
 }
