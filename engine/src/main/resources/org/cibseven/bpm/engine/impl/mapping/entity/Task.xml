@@ -382,7 +382,7 @@
             </if>
             <if test="query.assigneeLike != null">
               <choose>
-                <when test="query.likePatternIgnoreCase">
+                <when test="likePatternIgnoreCase">
                   ${queryType} UPPER(RES.ASSIGNEE_) like UPPER(#{query.assigneeLike}) ESCAPE ${escapeChar}
                 </when>
                 <otherwise>
@@ -441,7 +441,7 @@
             </if>
             <if test="query.processInstanceBusinessKeyLike != null">
               <choose>
-                <when test="query.likePatternIgnoreCase">
+                <when test="likePatternIgnoreCase">
                   ${queryType} UPPER(E.BUSINESS_KEY_) like UPPER(#{query.processInstanceBusinessKeyLike}) ESCAPE ${escapeChar}
                 </when>
                 <otherwise>
@@ -460,7 +460,7 @@
             </if>
             <if test="query.caseInstanceBusinessKeyLike != null">
               <choose>
-                <when test="query.likePatternIgnoreCase">
+                <when test="likePatternIgnoreCase">
                   ${queryType} UPPER(CE.BUSINESS_KEY_) like UPPER(#{query.caseInstanceBusinessKeyLike}) ESCAPE ${escapeChar}
                 </when>
                 <otherwise>
@@ -489,7 +489,7 @@
             </if>
             <if test="query.keyLike != null">
               <choose>
-                <when test="query.likePatternIgnoreCase">
+                <when test="likePatternIgnoreCase">
                   ${queryType} UPPER(RES.TASK_DEF_KEY_) like UPPER(#{query.keyLike}) ESCAPE ${escapeChar}
                 </when>
                 <otherwise>
@@ -532,7 +532,7 @@
             </if>
             <if test="query.processDefinitionNameLike != null">
               <choose>
-                <when test="query.likePatternIgnoreCase">
+                <when test="likePatternIgnoreCase">
                   ${queryType} UPPER(D.NAME_) like UPPER(#{query.processDefinitionNameLike}) ESCAPE ${escapeChar}
                 </when>
                 <otherwise>
@@ -551,7 +551,7 @@
             </if>
             <if test="query.caseDefinitionNameLike != null">
               <choose>
-                <when test="query.likePatternIgnoreCase">
+                <when test="likePatternIgnoreCase">
                   ${queryType} UPPER(CD.NAME_) like UPPER(#{query.caseDefinitionNameLike}) ESCAPE ${escapeChar}
                 </when>
                 <otherwise>
@@ -649,7 +649,7 @@
                   </if>
                   <if test="query.candidateGroupLike != null">
                     <choose>
-                      <when test="query.likePatternIgnoreCase">
+                      <when test="likePatternIgnoreCase">
                         UPPER(I.GROUP_ID_) LIKE UPPER(#{query.candidateGroupLike})
                       </when>
                       <otherwise>
