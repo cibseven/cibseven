@@ -2320,6 +2320,10 @@ public class TaskQueryImpl extends AbstractQuery<TaskQuery, Task> implements Tas
       extendedQuery.taskNameCaseInsensitive();
     }
 
+    if (Boolean.TRUE.equals(extendingQuery.isLikePatternIgnoreCase()) || Boolean.TRUE.equals(this.isLikePatternIgnoreCase())) {
+      extendedQuery.likePatternIgnoreCase();
+    }
+
     if (extendingQuery.getTenantIds() != null) {
       extendedQuery.tenantIdIn(extendingQuery.getTenantIds());
     } else if (this.getTenantIds() != null) {
