@@ -30,16 +30,13 @@ import org.cibseven.bpm.engine.test.api.runtime.migration.models.EventSubProcess
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-
-import org.junit.jupiter.api.Test;
-
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Christopher Zell <christopher.zell@camunda.com>
  */
-@RunWith(Parameterized.class)
 public class MigrationNestedEventSubProcessTest {
 
   protected static final String USER_TASK_ID = "userTask";
@@ -61,7 +58,6 @@ public class MigrationNestedEventSubProcessTest {
   }
 
 
-  @Parameterized.Parameters(name = "{index}: {0}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
       {//message event sub process configuration
@@ -186,17 +182,14 @@ public class MigrationNestedEventSubProcessTest {
     });
   }
 
-  @Parameterized.Parameter
-  public MigrationEventSubProcessTestConfiguration configuration;
-
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
-
-  @Test
-  public void testMapUserTaskSiblingOfEventSubProcess() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testMapUserTaskSiblingOfEventSubProcess(MigrationEventSubProcessTestConfiguration configuration) {
 
     ProcessDefinition sourceProcessDefinition = testHelper.deployAndGetDefinition(configuration.getSourceProcess());
     ProcessDefinition targetProcessDefinition = testHelper.deployAndGetDefinition(configuration.getSourceProcess());
@@ -230,8 +223,9 @@ public class MigrationNestedEventSubProcessTest {
     testHelper.assertProcessEnded(testHelper.snapshotBeforeMigration.getProcessInstanceId());
   }
 
-  @Test
-  public void testMapUserTaskSiblingOfEventSubProcessAndTriggerEvent() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testMapUserTaskSiblingOfEventSubProcessAndTriggerEvent(MigrationEventSubProcessTestConfiguration configuration) {
     ProcessDefinition sourceProcessDefinition = testHelper.deployAndGetDefinition(configuration.getSourceProcess());
     ProcessDefinition targetProcessDefinition = testHelper.deployAndGetDefinition(configuration.getSourceProcess());
 

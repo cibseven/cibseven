@@ -39,11 +39,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
 public class TaskLastUpdatedTest {
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   TaskService taskService;

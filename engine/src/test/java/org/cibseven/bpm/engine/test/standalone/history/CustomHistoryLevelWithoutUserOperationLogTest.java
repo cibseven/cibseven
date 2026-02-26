@@ -57,7 +57,7 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -70,7 +70,7 @@ public class CustomHistoryLevelWithoutUserOperationLogTest {
 
   static HistoryLevel customHistoryLevelFullWUOL = new CustomHistoryLevelFullWithoutUserOperationLog();
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
       configuration.setJdbcUrl("jdbc:h2:mem:CustomHistoryLevelWithoutUserOperationLogTest");
       configuration.setCustomHistoryLevels(Arrays.asList(customHistoryLevelFullWUOL));
@@ -78,12 +78,12 @@ public class CustomHistoryLevelWithoutUserOperationLogTest {
       configuration.setDatabaseSchemaUpdate(DB_SCHEMA_UPDATE_CREATE_DROP);
   });
 
+  @RegisterExtension
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
   public AuthorizationTestBaseRule authRule = new AuthorizationTestBaseRule(engineRule);
+  @RegisterExtension
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testRule);
 
   protected HistoryService historyService;
   protected RuntimeService runtimeService;

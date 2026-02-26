@@ -35,16 +35,14 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
-import org.cibseven.bpm.engine.test.util.AuthorizationRuleTripleExtension;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  *
@@ -52,24 +50,18 @@ import org.junit.runners.Parameterized;
  *
  */
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
-@RunWith(Parameterized.class)
-@ExtendWith(AuthorizationRuleTripleExtension.class)
 public class BatchRestartAuthorizationTest {
 
   protected static final String TEST_REASON = "test reason";
 
-  protected ProcessEngineRule engineRule;
-  protected AuthorizationTestRule authRule;
-  protected ProcessEngineTestRule testRule;
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   protected BatchModificationHelper helper = new BatchModificationHelper(engineRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testRule);
-
-  @Parameterized.Parameter
-  public AuthorizationScenario scenario;
-
-  @Parameterized.Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
       scenario()
@@ -134,8 +126,9 @@ public class BatchRestartAuthorizationTest {
     helper.removeAllRunningAndHistoricBatches();
   }
 
-  @Test
-  public void executeBatch() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void executeBatch(AuthorizationScenario scenario) {
     //given
     ProcessDefinition processDefinition = testRule.deployAndGetDefinition(ProcessModels.TWO_TASKS_PROCESS);
 

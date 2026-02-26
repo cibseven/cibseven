@@ -31,6 +31,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class ProcessDefinitionCandidateTest {
@@ -42,13 +43,10 @@ public class ProcessDefinitionCandidateTest {
 
   protected static final String CANDIDATE_STARTER_GROUP = "org/cibseven/bpm/engine/test/api/repository/ProcessDefinitionCandidateTest.testCandidateStarterGroup.bpmn20.xml";
   protected static final String CANDIDATE_STARTER_GROUPS = "org/cibseven/bpm/engine/test/api/repository/ProcessDefinitionCandidateTest.testCandidateStarterGroups.bpmn20.xml";
-
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected RepositoryService repositoryService;
 

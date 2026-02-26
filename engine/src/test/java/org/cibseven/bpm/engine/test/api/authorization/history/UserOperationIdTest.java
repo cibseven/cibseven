@@ -47,6 +47,7 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * Tests the operationId field in historic tables, which helps to correlate records from different tables.
@@ -57,10 +58,10 @@ import org.junit.jupiter.api.Test;
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class UserOperationIdTest {
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected static final String PROCESS_KEY = "oneTaskProcess";

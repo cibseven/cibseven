@@ -35,7 +35,8 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -58,16 +59,15 @@ public class MultiTenancySharedDecisionInstanceStatisticsQueryTest {
 
   protected static StaticTenantIdTestProvider tenantIdProvider;
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
+  @RegisterExtension
+  @Order(1) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
     tenantIdProvider = new StaticTenantIdTestProvider(TENANT_ONE);
     configuration.setTenantIdProvider(tenantIdProvider);
   });
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain tenantRuleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(2) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected DecisionService decisionService;
   protected RepositoryService repositoryService;

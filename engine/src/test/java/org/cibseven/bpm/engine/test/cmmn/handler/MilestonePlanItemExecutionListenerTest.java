@@ -22,19 +22,15 @@ import org.cibseven.bpm.engine.test.cmmn.handler.specification.AbstractExecution
 import org.cibseven.bpm.model.cmmn.instance.Milestone;
 import org.cibseven.bpm.model.cmmn.instance.PlanItem;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Roman Smirnov
  *
  */
-@RunWith(Parameterized.class)
 public class MilestonePlanItemExecutionListenerTest extends CmmnElementHandlerTest {
 
-  @Parameters(name = "testListener: {0}")
   public static Iterable<Object[]> data() {
     return ExecutionListenerCases.EVENTLISTENER_OR_MILESTONE_CASES;
   }
@@ -43,23 +39,16 @@ public class MilestonePlanItemExecutionListenerTest extends CmmnElementHandlerTe
   protected PlanItem planItem;
   protected MilestoneItemHandler handler = new MilestoneItemHandler();
 
-  protected AbstractExecutionListenerSpec testSpecification;
-
-  public MilestonePlanItemExecutionListenerTest(AbstractExecutionListenerSpec testSpecification) {
-    this.testSpecification = testSpecification;
-  }
-
   @BeforeEach
   public void setUp() {
     milestone = createElement(casePlanModel, "aMilestone", Milestone.class);
-
     planItem = createElement(casePlanModel, "PI_aMilestone", PlanItem.class);
     planItem.setDefinition(milestone);
-
   }
 
-  @Test
-  public void testCaseExecutionListener() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testCaseExecutionListener(AbstractExecutionListenerSpec testSpecification) {
     // given:
     testSpecification.addListenerToElement(modelInstance, milestone);
 

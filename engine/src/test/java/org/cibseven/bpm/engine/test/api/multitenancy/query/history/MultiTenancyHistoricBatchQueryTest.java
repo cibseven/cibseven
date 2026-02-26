@@ -45,6 +45,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -57,11 +58,10 @@ public class MultiTenancyHistoricBatchQueryTest {
   protected static final String TENANT_ONE = "tenant1";
   protected static final String TENANT_TWO = "tenant2";
 
+  @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain defaultRuleChin = RuleChain.outerRule(engineRule).around(testHelper);
 
   protected BatchMigrationHelper batchHelper = new BatchMigrationHelper(engineRule);
 

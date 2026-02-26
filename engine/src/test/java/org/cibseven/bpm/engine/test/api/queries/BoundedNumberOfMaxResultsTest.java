@@ -50,16 +50,14 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class BoundedNumberOfMaxResultsTest {
-
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
+  @RegisterExtension
   protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
 
   protected HistoryService historyService;
   protected RuntimeService runtimeService;

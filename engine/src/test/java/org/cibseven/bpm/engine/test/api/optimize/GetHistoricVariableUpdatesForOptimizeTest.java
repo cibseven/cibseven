@@ -48,7 +48,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -71,12 +71,10 @@ public class GetHistoricVariableUpdatesForOptimizeTest {
     .file("some bytes".getBytes())
     .mimeType("text/plain")
     .create();
-
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
 
   private OptimizeService optimizeService;
   private IdentityService identityService;

@@ -28,13 +28,13 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
 public class HistoryCleanupDisabledOnBootstrapTest {
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
       configuration.setJdbcUrl("jdbc:h2:mem:" + HistoryCleanupDisabledOnBootstrapTest.class.getSimpleName());
       configuration.setHistoryCleanupEnabled(false);
@@ -42,7 +42,7 @@ public class HistoryCleanupDisabledOnBootstrapTest {
       configuration.setDatabaseSchemaUpdate(DB_SCHEMA_UPDATE_CREATE_DROP);
   });
 
-//  @Rule
+  @RegisterExtension
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   public HistoryService historyService;

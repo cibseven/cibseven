@@ -32,14 +32,12 @@ import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRuleExtension;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
-@ExtendWith(ProvidedProcessEngineRuleExtension.class)
 public class MultiTenancyTimerStartEventTest {
 
   protected static final BpmnModelInstance PROCESS = Bpmn.createExecutableProcess()
@@ -52,11 +50,10 @@ public class MultiTenancyTimerStartEventTest {
   protected static final String TENANT_ONE = "tenant1";
   protected static final String TENANT_TWO = "tenant2";
 
-  protected ProcessEngineRule engineRule;
-  protected ProcessEngineTestRule testRule;
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected ManagementService managementService;
   protected RuntimeService runtimeService;

@@ -26,6 +26,7 @@ import org.cibseven.bpm.engine.TaskService;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Daniel Meyer
@@ -33,7 +34,9 @@ import org.junit.jupiter.api.BeforeEach;
  */
 public abstract class ConcurrencyTestCase extends ConcurrencyTestHelper {
 
+  @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected ProcessEngine processEngine;

@@ -97,7 +97,7 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.builder.SubProcessBuilder;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -110,14 +110,13 @@ public class RuntimeServiceTest {
 
   public static final String TESTING_INSTANCE_DELETION = "testing instance deletion";
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
       configuration -> configuration.setJavaSerializationFormatEnabled(true));
+  @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   private RuntimeService runtimeService;
   private TaskService taskService;

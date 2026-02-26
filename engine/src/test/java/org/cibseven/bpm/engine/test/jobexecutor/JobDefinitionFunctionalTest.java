@@ -37,6 +37,7 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.slf4j.Logger;
 
 /**
@@ -47,10 +48,10 @@ public class JobDefinitionFunctionalTest {
 
   static Logger LOG = ProcessEngineLogger.TEST_LOGGER.getLogger();
 
-//  @Rule
+  @RegisterExtension
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;

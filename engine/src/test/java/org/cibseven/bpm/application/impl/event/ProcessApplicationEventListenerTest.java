@@ -37,7 +37,7 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapClassExtension;
+import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,11 +52,10 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 public class ProcessApplicationEventListenerTest {
 
   @RegisterExtension
-  public static ProcessEngineBootstrapClassExtension processEngineBootstrapClassExtension = ProcessEngineBootstrapClassExtension.builder()
-    .setConfigurationResource("org/cibseven/bpm/application/impl/event/pa.event.listener.camunda.cfg.xml")
-    .build();
-
-  public ProvidedProcessEngineRule engineRule = null;
+  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
+      "org/cibseven/bpm/application/impl/event/pa.event.listener.camunda.cfg.xml");
+  @RegisterExtension
+  public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RuntimeService runtimeService;

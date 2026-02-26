@@ -51,6 +51,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ResetDmnConfigUtil;
 import org.junit.AfterClass;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 
@@ -60,11 +61,10 @@ import org.junit.jupiter.api.BeforeEach;
 @RequiredHistoryLevel(HISTORY_FULL)
 public abstract class AbstractRemovalTimeTest {
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected RuntimeService runtimeService;
   protected FormService formService;

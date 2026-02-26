@@ -31,17 +31,13 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Philipp Ossler
  */
-@RunWith(Parameterized.class)
 public class PrimitiveTypeValueSerializationTest {
 
   protected static final String BPMN_FILE = "org/cibseven/bpm/engine/test/api/variables/oneTaskProcess.bpmn20.xml";
@@ -49,7 +45,6 @@ public class PrimitiveTypeValueSerializationTest {
 
   protected static final String VARIABLE_NAME = "variable";
 
-  @Parameters(name = "{index}: variable = {0}")
   public static Collection<Object[]> data() {
     return Arrays
         .asList(new Object[][] {
@@ -63,17 +58,11 @@ public class PrimitiveTypeValueSerializationTest {
         });
   }
 
-  @Parameter(0)
-  public TypedValue typedValue;
-
-  @Parameter(1)
-  public TypedValue nullValue;
-
   private RuntimeService runtimeService;
   private RepositoryService repositoryService;
   private String deploymentId;
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule rule = new ProvidedProcessEngineRule();
 
   @BeforeEach
@@ -89,8 +78,9 @@ public class PrimitiveTypeValueSerializationTest {
     repositoryService.deleteDeployment(deploymentId, true);
   }
 
-  @Test
-  public void shouldGetUntypedVariable() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldGetUntypedVariable(TypedValue typedValue, TypedValue nullValue) {
     ProcessInstance instance = runtimeService.startProcessInstanceByKey(PROCESS_DEFINITION_KEY);
 
     runtimeService.setVariable(instance.getId(), VARIABLE_NAME, typedValue);
@@ -99,8 +89,9 @@ public class PrimitiveTypeValueSerializationTest {
     assertEquals(typedValue.getValue(), variableValue);
   }
 
-  @Test
-  public void shouldGetTypedVariable() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldGetTypedVariable(TypedValue typedValue, TypedValue nullValue) {
     ProcessInstance instance = runtimeService.startProcessInstanceByKey(PROCESS_DEFINITION_KEY);
 
     runtimeService.setVariable(instance.getId(), VARIABLE_NAME, typedValue);
@@ -110,8 +101,9 @@ public class PrimitiveTypeValueSerializationTest {
     assertEquals(typedValue.getValue(), typedVariableValue.getValue());
   }
 
-  @Test
-  public void shouldGetTypedNullVariable() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldGetTypedNullVariable(TypedValue typedValue, TypedValue nullValue) {
     ProcessInstance instance = runtimeService.startProcessInstanceByKey(PROCESS_DEFINITION_KEY);
 
     runtimeService.setVariable(instance.getId(), VARIABLE_NAME, nullValue);

@@ -37,6 +37,7 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class MultiTenancyMessageCorrelationTest {
@@ -58,13 +59,10 @@ public class MultiTenancyMessageCorrelationTest {
       .userTask()
       .endEvent()
       .done();
-
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   @Test
   public void correlateMessageToStartEventNoTenantIdSetForNonTenant() {

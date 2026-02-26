@@ -31,6 +31,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -39,7 +40,7 @@ import org.mockito.MockitoAnnotations;
  */
 public class ExternalTaskConditionsTest {
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule rule = new ProvidedProcessEngineRule();
 
   @Mock

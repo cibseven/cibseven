@@ -49,16 +49,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class ModificationExecutionSyncTest {
 
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
   protected BatchModificationHelper helper = new BatchModificationHelper(rule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;

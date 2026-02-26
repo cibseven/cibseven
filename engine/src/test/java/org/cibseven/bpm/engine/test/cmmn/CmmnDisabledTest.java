@@ -44,7 +44,8 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -55,15 +56,14 @@ import org.junit.jupiter.api.Test;
  */
 public class CmmnDisabledTest {
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
       "org/cibseven/bpm/application/impl/deployment/cmmn.disabled.camunda.cfg.xml");
 
-  public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  public ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule);
+  @RegisterExtension
+  @Order(1) public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(2) public ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected RepositoryService repositoryService;

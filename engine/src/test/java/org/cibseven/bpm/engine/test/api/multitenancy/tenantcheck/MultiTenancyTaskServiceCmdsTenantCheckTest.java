@@ -34,6 +34,7 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -53,18 +54,15 @@ public class MultiTenancyTaskServiceCmdsTenantCheckTest {
     .userTask()
     .endEvent()
     .done();
-
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected TaskService taskService;
   protected IdentityService identityService;
 
   protected Task task;
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   @BeforeEach
   public void init() {

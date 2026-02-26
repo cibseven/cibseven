@@ -28,21 +28,20 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.Assume;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
 
 public class DeploymentAwareJobExecutorForOracleTest {
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule deploymentAwareBootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configuration.setJobExecutorDeploymentAware(true));
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(deploymentAwareBootstrapRule);
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   @Test
   public void testFindAcquirableJobsWhen0InstancesDeployed() {

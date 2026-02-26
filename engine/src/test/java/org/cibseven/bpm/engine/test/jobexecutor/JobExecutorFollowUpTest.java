@@ -38,6 +38,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -87,6 +88,7 @@ public class JobExecutorFollowUpTest {
       .done();
 
   protected boolean skipFlushControl = true;
+  @RegisterExtension
   protected ProcessEngineBootstrapRule bootstrapRule =
       new ProcessEngineBootstrapRule(configuration -> {
         configuration.setJobExecutor(buildControllableJobExecutor());
@@ -96,7 +98,9 @@ public class JobExecutorFollowUpTest {
           }
         });
       });
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
   protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   protected static ControllableJobExecutor buildControllableJobExecutor() {
@@ -105,9 +109,6 @@ public class JobExecutorFollowUpTest {
     jobExecutor.proceedAndWaitOnShutdown(false);
     return jobExecutor;
   }
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule).around(testHelper);
 
   protected ControllableJobExecutor jobExecutor;
   protected ThreadControl acquisitionThread;

@@ -29,6 +29,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class DecisionRequirementsDefinitionQueryTest {
@@ -37,11 +38,10 @@ public class DecisionRequirementsDefinitionQueryTest {
   protected static final String DRD_DISH_RESOURCE = "org/cibseven/bpm/engine/test/dmn/deployment/drdDish.dmn11.xml";
   protected static final String DRD_XYZ_RESOURCE = "org/cibseven/bpm/engine/test/api/repository/drdXyz_.dmn11.xml";
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected RepositoryService repositoryService;
 

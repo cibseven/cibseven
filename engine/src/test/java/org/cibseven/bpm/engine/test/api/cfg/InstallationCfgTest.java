@@ -20,16 +20,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.ProcessEngineRuleExtension;
+import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
-@ExtendWith(ProcessEngineRuleExtension.class)
 public class InstallationCfgTest {
 
-  protected ProcessEngineRule engineRule;
+  @RegisterExtension
+  protected ProcessEngineRule engineRule = new ProcessEngineRule();
+  @RegisterExtension
+  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected ProcessEngineConfigurationImpl configuration;
 

@@ -23,19 +23,15 @@ import org.cibseven.bpm.model.cmmn.instance.DiscretionaryItem;
 import org.cibseven.bpm.model.cmmn.instance.HumanTask;
 import org.cibseven.bpm.model.cmmn.instance.PlanningTable;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-@RunWith(Parameterized.class)
 public class HumanTaskDicretionaryItemExecutionListenerHandlerTest extends CmmnElementHandlerTest {
 
-  @Parameters(name = "testListener: {0}")
   public static Iterable<Object[]> data() {
     return ExecutionListenerCases.TASK_OR_STAGE_CASES;
   }
@@ -45,25 +41,17 @@ public class HumanTaskDicretionaryItemExecutionListenerHandlerTest extends CmmnE
   protected DiscretionaryItem discretionaryItem;
   protected HumanTaskItemHandler handler = new HumanTaskItemHandler();
 
-  protected AbstractExecutionListenerSpec testSpecification;
-
-  public HumanTaskDicretionaryItemExecutionListenerHandlerTest(AbstractExecutionListenerSpec testSpecification) {
-    this.testSpecification = testSpecification;
-  }
-
   @BeforeEach
   public void setUp() {
     humanTask = createElement(casePlanModel, "aHumanTask", HumanTask.class);
-
     planningTable = createElement(casePlanModel, "aPlanningTable", PlanningTable.class);
-
     discretionaryItem = createElement(planningTable, "DI_aHumanTask", DiscretionaryItem.class);
     discretionaryItem.setDefinition(humanTask);
-
   }
 
-  @Test
-  public void testCaseExecutionListener() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testCaseExecutionListener(AbstractExecutionListenerSpec testSpecification) {
     // given:
     testSpecification.addListenerToElement(modelInstance, humanTask);
 

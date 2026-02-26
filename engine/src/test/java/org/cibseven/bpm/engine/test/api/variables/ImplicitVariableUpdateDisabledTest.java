@@ -23,12 +23,11 @@ import org.cibseven.bpm.engine.test.history.UpdateValueDelegate;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapClassExtension;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,16 +35,16 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@ExtendWith(ProcessEngineBootstrapClassExtension.class)
 public class ImplicitVariableUpdateDisabledTest {
 
-  public static ProcessEngineBootstrapClassExtension processEngineBootstrapClassExtension = ProcessEngineBootstrapClassExtension.builder()
-		    .useConsumer(c -> c.setImplicitVariableUpdateDetectionEnabled(false)) // turn off implicit variable update detection.
-		    .addProcessEngineTestRule()
-		    .build();
-
-  protected ProvidedProcessEngineRule engineRule;
-  protected ProcessEngineTestRule testRule;
+  @RegisterExtension
+  public static final ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
+      c -> c.setImplicitVariableUpdateDetectionEnabled(false) // turn off implicit variable update detection.
+  );
+  @RegisterExtension
+  private final ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  private final ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   private RuntimeService runtimeService;
 

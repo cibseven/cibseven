@@ -34,7 +34,7 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -45,11 +45,8 @@ public class QueryByIdAfterTest {
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(config -> config.setIdGenerator(new StrongUuidGenerator()));
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   private HistoryService historyService;
   private RuntimeService runtimeService;

@@ -34,7 +34,6 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.AuthorizationRuleTripleExtension;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ExternalTaskModels;
@@ -43,30 +42,20 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
-
-@RunWith(Parameterized.class)
-@ExtendWith(AuthorizationRuleTripleExtension.class)
 public class SetExternalTasksRetriesBatchAuthorizationTest {
 
-  public ProcessEngineRule engineRule;
-  public AuthorizationTestRule authRule;
-  protected ProcessEngineTestRule testRule;
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-
-//  @Rule
-//  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule).around(testRule);
-
-  @Parameter
-  public AuthorizationScenario scenario;
-
-  @Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
       scenario()
@@ -126,8 +115,9 @@ public class SetExternalTasksRetriesBatchAuthorizationTest {
     }
   }
 
-  @Test
-  public void testSetRetriesAsync() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testSetRetriesAsync(AuthorizationScenario scenario) {
 
     // given
     ProcessDefinition processDefinition = testRule.deployAndGetDefinition(ExternalTaskModels.ONE_EXTERNAL_TASK_PROCESS);
@@ -163,8 +153,9 @@ public class SetExternalTasksRetriesBatchAuthorizationTest {
     }
   }
 
-  @Test
-  public void testSetRetriesWithQueryAsync() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testSetRetriesWithQueryAsync(AuthorizationScenario scenario) {
 
     // given
     ProcessDefinition processDefinition = testRule.deployAndGetDefinition(ExternalTaskModels.ONE_EXTERNAL_TASK_PROCESS);

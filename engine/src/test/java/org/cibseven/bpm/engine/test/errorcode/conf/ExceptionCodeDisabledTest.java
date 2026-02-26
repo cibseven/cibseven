@@ -22,7 +22,6 @@ import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.impl.errorcode.BuiltinExceptionCode;
 import org.cibseven.bpm.engine.test.errorcode.FailingJavaDelegateWithErrorCode;
-import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapClassExtension;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
@@ -30,27 +29,24 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
-
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.catchThrowable;
 
 public class ExceptionCodeDisabledTest {
 
   @RegisterExtension
-  public static ProcessEngineBootstrapClassExtension processEngineBootstrapClassExtension = ProcessEngineBootstrapClassExtension.builder()
-    .useConsumer(c -> c.setDisableExceptionCode(true))
-    .addProcessEngineTestRule()
-    .build();
+  public static ProcessEngineBootstrapRule bootstrapRule =
+    new ProcessEngineBootstrapRule(c -> c.setDisableExceptionCode(true));
 
-  public ProvidedProcessEngineRule engineRule = null;
-  protected ProcessEngineTestRule testRule;
+  @RegisterExtension
+  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected IdentityService identityService;

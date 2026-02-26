@@ -31,7 +31,7 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.AfterEach;
 
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,11 +46,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SetVariablesMigrationTest {
 
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @AfterEach
   public void clearAuthentication() {

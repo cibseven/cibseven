@@ -80,6 +80,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -92,7 +93,9 @@ public class BulkHistoryDeleteTest {
 
   public static final int PROCESS_INSTANCE_COUNT = 5;
 
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   private HistoryService historyService;
@@ -104,9 +107,6 @@ public class BulkHistoryDeleteTest {
   private IdentityService identityService;
 
   public static final String USER_ID = "demo";
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   @BeforeEach
   public void init() {

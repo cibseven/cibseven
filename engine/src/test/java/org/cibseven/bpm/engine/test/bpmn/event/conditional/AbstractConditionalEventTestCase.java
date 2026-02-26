@@ -40,6 +40,7 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -89,7 +90,7 @@ public abstract class AbstractConditionalEventTestCase {
 
   protected List<Task> tasksAfterVariableIsSet;
 
-//  @Rule
+  @RegisterExtension
   public final ProcessEngineRule engine = new ProvidedProcessEngineRule();
 
   protected RuntimeService runtimeService;

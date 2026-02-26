@@ -53,6 +53,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -65,9 +66,9 @@ public class MultiTenancyHistoricDataCmdsTenantCheckTest {
   protected static final String TENANT_TWO = "tenant2";
 
   protected static final String PROCESS_DEFINITION_KEY = "failingProcess";
-
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RepositoryService repositoryService;
@@ -78,9 +79,6 @@ public class MultiTenancyHistoricDataCmdsTenantCheckTest {
   protected DecisionService decisionService;
   protected HistoryService historyService;
   protected ProcessEngineConfiguration processEngineConfiguration;
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected static final BpmnModelInstance BPMN_PROCESS = Bpmn.createExecutableProcess(PROCESS_DEFINITION_KEY)
       .startEvent().endEvent().done();

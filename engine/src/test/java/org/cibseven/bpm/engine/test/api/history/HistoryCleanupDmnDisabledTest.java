@@ -43,7 +43,7 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -55,14 +55,13 @@ import org.junit.jupiter.api.Test;
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
 public class HistoryCleanupDmnDisabledTest {
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configuration.setDmnEnabled(false));
+  @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   private RuntimeService runtimeService;
   private HistoryService historyService;

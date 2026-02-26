@@ -48,6 +48,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
@@ -60,12 +61,10 @@ public class GetHistoricDecisionInstancesForOptimizeTest {
 
   protected static final String VARIABLE_NAME = "aVariableName";
   protected static final String VARIABLE_VALUE = "aVariableValue";
-
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
 
   protected String userId = "test";
   private OptimizeService optimizeService;

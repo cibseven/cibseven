@@ -37,7 +37,7 @@ import org.cibseven.bpm.model.cmmn.instance.Stage;
 import org.cibseven.bpm.model.cmmn.instance.Task;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -46,10 +46,10 @@ import org.junit.jupiter.api.Test;
  */
 public class CmmnTransformListenerTest {
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
       "org/cibseven/bpm/engine/test/standalone/deploy/cmmn.transform.listener.camunda.cfg.xml");
-//  @Rule
+  @RegisterExtension
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   protected RepositoryService repositoryService;

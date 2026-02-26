@@ -60,6 +60,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class SetVariablesBatchTest {
@@ -69,13 +70,13 @@ public class SetVariablesBatchTest {
 
   protected static final VariableMap SINGLE_VARIABLE = Variables.putValue("foo", "bar");
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
   protected BatchRule batchRule = new BatchRule(engineRule, engineTestRule);
   protected BatchHelper helper = new BatchHelper(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule).around(batchRule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;

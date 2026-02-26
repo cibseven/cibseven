@@ -40,19 +40,13 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import org.junit.jupiter.api.Test;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
-
-@RunWith(Parameterized.class)
 public class CustomHistoryLevelIdentityLinkTest {
 
-  @Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
       new Object[]{ Arrays.asList(HistoryEventTypes.IDENTITY_LINK_ADD) },
@@ -60,12 +54,10 @@ public class CustomHistoryLevelIdentityLinkTest {
     });
   }
 
-  @Parameter
-  public List<HistoryEventTypes> eventTypes;
 
   static CustomHistoryLevelIdentityLink customHisstoryLevelIL = new CustomHistoryLevelIdentityLink();
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
     configuration.setJdbcUrl("jdbc:h2:mem:" + CustomHistoryLevelIdentityLinkTest.class.getSimpleName());
     List<HistoryLevel> levels = new ArrayList<>();
@@ -74,11 +66,10 @@ public class CustomHistoryLevelIdentityLinkTest {
     configuration.setHistory("aCustomHistoryLevelIL");
     configuration.setDatabaseSchemaUpdate(DB_SCHEMA_UPDATE_CREATE_DROP);
   });
+  @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected HistoryService historyService;
   protected RuntimeService runtimeService;
@@ -93,8 +84,6 @@ public class CustomHistoryLevelIdentityLinkTest {
     identityService = engineRule.getIdentityService();
     repositoryService = engineRule.getRepositoryService();
     taskService = engineRule.getTaskService();
-
-    customHisstoryLevelIL.setEventTypes(eventTypes);
   }
 
   @AfterEach
@@ -102,9 +91,11 @@ public class CustomHistoryLevelIdentityLinkTest {
     customHisstoryLevelIL.setEventTypes(null);
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("data")
   @Deployment(resources = {"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
-  public void testDeletingIdentityLinkByProcDefId() {
+  public void testDeletingIdentityLinkByProcDefId(List<HistoryEventTypes> eventTypes) {
+    customHisstoryLevelIL.setEventTypes(eventTypes);
     // Pre test
     List<HistoricIdentityLinkLog> historicIdentityLinks = historyService.createHistoricIdentityLinkLogQuery().list();
     assertEquals(historicIdentityLinks.size(), 0);
@@ -130,10 +121,13 @@ public class CustomHistoryLevelIdentityLinkTest {
     // then
     historicIdentityLinks = historyService.createHistoricIdentityLinkLogQuery().list();
     assertEquals(0, historicIdentityLinks.size());
+    customHisstoryLevelIL.setEventTypes(null);
   }
 
-  @Test
-  public void testDeletingIdentityLinkByTaskId() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testDeletingIdentityLinkByTaskId(List<HistoryEventTypes> eventTypes) {
+    customHisstoryLevelIL.setEventTypes(eventTypes);
     // Pre test
     List<HistoricIdentityLinkLog> historicIdentityLinks = historyService.createHistoricIdentityLinkLogQuery().list();
     assertEquals(historicIdentityLinks.size(), 0);
@@ -158,5 +152,4 @@ public class CustomHistoryLevelIdentityLinkTest {
     historicIdentityLinks = historyService.createHistoricIdentityLinkLogQuery().list();
     assertEquals(0, historicIdentityLinks.size());
   }
-
 }

@@ -39,7 +39,6 @@ import org.cibseven.bpm.engine.history.HistoricDecisionInstanceQuery;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
-import org.cibseven.bpm.engine.test.util.AuthorizationRuleTripleExtension;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
@@ -48,22 +47,22 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
-@RunWith(Parameterized.class)
-@ExtendWith(AuthorizationRuleTripleExtension.class)
 public class BatchHistoricDecisionInstanceDeletionAuthorizationTest {
 
   protected static String DECISION = "decision";
 
-  protected ProcessEngineRule engineRule;
-  protected AuthorizationTestRule authRule;
-  protected ProcessEngineTestRule testRule;
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected DecisionService decisionService;
   protected HistoryService historyService;
@@ -71,10 +70,6 @@ public class BatchHistoricDecisionInstanceDeletionAuthorizationTest {
 
   protected List<String> decisionInstanceIds;
 
-  @Parameterized.Parameter
-  public AuthorizationScenario scenario;
-
-  @Parameterized.Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
       scenario()
@@ -156,8 +151,9 @@ public class BatchHistoricDecisionInstanceDeletionAuthorizationTest {
     }
   }
 
-  @Test
-  public void executeBatch() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void executeBatch(AuthorizationScenario scenario) {
     // given
     authRule.init(scenario)
       .withUser("userId")

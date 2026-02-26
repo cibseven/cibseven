@@ -34,9 +34,9 @@ import org.cibseven.bpm.engine.TaskService;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.opentest4j.AssertionFailedError;
 
 
@@ -105,7 +105,7 @@ public class ProcessEngineTestCase {
   }
 
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp(ExtensionContext context) throws Exception {
     if (processEngine==null) {
       initializeProcessEngine();
       initializeServices();
@@ -115,7 +115,7 @@ public class ProcessEngineTestCase {
     skipTest = !hasRequiredHistoryLevel;
 
     if (!skipTest) {
-      deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, getClass(), "");
+      deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, getClass(), context.getTestMethod().get().getName());
     }
   }
 
@@ -148,8 +148,8 @@ public class ProcessEngineTestCase {
   }
 
   @AfterEach
-  public void tearDown() throws Exception {
-    TestHelper.annotationDeploymentTearDown(processEngine, deploymentId, getClass(), "");
+  public void tearDown(ExtensionContext context) throws Exception {
+    TestHelper.annotationDeploymentTearDown(processEngine, deploymentId, getClass(), context.getTestMethod().get().getName());
     ClockUtil.reset();
   }
 

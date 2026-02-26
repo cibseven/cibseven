@@ -40,6 +40,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class IdentityServiceTenantTest {
 
@@ -54,7 +55,7 @@ public class IdentityServiceTenantTest {
 
   private final String INVALID_ID_MESSAGE = "%s has an invalid id: '%s' is not a valid resource identifier.";
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected IdentityService identityService;

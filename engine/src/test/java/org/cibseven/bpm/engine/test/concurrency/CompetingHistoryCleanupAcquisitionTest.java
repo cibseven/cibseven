@@ -42,6 +42,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -49,12 +50,12 @@ import org.junit.jupiter.api.Test;
  */
 public class CompetingHistoryCleanupAcquisitionTest extends ConcurrencyTestHelper {
 
+  @RegisterExtension
   protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(this::configureEngine);
+  @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule).around(testRule);
 
   protected HistoryService historyService;
   protected ManagementService managementService;

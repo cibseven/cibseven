@@ -34,28 +34,29 @@ import org.cibseven.bpm.engine.batch.Batch;
 import org.cibseven.bpm.engine.batch.BatchStatistics;
 import org.cibseven.bpm.engine.exception.NullValueException;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
+import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.batch.BatchMigrationHelper;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRuleExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-@ExtendWith(ProvidedProcessEngineRuleExtension.class)
 public class MultiTenancyBatchQueryTest {
 
   protected static final String TENANT_ONE = "tenant1";
   protected static final String TENANT_TWO = "tenant2";
 
-  protected ProvidedProcessEngineRule engineRule;
-  protected ProcessEngineTestRule testRule;
+  @RegisterExtension
+  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected BatchMigrationHelper batchHelper;
 

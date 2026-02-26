@@ -49,6 +49,7 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -57,11 +58,10 @@ import org.junit.jupiter.api.Test;
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class PartitioningTest {
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
 

@@ -65,7 +65,8 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -73,21 +74,21 @@ import org.junit.jupiter.api.Test;
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class HistoryCleanupHistoricBatchTest {
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
+  @RegisterExtension
+  @Order (1) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configuration.setHistoryCleanupDegreeOfParallelism(3));
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-  protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
+  @RegisterExtension
+  @Order (2) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order (3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order (4) protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
   protected BatchMigrationHelper migrationHelper = new BatchMigrationHelper(engineRule, migrationRule);
   protected BatchModificationHelper modificationHelper = new BatchModificationHelper(engineRule);
 
   private static final String DEFAULT_TTL_DAYS = "P5D";
 
   private Random random = new Random();
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(migrationRule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;

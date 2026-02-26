@@ -40,6 +40,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -53,7 +54,9 @@ public class IdentityServiceUserOperationLogTest {
   protected static final String TEST_GROUP_ID = "newTestGroup";
   protected static final String TEST_TENANT_ID = "newTestTenant";
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RepositoryService repositoryService;
@@ -62,9 +65,6 @@ public class IdentityServiceUserOperationLogTest {
   protected ProcessEngineConfiguration processEngineConfiguration;
 
   protected UserOperationLogQuery query;
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   @BeforeEach
   public void setUp() {

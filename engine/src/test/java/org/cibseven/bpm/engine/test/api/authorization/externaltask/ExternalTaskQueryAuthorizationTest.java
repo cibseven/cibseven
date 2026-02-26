@@ -33,6 +33,7 @@ import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Thorben Lindhauer
@@ -46,7 +47,7 @@ public class ExternalTaskQueryAuthorizationTest extends AuthorizationTest {
   protected String instance1Id;
   protected String instance2Id;
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
 
   @Override

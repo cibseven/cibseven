@@ -30,7 +30,7 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -45,17 +45,16 @@ public class IncidentMultipleProcessingTest {
 
   private static final StubIncidentHandler JOB_HANDLER = new StubIncidentHandler(Incident.FAILED_JOB_HANDLER_TYPE);
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule processEngineBootstrapRule = new ProcessEngineBootstrapRule(
       configuration -> {
         configuration.setCompositeIncidentHandlersEnabled(true);
         configuration.setCustomIncidentHandlers(Collections.singletonList(JOB_HANDLER));
       });
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(processEngineBootstrapRule);
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   private RuntimeService runtimeService;
   private ManagementService managementService;

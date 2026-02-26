@@ -33,6 +33,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class LicenseUserOperationLogTest {
@@ -41,7 +42,7 @@ public class LicenseUserOperationLogTest {
   private final static String LICENSE_KEY_OLD = "{\"customer\":\"old testCompany\"}";
   private static final String USER_ID = "testUserId";
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   ProcessEngine processEngine;

@@ -29,28 +29,21 @@ import org.cibseven.bpm.engine.authorization.Permissions;
 import org.cibseven.bpm.engine.repository.DecisionRequirementsDefinition;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.AuthorizationRuleExtension;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * 
  * @author Deivarayan Azhagappan
  *
  */
-
-@RunWith(Parameterized.class)
-@ExtendWith(AuthorizationRuleExtension.class)
 public class DecisionRequirementsDefinitionAuthorizationTest {
 
   protected static final String DMN_FILE = "org/cibseven/bpm/engine/test/dmn/deployment/drdDish.dmn11.xml";
@@ -58,18 +51,13 @@ public class DecisionRequirementsDefinitionAuthorizationTest {
  
   protected static final String DEFINITION_KEY = "dish";
  
-  public ProcessEngineRule engineRule;
-  public AuthorizationTestRule authRule;
+  @RegisterExtension
+  @Order(1) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
 
   protected RepositoryService repositoryService;
 
-//  @Rule
-//  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule);
-
-  @Parameter(0)
-  public AuthorizationScenario scenario;
-
-  @Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
       scenario()
@@ -98,9 +86,10 @@ public class DecisionRequirementsDefinitionAuthorizationTest {
     authRule.deleteUsersAndGroups();
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = { DMN_FILE })
-  public void getDecisionRequirementsDefinition() {
+  public void getDecisionRequirementsDefinition(AuthorizationScenario scenario) {
 
     String decisionRequirementsDefinitionId = repositoryService
       .createDecisionRequirementsDefinitionQuery()
@@ -117,9 +106,10 @@ public class DecisionRequirementsDefinitionAuthorizationTest {
     }
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = { DMN_FILE })
-  public void getDecisionRequirementsModel() {
+  public void getDecisionRequirementsModel(AuthorizationScenario scenario) {
 
     // given
     String decisionRequirementsDefinitionId = repositoryService
@@ -137,9 +127,10 @@ public class DecisionRequirementsDefinitionAuthorizationTest {
     }
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = { DMN_FILE, DRD_FILE })
-  public void getDecisionRequirementsDiagram() {
+  public void getDecisionRequirementsDiagram(AuthorizationScenario scenario) {
 
     // given
     String decisionRequirementsDefinitionId = repositoryService

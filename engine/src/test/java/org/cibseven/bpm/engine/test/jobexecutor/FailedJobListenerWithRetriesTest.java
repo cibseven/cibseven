@@ -41,37 +41,24 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import org.junit.jupiter.api.Test;
-
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
-@RunWith(Parameterized.class)
 public class FailedJobListenerWithRetriesTest {
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule();
 
+  @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RuntimeService runtimeService;
-
-  @Parameterized.Parameter(0)
   public int failedRetriesNumber;
-
-  @Parameterized.Parameter(1)
-  public int jobRetries;
-
-  @Parameterized.Parameter(2)
-  public boolean jobLocked;
-
+  
   @BeforeEach
   public void init() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
@@ -80,7 +67,6 @@ public class FailedJobListenerWithRetriesTest {
     runtimeService = engineRule.getRuntimeService();
   }
 
-  @Parameterized.Parameters
   public static Collection<Object[]> scenarios() {
     return Arrays.asList(new Object[][] {
         { 4, 0, false },
@@ -89,9 +75,11 @@ public class FailedJobListenerWithRetriesTest {
     });
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @org.cibseven.bpm.engine.test.Deployment(resources = {"org/cibseven/bpm/engine/test/api/mgmt/IncidentTest.testShouldCreateOneIncident.bpmn"})
-  public void testFailedJobListenerRetries() {
+  public void testFailedJobListenerRetries(int failedRetriesNumber, int jobRetries, boolean jobLocked) {
+    this.failedRetriesNumber = failedRetriesNumber;
     //given
     runtimeService.startProcessInstanceByKey("failingProcess");
 

@@ -21,7 +21,9 @@ import java.util.List;
 import org.cibseven.bpm.engine.externaltask.LockedExternalTask;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.junit.jupiter.api.Test;
+import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Represents a base class for authorization test cases to handle
@@ -31,9 +33,10 @@ import org.junit.jupiter.api.Test;
  */
 public abstract class HandleLockedExternalTaskAuthorizationTest extends HandleExternalTaskAuthorizationTest {
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/externaltask/oneExternalTaskProcess.bpmn20.xml")
-  public void testCompleteExternalTask() {
+  public void testCompleteExternalTask(AuthorizationScenario scenario) {
 
     // given
     ProcessInstance processInstance = engineRule.getRuntimeService().startProcessInstanceByKey("oneExternalTaskProcess");

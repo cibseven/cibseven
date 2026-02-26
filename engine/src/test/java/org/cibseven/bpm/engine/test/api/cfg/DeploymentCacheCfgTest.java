@@ -42,14 +42,14 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.CallActivityModels;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
-import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapClassExtension;
+import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.utils.cache.Cache;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -61,18 +61,15 @@ public class DeploymentCacheCfgTest {
 
 
   @RegisterExtension
-  public static ProcessEngineBootstrapClassExtension processEngineBootstrapClassExtension = ProcessEngineBootstrapClassExtension.builder()
-    .useConsumer(configuration -> {
-        // apply configuration options here
-        configuration.setCacheCapacity(2);
-        configuration.setCacheFactory(new MyCacheFactory());
-        configuration.setEnableFetchProcessDefinitionDescription(false);
-    })
-    .addProcessEngineTestRule()
-    .build();
+  @Order (1) public static ProcessEngineBootstrapRule cacheFactoryBootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
+    // apply configuration options here
+    configuration.setCacheCapacity(2);
+    configuration.setCacheFactory(new MyCacheFactory());
+    configuration.setEnableFetchProcessDefinitionDescription(false);
+});
 
-  protected ProvidedProcessEngineRule engineRule;
-  protected ProcessEngineTestRule testRule;
+  @Order (2) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(cacheFactoryBootstrapRule);
+  @Order (3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   RepositoryService repositoryService;
   ProcessEngineConfigurationImpl processEngineConfiguration;

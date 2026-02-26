@@ -42,6 +42,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -51,11 +52,10 @@ public class ManagementServiceAsyncOperationsTest extends AbstractAsyncOperation
   protected static final int RETRIES = 5;
   protected static final java.lang.String TEST_PROCESS = "exceptionInJobExecution";
 
+  @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected final Date TEST_DUE_DATE = new Date(1675752840000L);
 

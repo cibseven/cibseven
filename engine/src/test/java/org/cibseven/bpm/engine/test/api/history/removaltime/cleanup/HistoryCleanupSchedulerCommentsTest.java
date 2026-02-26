@@ -27,29 +27,30 @@ import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.TaskService;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.runtime.Job;
+import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRuleExtension;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Tassilo Weidner
  */
-@ExtendWith(ProvidedProcessEngineRuleExtension.class)
 public class HistoryCleanupSchedulerCommentsTest extends AbstractHistoryCleanupSchedulerTest {
 
-  //TODO: provide replacment of @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule =
+  @RegisterExtension
+  @Order (1) public static ProcessEngineBootstrapRule bootstrapRule =
       new ProcessEngineBootstrapRule(AbstractHistoryCleanupSchedulerTest::configure);
-  protected ProvidedProcessEngineRule engineRule;
-  protected ProcessEngineTestRule testRule;
+  @RegisterExtension
+  @Order (2) protected ProcessEngineRule engineRule = new ProcessEngineRule();
+  @RegisterExtension
+  @Order (3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
 
   protected RuntimeService runtimeService;

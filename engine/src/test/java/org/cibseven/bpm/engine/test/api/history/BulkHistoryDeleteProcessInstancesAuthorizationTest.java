@@ -37,32 +37,29 @@ import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.AuthorizationRuleTripleExtension;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Svetlana Dorokhova
  */
-@RunWith(Parameterized.class)
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
-@ExtendWith(AuthorizationRuleTripleExtension.class)
 public class BulkHistoryDeleteProcessInstancesAuthorizationTest {
 
   protected static final String ONE_TASK_PROCESS = "oneTaskProcess";
 
-  public ProcessEngineRule engineRule;
-  public AuthorizationTestRule authRule;
-  public ProcessEngineTestRule testRule;
-
-//  @Rule
-//  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule).around(testRule);
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   private HistoryService historyService;
   private RuntimeService runtimeService;
@@ -75,10 +72,7 @@ public class BulkHistoryDeleteProcessInstancesAuthorizationTest {
     authRule.createUserAndGroup("demo", "groupId");
   }
 
-  @Parameterized.Parameter
-  public AuthorizationScenario scenario;
 
-  @Parameterized.Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
         scenario()
@@ -104,10 +98,11 @@ public class BulkHistoryDeleteProcessInstancesAuthorizationTest {
     authRule.deleteUsersAndGroups();
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = {
       "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
-  public void testCleanupHistory() {
+  public void testCleanupHistory(AuthorizationScenario scenario) {
     //given
     final List<String> ids = prepareHistoricProcesses();
     runtimeService.deleteProcessInstances(ids, null, true, true);

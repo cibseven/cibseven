@@ -54,6 +54,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -61,8 +62,9 @@ import org.junit.jupiter.api.Test;
  *
  */
 public class MigrationHistoricVariablesTest {
-
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
   protected static final BpmnModelInstance ONE_BOUNDARY_TASK = ModifiableBpmnModelInstance.modify(ProcessModels.ONE_TASK_PROCESS)
@@ -88,9 +90,6 @@ public class MigrationHistoricVariablesTest {
       .boundaryEvent()
       .message("Message")
       .done();
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   protected RuntimeService runtimeService;
   protected TaskService taskService;

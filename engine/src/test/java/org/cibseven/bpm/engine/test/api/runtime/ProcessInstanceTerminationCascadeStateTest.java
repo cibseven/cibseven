@@ -39,15 +39,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class ProcessInstanceTerminationCascadeStateTest {
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-//  @Rule
-//  public RuleChain chain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected ProcessEngine engine;
   protected RepositoryService repositoryService;

@@ -46,7 +46,7 @@ import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -57,10 +57,12 @@ import org.junit.jupiter.api.Test;
  */
 public class MigrationVariablesTest {
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configuration.setJavaSerializationFormatEnabled(true));
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
   protected static final BpmnModelInstance ONE_BOUNDARY_TASK = ModifiableBpmnModelInstance.modify(ProcessModels.ONE_TASK_PROCESS)
@@ -86,9 +88,6 @@ public class MigrationVariablesTest {
       .boundaryEvent()
       .message("Message")
       .done();
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   protected RuntimeService runtimeService;
   protected TaskService taskService;

@@ -21,6 +21,7 @@ import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationS
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.ArrayList;
@@ -71,9 +72,9 @@ public class SetJobRetriesBatchAuthorizationTest extends AbstractBatchAuthorizat
   }
 
   @RegisterExtension
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @Order(1) public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
   @RegisterExtension
-  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @Order(2) public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   public AuthorizationScenarioWithCount scenario;
 

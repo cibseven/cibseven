@@ -40,6 +40,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -52,13 +53,10 @@ public class MultiTenancyDeploymentCmdsTenantCheckTest {
 
   protected static final BpmnModelInstance emptyProcess = Bpmn.createExecutableProcess().startEvent().done();
   protected static final BpmnModelInstance startEndProcess = Bpmn.createExecutableProcess().startEvent().endEvent().done();
-
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected RepositoryService repositoryService;
   protected IdentityService identityService;

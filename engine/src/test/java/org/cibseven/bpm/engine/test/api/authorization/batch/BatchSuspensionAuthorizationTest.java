@@ -36,6 +36,7 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -47,11 +48,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class BatchSuspensionAuthorizationTest {
 
   @RegisterExtension
-  static ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(1) static ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  static AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @Order(2) static AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
   @RegisterExtension
-  static ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @Order(3) static ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   private AuthorizationScenario scenario;
 

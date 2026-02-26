@@ -29,10 +29,11 @@ import org.cibseven.bpm.engine.impl.history.HistoryRemovalTimeProvider;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -40,11 +41,10 @@ import org.junit.jupiter.api.Test;
  */
 public class RemovalTimeStrategyConfigurationTest {
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected static ProcessEngineConfigurationImpl processEngineConfiguration;
 
@@ -58,7 +58,7 @@ public class RemovalTimeStrategyConfigurationTest {
       .initHistoryRemovalTime();
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDown() {
     processEngineConfiguration
       .setHistoryRemovalTimeStrategy(null)

@@ -40,26 +40,27 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
-import org.cibseven.bpm.engine.test.util.AuthorizationRuleTripleExtension;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
-@ExtendWith(AuthorizationRuleTripleExtension.class)
 public class HistoricExternalTaskLogQueryTest {
 
   protected final String WORKER_ID = "aWorkerId";
   protected final long LOCK_DURATION = 5 * 60L * 1000L;
 
-  protected ProcessEngineRule engineRule;
-  protected AuthorizationTestRule authRule;
-  protected ProcessEngineTestRule testHelper;
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected ProcessInstance processInstance;
   protected RuntimeService runtimeService;
@@ -925,35 +926,35 @@ public class HistoricExternalTaskLogQueryTest {
 
   protected ExternalTask startExternalTaskProcessGivenTopicName(String topicName) {
     BpmnModelInstance processModelWithCustomTopic = createDefaultExternalTaskModel().topic(topicName).build();
-    ProcessDefinition sourceProcessDefinition = testHelper.deployAndGetDefinition(processModelWithCustomTopic);
+    ProcessDefinition sourceProcessDefinition = testRule.deployAndGetDefinition(processModelWithCustomTopic);
     ProcessInstance pi = runtimeService.startProcessInstanceById(sourceProcessDefinition.getId());
     return externalTaskService.createExternalTaskQuery().processInstanceId(pi.getId()).singleResult();
   }
 
   protected ExternalTask startExternalTaskProcessGivenActivityId(String activityId) {
     BpmnModelInstance processModelWithCustomActivityId = createDefaultExternalTaskModel().externalTaskName(activityId).build();
-    ProcessDefinition sourceProcessDefinition = testHelper.deployAndGetDefinition(processModelWithCustomActivityId);
+    ProcessDefinition sourceProcessDefinition = testRule.deployAndGetDefinition(processModelWithCustomActivityId);
     ProcessInstance pi = runtimeService.startProcessInstanceById(sourceProcessDefinition.getId());
     return externalTaskService.createExternalTaskQuery().processInstanceId(pi.getId()).singleResult();
   }
 
   protected ExternalTask startExternalTaskProcessGivenProcessDefinitionKey(String processDefinitionKey) {
     BpmnModelInstance processModelWithCustomKey = createDefaultExternalTaskModel().processKey(processDefinitionKey).build();
-    ProcessDefinition sourceProcessDefinition = testHelper.deployAndGetDefinition(processModelWithCustomKey);
+    ProcessDefinition sourceProcessDefinition = testRule.deployAndGetDefinition(processModelWithCustomKey);
     ProcessInstance pi = runtimeService.startProcessInstanceById(sourceProcessDefinition.getId());
     return externalTaskService.createExternalTaskQuery().processInstanceId(pi.getId()).singleResult();
   }
 
   protected ExternalTask startExternalTaskProcessGivenPriority(int priority) {
     BpmnModelInstance processModelWithCustomPriority = createDefaultExternalTaskModel().priority(priority).build();
-    ProcessDefinition sourceProcessDefinition = testHelper.deployAndGetDefinition(processModelWithCustomPriority);
+    ProcessDefinition sourceProcessDefinition = testRule.deployAndGetDefinition(processModelWithCustomPriority);
     ProcessInstance pi = runtimeService.startProcessInstanceById(sourceProcessDefinition.getId());
     return externalTaskService.createExternalTaskQuery().processInstanceId(pi.getId()).singleResult();
   }
 
   protected ExternalTask startExternalTaskProcess() {
     BpmnModelInstance oneExternalTaskProcess = createDefaultExternalTaskModel().build();
-    ProcessDefinition sourceProcessDefinition = testHelper.deployAndGetDefinition(oneExternalTaskProcess);
+    ProcessDefinition sourceProcessDefinition = testRule.deployAndGetDefinition(oneExternalTaskProcess);
     ProcessInstance pi = runtimeService.startProcessInstanceById(sourceProcessDefinition.getId());
     return externalTaskService.createExternalTaskQuery().processInstanceId(pi.getId()).singleResult();
   }

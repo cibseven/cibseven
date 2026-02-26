@@ -24,8 +24,8 @@ import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
-import org.junit.jupiter.api.Test;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Collection;
 
@@ -34,7 +34,6 @@ import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationS
 
 public class CorrelateAllMessageBatchAuthorizationTest extends BatchCreationAuthorizationTest {
 
-  @Parameterized.Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
         scenario()
@@ -63,8 +62,9 @@ public class CorrelateAllMessageBatchAuthorizationTest extends BatchCreationAuth
     );
   }
 
-  @Test
-  public void shouldAuthorizeSetVariablesBatch() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void shouldAuthorizeSetVariablesBatch(AuthorizationScenario scenario) {
     // given
     authRule
         .init(scenario)

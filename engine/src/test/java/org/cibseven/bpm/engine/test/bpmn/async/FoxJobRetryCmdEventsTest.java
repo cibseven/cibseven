@@ -33,29 +33,20 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-
-import org.junit.jupiter.api.Test;
-
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Askar Akhmerov
  */
-@RunWith(Parameterized.class)
 public class FoxJobRetryCmdEventsTest {
 
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
-
-
-  @Parameterized.Parameter
-  public RetryCmdDeployment deployment;
-
-  @Parameterized.Parameters(name = "deployment {index}")
   public static Collection<RetryCmdDeployment[]> scenarios() {
     return RetryCmdDeployment.asParameters(
         deployment()
@@ -71,13 +62,10 @@ public class FoxJobRetryCmdEventsTest {
 
   private Deployment currentDeployment;
 
-  @BeforeEach
-  public void setUp () {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testFailedIntermediateThrowingSignalEventAsync(RetryCmdDeployment deployment) {
     currentDeployment = testRule.deploy(deployment.getBpmnModelInstances());
-  }
-
-  @Test
-  public void testFailedIntermediateThrowingSignalEventAsync () {
     ProcessInstance pi = engineRule.getRuntimeService().startProcessInstanceByKey(RetryCmdDeployment.PROCESS_ID);
     assertJobRetries(pi);
   }

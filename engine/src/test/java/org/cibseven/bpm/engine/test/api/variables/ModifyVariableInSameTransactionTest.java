@@ -38,11 +38,12 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class ModifyVariableInSameTransactionTest {
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-//  @Rule
+  @RegisterExtension
   public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   @Test

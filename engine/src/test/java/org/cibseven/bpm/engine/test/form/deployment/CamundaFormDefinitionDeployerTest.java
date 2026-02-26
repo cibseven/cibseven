@@ -30,15 +30,10 @@ import org.cibseven.bpm.engine.test.util.CamundaFormUtils;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import org.junit.jupiter.api.Test;
-
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
-
-@RunWith(Parameterized.class)
 public class CamundaFormDefinitionDeployerTest {
 
   protected static final String BPMN_USER_TASK_FORM_REF_DEPLOYMENT = "org/cibseven/bpm/engine/test/form/deployment/CamundaFormDefinitionDeployerTest.shouldDeployProcessWithCamundaFormDefinitionBindingDeployment.bpmn";
@@ -46,19 +41,14 @@ public class CamundaFormDefinitionDeployerTest {
   protected static final String BPMN_USER_TASK_FORM_REF_VERSION = "org/cibseven/bpm/engine/test/form/deployment/CamundaFormDefinitionDeployerTest.shouldDeployProcessWithCamundaFormDefinitionBindingVersion.bpmn";
   protected static final String SIMPLE_FORM = "org/cibseven/bpm/engine/test/form/deployment/CamundaFormDefinitionDeployerTest.simple_form.form";
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   RepositoryService repositoryService;
   ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Parameter(0)
-  public String bpmnResource;
-
-  @Parameters(name = "{0}")
   public static Collection<Object> params() {
     return Arrays.asList(new String[] {
         BPMN_USER_TASK_FORM_REF_DEPLOYMENT,
@@ -72,8 +62,9 @@ public class CamundaFormDefinitionDeployerTest {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
   }
 
-  @Test
-  public void shouldDeployProcessWithCamundaFormDefinition() {
+  @ParameterizedTest
+  @MethodSource("params")
+  public void shouldDeployProcessWithCamundaFormDefinition(String bpmnResource) {
     String deploymentId = testRule.deploy(bpmnResource, SIMPLE_FORM).getId();
 
     // there should only be one deployment

@@ -22,19 +22,15 @@ import org.cibseven.bpm.engine.test.cmmn.handler.specification.AbstractExecution
 import org.cibseven.bpm.model.cmmn.instance.PlanItem;
 import org.cibseven.bpm.model.cmmn.instance.Task;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-@RunWith(Parameterized.class)
 public class TaskPlanItemExecutionListenerHandlerTest extends CmmnElementHandlerTest {
 
-  @Parameters(name = "testListener: {0}")
   public static Iterable<Object[]> data() {
     return ExecutionListenerCases.TASK_OR_STAGE_CASES;
   }
@@ -42,12 +38,6 @@ public class TaskPlanItemExecutionListenerHandlerTest extends CmmnElementHandler
   protected Task task;
   protected PlanItem planItem;
   protected TaskItemHandler handler = new TaskItemHandler();
-
-  protected AbstractExecutionListenerSpec testSpecification;
-
-  public TaskPlanItemExecutionListenerHandlerTest(AbstractExecutionListenerSpec testSpecification) {
-    this.testSpecification = testSpecification;
-  }
 
   @BeforeEach
   public void setUp() {
@@ -57,8 +47,9 @@ public class TaskPlanItemExecutionListenerHandlerTest extends CmmnElementHandler
     planItem.setDefinition(task);
   }
 
-  @Test
-  public void testCaseExecutionListener() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testCaseExecutionListener(AbstractExecutionListenerSpec testSpecification) {
     // given:
     testSpecification.addListenerToElement(modelInstance, task);
 

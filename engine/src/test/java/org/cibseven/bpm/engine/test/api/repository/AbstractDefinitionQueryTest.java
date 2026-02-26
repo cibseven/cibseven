@@ -28,6 +28,7 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 
@@ -35,11 +36,10 @@ public abstract class AbstractDefinitionQueryTest {
 
   protected final static String FIRST_DEPLOYMENT_NAME = "firstDeployment";
   protected static final String SECOND_DEPLOYMENT_NAME = "secondDeployment";
-
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-//  @Rule
-//  public RuleChain chain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected RepositoryService repositoryService;
   protected RuntimeService runtimeService;

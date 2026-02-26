@@ -41,6 +41,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class MultiTenancyFormServiceCmdsTenantCheckTest {
@@ -60,12 +61,10 @@ public class MultiTenancyFormServiceCmdsTenantCheckTest {
 
   protected IdentityService identityService;
 
+  @RegisterExtension
   protected RepositoryService repositoryService;
-
+  @RegisterExtension
   protected ProcessEngineConfiguration processEngineConfiguration;
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   @BeforeEach
   public void init() {

@@ -34,6 +34,7 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 
@@ -57,11 +58,10 @@ public class MigrationIntermediateConditionalEventTest {
   protected static final String VAR_NAME = "variable";
   protected static final String NEW_CONDITION_ID = "newCondition";
   protected static final String NEW_VAR_CONDITION = "${variable == 2}";
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testMigrateEventSubscription() {

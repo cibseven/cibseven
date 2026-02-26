@@ -39,6 +39,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -46,14 +47,10 @@ import org.junit.jupiter.api.Test;
  */
 public class TaskCountByCandidateGroupAuthorizationTest {
 
+  @RegisterExtension
   public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public ProcessEngineTestRule processEngineTestRule = new ProcessEngineTestRule(processEngineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain
-//    .outerRule(processEngineTestRule)
-//    .around(processEngineRule);
-
 
   protected TaskService taskService;
   protected IdentityService identityService;

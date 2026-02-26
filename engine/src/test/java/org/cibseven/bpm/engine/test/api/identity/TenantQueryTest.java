@@ -31,6 +31,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class TenantQueryTest {
 
@@ -40,7 +41,7 @@ public class TenantQueryTest {
   protected static final String USER = "user";
   protected static final String GROUP = "group";
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected IdentityService identityService;

@@ -24,6 +24,7 @@ import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.junit.jupiter.api.AfterEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -35,7 +36,7 @@ public class BpmnBehaviorLoggerTest extends PluggableProcessEngineTest {
     processEngineConfiguration.setEnableExceptionsAfterUnhandledBpmnError(false);
   }
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineLoggingRule processEngineLoggingRule = new ProcessEngineLoggingRule().watch(
       "org.cibseven.bpm.engine.bpmn.behavior", Level.INFO);
 

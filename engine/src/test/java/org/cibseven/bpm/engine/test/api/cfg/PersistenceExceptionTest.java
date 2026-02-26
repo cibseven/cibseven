@@ -33,6 +33,7 @@ import org.junit.Assume;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -41,11 +42,10 @@ import org.junit.jupiter.api.Test;
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_AUDIT)
 public class PersistenceExceptionTest {
 
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   private RuntimeService runtimeService;
 

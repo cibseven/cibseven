@@ -29,10 +29,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class EnableHistoricInstancePermissionsTest {
 
-//  @Rule
+  @RegisterExtension
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected ProcessEngineConfigurationImpl config;

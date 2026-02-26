@@ -37,17 +37,19 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.AfterEach;
 
 
 public class JobExecutorBatchTest {
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
+  @RegisterExtension
   protected BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule);
   public CountingJobExecutor jobExecutor;
   protected JobExecutor defaultJobExecutor;
   protected int defaultBatchJobsPerSeed;

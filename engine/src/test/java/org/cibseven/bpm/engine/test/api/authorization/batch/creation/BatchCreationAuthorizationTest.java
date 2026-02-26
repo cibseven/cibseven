@@ -33,34 +33,30 @@ import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.AuthorizationRuleTripleExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Askar Akhmerov
  */
-@RunWith(Parameterized.class)
-@ExtendWith(AuthorizationRuleTripleExtension.class)
 public abstract class BatchCreationAuthorizationTest {
 
   protected static final String TEST_REASON = "test reason";
   protected static final String JOB_EXCEPTION_DEFINITION_XML = "org/cibseven/bpm/engine/test/api/mgmt/ManagementServiceTest.testGetJobExceptionStacktrace.bpmn20.xml";
 
-  protected ProcessEngineRule engineRule ;
-  protected AuthorizationTestRule authRule ;
-  protected ProcessEngineTestRule testRule;
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected ProcessInstance processInstance;
   protected RuntimeService runtimeService;
   protected ManagementService managementService;
   protected HistoryService historyService;
-
-  @Parameterized.Parameter
-  public AuthorizationScenario scenario;
 
   @BeforeEach
   public void setUp() {

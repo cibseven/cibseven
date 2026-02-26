@@ -35,17 +35,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.AfterEach;
 
 public class BatchJobPriorityRangeTest {
 
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule migrationRule = new MigrationTestRule(rule);
   protected BatchMigrationHelper helper = new BatchMigrationHelper(rule, migrationRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(migrationRule);
 
   ProcessEngineConfigurationImpl configuration;
 

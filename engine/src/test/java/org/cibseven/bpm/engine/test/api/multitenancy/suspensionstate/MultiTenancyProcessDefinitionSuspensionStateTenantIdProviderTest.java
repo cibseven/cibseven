@@ -29,7 +29,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -45,16 +45,15 @@ public class MultiTenancyProcessDefinitionSuspensionStateTenantIdProviderTest {
       .endEvent()
     .done();
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
     TenantIdProvider tenantIdProvider = new StaticTenantIdTestProvider(TENANT_ONE);
     configuration.setTenantIdProvider(tenantIdProvider);
   });
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   @BeforeEach
   public void setUp() throws Exception {

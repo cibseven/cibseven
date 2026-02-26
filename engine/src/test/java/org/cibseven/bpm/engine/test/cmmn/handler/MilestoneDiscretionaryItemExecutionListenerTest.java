@@ -23,19 +23,15 @@ import org.cibseven.bpm.model.cmmn.instance.DiscretionaryItem;
 import org.cibseven.bpm.model.cmmn.instance.Milestone;
 import org.cibseven.bpm.model.cmmn.instance.PlanningTable;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Roman Smirnov
  *
  */
-@RunWith(Parameterized.class)
 public class MilestoneDiscretionaryItemExecutionListenerTest extends CmmnElementHandlerTest {
 
-  @Parameters(name = "testListener: {0}")
   public static Iterable<Object[]> data() {
     return ExecutionListenerCases.EVENTLISTENER_OR_MILESTONE_CASES;
   }
@@ -45,25 +41,17 @@ public class MilestoneDiscretionaryItemExecutionListenerTest extends CmmnElement
   protected DiscretionaryItem discretionaryItem;
   protected MilestoneItemHandler handler = new MilestoneItemHandler();
 
-  protected AbstractExecutionListenerSpec testSpecification;
-
-  public MilestoneDiscretionaryItemExecutionListenerTest(AbstractExecutionListenerSpec testSpecification) {
-    this.testSpecification = testSpecification;
-  }
-
   @BeforeEach
   public void setUp() {
     milestone = createElement(casePlanModel, "aMilestone", Milestone.class);
-
     planningTable = createElement(casePlanModel, "aPlanningTable", PlanningTable.class);
-
     discretionaryItem = createElement(planningTable, "DI_aMilestone", DiscretionaryItem.class);
     discretionaryItem.setDefinition(milestone);
-
   }
 
-  @Test
-  public void testCaseExecutionListener() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testCaseExecutionListener(AbstractExecutionListenerSpec testSpecification) {
     // given:
     testSpecification.addListenerToElement(modelInstance, milestone);
 

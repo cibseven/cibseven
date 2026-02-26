@@ -37,7 +37,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -47,10 +47,12 @@ import org.junit.jupiter.api.Test;
  */
 public class HistoryCleanupSchedulerBatchesTest extends AbstractHistoryCleanupSchedulerTest {
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configure(configuration, HistoryEventTypes.BATCH_START, HistoryEventTypes.BATCH_END));
+  @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   @BeforeEach
@@ -64,9 +66,6 @@ public class HistoryCleanupSchedulerBatchesTest extends AbstractHistoryCleanupSc
     runtimeService = engineRule.getRuntimeService();
     taskService = engineRule.getTaskService();
   }
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected RuntimeService runtimeService;
   protected TaskService taskService;

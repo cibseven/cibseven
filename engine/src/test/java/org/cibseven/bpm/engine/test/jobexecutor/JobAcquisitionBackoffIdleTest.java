@@ -35,6 +35,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -48,7 +49,7 @@ public class JobAcquisitionBackoffIdleTest {
 
   protected ControllableJobExecutor jobExecutor;
   protected ThreadControl acquisitionThread;
-
+  @RegisterExtension
   protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
     jobExecutor = new ControllableJobExecutor(true);
     jobExecutor.setMaxJobsPerAcquisition(1);
@@ -57,10 +58,8 @@ public class JobAcquisitionBackoffIdleTest {
     acquisitionThread = jobExecutor.getAcquisitionThreadControl();
     configuration.setJobExecutor(jobExecutor);
   });
+  @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule);
 
   @AfterEach
   public void shutdownJobExecutor() {

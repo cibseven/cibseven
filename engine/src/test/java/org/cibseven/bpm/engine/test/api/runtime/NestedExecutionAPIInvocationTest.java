@@ -31,7 +31,7 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -41,13 +41,13 @@ import org.junit.jupiter.api.Test;
  */
 public class NestedExecutionAPIInvocationTest {
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule1 = new ProvidedProcessEngineRule();
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule engine2BootstrapRule = new ProcessEngineBootstrapRule("camunda.cfg.prefix_extended.xml");
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule2 = new ProvidedProcessEngineRule(engine2BootstrapRule);
 
   public static final String PROCESS_KEY_1 = "process";

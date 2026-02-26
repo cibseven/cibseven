@@ -50,6 +50,7 @@ import org.joda.time.DateTime;
 import org.junit.jupiter.api.Assertions;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class MigrationEventSubProcessTest {
@@ -59,11 +60,10 @@ public class MigrationEventSubProcessTest {
   protected static final String EVENT_SUB_PROCESS_TASK_ID = "eventSubProcessTask";
   protected static final String USER_TASK_ID = "userTask";
 
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testMigrateActiveEventSubProcess() {

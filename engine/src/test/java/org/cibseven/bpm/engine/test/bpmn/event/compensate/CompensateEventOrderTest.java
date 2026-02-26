@@ -39,6 +39,7 @@ import org.cibseven.bpm.model.bpmn.instance.BoundaryEvent;
 import org.cibseven.bpm.model.bpmn.instance.ServiceTask;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Svetlana Dorokhova
@@ -46,9 +47,9 @@ import org.junit.jupiter.api.Test;
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
 public class CompensateEventOrderTest {
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-//  @Rule
+  @RegisterExtension
   public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   @Test

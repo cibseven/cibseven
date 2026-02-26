@@ -53,6 +53,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Christopher Zell <christopher.zell@camunda.com>
@@ -61,7 +62,7 @@ public class PurgeDatabaseTest {
 
   protected static final String PROCESS_DEF_KEY = "test";
   protected static final String PROCESS_MODEL_NAME = "test.bpmn20.xml";
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   private ProcessEngineConfigurationImpl processEngineConfiguration;
   private String databaseTablePrefix;

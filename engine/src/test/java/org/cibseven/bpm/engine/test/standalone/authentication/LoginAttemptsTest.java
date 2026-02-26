@@ -34,15 +34,15 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class LoginAttemptsTest {
 
   private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
   private static final String INDENTITY_LOGGER = "org.cibseven.bpm.engine.identity";
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
       configuration.setJdbcUrl("jdbc:h2:mem:LoginAttemptsTest;DB_CLOSE_DELAY=1000");
       configuration.setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_CREATE_DROP);
@@ -51,9 +51,9 @@ public class LoginAttemptsTest {
       configuration.setLoginDelayMaxTime(30);
       configuration.setLoginDelayBase(1);
   });
-
+  @RegisterExtension
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
                                                       .watch(INDENTITY_LOGGER)
                                                       .level(Level.INFO);

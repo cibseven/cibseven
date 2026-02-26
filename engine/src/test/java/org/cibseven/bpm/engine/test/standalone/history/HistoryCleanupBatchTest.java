@@ -31,6 +31,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class HistoryCleanupBatchTest {
 
@@ -39,7 +40,7 @@ public class HistoryCleanupBatchTest {
 
   protected static final String CONFIG_LOGGER = "org.cibseven.bpm.engine.cfg";
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch(CONFIG_LOGGER)
       .level(Level.WARN);

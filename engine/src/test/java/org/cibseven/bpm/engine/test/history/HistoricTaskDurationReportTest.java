@@ -41,14 +41,12 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Stefan Hentschel.
  */
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
-@ExtendWith(ProvidedProcessEngineRule.class)
 public class HistoricTaskDurationReportTest {
 
   @RegisterExtension

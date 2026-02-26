@@ -36,7 +36,7 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -52,14 +52,13 @@ public class JdbcStatementTimeoutTest extends ConcurrencyTestHelper {
   private static final int TEST_TIMEOUT_IN_MILLIS = 10000;
   private static final String JOB_ENTITY_ID = "42";
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
           configuration.setJdbcStatementTimeout(STATEMENT_TIMEOUT_IN_SECONDS));
+  @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   private ConcurrencyTestHelper.ThreadControl thread1;
   private ConcurrencyTestHelper.ThreadControl thread2;

@@ -31,7 +31,7 @@ import org.cibseven.bpm.engine.impl.db.sql.DbSqlSessionFactory;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
@@ -47,7 +47,7 @@ public class SchemaLogTestCase {
   protected final static List<String> SCRIPT_FOLDERS = Arrays.asList(CREATE_SCRIPT_FOLDER, UPGRADE_SCRIPT_FOLDER);
   protected final static String[] DATABASES = DbSqlSessionFactory.SUPPORTED_DATABASES;
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule rule = new ProvidedProcessEngineRule();
 
   public ProcessEngine processEngine;

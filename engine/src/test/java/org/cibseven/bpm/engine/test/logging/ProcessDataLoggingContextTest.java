@@ -38,7 +38,6 @@ import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.repository.DeploymentBuilder;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapClassExtension;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
@@ -51,14 +50,12 @@ import org.jboss.logging.MDC;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 
-//TODO: Needs ExtendsWith or RegisterExtension to 
-// replace @ClassRule and @Rule with JUnit 5 equivalents
 public class ProcessDataLoggingContextTest {
 
   private static final String PROCESS = "process";
@@ -77,17 +74,17 @@ public class ProcessDataLoggingContextTest {
   private RuntimeContainerDelegate runtimeContainerDelegate = RuntimeContainerDelegate.INSTANCE.get();
   private boolean defaultEngineRegistered;
 
-//  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
-      configuration.setLoggingContextBusinessKey("businessKey"));
+  configuration.setLoggingContextBusinessKey("businessKey"));
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
 
   private RuntimeService runtimeService;

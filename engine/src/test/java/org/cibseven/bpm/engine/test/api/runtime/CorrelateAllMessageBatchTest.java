@@ -58,6 +58,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.AfterEach;
 
 
@@ -70,13 +71,13 @@ public class CorrelateAllMessageBatchTest {
   protected static final String MESSAGE_TWO_REF = "message-two";
   protected static final Date TEST_DATE = new Date(1457326800000L);
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
   protected BatchRule rule = new BatchRule(engineRule, engineTestRule);
   protected BatchHelper helper = new BatchHelper(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule).around(rule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;

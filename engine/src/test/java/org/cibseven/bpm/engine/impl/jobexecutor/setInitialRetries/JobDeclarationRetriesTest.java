@@ -22,21 +22,20 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.jobexecutor.FailingDelegate;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
-import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRuleExtension;
+import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
-@ExtendWith(ProvidedProcessEngineRuleExtension.class)
 public class JobDeclarationRetriesTest {
-
-  protected ProcessEngineRule engineRule;
-
-  protected ProcessEngineTestRule testRule;
+  @RegisterExtension
+  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   private ManagementService managementService;
   private RuntimeService runtimeService;

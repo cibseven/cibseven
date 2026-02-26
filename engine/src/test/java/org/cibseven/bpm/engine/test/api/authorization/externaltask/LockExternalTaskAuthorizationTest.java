@@ -19,17 +19,17 @@ package org.cibseven.bpm.engine.test.api.authorization.externaltask;
 import org.cibseven.bpm.engine.externaltask.ExternalTask;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
+import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
 public class LockExternalTaskAuthorizationTest extends HandleExternalTaskAuthorizationTest {
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/externaltask/oneExternalTaskProcess.bpmn20.xml")
-  public void shouldLockExternalTaskWithAuthorizations() {
+  public void shouldLockExternalTaskWithAuthorizations(AuthorizationScenario scenario) {
 
     // given
     ProcessInstance processInstance = engineRule.getRuntimeService()

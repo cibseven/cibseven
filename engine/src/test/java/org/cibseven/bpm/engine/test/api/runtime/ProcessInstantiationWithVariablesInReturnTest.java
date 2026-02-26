@@ -45,7 +45,7 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.junit.jupiter.api.Assertions;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -64,14 +64,13 @@ public class ProcessInstantiationWithVariablesInReturnTest {
   protected static final String SET_VARIABLE_IN_DELEGATE_WITH_WAIT_STATE_PROCESS = "org/cibseven/bpm/engine/test/api/runtime/ProcessInstantiationWithVariablesInReturn.setVariableInDelegateWithWaitState.bpmn20.xml";
   protected static final String SIMPLE_PROCESS = "org/cibseven/bpm/engine/test/api/runtime/ProcessInstantiationWithVariablesInReturn.simpleProcess.bpmn20.xml";
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configuration.setJavaSerializationFormatEnabled(true));
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
   protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain chain = RuleChain.outerRule(engineRule).around(testHelper);
 
   private void checkVariables(VariableMap map, int expectedSize) {
     List<HistoricVariableInstance> variables = engineRule.getHistoryService()

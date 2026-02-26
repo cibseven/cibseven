@@ -24,6 +24,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Roman Smirnov
@@ -31,10 +32,10 @@ import org.junit.jupiter.api.Test;
  */
 public class DisableScriptEngineCachingTest {
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
       "org/cibseven/bpm/engine/test/standalone/scripting/disable.script.engine.caching.cfg.xml");
-//  @Rule
+  @RegisterExtension
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;

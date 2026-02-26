@@ -28,7 +28,7 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -37,11 +37,11 @@ import org.junit.jupiter.api.Test;
  */
 public class JobRetryCmdWithDefaultPropertyTest {
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
       "org/cibseven/bpm/engine/test/bpmn/async/default.job.retry.property.camunda.cfg.xml");
 
-//  @Rule
+  @RegisterExtension
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   protected RuntimeService runtimeService;

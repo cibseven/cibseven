@@ -29,8 +29,9 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class GlobalRetryConfigurationTest {
@@ -41,13 +42,13 @@ public class GlobalRetryConfigurationTest {
   private static final String SCHEDULE = "R5/PT5M";
   private static final int JOB_RETRIES = 4;
 
-  protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
+  @Order(1) protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configuration.setFailedJobRetryTimeCycle(SCHEDULE));
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(2) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule).around(testRule);
 
   private RuntimeService runtimeService;
   private ManagementService managementService;

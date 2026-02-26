@@ -62,6 +62,7 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
+import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.runtime.DummySerializable;
 import org.cibseven.bpm.engine.test.api.runtime.util.CustomSerializable;
@@ -69,14 +70,13 @@ import org.cibseven.bpm.engine.test.api.runtime.util.FailingSerializable;
 import org.cibseven.bpm.engine.test.history.SerializableVariable;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRuleExtension;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.engine.variable.value.FileValue;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -86,11 +86,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * @author Christian Lipphardt (camunda)
  */
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
-@ExtendWith(ProvidedProcessEngineRuleExtension.class)
 public class FullHistoryTest {
 
-  protected ProvidedProcessEngineRule engineRule;
-  protected ProcessEngineTestRule testRule;
+  @RegisterExtension
+  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;

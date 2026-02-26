@@ -48,18 +48,19 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class BatchSuspensionTest {
 
   public static final String USER_ID = "userId";
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
   protected BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule);
 
   protected RuntimeService runtimeService;
   protected ManagementService managementService;

@@ -20,14 +20,14 @@ import org.cibseven.bpm.engine.ManagementService;
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.jobexecutor.FailingDelegate;
-import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapClassExtension;
+import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -35,13 +35,11 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 public class LegacyJobDeclarationRetriesTest {
 
   @RegisterExtension
-  public static ProcessEngineBootstrapClassExtension processEngineBootstrapClassExtension = ProcessEngineBootstrapClassExtension.builder()
-    .useConsumer(config -> config.setLegacyJobRetryBehaviorEnabled(true))
-    .addProcessEngineTestRule()
-    .build();
-
-  protected ProvidedProcessEngineRule engineRule;
-  protected ProcessEngineTestRule testRule;
+  @Order (1) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(config -> config.setLegacyJobRetryBehaviorEnabled(true));
+  @RegisterExtension
+  @Order (2) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order (3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   private ManagementService managementService;
   private RuntimeService runtimeService;

@@ -45,8 +45,8 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.task.TaskQuery;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
+import org.cibseven.bpm.engine.test.api.runtime.migration.MigrationTestRule;
 import org.cibseven.bpm.engine.test.util.ClockTestUtil;
-import org.cibseven.bpm.engine.test.util.MigrationRuleExtension;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
@@ -56,13 +56,12 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
  * @author Joram Barrez
  */
-@ExtendWith(MigrationRuleExtension.class)
 public class BoundaryTimerNonInterruptingEventTest {
 
   protected static final String TIMER_NON_INTERRUPTING_EVENT = "org/cibseven/bpm/engine/test/bpmn/event/timer/BoundaryTimerNonInterruptingEventTest.shouldReevaluateTimerCycleWhenDue.bpmn20.xml";
@@ -70,11 +69,13 @@ public class BoundaryTimerNonInterruptingEventTest {
   protected static final long ONE_HOUR = TimeUnit.HOURS.toMillis(1L);
   protected static final long TWO_HOURS = TimeUnit.HOURS.toMillis(2L);
 
-  public ProcessEngineRule engineRule;
-  public ProcessEngineTestRule testHelper;
+  @RegisterExtension
+  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  private  MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RuntimeService runtimeService;

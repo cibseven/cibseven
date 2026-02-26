@@ -43,6 +43,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class MultiTenancyRepositoryServiceTest {
@@ -53,13 +54,10 @@ public class MultiTenancyRepositoryServiceTest {
   protected static final BpmnModelInstance emptyProcess = Bpmn.createExecutableProcess().startEvent().done();
   protected static final String CMMN = "org/cibseven/bpm/engine/test/cmmn/deployment/CmmnDeploymentTest.testSimpleDeployment.cmmn";
   protected static final String DMN = "org/cibseven/bpm/engine/test/api/multitenancy/simpleDecisionTable.dmn";
-
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected RepositoryService repositoryService;
   protected ProcessEngineConfiguration processEngineConfiguration;

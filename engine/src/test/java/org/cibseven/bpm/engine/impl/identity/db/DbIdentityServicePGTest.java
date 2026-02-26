@@ -2,16 +2,15 @@ package org.cibseven.bpm.engine.impl.identity.db;
 
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.ClassRule;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.zonky.test.db.postgres.junit.EmbeddedPostgresRules;
-import io.zonky.test.db.postgres.junit.SingleInstancePostgresRule;
+import io.zonky.test.db.postgres.junit5.EmbeddedPostgresExtension;
+import io.zonky.test.db.postgres.junit5.SingleInstancePostgresExtension;
 
 public class DbIdentityServicePGTest extends DbIdentityServiceTestAbstract {
 
-	@ClassRule
-	public static SingleInstancePostgresRule pg = EmbeddedPostgresRules.singleInstance();
+	@RegisterExtension
+	public SingleInstancePostgresExtension pg = EmbeddedPostgresExtension.singleInstance();
 	
 	@RegisterExtension
 	public final ProcessEngineRule processEngineRule = new ProcessEngineRule(

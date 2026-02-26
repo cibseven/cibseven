@@ -29,12 +29,11 @@ import org.cibseven.bpm.engine.authorization.Resources;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
-import org.junit.jupiter.api.Test;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class HistoricProcessInstanceDeletionBatchAuthorizationTest extends BatchCreationAuthorizationTest {
 
-  @Parameterized.Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
         scenario()
@@ -55,9 +54,10 @@ public class HistoricProcessInstanceDeletionBatchAuthorizationTest extends Batch
   }
 
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_AUDIT)
-  public void testBatchHistoricProcessInstanceDeletion() {
+  public void testBatchHistoricProcessInstanceDeletion(AuthorizationScenario scenario) {
     List<String> historicProcessInstances = setupHistory();
 
     //given

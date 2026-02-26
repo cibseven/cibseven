@@ -27,7 +27,7 @@ import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,13 +35,13 @@ import java.util.List;
 
 public class JobAcquisitionLoggingTest {
 
+  @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().watch(
       "org.cibseven.bpm.engine.jobexecutor", Level.DEBUG);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(loggingRule);
 
   protected RuntimeService runtimeService;
   protected ProcessEngineConfigurationImpl processEngineConfiguration;

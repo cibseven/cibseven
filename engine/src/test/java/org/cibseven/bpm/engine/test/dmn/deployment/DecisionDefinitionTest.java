@@ -50,7 +50,7 @@ import org.cibseven.bpm.model.dmn.instance.Output;
 import org.cibseven.bpm.model.dmn.instance.Text;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -58,18 +58,15 @@ import org.junit.jupiter.api.AfterEach;
 
 public class DecisionDefinitionTest {
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule BOOTSTRAP_RULE = new ProcessEngineBootstrapRule(configuration -> {
     configuration.setHistoryTimeToLive("P30D");
   });
 
+  @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(BOOTSTRAP_RULE);
-
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule)
-//      .around(testRule);
 
   protected RepositoryService repositoryService;
   protected DecisionService decisionService;

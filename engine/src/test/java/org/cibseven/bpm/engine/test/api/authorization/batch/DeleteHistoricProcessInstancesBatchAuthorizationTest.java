@@ -21,6 +21,7 @@ import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationS
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenarioWithCount.scenario;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -52,9 +53,9 @@ public class DeleteHistoricProcessInstancesBatchAuthorizationTest extends Abstra
 
   protected static final long BATCH_OPERATIONS = 3;
   @RegisterExtension
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @Order(1) public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
   @RegisterExtension
-  public ProcessEngineTestRule testHelper = new org.cibseven.bpm.engine.test.util.ProcessEngineTestRule(engineRule);
+  @Order(2) public ProcessEngineTestRule testHelper = new org.cibseven.bpm.engine.test.util.ProcessEngineTestRule(engineRule);
 
   public AuthorizationScenarioWithCount scenario;
 

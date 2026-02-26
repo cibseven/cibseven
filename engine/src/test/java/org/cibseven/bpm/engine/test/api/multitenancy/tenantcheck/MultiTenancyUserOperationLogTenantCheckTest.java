@@ -39,6 +39,7 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 @RequiredHistoryLevel(HISTORY_FULL)
@@ -55,13 +56,10 @@ public class MultiTenancyUserOperationLogTenantCheckTest {
   protected static final String AN_ANNOTATION = "anAnnotation";
 
   protected static final BpmnModelInstance MODEL = Bpmn.createExecutableProcess(PROCESS_NAME).startEvent().userTask("aTaskId").done();
-
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected TaskService taskService;
   protected HistoryService historyService;

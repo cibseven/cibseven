@@ -28,13 +28,14 @@ import org.cibseven.commons.testing.WatchLogger;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 
 @Deployment(resources = "org/cibseven/bpm/engine/test/jobexecutor/JobExecutorAcquireJobsForPriorityRangeTest.jobPrioProcess.bpmn20.xml")
 public class JobExecutorAcquireJobsForPriorityRangeTest extends AbstractJobExecutorAcquireJobsTest {
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
 
   @BeforeEach

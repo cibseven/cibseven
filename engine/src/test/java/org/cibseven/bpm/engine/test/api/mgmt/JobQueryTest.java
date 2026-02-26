@@ -66,24 +66,21 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-
 import org.junit.jupiter.api.Test;
-
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Joram Barrez
  * @author Falko Menge
  */
-@RunWith(Parameterized.class)
 public class JobQueryTest {
 
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RuntimeService runtimeService;
@@ -95,6 +92,7 @@ public class JobQueryTest {
   private String messageId;
   private TimerEntity timerEntity;
   private boolean defaultEnsureJobDueDateSet;
+  private boolean ensureJobDueDateSet;
 
   private Date testStartTime;
   private Date timerOneFireTime;
@@ -110,10 +108,6 @@ public class JobQueryTest {
   private static final long ONE_SECOND = 1000L;
   private static final String EXCEPTION_MESSAGE = "java.lang.RuntimeException: This is an exception thrown from scriptTask";
 
-  @Parameterized.Parameter
-  public boolean ensureJobDueDateSet;
-
-  @Parameterized.Parameters(name = "Job DueDate is set: {0}")
   public static Collection<Object[]> scenarios() throws ParseException {
     return Arrays.asList(new Object[][] {
       { false },

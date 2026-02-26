@@ -39,6 +39,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -50,13 +51,13 @@ public class BatchMigrationUserOperationLogTest {
 
   public static final String USER_ID = "userId";
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
 
   protected BatchMigrationHelper batchHelper = new BatchMigrationHelper(engineRule, migrationRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule);
 
   @AfterEach
   public void removeBatches() {

@@ -30,19 +30,15 @@ import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.calendar.CycleBusinessCalendar;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
 public class CycleBusinessCalendarTest {
 
   private static final String SPRING53 = "SPRING53";
   private static final String QUARTZ = "QUARTZ";
 
-  @Parameters(name = "cronType={0}, supportLegacyQuartzSyntax={1}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
         { SPRING53, true },
@@ -52,21 +48,14 @@ public class CycleBusinessCalendarTest {
     });
   }
 
-  private final String cronType;
-  private final boolean supportLegacyQuartzSyntax;
-
-  public CycleBusinessCalendarTest(String cronType, boolean supportLegacyQuartzSyntax) {
-    this.cronType = cronType;
-    this.supportLegacyQuartzSyntax = supportLegacyQuartzSyntax;
-  }
-
   @AfterEach
   public void tearDown() {
     ClockUtil.reset();
   }
 
-  @Test
-  public void testSimpleCron() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testSimpleCron(String cronType, boolean supportLegacyQuartzSyntax) throws Exception {
     CycleBusinessCalendar businessCalendar = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
 
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy MM dd - HH:mm");
@@ -80,8 +69,9 @@ public class CycleBusinessCalendarTest {
     assertEquals(expectedDuedate, duedate);
   }
 
-  @Test
-  public void testSimpleDuration() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testSimpleDuration(String cronType, boolean supportLegacyQuartzSyntax) throws Exception {
     CycleBusinessCalendar businessCalendar = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
 
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy MM dd - HH:mm");
@@ -95,8 +85,9 @@ public class CycleBusinessCalendarTest {
     assertEquals(expectedDuedate, duedate);
   }
 
-  @Test
-  public void testSimpleCronWithStartDate() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testSimpleCronWithStartDate(String cronType, boolean supportLegacyQuartzSyntax) throws Exception {
     CycleBusinessCalendar businessCalendar = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
 
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy MM dd - HH:mm");
@@ -109,8 +100,9 @@ public class CycleBusinessCalendarTest {
     assertEquals(expectedDuedate, duedate);
   }
 
-  @Test
-  public void testSimpleDurationWithStartDate() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testSimpleDurationWithStartDate(String cronType, boolean supportLegacyQuartzSyntax) throws Exception {
     CycleBusinessCalendar businessCalendar = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
 
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy MM dd - HH:mm");
@@ -123,8 +115,9 @@ public class CycleBusinessCalendarTest {
     assertEquals(expectedDuedate, duedate);
   }
 
-  @Test
-  public void testResolveDueDate() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testResolveDueDate(String cronType, boolean supportLegacyQuartzSyntax) throws Exception {
     CycleBusinessCalendar cbc = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
 
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm");
@@ -141,8 +134,9 @@ public class CycleBusinessCalendarTest {
     assertThat(sdf.format(cbc.resolveDuedate("0 0 6,19 * * ?", startDate))).isEqualTo("2010 02 11 19:00");
   }
 
-  @Test
-  public void testSpecialCharactersResolveDueDate() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testSpecialCharactersResolveDueDate(String cronType, boolean supportLegacyQuartzSyntax) throws Exception {
     CycleBusinessCalendar cbc = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
 
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm");
@@ -163,8 +157,9 @@ public class CycleBusinessCalendarTest {
     assertThat(sdf.format(cbc.resolveDuedate(isSpring53 ? "@hourly" : "0 0 * * * ?", startDate))).isEqualTo("2010 02 11 18:00");
   }
 
-  @Test
-  public void testEndOfMonthRelativeExpressions() throws ParseException {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testEndOfMonthRelativeExpressions(String cronType, boolean supportLegacyQuartzSyntax) throws ParseException {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm");
     CycleBusinessCalendar cbc = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
 
@@ -184,8 +179,9 @@ public class CycleBusinessCalendarTest {
     assertThat(sdf.format(cbc.resolveDuedate("0 15 10 L-3 2 ?", startDate))).isEqualTo("2001 02 25 10:15");
   }
 
-  @Test
-  public void testTooManyArgumentExpressions() throws ParseException {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testTooManyArgumentExpressions(String cronType, boolean supportLegacyQuartzSyntax) throws ParseException {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm");
     CycleBusinessCalendar cbc = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
 
@@ -196,8 +192,9 @@ public class CycleBusinessCalendarTest {
         .hasMessageContaining("Exception while parsing cycle expression");
   }
 
-  @Test
-  public void testLegacyCronPatching() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testLegacyCronPatching(String cronType, boolean supportLegacyQuartzSyntax) throws Exception {
     // Only run this test for QUARTZ with legacy support enabled
     if (cronType.equals(QUARTZ) && supportLegacyQuartzSyntax) {
       CycleBusinessCalendar cbc = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
@@ -238,8 +235,9 @@ public class CycleBusinessCalendarTest {
     }
   }
 
-  @Test
-  public void testLegacyCronPatchingDisabled() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testLegacyCronPatchingDisabled(String cronType, boolean supportLegacyQuartzSyntax) throws Exception {
     // Only run this test for QUARTZ with legacy support DISABLED
     if (cronType.equals(QUARTZ) && !supportLegacyQuartzSyntax) {
       CycleBusinessCalendar cbc = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
@@ -290,8 +288,9 @@ public class CycleBusinessCalendarTest {
     }
   }
 
-  @Test
-  public void testSevenFieldCronExpression() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testSevenFieldCronExpression(String cronType, boolean supportLegacyQuartzSyntax) throws Exception {
     CycleBusinessCalendar cbc = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm");
     Date startDate = sdf.parse("2025 02 14 12:00");

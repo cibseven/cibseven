@@ -32,15 +32,14 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.authorization.batch.creation.BatchCreationAuthorizationTest;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
-import org.junit.jupiter.api.Test;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Tassilo Weidner
  */
 public class SetRemovalTimeForHistoricBatchesBatchAuthorizationTest extends BatchCreationAuthorizationTest {
 
-  @Parameterized.Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
         scenario()
@@ -62,9 +61,10 @@ public class SetRemovalTimeForHistoricBatchesBatchAuthorizationTest extends Batc
     );
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
-  public void shouldAuthorizeSetRemovalTimeForHistoricBatchesBatch() {
+  public void shouldAuthorizeSetRemovalTimeForHistoricBatchesBatch(AuthorizationScenario scenario) {
     // given
     String batchId = engineRule.getHistoryService()
       .deleteHistoricProcessInstancesAsync(Collections.singletonList(processInstance.getId()), "aDeleteReason").getId();

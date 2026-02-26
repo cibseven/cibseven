@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.api.optimize;
 
-import static junit.framework.TestCase.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -49,16 +49,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class GetCompletedHistoricTaskInstancesForOptimizeTest {
 
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
 
   private OptimizeService optimizeService;
 

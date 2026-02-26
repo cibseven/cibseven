@@ -94,9 +94,6 @@ public class BatchSetRemovalTimeNonHierarchicalTest {
   @RegisterExtension
   protected BatchSetRemovalTimeRule testRule = new BatchSetRemovalTimeRule(engineRule, engineTestRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule).around(testRule);
-
   protected final Date REMOVAL_TIME = testRule.REMOVAL_TIME;
 
   protected final Date CREATE_TIME = new GregorianCalendar(2013, Calendar.MARCH, 18, 13, 0, 0).getTime();

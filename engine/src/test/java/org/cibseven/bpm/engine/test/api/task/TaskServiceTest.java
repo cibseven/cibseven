@@ -89,7 +89,8 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.builder.ProcessBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -112,14 +113,13 @@ public class TaskServiceTest {
   protected static final String USER_TASK_AFTER_THROW = "after-throw";
   protected static final String USER_TASK_THROW_ESCALATION = "throw-escalation";
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
+  @RegisterExtension
+  @Order(1) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configuration.setJavaSerializationFormatEnabled(true));
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(2) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   private RuntimeService runtimeService;
   private TaskService taskService;

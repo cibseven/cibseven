@@ -57,9 +57,9 @@ import org.cibseven.bpm.engine.variable.Variables.SerializationDataFormats;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Disabled;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
 
@@ -68,14 +68,13 @@ import org.junit.jupiter.api.Test;
  */
 public class SignalEventTest {
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
+  @RegisterExtension
+  @Order(1) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configuration.setJavaSerializationFormatEnabled(true));
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(2) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected TaskService taskService;

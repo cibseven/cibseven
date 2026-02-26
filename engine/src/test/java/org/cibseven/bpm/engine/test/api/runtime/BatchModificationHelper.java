@@ -25,10 +25,13 @@ import org.cibseven.bpm.engine.management.JobDefinition;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
+import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class BatchModificationHelper extends BatchHelper {
 
-  protected ProcessEngineTestRule testRule;
+  @RegisterExtension
+  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   protected List<String> currentProcessInstances;
 
   public BatchModificationHelper(ProcessEngineRule engineRule) {

@@ -48,17 +48,17 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class HistoricBatchQueryTest {
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
   protected BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule);
 
   protected RuntimeService runtimeService;
   protected ManagementService managementService;

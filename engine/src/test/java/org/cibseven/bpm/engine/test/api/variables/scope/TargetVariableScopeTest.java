@@ -41,15 +41,16 @@ import org.cibseven.bpm.model.bpmn.instance.SequenceFlow;
 import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaExecutionListener;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Askar Akhmerov
  * @author Tassilo Weidner
  */
 public class TargetVariableScopeTest {
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-//  @Rule
+  @RegisterExtension
   public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   @Test

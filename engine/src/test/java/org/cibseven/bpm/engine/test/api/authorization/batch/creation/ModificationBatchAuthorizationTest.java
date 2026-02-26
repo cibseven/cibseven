@@ -34,12 +34,11 @@ import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.jupiter.api.Test;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class ModificationBatchAuthorizationTest extends BatchCreationAuthorizationTest {
 
-  @Parameterized.Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
         scenario()
@@ -59,8 +58,9 @@ public class ModificationBatchAuthorizationTest extends BatchCreationAuthorizati
     );
   }
 
-  @Test
-  public void createBatchModification() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void createBatchModification(AuthorizationScenario scenario) {
     //given
     BpmnModelInstance instance = Bpmn.createExecutableProcess("process1").startEvent().userTask("user1").userTask("user2").endEvent().done();
     ProcessDefinition processDefinition = testRule.deployAndGetDefinition(instance);

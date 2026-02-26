@@ -41,6 +41,7 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -53,9 +54,9 @@ public class MultiTenancyHistoricProcessInstanceReportCmdTenantCheckTest {
   protected static final String TENANT_TWO = "tenant2";
 
   protected static final String PROCESS_DEFINITION_KEY = "testProcess";
-
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RepositoryService repositoryService;
@@ -64,9 +65,6 @@ public class MultiTenancyHistoricProcessInstanceReportCmdTenantCheckTest {
   protected TaskService taskService;
   protected HistoryService historyService;
   protected ProcessEngineConfiguration processEngineConfiguration;
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected static final BpmnModelInstance BPMN_PROCESS = Bpmn.createExecutableProcess(PROCESS_DEFINITION_KEY)
       .startEvent()

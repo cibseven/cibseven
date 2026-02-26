@@ -25,7 +25,7 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -35,10 +35,10 @@ import org.junit.jupiter.api.Test;
  */
 public class WriteMultipleEntitiesInOneTransactionTest {
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
       "org/cibseven/bpm/engine/test/api/identity/WriteMultipleEntitiesInOneTransactionTest.camunda.cfg.xml");
-//  @Rule
+  @RegisterExtension
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   protected IdentityService identityService;

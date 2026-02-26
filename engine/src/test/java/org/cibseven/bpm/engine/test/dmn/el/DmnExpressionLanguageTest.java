@@ -33,13 +33,14 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class DmnExpressionLanguageTest {
 
   private static final String JUEL_EXPRESSIONS_WITH_PROPERTIES_DMN =
       "org/cibseven/bpm/engine/test/dmn/el/DmnExpressionLanguageTest.dmn";
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   private DecisionService decisionService;

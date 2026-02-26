@@ -35,14 +35,12 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRuleExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 @RequiredHistoryLevel(HISTORY_FULL)
-@ExtendWith(ProvidedProcessEngineRuleExtension.class)
 public class UserOperationLogAnnotationTest {
 
   protected static final String USER_ID = "demo";
@@ -52,8 +50,10 @@ public class UserOperationLogAnnotationTest {
   protected static final String OPERATION_ID = "operationId";
   protected final Date CREATE_TIME = new GregorianCalendar(2013, Calendar.MARCH, 18, 13, 0, 0).getTime();
 
-  protected ProcessEngineRule engineRule;
-  protected ProcessEngineTestRule testRule;
+  @RegisterExtension
+  protected ProcessEngineRule engineRule = new ProcessEngineRule();
+  @RegisterExtension
+  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
 
   protected HistoryService historyService;

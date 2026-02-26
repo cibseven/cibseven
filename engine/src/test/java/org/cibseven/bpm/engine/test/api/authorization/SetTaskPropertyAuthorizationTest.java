@@ -38,29 +38,16 @@ import org.cibseven.bpm.engine.test.util.ObjectProperty;
 import org.cibseven.bpm.engine.test.util.RemoveAfter;
 import org.cibseven.bpm.engine.test.util.TriConsumer;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
-
-@RunWith(Parameterized.class)
 public class SetTaskPropertyAuthorizationTest extends AuthorizationTest {
 
   protected static final String PROCESS_KEY = "oneTaskProcess";
 
-//  @Rule
+  @RegisterExtension
   public EntityRemoveRule entityRemoveRule = EntityRemoveRule.of(testRule);
-
-  @Parameter(0)
-  public String operationName;
-  @Parameter(1)
-  public TriConsumer<TaskService, String, Object> operation;
-  @Parameter(2)
-  public String taskId;
-  @Parameter(3)
-  public Object value;
 
   protected boolean deleteTask;
 
@@ -72,7 +59,6 @@ public class SetTaskPropertyAuthorizationTest extends AuthorizationTest {
    * setValue: The value to use to set property to
    * taskQueryBuilderMethodName: The corresponding taskQuery builder method name to use for assertion purposes
    */
-  @Parameters(name = "{0}")
   public static List<Object[]> data() {
     TriConsumer<TaskService, String, Object> setPriority = (taskService, taskId, value) -> taskService.setPriority(taskId, (int) value);
     TriConsumer<TaskService, String, Object> setName = (taskService, taskId, value) -> taskService.setName(taskId, (String) value);
@@ -96,9 +82,10 @@ public class SetTaskPropertyAuthorizationTest extends AuthorizationTest {
     super.setUp();
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("data")
   @RemoveAfter
-  public void shouldSetOperationStandaloneWithoutAuthorization() {
+  public void shouldSetOperationStandaloneWithoutAuthorization(String operationName, TriConsumer<TaskService, String, Object> operation, String taskId, Object value) {
     // given
     createTask(taskId);
 
@@ -114,9 +101,10 @@ public class SetTaskPropertyAuthorizationTest extends AuthorizationTest {
     }
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("data")
   @RemoveAfter
-  public void shouldSetOperationStandalone() {
+  public void shouldSetOperationStandalone(String operationName, TriConsumer<TaskService, String, Object> operation, String taskId, Object value) {
     // given
     createTask(taskId);
     createGrantAuthorization(TASK, taskId, userId, UPDATE);
@@ -131,9 +119,10 @@ public class SetTaskPropertyAuthorizationTest extends AuthorizationTest {
     assertHasPropertyValue(task, operationName, value);
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("data")
   @RemoveAfter
-  public void shouldSetOperationStandaloneWithTaskAssignPermission() {
+  public void shouldSetOperationStandaloneWithTaskAssignPermission(String operationName, TriConsumer<TaskService, String, Object> operation, String taskId, Object value) {
     // given
     createTask(taskId);
     createGrantAuthorization(TASK, taskId, userId, TASK_ASSIGN);
@@ -148,8 +137,9 @@ public class SetTaskPropertyAuthorizationTest extends AuthorizationTest {
     assertHasPropertyValue(task, operationName, value);
   }
 
-  @Test
-  public void shouldSetOperationOnProcessWithTaskAssignPermissionOnTask() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldSetOperationOnProcessWithTaskAssignPermissionOnTask(String operationName, TriConsumer<TaskService, String, Object> operation, String unusedTaskId, Object value) {
     // given
     startProcessInstanceByKey(PROCESS_KEY);
     String taskId = selectSingleTask().getId();
@@ -166,8 +156,9 @@ public class SetTaskPropertyAuthorizationTest extends AuthorizationTest {
     assertHasPropertyValue(task, operationName, value);
   }
 
-  @Test
-  public void shouldSetOperationOnProcessWithoutAuthorization() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldSetOperationOnProcessWithoutAuthorization(String operationName, TriConsumer<TaskService, String, Object> operation, String unusedTaskId, Object value) {
     // given
     startProcessInstanceByKey(PROCESS_KEY);
     String taskId = selectSingleTask().getId();
@@ -188,8 +179,9 @@ public class SetTaskPropertyAuthorizationTest extends AuthorizationTest {
     }
   }
 
-  @Test
-  public void shouldSetOperationOnProcessWithUpdatePermissionOnAnyTask() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldSetOperationOnProcessWithUpdatePermissionOnAnyTask(String operationName, TriConsumer<TaskService, String, Object> operation, String unusedTaskId, Object value) {
     // given
     startProcessInstanceByKey(PROCESS_KEY);
     String taskId = selectSingleTask().getId();
@@ -206,8 +198,9 @@ public class SetTaskPropertyAuthorizationTest extends AuthorizationTest {
     assertHasPropertyValue(task, operationName, value);
   }
 
-  @Test
-  public void shouldSetOperationOnProcessWithTaskAssignPermissionOnAnyTask() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldSetOperationOnProcessWithTaskAssignPermissionOnAnyTask(String operationName, TriConsumer<TaskService, String, Object> operation, String unusedTaskId, Object value) {
     // given
     startProcessInstanceByKey(PROCESS_KEY);
     String taskId = selectSingleTask().getId();
@@ -224,8 +217,9 @@ public class SetTaskPropertyAuthorizationTest extends AuthorizationTest {
     assertHasPropertyValue(task, operationName, value);
   }
 
-  @Test
-  public void shouldSetOperationOnProcessWithUpdateTasksPermissionOnProcessDefinition() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldSetOperationOnProcessWithUpdateTasksPermissionOnProcessDefinition(String operationName, TriConsumer<TaskService, String, Object> operation, String unusedTaskId, Object value) {
     // given
     startProcessInstanceByKey(PROCESS_KEY);
     String taskId = selectSingleTask().getId();
@@ -242,8 +236,10 @@ public class SetTaskPropertyAuthorizationTest extends AuthorizationTest {
     assertHasPropertyValue(task, operationName, value);
   }
 
-  @Test
-  public void shouldSetOperationOnProcessWithTaskAssignPermissionOnProcessDefinition() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldSetOperationOnProcessWithTaskAssignPermissionOnProcessDefinition(String operationName, 
+      TriConsumer<TaskService, String, Object> operation, String unusedTaskId, Object value) {
     // given
     startProcessInstanceByKey(PROCESS_KEY);
     String taskId = selectSingleTask().getId();
@@ -260,8 +256,10 @@ public class SetTaskPropertyAuthorizationTest extends AuthorizationTest {
     assertHasPropertyValue(task, operationName, value);
   }
 
-  @Test
-  public void shouldSetOperationOnProcessTask() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldSetOperationOnProcessTask(String operationName, 
+      TriConsumer<TaskService, String, Object> operation, String unusedTaskId, Object value) {
     // given
     startProcessInstanceByKey(PROCESS_KEY);
     String taskId = selectSingleTask().getId();
@@ -279,8 +277,10 @@ public class SetTaskPropertyAuthorizationTest extends AuthorizationTest {
     assertHasPropertyValue(task, operationName, value);
   }
 
-  @Test
-  public void shouldSetOperationOnProcessWithTaskAssignPermission() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldSetOperationOnProcessWithTaskAssignPermission(String operationName, 
+      TriConsumer<TaskService, String, Object> operation, String unusedTaskId, Object value) {
     // given
     startProcessInstanceByKey(PROCESS_KEY);
     String taskId = selectSingleTask().getId();

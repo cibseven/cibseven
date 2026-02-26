@@ -39,24 +39,21 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.runtime.migration.MigrationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.batch.BatchMigrationHelper;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.jupiter.api.BeforeEach;
-
-import org.junit.jupiter.api.Test;
-
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class HistoricBatchManagerBatchesForCleanupTest {
 
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
   public BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule);
 
   protected HistoryService historyService;
 
@@ -70,25 +67,7 @@ public class HistoricBatchManagerBatchesForCleanupTest {
     helper.removeAllRunningAndHistoricBatches();
   }
 
-  @Parameterized.Parameter(0)
-  public int historicBatchHistoryTTL;
 
-  @Parameterized.Parameter(1)
-  public int daysInThePast;
-
-  @Parameterized.Parameter(2)
-  public int batch1EndTime;
-
-  @Parameterized.Parameter(3)
-  public int batch2EndTime;
-
-  @Parameterized.Parameter(4)
-  public int batchSize;
-
-  @Parameterized.Parameter(5)
-  public int resultCount;
-
-  @Parameterized.Parameters
   public static Collection<Object[]> scenarios() {
     return Arrays.asList(new Object[][] {
         // all historic batches are old enough to be cleaned up
@@ -102,10 +81,12 @@ public class HistoricBatchManagerBatchesForCleanupTest {
   }
 
   @SuppressWarnings("unchecked")
-  @Test
-  public void testFindHistoricBatchIdsForCleanup() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testFindHistoricBatchIdsForCleanup(int historicBatchHistoryTTL, int daysInThePast, int batch1EndTime,
+    int batch2EndTime, int batchSize, int resultCount) {
     // given
-    String batchType = prepareHistoricBatches(2);
+    String batchType = prepareHistoricBatches(2, daysInThePast, batch1EndTime, batch2EndTime);
     final Map<String, Integer> batchOperationsMap = new HashedMap();
     batchOperationsMap.put(batchType, historicBatchHistoryTTL);
 
@@ -133,7 +114,7 @@ public class HistoricBatchManagerBatchesForCleanupTest {
     });
   }
 
-  private String prepareHistoricBatches(int batchesCount) {
+  private String prepareHistoricBatches(int batchesCount, int daysInThePast, int batch1EndTime, int batch2EndTime) {
     Date startDate = ClockUtil.getCurrentTime();
     ClockUtil.setCurrentTime(DateUtils.addDays(startDate, daysInThePast));
 

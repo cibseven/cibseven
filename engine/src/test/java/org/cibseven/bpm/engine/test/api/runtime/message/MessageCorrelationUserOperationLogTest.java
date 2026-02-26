@@ -39,6 +39,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class MessageCorrelationUserOperationLogTest {
@@ -59,7 +60,7 @@ public class MessageCorrelationUserOperationLogTest {
   private static final Long LIMIT_3 = 3L;
   private static final Long UNLIMITED = -1L;
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;

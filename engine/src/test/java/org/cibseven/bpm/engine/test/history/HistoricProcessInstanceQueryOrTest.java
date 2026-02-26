@@ -44,11 +44,12 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_AUDIT)
 public class HistoricProcessInstanceQueryOrTest {
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
 
   protected HistoryService historyService;

@@ -31,17 +31,13 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
-
-@RunWith(Parameterized.class)
 public class ProcessEngineCharacterEncodingTest {
 
-//  @Rule
+  @RegisterExtension
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
@@ -49,10 +45,6 @@ public class ProcessEngineCharacterEncodingTest {
   protected Charset defaultCharset;
   protected List<Task> tasks = new ArrayList<>();
 
-  @Parameter(0)
-  public Charset charset;
-
-  @Parameters(name = "{index} - {0}")
   public static Collection<Object[]> scenarios() {
     return Arrays.asList(new Object[][] {
       { StandardCharsets.UTF_8 },
@@ -62,7 +54,9 @@ public class ProcessEngineCharacterEncodingTest {
 
   @AfterEach
   public void tearDown() {
-    processEngineConfiguration.setDefaultCharset(defaultCharset);
+    if (defaultCharset != null) {
+      processEngineConfiguration.setDefaultCharset(defaultCharset);
+    }
     for (Task task : tasks) {
       taskService.deleteTask(task.getId(), true);
     }
@@ -73,6 +67,9 @@ public class ProcessEngineCharacterEncodingTest {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     taskService = processEngineConfiguration.getTaskService();
     defaultCharset = processEngineConfiguration.getDefaultCharset();
+  }
+
+  private void applyCharset(Charset charset) {
     processEngineConfiguration.setDefaultCharset(charset);
   }
 
@@ -93,8 +90,10 @@ public class ProcessEngineCharacterEncodingTest {
     return taskService.createComment(taskId, null, message);
   }
 
-  @Test
-  public void shouldPreserveArabicTaskCommentMessageWithCharset() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void shouldPreserveArabicTaskCommentMessageWithCharset(Charset charset) {
+    applyCharset(charset);
     // given
     String message = "این نمونه است";
     Task task = newTaskWithComment(message);
@@ -107,8 +106,10 @@ public class ProcessEngineCharacterEncodingTest {
     assertThat(taskComments.get(0).getFullMessage()).isEqualTo(message);
   }
 
-  @Test
-  public void shouldPreserveLatinTaskCommentMessageWithCharset() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void shouldPreserveLatinTaskCommentMessageWithCharset(Charset charset) {
+    applyCharset(charset);
     // given
     String message = "This is an example";
     Task task = newTaskWithComment(message);
@@ -121,8 +122,10 @@ public class ProcessEngineCharacterEncodingTest {
     assertThat(taskComments.get(0).getFullMessage()).isEqualTo(message);
   }
 
-  @Test
-  public void shouldPreserveArabicTaskUpdateCommentMessageWithCharset() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void shouldPreserveArabicTaskUpdateCommentMessageWithCharset(Charset charset) {
+    applyCharset(charset);
     // given
     String taskId = newTask().getId();
     Comment comment = createNewComment(taskId, "OriginalMessage");
@@ -138,8 +141,10 @@ public class ProcessEngineCharacterEncodingTest {
     assertThat(updatedComment.getFullMessage()).isEqualTo(updatedMessage);
   }
 
-  @Test
-  public void shouldPreserveLatinTaskUpdateCommentMessageWithCharset() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void shouldPreserveLatinTaskUpdateCommentMessageWithCharset(Charset charset) {
+    applyCharset(charset);
     // given
     String taskId = newTask().getId();
     Comment comment = createNewComment(taskId, "OriginalMessage");

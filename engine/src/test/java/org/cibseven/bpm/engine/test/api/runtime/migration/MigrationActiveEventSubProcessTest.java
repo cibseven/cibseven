@@ -35,21 +35,15 @@ import org.cibseven.bpm.engine.test.api.runtime.migration.util.TimerEventFactory
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
-
-import org.junit.jupiter.api.Test;
-
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Christopher Zell <christopher.zell@camunda.com>
  */
-@RunWith(Parameterized.class)
 public class MigrationActiveEventSubProcessTest {
 
-  @Parameters
   public static Collection<Object[]> data() {
       return Arrays.asList(new Object[][] {
                new Object[]{ new TimerEventFactory() },
@@ -59,22 +53,19 @@ public class MigrationActiveEventSubProcessTest {
          });
   }
 
-  @Parameter
-  public BpmnEventFactory eventFactory;
-
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @BeforeEach
   public void setUp() {
     ClockUtil.setCurrentTime(new Date()); // lock time so that timer job is effectively not updated
   }
 
-  @Test
-  public void testMigrateActiveCompensationEventSubProcess() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testMigrateActiveCompensationEventSubProcess(BpmnEventFactory eventFactory) {
     // given
     BpmnModelInstance processModel = ProcessModels.ONE_TASK_PROCESS.clone();
     MigratingBpmnEventTrigger eventTrigger = eventFactory.addEventSubProcess(

@@ -34,7 +34,7 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.AfterEach;
 
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.List;
 
@@ -44,14 +44,13 @@ import static org.assertj.core.api.Assertions.tuple;
 
 public class BatchSetVariablesMigrationTest {
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
   protected BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule)
-//      .around(migrationRule).around(testRule);
 
   @AfterEach
   public void removeBatches() {

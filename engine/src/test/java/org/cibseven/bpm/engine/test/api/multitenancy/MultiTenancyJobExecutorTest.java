@@ -35,18 +35,16 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.junit.jupiter.api.AfterEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class MultiTenancyJobExecutorTest {
 
   protected static final String TENANT_ID = "tenant1";
-
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   @Test
   public void setAuthenticatedTenantForTimerStartEvent() {

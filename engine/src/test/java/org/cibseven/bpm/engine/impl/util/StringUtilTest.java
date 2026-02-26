@@ -29,7 +29,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 public class StringUtilTest {
   
   @RegisterExtension
-  public ProvidedProcessEngineRule engineRule;
+  public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   @Test
   public void shouldAllowTrimToMaximumLength() {

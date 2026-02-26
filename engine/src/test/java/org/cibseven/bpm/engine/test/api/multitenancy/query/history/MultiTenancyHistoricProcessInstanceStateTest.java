@@ -30,6 +30,7 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -41,13 +42,11 @@ public class MultiTenancyHistoricProcessInstanceStateTest {
   protected static final String TENANT_ONE = "tenant1";
   protected static final String TENANT_TWO = "tenant2";
 
+  @RegisterExtension
   public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public ProcessEngineTestRule processEngineTestRule = new ProcessEngineTestRule(processEngineRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain
-//      .outerRule(processEngineTestRule)
-//      .around(processEngineRule);
 
   @Test
   public void testSuspensionWithTenancy() throws Exception {

@@ -33,6 +33,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -46,12 +47,10 @@ public class MultiTenancyDecisionRequirementsDefinitionCmdsTenantCheckTest {
   protected static final String TENANT_ONE = "tenant1";
   protected static final String DRG_DMN = "org/cibseven/bpm/engine/test/api/multitenancy/DecisionRequirementsGraph.dmn";
   protected static final String DRD_DMN = "org/cibseven/bpm/engine/test/api/multitenancy/DecisionRequirementsGraph.png";
-
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected String decisionRequirementsDefinitionId;
 

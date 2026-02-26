@@ -36,6 +36,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -44,6 +45,7 @@ import org.junit.jupiter.api.Test;
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class FilterServiceUserOperationLogTest {
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected FilterService filterService;
@@ -51,8 +53,6 @@ public class FilterServiceUserOperationLogTest {
   protected TaskService taskService;
   protected IdentityService identityService;
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule);
 
   @BeforeEach
   public void setUp() {

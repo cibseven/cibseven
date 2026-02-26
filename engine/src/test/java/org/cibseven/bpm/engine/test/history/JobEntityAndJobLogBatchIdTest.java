@@ -67,12 +67,6 @@ public class JobEntityAndJobLogBatchIdTest {
   @RegisterExtension
   protected BatchSetRemovalTimeRule batchRemovalTimeRule = new BatchSetRemovalTimeRule(engineRule, testRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain
-//      .outerRule(engineRule)
-//      .around(testRule)
-//      .around(batchRule)
-//      .around(batchRemovalTimeRule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;

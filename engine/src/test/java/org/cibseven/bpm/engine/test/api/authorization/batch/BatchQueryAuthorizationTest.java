@@ -34,6 +34,7 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -43,11 +44,12 @@ import org.junit.jupiter.api.extension.RegisterExtension;
  */
 public class BatchQueryAuthorizationTest {
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  public AuthorizationTestBaseRule authRule = new AuthorizationTestBaseRule(engineRule);
+  @Order(1) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @Order(2) public AuthorizationTestBaseRule authRule = new AuthorizationTestBaseRule(engineRule);
+  @RegisterExtension
+  @Order(3) public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   protected MigrationPlan migrationPlan;
   protected Batch batch1;

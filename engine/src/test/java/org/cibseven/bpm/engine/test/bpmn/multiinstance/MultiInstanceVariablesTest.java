@@ -32,6 +32,7 @@ import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaIn;
 import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaOut;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Askar Akhmerov
@@ -43,7 +44,7 @@ public class MultiInstanceVariablesTest {
   public static final String PROCESS_ID = "process";
   public static final String CALL_ACTIVITY = "callActivity";
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   @Test

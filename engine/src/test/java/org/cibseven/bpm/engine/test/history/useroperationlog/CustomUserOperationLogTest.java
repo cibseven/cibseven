@@ -31,14 +31,14 @@ import org.cibseven.bpm.engine.impl.oplog.UserOperationLogContextEntry;
 import org.cibseven.bpm.engine.impl.persistence.entity.PropertyChange;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 
 public class CustomUserOperationLogTest  {
 
     public static final String USER_ID = "demo";
 
-    @ClassRule
+    @RegisterExtension
     public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
             "org/cibseven/bpm/engine/test/history/useroperationlog/enable.legacy.user.operation.log.camunda.cfg.xml");
 

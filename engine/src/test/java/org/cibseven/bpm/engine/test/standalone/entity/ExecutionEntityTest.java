@@ -40,6 +40,7 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  *
@@ -48,9 +49,9 @@ import org.junit.jupiter.api.Test;
  */
 public class ExecutionEntityTest {
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
-//  @Rule
+  @RegisterExtension
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(processEngineRule);
 
   @Test

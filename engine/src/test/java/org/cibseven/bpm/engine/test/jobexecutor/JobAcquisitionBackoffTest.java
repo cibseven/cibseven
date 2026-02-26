@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.AfterEach;
 
 /**
@@ -48,14 +48,13 @@ public class JobAcquisitionBackoffTest {
   protected static final int BACKOFF_DECREASE_THRESHOLD = 2;
   protected static final int DEFAULT_NUM_JOBS_TO_ACQUIRE = 3;
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configuration.setJobExecutor(new ControllableJobExecutor()));
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected ControllableJobExecutor jobExecutor1;
   protected ControllableJobExecutor jobExecutor2;

@@ -21,28 +21,30 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 
 import org.cibseven.bpm.engine.AuthorizationService;
 import org.cibseven.bpm.engine.authorization.Authorization;
+import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
-import org.cibseven.bpm.engine.test.util.AuthorizationRuleExtension;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(AuthorizationRuleExtension.class)
 public class AuthorizationLoggingTest {
 
   protected static final String CONTEXT_LOGGER = "org.cibseven.bpm.engine.context";
 
-  public ProvidedProcessEngineRule engineRule;
-  public AuthorizationTestRule authRule;
-
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
+  @RegisterExtension
+  @Order(1) private ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) private AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch(CONTEXT_LOGGER)
       .level(Level.DEBUG);
 

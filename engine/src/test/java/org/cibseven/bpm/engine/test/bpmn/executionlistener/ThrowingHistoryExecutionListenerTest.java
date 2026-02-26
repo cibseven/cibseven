@@ -42,7 +42,8 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.builder.ProcessBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -54,15 +55,14 @@ public class ThrowingHistoryExecutionListenerTest {
   protected static final String INTERNAL_ERROR_CODE = "208";
   protected static final ThrowingHistoryEventProducer HISTORY_PRODUCER = new ThrowingHistoryEventProducer();
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(config -> {
     config.setHistoryEventProducer(HISTORY_PRODUCER);
   });
-  public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(processEngineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(processEngineRule).around(testRule);
+  @RegisterExtension
+  @Order(1) public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(2) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(processEngineRule);
 
   protected RuntimeService runtimeService;
   protected TaskService taskService;

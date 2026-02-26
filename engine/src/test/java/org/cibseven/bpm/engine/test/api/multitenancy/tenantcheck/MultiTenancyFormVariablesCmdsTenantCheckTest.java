@@ -31,6 +31,7 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -50,13 +51,10 @@ public class MultiTenancyFormVariablesCmdsTenantCheckTest {
 
   protected static final String VARIABLE_VALUE_1 = "test1";
   protected static final String VARIABLE_VALUE_2 = "test2";
-
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected ProcessInstance instance;
 

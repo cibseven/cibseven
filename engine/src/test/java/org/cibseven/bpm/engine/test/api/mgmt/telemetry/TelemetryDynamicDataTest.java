@@ -40,14 +40,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class TelemetryDynamicDataTest {
 
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule);
 
   protected ProcessEngineConfigurationImpl configuration;
   protected RuntimeService runtimeService;

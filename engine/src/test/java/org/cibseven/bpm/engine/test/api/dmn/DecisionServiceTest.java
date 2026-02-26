@@ -38,6 +38,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -58,11 +59,10 @@ public class DecisionServiceTest {
   protected static final String RESULT_OF_FIRST_VERSION = "ok";
   protected static final String RESULT_OF_SECOND_VERSION = "notok";
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected DecisionService decisionService;
   protected RepositoryService repositoryService;

@@ -30,6 +30,7 @@ import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class AuthorizationRevokeModeAlwaysTest extends AuthorizationTest {
 
@@ -37,6 +38,7 @@ public class AuthorizationRevokeModeAlwaysTest extends AuthorizationTest {
 
   protected String defaultRevokeMode;
 
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch(LOGGING_CONTEXT, Level.DEBUG);
 

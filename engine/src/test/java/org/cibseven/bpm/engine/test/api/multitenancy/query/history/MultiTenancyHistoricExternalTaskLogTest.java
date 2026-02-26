@@ -45,13 +45,15 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class MultiTenancyHistoricExternalTaskLogTest {
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected HistoryService historyService;
@@ -59,9 +61,6 @@ public class MultiTenancyHistoricExternalTaskLogTest {
   protected RepositoryService repositoryService;
   protected IdentityService identityService;
   protected ExternalTaskService externalTaskService;
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected final String TENANT_NULL = null;
   protected final String TENANT_ONE = "tenant1";

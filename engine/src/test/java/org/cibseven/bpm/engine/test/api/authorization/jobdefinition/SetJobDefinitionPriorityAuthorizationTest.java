@@ -26,39 +26,27 @@ import org.cibseven.bpm.engine.authorization.Resources;
 import org.cibseven.bpm.engine.management.JobDefinition;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.AuthorizationRuleExtension;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-@RunWith(Parameterized.class)
-@ExtendWith(AuthorizationRuleExtension.class)
 public class SetJobDefinitionPriorityAuthorizationTest {
 
-  public ProcessEngineRule engineRule;
-  public AuthorizationTestRule authRule;
+  @RegisterExtension
+  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
 
-//  @Rule
-//  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule);
-
-  @Parameter
-  public AuthorizationScenario scenario;
-
-  @Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
       scenario()
@@ -86,9 +74,10 @@ public class SetJobDefinitionPriorityAuthorizationTest {
     authRule.deleteUsersAndGroups();
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/authorization/oneIncidentProcess.bpmn20.xml")
-  public void testSetJobDefinitionPriority() {
+  public void testSetJobDefinitionPriority(AuthorizationScenario scenario) {
 
     // given
     JobDefinition jobDefinition = engineRule.getManagementService().createJobDefinitionQuery().singleResult();
@@ -110,9 +99,10 @@ public class SetJobDefinitionPriorityAuthorizationTest {
 
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/authorization/oneIncidentProcess.bpmn20.xml")
-  public void testResetJobDefinitionPriority() {
+  public void testResetJobDefinitionPriority(AuthorizationScenario scenario) {
     // given
     JobDefinition jobDefinition = engineRule.getManagementService().createJobDefinitionQuery().singleResult();
     engineRule.getManagementService().setOverridingJobPriorityForJobDefinition(jobDefinition.getId(), 42);

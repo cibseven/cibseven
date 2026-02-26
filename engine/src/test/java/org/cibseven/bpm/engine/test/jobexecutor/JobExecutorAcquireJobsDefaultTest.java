@@ -28,21 +28,11 @@ import java.util.List;
 import org.cibseven.bpm.engine.impl.persistence.entity.AcquirableJobEntity;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.ClockTestUtil;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
 public class JobExecutorAcquireJobsDefaultTest extends AbstractJobExecutorAcquireJobsTest {
 
-  @Parameterized.Parameter(0)
-  public boolean ensureJobDueDateSet;
-
-  @Parameterized.Parameter(1)
-  public Date currentTime;
-
-  @Parameterized.Parameters(name = "Job DueDate is set: {0}")
   public static Collection<Object[]> scenarios() throws ParseException {
     return Arrays.asList(new Object[][] {
       { false, null },
@@ -50,21 +40,20 @@ public class JobExecutorAcquireJobsDefaultTest extends AbstractJobExecutorAcquir
     });
   }
 
-  @BeforeEach
-  public void setUp() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testProcessEngineConfiguration(boolean ensureJobDueDateSet, Date currentTime) {
     rule.getProcessEngineConfiguration().setEnsureJobDueDateNotNull(ensureJobDueDateSet);
-  }
-
-  @Test
-  public void testProcessEngineConfiguration() {
     assertFalse(configuration.isJobExecutorPreferTimerJobs());
     assertFalse(configuration.isJobExecutorAcquireByDueDate());
     assertEquals(ensureJobDueDateSet, configuration.isEnsureJobDueDateNotNull());
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = "org/cibseven/bpm/engine/test/jobexecutor/simpleAsyncProcess.bpmn20.xml")
-  public void testJobDueDateValue() {
+  public void testJobDueDateValue(boolean ensureJobDueDateSet, Date currentTime) {
+    rule.getProcessEngineConfiguration().setEnsureJobDueDateNotNull(ensureJobDueDateSet);
     // when
     runtimeService.startProcessInstanceByKey("simpleAsyncProcess");
     List<AcquirableJobEntity> jobList = findAcquirableJobs();

@@ -34,6 +34,7 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 
@@ -56,11 +57,10 @@ public class HistoricDecisionInstanceStatisticsQueryTest {
   protected RepositoryService repositoryService;
   protected HistoryService historyService;
 
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   @BeforeEach
   public void setUp() {

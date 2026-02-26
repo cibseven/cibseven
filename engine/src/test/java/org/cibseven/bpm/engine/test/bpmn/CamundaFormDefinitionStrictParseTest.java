@@ -35,17 +35,18 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class CamundaFormDefinitionStrictParseTest {
 
   private static final String FORM = "org/cibseven/bpm/engine/test/bpmn/CamundaFormDefinitionStrictParseTest.anyForm.form";
 
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-//  @Rule
-//  public RuleChain chain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RepositoryService repositoryService;

@@ -32,11 +32,11 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
-import org.cibseven.bpm.engine.test.util.AuthorizationRuleExtension;
+import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -48,7 +48,6 @@ import org.junit.jupiter.params.provider.MethodSource;
  *
  * @author Askar Akhmerov
  */
-@ExtendWith(AuthorizationRuleExtension.class)
 public class GetErrorDetailsAuthorizationTest {
 
   protected static final String ERROR_DETAILS = "theDetails";
@@ -57,8 +56,10 @@ public class GetErrorDetailsAuthorizationTest {
   protected String currentDetails;
 
   // Add fields for engineRule and authRule to be injected by the extension
-  protected ProcessEngineRule engineRule;
-  protected AuthorizationTestRule authRule;
+  @RegisterExtension
+  @Order(1) private ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) private AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
 
   public static Collection<AuthorizationScenario> scenarios() {
     return List.of(

@@ -52,6 +52,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -60,11 +61,10 @@ import org.junit.jupiter.api.Test;
  */
 public class MigrationTransitionInstancesTest {
 
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @AfterEach
   public void resetClock() {

@@ -40,7 +40,7 @@ import org.cibseven.bpm.model.bpmn.builder.UserTaskBuilder;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -58,11 +58,10 @@ public class MigrationPlanCreationTest {
   public static final String ERROR_CODE = "Error";
   public static final String ESCALATION_CODE = "Escalation";
 
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   protected RuntimeService runtimeService;
 

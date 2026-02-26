@@ -79,7 +79,7 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.form.deployment.FindCamundaFormDefinitionsCmd;
-import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapClassExtension;
+import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.VariableMap;
@@ -91,7 +91,7 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.utils.IoUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -105,13 +105,12 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 public class FormServiceTest {
 
   @RegisterExtension
-  public static ProcessEngineBootstrapClassExtension processEngineBootstrapClassExtension = ProcessEngineBootstrapClassExtension.builder()
-    .useConsumer(configuration ->configuration.setJavaSerializationFormatEnabled(true))
-    .addProcessEngineTestRule()
-    .build();
-
-  protected ProvidedProcessEngineRule engineRule;
-  protected ProcessEngineTestRule testRule;
+  @Order (1) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
+    configuration.setJavaSerializationFormatEnabled(true));
+  @RegisterExtension
+  @Order (2) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order (3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   private RuntimeService runtimeService;
   private TaskService taskService;

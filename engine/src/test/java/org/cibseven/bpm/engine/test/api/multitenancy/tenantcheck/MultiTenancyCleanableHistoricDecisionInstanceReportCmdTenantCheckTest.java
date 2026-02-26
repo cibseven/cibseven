@@ -40,6 +40,7 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
@@ -52,8 +53,9 @@ public class MultiTenancyCleanableHistoricDecisionInstanceReportCmdTenantCheckTe
 
   protected static final String DMN_MODEL = "org/cibseven/bpm/engine/test/api/multitenancy/simpleDecisionTable.dmn";
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RepositoryService repositoryService;
@@ -61,9 +63,6 @@ public class MultiTenancyCleanableHistoricDecisionInstanceReportCmdTenantCheckTe
   protected TaskService taskService;
   protected HistoryService historyService;
   protected ProcessEngineConfiguration processEngineConfiguration;
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   @BeforeEach
   public void init() {

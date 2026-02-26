@@ -38,6 +38,7 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Christopher Zell <christopher.zell@camunda.com>
@@ -73,7 +74,7 @@ public class OnlyDispatchVariableEventOnExistingConditionsTest {
     }
   }
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule rule = new ProvidedProcessEngineRule();
 
   @Test

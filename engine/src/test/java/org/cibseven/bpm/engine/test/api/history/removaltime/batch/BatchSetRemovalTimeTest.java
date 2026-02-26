@@ -84,9 +84,6 @@ public class BatchSetRemovalTimeTest {
   protected BatchSetRemovalTimeRule testRule = new BatchSetRemovalTimeRule(engineRule, engineTestRule);
   protected BatchHelper helper = new BatchHelper(engineRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule).around(testRule);
-
   protected final Date CURRENT_DATE = testRule.CURRENT_DATE;
   protected final Date REMOVAL_TIME = testRule.REMOVAL_TIME;
 

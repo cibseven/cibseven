@@ -49,6 +49,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 
@@ -67,12 +68,10 @@ public class RedeploymentTest {
   public static final String RESOURCE_1_NAME = "path/to/my/process1.bpmn";
   public static final String RESOURCE_2_NAME = "path/to/my/process2.bpmn";
   public static final String RESOURCE_3_NAME = "path/to/my/process3.bpmn";
-
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected RepositoryService repositoryService;
   protected boolean enforceHistoryTimeToLive;

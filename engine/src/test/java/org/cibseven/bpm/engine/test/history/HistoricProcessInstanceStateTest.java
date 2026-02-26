@@ -38,6 +38,7 @@ import org.cibseven.bpm.model.bpmn.instance.EndEvent;
 import org.cibseven.bpm.model.bpmn.instance.TerminateEventDefinition;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -50,13 +51,11 @@ public class HistoricProcessInstanceStateTest {
   public static final String PROCESS_ID = "process1";
   public static final String REASON = "very important reason";
 
+  @RegisterExtension
   public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public ProcessEngineTestRule processEngineTestRule = new ProcessEngineTestRule(processEngineRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain
-//      .outerRule(processEngineTestRule)
-//      .around(processEngineRule);
 
   @Test
   public void testTerminatedInternalWithGateway() {

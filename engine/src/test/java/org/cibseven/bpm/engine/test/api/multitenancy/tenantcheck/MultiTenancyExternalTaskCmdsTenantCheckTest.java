@@ -35,6 +35,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class MultiTenancyExternalTaskCmdsTenantCheckTest {
@@ -45,9 +46,9 @@ public class MultiTenancyExternalTaskCmdsTenantCheckTest {
   protected static final String PROCESS_DEFINITION_KEY = "twoExternalTaskProcess";
   protected static final String PROCESS_DEFINITION_KEY_ONE = "oneExternalTaskProcess";
   private static final String ERROR_DETAILS = "anErrorDetail";
-
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected static final String WORKER_ID = "aWorkerId";
@@ -65,9 +66,6 @@ public class MultiTenancyExternalTaskCmdsTenantCheckTest {
   protected String processInstanceId;
 
   protected IdentityService identityService;
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   @BeforeEach
   public void init() {

@@ -42,6 +42,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -53,11 +54,11 @@ public class SelfCancellationTest {
 
   protected static final String MESSAGE = "Message";
 
+  @RegisterExtension
   public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(processEngineRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(processEngineRule).around(testHelper);
 
   //========================================================================================================================
   //=======================================================MODELS===========================================================

@@ -86,8 +86,9 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -116,6 +117,7 @@ public class HistoryCleanupTest {
   protected String defaultEndTime;
   protected int defaultBatchSize;
 
+  @RegisterExtension
   protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
       configuration.setHistoryCleanupBatchSize(20);
       configuration.setHistoryCleanupBatchThreshold(10);
@@ -123,15 +125,13 @@ public class HistoryCleanupTest {
       configuration.setHistoryCleanupDegreeOfParallelism(NUMBER_OF_THREADS);
   });
 
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order (1) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order (2) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected Removable removable;
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule)
-//      .around(engineRule)
-//      .around(testRule);
 
   private final Random random = new Random();
 

@@ -61,7 +61,7 @@ import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaExecutionListener;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import junit.framework.AssertionFailedError;
 
@@ -75,11 +75,10 @@ public class ExecutionListenerTest {
   protected static final String ERROR_CODE = "208";
   protected static final RuntimeException RUNTIME_EXCEPTION = new RuntimeException("Intended exception from delegate");
 
+  @RegisterExtension
   public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(processEngineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(processEngineRule).around(testRule);
 
   protected RuntimeService runtimeService;
   protected TaskService taskService;

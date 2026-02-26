@@ -35,7 +35,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.slf4j.Logger;
 
 /**
@@ -46,11 +46,10 @@ public class ConcurrentVariableUpdateTest {
 
   private static Logger LOG = ProcessEngineLogger.TEST_LOGGER.getLogger();
 
+  @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RuntimeService runtimeService;

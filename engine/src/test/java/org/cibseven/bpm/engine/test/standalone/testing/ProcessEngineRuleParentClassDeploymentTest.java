@@ -23,11 +23,12 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class ProcessEngineRuleParentClassDeploymentTest extends ProcessEngineRuleParentClassDeployment  {
 
-//  @Rule
+  @RegisterExtension
   public final ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
 
   @Test

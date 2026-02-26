@@ -25,6 +25,7 @@ import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class MigrationAddBoundaryEventsTest {
@@ -35,12 +36,10 @@ public class MigrationAddBoundaryEventsTest {
   public static final String TIMER_DATE = "2016-02-11T12:13:14Z";
   public static final String ERROR_CODE = "Error";
   public static final String ESCALATION_CODE = "Escalation";
-
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testAddMessageBoundaryEventToUserTask() {

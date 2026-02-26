@@ -37,17 +37,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class TelemetryConfigurationTest {
 
-
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule);
-
-//  @Rule
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
 
   protected ProcessEngineConfigurationImpl configuration;

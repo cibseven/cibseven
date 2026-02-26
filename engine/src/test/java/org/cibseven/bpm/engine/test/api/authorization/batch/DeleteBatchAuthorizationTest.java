@@ -46,6 +46,7 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -56,11 +57,11 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class DeleteBatchAuthorizationTest {
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(1) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @Order(2) public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
   @RegisterExtension
-  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @Order(3) public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   public AuthorizationScenario scenario;
 

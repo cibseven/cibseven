@@ -19,10 +19,7 @@ package org.cibseven.bpm.engine.test.api.authorization.externaltask;
 import org.cibseven.bpm.engine.externaltask.ExternalTask;
 import org.cibseven.bpm.engine.externaltask.LockedExternalTask;
 import org.junit.jupiter.api.Assertions;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-@RunWith(Parameterized.class)
 public class ExtendLockOnExternalTaskAuthorizationTest extends HandleLockedExternalTaskAuthorizationTest {
 
   @Override

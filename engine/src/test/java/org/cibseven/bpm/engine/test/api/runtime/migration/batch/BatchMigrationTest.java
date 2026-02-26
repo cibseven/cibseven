@@ -69,20 +69,21 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
-@RunWith(Parameterized.class)
 public class BatchMigrationTest {
 
   protected static final Date TEST_DATE = new Date(1457326800000L);
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
   protected BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected ProcessEngineConfigurationImpl configuration;
@@ -94,16 +95,6 @@ public class BatchMigrationTest {
   protected int defaultInvocationsPerBatchJob;
   protected boolean defaultEnsureJobDueDateSet;
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule).around(testRule);
-
-  @Parameterized.Parameter(0)
-  public boolean ensureJobDueDateSet;
-
-  @Parameterized.Parameter(1)
-  public Date currentTime;
-
-  @Parameterized.Parameters(name = "Job DueDate is set: {0}")
   public static Collection<Object[]> scenarios() throws ParseException {
     return Arrays.asList(new Object[][] {
       { false, null },
@@ -124,7 +115,6 @@ public class BatchMigrationTest {
     defaultBatchJobsPerSeed = configuration.getBatchJobsPerSeed();
     defaultInvocationsPerBatchJob = configuration.getInvocationsPerBatchJob();
     defaultEnsureJobDueDateSet = configuration.isEnsureJobDueDateNotNull();
-    configuration.setEnsureJobDueDateNotNull(ensureJobDueDateSet);
   }
 
   @AfterEach
@@ -145,8 +135,10 @@ public class BatchMigrationTest {
   }
 
 
-  @Test
-  public void testNullMigrationPlan() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testNullMigrationPlan(boolean ensureJobDueDateSet, Date currentTime) {
+    configuration.setEnsureJobDueDateNotNull(ensureJobDueDateSet);
     try {
       runtimeService.newMigration(null).processInstanceIds(Collections.singletonList("process")).executeAsync();
       fail("Should not succeed");
@@ -155,8 +147,10 @@ public class BatchMigrationTest {
     }
   }
 
-  @Test
-  public void testNullProcessInstanceIdsList() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testNullProcessInstanceIdsList(boolean ensureJobDueDateSet, Date currentTime) {
+    configuration.setEnsureJobDueDateNotNull(ensureJobDueDateSet);
     ProcessDefinition testProcessDefinition = migrationRule.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
     MigrationPlan migrationPlan = runtimeService.createMigrationPlan(testProcessDefinition.getId(), testProcessDefinition.getId())
       .mapEqualActivities()
@@ -274,8 +268,9 @@ public class BatchMigrationTest {
     assertBatchCreated(batch, 15);
   }
 
-  @Test
-  public void testSeedJobCreation() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testSeedJobCreation(boolean ensureJobDueDateSet, Date currentTime) {
     ClockUtil.setCurrentTime(TEST_DATE);
 
     // when
@@ -309,8 +304,9 @@ public class BatchMigrationTest {
     assertEquals(0, migrationJobs.size());
   }
 
-  @Test
-  public void testMigrationJobsCreation() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testMigrationJobsCreation(boolean ensureJobDueDateSet, Date currentTime) {
     ClockUtil.setCurrentTime(TEST_DATE);
 
     // reduce number of batch jobs per seed to not have to create a lot of instances
@@ -478,8 +474,9 @@ public class BatchMigrationTest {
     assertNull(helper.getSeedJob(batch));
   }
 
-  @Test
-  public void testMonitorJobPollingForCompletion() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testMonitorJobPollingForCompletion(boolean ensureJobDueDateSet, Date currentTime) {
     ClockUtil.setCurrentTime(TEST_DATE);
 
     Batch batch = helper.migrateProcessInstancesAsync(10);

@@ -35,21 +35,17 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
  * @author Stefan Hentschel.
  */
 public class MultiTenancyTaskCountByCandidateGroupTest {
-
+  @RegisterExtension
   public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public ProcessEngineTestRule processEngineTestRule = new ProcessEngineTestRule(processEngineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain
-//    .outerRule(processEngineTestRule)
-//    .around(processEngineRule);
-
 
   protected TaskService taskService;
   protected IdentityService identityService;

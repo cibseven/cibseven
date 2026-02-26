@@ -29,16 +29,16 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.builder.UserTaskBuilder;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 
 public abstract class AbstractTaskListenerTest {
 
+  @RegisterExtension
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public   ProcessEngineTestRule     testRule   = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected RuntimeService                 runtimeService;
   protected TaskService                    taskService;

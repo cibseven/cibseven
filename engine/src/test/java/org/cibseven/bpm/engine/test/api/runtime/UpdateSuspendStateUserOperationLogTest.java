@@ -42,16 +42,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class UpdateSuspendStateUserOperationLogTest {
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
   // do an update here
   protected BatchSuspensionHelper helper = new BatchSuspensionHelper(rule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testRule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;

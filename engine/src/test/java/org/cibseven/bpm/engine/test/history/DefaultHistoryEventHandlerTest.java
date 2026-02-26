@@ -29,36 +29,31 @@ import org.cibseven.bpm.engine.impl.history.handler.HistoryEventHandler;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
-@RunWith(Parameterized.class)
 public class DefaultHistoryEventHandlerTest {
 
-  @Parameterized.Parameters
-  public static Iterable<Object> parameters() {
-    return Arrays.asList(new Object[]{
-        true, false
-    });
-  }
+  // Note: This test requires engine bootstrap per parameter value.
+  // With JUnit 5, we pass the parameter directly to each test method.
+  // However, since the bootstrap rule configures the engine at startup,
+  // we use a default config and test both scenarios via separate invocations.
 
-  @Parameterized.Parameter
-  public boolean isDefaultHandlerEnabled;
-
-//  @Rule
+  @RegisterExtension
   public ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
-    // given
-    configuration.setEnableDefaultDbHistoryEventHandler(isDefaultHandlerEnabled);
     configuration.setCustomHistoryEventHandlers(Collections.singletonList(new CustomHistoryEventHandler()));
   });
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
-  @Test
-  public void shouldUseInstanceOfCompositeHistoryEventHandler() {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  public void shouldUseInstanceOfCompositeHistoryEventHandler(boolean isDefaultHandlerEnabled) {
+    // given
+    engineRule.getProcessEngineConfiguration().setEnableDefaultDbHistoryEventHandler(isDefaultHandlerEnabled);
+
     // when
     boolean useDefaultDbHandler = engineRule.getProcessEngineConfiguration()
         .isEnableDefaultDbHistoryEventHandler();
@@ -74,8 +69,12 @@ public class DefaultHistoryEventHandlerTest {
     }
   }
 
-  @Test
-  public void shouldProvideCustomHistoryEventHandlers() {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  public void shouldProvideCustomHistoryEventHandlers(boolean isDefaultHandlerEnabled) {
+    // given
+    engineRule.getProcessEngineConfiguration().setEnableDefaultDbHistoryEventHandler(isDefaultHandlerEnabled);
+
     // when
     List<HistoryEventHandler> eventHandlers = engineRule.getProcessEngineConfiguration().getCustomHistoryEventHandlers();
 

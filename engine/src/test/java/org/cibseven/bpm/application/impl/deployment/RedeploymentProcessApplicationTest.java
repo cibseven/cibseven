@@ -37,13 +37,11 @@ import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-//import org.cibseven.bpm.engine.test.ProvidedProcessEngineRuleSingleExtension;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -52,7 +50,6 @@ import org.junit.jupiter.params.provider.MethodSource;
  * @author Roman Smirnov
  *
  */
-//@ExtendWith(ProvidedProcessEngineRuleSingleExtension.class)
 public class RedeploymentProcessApplicationTest {
 
   protected static final String DEPLOYMENT_NAME = "my-deployment";

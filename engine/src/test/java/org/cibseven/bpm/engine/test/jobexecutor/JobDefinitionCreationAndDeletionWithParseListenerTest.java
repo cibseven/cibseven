@@ -36,8 +36,7 @@ import org.cibseven.bpm.engine.repository.DeploymentBuilder;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.ClassRule;
-
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -53,7 +52,7 @@ import org.junit.jupiter.api.Test;
  */
 public class JobDefinitionCreationAndDeletionWithParseListenerTest {
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
     List<BpmnParseListener> listeners = new ArrayList<>();
     listeners.add(new AbstractBpmnParseListener(){
@@ -68,7 +67,7 @@ public class JobDefinitionCreationAndDeletionWithParseListenerTest {
     configuration.setCustomPreBPMNParseListeners(listeners);
   });
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   @Test

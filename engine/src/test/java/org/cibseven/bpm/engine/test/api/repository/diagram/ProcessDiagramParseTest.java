@@ -35,6 +35,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Nikola Koevski
@@ -43,7 +44,7 @@ public class ProcessDiagramParseTest {
 
   private static final String resourcePath = "src/test/resources/org/cibseven/bpm/engine/test/api/repository/diagram/testXxeParsingIsDisabled";
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
 

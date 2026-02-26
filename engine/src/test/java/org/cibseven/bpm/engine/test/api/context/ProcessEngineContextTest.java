@@ -33,14 +33,15 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class ProcessEngineContextTest {
 
+  @RegisterExtension
   protected final ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected final ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
 
   protected static final String SIMPLE_PROCESS_KEY = "simple_process";
   protected static final BpmnModelInstance SIMPLE_PROCESS = Bpmn.createExecutableProcess(SIMPLE_PROCESS_KEY)

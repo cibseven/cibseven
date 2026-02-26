@@ -36,13 +36,14 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.AfterEach;
 
 public class PasswordPolicyUserDataTest {
 
   public static final String CANDIDATE_PASSWORD = "mypassword";
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProcessEngineRule(true);
 
   protected IdentityService identityService;

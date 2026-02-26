@@ -33,34 +33,27 @@ import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.AuthorizationRuleTripleExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-@RunWith(Parameterized.class)
-@ExtendWith(AuthorizationRuleTripleExtension.class)
 public class CreateMigrationPlanAuthorizationTest {
 
-  public ProcessEngineRule engineRule;
-  public AuthorizationTestRule authRule;
-  public ProcessEngineTestRule testRule;
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Parameter
-  public AuthorizationScenario scenario;
-
-  @Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
       scenario()
@@ -99,9 +92,10 @@ public class CreateMigrationPlanAuthorizationTest {
     authRule.deleteUsersAndGroups();
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/authorization/oneIncidentProcess.bpmn20.xml")
-  public void testCreate() {
+  public void testCreate(AuthorizationScenario scenario) {
 
     // given
     ProcessDefinition sourceDefinition = testRule.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);

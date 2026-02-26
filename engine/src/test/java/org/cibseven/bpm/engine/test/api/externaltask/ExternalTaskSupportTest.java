@@ -32,24 +32,19 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-@RunWith(Parameterized.class)
 public class ExternalTaskSupportTest {
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule rule = new ProvidedProcessEngineRule();
 
-  @Parameters
   public static Collection<Object[]> processResources() {
     return Arrays.asList(new Object[][] {
       {"org/cibseven/bpm/engine/test/api/externaltask/ExternalTaskSupportTest.businessRuleTask.bpmn20.xml"},
@@ -59,13 +54,9 @@ public class ExternalTaskSupportTest {
     });
   }
 
-  @Parameter
-  public String processDefinitionResource;
-
   protected String deploymentId;
 
-  @BeforeEach
-  public void setUp() {
+  protected void setUp(String processDefinitionResource) {
     deploymentId = rule.getRepositoryService()
         .createDeployment()
         .addClasspathResource(processDefinitionResource)
@@ -80,9 +71,11 @@ public class ExternalTaskSupportTest {
     }
   }
 
-  @Test
-  public void testExternalTaskSupport() {
+  @ParameterizedTest
+  @MethodSource("processResources")
+  public void testExternalTaskSupport(String processDefinitionResource) {
     // given
+    setUp(processDefinitionResource);
     ProcessDefinition processDefinition = rule.getRepositoryService().createProcessDefinitionQuery().singleResult();
 
     // when
@@ -104,9 +97,11 @@ public class ExternalTaskSupportTest {
     Assertions.assertEquals(0L, rule.getRuntimeService().createProcessInstanceQuery().count());
   }
 
-  @Test
-  public void testExternalTaskProperties() {
+  @ParameterizedTest
+  @MethodSource("processResources")
+  public void testExternalTaskProperties(String processDefinitionResource) {
     // given
+    setUp(processDefinitionResource);
     ProcessDefinition processDefinition = rule.getRepositoryService().createProcessDefinitionQuery().singleResult();
     rule.getRuntimeService().startProcessInstanceById(processDefinition.getId());
 

@@ -154,8 +154,7 @@ public class ProcessEngineRule implements BeforeEachCallback, AfterEachCallback,
       int methodNameEnd = methodNameVariantStart < 0 ? methodName.length() : methodNameVariantStart;
       methodName = methodName.substring(0, methodNameEnd);
     }
-    deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, testClass.get(), methodName,
-    		testClass.get().getAnnotation(Deployment.class));
+    deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, testClass.get(), methodName, method.get().getParameterTypes());
   
   }
 

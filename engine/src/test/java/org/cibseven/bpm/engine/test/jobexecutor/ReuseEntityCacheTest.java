@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -47,12 +48,11 @@ public class ReuseEntityCacheTest {
   public static final String ENTITY_ID1 = "Execution1";
   public static final String ENTITY_ID2 = "Execution2";
 
+  @RegisterExtension
   protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configuration.setJobExecutor(new ControllableJobExecutor()));
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule);
 
   protected boolean defaultSetting;
 

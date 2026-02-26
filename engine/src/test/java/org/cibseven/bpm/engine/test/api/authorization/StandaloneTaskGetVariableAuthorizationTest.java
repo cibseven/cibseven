@@ -35,7 +35,6 @@ import org.cibseven.bpm.engine.authorization.Authorization;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.AuthorizationRuleExtension;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
@@ -44,27 +43,22 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Yana.Vasileva
  *
  */
-@RunWith(Parameterized.class)
-@ExtendWith(AuthorizationRuleExtension.class)
 public class StandaloneTaskGetVariableAuthorizationTest {
 
-  public ProcessEngineRule engineRule;
-  public AuthorizationTestRule authRule;
+  @RegisterExtension
+  @Order(1) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
-  @Parameter
-  public AuthorizationScenario scenario;
+  @RegisterExtension
+  @Order(2) public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected TaskService taskService;
@@ -77,7 +71,6 @@ public class StandaloneTaskGetVariableAuthorizationTest {
   protected static final String PROCESS_KEY = "oneTaskProcess";
   protected boolean ensureSpecificVariablePermission;
 
-  @Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
       scenario()
@@ -113,8 +106,9 @@ public class StandaloneTaskGetVariableAuthorizationTest {
     processEngineConfiguration.setEnforceSpecificVariablePermission(ensureSpecificVariablePermission);
   }
 
-  @Test
-  public void testGetVariable() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariable(AuthorizationScenario scenario) {
     // given
     createTask(taskId);
 
@@ -136,8 +130,9 @@ public class StandaloneTaskGetVariableAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariableLocal() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariableLocal(AuthorizationScenario scenario) {
     // given
     createTask(taskId);
 
@@ -159,8 +154,9 @@ public class StandaloneTaskGetVariableAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariableTyped() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariableTyped(AuthorizationScenario scenario) {
     // given
     createTask(taskId);
 
@@ -183,8 +179,9 @@ public class StandaloneTaskGetVariableAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariableLocalTyped() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariableLocalTyped(AuthorizationScenario scenario) {
     // given
     createTask(taskId);
 
@@ -207,8 +204,9 @@ public class StandaloneTaskGetVariableAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariables() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariables(AuthorizationScenario scenario) {
     // given
     createTask(taskId);
 
@@ -231,8 +229,9 @@ public class StandaloneTaskGetVariableAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariablesLocal() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariablesLocal(AuthorizationScenario scenario) {
     // given
     createTask(taskId);
 
@@ -255,8 +254,9 @@ public class StandaloneTaskGetVariableAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariablesTyped() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariablesTyped(AuthorizationScenario scenario) {
     createTask(taskId);
 
     taskService.setVariables(taskId, getVariables());
@@ -278,8 +278,9 @@ public class StandaloneTaskGetVariableAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariablesLocalTyped() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariablesLocalTyped(AuthorizationScenario scenario) {
     createTask(taskId);
 
     taskService.setVariablesLocal(taskId, getVariables());
@@ -301,8 +302,9 @@ public class StandaloneTaskGetVariableAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariablesByName() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariablesByName(AuthorizationScenario scenario) {
     // given
     createTask(taskId);
 
@@ -325,8 +327,9 @@ public class StandaloneTaskGetVariableAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariablesLocalByName() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariablesLocalByName(AuthorizationScenario scenario) {
     // given
     createTask(taskId);
 
@@ -349,8 +352,9 @@ public class StandaloneTaskGetVariableAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariablesTypedByName() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariablesTypedByName(AuthorizationScenario scenario) {
     createTask(taskId);
 
     taskService.setVariables(taskId, getVariables());
@@ -372,8 +376,9 @@ public class StandaloneTaskGetVariableAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariablesLocalTypedByName() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariablesLocalTypedByName(AuthorizationScenario scenario) {
     createTask(taskId);
 
     taskService.setVariablesLocal(taskId, getVariables());

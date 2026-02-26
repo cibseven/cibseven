@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.util.ReflectUtil;
-import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapClassExtension;
+import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
@@ -33,17 +33,13 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class CustomExpressionManagerFunctionsTest {
 
-
   @RegisterExtension
-  public static ProcessEngineBootstrapClassExtension processEngineBootstrapClassExtension = ProcessEngineBootstrapClassExtension.builder()
-    .useDefaultResource()
-    .addProcessEngineTestRule()
-    .build();
+  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule();
+  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RuntimeService runtimeService;
-  private ProvidedProcessEngineRule engineRule = null;
-  private ProcessEngineTestRule testRule = null;
 
   @BeforeEach
   public void initializeServices() {

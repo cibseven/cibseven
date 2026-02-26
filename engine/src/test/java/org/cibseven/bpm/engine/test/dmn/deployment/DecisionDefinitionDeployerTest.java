@@ -55,6 +55,7 @@ import org.cibseven.bpm.model.dmn.instance.Text;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class DecisionDefinitionDeployerTest {
@@ -69,11 +70,10 @@ public class DecisionDefinitionDeployerTest {
   protected static final String DRD_SCORE_V2_RESOURCE = "org/cibseven/bpm/engine/test/dmn/deployment/drdScore_v2.dmn11.xml";
   protected static final String DRD_DISH_RESOURCE = "org/cibseven/bpm/engine/test/dmn/deployment/drdDish.dmn11.xml";
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected RepositoryService repositoryService;
 

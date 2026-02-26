@@ -41,6 +41,7 @@ import org.cibseven.bpm.engine.variable.value.StringValue;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -57,13 +58,10 @@ public class MultiTenancyCaseInstanceCmdsTenantCheckTest {
   protected static final String CMMN_MODEL = "org/cibseven/bpm/engine/test/api/cmmn/twoTaskCase.cmmn";
 
   protected static final String ACTIVITY_ID = "PI_HumanTask_1";
-
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected IdentityService identityService;
   protected CaseService caseService;

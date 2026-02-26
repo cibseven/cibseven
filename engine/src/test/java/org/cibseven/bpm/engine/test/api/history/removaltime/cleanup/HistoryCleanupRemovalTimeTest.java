@@ -101,11 +101,12 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.AfterClass;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -114,11 +115,10 @@ import org.junit.jupiter.api.Test;
 @RequiredHistoryLevel(HISTORY_FULL)
 public class HistoryCleanupRemovalTimeTest {
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected RuntimeService runtimeService;
   protected FormService formService;
@@ -184,7 +184,7 @@ public class HistoryCleanupRemovalTimeTest {
     }
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDownAfterAll() {
     if (engineConfiguration != null) {
       engineConfiguration

@@ -23,11 +23,12 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_AUDIT)
 public class ProcessEngineRuleRequiredHistoryLevelClassTest {
 
-//  @Rule
+  @RegisterExtension
   public final ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   @Test

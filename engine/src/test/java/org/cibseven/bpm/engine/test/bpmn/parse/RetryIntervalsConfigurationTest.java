@@ -39,8 +39,9 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class RetryIntervalsConfigurationTest extends AbstractAsyncOperationsTest {
@@ -53,11 +54,11 @@ public class RetryIntervalsConfigurationTest extends AbstractAsyncOperationsTest
     configuration.setFailedJobRetryTimeCycle("PT5M,PT20M, PT3M");
     configuration.setEnableExceptionsAfterUnhandledBpmnError(true);
   });
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(1) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(2) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule).around(testRule);
 
   @BeforeEach
   public void setUp() {

@@ -40,23 +40,18 @@ import org.cibseven.bpm.engine.test.api.variables.JavaSerializable;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ResetDmnConfigUtil;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.jupiter.api.BeforeEach;
-
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class HistoricDecisionInstanceInputOutputValueTest {
 
   protected static final String DECISION_PROCESS = "org/cibseven/bpm/engine/test/history/HistoricDecisionInstanceTest.processWithBusinessRuleTask.bpmn20.xml";
   protected static final String DECISION_SINGLE_OUTPUT_DMN = "org/cibseven/bpm/engine/test/history/HistoricDecisionInstanceTest.decisionSingleOutput.dmn11.xml";
 
-  @Parameters(name = "{index}: input({0}) = {1}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
       { "string", "a" },
@@ -68,13 +63,7 @@ public class HistoricDecisionInstanceInputOutputValueTest {
     });
   }
 
-  @Parameter(0)
-  public String valueType;
-
-  @Parameter(1)
-  public Object inputValue;
-
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   @AfterEach
@@ -105,9 +94,10 @@ public class HistoricDecisionInstanceInputOutputValueTest {
         .init();
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("data")
   @Deployment(resources = { DECISION_PROCESS, DECISION_SINGLE_OUTPUT_DMN })
-  public void decisionInputInstanceValue() throws ParseException {
+  public void decisionInputInstanceValue(String valueType, Object inputValue) throws ParseException {
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss.SSS");
     Date fixedDate = sdf.parse("01/01/2001 01:01:01.000");
     ClockUtil.setCurrentTime(fixedDate);
@@ -124,9 +114,10 @@ public class HistoricDecisionInstanceInputOutputValueTest {
     assertThat(inputInstance.getCreateTime()).isEqualTo(fixedDate);
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("data")
   @Deployment(resources = { DECISION_PROCESS, DECISION_SINGLE_OUTPUT_DMN })
-  public void decisionOutputInstanceValue() throws ParseException {
+  public void decisionOutputInstanceValue(String valueType, Object inputValue) throws ParseException {
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss.SSS");
     Date fixedDate = sdf.parse("01/01/2001 01:01:01.000");
     ClockUtil.setCurrentTime(fixedDate);

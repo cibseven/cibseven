@@ -36,6 +36,7 @@ import org.cibseven.bpm.engine.impl.variable.serializer.JavaObjectSerializer;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
+import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
@@ -44,6 +45,7 @@ import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Svetlana Dorokhova
@@ -53,10 +55,12 @@ public class JavaSerializationProhibitedTest {
   protected static final String ONE_TASK_PROCESS = "org/cibseven/bpm/engine/test/api/variables/oneTaskProcess.bpmn20.xml";
 
   protected static final String JAVA_DATA_FORMAT = Variables.SerializationDataFormats.JAVA.getName();
-
-  private ProcessEngineBootstrapRule bootstrapRule;
-  private ProvidedProcessEngineRule engineRule;
-  private ProcessEngineTestRule testRule;
+  @RegisterExtension
+  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule();
+  @RegisterExtension
+  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   private RuntimeService runtimeService;
   private TaskService taskService;

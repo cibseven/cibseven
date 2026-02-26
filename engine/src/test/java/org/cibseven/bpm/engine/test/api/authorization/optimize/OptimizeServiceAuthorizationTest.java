@@ -66,11 +66,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
-@RunWith(Parameterized.class)
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class OptimizeServiceAuthorizationTest {
 
@@ -87,14 +86,14 @@ public class OptimizeServiceAuthorizationTest {
   public static final String DECISION_INPUT_EQUALS_OUTPUT =
     "org/cibseven/bpm/engine/test/history/HistoricDecisionInstanceTest.decisionSingleOutput.dmn11.xml";
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
   protected AuthorizationTestBaseRule authRule = new AuthorizationTestBaseRule(engineRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(authRule);
 
-  @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
       {(Function<OptimizeService, List<?>>) optimizeService ->
@@ -131,9 +130,7 @@ public class OptimizeServiceAuthorizationTest {
     });
   }
 
-  @Parameterized.Parameter
-  public Function<OptimizeService, List<?>> methodToTest;
-
+  
   protected IdentityService identityService;
   protected RepositoryService repositoryService;
   protected AuthorizationService authorizationService;
@@ -183,8 +180,9 @@ public class OptimizeServiceAuthorizationTest {
     identityService.clearAuthentication();
   }
 
-  @Test
-  public void cantGetDataWithoutTenantAuthorization() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void cantGetDataWithoutTenantAuthorization(Function<OptimizeService, List<?>> methodToTest) {
     // given
     identityService.setAuthentication(userId, null, Collections.singletonList(TENANT_ONE));
     authRule.createGrantAuthorization(PROCESS_DEFINITION, ANY, userId, READ_HISTORY);
@@ -203,8 +201,9 @@ public class OptimizeServiceAuthorizationTest {
     }
   }
 
-  @Test
-  public void cantGetDataWithoutProcessDefinitionAuthorization() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void cantGetDataWithoutProcessDefinitionAuthorization(Function<OptimizeService, List<?>> methodToTest) {
     // given
     identityService.setAuthentication(userId, null, Collections.singletonList(TENANT_ONE));
     authRule.createGrantAuthorization(DECISION_DEFINITION, ANY, userId, READ_HISTORY);
@@ -223,8 +222,9 @@ public class OptimizeServiceAuthorizationTest {
     }
   }
 
-  @Test
-  public void authorizationOnSingleProcessResourceNotEnough() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void authorizationOnSingleProcessResourceNotEnough(Function<OptimizeService, List<?>> methodToTest) {
     // given
     identityService.setAuthentication(userId, null, Collections.singletonList(TENANT_ONE));
     authRule.createGrantAuthorization(PROCESS_DEFINITION, SIMPLE_PROCESS, userId, READ_HISTORY);
@@ -244,8 +244,9 @@ public class OptimizeServiceAuthorizationTest {
     }
   }
 
-  @Test
-  public void cantGetDataWithoutDecisionDefinitionAuthorization() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void cantGetDataWithoutDecisionDefinitionAuthorization(Function<OptimizeService, List<?>> methodToTest) {
     // given
     identityService.setAuthentication(userId, null, Collections.singletonList(TENANT_ONE));
     authRule.createGrantAuthorization(PROCESS_DEFINITION, ANY, userId, READ_HISTORY);
@@ -264,8 +265,9 @@ public class OptimizeServiceAuthorizationTest {
     }
   }
 
-  @Test
-  public void authorizationOnSingleDecisionResourceNotEnough() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void authorizationOnSingleDecisionResourceNotEnough(Function<OptimizeService, List<?>> methodToTest) {
     // given
     identityService.setAuthentication(userId, null, Collections.singletonList(TENANT_ONE));
     authRule.createGrantAuthorization(PROCESS_DEFINITION, ANY, userId, READ_HISTORY);
@@ -285,8 +287,9 @@ public class OptimizeServiceAuthorizationTest {
     }
   }
 
-  @Test
-  public void canGetDataWithAllAuthorizations() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void canGetDataWithAllAuthorizations(Function<OptimizeService, List<?>> methodToTest) {
     // given
     identityService.setAuthentication(userId, null, Collections.singletonList(TENANT_ONE));
     generateTestData();

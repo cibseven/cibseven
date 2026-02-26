@@ -38,14 +38,10 @@ import org.cibseven.bpm.engine.impl.scripting.engine.ScriptEngineResolver;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 
-@RunWith(Parameterized.class)
 public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
   
   Logger LOG = ProcessEngineLogger.TEST_LOGGER.getLogger();
@@ -54,16 +50,15 @@ public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
 
   protected ScriptEngineResolver defaultScriptEngineResolver;
   protected boolean spinEnabled = false;
+  private boolean configureHostAccess;
+  private boolean enableExternalResources;
+  private boolean enableNashornCompat;
 
   @BeforeEach
   public void setup() {
     spinEnabled = processEngineConfiguration.getEnvScriptResolvers().stream()
                     .anyMatch(resolver -> resolver.getClass().getSimpleName().equals("SpinScriptEnvResolver"));
     defaultScriptEngineResolver = processEngineConfiguration.getScriptEngineResolver();
-    processEngineConfiguration.setConfigureScriptEngineHostAccess(configureHostAccess);
-    processEngineConfiguration.setEnableScriptEngineLoadExternalResources(enableExternalResources);
-    processEngineConfiguration.setEnableScriptEngineNashornCompatibility(enableNashornCompat);
-    processEngineConfiguration.setUseCibSevenNamespaceInScripting(true);
   }
 
   @AfterEach
@@ -74,7 +69,6 @@ public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
     processEngineConfiguration.setScriptEngineResolver(defaultScriptEngineResolver);
   }
 
-  @Parameters
   public static Collection<Object[]> setups() {
     return Arrays.asList(new Object[][] {
       {false, false, false},
@@ -88,17 +82,20 @@ public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
     });
   }
 
-  @Parameter(0)
-  public boolean configureHostAccess;
+  private void applyParams(boolean configureHostAccess, boolean enableExternalResources, boolean enableNashornCompat) {
+    this.configureHostAccess = configureHostAccess;
+    this.enableExternalResources = enableExternalResources;
+    this.enableNashornCompat = enableNashornCompat;
+    processEngineConfiguration.setConfigureScriptEngineHostAccess(configureHostAccess);
+    processEngineConfiguration.setEnableScriptEngineLoadExternalResources(enableExternalResources);
+    processEngineConfiguration.setEnableScriptEngineNashornCompatibility(enableNashornCompat);
+    processEngineConfiguration.setUseCibSevenNamespaceInScripting(true);
+  }
 
-  @Parameter(1)
-  public boolean enableExternalResources;
-
-  @Parameter(2)
-  public boolean enableNashornCompat;
-
-  @Test
-  public void testJavascriptProcessVarVisibility() {
+  @ParameterizedTest
+  @MethodSource("setups")
+  public void testJavascriptProcessVarVisibility(boolean configureHostAccess, boolean enableExternalResources, boolean enableNashornCompat) {
+    applyParams(configureHostAccess, enableExternalResources, enableNashornCompat);
 
     deployProcess(GRAALJS,
 
@@ -151,8 +148,10 @@ public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
     }
   }
 
-  @Test
-  public void testJavascriptFunctionInvocation() {
+  @ParameterizedTest
+  @MethodSource("setups")
+  public void testJavascriptFunctionInvocation(boolean configureHostAccess, boolean enableExternalResources, boolean enableNashornCompat) {
+    applyParams(configureHostAccess, enableExternalResources, enableNashornCompat);
 
     deployProcess(GRAALJS,
 
@@ -191,8 +190,10 @@ public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
 
   }
 
-  @Test
-  public void testJsVariable() {
+  @ParameterizedTest
+  @MethodSource("setups")
+  public void testJsVariable(boolean configureHostAccess, boolean enableExternalResources, boolean enableNashornCompat) {
+    applyParams(configureHostAccess, enableExternalResources, enableNashornCompat);
 
     String scriptText = "var foo = 1;";
 
@@ -214,8 +215,10 @@ public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
 
   }
 
-  @Test
-  public void testJavascriptVariableSerialization() {
+  @ParameterizedTest
+  @MethodSource("setups")
+  public void testJavascriptVariableSerialization(boolean configureHostAccess, boolean enableExternalResources, boolean enableNashornCompat) {
+    applyParams(configureHostAccess, enableExternalResources, enableNashornCompat);
     deployProcess(GRAALJS,
         // GIVEN
         // setting Java classes as variables
@@ -242,8 +245,10 @@ public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
     }
   }
 
-  @Test
-  public void shouldLoadExternalScript() {
+  @ParameterizedTest
+  @MethodSource("setups")
+  public void shouldLoadExternalScript(boolean configureHostAccess, boolean enableExternalResources, boolean enableNashornCompat) {
+      applyParams(configureHostAccess, enableExternalResources, enableNashornCompat);
       // GIVEN
       // an external JS file with a function
       deployProcess(GRAALJS,
@@ -279,8 +284,10 @@ public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
       }
   }
   
-  @Test
-  public void shouldLoadCibSevenClass() {
+  @ParameterizedTest
+  @MethodSource("setups")
+  public void shouldLoadCibSevenClass(boolean configureHostAccess, boolean enableExternalResources, boolean enableNashornCompat) {
+    applyParams(configureHostAccess, enableExternalResources, enableNashornCompat);
     
     for (String engineName : List.of(
         GRAALJS,

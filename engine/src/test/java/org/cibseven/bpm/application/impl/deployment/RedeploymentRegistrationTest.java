@@ -31,10 +31,11 @@ import org.cibseven.bpm.engine.impl.persistence.deploy.cache.DeploymentCache;
 import org.cibseven.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRuleExtension;
+import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
+import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.Arguments;
@@ -43,7 +44,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-@ExtendWith(ProvidedProcessEngineRuleExtension.class)
+
 public class RedeploymentRegistrationTest {
 
   protected static final String DEPLOYMENT_NAME = "my-deployment";
@@ -62,8 +63,10 @@ public class RedeploymentRegistrationTest {
 
   protected EmbeddedProcessApplication processApplication;
 
-  //set from ProvidedProcessEngineRuleExtension
-  protected ProcessEngineRule engineRule;
+  @RegisterExtension
+  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RepositoryService repositoryService;
   protected ProcessEngineConfigurationImpl processEngineConfiguration;

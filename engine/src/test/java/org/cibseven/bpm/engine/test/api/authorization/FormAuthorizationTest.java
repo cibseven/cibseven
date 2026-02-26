@@ -43,7 +43,7 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -59,7 +59,7 @@ public class FormAuthorizationTest extends AuthorizationTest {
   protected String deploymentId;
   protected boolean ensureSpecificVariablePermission;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     deploymentId = testRule.deploy(
         "org/cibseven/bpm/engine/test/api/form/DeployedFormsProcess.bpmn20.xml",

@@ -45,7 +45,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import com.google.common.collect.Sets;
 
@@ -53,12 +53,11 @@ public class UpdateProcessInstancesSuspendStateAsyncTest {
 
   protected static final Date TEST_DATE = new Date(1457326800000L);
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   protected BatchSuspensionHelper helper = new BatchSuspensionHelper(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;

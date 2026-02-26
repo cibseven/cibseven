@@ -34,16 +34,15 @@ import org.cibseven.bpm.engine.impl.scripting.engine.DefaultScriptEngineResolver
 import org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRuleSingleExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
-@ExtendWith(ProvidedProcessEngineRuleSingleExtension.class)
 public class ScriptEngineNameJavaScriptTest {
 
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;

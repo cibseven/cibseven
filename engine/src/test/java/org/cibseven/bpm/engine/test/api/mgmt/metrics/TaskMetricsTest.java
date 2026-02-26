@@ -40,7 +40,9 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class TaskMetricsTest {
 
@@ -51,10 +53,12 @@ public class TaskMetricsTest {
       .userTask("task").camundaAssignee("kermit")
       .endEvent()
       .done();
-
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(config -> config.setTaskMetricsEnabled(true));
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order (1) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(config -> config.setTaskMetricsEnabled(true));
+  @RegisterExtension
+  @Order (2) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order (3) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected ProcessEngineConfigurationImpl processEngineConfiguration;

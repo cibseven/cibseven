@@ -28,19 +28,20 @@ import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestBase
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class OptimizeAuthorizationTest {
 
   protected static final String USER_ID = "user";
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestBaseRule authRule = new AuthorizationTestBaseRule(engineRule);
+  @RegisterExtension
+  @Order(1) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) public AuthorizationTestBaseRule authRule = new AuthorizationTestBaseRule(engineRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule);
 
   ProcessEngineConfigurationImpl processEngineConfiguration;
   AuthorizationService authorizationService;

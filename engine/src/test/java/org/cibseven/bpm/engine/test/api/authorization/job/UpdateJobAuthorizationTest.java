@@ -35,34 +35,26 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
-import org.cibseven.bpm.engine.test.util.AuthorizationRuleExtension;
+import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
-
-@RunWith(Parameterized.class)
-@ExtendWith(AuthorizationRuleExtension.class)
 public class UpdateJobAuthorizationTest {
 
   static final String TIMER_BOUNDARY_PROCESS_KEY = "timerBoundaryProcess";
 
-  public ProcessEngineRule engineRule;
-  public AuthorizationTestRule authRule;
-
+  @RegisterExtension
+  @Order(1) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
 
   ManagementService managementService;
   RuntimeService runtimeService;
 
-  @Parameter
-  public AuthorizationScenario scenario;
-
-  @Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
       scenario()
@@ -102,10 +94,11 @@ public class UpdateJobAuthorizationTest {
     authRule.deleteUsersAndGroups();
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = {
       "org/cibseven/bpm/engine/test/api/authorization/timerBoundaryEventProcess.bpmn20.xml" })
-  public void shouldExecuteJob() {
+  public void shouldExecuteJob(AuthorizationScenario scenario) {
     // given
     String processInstanceId = runtimeService
         .startProcessInstanceByKey(TIMER_BOUNDARY_PROCESS_KEY)
@@ -131,10 +124,11 @@ public class UpdateJobAuthorizationTest {
     }
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = {
       "org/cibseven/bpm/engine/test/api/authorization/timerBoundaryEventProcess.bpmn20.xml" })
-  public void shouldSuspendJobById() {
+  public void shouldSuspendJobById(AuthorizationScenario scenario) {
     // given
     String processInstanceId = runtimeService
         .startProcessInstanceByKey(TIMER_BOUNDARY_PROCESS_KEY)
@@ -158,10 +152,11 @@ public class UpdateJobAuthorizationTest {
     }
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = {
       "org/cibseven/bpm/engine/test/api/authorization/timerBoundaryEventProcess.bpmn20.xml" })
-  public void shouldActivateJobById() {
+  public void shouldActivateJobById(AuthorizationScenario scenario) {
     // given
     String processInstanceId = runtimeService
         .startProcessInstanceByKey(TIMER_BOUNDARY_PROCESS_KEY)
@@ -185,10 +180,11 @@ public class UpdateJobAuthorizationTest {
     }
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = {
       "org/cibseven/bpm/engine/test/api/authorization/timerBoundaryEventProcess.bpmn20.xml" })
-  public void shouldSuspendJobByProcessInstanceId() {
+  public void shouldSuspendJobByProcessInstanceId(AuthorizationScenario scenario) {
     // given
     String processInstanceId = runtimeService
         .startProcessInstanceByKey(TIMER_BOUNDARY_PROCESS_KEY)
@@ -212,10 +208,11 @@ public class UpdateJobAuthorizationTest {
     }
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = {
       "org/cibseven/bpm/engine/test/api/authorization/timerBoundaryEventProcess.bpmn20.xml" })
-  public void shouldActivateJobByProcessInstanceId() {
+  public void shouldActivateJobByProcessInstanceId(AuthorizationScenario scenario) {
     // given
     String processInstanceId = runtimeService
         .startProcessInstanceByKey(TIMER_BOUNDARY_PROCESS_KEY)
@@ -239,10 +236,11 @@ public class UpdateJobAuthorizationTest {
     }
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = {
       "org/cibseven/bpm/engine/test/api/authorization/timerBoundaryEventProcess.bpmn20.xml" })
-  public void shouldSuspendJobByJobDefinitionId() {
+  public void shouldSuspendJobByJobDefinitionId(AuthorizationScenario scenario) {
     // given
     String processInstanceId = runtimeService
         .startProcessInstanceByKey(TIMER_BOUNDARY_PROCESS_KEY)
@@ -267,10 +265,11 @@ public class UpdateJobAuthorizationTest {
     }
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = {
       "org/cibseven/bpm/engine/test/api/authorization/timerBoundaryEventProcess.bpmn20.xml" })
-  public void shouldActivateJobByJobDefinitionId() {
+  public void shouldActivateJobByJobDefinitionId(AuthorizationScenario scenario) {
     // given
     String processInstanceId = runtimeService
         .startProcessInstanceByKey(TIMER_BOUNDARY_PROCESS_KEY)
@@ -295,10 +294,11 @@ public class UpdateJobAuthorizationTest {
     }
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = {
       "org/cibseven/bpm/engine/test/api/authorization/timerBoundaryEventProcess.bpmn20.xml" })
-  public void shouldSuspendJobByProcessDefinitionId() {
+  public void shouldSuspendJobByProcessDefinitionId(AuthorizationScenario scenario) {
     // given
     ProcessInstance processInstance = runtimeService
         .startProcessInstanceByKey(TIMER_BOUNDARY_PROCESS_KEY);
@@ -321,10 +321,11 @@ public class UpdateJobAuthorizationTest {
   }
 
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = {
       "org/cibseven/bpm/engine/test/api/authorization/timerBoundaryEventProcess.bpmn20.xml" })
-  public void shouldActivateJobByProcessDefinitionId() {
+  public void shouldActivateJobByProcessDefinitionId(AuthorizationScenario scenario) {
     // given
     ProcessInstance processInstance = runtimeService
         .startProcessInstanceByKey(TIMER_BOUNDARY_PROCESS_KEY);
@@ -346,10 +347,11 @@ public class UpdateJobAuthorizationTest {
     }
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = {
       "org/cibseven/bpm/engine/test/api/authorization/timerBoundaryEventProcess.bpmn20.xml" })
-  public void shouldSuspendJobByProcessDefinitionKey() {
+  public void shouldSuspendJobByProcessDefinitionKey(AuthorizationScenario scenario) {
     // given
     String processInstanceId = runtimeService
         .startProcessInstanceByKey(TIMER_BOUNDARY_PROCESS_KEY)
@@ -372,10 +374,11 @@ public class UpdateJobAuthorizationTest {
     }
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = {
       "org/cibseven/bpm/engine/test/api/authorization/timerBoundaryEventProcess.bpmn20.xml" })
-  public void shouldActivateJobByProcessDefinitionKey() {
+  public void shouldActivateJobByProcessDefinitionKey(AuthorizationScenario scenario) {
     // given
     String processInstanceId = runtimeService
         .startProcessInstanceByKey(TIMER_BOUNDARY_PROCESS_KEY)
@@ -398,10 +401,11 @@ public class UpdateJobAuthorizationTest {
     }
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = {
       "org/cibseven/bpm/engine/test/api/authorization/timerBoundaryEventProcess.bpmn20.xml" })
-  public void shouldSetJobDueDate() {
+  public void shouldSetJobDueDate(AuthorizationScenario scenario) {
     // given
     String processInstanceId = runtimeService
         .startProcessInstanceByKey(TIMER_BOUNDARY_PROCESS_KEY)
@@ -425,10 +429,11 @@ public class UpdateJobAuthorizationTest {
     }
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = {
       "org/cibseven/bpm/engine/test/api/authorization/timerBoundaryEventProcess.bpmn20.xml" })
-  public void shouldDeleteJob() {
+  public void shouldDeleteJob(AuthorizationScenario scenario) {
     // given
     String processInstanceId = runtimeService
         .startProcessInstanceByKey(TIMER_BOUNDARY_PROCESS_KEY)

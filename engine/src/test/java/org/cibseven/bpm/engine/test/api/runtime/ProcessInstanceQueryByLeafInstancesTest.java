@@ -27,6 +27,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Miklas Boskamp
@@ -34,7 +35,7 @@ import org.junit.jupiter.api.Test;
  */
 public class ProcessInstanceQueryByLeafInstancesTest {
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected RuntimeService runtimeService;

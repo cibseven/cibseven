@@ -29,7 +29,7 @@ import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -41,14 +41,14 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JobExecutionLoggingTest {
-
+  
+  @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().watch(
       "org.cibseven.bpm.engine.jobexecutor", Level.DEBUG);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(loggingRule);
 
   protected RuntimeService runtimeService;
   protected ProcessEngineConfigurationImpl processEngineConfiguration;

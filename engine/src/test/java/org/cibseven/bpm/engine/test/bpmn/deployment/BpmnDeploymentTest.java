@@ -47,6 +47,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -57,7 +58,7 @@ public class BpmnDeploymentTest extends PluggableProcessEngineTest {
 
   protected static final String CMD_LOGGER = "org.cibseven.bpm.engine.cmd";
   
-//  @Rule
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
 
   protected DeploymentHandlerFactory defaultDeploymentHandlerFactory;

@@ -33,6 +33,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class MigrationRemoveBoundaryEventsTest {
@@ -44,11 +45,10 @@ public class MigrationRemoveBoundaryEventsTest {
   public static final String ERROR_CODE = "Error";
   public static final String ESCALATION_CODE = "Escalation";
 
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testRemoveMessageBoundaryEventFromUserTask() {

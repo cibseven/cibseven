@@ -19,33 +19,24 @@ package org.cibseven.bpm.engine.test.cmmn.handler;
 import org.cibseven.bpm.engine.impl.cmmn.handler.CasePlanModelHandler;
 import org.cibseven.bpm.engine.impl.cmmn.model.CmmnActivity;
 import org.cibseven.bpm.engine.test.cmmn.handler.specification.AbstractExecutionListenerSpec;
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-@RunWith(Parameterized.class)
 public class CasePlanModelExecutionListenerHandlerTest extends CmmnElementHandlerTest {
 
-  @Parameters(name = "testListener: {0}")
   public static Iterable<Object[]> data() {
     return ExecutionListenerCases.CASE_PLAN_MODEL_CASES;
   }
 
   protected CasePlanModelHandler handler = new CasePlanModelHandler();
 
-  protected AbstractExecutionListenerSpec testSpecification;
-
-  public CasePlanModelExecutionListenerHandlerTest(AbstractExecutionListenerSpec testSpecification) {
-    this.testSpecification = testSpecification;
-  }
-
-  @Test
-  public void testCaseExecutionListener() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testCaseExecutionListener(AbstractExecutionListenerSpec testSpecification) {
     // given:
     testSpecification.addListenerToElement(modelInstance, casePlanModel);
 

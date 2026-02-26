@@ -51,7 +51,7 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -60,17 +60,17 @@ import org.junit.jupiter.api.AfterEach;
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class CleanableHistoricBatchReportTest {
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule();
-
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
   protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
   protected BatchMigrationHelper migrationHelper = new BatchMigrationHelper(engineRule, migrationRule);
   protected BatchModificationHelper modificationHelper = new BatchModificationHelper(engineRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(testRule).around(engineRule).around(migrationRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected HistoryService historyService;

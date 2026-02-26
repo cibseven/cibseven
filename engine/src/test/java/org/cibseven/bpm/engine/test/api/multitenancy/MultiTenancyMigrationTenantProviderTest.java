@@ -34,7 +34,8 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.Assertions;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 
@@ -48,17 +49,15 @@ public class MultiTenancyMigrationTenantProviderTest {
   protected static final String TENANT_ONE = "tenant1";
   protected static final String TENANT_TWO = "tenant2";
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
+  @RegisterExtension
+  @Order(1) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
     TenantIdProvider tenantIdProvider = new VariableBasedTenantIdProvider();
     configuration.setTenantIdProvider(tenantIdProvider);
   });
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain tenantRuleChain = RuleChain.outerRule(engineRule).around(testHelper);
-
+  @RegisterExtension
+  @Order(2) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   @Test
   public void cannotMigrateInstanceBetweenDifferentTenants() {

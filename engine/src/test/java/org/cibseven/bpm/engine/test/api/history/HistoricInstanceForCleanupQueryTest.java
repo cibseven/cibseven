@@ -45,23 +45,22 @@ import org.cibseven.bpm.engine.test.api.runtime.migration.MigrationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.batch.BatchMigrationHelper;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRuleExtension;
-import org.cibseven.bpm.engine.test.util.MigrationRuleExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
-@ExtendWith(ProvidedProcessEngineRuleExtension.class)
 public class HistoricInstanceForCleanupQueryTest {
 
-  protected ProvidedProcessEngineRule engineRule;
-  public ProcessEngineTestRule testRule;
-  protected MigrationTestRule migrationRule;
-  protected BatchMigrationHelper helper;
+  @RegisterExtension
+  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
+  protected BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
 
-//  @Rule public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(migrationRule);
 
   private HistoryService historyService;
   private ManagementService managementService;

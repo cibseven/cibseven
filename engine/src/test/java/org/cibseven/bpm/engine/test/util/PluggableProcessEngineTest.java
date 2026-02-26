@@ -39,6 +39,7 @@ import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.runtime.ActivityInstance;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 
@@ -48,9 +49,9 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 public class PluggableProcessEngineTest {
 
   @RegisterExtension
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(1) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(2) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected ProcessEngine processEngine;
   protected ProcessEngineConfigurationImpl processEngineConfiguration;

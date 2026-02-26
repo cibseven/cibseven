@@ -39,6 +39,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
@@ -50,13 +51,10 @@ public class MultiTenancyCleanableHistoricCaseInstanceReportCmdTenantCheckTest {
   private static final String CASE_DEFINITION_KEY = "one";
 
   protected static final String CMMN_MODEL = "org/cibseven/bpm/engine/test/repository/one.cmmn";
-
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected RepositoryService repositoryService;
   protected IdentityService identityService;

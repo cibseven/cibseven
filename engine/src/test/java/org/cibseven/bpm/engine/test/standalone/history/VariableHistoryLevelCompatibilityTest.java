@@ -25,6 +25,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -36,10 +37,10 @@ import org.junit.jupiter.api.Test;
  */
 public class VariableHistoryLevelCompatibilityTest {
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
       "org/cibseven/bpm/engine/test/standalone/history/variablehistory.camunda.cfg.xml");
-//  @Rule
+  @RegisterExtension
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;

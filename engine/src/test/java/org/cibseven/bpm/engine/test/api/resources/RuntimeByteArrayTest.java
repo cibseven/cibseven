@@ -56,6 +56,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class RuntimeByteArrayTest {
@@ -63,14 +64,14 @@ public class RuntimeByteArrayTest {
   protected static final long LOCK_TIME = 10000L;
   protected static final String TOPIC_NAME = "externalTaskTopic";
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
   protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
   protected BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
 
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule).around(testRule);
 
   protected ProcessEngineConfigurationImpl configuration;
   protected RuntimeService runtimeService;

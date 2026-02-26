@@ -38,15 +38,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class UserTaskCamundaFormDefinitionParseTest {
 
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain chain = RuleChain.outerRule(engineRule).around(testRule);
 
   public RepositoryService repositoryService;
   public ProcessEngineConfigurationImpl processEngineConfiguration;

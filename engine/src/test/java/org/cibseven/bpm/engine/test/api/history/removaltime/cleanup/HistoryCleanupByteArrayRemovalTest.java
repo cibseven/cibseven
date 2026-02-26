@@ -39,7 +39,8 @@ import org.cibseven.bpm.engine.impl.persistence.entity.ByteArrayEntity;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.resources.GetByteArrayCommand;
 import org.cibseven.bpm.engine.test.util.EntityRemoveRule;
-import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapClassExtension;
+import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
+import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.RemoveAfter;
@@ -54,36 +55,35 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 public class HistoryCleanupByteArrayRemovalTest {
 
   @RegisterExtension
-  public static ProcessEngineBootstrapClassExtension processEngineBootstrapClassExtension = ProcessEngineBootstrapClassExtension.builder()
-		    .useConsumer(config -> {
+  private ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(config -> {
 
-		        config.setHistoryRemovalTimeStrategy(HISTORY_REMOVAL_TIME_STRATEGY_END)
-		            .setHistoryRemovalTimeProvider(new DefaultHistoryRemovalTimeProvider())
-		            .initHistoryRemovalTime();
+    config.setHistoryRemovalTimeStrategy(HISTORY_REMOVAL_TIME_STRATEGY_END)
+        .setHistoryRemovalTimeProvider(new DefaultHistoryRemovalTimeProvider())
+        .initHistoryRemovalTime();
 
-		        config.setHistoryCleanupStrategy(HISTORY_CLEANUP_STRATEGY_REMOVAL_TIME_BASED);
+    config.setHistoryCleanupStrategy(HISTORY_CLEANUP_STRATEGY_REMOVAL_TIME_BASED);
 
-		        config.setHistoryCleanupBatchSize(MAX_BATCH_SIZE);
-		        config.setHistoryCleanupBatchWindowStartTime(null);
-		        config.setHistoryCleanupDegreeOfParallelism(1);
+    config.setHistoryCleanupBatchSize(MAX_BATCH_SIZE);
+    config.setHistoryCleanupBatchWindowStartTime(null);
+    config.setHistoryCleanupDegreeOfParallelism(1);
 
-		        config.setBatchOperationHistoryTimeToLive(null);
-		        config.setBatchOperationsForHistoryCleanup(null);
+    config.setBatchOperationHistoryTimeToLive(null);
+    config.setBatchOperationsForHistoryCleanup(null);
 
-		        config.setHistoryTimeToLive(null);
+    config.setHistoryTimeToLive(null);
 
-		        config.setTaskMetricsEnabled(false);
-		        config.setTaskMetricsTimeToLive(null);
+    config.setTaskMetricsEnabled(false);
+    config.setTaskMetricsTimeToLive(null);
 
-		        config.initHistoryCleanup();
-		        })
-		    .addProcessEngineTestRule()
-		    .addEntityRemoveRule(true)
-		    .build();
+    config.initHistoryCleanup();
+  });
 
-  protected ProvidedProcessEngineRule engineRule;
-  protected ProcessEngineTestRule testRule;
-  protected EntityRemoveRule entityRemoveRule;
+  @RegisterExtension
+  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  protected EntityRemoveRule entityRemoveRule = EntityRemoveRule.ofLazyRule(() -> testRule);
 
   private ManagementService managementService;
   private HistoryService historyService;

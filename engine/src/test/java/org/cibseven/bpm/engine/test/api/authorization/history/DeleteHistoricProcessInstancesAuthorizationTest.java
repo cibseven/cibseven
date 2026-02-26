@@ -35,7 +35,6 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
-import org.cibseven.bpm.engine.test.util.AuthorizationRuleTripleExtension;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
@@ -43,7 +42,8 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -51,14 +51,16 @@ import org.junit.jupiter.params.provider.MethodSource;
  * @author Askar Akhmerov
  */
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
-@ExtendWith(AuthorizationRuleTripleExtension.class)
 public class DeleteHistoricProcessInstancesAuthorizationTest {
 
   protected static final String PROCESS_KEY = "oneTaskProcess";
 
-  protected ProcessEngineRule engineRule;
-  protected AuthorizationTestRule authRule;
-  protected ProcessEngineTestRule testRule;
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected ProcessInstance processInstance;
   protected ProcessInstance processInstance2;

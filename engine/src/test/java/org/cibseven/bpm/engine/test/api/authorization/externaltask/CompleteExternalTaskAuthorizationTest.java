@@ -18,14 +18,11 @@ package org.cibseven.bpm.engine.test.api.authorization.externaltask;
 
 import org.cibseven.bpm.engine.externaltask.LockedExternalTask;
 import org.junit.jupiter.api.Assertions;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 /**
  * @author Thorben Lindhauer
  * @author Christopher Zell
  */
-@RunWith(Parameterized.class)
 public class CompleteExternalTaskAuthorizationTest extends HandleLockedExternalTaskAuthorizationTest {
 
   @Override

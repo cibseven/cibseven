@@ -91,7 +91,7 @@ public class BpmnParseTest {
   @RegisterExtension
   public SystemPropertiesRule systemProperties = SystemPropertiesRule.resetPropsAfterTest();
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
 
   public RepositoryService repositoryService;

@@ -32,14 +32,12 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.SequenceFlow;
 import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaExecutionListener;
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Christopher Zell <christopher.zell@camunda.com>
  */
-@RunWith(Parameterized.class)
 public class TriggerConditionalEventFromDelegationCodeTest extends AbstractConditionalEventTestCase {
 
   private interface ConditionalEventProcessSpecifier {
@@ -50,7 +48,6 @@ public class TriggerConditionalEventFromDelegationCodeTest extends AbstractCondi
   }
 
 
-  @Parameterized.Parameters(name = "{index}: {0}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
       {new ConditionalEventProcessSpecifier() {
@@ -109,11 +106,9 @@ public class TriggerConditionalEventFromDelegationCodeTest extends AbstractCondi
       }}});
   }
 
-  @Parameterized.Parameter
-  public ConditionalEventProcessSpecifier specifier;
-
-  @Test
-  public void testSetVariableInStartListener() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testSetVariableInStartListener(ConditionalEventProcessSpecifier specifier) {
     BpmnModelInstance modelInstance = Bpmn.createExecutableProcess(CONDITIONAL_EVENT_PROCESS_KEY)
       .startEvent()
       .userTask(TASK_BEFORE_CONDITION_ID)
@@ -141,8 +136,9 @@ public class TriggerConditionalEventFromDelegationCodeTest extends AbstractCondi
     assertEquals(specifier.getExpectedInterruptingCount(), taskQuery.taskName(TASK_AFTER_CONDITION).count());
   }
 
-  @Test
-  public void testNonInterruptingSetVariableInStartListener() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testNonInterruptingSetVariableInStartListener(ConditionalEventProcessSpecifier specifier) {
     BpmnModelInstance modelInstance = Bpmn.createExecutableProcess(CONDITIONAL_EVENT_PROCESS_KEY)
       .startEvent()
       .userTask(TASK_BEFORE_CONDITION_ID)
@@ -168,8 +164,9 @@ public class TriggerConditionalEventFromDelegationCodeTest extends AbstractCondi
     assertEquals(specifier.getExpectedNonInterruptingCount(), taskQuery.taskName(TASK_AFTER_CONDITION).count());
   }
 
-  @Test
-  public void testSetVariableInTakeListener() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testSetVariableInTakeListener(ConditionalEventProcessSpecifier specifier) {
     BpmnModelInstance modelInstance = Bpmn.createExecutableProcess(CONDITIONAL_EVENT_PROCESS_KEY)
       .startEvent()
       .userTask(TASK_BEFORE_CONDITION_ID)
@@ -201,8 +198,9 @@ public class TriggerConditionalEventFromDelegationCodeTest extends AbstractCondi
     assertEquals(specifier.getExpectedInterruptingCount(), taskQuery.taskName(TASK_AFTER_CONDITION).count());
   }
 
-  @Test
-  public void testNonInterruptingSetVariableInTakeListener() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testNonInterruptingSetVariableInTakeListener(ConditionalEventProcessSpecifier specifier) {
     BpmnModelInstance modelInstance = Bpmn.createExecutableProcess(CONDITIONAL_EVENT_PROCESS_KEY)
       .startEvent()
       .userTask(TASK_BEFORE_CONDITION_ID)
@@ -235,8 +233,9 @@ public class TriggerConditionalEventFromDelegationCodeTest extends AbstractCondi
     assertEquals(specifier.getExpectedNonInterruptingCount(), taskQuery.taskName(TASK_AFTER_CONDITION).count());
   }
 
-  @Test
-  public void testSetVariableInTakeListenerWithAsyncBefore() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testSetVariableInTakeListenerWithAsyncBefore(ConditionalEventProcessSpecifier specifier) {
     BpmnModelInstance modelInstance = Bpmn.createExecutableProcess(CONDITIONAL_EVENT_PROCESS_KEY)
       .startEvent()
       .userTask(TASK_BEFORE_CONDITION_ID)
@@ -268,8 +267,9 @@ public class TriggerConditionalEventFromDelegationCodeTest extends AbstractCondi
     assertEquals(specifier.getExpectedInterruptingCount(), taskQuery.taskName(TASK_AFTER_CONDITION).count());
   }
 
-  @Test
-  public void testNonInterruptingSetVariableInTakeListenerWithAsyncBefore() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testNonInterruptingSetVariableInTakeListenerWithAsyncBefore(ConditionalEventProcessSpecifier specifier) {
     BpmnModelInstance modelInstance = Bpmn.createExecutableProcess(CONDITIONAL_EVENT_PROCESS_KEY)
       .startEvent()
       .userTask(TASK_BEFORE_CONDITION_ID)
@@ -315,8 +315,9 @@ public class TriggerConditionalEventFromDelegationCodeTest extends AbstractCondi
     assertNull(runtimeService.createProcessInstanceQuery().singleResult());
   }
 
-  @Test
-  public void testSetVariableInEndListener() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testSetVariableInEndListener(ConditionalEventProcessSpecifier specifier) {
     BpmnModelInstance modelInstance = Bpmn.createExecutableProcess(CONDITIONAL_EVENT_PROCESS_KEY)
       .startEvent()
       .userTask(TASK_BEFORE_CONDITION_ID)
@@ -342,8 +343,9 @@ public class TriggerConditionalEventFromDelegationCodeTest extends AbstractCondi
     assertEquals(specifier.getExpectedInterruptingCount(), taskQuery.taskName(TASK_AFTER_CONDITION).count());
   }
 
-  @Test
-  public void testNonInterruptingSetVariableInEndListener() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testNonInterruptingSetVariableInEndListener(ConditionalEventProcessSpecifier specifier) {
     BpmnModelInstance modelInstance = Bpmn.createExecutableProcess(CONDITIONAL_EVENT_PROCESS_KEY)
       .startEvent()
       .userTask(TASK_BEFORE_CONDITION_ID)
@@ -369,8 +371,9 @@ public class TriggerConditionalEventFromDelegationCodeTest extends AbstractCondi
     assertEquals(specifier.getExpectedNonInterruptingCount(), taskQuery.taskName(TASK_AFTER_CONDITION).count());
   }
 
-  @Test
-  public void testSetVariableInStartAndEndListener() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testSetVariableInStartAndEndListener(ConditionalEventProcessSpecifier specifier) {
     //given process with start and end listener on user task
     BpmnModelInstance modelInstance = Bpmn.createExecutableProcess(CONDITIONAL_EVENT_PROCESS_KEY)
       .startEvent()

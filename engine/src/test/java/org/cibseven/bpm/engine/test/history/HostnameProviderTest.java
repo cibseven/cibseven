@@ -35,12 +35,9 @@ import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.management.MetricIntervalValue;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
 public class HostnameProviderTest {
 
   public static final String ENGINE_NAME = "TEST_ENGINE";
@@ -48,7 +45,6 @@ public class HostnameProviderTest {
   public static final String CUSTOM_HOSTNAME = "CUSTOM_HOST";
   public static final String CUSTOM_REPORTER = "CUSTOM_REPORTER";
 
-  @Parameterized.Parameters(name = "Expected hostname: {3}, reporter: {4}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
         {null, null, null, ENGINE_NAME, ENGINE_NAME},
@@ -62,23 +58,12 @@ public class HostnameProviderTest {
     });
   }
 
-  @Parameterized.Parameter(0)
-  public String hostname;
-  @Parameterized.Parameter(1)
-  public HostnameProvider hostnameProvider;
-  @Parameterized.Parameter(2)
-  public MetricsReporterIdProvider reporterProvider;
-  @Parameterized.Parameter(3)
-  public String expectedHostname;
-  @Parameterized.Parameter(4)
-  public String expectedReporter;
 
   protected ProcessEngineConfigurationImpl configuration;
   protected ProcessEngine engine;
   protected ManagementService managementService;
 
-  @BeforeEach
-  public void setUp() {
+  private void initEngine(String hostname, HostnameProvider hostnameProvider, MetricsReporterIdProvider reporterProvider) {
     configuration =
         (ProcessEngineConfigurationImpl) ProcessEngineConfiguration
             .createStandaloneInMemProcessEngineConfiguration();
@@ -99,12 +84,17 @@ public class HostnameProviderTest {
 
   @AfterEach
   public void tearDown() {
-    closeProcessEngine();
+    if (engine != null) {
+      closeProcessEngine();
+    }
   }
 
-  @Test
-  public void shouldUseCustomHostname() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldUseCustomHostname(String hostname, HostnameProvider hostnameProvider, 
+    MetricsReporterIdProvider reporterProvider, String expectedHostname, String expectedReporter) {
     // given a Process Engine with specified hostname parameters
+    initEngine(hostname, hostnameProvider, reporterProvider);
 
     // when
     String customHostname = configuration.getHostname();
@@ -113,9 +103,12 @@ public class HostnameProviderTest {
     assertThat(customHostname).containsIgnoringCase(expectedHostname);
   }
 
-  @Test
-  public void shouldUseCustomMetricsReporterId() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldUseCustomMetricsReporterId(String hostname, HostnameProvider hostnameProvider, 
+    MetricsReporterIdProvider reporterProvider, String expectedHostname, String expectedReporter) {
     // given a Process Engine with some specified hostname and metric properties
+    initEngine(hostname, hostnameProvider, reporterProvider);
 
     // when
     List<MetricIntervalValue> metrics = managementService

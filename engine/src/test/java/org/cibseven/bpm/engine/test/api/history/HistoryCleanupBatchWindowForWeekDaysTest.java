@@ -44,17 +44,15 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
-import org.junit.jupiter.api.Test;
-
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  *
  * @author Svetlana Dorokhova
  *
  */
-@RunWith(Parameterized.class)
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class HistoryCleanupBatchWindowForWeekDaysTest {
 
@@ -62,6 +60,7 @@ public class HistoryCleanupBatchWindowForWeekDaysTest {
   protected String defaultEndTime;
   protected int defaultBatchSize;
 
+  @RegisterExtension
   protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
     configuration.setHistoryCleanupBatchSize(20);
     configuration.setHistoryCleanupBatchThreshold(10);
@@ -79,11 +78,10 @@ public class HistoryCleanupBatchWindowForWeekDaysTest {
     configuration.setSundayHistoryCleanupBatchWindowEndTime("20:00");
   });
 
+  @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule).around(testRule);
 
   private HistoryService historyService;
   private ManagementService managementService;
@@ -91,22 +89,7 @@ public class HistoryCleanupBatchWindowForWeekDaysTest {
 
   private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
-  @Parameterized.Parameter(0)
-  public Date currentDate;
 
-  @Parameterized.Parameter(1)
-  public Date startDateForCheck;
-
-  @Parameterized.Parameter(2)
-  public Date endDateForCheck;
-
-  @Parameterized.Parameter(3)
-  public Date startDateForCheckWithDefaultValues;
-
-  @Parameterized.Parameter(4)
-  public Date endDateForCheckWithDefaultValues;
-
-  @Parameterized.Parameters
   public static Collection<Object[]> scenarios() throws ParseException {
     return Arrays.asList(new Object[][] {
         {  sdf.parse("2018-05-14T10:00:00"), sdf.parse("2018-05-14T22:00:00"), sdf.parse("2018-05-15T01:00:00"), null, null},  //monday
@@ -154,8 +137,10 @@ public class HistoryCleanupBatchWindowForWeekDaysTest {
     });
   }
 
-  @Test
-  public void testScheduleJobForBatchWindow() throws ParseException {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testScheduleJobForBatchWindow(Date currentDate, Date startDateForCheck, Date endDateForCheck, 
+    Date startDateForCheckWithDefaultValues, Date endDateForCheckWithDefaultValues) throws ParseException {
 
     ClockUtil.setCurrentTime(currentDate);
     processEngineConfiguration.initHistoryCleanup();
@@ -178,8 +163,10 @@ public class HistoryCleanupBatchWindowForWeekDaysTest {
     assertTrue(endDateForCheck.before(job.getDuedate()));
   }
 
-  @Test
-  public void testScheduleJobForBatchWindowWithDefaultWindowConfigured() throws ParseException {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testScheduleJobForBatchWindowWithDefaultWindowConfigured(Date currentDate, Date startDateForCheck, Date endDateForCheck, 
+    Date startDateForCheckWithDefaultValues, Date endDateForCheckWithDefaultValues) throws ParseException {
     ClockUtil.setCurrentTime(currentDate);
     processEngineConfiguration.setHistoryCleanupBatchWindowStartTime("23:00");
     processEngineConfiguration.setHistoryCleanupBatchWindowEndTime("00:00");
@@ -212,8 +199,10 @@ public class HistoryCleanupBatchWindowForWeekDaysTest {
     assertTrue(endDateForCheckWithDefaultValues.before(job.getDuedate()));
   }
 
-  @Test
-  public void testScheduleJobForBatchWindowWithShortcutConfiguration() throws ParseException {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testScheduleJobForBatchWindowWithShortcutConfiguration(Date currentDate, Date startDateForCheck, Date endDateForCheck, 
+    Date startDateForCheckWithDefaultValues, Date endDateForCheckWithDefaultValues) throws ParseException {
     ClockUtil.setCurrentTime(currentDate);
     processEngineConfiguration.setThursdayHistoryCleanupBatchWindowStartTime("23:00");
     processEngineConfiguration.setThursdayHistoryCleanupBatchWindowEndTime("00:00");

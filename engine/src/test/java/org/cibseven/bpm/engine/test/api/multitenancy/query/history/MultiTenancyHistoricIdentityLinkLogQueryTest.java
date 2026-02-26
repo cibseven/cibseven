@@ -34,13 +34,12 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.cibseven.bpm.engine.test.util.ProcessEngineRuleExtension;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -49,7 +48,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 *
 */
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
-@ExtendWith(ProcessEngineRuleExtension.class)
 public class MultiTenancyHistoricIdentityLinkLogQueryTest {
   
   private static final String GROUP_1 = "Group1";
@@ -57,9 +55,10 @@ public class MultiTenancyHistoricIdentityLinkLogQueryTest {
   
   private static String PROCESS_DEFINITION_KEY = "oneTaskProcess";
 
-  protected ProcessEngineRule engineRule;
-
-  protected ProcessEngineTestRule testRule;
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule engineRule = new ProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected HistoryService historyService;
   protected RuntimeService runtimeService;

@@ -50,7 +50,7 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
@@ -60,12 +60,12 @@ public class CustomHistoryEventHandlerTest {
 
   protected static RecorderHistoryEventHandler recorderHandler = new RecorderHistoryEventHandler();
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(c -> {
     c.setHistoryEventHandler(recorderHandler);
   });
 
-//  @Rule
+  @RegisterExtension
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   private RuntimeService runtimeService;

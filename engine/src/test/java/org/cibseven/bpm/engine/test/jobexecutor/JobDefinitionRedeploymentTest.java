@@ -36,12 +36,9 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
-
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Redeploy process definition and assert that no new job definitions were created.
@@ -49,10 +46,8 @@ import org.junit.runners.Parameterized.Parameters;
  * @author Philipp Ossler
  *
  */
-@RunWith(Parameterized.class)
 public class JobDefinitionRedeploymentTest {
 
-  @Parameters(name = "{index}: process definition = {0}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] { 
         { "org/cibseven/bpm/engine/test/jobexecutor/JobDefinitionDeploymentTest.testTimerStartEvent.bpmn20.xml" },
@@ -66,10 +61,7 @@ public class JobDefinitionRedeploymentTest {
     });
   }
 
-  @Parameter
-  public String processDefinitionResource;
-
-//  @Rule
+  @RegisterExtension
   public ProcessEngineRule rule = new ProvidedProcessEngineRule();
 
   protected ManagementService managementService;
@@ -85,8 +77,9 @@ public class JobDefinitionRedeploymentTest {
     processEngineConfiguration = (ProcessEngineConfigurationImpl) rule.getProcessEngine().getProcessEngineConfiguration();
   }
 
-  @Test
-  public void testJobDefinitionsAfterRedeploment() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testJobDefinitionsAfterRedeploment(String processDefinitionResource) {
 
     // initially there are no job definitions:
     assertEquals(0, managementService.createJobDefinitionQuery().count());
@@ -130,5 +123,4 @@ public class JobDefinitionRedeploymentTest {
     }
     return definitionIds;
   }
-
 }

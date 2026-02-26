@@ -40,6 +40,7 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
@@ -48,16 +49,14 @@ public class MultiTenancyHistoricProcessInstanceQueryTest {
   protected final static String TENANT_ONE = "tenant1";
   protected final static String TENANT_TWO = "tenant2";
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected HistoryService historyService;
   protected RuntimeService runtimeService;
   protected IdentityService identityService;
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   @BeforeEach
   public void setUp() {

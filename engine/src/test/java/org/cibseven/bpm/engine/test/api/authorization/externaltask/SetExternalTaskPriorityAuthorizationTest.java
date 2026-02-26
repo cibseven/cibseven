@@ -19,21 +19,21 @@ package org.cibseven.bpm.engine.test.api.authorization.externaltask;
 import org.cibseven.bpm.engine.externaltask.ExternalTask;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
+import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  *
  * @author Christopher Zell <christopher.zell@camunda.com>
  */
-@RunWith(Parameterized.class)
 public class SetExternalTaskPriorityAuthorizationTest extends HandleExternalTaskAuthorizationTest {
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/externaltask/oneExternalTaskProcess.bpmn20.xml")
-  public void testSetPriority() {
+  public void testSetPriority(AuthorizationScenario scenario) {
 
     // given
     ProcessInstance processInstance = engineRule.getRuntimeService().startProcessInstanceByKey("oneExternalTaskProcess");

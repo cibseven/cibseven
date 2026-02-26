@@ -31,6 +31,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
@@ -43,14 +44,12 @@ public class PropertyUserOperationLogTest {
   private static final String USER_ID = "testUserId";
   private static final String PROPERTY_NAME = "TEST_PROPERTY";
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected HistoryService historyService;
   protected IdentityService identityService;
   protected ManagementService managementService;
-
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule);
 
   @BeforeEach
   public void setUp() {

@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import javax.enterprise.context.Dependent;
+
 import org.cibseven.bpm.application.ProcessApplicationReference;
 import org.cibseven.bpm.engine.authorization.Permissions;
 import org.cibseven.bpm.engine.authorization.ProcessDefinitionPermissions;
@@ -61,6 +63,7 @@ import org.cibseven.bpm.model.dmn.DmnModelInstance;
  * @author Tijs Rademakers
  * @author Joram Barrez
  */
+@Dependent // Or @RequestScoped, @ApplicationScoped, etc
 public interface RepositoryService {
 
   /**

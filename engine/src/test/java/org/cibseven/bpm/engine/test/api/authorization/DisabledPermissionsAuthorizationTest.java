@@ -68,17 +68,21 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
-//TODO: @Rule needs replacement
 public class DisabledPermissionsAuthorizationTest {
 
   protected static final String USER_ID = "user";
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestBaseRule authRule = new AuthorizationTestBaseRule(engineRule);
-  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(1) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) public AuthorizationTestBaseRule authRule = new AuthorizationTestBaseRule(engineRule);
+  @RegisterExtension
+  @Order(3) public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   ProcessEngineConfigurationImpl processEngineConfiguration;
   RepositoryService repositoryService;

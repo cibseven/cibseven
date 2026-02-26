@@ -60,9 +60,6 @@ public class BatchSetRemovalTimeUserOperationLogTest {
   @RegisterExtension
   protected BatchSetRemovalTimeRule testRule = new BatchSetRemovalTimeRule(engineRule, engineTestRule);
 
-//  @Rule
-//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule).around(testRule);
-
   protected RuntimeService runtimeService;
   protected DecisionService decisionService;
   protected HistoryService historyService;

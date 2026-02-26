@@ -37,6 +37,7 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import ch.qos.logback.classic.Level;
 
@@ -48,7 +49,7 @@ import ch.qos.logback.classic.Level;
  */
 public class TaskIdentityLinksTest extends PluggableProcessEngineTest {
 
-//  @Rule
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().level(Level.ERROR);
 
   @Deployment(resources="org/cibseven/bpm/engine/test/api/task/IdentityLinksProcess.bpmn20.xml")
