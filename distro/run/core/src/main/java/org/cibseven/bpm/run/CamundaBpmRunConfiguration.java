@@ -20,8 +20,10 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.engine.impl.plugin.AdministratorAuthorizationPlugin;
 import org.cibseven.bpm.identity.impl.ldap.plugin.LdapIdentityProviderPlugin;
+import org.cibseven.bpm.identity.impl.scim.plugin.ScimIdentityProviderPlugin;
 import org.cibseven.bpm.run.property.CamundaBpmRunAdministratorAuthorizationProperties;
 import org.cibseven.bpm.run.property.CamundaBpmRunLdapProperties;
+import org.cibseven.bpm.run.property.CamundaBpmRunScimProperties;
 import org.cibseven.bpm.run.property.CamundaBpmRunProperties;
 import org.cibseven.bpm.spring.boot.starter.CamundaBpmAutoConfiguration;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,6 +44,12 @@ public class CamundaBpmRunConfiguration {
   @ConditionalOnProperty(name = "enabled", havingValue = "true", prefix = CamundaBpmRunLdapProperties.PREFIX)
   public LdapIdentityProviderPlugin ldapIdentityProviderPlugin(CamundaBpmRunProperties properties) {
     return properties.getLdap();
+  }
+
+  @Bean
+  @ConditionalOnProperty(name = "enabled", havingValue = "true", prefix = CamundaBpmRunScimProperties.PREFIX)
+  public ScimIdentityProviderPlugin scimIdentityProviderPlugin(CamundaBpmRunProperties properties) {
+    return properties.getScim();
   }
 
   @Bean

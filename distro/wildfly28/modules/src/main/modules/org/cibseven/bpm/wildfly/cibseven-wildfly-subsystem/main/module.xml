@@ -36,6 +36,7 @@
 
     <module name="org.cibseven.bpm.cibseven-engine" />
     <module name="org.cibseven.bpm.identity.cibseven-identity-ldap" />
+    <module name="org.cibseven.bpm.identity.cibseven-identity-scim" />
     <module name="org.cibseven.bpm.cibseven-engine-plugin-spin" services="import" />
     <module name="org.cibseven.bpm.cibseven-engine-plugin-connect" />
 

@@ -59,6 +59,11 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.cibseven.bpm.identity</groupId>
+        <artifactId>cibseven-identity-scim</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-engine-plugin-spin</artifactId>
         <version>${project.version}</version>

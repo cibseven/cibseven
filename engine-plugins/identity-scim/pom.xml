@@ -1,0 +1,219 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.cibseven.bpm.identity</groupId>
+  <artifactId>cibseven-identity-scim</artifactId>
+  <packaging>jar</packaging>
+  <name>CIB seven - engine plugins - identity - scim</name>
+
+  <parent>
+    <groupId>org.cibseven.bpm</groupId>
+    <artifactId>cibseven-engine-plugins</artifactId>
+    <version>2.2.0-SNAPSHOT</version>
+  </parent>
+
+  <properties>
+    <version.scimple>1.0.0-M1</version.scimple>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.cibseven.commons</groupId>
+      <artifactId>cibseven-commons-logging</artifactId>
+    </dependency>
+
+    <!-- Apache HttpClient 5 for HTTP requests -->
+    <dependency>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
+      <version>${version.httpclient5}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.httpcomponents.core5</groupId>
+      <artifactId>httpcore5</artifactId>
+      <version>${version.httpcore5}</version>
+    </dependency>
+   
+    <!-- Jackson for JSON processing -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${version.jackson}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${version.jackson}</version>
+    </dependency>
+
+  <!-- Apache SCIMple: real lightweight SCIM server: 
+       can be used as an alternative to the wiremock for testing -->
+  <!--<dependency>
+      <groupId>org.apache.directory.scimple</groupId>
+      <artifactId>scim-server</artifactId>
+      <version>${version.scimple}</version>
+      <scope>test</scope>
+    </dependency> -->
+
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Test dependencies for mockito -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- WireMock for mocking SCIM server -->
+    <dependency>
+      <groupId>com.github.tomakehurst</groupId>
+      <artifactId>wiremock</artifactId>
+      <scope>test</scope>
+    </dependency> 
+  </dependencies> 
+  
+
+  <build>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <filtering>true</filtering>
+      </testResource>
+    </testResources>
+    <plugins>
+
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <failIfNoTests>false</failIfNoTests>
+          <trimStackTrace>false</trimStackTrace>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <argLine>-Xshare:off</argLine>    
+        </configuration>
+      </plugin>
+  
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.5.2</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+            <!-- Use artifactSet to control dependencies -->
+              <artifactSet>
+                <includes>
+                  <include>org.apache.httpcomponents.client5:httpclient5</include>
+                  <include>org.apache.httpcomponents.core5:httpcore5-h2</include>
+                  <include>org.apache.httpcomponents.core5:httpcore5</include>
+                  <include>com.fasterxml.jackson.core:jackson-databind</include>
+                  <include>com.fasterxml.jackson.core:jackson-core</include>
+                  <include>com.fasterxml.jackson.core:jackson-annotations</include>
+                </includes>
+              </artifactSet>
+              <relocations>
+                <!-- shade http client and jackson -->
+                <relocation>
+                  <pattern>org.apache.hc</pattern>
+                  <shadedPattern>scimplugin.org.apache.httpcomponents</shadedPattern>
+                  <excludes>
+                    <exclude>org.apache.logging:*</exclude>
+                    <exclude>org.slf4j:*</exclude>
+                  </excludes>
+                </relocation>
+
+                <relocation>
+                  <pattern>com.fasterxml.jackson.core</pattern>
+                  <shadedPattern>scimplugin.com.fasterxml.jackson.core</shadedPattern>
+                </relocation>
+
+                <relocation>
+                  <pattern>com.fasterxml.jackson.databind</pattern>
+                  <shadedPattern>scimplugin.com.fasterxml.jackson.databind</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.fasterxml.jackson.annotation</pattern>
+                  <shadedPattern>scimplugin.com.fasterxml.jackson.annotation</shadedPattern>
+                </relocation>
+              </relocations>
+
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                  <resource>META-INF/*.SF</resource>
+                  <resource>META-INF/*.DSA</resource>
+                  <resource>META-INF/*.RSA</resource>
+                </transformer>
+              </transformers>
+
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <!-- Exclude not needed to suppress warnings -->
+                  <excludes>
+                    <exclude>META-INF/INDEX.LIST</exclude>
+                    <exclude>META-INF/DEPENDENCIES</exclude>
+                    <exclude>META-INF/NOTICE*</exclude>
+                    <exclude>META-INF/LICENSE*</exclude>
+                    <exclude>META-INF/*.MF</exclude>
+                    <exclude>module-info.class</exclude>
+                    <exclude>META-INF/versions/**/module-info.class</exclude>
+                  </excludes>
+                </filter>
+              </filters>  
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <description>
+    Description of CIB seven - engine plugins - identity - scim
+  </description>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
+
+</project>
