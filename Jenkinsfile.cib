@@ -476,8 +476,7 @@ pipeline {
                             mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
                                 -Dlicense.skipDownloadLicenses=true \
                                 -Dmaven.test.skip \
-                                -DskipTests \
-                                ${pipelineParams.mvnParams}
+                                -DskipTests
                         """
                     }
 
