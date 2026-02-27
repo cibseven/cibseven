@@ -17,6 +17,7 @@ import groovy.transform.Field
     mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
     uiParamPresets: [:],
     testMode: false,
+    dependencyTrackSynchronous: true,
     buildPodConfig: [
         (Constants.MAVEN_JDK_17_CONTAINER): [
             resources: [
@@ -27,6 +28,7 @@ import groovy.transform.Field
         ]
     ]
 ]
+@Field Boolean isAnyCustomTest = false
 
 pipeline {
     agent {
@@ -54,6 +56,12 @@ pipeline {
         )
 
         booleanParam(
+            name: 'SAST',
+            defaultValue: true,
+            description: "  └─ 🛡️ Static Application Security Testing with Dependency-Track (🕒 10-11 minutes). Runs only for 'main' branch. See output at https://dependencytrack.cib.de/projects?searchText=seven"
+        )
+
+        booleanParam(
             name: 'VERIFY',
             defaultValue: true,
             description: "  └─ ✅ Execute Unit and Integration Tests"
@@ -66,7 +74,7 @@ pipeline {
             • ALL - Run all QA tests
             • CUSTOM - Select individual tests below'''
         )
-    
+
         // Only used when QA_TEST_SUITE = 'CUSTOM'
         booleanParam(name: 'QA_ENG_IT', defaultValue: false, description: "  └─ Engine Integration")
         booleanParam(name: 'QA_WEB_IT', defaultValue: false, description: "  └─ Web Integration")
@@ -132,6 +140,8 @@ pipeline {
                     // pipeline as root but repository being owned by user 1000. For more, see
                     // https://stackoverflow.com/questions/72978485/git-submodule-update-failed-with-fatal-detected-dubious-ownership-in-repositor
                     sh "git config --global --add safe.directory \$(pwd)"
+
+                    isAnyCustomTest = params.QA_TEST_SUITE == 'CUSTOM' && (params.QA_ENG_IT || params.QA_WEB_IT || params.QA_PERF || params.QA_LARGE_DATA || params.QA_OLD_ENG || params.QA_ROLL_UPD || params.QA_INST_MIGR)
                 }
                 script {
                     // if use private repo then try to get a repo template from the pool if possible
@@ -226,12 +236,12 @@ pipeline {
                         }
                     }
                 }
-                stage("quarkus") { 
+                stage("quarkus") {
                     stages {
                         stage('quarkus-extension') {
                             steps {
                                 script { withMaven {
-                                    // need to cleanup JUEL when running: https://github.com/camunda/camunda-bpm-platform/issues/3419#issuecomment-1720916174 
+                                    // need to cleanup JUEL when running: https://github.com/camunda/camunda-bpm-platform/issues/3419#issuecomment-1720916174
                                     sh "mvn -f juel/pom.xml clean"
                                     sh "mvn -f quarkus-extension/pom.xml clean install -Pquarkus-tests"
                                     sh "mvn -f juel/pom.xml install"
@@ -245,8 +255,8 @@ pipeline {
         }
 
         stage('QA Tests') {
-            when { 
-                expression { params.QA_TEST_SUITE == 'CUSTOM' || params.QA_TEST_SUITE == 'ALL'}
+            when {
+                expression { isAnyCustomTest || params.QA_TEST_SUITE == 'ALL'}
             }
             stages {
                 stage('Engine Integration') {
@@ -270,20 +280,20 @@ pipeline {
                 }
                 stage('Performance') {
                     when {  expression { params.QA_PERF || params.QA_TEST_SUITE == 'ALL' }}
-                    steps { 
-                        script { 
+                    steps {
+                        script {
                             withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }
                             sh "mkdir ./qa/performance-tests-engine/target/perf_benchmark; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_benchmark/"
                             zip zipFile: 'perf_benchmark.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_benchmark'
                             archiveArtifacts artifacts: 'perf_benchmark.zip', fingerprint: true
                         }
-                        script { 
+                        script {
                             withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Psql-statementlog,h2" }
                             sh "mkdir ./qa/performance-tests-engine/target/perf_sql_statementlog; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_sql_statementlog/"
                             zip zipFile: 'perf_sql_statementlog.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_sql_statementlog'
                             archiveArtifacts artifacts: 'perf_sql_statementlog.zip', fingerprint: true
                         }
-                        script { 
+                        script {
                             withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pactivity-count,h2 -DwatchActivities=start,timer,end -Dtest=AsyncStartAndTimerPerformanceTest" }
                             sh "mkdir ./qa/performance-tests-engine/target/perf_activity_count; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_activity_count/"
                             zip zipFile: 'perf_activity_count.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_activity_count'
@@ -373,9 +383,9 @@ pipeline {
         }
 
         stage('JUnit Report') {
-            when { 
-                expression { 
-                    params.VERIFY || params.QA_TEST_SUITE == 'CUSTOM' || params.QA_TEST_SUITE == 'ALL'
+            when {
+                expression {
+                    params.VERIFY || isAnyCustomTest || params.QA_TEST_SUITE == 'ALL'
                 }
             }
             steps {
@@ -453,6 +463,46 @@ pipeline {
                 }
             }
         }
+
+        stage('OWASP Dependency-Track') {
+            when {
+                allOf {
+                    branch 'main'
+                    expression { params.SAST == true }
+                }
+            }
+            steps {
+                script {
+                    withMaven() {
+                        sh """
+                            mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
+                                -Dlicense.skipDownloadLicenses=true \
+                                -Dmaven.test.skip \
+                                -DskipTests
+                        """
+                    }
+
+                    withCredentials([string(credentialsId: Constants.DEPENDENCY_TRACK_CREDENTIALS_ID, variable: 'API_KEY')]) {
+                        dependencyTrackPublisher(
+                            autoCreateProjects: true,
+                            artifact: 'target/bom.xml',
+                            projectName: mavenProjectInformation.artifactId,
+                            projectVersion: mavenProjectInformation.version,
+                            projectProperties: [
+                                description: mavenProjectInformation.description,
+                                group: mavenProjectInformation.groupId,
+                                tags: ['maven'],
+                                isLatest: true
+                            ],
+                            synchronous: pipelineParams.dependencyTrackSynchronous,
+                            failOnViolationFail: false,
+                            dependencyTrackApiKey: API_KEY
+                        )
+                    }
+                }
+            }
+        }
+
 
         stage('Documentation, OpenAPI') {
             when {
@@ -623,7 +673,7 @@ def getLocalJobRepo(String jobName, boolean usePrivate) {
     return mavenLocalRepoRedirected
 }
 
-def getMavenRepository() { 
+def getMavenRepository() {
     withMaven(options: []) {
         def mavenRepo = sh(script: 'mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout', returnStdout: true).trim()
         return mavenRepo
@@ -643,7 +693,7 @@ def moveMavenRepoFromPool(String localRepoPath) {
     if (localRepoPath != null && localRepoPath.endsWith(getJobFolder("${JOB_NAME}"))) {
         String baseDir = localRepoPath.split('/').last()
         String poolDir = localRepoPath.substring(0, localRepoPath.lastIndexOf('/')) + "/.pool"
-        String poolItemOwn = poolDir + "/" + baseDir	
+        String poolItemOwn = poolDir + "/" + baseDir
         String poolItemAny = sh(script: "find ${poolDir} -maxdepth 1 -mindepth 1 -type d -printf '%T+\\t%p\\n' | sort | head -n 1 | cut -f2-", returnStdout: true).trim()
         // use already existing repo or move a repo template from the pool, prefer own, fail if not successful: don't fall to the long-time repo creation
         if (poolItemAny != null && !poolItemAny.isEmpty()) {
