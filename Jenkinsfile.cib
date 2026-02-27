@@ -17,7 +17,7 @@ import groovy.transform.Field
     mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
     uiParamPresets: [:],
     testMode: false,
-    dependencyTrackSynchronous: false,
+    dependencyTrackSynchronous: true,
     buildPodConfig: [
         (Constants.MAVEN_JDK_17_CONTAINER): [
             resources: [
@@ -58,7 +58,7 @@ pipeline {
         booleanParam(
             name: 'SAST',
             defaultValue: false,
-            description: "  └─ 🧰 Static Application Security Testing with Dependency-Track, see https://dependencytrack.cib.de/projects?searchText=seven"
+            description: "  └─ 🛡️ Static Application Security Testing with Dependency-Track (🕒 10-11 minutes), see https://dependencytrack.cib.de/projects?searchText=seven"
         )
 
         booleanParam(
