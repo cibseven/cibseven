@@ -57,8 +57,8 @@ pipeline {
 
         booleanParam(
             name: 'SAST',
-            defaultValue: false,
-            description: "  └─ 🛡️ Static Application Security Testing with Dependency-Track (🕒 10-11 minutes), see https://dependencytrack.cib.de/projects?searchText=seven"
+            defaultValue: true,
+            description: "  └─ 🛡️ Static Application Security Testing with Dependency-Track (🕒 10-11 minutes). Runs only for 'main' branch. See output at https://dependencytrack.cib.de/projects?searchText=seven"
         )
 
         booleanParam(
@@ -466,8 +466,10 @@ pipeline {
 
         stage('OWASP Dependency-Track') {
             when {
-                // branch pipelineParams.primaryBranch
-                expression { params.SAST == true }
+                allOf {
+                    branch 'main'
+                    expression { params.SAST == true }
+                }
             }
             steps {
                 script {
