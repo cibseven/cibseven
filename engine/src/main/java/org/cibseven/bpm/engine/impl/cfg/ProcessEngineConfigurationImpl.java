@@ -876,6 +876,19 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   protected boolean disableStrictCallActivityValidation = false;
 
+  /**
+   * Maximum number of cycle iterations allowed for Call Activities to prevent infinite loops.
+   * This limit only applies to CYCLIC calls - non-cyclic call chains are allowed regardless of depth.
+   * <p>
+   * When a Call Activity attempts to start a subprocess, the engine checks if the target process
+   * already exists in the call hierarchy (cycle detection). If a cycle is detected, this limit
+   * restricts how many times the same process can appear in the chain.
+   * <p>
+   * Set to 0 or negative value to disable the check completely (allows infinite recursion - use with caution).
+   * Default value: 0 (disabled)
+   */
+  protected int maxRecursiveCallIterations = 0;
+
   protected boolean isBpmnStacktraceVerbose = false;
 
   protected boolean forceCloseMybatisConnectionPool = true;
@@ -4811,6 +4824,14 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public void setDisableStrictCallActivityValidation(boolean disableStrictCallActivityValidation) {
     this.disableStrictCallActivityValidation = disableStrictCallActivityValidation;
+  }
+
+  public int getMaxRecursiveCallIterations() {
+    return maxRecursiveCallIterations;
+  }
+
+  public void setMaxRecursiveCallIterations(int maxRecursiveCallIterations) {
+    this.maxRecursiveCallIterations = maxRecursiveCallIterations;
   }
 
   public String getHistoryCleanupBatchWindowStartTime() {
