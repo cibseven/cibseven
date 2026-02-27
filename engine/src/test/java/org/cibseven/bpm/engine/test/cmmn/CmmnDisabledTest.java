@@ -57,7 +57,7 @@ import org.junit.jupiter.api.Test;
 public class CmmnDisabledTest {
 
   @RegisterExtension
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
       "org/cibseven/bpm/application/impl/deployment/cmmn.disabled.camunda.cfg.xml");
 
   @RegisterExtension

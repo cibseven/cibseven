@@ -70,6 +70,8 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -78,9 +80,9 @@ public class ModificationExecutionAsyncTest {
   protected static final Date START_DATE = new Date(1457326800000L);
 
   @RegisterExtension
-  protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
   protected BatchModificationHelper helper = new BatchModificationHelper(rule);
 
   protected ProcessEngineConfigurationImpl configuration;

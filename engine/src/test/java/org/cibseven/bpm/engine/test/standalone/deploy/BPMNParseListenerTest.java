@@ -55,6 +55,7 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 import org.junit.jupiter.api.Test;
 
@@ -65,13 +66,13 @@ import org.junit.jupiter.api.Test;
 public class BPMNParseListenerTest {
 
   @RegisterExtension
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
       "org/cibseven/bpm/engine/test/standalone/deploy/bpmn.parse.listener.camunda.cfg.xml");
 
   @RegisterExtension
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   @RegisterExtension
-  protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected RepositoryService repositoryService;

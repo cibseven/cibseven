@@ -48,6 +48,8 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
 
 
 /**
@@ -68,9 +70,9 @@ public class HistoricIncidentQueryTest {
     .done();
 
   @RegisterExtension
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @Order(9) public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected ManagementService managementService;

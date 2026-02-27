@@ -36,6 +36,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 
 /**
@@ -67,10 +68,10 @@ public class JobExecutorShutdownTest {
       .done();
 
   @RegisterExtension
-  protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
+  @Order(1) protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configuration.setJobExecutor(buildControllableJobExecutor()));
   @RegisterExtension
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   protected ControllableJobExecutor jobExecutor;
   protected ThreadControl acquisitionThread;

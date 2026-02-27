@@ -43,6 +43,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 
 /**
@@ -51,9 +52,9 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 public class DelegateTaskTest {
 
   @RegisterExtension
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   private final static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
   private final static String FOLLOW_UP_DATE_STRING = "2019-01-01T01:00:00";

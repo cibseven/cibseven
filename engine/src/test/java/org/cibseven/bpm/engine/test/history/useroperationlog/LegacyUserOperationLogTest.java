@@ -43,7 +43,9 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Roman Smirnov
@@ -53,10 +55,13 @@ public class LegacyUserOperationLogTest {
 
   public static final String USER_ID = "demo";
 
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
+  @RegisterExtension
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
       "org/cibseven/bpm/engine/test/history/useroperationlog/enable.legacy.user.operation.log.camunda.cfg.xml");
-  public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(processEngineRule);
+  @RegisterExtension
+  @Order(7)public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(9) public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(processEngineRule);
 
   protected IdentityService identityService;
   protected RuntimeService runtimeService;

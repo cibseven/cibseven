@@ -36,6 +36,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 
 public class MultiTenancyExternalTaskCmdsTenantCheckTest {
@@ -47,9 +48,9 @@ public class MultiTenancyExternalTaskCmdsTenantCheckTest {
   protected static final String PROCESS_DEFINITION_KEY_ONE = "oneExternalTaskProcess";
   private static final String ERROR_DETAILS = "anErrorDetail";
   @RegisterExtension
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected static final String WORKER_ID = "aWorkerId";
 

@@ -150,7 +150,7 @@ public class UserOperationLogJobTest extends AbstractUserOperationLogTest {
     assertEquals(USER_ID, userOperationLogEntry.getUserId());
 
     assertEquals(job.getJobDefinitionId(), userOperationLogEntry.getJobDefinitionId());
-    assertNull(job.getProcessInstanceId(), userOperationLogEntry.getProcessInstanceId());
+    assertNull(userOperationLogEntry.getProcessInstanceId(), job.getProcessInstanceId());
     assertEquals(job.getProcessDefinitionId(), userOperationLogEntry.getProcessDefinitionId());
     assertEquals(job.getProcessDefinitionKey(), userOperationLogEntry.getProcessDefinitionKey());
     assertEquals(job.getDeploymentId(), userOperationLogEntry.getDeploymentId());
@@ -187,11 +187,11 @@ public class UserOperationLogJobTest extends AbstractUserOperationLogTest {
 
     assertEquals(USER_ID, userOperationLogEntry.getUserId());
 
-    assertNull(job.getJobDefinitionId(), userOperationLogEntry.getJobDefinitionId());
-    assertNull(job.getProcessInstanceId(), userOperationLogEntry.getProcessInstanceId());
-    assertNull(job.getProcessDefinitionId(), userOperationLogEntry.getProcessDefinitionId());
-    assertNull(job.getProcessDefinitionKey(), userOperationLogEntry.getProcessDefinitionKey());
-    assertNull(job.getDeploymentId(), userOperationLogEntry.getDeploymentId());
+    assertNull(userOperationLogEntry.getJobDefinitionId(), job.getJobDefinitionId());
+    assertNull(userOperationLogEntry.getProcessInstanceId(), job.getProcessInstanceId());
+    assertNull(userOperationLogEntry.getProcessDefinitionId(), job.getProcessDefinitionId());
+    assertNull(userOperationLogEntry.getProcessDefinitionKey(), job.getProcessDefinitionKey());
+    assertNull(userOperationLogEntry.getDeploymentId(), job.getDeploymentId());
     assertEquals(UserOperationLogEntry.CATEGORY_OPERATOR, userOperationLogEntry.getCategory());
 
     // check 'nrOfInstances' entry
@@ -208,11 +208,11 @@ public class UserOperationLogJobTest extends AbstractUserOperationLogTest {
 
     assertEquals(USER_ID, userOperationLogEntry.getUserId());
 
-    assertNull(job.getJobDefinitionId(), userOperationLogEntry.getJobDefinitionId());
-    assertNull(job.getProcessInstanceId(), userOperationLogEntry.getProcessInstanceId());
-    assertNull(job.getProcessDefinitionId(), userOperationLogEntry.getProcessDefinitionId());
-    assertNull(job.getProcessDefinitionKey(), userOperationLogEntry.getProcessDefinitionKey());
-    assertNull(job.getDeploymentId(), userOperationLogEntry.getDeploymentId());
+    assertNull(userOperationLogEntry.getJobDefinitionId(), job.getJobDefinitionId());
+    assertNull(userOperationLogEntry.getProcessInstanceId(), job.getProcessInstanceId());
+    assertNull(userOperationLogEntry.getProcessDefinitionId(), job.getProcessDefinitionId());
+    assertNull(userOperationLogEntry.getProcessDefinitionKey(), job.getProcessDefinitionKey());
+    assertNull(userOperationLogEntry.getDeploymentId(), job.getDeploymentId());
     assertEquals(UserOperationLogEntry.CATEGORY_OPERATOR, userOperationLogEntry.getCategory());
     
     // check 'async' entry
@@ -229,11 +229,11 @@ public class UserOperationLogJobTest extends AbstractUserOperationLogTest {
 
     assertEquals(USER_ID, userOperationLogEntry.getUserId());
 
-    assertNull(job.getJobDefinitionId(), userOperationLogEntry.getJobDefinitionId());
-    assertNull(job.getProcessInstanceId(), userOperationLogEntry.getProcessInstanceId());
-    assertNull(job.getProcessDefinitionId(), userOperationLogEntry.getProcessDefinitionId());
-    assertNull(job.getProcessDefinitionKey(), userOperationLogEntry.getProcessDefinitionKey());
-    assertNull(job.getDeploymentId(), userOperationLogEntry.getDeploymentId());
+    assertNull(userOperationLogEntry.getJobDefinitionId(), job.getJobDefinitionId());
+    assertNull(userOperationLogEntry.getProcessInstanceId(), job.getProcessInstanceId());
+    assertNull(userOperationLogEntry.getProcessDefinitionId(), job.getProcessDefinitionId());
+    assertNull(userOperationLogEntry.getProcessDefinitionKey(), job.getProcessDefinitionKey());
+    assertNull(userOperationLogEntry.getDeploymentId(), job.getDeploymentId());
     assertEquals(UserOperationLogEntry.CATEGORY_OPERATOR, userOperationLogEntry.getCategory());
     
     managementService.deleteBatch(batch.getId(), true);
@@ -269,11 +269,11 @@ public class UserOperationLogJobTest extends AbstractUserOperationLogTest {
 
     assertEquals(USER_ID, userOperationLogEntry.getUserId());
 
-    assertNull(job.getJobDefinitionId(), userOperationLogEntry.getJobDefinitionId());
-    assertNull(job.getProcessInstanceId(), userOperationLogEntry.getProcessInstanceId());
-    assertNull(job.getProcessDefinitionId(), userOperationLogEntry.getProcessDefinitionId());
-    assertNull(job.getProcessDefinitionKey(), userOperationLogEntry.getProcessDefinitionKey());
-    assertNull(job.getDeploymentId(), userOperationLogEntry.getDeploymentId());
+    assertNull(userOperationLogEntry.getJobDefinitionId(), job.getJobDefinitionId());
+    assertNull(userOperationLogEntry.getProcessInstanceId(), job.getProcessInstanceId());
+    assertNull(userOperationLogEntry.getProcessDefinitionId(), job.getProcessDefinitionId());
+    assertNull(userOperationLogEntry.getProcessDefinitionKey(), job.getProcessDefinitionKey());
+    assertNull(userOperationLogEntry.getDeploymentId(), job.getDeploymentId());
     assertEquals(UserOperationLogEntry.CATEGORY_OPERATOR, userOperationLogEntry.getCategory());
 
     // check 'nrOfInstances' entry
@@ -290,11 +290,11 @@ public class UserOperationLogJobTest extends AbstractUserOperationLogTest {
 
     assertEquals(USER_ID, userOperationLogEntry.getUserId());
 
-    assertNull(job.getJobDefinitionId(), userOperationLogEntry.getJobDefinitionId());
-    assertNull(job.getProcessInstanceId(), userOperationLogEntry.getProcessInstanceId());
-    assertNull(job.getProcessDefinitionId(), userOperationLogEntry.getProcessDefinitionId());
-    assertNull(job.getProcessDefinitionKey(), userOperationLogEntry.getProcessDefinitionKey());
-    assertNull(job.getDeploymentId(), userOperationLogEntry.getDeploymentId());
+    assertNull(userOperationLogEntry.getJobDefinitionId(), job.getJobDefinitionId());
+    assertNull(userOperationLogEntry.getProcessInstanceId(), job.getProcessInstanceId());
+    assertNull(userOperationLogEntry.getProcessDefinitionId(), job.getProcessDefinitionId());
+    assertNull(userOperationLogEntry.getProcessDefinitionKey(), job.getProcessDefinitionKey());
+    assertNull(userOperationLogEntry.getDeploymentId(), job.getDeploymentId());
     assertEquals(UserOperationLogEntry.CATEGORY_OPERATOR, userOperationLogEntry.getCategory());
     
     // check 'async' entry
@@ -311,11 +311,11 @@ public class UserOperationLogJobTest extends AbstractUserOperationLogTest {
 
     assertEquals(USER_ID, userOperationLogEntry.getUserId());
 
-    assertNull(job.getJobDefinitionId(), userOperationLogEntry.getJobDefinitionId());
-    assertNull(job.getProcessInstanceId(), userOperationLogEntry.getProcessInstanceId());
-    assertNull(job.getProcessDefinitionId(), userOperationLogEntry.getProcessDefinitionId());
-    assertNull(job.getProcessDefinitionKey(), userOperationLogEntry.getProcessDefinitionKey());
-    assertNull(job.getDeploymentId(), userOperationLogEntry.getDeploymentId());
+    assertNull(userOperationLogEntry.getJobDefinitionId(), job.getJobDefinitionId());
+    assertNull(userOperationLogEntry.getProcessInstanceId(), job.getProcessInstanceId());
+    assertNull(userOperationLogEntry.getProcessDefinitionId(), job.getProcessDefinitionId());
+    assertNull(userOperationLogEntry.getProcessDefinitionKey(), job.getProcessDefinitionKey());
+    assertNull(userOperationLogEntry.getDeploymentId(), job.getDeploymentId());
     assertEquals(UserOperationLogEntry.CATEGORY_OPERATOR, userOperationLogEntry.getCategory());
     
     managementService.deleteBatch(batch.getId(), true);

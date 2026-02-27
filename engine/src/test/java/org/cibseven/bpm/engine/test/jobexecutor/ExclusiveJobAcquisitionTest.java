@@ -40,6 +40,8 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
 
 import org.junit.jupiter.api.Test;
 
@@ -49,14 +51,14 @@ public class ExclusiveJobAcquisitionTest {
   private static final long MAX_SECONDS_TO_WAIT_ON_JOBS = 60;
 
   @RegisterExtension
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configuration.setJobExecutor(new AssertJobExecutor())
   );
 
   @RegisterExtension
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   private ProcessEngineConfigurationImpl engineConfig;
   private RuntimeService runtimeService;

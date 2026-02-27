@@ -33,7 +33,7 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -42,9 +42,9 @@ import com.google.common.collect.Sets;
 public class UpdateProcessInstancesSuspendStateTest {
 
   @RegisterExtension
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;

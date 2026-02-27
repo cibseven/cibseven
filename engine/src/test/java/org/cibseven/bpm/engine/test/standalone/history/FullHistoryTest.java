@@ -77,6 +77,7 @@ import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 
 /**
@@ -89,9 +90,9 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 public class FullHistoryTest {
 
   @RegisterExtension
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;

@@ -45,6 +45,8 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.AfterEach;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
@@ -53,9 +55,9 @@ public class CleanableHistoricCaseInstanceReportTest {
   private static final String THIRD_CASE_DEFINITION_KEY = "oneTaskCase";
   private static final String SECOND_CASE_DEFINITION_KEY = "oneCaseTaskCase";
   @RegisterExtension
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected HistoryService historyService;
   protected RepositoryService repositoryService;

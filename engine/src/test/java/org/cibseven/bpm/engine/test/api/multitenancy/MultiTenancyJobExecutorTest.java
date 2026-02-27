@@ -36,15 +36,16 @@ import org.junit.jupiter.api.AfterEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 
 public class MultiTenancyJobExecutorTest {
 
   protected static final String TENANT_ID = "tenant1";
   @RegisterExtension
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   @Test
   public void setAuthenticatedTenantForTimerStartEvent() {

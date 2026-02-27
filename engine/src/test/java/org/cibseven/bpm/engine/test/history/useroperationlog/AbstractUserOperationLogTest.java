@@ -22,6 +22,7 @@ import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Roman Smirnov
@@ -32,9 +33,9 @@ public abstract class AbstractUserOperationLogTest {
 
   public static final String USER_ID = "demo";
 
-  @org.junit.jupiter.api.extension.RegisterExtension
+  @RegisterExtension
   protected org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule engineRule = new org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule();
-  @org.junit.jupiter.api.extension.RegisterExtension
+  @RegisterExtension
   protected org.cibseven.bpm.engine.test.util.ProcessEngineTestRule testRule = new org.cibseven.bpm.engine.test.util.ProcessEngineTestRule(engineRule);
   protected org.cibseven.bpm.engine.IdentityService identityService;
   protected org.cibseven.bpm.engine.RuntimeService runtimeService;

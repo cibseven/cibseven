@@ -50,14 +50,15 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 
 public class ModificationExecutionSyncTest {
 
   @RegisterExtension
-  protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
   protected BatchModificationHelper helper = new BatchModificationHelper(rule);
 
   protected RuntimeService runtimeService;

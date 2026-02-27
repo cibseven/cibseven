@@ -34,6 +34,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 import org.junit.jupiter.api.Test;
 
@@ -58,7 +59,7 @@ public class HistoricIncidentAuditTest {
   }
 
   @RegisterExtension
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
 
     configuration.setCustomSessionFactories(Arrays.asList(sessionFactory));
   });
@@ -66,7 +67,7 @@ public class HistoricIncidentAuditTest {
   @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   @RegisterExtension
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   @Test
   public void shouldNotQueryForHistoricJobLogWhenSettingJobToZeroRetries() {

@@ -66,9 +66,11 @@ public class DeploymentCacheCfgTest {
     configuration.setCacheCapacity(2);
     configuration.setCacheFactory(new MyCacheFactory());
     configuration.setEnableFetchProcessDefinitionDescription(false);
-});
+  });
 
+  @RegisterExtension
   @Order (2) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(cacheFactoryBootstrapRule);
+  @RegisterExtension
   @Order (3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   RepositoryService repositoryService;

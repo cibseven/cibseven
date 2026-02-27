@@ -36,6 +36,7 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 import org.junit.jupiter.api.Test;
 
@@ -50,7 +51,7 @@ import org.junit.jupiter.api.Test;
 public class JobDefinitionCreationBothAsyncWithParseListenerTest {
 
   @RegisterExtension
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
     List<BpmnParseListener> listeners = new ArrayList<>();
     listeners.add(new AbstractBpmnParseListener(){
 
@@ -65,7 +66,7 @@ public class JobDefinitionCreationBothAsyncWithParseListenerTest {
   });
 
   @RegisterExtension
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   @Test
   public void testCreateBothAsyncJobDefinitionWithParseListener() {

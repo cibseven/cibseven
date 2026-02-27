@@ -39,6 +39,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 
 public class JobExceptionLoggingTest {
@@ -47,11 +48,11 @@ public class JobExceptionLoggingTest {
   private static final String CONTEXT_LOGGER = "org.cibseven.bpm.engine.context";
   
   @RegisterExtension
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().watch(CONTEXT_LOGGER, JOBEXECUTOR_LOGGER).level(Level.DEBUG);
+  @Order(7) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().watch(CONTEXT_LOGGER, JOBEXECUTOR_LOGGER).level(Level.DEBUG);
   @RegisterExtension
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   private RuntimeService runtimeService;
   private ManagementService managementService;

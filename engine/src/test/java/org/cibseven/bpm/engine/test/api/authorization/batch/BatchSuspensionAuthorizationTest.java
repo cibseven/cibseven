@@ -54,8 +54,6 @@ public class BatchSuspensionAuthorizationTest {
   @RegisterExtension
   @Order(3) static ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
-  private AuthorizationScenario scenario;
-
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
       scenario()
@@ -101,7 +99,7 @@ public class BatchSuspensionAuthorizationTest {
 
   @ParameterizedTest
   @MethodSource("scenarios")
-  public void testSuspendBatch() {
+  public void testSuspendBatch(AuthorizationScenario scenario) {
 
     // given
     ProcessInstance processInstance = engineRule.getRuntimeService().startProcessInstanceById(migrationPlan.getSourceProcessDefinitionId());
@@ -133,7 +131,7 @@ public class BatchSuspensionAuthorizationTest {
 
   @ParameterizedTest
   @MethodSource("scenarios")
-  public void testActivateBatch() {
+  public void testActivateBatch(AuthorizationScenario scenario) {
     // given
     ProcessInstance processInstance = engineRule.getRuntimeService().startProcessInstanceById(migrationPlan.getSourceProcessDefinitionId());
     batch = engineRule

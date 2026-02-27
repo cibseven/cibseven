@@ -33,15 +33,20 @@ import org.cibseven.bpm.engine.test.api.runtime.migration.batch.BatchMigrationHe
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class BatchPriorityTest {
 
   public static final long CUSTOM_PRIORITY = DefaultJobPriorityProvider.DEFAULT_PRIORITY + 10;
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
-  protected BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) protected BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
 
   protected RuntimeService runtimeService;
   protected ManagementService managementService;

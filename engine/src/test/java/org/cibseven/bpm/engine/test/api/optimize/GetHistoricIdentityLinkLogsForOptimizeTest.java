@@ -47,6 +47,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
@@ -55,9 +56,9 @@ public class GetHistoricIdentityLinkLogsForOptimizeTest {
   public static final String IDENTITY_LINK_ADD = "add";
   public static final String IDENTITY_LINK_DELETE = "delete";
   @RegisterExtension
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   private OptimizeService optimizeService;
 

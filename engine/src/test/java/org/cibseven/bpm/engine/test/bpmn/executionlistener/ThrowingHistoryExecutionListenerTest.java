@@ -56,7 +56,7 @@ public class ThrowingHistoryExecutionListenerTest {
   protected static final ThrowingHistoryEventProducer HISTORY_PRODUCER = new ThrowingHistoryEventProducer();
 
   @RegisterExtension
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(config -> {
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(config -> {
     config.setHistoryEventProducer(HISTORY_PRODUCER);
   });
   @RegisterExtension

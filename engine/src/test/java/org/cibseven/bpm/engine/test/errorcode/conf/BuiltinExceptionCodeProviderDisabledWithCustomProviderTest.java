@@ -32,6 +32,7 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 import org.junit.jupiter.api.Test;
 
@@ -49,7 +50,7 @@ public class BuiltinExceptionCodeProviderDisabledWithCustomProviderTest {
   protected static int PROVIDED_CUSTOM_CODE = 888_888;
 
   @RegisterExtension
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(c -> {
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(c -> {
     c.setDisableBuiltinExceptionCodeProvider(true);
     c.setCustomExceptionCodeProvider(new ExceptionCodeProvider() {
 
@@ -69,7 +70,7 @@ public class BuiltinExceptionCodeProviderDisabledWithCustomProviderTest {
   @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected IdentityService identityService;

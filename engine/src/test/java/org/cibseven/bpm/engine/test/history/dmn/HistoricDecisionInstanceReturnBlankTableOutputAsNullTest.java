@@ -24,6 +24,7 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 import org.junit.jupiter.api.Test;
 
@@ -34,11 +35,11 @@ import static org.assertj.core.api.Assertions.tuple;
 public class HistoricDecisionInstanceReturnBlankTableOutputAsNullTest {
 
   @RegisterExtension
-  public static ProcessEngineBootstrapRule bootstrapRule =
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule =
       new ProcessEngineBootstrapRule(config -> config.setDmnReturnBlankTableOutputAsNull(true));
 
   @RegisterExtension
-  public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @Order(5) public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   public static final String RESULT_TEST_DMN = "org/cibseven/bpm/engine/test/history/ReturnBlankTableOutputAsNull.dmn";
 

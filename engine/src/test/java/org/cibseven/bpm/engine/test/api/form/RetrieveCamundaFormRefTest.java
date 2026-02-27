@@ -52,6 +52,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
 
@@ -63,7 +64,9 @@ public class RetrieveCamundaFormRefTest {
   protected static final String START_FORM_CONTENT_V1 = "{\"id\"=\"myStartForm\",\"type\": \"default\",\"components\": []}";
   protected static final String START_FORM_CONTENT_V2 = "{\"id\"=\"myStartForm\",\"type\": \"default\",\"components\":[{\"key\": \"textfield1\",\"label\": \"Text Field\",\"type\": \"textfield\"}]}";
 
+  @RegisterExtension
   @Order (1) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   @Order (2) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   @TempDir
   protected File tempFolder;

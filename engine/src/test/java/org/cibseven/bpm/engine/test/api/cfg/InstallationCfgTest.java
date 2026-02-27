@@ -25,13 +25,14 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 public class InstallationCfgTest {
 
   @RegisterExtension
-  protected ProcessEngineRule engineRule = new ProcessEngineRule();
+  @Order(4) protected ProcessEngineRule engineRule = new ProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected ProcessEngineConfigurationImpl configuration;
 

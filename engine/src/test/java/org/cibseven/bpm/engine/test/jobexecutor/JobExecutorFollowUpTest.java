@@ -39,6 +39,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 
 /**
@@ -89,7 +90,7 @@ public class JobExecutorFollowUpTest {
 
   protected boolean skipFlushControl = true;
   @RegisterExtension
-  protected ProcessEngineBootstrapRule bootstrapRule =
+  @Order(1) protected ProcessEngineBootstrapRule bootstrapRule =
       new ProcessEngineBootstrapRule(configuration -> {
         configuration.setJobExecutor(buildControllableJobExecutor());
         configuration.setCommandContextFactory(new CommandContextFactory() {
@@ -99,9 +100,9 @@ public class JobExecutorFollowUpTest {
         });
       });
   @RegisterExtension
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   @RegisterExtension
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   protected static ControllableJobExecutor buildControllableJobExecutor() {
     ControllableJobExecutor jobExecutor = new ControllableJobExecutor();

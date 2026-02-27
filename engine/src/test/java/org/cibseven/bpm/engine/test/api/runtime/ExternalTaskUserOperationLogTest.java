@@ -39,7 +39,9 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -51,8 +53,10 @@ import static org.junit.jupiter.api.Assertions.*;
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class ExternalTaskUserOperationLogTest {
 
-  protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
 
   private static String PROCESS_DEFINITION_KEY = "oneExternalTaskProcess";
   private static String PROCESS_DEFINITION_KEY_2 = "twoExternalTaskWithPriorityProcess";

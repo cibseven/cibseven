@@ -35,6 +35,7 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 import org.junit.jupiter.api.Test;
 
@@ -51,7 +52,7 @@ public class CustomErrorCodeProviderTest {
   protected static int PROVIDED_CUSTOM_CODE = 33_333;
 
   @RegisterExtension
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(c -> {
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(c -> {
     c.setCustomExceptionCodeProvider(new ExceptionCodeProvider() {
 
       @Override
@@ -68,13 +69,13 @@ public class CustomErrorCodeProviderTest {
   });
 
   @RegisterExtension
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
+  @Order(7) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch("org.cibseven.bpm.engine.cmd")
       .level(Level.WARN);
   @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected IdentityService identityService;

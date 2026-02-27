@@ -40,16 +40,16 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class UpdateSuspendStateUserOperationLogTest {
   @RegisterExtension
-  protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
   // do an update here
   protected BatchSuspensionHelper helper = new BatchSuspensionHelper(rule);
 

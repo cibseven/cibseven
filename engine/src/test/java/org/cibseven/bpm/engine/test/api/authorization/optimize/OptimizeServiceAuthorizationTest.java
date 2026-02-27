@@ -67,6 +67,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -87,11 +88,11 @@ public class OptimizeServiceAuthorizationTest {
     "org/cibseven/bpm/engine/test/history/HistoricDecisionInstanceTest.decisionSingleOutput.dmn11.xml";
 
   @RegisterExtension
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   @RegisterExtension
-  protected AuthorizationTestBaseRule authRule = new AuthorizationTestBaseRule(engineRule);
+  @Order(7) protected AuthorizationTestBaseRule authRule = new AuthorizationTestBaseRule(engineRule);
 
 
   public static Collection<Object[]> data() {

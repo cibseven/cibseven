@@ -63,6 +63,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 /**
  * @author Frederik Heremans
@@ -75,10 +76,10 @@ public class IdentityServiceTest {
   private static final String INDENTITY_LOGGER = "org.cibseven.bpm.engine.identity";
 
   @RegisterExtension
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   @RegisterExtension
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
+  @Order(7) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
 
   protected IdentityService identityService;
   protected ProcessEngine processEngine;

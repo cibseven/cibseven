@@ -28,7 +28,9 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * Asserts engine functionality is metrics are disabled
@@ -38,8 +40,10 @@ import org.junit.jupiter.api.Test;
  */
 public class MetricsDisabledTest {
 
-  protected final ProcessEngineRule engineRule = new ProvidedProcessEngineRule(new ProcessEngineBootstrapRule("org/cibseven/bpm/engine/test/api/mgmt/metrics/metricsDisabledTest.cfg.xml"));
-  protected final ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(1) protected final ProcessEngineRule engineRule = new ProvidedProcessEngineRule(new ProcessEngineBootstrapRule("org/cibseven/bpm/engine/test/api/mgmt/metrics/metricsDisabledTest.cfg.xml"));
+  @RegisterExtension
+  @Order(2) protected final ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected ManagementService managementService;

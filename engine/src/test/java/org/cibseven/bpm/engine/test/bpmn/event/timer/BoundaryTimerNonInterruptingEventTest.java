@@ -57,6 +57,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 
 /**
@@ -70,9 +71,9 @@ public class BoundaryTimerNonInterruptingEventTest {
   protected static final long TWO_HOURS = TimeUnit.HOURS.toMillis(2L);
 
   @RegisterExtension
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
   @RegisterExtension
   private  MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
 

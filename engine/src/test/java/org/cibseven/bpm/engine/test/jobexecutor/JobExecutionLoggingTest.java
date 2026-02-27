@@ -30,6 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -45,9 +46,9 @@ public class JobExecutionLoggingTest {
   @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   @RegisterExtension
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().watch(
+  @Order(7) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().watch(
       "org.cibseven.bpm.engine.jobexecutor", Level.DEBUG);
 
   protected RuntimeService runtimeService;

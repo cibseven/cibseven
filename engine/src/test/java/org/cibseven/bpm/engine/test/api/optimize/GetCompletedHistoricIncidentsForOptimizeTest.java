@@ -36,6 +36,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -56,9 +57,9 @@ public class GetCompletedHistoricIncidentsForOptimizeTest {
       .endEvent("end")
       .done();
   @RegisterExtension
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   private OptimizeService optimizeService;
   private RuntimeService runtimeService;

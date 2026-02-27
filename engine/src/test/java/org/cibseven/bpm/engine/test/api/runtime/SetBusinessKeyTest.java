@@ -46,7 +46,7 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -55,9 +55,9 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 public class SetBusinessKeyTest {
 
   @RegisterExtension
-  protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
 
   protected static final String PROCESS_KEY = "process";
 

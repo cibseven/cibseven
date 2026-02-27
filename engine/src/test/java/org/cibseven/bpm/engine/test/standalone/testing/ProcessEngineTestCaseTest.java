@@ -25,24 +25,28 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineTestCase;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 /**
  * @author Joram Barrez
  * @author Falko Menge (camunda)
  */
-public class ProcessEngineTestCaseTest extends ProcessEngineTestCase {
+public class ProcessEngineTestCaseTest {
 
+  @RegisterExtension
+  ProcessEngineTestCase extension = new ProcessEngineTestCase();
+  
   @Deployment
   @Test
   public void testSimpleProcess() {
-    runtimeService.startProcessInstanceByKey("simpleProcess");
+    extension.getRuntimeService().startProcessInstanceByKey("simpleProcess");
 
-    Task task = taskService.createTaskQuery().singleResult();
+    Task task = extension.getTaskService().createTaskQuery().singleResult();
     assertEquals(task.getName(), "My Task");
 
-    taskService.complete(task.getId());
-    assertEquals(0, runtimeService.createProcessInstanceQuery().count());
+    extension.getTaskService().complete(task.getId());
+    assertEquals(0, extension.getRuntimeService().createProcessInstanceQuery().count());
   }
 
   @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_AUDIT)
@@ -69,7 +73,7 @@ public class ProcessEngineTestCaseTest extends ProcessEngineTestCase {
   }
 
   protected String currentHistoryLevel() {
-    return processEngine.getProcessEngineConfiguration().getHistory();
+    return extension.getProcessEngine().getProcessEngineConfiguration().getHistory();
   }
 
 }

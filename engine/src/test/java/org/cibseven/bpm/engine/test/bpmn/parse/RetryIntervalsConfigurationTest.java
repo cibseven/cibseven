@@ -50,7 +50,7 @@ public class RetryIntervalsConfigurationTest extends AbstractAsyncOperationsTest
   private static final String PROCESS_ID = "process";
   private static final String FAILING_CLASS = "this.class.does.not.Exist";
 
-  protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
+  @Order(1) protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
     configuration.setFailedJobRetryTimeCycle("PT5M,PT20M, PT3M");
     configuration.setEnableExceptionsAfterUnhandledBpmnError(true);
   });

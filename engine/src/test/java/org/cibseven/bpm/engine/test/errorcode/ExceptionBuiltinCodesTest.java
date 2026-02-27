@@ -42,6 +42,9 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
 
 import java.util.List;
 
@@ -52,14 +55,14 @@ import static org.cibseven.bpm.engine.authorization.Authorization.AUTH_TYPE_GRAN
 public class ExceptionBuiltinCodesTest {
 
   @RegisterExtension
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
+  @Order(7) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch("org.cibseven.bpm.engine.cmd")
       .level(Level.WARN);
 
   @RegisterExtension
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
 
 
   protected RuntimeService runtimeService;

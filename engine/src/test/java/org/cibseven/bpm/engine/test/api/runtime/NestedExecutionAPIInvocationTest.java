@@ -32,6 +32,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
 
 import org.junit.jupiter.api.Test;
 
@@ -42,13 +45,13 @@ import org.junit.jupiter.api.Test;
 public class NestedExecutionAPIInvocationTest {
 
   @RegisterExtension
-  public ProcessEngineRule engineRule1 = new ProvidedProcessEngineRule();
+  @Order(4) public ProcessEngineRule engineRule1 = new ProvidedProcessEngineRule();
 
   @RegisterExtension
-  public static ProcessEngineBootstrapRule engine2BootstrapRule = new ProcessEngineBootstrapRule("camunda.cfg.prefix_extended.xml");
+  @Order(3) public static ProcessEngineBootstrapRule engine2BootstrapRule = new ProcessEngineBootstrapRule("camunda.cfg.prefix_extended.xml");
 
   @RegisterExtension
-  public ProcessEngineRule engineRule2 = new ProvidedProcessEngineRule(engine2BootstrapRule);
+  @Order(4) public ProcessEngineRule engineRule2 = new ProvidedProcessEngineRule(engine2BootstrapRule);
 
   public static final String PROCESS_KEY_1 = "process";
 

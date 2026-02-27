@@ -38,7 +38,6 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.junit.jupiter.api.AfterEach;
 
 
 public class JobExecutorBatchTest {
@@ -47,7 +46,6 @@ public class JobExecutorBatchTest {
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
   protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
-  @RegisterExtension
   protected BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
 
   public CountingJobExecutor jobExecutor;

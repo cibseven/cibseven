@@ -74,6 +74,9 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
 
 
 /**
@@ -83,16 +86,16 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 public class BpmnParseTest {
 
   @RegisterExtension
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
 
   @RegisterExtension
   public SystemPropertiesRule systemProperties = SystemPropertiesRule.resetPropsAfterTest();
 
   @RegisterExtension
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
+  @Order(7) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
 
   public RepositoryService repositoryService;
   public RuntimeService runtimeService;

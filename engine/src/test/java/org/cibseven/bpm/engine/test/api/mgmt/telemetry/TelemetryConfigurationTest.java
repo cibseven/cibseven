@@ -35,7 +35,7 @@ import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.cibseven.commons.testing.WatchLogger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -43,10 +43,10 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 public class TelemetryConfigurationTest {
 
   @RegisterExtension
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   @RegisterExtension
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
+  @Order(7) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
 
   protected ProcessEngineConfigurationImpl configuration;
   protected ManagementService managementService;

@@ -44,6 +44,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 
 public class DecisionDefinitionQueryTest {
@@ -55,9 +56,9 @@ public class DecisionDefinitionQueryTest {
   protected static final String DRD_SCORE_RESOURCE = "org/cibseven/bpm/engine/test/dmn/deployment/drdScore.dmn11.xml";
   protected static final String DRD_DISH_RESOURCE = "org/cibseven/bpm/engine/test/dmn/deployment/drdDish.dmn11.xml";
   @RegisterExtension
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RepositoryService repositoryService;
 

@@ -33,6 +33,8 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * Represents the abstract metrics interval test class, which contains methods
@@ -42,8 +44,10 @@ import org.junit.jupiter.api.BeforeEach;
  */
 public abstract class AbstractMetricsIntervalTest {
 
-  protected final ProcessEngineRule ENGINE_RULE = new ProvidedProcessEngineRule();
-  protected final ProcessEngineTestRule TEST_RULE = new ProcessEngineTestRule(ENGINE_RULE);
+  @RegisterExtension
+  @Order(1) protected final ProcessEngineRule ENGINE_RULE = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected final ProcessEngineTestRule TEST_RULE = new ProcessEngineTestRule(ENGINE_RULE);
   protected final String REPORTER_ID = "REPORTER_ID";
   protected static final int DEFAULT_INTERVAL = 15;
   protected static final int DEFAULT_INTERVAL_MILLIS = 15 * 60 * 1000;

@@ -38,6 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 import org.slf4j.Logger;
 
 /**
@@ -49,10 +50,10 @@ public class JobDefinitionFunctionalTest {
   static Logger LOG = ProcessEngineLogger.TEST_LOGGER.getLogger();
 
   @RegisterExtension
-  public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(5) public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   @RegisterExtension
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected ManagementService managementService;

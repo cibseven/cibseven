@@ -21,18 +21,21 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
 
 
 
 public class CompetingTransactionsOptimisticLockingTestWithoutBatchProcessing extends AbstractCompetingTransactionsOptimisticLockingTest {
 
   @RegisterExtension
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
       "org/cibseven/bpm/engine/test/concurrency/custombatchprocessing.camunda.cfg.xml");
   @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   @BeforeEach
   public void setUp() {
@@ -42,7 +45,7 @@ public class CompetingTransactionsOptimisticLockingTestWithoutBatchProcessing ex
   }
 
   @Override
-  protected ProcessEngineTestRule getTestRule() {
+  @Order(9) protected ProcessEngineTestRule getTestRule() {
     return testRule;
   }
 }

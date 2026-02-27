@@ -35,6 +35,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 
 public class ReducedJobExceptionLoggingTest {
@@ -42,9 +43,9 @@ public class ReducedJobExceptionLoggingTest {
   @RegisterExtension
   protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   @RegisterExtension
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().watch("org.cibseven.bpm.engine.jobexecutor", Level.DEBUG);
+  @Order(7) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().watch("org.cibseven.bpm.engine.jobexecutor", Level.DEBUG);
 
   private RuntimeService runtimeService;
   private ManagementService managementService;

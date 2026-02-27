@@ -25,8 +25,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -57,8 +58,6 @@ public class DeleteHistoricBatchAuthorizationTest {
   @Order(2) public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
   @RegisterExtension
   @Order(3) public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-  public AuthorizationScenario scenario;
 
   static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
@@ -102,8 +101,9 @@ public class DeleteHistoricBatchAuthorizationTest {
     engineRule.getManagementService().deleteBatch(batch.getId(), true);
   }
 
-  @Test
-  public void testDeleteBatch() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testDeleteBatch(AuthorizationScenario scenario) {
 
     // given
     ProcessInstance processInstance = engineRule.getRuntimeService().startProcessInstanceById(migrationPlan.getSourceProcessDefinitionId());

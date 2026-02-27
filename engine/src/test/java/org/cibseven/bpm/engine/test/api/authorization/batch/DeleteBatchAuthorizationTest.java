@@ -47,8 +47,9 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Thorben Lindhauer
@@ -57,13 +58,12 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class DeleteBatchAuthorizationTest {
 
+  @RegisterExtension
   @Order(1) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
   @Order(2) public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
   @RegisterExtension
   @Order(3) public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-  public AuthorizationScenario scenario;
 
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
@@ -115,8 +115,9 @@ public class DeleteBatchAuthorizationTest {
     }
   }
 
-  @Test
-  public void testDeleteBatch() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testDeleteBatch(AuthorizationScenario scenario) {
 
     // given
     ProcessInstance processInstance = engineRule.getRuntimeService().startProcessInstanceById(migrationPlan.getSourceProcessDefinitionId());
@@ -157,8 +158,9 @@ public class DeleteBatchAuthorizationTest {
   /**
    * Requires no additional DELETE_HISTORY authorization => consistent with deleteDeployment
    */
-  @Test
-  public void testDeleteBatchCascade() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testDeleteBatchCascade(AuthorizationScenario scenario) {
     // given
     ProcessInstance processInstance = engineRule.getRuntimeService().startProcessInstanceById(migrationPlan.getSourceProcessDefinitionId());
     batch = engineRule

@@ -45,7 +45,7 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -59,10 +59,10 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 public class UserOperationIdTest {
 
   @RegisterExtension
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   @RegisterExtension
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected static final String PROCESS_KEY = "oneTaskProcess";
   protected String deploymentId;
@@ -243,10 +243,10 @@ public class UserOperationIdTest {
     assertNotNull(operationId);
     assertTrue(historicDetails.size() > 0, "Some historic details are expected to be present");
     for (UserOperationLogEntry userOperationLogEntry: userOperationLogEntries) {
-      assertEquals("OperationIds must be the same", operationId, userOperationLogEntry.getOperationId());
+      assertEquals(operationId, userOperationLogEntry.getOperationId(), "OperationIds must be the same");
     }
     for (HistoricDetail historicDetail : historicDetails) {
-      assertEquals("OperationIds must be the same", operationId, historicDetail.getUserOperationId());
+      assertEquals(operationId, historicDetail.getUserOperationId(), "OperationIds must be the same");
     }
   }
 

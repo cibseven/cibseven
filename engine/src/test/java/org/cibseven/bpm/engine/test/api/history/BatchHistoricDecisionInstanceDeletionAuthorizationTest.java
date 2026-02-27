@@ -114,10 +114,6 @@ public class BatchHistoricDecisionInstanceDeletionAuthorizationTest {
     decisionService = engineRule.getDecisionService();
     managementService = engineRule.getManagementService();
     decisionInstanceIds = new ArrayList<String>();
-  }
-
-  @BeforeEach
-  public void executeDecisionInstances() {
     testRule.deploy("org/cibseven/bpm/engine/test/api/dmn/Example.dmn");
 
     VariableMap variables = Variables.createVariables()

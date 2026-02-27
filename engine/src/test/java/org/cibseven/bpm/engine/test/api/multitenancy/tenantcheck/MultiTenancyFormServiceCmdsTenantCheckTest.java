@@ -42,6 +42,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 
 public class MultiTenancyFormServiceCmdsTenantCheckTest {
@@ -49,9 +50,9 @@ public class MultiTenancyFormServiceCmdsTenantCheckTest {
 
   protected static final String PROCESS_DEFINITION_KEY = "formKeyProcess";
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected TaskService taskService;
 

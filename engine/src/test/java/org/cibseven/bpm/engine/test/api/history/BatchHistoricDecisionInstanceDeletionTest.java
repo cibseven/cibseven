@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-import org.junit.jupiter.api.Assertions;
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.DecisionService;
 import org.cibseven.bpm.engine.HistoryService;
@@ -56,8 +55,8 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -68,9 +67,9 @@ public class BatchHistoricDecisionInstanceDeletionTest {
   protected static final Date TEST_DATE = new Date(1457326800000L);
 
   @RegisterExtension
-  protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
   protected BatchDeletionHelper helper = new BatchDeletionHelper(rule);
 
   private int defaultBatchJobsPerSeed;
@@ -96,21 +95,14 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     historyService = rule.getHistoryService();
     decisionService = rule.getDecisionService();
     decisionInstanceIds = new ArrayList<>();
-  }
-
-  @BeforeEach
-  public void storeEngineSettings() {
     configuration = rule.getProcessEngineConfiguration();
     defaultEnsureJobDueDateSet = configuration.isEnsureJobDueDateNotNull();
     defaultBatchJobsPerSeed = configuration.getBatchJobsPerSeed();
     defaultInvocationsPerBatchJob = configuration.getInvocationsPerBatchJob();
+    executeDecisionInstances();
   }
+  
 
-  private void applyParams(boolean ensureJobDueDateSet, Date currentTime) {
-    configuration.setEnsureJobDueDateNotNull(ensureJobDueDateSet);
-  }
-
-  @BeforeEach
   public void executeDecisionInstances() {
     testRule.deploy("org/cibseven/bpm/engine/test/api/dmn/Example.dmn");
 
@@ -128,15 +120,16 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     }
   }
 
+  private void applyParams(boolean ensureJobDueDateSet, Date currentTime) {
+    configuration.setEnsureJobDueDateNotNull(ensureJobDueDateSet);
+  }
+
+
   @AfterEach
   public void restoreEngineSettings() {
     configuration.setBatchJobsPerSeed(defaultBatchJobsPerSeed);
     configuration.setInvocationsPerBatchJob(defaultInvocationsPerBatchJob);
     configuration.setEnsureJobDueDateNotNull(defaultEnsureJobDueDateSet);
-  }
-
-  @AfterEach
-  public void removeBatches() {
     helper.removeAllRunningAndHistoricBatches();
     ClockUtil.reset();
   }
@@ -152,15 +145,17 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     assertBatchCreated(batch, 10);
   }
 
-  @Test
-  public void createBatchDeletionByInvalidIds() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void createBatchDeletionByInvalidIds(boolean ensureJobDueDateSet, Date currentTime) {
     // when/then
     assertThatThrownBy(() -> historyService.deleteHistoricDecisionInstancesAsync((List<String>) null, null))
       .isInstanceOf(BadUserRequestException.class);
   }
 
-  @Test
-  public void createBatchDeletionByQuery() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void createBatchDeletionByQuery(boolean ensureJobDueDateSet, Date currentTime) {
     // given
     HistoricDecisionInstanceQuery query = historyService.createHistoricDecisionInstanceQuery().decisionDefinitionKey(DECISION);
 
@@ -171,15 +166,17 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     assertBatchCreated(batch, 10);
   }
 
-  @Test
-  public void createBatchDeletionByInvalidQuery() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void createBatchDeletionByInvalidQuery(boolean ensureJobDueDateSet, Date currentTime) {
     // when/then
     assertThatThrownBy(() -> historyService.deleteHistoricDecisionInstancesAsync((HistoricDecisionInstanceQuery) null, null))
       .isInstanceOf(BadUserRequestException.class);
   }
 
-  @Test
-  public void createBatchDeletionByInvalidQueryByKey() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void createBatchDeletionByInvalidQueryByKey(boolean ensureJobDueDateSet, Date currentTime) {
     // given
     HistoricDecisionInstanceQuery query = historyService.createHistoricDecisionInstanceQuery().decisionDefinitionKey("foo");
 
@@ -188,8 +185,9 @@ public class BatchHistoricDecisionInstanceDeletionTest {
       .isInstanceOf(BadUserRequestException.class);
   }
 
-  @Test
-  public void createBatchDeletionByIdsAndQuery() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void createBatchDeletionByIdsAndQuery(boolean ensureJobDueDateSet, Date currentTime) {
     // given
     HistoricDecisionInstanceQuery query = historyService.createHistoricDecisionInstanceQuery().decisionDefinitionKey(DECISION);
 
@@ -203,6 +201,7 @@ public class BatchHistoricDecisionInstanceDeletionTest {
   @ParameterizedTest
   @MethodSource("scenarios")
   public void createSeedJobByIds(boolean ensureJobDueDateSet, Date currentTime) {
+    applyParams(ensureJobDueDateSet, currentTime);
     // when
     Batch batch = historyService.deleteHistoricDecisionInstancesAsync(decisionInstanceIds, null);
 
@@ -238,6 +237,7 @@ public class BatchHistoricDecisionInstanceDeletionTest {
   @ParameterizedTest
   @MethodSource("scenarios")
   public void createSeedJobByQuery(boolean ensureJobDueDateSet, Date currentTime) {
+    applyParams(ensureJobDueDateSet, currentTime);
     // given
     HistoricDecisionInstanceQuery query = historyService.createHistoricDecisionInstanceQuery().decisionDefinitionKey(DECISION);
 
@@ -276,6 +276,7 @@ public class BatchHistoricDecisionInstanceDeletionTest {
   @ParameterizedTest
   @MethodSource("scenarios")
   public void createSeedJobByIdsAndQuery(boolean ensureJobDueDateSet, Date currentTime) {
+    applyParams(ensureJobDueDateSet, currentTime);
     // given
     HistoricDecisionInstanceQuery query = historyService.createHistoricDecisionInstanceQuery().decisionDefinitionKey(DECISION);
 
@@ -314,6 +315,7 @@ public class BatchHistoricDecisionInstanceDeletionTest {
   @ParameterizedTest
   @MethodSource("scenarios")
   public void createDeletionJobsByIds(boolean ensureJobDueDateSet, Date currentTime) {
+    applyParams(ensureJobDueDateSet, currentTime);
     // given
     rule.getProcessEngineConfiguration().setBatchJobsPerSeed(5);
 
@@ -343,8 +345,10 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     assertNotNull(seedJob);
   }
 
-  @Test
-  public void createDeletionJobsByIdsInDifferentDeployments() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void createDeletionJobsByIdsInDifferentDeployments(boolean ensureJobDueDateSet, Date currentTime) {
+    applyParams(ensureJobDueDateSet, currentTime);
     // given a second deployment and instances
     executeDecisionInstances();
 
@@ -377,8 +381,10 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     assertEquals(10L, getJobCountByDeployment(deletionJobs, deploymentIdTwo));
   }
 
-  @Test
-  public void createDeletionJobsByIdsWithDeletedDeployment() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void createDeletionJobsByIdsWithDeletedDeployment(boolean ensureJobDueDateSet, Date currentTime) {
+    applyParams(ensureJobDueDateSet, currentTime);
     // given a second deployment and instances
     executeDecisionInstances();
 
@@ -421,6 +427,7 @@ public class BatchHistoricDecisionInstanceDeletionTest {
   @ParameterizedTest
   @MethodSource("scenarios")
   public void createDeletionJobsByQuery(boolean ensureJobDueDateSet, Date currentTime) {
+    applyParams(ensureJobDueDateSet, currentTime);
     // given
     rule.getProcessEngineConfiguration().setBatchJobsPerSeed(5);
 
@@ -488,8 +495,9 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     assertNotNull(seedJob);
   }
 
-  @Test
-  public void createMonitorJobByIds() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void createMonitorJobByIds(boolean ensureJobDueDateSet, Date currentTime) {
     // given
     Batch batch = historyService.deleteHistoricDecisionInstancesAsync(decisionInstanceIds, null);
 
@@ -511,8 +519,9 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     assertNotNull(monitorJob);
   }
 
-  @Test
-  public void createMonitorJobByQuery() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void createMonitorJobByQuery(boolean ensureJobDueDateSet, Date currentTime) {
     // given
     HistoricDecisionInstanceQuery query = historyService.createHistoricDecisionInstanceQuery().decisionDefinitionKey(DECISION);
     Batch batch = historyService.deleteHistoricDecisionInstancesAsync(query, null);
@@ -535,8 +544,9 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     assertNotNull(monitorJob);
   }
 
-  @Test
-  public void createMonitorJobByIdsAndQuery() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void createMonitorJobByIdsAndQuery(boolean ensureJobDueDateSet, Date currentTime) {
     // given
     HistoricDecisionInstanceQuery query = historyService.createHistoricDecisionInstanceQuery().decisionDefinitionKey(DECISION);
     Batch batch = historyService.deleteHistoricDecisionInstancesAsync(decisionInstanceIds, query, null);
@@ -559,8 +569,9 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     assertNotNull(monitorJob);
   }
 
-  @Test
-  public void deleteInstancesByIds() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void deleteInstancesByIds(boolean ensureJobDueDateSet, Date currentTime) {
     // given
     Batch batch = historyService.deleteHistoricDecisionInstancesAsync(decisionInstanceIds, null);
 
@@ -577,8 +588,9 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     assertEquals(0, historyService.createHistoricDecisionInstanceQuery().count());
   }
 
-  @Test
-  public void deleteInstancesByQuery() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void deleteInstancesByQuery(boolean ensureJobDueDateSet, Date currentTime) {
     // given
     HistoricDecisionInstanceQuery query = historyService.createHistoricDecisionInstanceQuery().decisionDefinitionKey(DECISION);
     Batch batch = historyService.deleteHistoricDecisionInstancesAsync(query, null);
@@ -595,8 +607,9 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     assertEquals(0, historyService.createHistoricDecisionInstanceQuery().count());
   }
 
-  @Test
-  public void deleteInstancesByIdsAndQuery() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void deleteInstancesByIdsAndQuery(boolean ensureJobDueDateSet, Date currentTime) {
     // given
     HistoricDecisionInstanceQuery query = historyService.createHistoricDecisionInstanceQuery().decisionDefinitionKey(DECISION);
     Batch batch = historyService.deleteHistoricDecisionInstancesAsync(decisionInstanceIds, query, null);
@@ -613,8 +626,9 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     assertEquals(0, historyService.createHistoricDecisionInstanceQuery().count());
   }
 
-  @Test
-  public void shouldSetInvocationsPerBatchType() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void shouldSetInvocationsPerBatchType(boolean ensureJobDueDateSet, Date currentTime) {
     // given
     configuration.getInvocationsPerBatchJobByBatchType()
         .put(Batch.TYPE_HISTORIC_DECISION_INSTANCE_DELETION, 42);
@@ -632,8 +646,9 @@ public class BatchHistoricDecisionInstanceDeletionTest {
     configuration.setInvocationsPerBatchJobByBatchType(new HashMap<>());
   }
 
-  @Test
-  public void shouldSetExecutionStartTimeInBatchAndHistory() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void shouldSetExecutionStartTimeInBatchAndHistory(boolean ensureJobDueDateSet, Date currentTime) {
     // given
     ClockUtil.setCurrentTime(TEST_DATE);
     Batch batch = historyService.deleteHistoricDecisionInstancesAsync(decisionInstanceIds, null);

@@ -174,8 +174,7 @@ public class UserOperationLogJobDefinitionTest extends AbstractUserOperationLogT
         .entityType(EntityTypes.JOB).singleResult();
     assertNotNull(jobOpLogEntry);
 
-    assertEquals("the two job related entries should be part of the same operation",
-        jobDefOpLogEntry.getOperationId(), jobOpLogEntry.getOperationId());
+    assertEquals(jobDefOpLogEntry.getOperationId(), jobOpLogEntry.getOperationId(), "the two job related entries should be part of the same operation");
 
     assertEquals(EntityTypes.JOB, jobOpLogEntry.getEntityType());
     assertNull(jobOpLogEntry.getJobId(), "id should null because it is a bulk update operation");

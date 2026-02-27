@@ -30,6 +30,7 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -41,12 +42,12 @@ public class DefaultHistoryEventHandlerTest {
   // we use a default config and test both scenarios via separate invocations.
 
   @RegisterExtension
-  public ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
+  @Order(1) public ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
     configuration.setCustomHistoryEventHandlers(Collections.singletonList(new CustomHistoryEventHandler()));
   });
 
   @RegisterExtension
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   @ParameterizedTest
   @ValueSource(booleans = {true, false})

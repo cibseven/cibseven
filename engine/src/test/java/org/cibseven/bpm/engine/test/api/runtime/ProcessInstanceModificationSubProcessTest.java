@@ -47,6 +47,7 @@ import org.junit.jupiter.api.Disabled;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 
 /**
@@ -55,9 +56,9 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 public class ProcessInstanceModificationSubProcessTest {
 
   @RegisterExtension
-  protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(rule);
+  @Order(9) protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(rule);
 
   private RuntimeService runtimeService;
   private RepositoryService repositoryService;

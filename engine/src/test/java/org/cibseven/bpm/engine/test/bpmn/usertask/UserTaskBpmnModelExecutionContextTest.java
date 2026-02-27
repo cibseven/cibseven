@@ -43,7 +43,7 @@ import org.cibseven.bpm.model.bpmn.instance.UserTask;
 import org.cibseven.bpm.model.xml.instance.ModelElementInstance;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -62,9 +62,9 @@ public class UserTaskBpmnModelExecutionContextTest {
   private TaskService taskService;
 
   @RegisterExtension
-  protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(rule);
 
   @BeforeEach
   public void setup() {

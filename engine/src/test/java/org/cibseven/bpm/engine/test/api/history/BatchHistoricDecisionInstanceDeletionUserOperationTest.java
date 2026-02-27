@@ -50,6 +50,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
@@ -60,9 +61,9 @@ public class BatchHistoricDecisionInstanceDeletionUserOperationTest {
   public static final String USER_ID = "userId";
 
   @RegisterExtension
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected DecisionService decisionService;
   protected HistoryService historyService;
@@ -78,10 +79,6 @@ public class BatchHistoricDecisionInstanceDeletionUserOperationTest {
     managementService = engineRule.getManagementService();
     identityService = engineRule.getIdentityService();
     decisionInstanceIds = new ArrayList<String>();
-  }
-
-  @BeforeEach
-  public void evaluateDecisionInstances() {
     testRule.deploy("org/cibseven/bpm/engine/test/api/dmn/Example.dmn");
 
     VariableMap variables = Variables.createVariables()

@@ -46,12 +46,12 @@ import org.junit.jupiter.api.extension.RegisterExtension;
  */
 public class BatchStatisticsQueryAuthorizationTest {
 
-  @Order(1) @RegisterExtension
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  @Order(2) @RegisterExtension
-  public AuthorizationTestBaseRule authRule = new AuthorizationTestBaseRule(engineRule);
-  @Order(3) @RegisterExtension
-  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(7) public AuthorizationTestBaseRule authRule = new AuthorizationTestBaseRule(engineRule);
+  @RegisterExtension
+  @Order(9) public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   protected MigrationPlan migrationPlan;
   protected Batch batch1;
