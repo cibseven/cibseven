@@ -94,6 +94,7 @@ public class HumanTaskDicretionaryItemHandlerTest extends CmmnElementHandlerTest
     assertEquals("humanTask", activityType);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testHumanTaskDescription() {
     // given
@@ -107,6 +108,7 @@ public class HumanTaskDicretionaryItemHandlerTest extends CmmnElementHandlerTest
     assertEquals(description, activity.getProperty(PROPERTY_ACTIVITY_DESCRIPTION));
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testDiscretionaryItemDescription() {
     // given

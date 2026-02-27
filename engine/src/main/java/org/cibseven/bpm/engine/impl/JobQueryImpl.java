@@ -182,14 +182,24 @@ public class JobQueryImpl extends AbstractQuery<JobQuery, Job> implements JobQue
     return this;
   }
 
+  public JobQuery duedateLowerThanOrEquals(Date date) {
+    ensureNotNull("Provided date", date);
+    this.duedateLowerThanOrEqual = date;
+    return this;
+  }
+
+  public JobQuery duedateHigherThanOrEquals(Date date) {
+    ensureNotNull("Provided date", date);
+    this.duedateHigherThanOrEqual = date;
+    return this;
+  }
+
   public JobQuery duedateHigherThen(Date date) {
     return duedateHigherThan(date);
   }
 
   public JobQuery duedateHigherThenOrEquals(Date date) {
-    ensureNotNull("Provided date", date);
-    this.duedateHigherThanOrEqual = date;
-    return this;
+    return duedateHigherThanOrEquals(date);
   }
 
   public JobQuery duedateLowerThen(Date date) {
@@ -197,9 +207,7 @@ public class JobQueryImpl extends AbstractQuery<JobQuery, Job> implements JobQue
   }
 
   public JobQuery duedateLowerThenOrEquals(Date date) {
-    ensureNotNull("Provided date", date);
-    this.duedateLowerThanOrEqual = date;
-    return this;
+    return duedateLowerThanOrEquals(date);
   }
 
   @Override

@@ -17,6 +17,7 @@
 package org.cibseven.bpm.qa.performance.engine.benchmark;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,7 +75,7 @@ public class BenchmarkAggregator extends TabularResultAggregator {
     }
     double speedUp = durationForSequential / passResult.getDuration();
     BigDecimal bigDecimalSpeedUp = new BigDecimal(speedUp);
-    bigDecimalSpeedUp.setScale(1, BigDecimal.ROUND_HALF_UP);
+    bigDecimalSpeedUp.setScale(1, RoundingMode.HALF_UP);
     row.add(bigDecimalSpeedUp.doubleValue());
   }
 

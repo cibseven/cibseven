@@ -44,7 +44,7 @@ public class SpinValueMapperFactory {
 
   protected CustomValueMapper newInstance(Class<?> valueMapperClass) {
     try {
-      return (CustomValueMapper) valueMapperClass.newInstance();
+      return (CustomValueMapper) valueMapperClass.getDeclaredConstructor().newInstance();
 
     } catch (InstantiationException e) {
       throw LOGGER.spinValueMapperInstantiationException(e);

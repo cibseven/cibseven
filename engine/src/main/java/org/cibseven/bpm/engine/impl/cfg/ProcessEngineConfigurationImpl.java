@@ -834,6 +834,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected boolean isMetricsEnabled = true;
   protected boolean isDbMetricsReporterActivate = true;
 
+  @SuppressWarnings("deprecation")
   protected MetricsReporterIdProvider metricsReporterIdProvider;
 
   protected boolean isTaskMetricsEnabled = true;
@@ -2434,6 +2435,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   // history //////////////////////////////////////////////////////////////////
 
+  @SuppressWarnings("deprecation")
   public void initHistoryLevel() {
     if (historyLevel != null) {
       setHistory(historyLevel.getName());

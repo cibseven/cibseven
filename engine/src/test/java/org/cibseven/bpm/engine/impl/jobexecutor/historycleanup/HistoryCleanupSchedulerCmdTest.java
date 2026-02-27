@@ -31,6 +31,8 @@ import static org.mockito.Mockito.mockStatic;
 
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import org.mockito.exceptions.base.MockitoException;
+import org.mockito.internal.util.StringUtil;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -63,7 +65,16 @@ public class HistoryCleanupSchedulerCmdTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        try {
+           MockitoAnnotations.openMocks(this).close();
+        } catch (Exception e) {
+            throw new MockitoException(
+                StringUtil.join(
+                          "Failed to release mocks",
+                          "",
+                          "This should not happen unless you are using a third-party mock maker"),
+                e);
+        }
 
         when(commandContext.getProcessEngineConfiguration()).thenReturn(engineConfigurationSpy);
         when(commandContext.getJobManager()).thenReturn(jobManager);

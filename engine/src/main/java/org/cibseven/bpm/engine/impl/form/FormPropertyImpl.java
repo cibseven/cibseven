@@ -24,6 +24,7 @@ import org.cibseven.bpm.engine.impl.form.handler.FormPropertyHandler;
 /**
  * @author Tom Baeyens
  */
+@SuppressWarnings("deprecation")
 public class FormPropertyImpl implements FormProperty {
   
   protected String id;

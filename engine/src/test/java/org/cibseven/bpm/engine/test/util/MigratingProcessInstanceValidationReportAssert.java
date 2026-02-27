@@ -30,6 +30,7 @@ import org.cibseven.bpm.engine.migration.MigratingTransitionInstanceValidationRe
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
+import org.hamcrest.MatcherAssert;
 import org.junit.Assert;
 
 public class MigratingProcessInstanceValidationReportAssert {
@@ -68,7 +69,7 @@ public class MigratingProcessInstanceValidationReportAssert {
       matchers.add(Matchers.containsString(expectedFailure));
     }
 
-    Assert.assertThat("Expected failures:\n" + joinFailures(Arrays.asList(expectedFailures)) +
+    MatcherAssert.assertThat("Expected failures:\n" + joinFailures(Arrays.asList(expectedFailures)) +
         "But found failures:\n" + joinFailures(actualFailures),
       actualFailures, Matchers.containsInAnyOrder(matchers));
 
@@ -118,7 +119,7 @@ public class MigratingProcessInstanceValidationReportAssert {
       matchers.add(Matchers.containsString(expectedFailure));
     }
 
-    Assert.assertThat("Expected failures for source scope: " + sourceScopeId + "\n" + joinFailures(expectedFailures) +
+    MatcherAssert.assertThat("Expected failures for source scope: " + sourceScopeId + "\n" + joinFailures(expectedFailures) +
         "But found failures:\n" + joinFailures(actualFailures),
       actualFailures, Matchers.containsInAnyOrder(matchers));
   }

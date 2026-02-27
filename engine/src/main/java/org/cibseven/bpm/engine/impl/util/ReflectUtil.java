@@ -208,7 +208,7 @@ public abstract class ReflectUtil {
   public static Object instantiate(String className) {
     try {
       Class< ? > clazz = loadClass(className);
-      return clazz.newInstance();
+      return clazz.getDeclaredConstructor().newInstance();
     }
     catch (Exception e) {
       throw LOG.exceptionWhileInstantiatingClass(className, e);
@@ -217,7 +217,7 @@ public abstract class ReflectUtil {
 
   public static <T> T instantiate(Class<T> type) {
     try {
-      return type.newInstance();
+      return type.getDeclaredConstructor().newInstance();
     }
     catch (Exception e) {
       throw LOG.exceptionWhileInstantiatingClass(type.getName(), e);

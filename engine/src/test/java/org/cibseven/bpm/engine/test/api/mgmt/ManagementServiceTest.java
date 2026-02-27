@@ -970,6 +970,7 @@ public class ManagementServiceTest extends PluggableProcessEngineTest {
     taskService.deleteTasks(taskIds, true);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void shouldAlwaysReturnFalseWhenFetchingIsTelemetryEnabled() {
     // given default configuration
@@ -978,6 +979,7 @@ public class ManagementServiceTest extends PluggableProcessEngineTest {
     assertThat(managementService.isTelemetryEnabled()).isFalse();
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void shouldReturnFalseWhenToggleTelemetry() {
     // given default configuration
