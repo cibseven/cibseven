@@ -17,6 +17,7 @@ import groovy.transform.Field
     mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
     uiParamPresets: [:],
     testMode: false,
+    dependencyTrackSynchronous: false,
     buildPodConfig: [
         (Constants.MAVEN_JDK_17_CONTAINER): [
             resources: [
