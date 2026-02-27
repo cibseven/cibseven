@@ -27,6 +27,7 @@ import groovy.transform.Field
         ]
     ]
 ]
+@Field Boolean isAnyCustomTest = false
 
 pipeline {
     agent {
@@ -138,6 +139,8 @@ pipeline {
                     // pipeline as root but repository being owned by user 1000. For more, see
                     // https://stackoverflow.com/questions/72978485/git-submodule-update-failed-with-fatal-detected-dubious-ownership-in-repositor
                     sh "git config --global --add safe.directory \$(pwd)"
+
+                    isAnyCustomTest = params.QA_TEST_SUITE == 'CUSTOM' && (params.QA_ENG_IT || params.QA_WEB_IT || params.QA_PERF || params.QA_LARGE_DATA || params.QA_OLD_ENG || params.QA_ROLL_UPD || params.QA_INST_MIGR)
                 }
                 script {
                     // if use private repo then try to get a repo template from the pool if possible
@@ -252,7 +255,7 @@ pipeline {
 
         stage('QA Tests') {
             when {
-                expression { params.QA_TEST_SUITE == 'CUSTOM' || params.QA_TEST_SUITE == 'ALL'}
+                expression { isAnyCustomTest || params.QA_TEST_SUITE == 'ALL'}
             }
             stages {
                 stage('Engine Integration') {
@@ -381,7 +384,7 @@ pipeline {
         stage('JUnit Report') {
             when {
                 expression {
-                    params.VERIFY || params.QA_TEST_SUITE == 'CUSTOM' || params.QA_TEST_SUITE == 'ALL'
+                    params.VERIFY || isAnyCustomTest || params.QA_TEST_SUITE == 'ALL'
                 }
             }
             steps {
