@@ -272,6 +272,7 @@ public class BatchMigrationTest {
   @ParameterizedTest
   @MethodSource("scenarios")
   public void testSeedJobCreation(boolean ensureJobDueDateSet, Date currentTime) {
+    configuration.setEnsureJobDueDateNotNull(ensureJobDueDateSet);
     ClockUtil.setCurrentTime(TEST_DATE);
 
     // when
@@ -308,6 +309,7 @@ public class BatchMigrationTest {
   @ParameterizedTest
   @MethodSource("scenarios")
   public void testMigrationJobsCreation(boolean ensureJobDueDateSet, Date currentTime) {
+    configuration.setEnsureJobDueDateNotNull(ensureJobDueDateSet);
     ClockUtil.setCurrentTime(TEST_DATE);
 
     // reduce number of batch jobs per seed to not have to create a lot of instances
@@ -478,6 +480,7 @@ public class BatchMigrationTest {
   @ParameterizedTest
   @MethodSource("scenarios")
   public void testMonitorJobPollingForCompletion(boolean ensureJobDueDateSet, Date currentTime) {
+    configuration.setEnsureJobDueDateNotNull(ensureJobDueDateSet);
     ClockUtil.setCurrentTime(TEST_DATE);
 
     Batch batch = helper.migrateProcessInstancesAsync(10);

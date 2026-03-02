@@ -57,7 +57,7 @@ public class TaskQueryDisabledStoredExpressionsTest {
   @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
       "org/cibseven/bpm/engine/test/api/task/task-query-disabled-stored-expressions-test.camunda.cfg.xml");
   @RegisterExtension
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @Order(7) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   @RegisterExtension
   @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 

@@ -278,6 +278,7 @@ public class ModificationExecutionAsyncTest {
   @ParameterizedTest
   @MethodSource("scenarios")
   public void createSeedJob(boolean ensureJobDueDateSet, Date currentTime) {
+    configuration.setEnsureJobDueDateNotNull(ensureJobDueDateSet);
     // when
     ProcessDefinition processDefinition = testRule.deployAndGetDefinition(instance);
     Batch batch = helper.startAfterAsync("process1", 3, "user1", processDefinition.getId());
@@ -314,6 +315,7 @@ public class ModificationExecutionAsyncTest {
   @ParameterizedTest
   @MethodSource("scenarios")
   public void createModificationJobs(boolean ensureJobDueDateSet, Date currentTime) {
+    configuration.setEnsureJobDueDateNotNull(ensureJobDueDateSet);
     ProcessDefinition processDefinition = testRule.deployAndGetDefinition(instance);
     rule.getProcessEngineConfiguration().setBatchJobsPerSeed(10);
     Batch batch = helper.startAfterAsync("process1", 20, "user1", processDefinition.getId());
@@ -661,6 +663,7 @@ public class ModificationExecutionAsyncTest {
   @ParameterizedTest
   @MethodSource("scenarios")
   public void testMonitorJobPollingForCompletion(boolean ensureJobDueDateSet, Date currentTime) {
+    configuration.setEnsureJobDueDateNotNull(ensureJobDueDateSet);
     ProcessDefinition processDefinition = testRule.deployAndGetDefinition(instance);
     Batch batch = helper.startAfterAsync("process1", 3, "user1", processDefinition.getId());
 

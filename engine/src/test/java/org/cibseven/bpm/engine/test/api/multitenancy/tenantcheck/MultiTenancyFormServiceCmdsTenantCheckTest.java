@@ -50,8 +50,10 @@ public class MultiTenancyFormServiceCmdsTenantCheckTest {
 
   protected static final String PROCESS_DEFINITION_KEY = "formKeyProcess";
 
+  @RegisterExtension
   @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
+  @RegisterExtension
   @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected TaskService taskService;
@@ -62,9 +64,7 @@ public class MultiTenancyFormServiceCmdsTenantCheckTest {
 
   protected IdentityService identityService;
 
-  @RegisterExtension
   protected RepositoryService repositoryService;
-  @RegisterExtension
   protected ProcessEngineConfiguration processEngineConfiguration;
 
   @BeforeEach

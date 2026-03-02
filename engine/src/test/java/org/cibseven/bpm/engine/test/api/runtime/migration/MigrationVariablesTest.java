@@ -64,7 +64,7 @@ public class MigrationVariablesTest {
   @RegisterExtension
   @Order(4) protected ProcessEngineRule rule = new ProvidedProcessEngineRule(bootstrapRule);
   @RegisterExtension
-  protected MigrationTestRule testHelper = new MigrationTestRule(rule);
+  @Order(5) protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
   protected static final BpmnModelInstance ONE_BOUNDARY_TASK = ModifiableBpmnModelInstance.modify(ProcessModels.ONE_TASK_PROCESS)
       .activityBuilder("userTask")

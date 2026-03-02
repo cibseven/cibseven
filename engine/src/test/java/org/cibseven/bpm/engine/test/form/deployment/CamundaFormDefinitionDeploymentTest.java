@@ -21,10 +21,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.test.util.CamundaFormUtils.findAllCamundaFormDefinitionEntities;
 import static org.cibseven.bpm.engine.test.util.CamundaFormUtils.writeTempFormFile;
 
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
@@ -35,6 +34,9 @@ import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.repository.DeploymentBuilder;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -50,18 +52,18 @@ public class CamundaFormDefinitionDeploymentTest {
   @RegisterExtension
   ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   @TempDir
-  File tempFolder;
+  Path tempFolder;
 
   RepositoryService repositoryService;
   ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @org.junit.jupiter.api.BeforeEach
+  @BeforeEach
   public void init() {
     repositoryService = engineRule.getRepositoryService();
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
   }
 
-  @org.junit.jupiter.api.AfterEach
+  @AfterEach
   public void tearDown() {
     List<Deployment> deployments = repositoryService.createDeploymentQuery().list();
     for (Deployment deployment : deployments) {
@@ -69,7 +71,7 @@ public class CamundaFormDefinitionDeploymentTest {
     }
   }
 
-  @org.junit.Test
+  @Test
   public void shouldDeployTheSameFormTwiceWithoutDuplicateFiltering() {
     // when
     createDeploymentBuilder(false).addClasspathResource(SIMPLE_FORM).deploy();
@@ -86,7 +88,7 @@ public class CamundaFormDefinitionDeploymentTest {
     assertThat(definitions).extracting("resourceName").containsExactly(SIMPLE_FORM, SIMPLE_FORM);
   }
 
-  @org.junit.Test
+  @Test
   public void shouldNotDeployTheSameFormTwiceWithDuplicateFiltering() {
     // when
     createDeploymentBuilder(true).addClasspathResource(SIMPLE_FORM).deploy();
@@ -104,7 +106,7 @@ public class CamundaFormDefinitionDeploymentTest {
     assertThat(definition.getResourceName()).isEqualTo(SIMPLE_FORM);
   }
 
-  @org.junit.Test
+  @Test
   public void shouldNotDeployTheSameFormTwiceWithDuplicateFilteringAndAdditionalResources() {
     // when
     Deployment firstDeployment = createDeploymentBuilder(true).addClasspathResource(SIMPLE_FORM).deploy();
@@ -123,7 +125,7 @@ public class CamundaFormDefinitionDeploymentTest {
     assertThat(definition.getResourceName()).isEqualTo(SIMPLE_FORM);
   }
 
-  @org.junit.Test
+  @Test
   public void shouldDeployDifferentFormsFromDifferentDeployments() {
     // when
     createDeploymentBuilder(true).addClasspathResource(SIMPLE_FORM).deploy();
@@ -140,7 +142,7 @@ public class CamundaFormDefinitionDeploymentTest {
     assertThat(definitions).extracting("resourceName").containsExactlyInAnyOrder(SIMPLE_FORM, COMPLEX_FORM);
   }
 
-  @org.junit.Test
+  @Test
   public void shouldDeployDifferentFormsFromOneDeployment() {
     // when
     createDeploymentBuilder(true).addClasspathResource(SIMPLE_FORM).addClasspathResource(COMPLEX_FORM).deploy();
@@ -157,7 +159,7 @@ public class CamundaFormDefinitionDeploymentTest {
     assertThat(definitions).extracting("resourceName").containsExactlyInAnyOrder(SIMPLE_FORM, COMPLEX_FORM);
   }
 
-  @org.junit.Test
+  @Test
   public void shouldFailDeploymentWithMultipleFormsDuplicateId() {
     // when
     assertThatThrownBy(() -> {
@@ -166,7 +168,7 @@ public class CamundaFormDefinitionDeploymentTest {
     .hasMessageContaining("The deployment contains definitions with the same key 'simpleForm' (id attribute), this is not allowed");
   }
 
-  @org.junit.Test
+  @Test
   public void shouldDeleteFormDefinitionWhenDeletingDeployment() {
     // given
     Deployment deployment = createDeploymentBuilder(true).addClasspathResource(SIMPLE_FORM).addClasspathResource(COMPLEX_FORM).deploy();
@@ -186,17 +188,20 @@ public class CamundaFormDefinitionDeploymentTest {
     assertThat(repositoryService.createDeploymentQuery().list()).hasSize(0);
   }
 
-  @org.junit.Test
+  @Test
   public void shouldUpdateVersionForChangedFormResource() throws IOException {
     // given
     String fileName = "myForm.form";
     String formContent1 = "{\"id\"=\"myForm\",\"type\": \"default\",\"components\":[{\"key\": \"button3\",\"label\": \"Button\",\"type\": \"button\"}]}";
     String formContent2 = "{\"id\"=\"myForm\",\"type\": \"default\",\"components\": []}";
-
-    createDeploymentBuilder(true).addInputStream(fileName, writeTempFormFile(fileName, formContent1, tempFolder)).deploy();
+    FileInputStream stream = writeTempFormFile(fileName, formContent1, tempFolder);
+    createDeploymentBuilder(true).addInputStream(fileName, stream).deploy();
+    stream.close();
 
     // when deploy changed file
-    createDeploymentBuilder(true).addInputStream(fileName, writeTempFormFile(fileName, formContent2, tempFolder)).deploy();
+    stream = writeTempFormFile(fileName, formContent2, tempFolder);
+    createDeploymentBuilder(true).addInputStream(fileName, stream).deploy();
+    stream.close();
 
     // then
     List<Deployment> deployments = repositoryService.createDeploymentQuery().list();
@@ -209,17 +214,21 @@ public class CamundaFormDefinitionDeploymentTest {
 
   }
 
-  @org.junit.Test
+  @Test
   public void shouldUpdateVersionForChangedFormResourceWithTenant() throws IOException {
     // given
     String fileName = "myForm.form";
     String formContent1 = "{\"id\"=\"myForm\",\"type\": \"default\",\"components\":[{\"key\": \"button3\",\"label\": \"Button\",\"type\": \"button\"}]}";
     String formContent2 = "{\"id\"=\"myForm\",\"type\": \"default\",\"components\": []}";
 
-    createDeploymentBuilder(true).tenantId("tenant1").addInputStream(fileName, writeTempFormFile(fileName, formContent1, tempFolder)).deploy();
-
+    FileInputStream stream = writeTempFormFile(fileName, formContent1, tempFolder);
+    createDeploymentBuilder(true).tenantId("tenant1").addInputStream(fileName, stream).deploy();
+    stream.close();
+    
     // when deploy changed file
-    createDeploymentBuilder(true).tenantId("tenant1").addInputStream(fileName, writeTempFormFile(fileName, formContent2, tempFolder)).deploy();
+    stream = writeTempFormFile(fileName, formContent2, tempFolder);
+    createDeploymentBuilder(true).tenantId("tenant1").addInputStream(fileName, stream).deploy();
+    stream.close();
 
     // then
     List<Deployment> deployments = repositoryService.createDeploymentQuery().list();

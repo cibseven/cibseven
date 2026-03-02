@@ -64,7 +64,6 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.Incident;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
-import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
@@ -1904,7 +1903,7 @@ public class HistoricProcessInstanceTest {
         .list();
 
     // then
-    assertThat(result).extracting("id").isEqualTo(tasks.get(1).getProcessInstanceId());
+    assertThat(result).extracting("id").containsExactly(tasks.get(1).getProcessInstanceId());
   }
 
   @Test

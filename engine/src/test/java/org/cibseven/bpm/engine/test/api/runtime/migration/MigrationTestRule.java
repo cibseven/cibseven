@@ -207,7 +207,7 @@ public class MigrationTestRule extends ProcessEngineTestRule {
   }
 
   public void assertTimerJob(Job job) {
-    assertEquals("Expected job to be a timer job", TimerEntity.TYPE, ((JobEntity) job).getType());
+    assertEquals(TimerEntity.TYPE, ((JobEntity) job).getType(), "Expected job to be a timer job");
   }
 
   public Job assertTimerJobExists(ProcessInstanceSnapshot snapshot) {
@@ -298,10 +298,10 @@ public class MigrationTestRule extends ProcessEngineTestRule {
     assertNotNull(jobDefinitionAfter, "Expected that a job definition for activity '" + activityIdAfter + "' exists after migration");
 
     assertEquals(jobBefore.getId(), jobAfter.getId());
-    assertEquals("Expected that job is assigned to job definition '" + jobDefinitionAfter.getId() + "' after migration",
-        jobDefinitionAfter.getId(), jobAfter.getJobDefinitionId());
-    assertEquals("Expected that job is assigned to deployment '" + snapshotAfterMigration.getDeploymentId() + "' after migration",
-        snapshotAfterMigration.getDeploymentId(), jobAfter.getDeploymentId());
+    assertEquals(jobDefinitionAfter.getId(), jobAfter.getJobDefinitionId(), 
+        "Expected that job is assigned to job definition '" + jobDefinitionAfter.getId() + "' after migration");
+    assertEquals(snapshotAfterMigration.getDeploymentId(), jobAfter.getDeploymentId(),
+        "Expected that job is assigned to deployment '" + snapshotAfterMigration.getDeploymentId() + "' after migration");
     assertEquals(dueDateAfter, jobAfter.getDuedate());
     assertEquals(((JobEntity) jobBefore).getType(), ((JobEntity) jobAfter).getType());
     assertEquals(jobBefore.getPriority(), jobAfter.getPriority());

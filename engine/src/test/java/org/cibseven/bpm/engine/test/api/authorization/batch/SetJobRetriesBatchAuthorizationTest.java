@@ -72,15 +72,10 @@ public class SetJobRetriesBatchAuthorizationTest extends AbstractBatchAuthorizat
     return result;
   }
 
-  @RegisterExtension
-  @Order(1) public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  @RegisterExtension
-  @Order(2) public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
   @Override
   @BeforeEach
   public void deployProcesses() {
-    Deployment deploy = testHelper.deploy(DEFINITION_XML);
+    Deployment deploy = testRule.deploy(DEFINITION_XML);
     sourceDefinition = engineRule.getRepositoryService()
         .createProcessDefinitionQuery().deploymentId(deploy.getId()).singleResult();
     processInstance = engineRule.getRuntimeService().startProcessInstanceById(sourceDefinition.getId());
@@ -257,7 +252,7 @@ public class SetJobRetriesBatchAuthorizationTest extends AbstractBatchAuthorizat
       Batch batch = engineRule.getManagementService().createBatchQuery().singleResult();
       assertEquals("userId", batch.getCreateUserId());
 
-      if (testHelper.isHistoryLevelFull()) {
+      if (testRule.isHistoryLevelFull()) {
         assertThat(engineRule.getHistoryService().createUserOperationLogQuery().operationType(UserOperationLogEntry.OPERATION_TYPE_SET_JOB_RETRIES).count())
           .isEqualTo(BATCH_OPERATIONS);
         HistoricBatch historicBatch = engineRule.getHistoryService().createHistoricBatchQuery().list().get(0);

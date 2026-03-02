@@ -39,7 +39,7 @@ import org.cibseven.bpm.engine.test.bpmn.event.conditional.SetVariableDelegate;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -50,8 +50,9 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 public class MigrationWithoutTriggerConditionTest {
 
   @RegisterExtension
-  protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
-  protected MigrationTestRule testHelper = new MigrationTestRule(rule);
+  @Order (1) protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order (3) protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
   @Test
   public void testIntermediateConditionalEventWithSetVariableOnEndListener() {

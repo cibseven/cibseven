@@ -26,7 +26,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -34,9 +34,9 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 public class ProcessInstanceModificationVariableTest {
 
   @RegisterExtension
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(3) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @Order(7) protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   RuntimeService runtimeService;
   TaskService taskService;

@@ -62,12 +62,6 @@ public class MultiTenancySetTaskPropertyTest {
   @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
 
-  // populated by data in constructor
-  protected String operationName;
-  protected TriConsumer<TaskService, String, Object> operation;
-  protected Object value;
-  protected String taskQueryBuilderMethodName;
-
   // initialized during @BeforeEach
   protected TaskService taskService;
   protected IdentityService identityService;
@@ -118,10 +112,6 @@ public class MultiTenancySetTaskPropertyTest {
       TriConsumer<TaskService, String, Object> operation,
       Object value,
       String taskQueryBuilderMethodName) {
-    this.operationName = operationName;
-    this.operation = operation;
-    this.value = value;
-    this.taskQueryBuilderMethodName = taskQueryBuilderMethodName;
     // given
     identityService.setAuthentication("aUserId", null, Collections.singletonList(TENANT_ONE));
 
@@ -129,7 +119,7 @@ public class MultiTenancySetTaskPropertyTest {
     operation.accept(taskService, taskId, value);
 
     // then
-    assertCorrespondingTaskQueryHasCount(1L);
+    assertCorrespondingTaskQueryHasCount(1L, value, taskQueryBuilderMethodName);
   }
 
   @ParameterizedTest
@@ -138,10 +128,6 @@ public class MultiTenancySetTaskPropertyTest {
       TriConsumer<TaskService, String, Object> operation,
       Object value,
       String taskQueryBuilderMethodName) {
-    this.operationName = operationName;
-    this.operation = operation;
-    this.value = value;
-    this.taskQueryBuilderMethodName = taskQueryBuilderMethodName;
     // given
     identityService.setAuthentication("aUserId", null);
 
@@ -155,7 +141,10 @@ public class MultiTenancySetTaskPropertyTest {
 
   @ParameterizedTest
   @MethodSource("data")
-  public void shouldSetOperationForTaskWithDisabledTenantCheck() {
+  public void shouldSetOperationForTaskWithDisabledTenantCheck(String operationName,
+      TriConsumer<TaskService, String, Object> operation,
+      Object value,
+      String taskQueryBuilderMethodName) {
     // given
     identityService.setAuthentication("aUserId", null);
     engineRule.getProcessEngineConfiguration().setTenantCheckEnabled(false);
@@ -164,10 +153,11 @@ public class MultiTenancySetTaskPropertyTest {
     operation.accept(taskService, taskId, value);
 
     // then
-    assertCorrespondingTaskQueryHasCount(1L);
+    assertCorrespondingTaskQueryHasCount(1L, value, taskQueryBuilderMethodName);
   }
 
-  private void assertCorrespondingTaskQueryHasCount(long count) {
+  private void assertCorrespondingTaskQueryHasCount(long count, Object value,
+      String taskQueryBuilderMethodName) {
     TaskQuery query = taskService.createTaskQuery().taskId(taskId);
     query = withTaskCriteria(query, taskQueryBuilderMethodName, value);
 

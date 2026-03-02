@@ -18,13 +18,14 @@ package org.cibseven.bpm.engine.test.util;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.repository.CamundaFormDefinition;
 import org.cibseven.bpm.engine.test.form.deployment.FindCamundaFormDefinitionsCmd;
+import org.junit.jupiter.api.io.TempDir;
 
 
 public class CamundaFormUtils {
@@ -34,18 +35,22 @@ public class CamundaFormUtils {
         .execute(new FindCamundaFormDefinitionsCmd());
   }
 
-  public static FileInputStream writeTempFormFile(String fileName, String content, File tempFolder) throws IOException {
-    File formFile = new File(tempFolder, fileName);
-    if(!formFile.exists()) {
-        if (!formFile.createNewFile()) {
-            throw new IOException(
-                    "a file with the name \'" + fileName + "\' already exists in the test folder");
-        }
+  public static FileInputStream writeTempFormFile(String fileName, String content, @TempDir Path tempFolder) throws IOException {
+    Path formFilePath = tempFolder.resolve(fileName);
+    if (!java.nio.file.Files.exists(formFilePath)) {
+      try {
+        java.nio.file.Files.createFile(formFilePath);
+      } catch (IOException e) {
+        throw new IOException(
+            "a file with the name '" + fileName + "' already exists in the test folder", e);
+      }
     }
 
-    FileWriter writer = new FileWriter(formFile, false);
-    writer.write(content);
-    writer.close();
-    return new FileInputStream(formFile.getAbsolutePath());
+    // Write content to file
+    try (java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(formFilePath)) {
+      writer.write(content);
+    }
+    // Return FileInputStream for compatibility
+    return new FileInputStream(formFilePath.toFile());
   }
 }

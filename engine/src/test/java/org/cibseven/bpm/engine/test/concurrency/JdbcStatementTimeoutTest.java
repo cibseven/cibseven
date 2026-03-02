@@ -41,7 +41,6 @@ import org.junit.jupiter.api.Order;
 
 import org.junit.jupiter.api.Test;
 
-import org.junit.jupiter.api.AfterEach;
 
 /**
  *  @author Philipp Ossler
@@ -57,7 +56,7 @@ public class JdbcStatementTimeoutTest extends ConcurrencyTestHelper {
   @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
           configuration.setJdbcStatementTimeout(STATEMENT_TIMEOUT_IN_SECONDS));
   @RegisterExtension
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @Order(7) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   @RegisterExtension
   @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 

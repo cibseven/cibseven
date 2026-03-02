@@ -39,14 +39,15 @@ import org.cibseven.bpm.model.bpmn.builder.CallActivityBuilder;
 import org.cibseven.bpm.model.bpmn.builder.ProcessBuilder;
 import org.cibseven.bpm.model.bpmn.builder.StartEventBuilder;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.runner.Description;
 
 /**
  * @author Tassilo Weidner
  */
-public class BatchSetRemovalTimeRule extends BatchRule implements BeforeAllCallback, AfterAllCallback {
+public class BatchSetRemovalTimeRule extends BatchRule implements BeforeEachCallback, AfterEachCallback {
 
   public final Date CURRENT_DATE = new GregorianCalendar(2013, Calendar.MARCH, 18, 13, 0, 0).getTime();
   public final Date REMOVAL_TIME = new Date(1363609000000L);
@@ -56,7 +57,7 @@ public class BatchSetRemovalTimeRule extends BatchRule implements BeforeAllCallb
   }
 
   @Override
-  public void beforeAll(ExtensionContext context) throws Exception {
+  public void beforeEach(ExtensionContext context) throws Exception {
     getProcessEngineConfiguration()
       .setHistoryRemovalTimeProvider(new DefaultHistoryRemovalTimeProvider())
       .setHistoryRemovalTimeStrategy(ProcessEngineConfiguration.HISTORY_REMOVAL_TIME_STRATEGY_START)
@@ -75,7 +76,8 @@ public class BatchSetRemovalTimeRule extends BatchRule implements BeforeAllCallb
   }
 
   @Override
-  public void afterAll(ExtensionContext context) throws Exception {
+  public void afterEach(ExtensionContext context) {
+    super.afterEach(context);
     getProcessEngineConfiguration()
       .setHistoryRemovalTimeProvider(null)
       .setHistoryRemovalTimeStrategy(null)

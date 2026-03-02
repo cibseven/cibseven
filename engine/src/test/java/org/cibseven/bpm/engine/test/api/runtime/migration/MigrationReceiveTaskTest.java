@@ -29,9 +29,9 @@ import org.cibseven.bpm.engine.test.api.runtime.migration.models.MessageReceiveM
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Assertions;
-
-import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Order;
 
 /**
  * @author Thorben Lindhauer
@@ -39,8 +39,10 @@ import static org.assertj.core.api.Assertions.*;
  */
 public class MigrationReceiveTaskTest {
 
-  protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
-  protected MigrationTestRule testHelper = new MigrationTestRule(rule);
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
   @Test
   public void testCannotMigrateActivityInstance() {

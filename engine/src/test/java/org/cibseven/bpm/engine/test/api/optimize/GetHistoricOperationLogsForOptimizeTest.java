@@ -68,10 +68,10 @@ import org.junit.jupiter.api.Order;
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class GetHistoricOperationLogsForOptimizeTest {
 
+  @RegisterExtension
   @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
   @Order(9) protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-  @RegisterExtension
   protected BatchSuspensionHelper helper = new BatchSuspensionHelper(engineRule);
 
   private OptimizeService optimizeService;

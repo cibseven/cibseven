@@ -32,7 +32,7 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -46,11 +46,11 @@ public class MultiTenancyMigrationAsyncTest {
   protected static final String TENANT_ONE = "tenant1";
   protected static final String TENANT_TWO = "tenant2";
   @RegisterExtension
-  protected ProvidedProcessEngineRule defaultEngineRule = new ProvidedProcessEngineRule();
+  @Order(3) protected ProvidedProcessEngineRule defaultEngineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected ProcessEngineTestRule defaultTestRule = new ProcessEngineTestRule(defaultEngineRule);
+  @Order(5) protected ProcessEngineTestRule defaultTestRule = new ProcessEngineTestRule(defaultEngineRule);
   @RegisterExtension
-  protected MigrationTestRule migrationRule = new MigrationTestRule(defaultEngineRule);
+  @Order(7) protected MigrationTestRule migrationRule = new MigrationTestRule(defaultEngineRule);
 
   protected BatchMigrationHelper batchHelper = new BatchMigrationHelper(defaultEngineRule, migrationRule);
 

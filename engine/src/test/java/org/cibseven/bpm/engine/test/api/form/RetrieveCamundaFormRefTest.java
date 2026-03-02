@@ -21,10 +21,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.test.util.CamundaFormUtils.findAllCamundaFormDefinitionEntities;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +56,6 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
 
-
 public class RetrieveCamundaFormRefTest {
 
   protected static final String TASK_FORM_CONTENT_V1 = "{\"id\"=\"myTaskForm\",\"type\": \"default\",\"components\": []}";
@@ -69,7 +68,7 @@ public class RetrieveCamundaFormRefTest {
   @RegisterExtension
   @Order (2) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   @TempDir
-  protected File tempFolder;
+  protected Path tempFolder;
 
   private RuntimeService runtimeService;
   private TaskService taskService;
@@ -500,9 +499,11 @@ public class RetrieveCamundaFormRefTest {
       builder.addClasspathResource(path);
     }
     builder.deploy();
+    form.close();
 
     // deploy second version of form
     form = CamundaFormUtils.writeTempFormFile("form.form", v2Content, tempFolder);
     repositoryService.createDeployment().name(getClass().getSimpleName()).addInputStream("form", form).deploy();
+    form.close();
   }
 }

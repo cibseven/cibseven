@@ -44,9 +44,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class JobExecutionLoggingTest {
   
   @RegisterExtension
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(3) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  @Order(9) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @Order(5) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   @RegisterExtension
   @Order(7) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().watch(
       "org.cibseven.bpm.engine.jobexecutor", Level.DEBUG);

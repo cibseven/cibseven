@@ -35,14 +35,10 @@ import org.cibseven.bpm.engine.management.JobDefinition;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
-import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class BatchHelper {
 
-  @RegisterExtension
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  public ProcessEngineRule engineRule;
   protected PluggableProcessEngineTest testCase;
 
   public BatchHelper(ProcessEngineRule engineRule) {

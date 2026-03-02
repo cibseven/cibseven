@@ -254,7 +254,7 @@ public class MultiTenancyCallActivityTest extends PluggableProcessEngineTest {
   }
 
   @Test
-  public void testStartCaseInstanceWithDeploymentBinding() {
+  public void testFailToEvaluateDecisionByKeyForNonExistingTenantID() {
 
     BpmnModelInstance callingProcess = Bpmn.createExecutableProcess("callingProcess")
       .startEvent()

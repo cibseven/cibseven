@@ -41,7 +41,7 @@ public class DeploymentAutoHistoryTest {
     configuration.setHistory(ProcessEngineConfiguration.HISTORY_AUTO);
   });
   @RegisterExtension
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @Order(7) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   @RegisterExtension
   @Order(9) protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 

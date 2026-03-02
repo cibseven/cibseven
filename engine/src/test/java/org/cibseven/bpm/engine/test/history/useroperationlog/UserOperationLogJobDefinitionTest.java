@@ -183,8 +183,7 @@ public class UserOperationLogJobDefinitionTest extends AbstractUserOperationLogT
 
     assertEquals("priority", jobOpLogEntry.getProperty());
     assertEquals("42", jobOpLogEntry.getNewValue());
-    assertNull("Original Value should be null because it is not known for bulk operations",
-        jobOpLogEntry.getOrgValue());
+    assertNull(jobOpLogEntry.getOrgValue(), "Original Value should be null because it is not known for bulk operations");
 
     assertEquals(USER_ID, jobOpLogEntry.getUserId());
     
@@ -192,8 +191,7 @@ public class UserOperationLogJobDefinitionTest extends AbstractUserOperationLogT
 
     // these properties should be there to narrow down the bulk update (like a SQL WHERE clasue)
     assertEquals(job.getJobDefinitionId(), jobOpLogEntry.getJobDefinitionId());
-    assertNull("an unspecified set of process instances was affected by the operation",
-        jobOpLogEntry.getProcessInstanceId());
+    assertNull(jobOpLogEntry.getProcessInstanceId(), "an unspecified set of process instances was affected by the operation");
     assertEquals(job.getProcessDefinitionId(), jobOpLogEntry.getProcessDefinitionId());
     assertEquals(job.getProcessDefinitionKey(), jobOpLogEntry.getProcessDefinitionKey());
     assertEquals(deploymentId, jobOpLogEntry.getDeploymentId());

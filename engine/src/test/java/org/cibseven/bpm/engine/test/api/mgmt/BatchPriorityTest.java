@@ -45,8 +45,7 @@ public class BatchPriorityTest {
   @Order(1) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
   @Order(2) protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
-  @RegisterExtension
-  @Order(3) protected BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
+  protected BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
 
   protected RuntimeService runtimeService;
   protected ManagementService managementService;

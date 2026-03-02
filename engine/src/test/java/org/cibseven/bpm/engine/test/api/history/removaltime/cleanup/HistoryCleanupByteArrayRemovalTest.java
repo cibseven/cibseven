@@ -56,7 +56,7 @@ import org.junit.jupiter.api.Order;
 public class HistoryCleanupByteArrayRemovalTest {
 
   @RegisterExtension
-  private ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(config -> {
+  @Order(1) private ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(config -> {
 
     config.setHistoryRemovalTimeStrategy(HISTORY_REMOVAL_TIME_STRATEGY_END)
         .setHistoryRemovalTimeProvider(new DefaultHistoryRemovalTimeProvider())
@@ -93,6 +93,7 @@ public class HistoryCleanupByteArrayRemovalTest {
 
   @BeforeEach
   public void init() {
+    processEngine = engineRule.getProcessEngine();
     managementService = processEngine.getManagementService();
     historyService = processEngine.getHistoryService();
     engineConfiguration = (ProcessEngineConfigurationImpl) processEngine.getProcessEngineConfiguration();

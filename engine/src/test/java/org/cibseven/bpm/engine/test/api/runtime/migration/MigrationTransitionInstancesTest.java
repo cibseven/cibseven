@@ -553,8 +553,8 @@ public class MigrationTransitionInstancesTest {
 
     // and it is possible to successfully execute the migrated job
     Job job = testHelper.snapshotAfterMigration.getJobs().get(0);
-    Assertions.assertEquals("Replace this non-API assert with a proper test case that fails when the wrong atomic operation is used",
-        "process-start", ((JobEntity) job).getJobHandlerConfigurationRaw());
+    Assertions.assertEquals("process-start", ((JobEntity) job).getJobHandlerConfigurationRaw(), 
+        "Replace this non-API assert with a proper test case that fails when the wrong atomic operation is used");
     rule.getManagementService().executeJob(job.getId());
 
     // and complete the task and process instance

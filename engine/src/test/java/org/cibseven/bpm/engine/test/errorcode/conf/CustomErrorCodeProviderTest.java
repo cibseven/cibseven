@@ -69,11 +69,11 @@ public class CustomErrorCodeProviderTest {
   });
 
   @RegisterExtension
-  @Order(7) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
+  @Order(5) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch("org.cibseven.bpm.engine.cmd")
       .level(Level.WARN);
   @RegisterExtension
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @Order(7) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   @RegisterExtension
   @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 

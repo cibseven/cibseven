@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Order;
 public class CompetingTransactionsOptimisticLockingTest extends AbstractCompetingTransactionsOptimisticLockingTest {
 
   @RegisterExtension
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(7) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
   @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 

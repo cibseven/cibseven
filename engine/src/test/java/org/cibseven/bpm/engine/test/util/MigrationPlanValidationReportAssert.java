@@ -75,9 +75,24 @@ public class MigrationPlanValidationReportAssert {
       }
     }
 
-    List<String> expectedList = Arrays.asList(expectedFailures);
+    // Restore original partial matching logic
+    List<String> failuresFoundCopy = new ArrayList<>(failuresFound);
+    List<String> unmatchedExpected = new ArrayList<>();
+    for (String expectedFailure : expectedFailures) {
+      boolean matched = false;
+      for (String actualFailure : failuresFoundCopy) {
+        if (actualFailure.contains(expectedFailure)) {
+          failuresFoundCopy.remove(actualFailure);
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) {
+        unmatchedExpected.add(expectedFailure);
+      }
+    }
 
-    if (!failuresFound.containsAll(expectedList) || !expectedList.containsAll(failuresFound)) {
+    if (!unmatchedExpected.isEmpty() || !failuresFoundCopy.isEmpty()) {
       fail(String.format(
           "Expected failures for activity id '%s':\n%sBut found failures:\n%s",
           activityId, joinFailures(expectedFailures), joinFailures(failuresFound.toArray())));

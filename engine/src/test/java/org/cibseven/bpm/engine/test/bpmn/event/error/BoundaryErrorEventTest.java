@@ -404,7 +404,7 @@ public class BoundaryErrorEventTest extends PluggableProcessEngineTest {
     assertNotNull("Didn't get a process id from runtime service", procId);
     ActivityInstance processActivityInstance = runtimeService.getActivityInstance(procId);
     ActivityInstance serviceTask = processActivityInstance.getChildActivityInstances()[0];
-    assertEquals("Expected the service task to be active after starting the process", "serviceTask", serviceTask.getActivityId());
+    assertEquals("serviceTask", serviceTask.getActivityId(), "Expected the service task to be active after starting the process");
     runtimeService.signal(serviceTask.getExecutionIds()[0]);
     assertThatErrorHasBeenCaught(procId);
   }

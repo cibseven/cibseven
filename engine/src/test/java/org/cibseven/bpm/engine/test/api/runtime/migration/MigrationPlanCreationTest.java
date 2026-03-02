@@ -38,7 +38,7 @@ import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.builder.UserTaskBuilder;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -59,9 +59,9 @@ public class MigrationPlanCreationTest {
   public static final String ESCALATION_CODE = "Escalation";
 
   @RegisterExtension
-  protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @Order(1) protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
   @RegisterExtension
-  protected MigrationTestRule testHelper = new MigrationTestRule(rule);
+  @Order(2) protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
   protected RuntimeService runtimeService;
 

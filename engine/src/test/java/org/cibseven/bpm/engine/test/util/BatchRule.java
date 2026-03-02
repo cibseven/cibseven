@@ -27,10 +27,8 @@ import org.cibseven.bpm.engine.batch.history.HistoricBatch;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class BatchRule implements AfterEachCallback {
 
@@ -38,10 +36,8 @@ public class BatchRule implements AfterEachCallback {
   public static final String MONITOR_JOB = "monitor-job";
   public static final String EXECUTION_JOBS = "execution-job";
 
-  @RegisterExtension
-  @Order(4) protected ProcessEngineRule engineRule;
-  @RegisterExtension
-  @Order(9) protected ProcessEngineTestRule engineTestRule;
+  protected ProcessEngineRule engineRule;
+  protected ProcessEngineTestRule engineTestRule;
 
   public BatchRule(ProcessEngineRule engineRule, ProcessEngineTestRule engineTestRule) {
     this.engineRule = engineRule;

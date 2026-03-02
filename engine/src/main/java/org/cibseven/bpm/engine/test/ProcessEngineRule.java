@@ -101,20 +101,6 @@ public class ProcessEngineRule implements BeforeEachCallback, AfterEachCallback,
     this.ensureCleanAfterTest = ensureCleanAfterTest;
   }
 
-/*  
--  public void starting(Description description) {
--    String methodName = description.getMethodName();
--    if (methodName != null) {
--      // cut off method variant suffix "[variant name]" for parameterized tests
--      int methodNameVariantStart = description.getMethodName().indexOf('[');
--      int methodNameEnd = methodNameVariantStart < 0 ? description.getMethodName().length() : methodNameVariantStart;
--      methodName = description.getMethodName().substring(0, methodNameEnd);
--    }
--    deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, description.getTestClass(), methodName,
--        description.getAnnotation(Deployment.class));
--  }
-
-  */
   @Override
   public void beforeEach(ExtensionContext context) throws Exception {
     if (processEngine == null) {
@@ -127,23 +113,17 @@ public class ProcessEngineRule implements BeforeEachCallback, AfterEachCallback,
     Optional<Method> method = context.getTestMethod();
     Optional<Class<?>> testClass = context.getTestClass();
 
-    RequiredHistoryLevel reqHistoryLevel = method.get().getAnnotation(RequiredHistoryLevel.class);
+    RequiredHistoryLevel reqHistoryLevel = context.getElement().map(
+        element -> element.getAnnotation(RequiredHistoryLevel.class)).orElse(null);
     boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine,
         reqHistoryLevel, testClass.get(), method.get().getName());
 
     RequiredDatabase requiredDatabase = method.get().getAnnotation(RequiredDatabase.class);
     //RequiredDatabase requiredDatabase = description.getAnnotation(RequiredDatabase.class);
     boolean runsWithRequiredDatabase = TestHelper.annotationRequiredDatabaseCheck(processEngine,
-        requiredDatabase, testClass.get(), method.get().getName());
-//    return new Statement() {
-//
-//      @Override
-//      public void evaluate() throws Throwable {
-        assumeTrue(hasRequiredHistoryLevel, "ignored because the current history level is too low");
-        assumeTrue(runsWithRequiredDatabase, "ignored because the database doesn't match the required ones");
-//        ProcessEngineRule.super.apply(base, description).evaluate();
-//      }
-//    };
+    requiredDatabase, testClass.get(), method.get().getName());
+    assumeTrue(hasRequiredHistoryLevel, "ignored because the current history level is too low");
+    assumeTrue(runsWithRequiredDatabase, "ignored because the database doesn't match the required ones");
     
     
     //from starting(Description description) method

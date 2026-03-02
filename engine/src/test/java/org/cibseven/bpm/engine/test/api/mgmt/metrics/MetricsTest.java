@@ -16,13 +16,15 @@
  */
 package org.cibseven.bpm.engine.test.api.mgmt.metrics;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.fail;
+import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Collection;
 import java.util.Date;
@@ -45,14 +47,16 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
  */
 public class MetricsTest {
 
-  protected static final ProcessEngineRule ENGINE_RULE = new ProvidedProcessEngineRule();
-  protected static final ProcessEngineTestRule TEST_RULE = new ProcessEngineTestRule(ENGINE_RULE);
+  @RegisterExtension
+  @Order(1) protected static final ProcessEngineRule ENGINE_RULE = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected static final ProcessEngineTestRule TEST_RULE = new ProcessEngineTestRule(ENGINE_RULE);
 
   protected static RuntimeService runtimeService;
   protected static ProcessEngineConfigurationImpl processEngineConfiguration;
   protected static ManagementService managementService;
 
-  protected static void clearMetrics() {
+  protected void clearMetrics() {
     Collection<Meter> meters = processEngineConfiguration.getMetricsRegistry().getDbMeters().values();
     for (Meter meter : meters) {
       meter.getAndClear();
@@ -61,8 +65,8 @@ public class MetricsTest {
     processEngineConfiguration.setDbMetricsReporterActivate(false);
   }
 
-  @BeforeAll
-  public static void initMetrics() {
+  @BeforeEach
+  public void initMetrics() {
     runtimeService = ENGINE_RULE.getRuntimeService();
     processEngineConfiguration = ENGINE_RULE.getProcessEngineConfiguration();
     managementService = ENGINE_RULE.getManagementService();
