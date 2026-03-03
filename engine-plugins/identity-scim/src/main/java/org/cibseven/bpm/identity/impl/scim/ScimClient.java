@@ -408,7 +408,7 @@ public class ScimClient {
         int expiresIn = tokenResponse.has("expires_in") ? tokenResponse.get("expires_in").asInt() : 3600;
         long expiryTime = System.currentTimeMillis() + ((expiresIn - 60) * 1000L); // Refresh 1 minute early
         if (oauth2TokenStore == null) {
-          oauth2TokenStore = new ScimOAuth2TokenStore();
+          throw new IdentityProviderException("OAuth2 token store not initialized");
         }
         oauth2TokenStore.setToken(accessToken);
         oauth2TokenStore.setExpiryTime(expiryTime);

@@ -25,23 +25,23 @@ public class ScimOAuth2TokenStore {
   private volatile String token;
   private volatile long expiryTime;
 
-  public String getToken() {
+  public synchronized String getToken() {
     return token;
   }
 
-  public void setToken(String token) {
+  public synchronized void setToken(String token) {
     this.token = token;
   }
 
-  public long getExpiryTime() {
+  public synchronized long getExpiryTime() {
     return expiryTime;
   }
 
-  public void setExpiryTime(long expiryTime) {
+  public synchronized void setExpiryTime(long expiryTime) {
     this.expiryTime = expiryTime;
   }
 
-  public boolean isTokenValid() {
+  public synchronized boolean isTokenValid() {
     return token != null && System.currentTimeMillis() < expiryTime;
   }
 }
