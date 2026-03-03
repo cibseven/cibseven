@@ -16,8 +16,7 @@
  */
 package org.cibseven.bpm.engine.spring.test.configuration;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.spring.SpringProcessEngineServicesConfiguration;
@@ -42,22 +41,22 @@ public class JavaBasedProcessEngineConfigTest extends SpringProcessEngineTestCas
   public void testDelegateExpression() {
     runtimeService.startProcessInstanceByKey("SpringProcess");
 
-    assertThat(couter.getCount(), is(1));
+    assertThat(couter.getCount()).isEqualTo(1);
   }
 
   @Deployment
   public void testExpression() {
     runtimeService.startProcessInstanceByKey("SpringProcess");
 
-    assertThat(couter.getCount(), is(1));
+    assertThat(couter.getCount()).isEqualTo(1);
   }
 
   @Deployment
   public void testDelegateExpressionWithProcessServices() {
     String processInstanceId = runtimeService.startProcessInstanceByKey("SpringProcess").getId();
 
-    assertThat(couter.getCount(), is(1));
-    assertThat((Integer) runtimeService.getVariable(processInstanceId, "count"), is(1));
+    assertThat(couter.getCount()).isEqualTo(1);
+    assertThat((Integer) runtimeService.getVariable(processInstanceId, "count")).isEqualTo(1);
   }
 
 }

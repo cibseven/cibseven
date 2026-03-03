@@ -16,12 +16,16 @@
  */
 package org.cibseven.bpm.engine.spring.test.application;
 
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.cibseven.bpm.BpmPlatform;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.spring.application.SpringProcessApplication;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -37,21 +41,21 @@ public class SpringProcessApplicationTest {
   public void testProcessApplicationDeployment() {
 
     // initially no applications are deployed:
-    Assert.assertEquals(0, BpmPlatform.getProcessApplicationService().getProcessApplicationNames().size());
+    assertEquals(0, BpmPlatform.getProcessApplicationService().getProcessApplicationNames().size());
 
     // start a spring application context
     AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext("org/cibseven/bpm/engine/spring/test/application/SpringProcessApplicationDeploymentTest-context.xml");
     applicationContext.start();
 
     // assert that there is a process application deployed with the name of the process application bean
-    Assert.assertNotNull(BpmPlatform.getProcessApplicationService()
+    assertNotNull(BpmPlatform.getProcessApplicationService()
       .getProcessApplicationInfo("myProcessApplication"));
 
     // close the spring application context
     applicationContext.close();
 
     // after closing the application context, the process application is undeployed.
-    Assert.assertNull(BpmPlatform.getProcessApplicationService()
+    assertNull(BpmPlatform.getProcessApplicationService()
       .getProcessApplicationInfo("myProcessApplication"));
 
   }
@@ -65,12 +69,12 @@ public class SpringProcessApplicationTest {
 
     // assert the process archive is deployed:
     ProcessEngine processEngine = BpmPlatform.getDefaultProcessEngine();
-    Assert.assertNotNull(processEngine.getRepositoryService().createDeploymentQuery().deploymentName("pa").singleResult());
+    assertNotNull(processEngine.getRepositoryService().createDeploymentQuery().deploymentName("pa").singleResult());
 
     applicationContext.close();
 
     // assert the process is undeployed
-    Assert.assertNull(processEngine.getRepositoryService().createDeploymentQuery().deploymentName("pa").singleResult());
+    assertNull(processEngine.getRepositoryService().createDeploymentQuery().deploymentName("pa").singleResult());
 
   }
 
@@ -92,24 +96,24 @@ public class SpringProcessApplicationTest {
     // lookup the process application spring bean:
     PostDeployRegistrationPa processApplication = applicationContext.getBean("customProcessApplicaiton", PostDeployRegistrationPa.class);
 
-    Assert.assertFalse(processApplication.isPostDeployInvoked());
+    assertFalse(processApplication.isPostDeployInvoked());
     processApplication.deploy();
-    Assert.assertTrue(processApplication.isPostDeployInvoked());
+    assertTrue(processApplication.isPostDeployInvoked());
 
     // the process application was not invoked
-    Assert.assertFalse(processApplication.isInvoked());
+    assertFalse(processApplication.isInvoked());
 
     // start process instance:
     processEngine.getRuntimeService()
       .startProcessInstanceByKey("startToEnd");
 
     // now the process application was invoked:
-    Assert.assertTrue(processApplication.isInvoked());
+    assertTrue(processApplication.isInvoked());
 
     // undeploy PA
-    Assert.assertFalse(processApplication.isPreUndeployInvoked());
+    assertFalse(processApplication.isPreUndeployInvoked());
     processApplication.undeploy();
-    Assert.assertTrue(processApplication.isPreUndeployInvoked());
+    assertTrue(processApplication.isPreUndeployInvoked());
 
     // manually undeploy the process
     processEngine.getRepositoryService()
@@ -137,8 +141,8 @@ public class SpringProcessApplicationTest {
     // lookup the process application spring bean:
     PostDeployWithNestedContext processApplication = applicationContext.getBean("customProcessApplicaiton", PostDeployWithNestedContext.class);
 
-    Assert.assertFalse(processApplication.isDeployOnChildRefresh());
-    Assert.assertTrue(processApplication.isLateEventTriggered());
+    assertFalse(processApplication.isDeployOnChildRefresh());
+    assertTrue(processApplication.isLateEventTriggered());
 
     processApplication.undeploy();
     applicationContext.close();

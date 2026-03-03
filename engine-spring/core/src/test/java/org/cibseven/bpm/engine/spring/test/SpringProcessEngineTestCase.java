@@ -20,6 +20,10 @@ import java.util.ServiceLoader;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.impl.test.AbstractProcessEngineTestCase;
+import org.cibseven.bpm.engine.impl.test.TestLogger;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
+import org.slf4j.Logger;
 import org.springframework.beans.CachedIntrospectionResults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -37,6 +41,7 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 @TestExecutionListeners(DependencyInjectionTestExecutionListener.class)
 public abstract class SpringProcessEngineTestCase extends AbstractProcessEngineTestCase implements ApplicationContextAware {
 
+  private final static Logger LOG = TestLogger.TEST_LOGGER.getLogger();
   protected TestContextManager testContextManager;
 
   @Autowired
@@ -56,14 +61,20 @@ public abstract class SpringProcessEngineTestCase extends AbstractProcessEngineT
     return serviceLoader.iterator().next();
   }
 
-  @Override
-  public void runBare() throws Throwable {
-    testContextManager.prepareTestInstance(this); // this will initialize all dependencies
+  @BeforeEach
+  public void setUpAbstractProcessEngineTestCase(TestInfo testInfo) {
     try {
-      super.runBare();
+      testContextManager.prepareTestInstance(this); // this will initialize all dependencies
+      super.setUpAbstractProcessEngineTestCase(testInfo);
+    } catch (Exception e) {
+      LOG.error("EXCEPTION: " + e, e);
     }
     finally {
-      testContextManager.afterTestClass();
+      try {
+        testContextManager.afterTestClass();
+      } catch (Exception e) {
+        LOG.error("EXCEPTION: " + e, e);
+      }
       applicationContext.close();
       applicationContext = null;
       processEngine = null;
@@ -74,6 +85,7 @@ public abstract class SpringProcessEngineTestCase extends AbstractProcessEngineT
 
   @Override
   protected void initializeProcessEngine() {
+    //TODO: remove
     ContextConfiguration contextConfiguration = getClass().getAnnotation(ContextConfiguration.class);
     processEngine = applicationContext.getBean(ProcessEngine.class);
   }

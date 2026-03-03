@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.spring.test.taskassignment;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.cibseven.bpm.engine.impl.util.CollectionUtil;
 import org.cibseven.bpm.engine.spring.test.SpringProcessEngineTestCase;
 import org.cibseven.bpm.engine.test.Deployment;

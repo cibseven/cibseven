@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.spring.test.transaction;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import javax.sql.DataSource;
 

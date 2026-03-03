@@ -17,7 +17,8 @@
 package org.cibseven.bpm.engine.spring.test.components.jobexecutor;
 
 import java.util.List;
-
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.spring.test.SpringProcessEngineTestCase;
 import org.cibseven.bpm.engine.task.Task;

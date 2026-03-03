@@ -16,16 +16,16 @@
  */
 package org.cibseven.bpm.engine.spring.test.plugin;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.cibseven.bpm.engine.spring.SpringProcessEnginePlugin;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = SpringProcessEnginePluginTest.TestConfig.class)
 public class SpringProcessEnginePluginTest {
 
@@ -42,6 +42,6 @@ public class SpringProcessEnginePluginTest {
 
   @Test
   public void verifyToString() throws Exception {
-    Assert.assertEquals(plugin.toString(), "theBeanName");
+    assertEquals(plugin.toString(), "theBeanName");
   }
 }

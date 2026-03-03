@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.spring.test.expression.callactivity;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.spring.test.SpringProcessEngineTestCase;
 import org.cibseven.bpm.engine.task.Task;
