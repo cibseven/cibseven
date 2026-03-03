@@ -27,6 +27,8 @@ import org.cibseven.bpm.engine.impl.interceptor.SessionFactory;
 public class ScimIdentityProviderFactory implements SessionFactory {
 
   protected ScimConfiguration scimConfiguration;
+  protected ScimResponseCache responseCache;
+  protected ScimOAuth2TokenStore oauth2TokenStore;
 
   @Override
   public Class<?> getSessionType() {
@@ -40,9 +42,9 @@ public class ScimIdentityProviderFactory implements SessionFactory {
   @Override
   public Session openSession() {
     if (scimConfiguration != null && scimConfiguration.getAllowModifications()) {
-      return new ScimIdentityProviderWritable(scimConfiguration);
+      return new ScimIdentityProviderWritable(scimConfiguration, getResponseCache(), getOAuth2TokenStore());
     } else {
-      return new ScimIdentityProviderReadOnly(scimConfiguration);
+      return new ScimIdentityProviderReadOnly(scimConfiguration, getResponseCache(), getOAuth2TokenStore());
     }
   }
 
@@ -52,5 +54,27 @@ public class ScimIdentityProviderFactory implements SessionFactory {
 
   public void setScimConfiguration(ScimConfiguration scimConfiguration) {
     this.scimConfiguration = scimConfiguration;
+  }
+
+  protected ScimResponseCache getResponseCache() {
+    if (scimConfiguration != null && scimConfiguration.isCacheEnabled()) {
+      if (responseCache == null) {
+        responseCache = new ScimResponseCache(
+            scimConfiguration.getMaxCacheSize(),
+            scimConfiguration.getCacheExpirationTimeoutMin());
+      }
+      return responseCache;
+    }
+    return null;
+  }
+
+  protected ScimOAuth2TokenStore getOAuth2TokenStore() {
+    if (scimConfiguration != null && "oauth2".equalsIgnoreCase(scimConfiguration.getAuthenticationType())) {
+      if (oauth2TokenStore == null) {
+        oauth2TokenStore = new ScimOAuth2TokenStore();
+      }
+      return oauth2TokenStore;
+    }
+    return null;
   }
 }

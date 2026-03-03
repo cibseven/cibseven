@@ -132,4 +132,25 @@ public class ScimConfigurationTest {
 
     assertThat(config.isAcceptUntrustedCertificates()).isTrue();
   }
+
+  @Test
+  public void testDefaultCacheConfiguration() {
+    ScimConfiguration config = new ScimConfiguration();
+
+    assertThat(config.isCacheEnabled()).isFalse();
+    assertThat(config.getMaxCacheSize()).isEqualTo(100);
+    assertThat(config.getCacheExpirationTimeoutMin()).isEqualTo(5);
+  }
+
+  @Test
+  public void testSetCacheConfiguration() {
+    ScimConfiguration config = new ScimConfiguration();
+    config.setCacheEnabled(true);
+    config.setMaxCacheSize(200);
+    config.setCacheExpirationTimeoutMin(10);
+
+    assertThat(config.isCacheEnabled()).isTrue();
+    assertThat(config.getMaxCacheSize()).isEqualTo(200);
+    assertThat(config.getCacheExpirationTimeoutMin()).isEqualTo(10);
+  }
 }
