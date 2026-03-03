@@ -138,7 +138,7 @@ public class ScimConfigurationTest {
     ScimConfiguration config = new ScimConfiguration();
 
     assertThat(config.isCacheEnabled()).isFalse();
-    assertThat(config.getMaxCacheSize()).isEqualTo(100);
+    assertThat(config.getMaxCacheSize()).isEqualTo(250);
     assertThat(config.getCacheExpirationTimeoutMin()).isEqualTo(5);
   }
 

@@ -74,24 +74,6 @@ public class ScimResponseCacheTest {
   }
 
   @Test
-  public void testInvalidateByEndpoint() throws Exception {
-    ScimResponseCache cache = new ScimResponseCache(10, 5);
-
-    cache.put("http://example.com/Users?filter=test", mapper.readTree("{\"id\":\"1\"}"));
-    cache.put("http://example.com/Users/abc123", mapper.readTree("{\"id\":\"2\"}"));
-    cache.put("http://example.com/Groups?filter=test", mapper.readTree("{\"id\":\"3\"}"));
-
-    assertThat(cache.size()).isEqualTo(3);
-
-    // Invalidate only user entries
-    cache.invalidate("/Users");
-    assertThat(cache.size()).isEqualTo(1);
-    assertThat(cache.get("http://example.com/Users?filter=test")).isNull();
-    assertThat(cache.get("http://example.com/Users/abc123")).isNull();
-    assertThat(cache.get("http://example.com/Groups?filter=test")).isNotNull();
-  }
-
-  @Test
   public void testInvalidateAll() throws Exception {
     ScimResponseCache cache = new ScimResponseCache(10, 5);
 

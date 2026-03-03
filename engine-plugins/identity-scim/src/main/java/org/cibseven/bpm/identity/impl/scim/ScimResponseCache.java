@@ -77,13 +77,6 @@ public class ScimResponseCache {
   }
 
   /**
-   * Invalidate all cache entries whose key contains the given endpoint path.
-   */
-  public void invalidate(String endpointPath) {
-    cache.keySet().removeIf(key -> key.contains(endpointPath));
-  }
-
-  /**
    * Invalidate all cache entries.
    */
   public void invalidateAll() {

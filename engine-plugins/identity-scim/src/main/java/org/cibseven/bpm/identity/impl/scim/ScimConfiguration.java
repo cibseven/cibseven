@@ -87,7 +87,7 @@ public class ScimConfiguration {
   
   // Cache settings
   protected boolean cacheEnabled = false;
-  protected int maxCacheSize = 100;
+  protected int maxCacheSize = 250;
   protected long cacheExpirationTimeoutMin = 5;
 
   // Getters and Setters

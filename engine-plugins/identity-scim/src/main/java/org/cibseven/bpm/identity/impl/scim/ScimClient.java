@@ -258,35 +258,28 @@ public class ScimClient {
   
   protected JsonNode executePost(String url, JsonNode postBody) {
     JsonNode result = executeHttpRequest(HttpMethod.POST, url, postBody, false);
-    invalidateCacheForUrl(url);
+    if (responseCache != null) {
+      responseCache.invalidateAll();
+    }
     return result;
   }
   
   protected JsonNode executeDel(String url) {
     JsonNode result = executeHttpRequest(HttpMethod.DEL, url, null, false);
-    invalidateCacheForUrl(url);
+    if (responseCache != null) {
+      responseCache.invalidateAll();
+    }
     return result;
   }
   
   protected JsonNode executePatch(String url, JsonNode patchBody) {
     JsonNode result = executeHttpRequest(HttpMethod.PATCH, url, patchBody, false);
-    invalidateCacheForUrl(url);
+    if (responseCache != null) {
+      responseCache.invalidateAll();
+    }
     return result;
   }
-
-  protected void invalidateCacheForUrl(String url) {
-    if (responseCache != null) {
-      String usersEndpoint = configuration.getUsersEndpoint();
-      String groupsEndpoint = configuration.getGroupsEndpoint();
-      if (url.contains(usersEndpoint)) {
-        responseCache.invalidate(usersEndpoint);
-      }
-      if (url.contains(groupsEndpoint)) {
-        responseCache.invalidate(groupsEndpoint);
-      }
-    }
-  }
-  
+ 
   @SuppressWarnings("deprecation")
   protected JsonNode executeHttpRequest(HttpMethod method, String url, JsonNode body, boolean isRetry) {
     HttpUriRequestBase request = 
@@ -378,6 +371,9 @@ public class ScimClient {
 
   @SuppressWarnings("deprecation")
   protected void refreshOAuth2Token() {
+    if (oauth2TokenStore == null) {
+      throw new IdentityProviderException("OAuth2 token store not initialized");
+    }
     if (configuration.getOauth2TokenUrl() == null) {
       throw new IdentityProviderException("OAuth2 token URL not configured");
     }
@@ -385,6 +381,7 @@ public class ScimClient {
     boolean verbose = configuration.isVerbose();
     ScimPluginLogger.INSTANCE.oauth2TokenRefresh(verbose);
 
+    // Actually not a refresh process, but a request for a new access token (server-to-server auth)
     HttpPost request = new HttpPost(configuration.getOauth2TokenUrl());
     request.setHeader("Content-Type", "application/x-www-form-urlencoded");
 
@@ -406,10 +403,8 @@ public class ScimClient {
         JsonNode tokenResponse = objectMapper.readTree(responseBody);
         String accessToken = tokenResponse.get("access_token").asText();
         int expiresIn = tokenResponse.has("expires_in") ? tokenResponse.get("expires_in").asInt() : 3600;
-        long expiryTime = System.currentTimeMillis() + ((expiresIn - 60) * 1000L); // Refresh 1 minute early
-        if (oauth2TokenStore == null) {
-          throw new IdentityProviderException("OAuth2 token store not initialized");
-        }
+        expiresIn = expiresIn > 120 ? expiresIn - 60 : expiresIn;  // Refresh 1 minute early if there is enough time
+        long expiryTime = System.currentTimeMillis() + expiresIn * 1000L; 
         oauth2TokenStore.setToken(accessToken);
         oauth2TokenStore.setExpiryTime(expiryTime);
       } else {
