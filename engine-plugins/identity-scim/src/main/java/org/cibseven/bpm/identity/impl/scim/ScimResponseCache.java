@@ -18,7 +18,6 @@ package org.cibseven.bpm.identity.impl.scim;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -103,16 +102,8 @@ public class ScimResponseCache {
   }
 
   protected void evictOldest() {
-    String oldestKey = null;
-    long oldestTime = Long.MAX_VALUE;
-    for (Map.Entry<String, CacheEntry> entry : cache.entrySet()) {
-      if (entry.getValue().createdAt < oldestTime) {
-        oldestTime = entry.getValue().createdAt;
-        oldestKey = entry.getKey();
-      }
-    }
-    if (oldestKey != null) {
-      cache.remove(oldestKey);
-    }
+    cache.entrySet().stream()
+        .min((a, b) -> Long.compare(a.getValue().createdAt, b.getValue().createdAt))
+        .ifPresent(oldest -> cache.remove(oldest.getKey(), oldest.getValue()));
   }
 }
