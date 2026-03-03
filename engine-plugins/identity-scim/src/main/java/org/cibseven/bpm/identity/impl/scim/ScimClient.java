@@ -61,19 +61,23 @@ public class ScimClient {
   protected final ScimConfiguration configuration;
   protected final ObjectMapper objectMapper;
   protected CloseableHttpClient httpClient;
-  protected String cachedOAuth2Token;
-  protected long tokenExpiryTime;  
+  protected ScimOAuth2TokenStore oauth2TokenStore;
   protected enum HttpMethod {GET, POST, PUT, PATCH, DEL};
   protected ScimResponseCache responseCache;
 
   public ScimClient(ScimConfiguration configuration) {
-    this(configuration, null);
+    this(configuration, null, null);
   }
 
   public ScimClient(ScimConfiguration configuration, ScimResponseCache responseCache) {
+    this(configuration, responseCache, null);
+  }
+
+  public ScimClient(ScimConfiguration configuration, ScimResponseCache responseCache, ScimOAuth2TokenStore oauth2TokenStore) {
     this.configuration = configuration;
     this.objectMapper = new ObjectMapper();
     this.responseCache = responseCache;
+    this.oauth2TokenStore = oauth2TokenStore;
     checkConfiguration();
     initializeHttpClient();
   }
@@ -346,8 +350,8 @@ public class ScimClient {
         break;
       case "oauth2":
         ensureOAuth2Token();
-        if (cachedOAuth2Token != null) {
-          request.setHeader("Authorization", "Bearer " + cachedOAuth2Token);
+        if (oauth2TokenStore != null && oauth2TokenStore.getToken() != null) {
+          request.setHeader("Authorization", "Bearer " + oauth2TokenStore.getToken());
         }
         break;
     }
@@ -367,7 +371,7 @@ public class ScimClient {
   }
 
   protected void ensureOAuth2Token() {
-    if (cachedOAuth2Token == null || System.currentTimeMillis() >= tokenExpiryTime) {
+    if (oauth2TokenStore == null || !oauth2TokenStore.isTokenValid()) {
       refreshOAuth2Token();
     }
   }
@@ -400,9 +404,14 @@ public class ScimClient {
 
       if (statusCode == 200) {
         JsonNode tokenResponse = objectMapper.readTree(responseBody);
-        cachedOAuth2Token = tokenResponse.get("access_token").asText();
+        String accessToken = tokenResponse.get("access_token").asText();
         int expiresIn = tokenResponse.has("expires_in") ? tokenResponse.get("expires_in").asInt() : 3600;
-        tokenExpiryTime = System.currentTimeMillis() + ((expiresIn - 60) * 1000L); // Refresh 1 minute early
+        long expiryTime = System.currentTimeMillis() + ((expiresIn - 60) * 1000L); // Refresh 1 minute early
+        if (oauth2TokenStore == null) {
+          oauth2TokenStore = new ScimOAuth2TokenStore();
+        }
+        oauth2TokenStore.setToken(accessToken);
+        oauth2TokenStore.setExpiryTime(expiryTime);
       } else {
         ScimPluginLogger.INSTANCE.authenticationFailure("OAuth2 token request failed with status: " + statusCode);
         throw new IdentityProviderException("OAuth2 token request failed");
