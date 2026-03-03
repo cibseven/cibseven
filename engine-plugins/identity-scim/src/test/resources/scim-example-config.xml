@@ -78,3 +78,19 @@
   </properties>
 </plugin>
 -->
+
+<!-- Example 5: Configuration with response caching -->
+<!--
+<plugin>
+  <class>org.cibseven.bpm.identity.impl.scim.plugin.ScimIdentityProviderPlugin</class>
+  <properties>
+    <property name="serverUrl">https://scim.example.com</property>
+    <property name="authenticationType">bearer</property>
+    <property name="bearerToken">${SCIM_BEARER_TOKEN}</property>
+    
+    <property name="cacheEnabled">true</property>
+    <property name="maxCacheSize">200</property>
+    <property name="cacheExpirationTimeoutMin">10</property>
+  </properties>
+</plugin>
+-->

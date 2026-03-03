@@ -84,6 +84,11 @@ public class ScimConfiguration {
   
   // Output scim requests
   protected boolean verbose = false;
+  
+  // Cache settings
+  protected boolean cacheEnabled = false;
+  protected int maxCacheSize = 100;
+  protected long cacheExpirationTimeoutMin = 5;
 
   // Getters and Setters
 
@@ -341,5 +346,29 @@ public class ScimConfiguration {
 
   public void setUserBaseFilter(String userBaseFilter) {
     this.userBaseFilter = userBaseFilter;
+  }
+
+  public boolean isCacheEnabled() {
+    return cacheEnabled;
+  }
+
+  public void setCacheEnabled(boolean cacheEnabled) {
+    this.cacheEnabled = cacheEnabled;
+  }
+
+  public int getMaxCacheSize() {
+    return maxCacheSize;
+  }
+
+  public void setMaxCacheSize(int maxCacheSize) {
+    this.maxCacheSize = maxCacheSize;
+  }
+
+  public long getCacheExpirationTimeoutMin() {
+    return cacheExpirationTimeoutMin;
+  }
+
+  public void setCacheExpirationTimeoutMin(long cacheExpirationTimeoutMin) {
+    this.cacheExpirationTimeoutMin = cacheExpirationTimeoutMin;
   }
 }

@@ -56,8 +56,12 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
   protected ScimClient scimClient;
 
   public ScimIdentityProviderReadOnly(ScimConfiguration scimConfiguration) {
+    this(scimConfiguration, null);
+  }
+
+  public ScimIdentityProviderReadOnly(ScimConfiguration scimConfiguration, ScimResponseCache responseCache) {
     this.scimConfiguration = scimConfiguration;
-    this.scimClient = new ScimClient(scimConfiguration);
+    this.scimClient = new ScimClient(scimConfiguration, responseCache);
   }
 
   // Session Lifecycle

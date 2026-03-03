@@ -48,6 +48,10 @@ public class ScimIdentityProviderWritable extends ScimIdentityProviderReadOnly i
     super(scimConfiguration);
   }
 
+  public ScimIdentityProviderWritable(ScimConfiguration scimConfiguration, ScimResponseCache responseCache) {
+    super(scimConfiguration, responseCache);
+  }
+
   // Session Lifecycle
 
   @Override

@@ -64,10 +64,16 @@ public class ScimClient {
   protected String cachedOAuth2Token;
   protected long tokenExpiryTime;  
   protected enum HttpMethod {GET, POST, PUT, PATCH, DEL};
+  protected ScimResponseCache responseCache;
 
   public ScimClient(ScimConfiguration configuration) {
+    this(configuration, null);
+  }
+
+  public ScimClient(ScimConfiguration configuration, ScimResponseCache responseCache) {
     this.configuration = configuration;
     this.objectMapper = new ObjectMapper();
+    this.responseCache = responseCache;
     checkConfiguration();
     initializeHttpClient();
   }
@@ -233,19 +239,48 @@ public class ScimClient {
   }
 
   protected JsonNode executeGet(String url) {
-    return executeHttpRequest(HttpMethod.GET, url, null, false);
+    if (responseCache != null) {
+      JsonNode cached = responseCache.get(url);
+      if (cached != null) {
+        return cached;
+      }
+    }
+    JsonNode result = executeHttpRequest(HttpMethod.GET, url, null, false);
+    if (responseCache != null && result != null) {
+      responseCache.put(url, result);
+    }
+    return result;
   }
   
   protected JsonNode executePost(String url, JsonNode postBody) {
-    return executeHttpRequest(HttpMethod.POST, url, postBody, false);
+    JsonNode result = executeHttpRequest(HttpMethod.POST, url, postBody, false);
+    invalidateCacheForUrl(url);
+    return result;
   }
   
   protected JsonNode executeDel(String url) {
-    return executeHttpRequest(HttpMethod.DEL, url, null, false);
+    JsonNode result = executeHttpRequest(HttpMethod.DEL, url, null, false);
+    invalidateCacheForUrl(url);
+    return result;
   }
   
   protected JsonNode executePatch(String url, JsonNode patchBody) {
-    return executeHttpRequest(HttpMethod.PATCH, url, patchBody, false);
+    JsonNode result = executeHttpRequest(HttpMethod.PATCH, url, patchBody, false);
+    invalidateCacheForUrl(url);
+    return result;
+  }
+
+  protected void invalidateCacheForUrl(String url) {
+    if (responseCache != null) {
+      String usersEndpoint = configuration.getUsersEndpoint();
+      String groupsEndpoint = configuration.getGroupsEndpoint();
+      if (url.contains(usersEndpoint)) {
+        responseCache.invalidate(usersEndpoint);
+      }
+      if (url.contains(groupsEndpoint)) {
+        responseCache.invalidate(groupsEndpoint);
+      }
+    }
   }
   
   @SuppressWarnings("deprecation")
