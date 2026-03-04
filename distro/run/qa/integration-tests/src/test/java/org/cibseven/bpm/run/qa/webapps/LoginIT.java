@@ -17,10 +17,10 @@
 package org.cibseven.bpm.run.qa.webapps;
 
 import org.cibseven.bpm.run.qa.util.SpringBootManagedContainer;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TestName;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.AfterParam;
 import org.junit.runners.Parameterized.BeforeParam;
@@ -62,7 +62,7 @@ public class LoginIT extends AbstractWebappUiIT {
     });
   }
 
-  @Rule
+  @RegisterExtension
   public TestName name = new TestName();
 
   protected static SpringBootManagedContainer container;

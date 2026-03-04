@@ -20,17 +20,17 @@ import java.util.Collections;
 
 import org.cibseven.bpm.run.CamundaBpmRun;
 import org.cibseven.bpm.run.test.util.LoggingInterceptor;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = { CamundaBpmRun.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(profiles = { "test-auth-disabled" })
 public abstract class AbstractRestTest {
@@ -43,7 +43,7 @@ public abstract class AbstractRestTest {
   @LocalServerPort
   protected int localPort;
 
-  @Before
+  @BeforeEach
   public void enableRequestResponseLogging() {
     testRestTemplate.getRestTemplate().setInterceptors(Collections.singletonList(new LoggingInterceptor()));
   }

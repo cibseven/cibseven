@@ -22,7 +22,7 @@ import java.io.IOException;
 
 import org.cibseven.bpm.run.qa.util.SpringBootManagedContainer;
 import org.junit.AfterClass;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.BeforeClass;
 
 import io.restassured.response.Response;
@@ -44,7 +44,7 @@ public class ProductionConfigurationIT {
     }
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void runStartScript() throws IOException {
     container = new SpringBootManagedContainer("--production");
 

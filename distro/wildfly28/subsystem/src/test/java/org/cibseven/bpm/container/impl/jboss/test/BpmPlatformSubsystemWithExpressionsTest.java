@@ -47,7 +47,7 @@ public class BpmPlatformSubsystemWithExpressionsTest extends AbstractSubsystemBa
     super(ModelConstants.SUBSYSTEM_NAME, new BpmPlatformExtension());
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void setUp() {
     System.getProperties().putAll(PROPERTIES);
   }

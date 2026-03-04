@@ -19,9 +19,9 @@ package org.cibseven.bpm.run.qa.webapps;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import org.cibseven.bpm.run.qa.util.SpringBootManagedContainer;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.AfterParam;
 import org.junit.runners.Parameterized.BeforeParam;
@@ -31,8 +31,8 @@ import org.junit.runners.Parameterized.Parameters;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * NOTE:
@@ -50,7 +50,7 @@ public class PluginsRootResourceIT extends AbstractWebIT {
   @Parameter(1)
   public boolean assetAllowed;
 
-  @Before
+  @BeforeEach
   public void createClient() throws Exception {
     createClient(getWebappCtxPath());
   }

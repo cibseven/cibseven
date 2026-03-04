@@ -17,16 +17,15 @@
 package org.cibseven.bpm.run.test.config.https;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
 
 import org.cibseven.bpm.run.CamundaBpmRun;
 import org.cibseven.bpm.run.test.AbstractRestTest;
 import org.cibseven.bpm.run.test.util.TestUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpEntity;
@@ -40,10 +39,7 @@ import org.springframework.web.client.ResourceAccessException;
 @ActiveProfiles(profiles = { "test-https-enabled" }, inheritProfiles = true)
 public class HttpsConfigurationEnabledTest extends AbstractRestTest {
   
-  @Rule
-  public ExpectedException exceptionRule = ExpectedException.none();
-
-  @Before
+  @BeforeEach
   public void init() throws Exception {
     TestUtils.trustSelfSignedSSL();
   }
@@ -65,11 +61,11 @@ public class HttpsConfigurationEnabledTest extends AbstractRestTest {
     // given
     String url = "http://localhost:" + 8080 + CONTEXT_PATH + "/task";
 
-    // then
-    exceptionRule.expect(ResourceAccessException.class);
-    exceptionRule.expectMessage("I/O error on GET request for \"http://localhost:8080/engine-rest/task\":");
 
-    // then
-    ResponseEntity<String> response = testRestTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(null), String.class);
+    assertThatThrownBy(() -> {
+      // then
+      ResponseEntity<String> response = testRestTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(null), String.class);
+    }).isInstanceOf(ResourceAccessException.class)
+    .hasMessageContaining("I/O error on GET request for \"http://localhost:8080/engine-rest/task\":");
   }
 }
