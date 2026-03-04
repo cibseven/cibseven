@@ -17,16 +17,12 @@
 package org.cibseven.bpm.spring.boot.starter.configuration.id;
 
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class PrefixedUuidGeneratorTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void prefixed_uuid() throws Exception {
@@ -38,9 +34,10 @@ public class PrefixedUuidGeneratorTest {
 
   @Test
   public void fails_on_null() throws Exception {
-    thrown.expect(NullPointerException.class);
-    thrown.expectMessage("spring.application.name");
 
-    new PrefixedUuidGenerator(null);
+    assertThatThrownBy(() -> {
+      new PrefixedUuidGenerator(null);
+    }).isInstanceOf(NullPointerException.class)
+    .hasMessageContaining("spring.application.name");
   }
 }

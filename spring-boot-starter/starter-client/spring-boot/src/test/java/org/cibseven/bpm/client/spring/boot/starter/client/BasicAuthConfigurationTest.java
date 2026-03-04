@@ -24,15 +24,13 @@ import org.cibseven.bpm.client.spring.boot.starter.client.configuration.SimpleSu
 import org.cibseven.bpm.client.spring.boot.starter.impl.ClientAutoConfiguration;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -46,15 +44,13 @@ import static org.mockito.Mockito.verify;
     ClientAutoConfiguration.class,
     SimpleSubscriptionConfiguration.class
 })
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
+@ExtendWith(MockitoExtension.class)
 public class BasicAuthConfigurationTest extends ParsePropertiesHelper {
 
-  @Rule
-  public MockitoRule mockitoRule = MockitoJUnit.rule();
-  
   protected static ExternalTaskClientBuilder clientBuilder;
 
-  @BeforeClass
+  @BeforeAll
   public static void initMocks() {
     MockHelper.initMocks();
     clientBuilder = MockHelper.getClientBuilder();

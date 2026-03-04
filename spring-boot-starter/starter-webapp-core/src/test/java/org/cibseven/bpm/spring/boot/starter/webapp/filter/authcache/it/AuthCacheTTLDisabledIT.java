@@ -21,15 +21,16 @@ import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.util.HttpClientRule;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.util.FilterTestApp;
 import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -37,7 +38,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = { FilterTestApp.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
   "camunda.bpm.admin-user.id=demo",
@@ -47,7 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext
 public class AuthCacheTTLDisabledIT {
 
-  @Rule
+  @RegisterExtension
   public HttpClientRule httpClientRule = new HttpClientRule();
 
   @LocalServerPort
@@ -56,7 +57,7 @@ public class AuthCacheTTLDisabledIT {
   @Autowired
   protected IdentityService identityService;
 
-  @After
+  @AfterEach
   public void reset() {
     ClockUtil.reset();
   }

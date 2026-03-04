@@ -18,40 +18,38 @@ package org.cibseven.bpm.spring.boot.starter.test.helper;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.rules.TestRule;
-import org.junit.runner.notification.RunNotifier;
-import org.junit.runners.BlockJUnit4ClassRunner;
-import org.junit.runners.model.InitializationError;
+import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.Extension;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
- * Runner that ensures closing process engines after test run.
+ * JUnit 5 extension that ensures closing process engines after test run.
  */
-public class ProcessEngineRuleRunner extends BlockJUnit4ClassRunner {
+public class ProcessEngineRuleExtension implements AfterEachCallback, AfterAllCallback, Extension {
 
   private final Collection<ProcessEngineRule> processEngineRules = new ArrayList<>();
 
-  public ProcessEngineRuleRunner(Class<?> klass) throws InitializationError {
-    super(klass);
+  /**
+   * Register a ProcessEngineRule to be closed after test execution.
+   */
+  public void register(ProcessEngineRule rule) {
+    processEngineRules.add(rule);
   }
 
   @Override
-  protected List<TestRule> getTestRules(Object target) {
-    List<TestRule> testRules = super.getTestRules(target);
-
-    testRules.stream()
-      .filter(t -> t instanceof ProcessEngineRule)
-      .map(t -> (ProcessEngineRule)t)
-      .forEach(processEngineRules::add);
-
-    return testRules;
+  public void afterEach(ExtensionContext context) {
+    closeProcessEngines();
   }
 
   @Override
-  public void run(RunNotifier notifier) {
-    super.run(notifier);
+  public void afterAll(ExtensionContext context) {
+    closeProcessEngines();
+  }
+
+  private void closeProcessEngines() {
     for (ProcessEngineRule processEngineRule : processEngineRules) {
       try {
         processEngineRule.getProcessEngine().close();
@@ -59,6 +57,6 @@ public class ProcessEngineRuleRunner extends BlockJUnit4ClassRunner {
         // close quietly
       }
     }
+    processEngineRules.clear();
   }
-
 }

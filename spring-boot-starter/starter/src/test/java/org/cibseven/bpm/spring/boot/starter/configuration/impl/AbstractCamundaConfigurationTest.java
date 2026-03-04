@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.spring.boot.starter.configuration.impl;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 

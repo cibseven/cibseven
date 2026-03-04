@@ -17,13 +17,13 @@
 package org.cibseven.bpm.spring.boot.starter.test.helper;
 
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.Rule;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
-@RunWith(ProcessEngineRuleRunner.class)
+@ExtendWith(ProcessEngineRuleExtension.class)
 public abstract class AbstractProcessEngineRuleTest {
 
-  @Rule
+  @RegisterExtension
   public final ProcessEngineRule processEngine = new StandaloneInMemoryTestConfiguration().rule();
 
 }

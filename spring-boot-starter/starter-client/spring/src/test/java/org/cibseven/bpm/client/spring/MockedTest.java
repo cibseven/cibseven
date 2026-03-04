@@ -29,14 +29,14 @@ import org.cibseven.bpm.client.topic.TopicSubscription;
 import org.cibseven.bpm.client.topic.TopicSubscriptionBuilder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 public abstract class MockedTest {
 
   protected static ExternalTaskClient client;
@@ -45,10 +45,10 @@ public abstract class MockedTest {
 
   protected static MockedStatic<ExternalTaskClient> mockedStatic;
   
-  @Rule
+  @RegisterExtension
   public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-  @BeforeClass
+  @BeforeAll
   public static void mockClient() {
     assumeTrue(jdkSupportsMockito());
 

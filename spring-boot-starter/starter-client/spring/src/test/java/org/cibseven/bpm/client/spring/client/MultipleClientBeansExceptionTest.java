@@ -18,7 +18,7 @@ package org.cibseven.bpm.client.spring.client;
 
 import org.cibseven.bpm.client.spring.client.configuration.MultipleClientBeansConfiguration;
 import org.cibseven.bpm.client.spring.exception.SpringExternalTaskClientException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
