@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.webapp.impl.security.auth;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.anyString;
@@ -31,9 +32,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import javax.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.AuthorizationService;
@@ -54,13 +55,9 @@ import org.cibseven.bpm.engine.rest.spi.ProcessEngineProvider;
 import org.cibseven.bpm.engine.rest.spi.impl.MockedProcessEngineProvider;
 import org.cibseven.bpm.webapp.impl.util.ProcessEngineUtil;
 import org.cibseven.bpm.webapp.impl.util.ServletContextUtil;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockFilterConfig;
@@ -68,7 +65,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockServletContext;
 
-@RunWith(Parameterized.class)
 public class ContainerAuthenticationFilterTest {
 
   protected static final String SERVICE_PATH = "/camunda";
@@ -80,27 +76,11 @@ public class ContainerAuthenticationFilterTest {
 
   protected Filter authenticationFilter;
 
-  protected String requestUrl;
-  protected String engineName;
-  protected boolean alreadyAuthenticated;
-  protected boolean authenticationExpected;
-
   protected ProcessEngine currentEngine;
 
   private MockedStatic<AuthenticationUtil> authenticationUtilMockedStatic;
   private MockedStatic<ProcessEngineUtil> processEngineUtilMockedStatic;
 
-  public ContainerAuthenticationFilterTest(String requestUrl, String engineName, boolean alreadyAuthenticated, boolean authenticationExpected) {
-    this.requestUrl = requestUrl;
-    this.engineName = engineName;
-    if (engineName == null) {
-      this.engineName = "default";
-    }
-    this.alreadyAuthenticated = alreadyAuthenticated;
-    this.authenticationExpected = authenticationExpected;
-  }
-
-  @Parameters
   public static Collection<Object[]> getRequestUrls() {
     return Arrays.asList(new Object[][]{
         {"/app/cockpit/default/", "default", false, true},
@@ -154,14 +134,18 @@ public class ContainerAuthenticationFilterTest {
     });
   }
 
-  @Before
-  public void setup() throws ServletException {
-    setupProcessEngine();
+  public void setup(String requestUrl, String engineName,
+      boolean alreadyAuthenticated, boolean authenticationExpected) throws ServletException {
+    setupProcessEngine(requestUrl, engineName, alreadyAuthenticated, authenticationExpected);
     setupAuthentications();
     setupFilter();
   }
 
-  protected void setupProcessEngine() {
+  protected void setupProcessEngine(String requestUrl, String engineName,
+      boolean alreadyAuthenticated, boolean authenticationExpected) {
+    if (engineName == null) {
+      engineName = "default";
+    }
     final ProcessEngineProvider provider = new MockedProcessEngineProvider();
     currentEngine = provider.getProcessEngine(engineName);
 
@@ -220,23 +204,30 @@ public class ContainerAuthenticationFilterTest {
     authenticationFilter.doFilter(request, response, filterChain);
   }
 
-  @After
+  @AfterEach
   public void teardown() {
     authenticationUtilMockedStatic.close();
     processEngineUtilMockedStatic.close();
   }
 
-  @Test
-  public void shouldCheckCustomApplicationPath() throws IOException, ServletException {
-    testContainerAuthenticationCheck("/my-custom/application/path");
+  @ParameterizedTest
+  @MethodSource("getRequestUrls")
+  public void shouldCheckCustomApplicationPath(String requestUrl, String engineName,
+      boolean alreadyAuthenticated, boolean authenticationExpected) throws IOException, ServletException {
+      setup(requestUrl, engineName, alreadyAuthenticated, authenticationExpected);
+    testContainerAuthenticationCheck("/my-custom/application/path", requestUrl, engineName, alreadyAuthenticated, authenticationExpected);
   }
 
-  @Test
-  public void shouldCheckEmptyApplicationPath() throws IOException, ServletException {
-    testContainerAuthenticationCheck("");
+  @ParameterizedTest
+  @MethodSource("getRequestUrls")
+  public void shouldCheckEmptyApplicationPath(String requestUrl, String engineName,
+      boolean alreadyAuthenticated, boolean authenticationExpected) throws IOException, ServletException {
+    setup(requestUrl, engineName, alreadyAuthenticated, authenticationExpected);
+    testContainerAuthenticationCheck("", requestUrl, engineName, alreadyAuthenticated, authenticationExpected);
   }
 
-  public void testContainerAuthenticationCheck(String applicationPath) throws IOException, ServletException {
+  public void testContainerAuthenticationCheck(String applicationPath, String requestUrl, String engineName,
+      boolean alreadyAuthenticated, boolean authenticationExpected) throws IOException, ServletException {
     if (alreadyAuthenticated) {
       Authentication authentication = mock(Authentication.class);
       when(authentication.getProcessEngineName()).thenReturn(engineName);
@@ -266,7 +257,7 @@ public class ContainerAuthenticationFilterTest {
     request.setContextPath(SERVICE_PATH);
     applyFilter(request, response, MockProvider.EXAMPLE_USER_ID);
 
-    Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    assertEquals(Status.OK.getStatusCode(), response.getStatus());
 
     if (authenticationExpected) {
       verify(authentications).addOrReplace(any(UserAuthentication.class));

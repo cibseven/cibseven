@@ -19,9 +19,9 @@ package org.cibseven.bpm.cockpit.plugin.base.authorization;
 import org.cibseven.bpm.cockpit.impl.plugin.base.dto.ProcessDefinitionStatisticsDto;
 import org.cibseven.bpm.cockpit.impl.plugin.resources.ProcessDefinitionRestService;
 import org.cibseven.bpm.engine.rest.dto.CountResultDto;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -35,7 +35,7 @@ import static org.cibseven.bpm.engine.authorization.Authorization.ANY;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION;
 
-public class ProcessDefinitionRestServiceAuthorizationTest  extends AuthorizationTest {
+public class ProcessDefinitionRestServiceAuthorizationTest extends AuthorizationTest {
 
   private static final String USER_TASK_PROCESS_KEY = "userTaskProcess";
   private static final String CALLING_USER_TASK_PROCESS_KEY = "CallingUserTaskProcess";
@@ -45,7 +45,7 @@ public class ProcessDefinitionRestServiceAuthorizationTest  extends Authorizatio
   private final MultivaluedMap<String, String> queryParameters = new MultivaluedHashMap<>();
 
   @Override
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     super.setUp();
 
@@ -63,7 +63,7 @@ public class ProcessDefinitionRestServiceAuthorizationTest  extends Authorizatio
   }
 
   @Override
-  @After
+  @AfterEach
   public void tearDown() {
     queryParameters.clear();
     deleteDeployment(deploymentId);

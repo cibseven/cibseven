@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.webapp.plugin.resource;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 

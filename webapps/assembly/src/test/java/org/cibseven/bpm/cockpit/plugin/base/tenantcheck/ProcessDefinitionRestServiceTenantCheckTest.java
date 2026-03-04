@@ -24,9 +24,9 @@ import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.authorization.Groups;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.rest.dto.CountResultDto;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -51,7 +51,7 @@ public class ProcessDefinitionRestServiceTenantCheckTest extends AbstractCockpit
   private UriInfo uriInfo;
   private final MultivaluedMap<String, String> queryParameters = new MultivaluedHashMap<>();
 
-  @Before
+  @BeforeEach
   public void init() throws Exception {
 
     ProcessEngine processEngine = getProcessEngine();
@@ -74,7 +74,7 @@ public class ProcessDefinitionRestServiceTenantCheckTest extends AbstractCockpit
     queryParameters.add("sortOrder", "asc");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processEngineConfiguration.getAdminGroups().remove(ADMIN_GROUP);
     processEngineConfiguration.getAdminUsers().remove(ADMIN_USER);

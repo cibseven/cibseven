@@ -23,17 +23,18 @@ import org.cibseven.bpm.webapp.impl.IllegalWebAppConfigurationException;
 import org.cibseven.bpm.webapp.impl.security.SecurityActions;
 import org.cibseven.bpm.webapp.impl.util.ProcessEngineUtil;
 import org.cibseven.bpm.webapp.impl.util.ServletContextUtil;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockFilterConfig;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,12 +60,12 @@ public class AuthCacheTest {
 
   protected MockedStatic<ProcessEngineUtil> mockedProcessEngineUtil;
 
-  @Before
+  @BeforeEach
   public void setup() {
     ClockUtil.setCurrentTime(ClockUtil.getCurrentTime());
   }
 
-  @After
+  @AfterEach
   public void reset() {
     Authentications.clearCurrent();
     ClockUtil.reset();

@@ -17,7 +17,7 @@
 package org.cibseven.bpm.webapp.impl.engine;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Collections;
 import java.util.Set;
@@ -29,8 +29,8 @@ import org.cibseven.bpm.cockpit.impl.DefaultCockpitRuntimeDelegate;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.rest.spi.ProcessEngineProvider;
 import org.cibseven.bpm.webapp.impl.IllegalWebAppConfigurationException;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -135,7 +135,7 @@ public class EnginesFilterTest {
 
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     Cockpit.setCockpitRuntimeDelegate(null);
   }

@@ -16,19 +16,18 @@
  */
 package org.cibseven.bpm.webapp.impl.security.filter.headersec;
 
-import org.cibseven.bpm.webapp.impl.util.HeaderRule;
-import org.junit.Rule;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import org.cibseven.bpm.webapp.impl.util.HeaderRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 public class ContentTypeOptionsTest {
 
   public static final String HEADER_NAME = "X-Content-Type-Options";
   public static final String HEADER_DEFAULT_VALUE = "nosniff";
 
-  @Rule
+  @RegisterExtension
   public HeaderRule headerRule = new HeaderRule();
 
   @Test
@@ -40,7 +39,7 @@ public class ContentTypeOptionsTest {
     headerRule.performRequest();
 
     // then
-    assertThat(headerRule.getHeader(HEADER_NAME), is(HEADER_DEFAULT_VALUE));
+    assertThat(headerRule.getHeader(HEADER_NAME)).isEqualTo(HEADER_DEFAULT_VALUE);
   }
 
   @Test
@@ -52,7 +51,7 @@ public class ContentTypeOptionsTest {
     headerRule.performRequest();
 
     // then
-    assertThat(headerRule.headerExists(HEADER_NAME), is(false));
+    assertThat(headerRule.headerExists(HEADER_NAME)).isFalse();
   }
 
   @Test
@@ -64,7 +63,7 @@ public class ContentTypeOptionsTest {
     headerRule.performRequest();
 
     // then
-    assertThat(headerRule.headerExists(HEADER_NAME), is(false));
+    assertThat(headerRule.headerExists(HEADER_NAME)).isFalse();
   }
 
   @Test
@@ -76,7 +75,7 @@ public class ContentTypeOptionsTest {
     headerRule.performRequest();
 
     // then
-    assertThat(headerRule.getHeader(HEADER_NAME), is("aCustomValue"));
+    assertThat(headerRule.getHeader(HEADER_NAME)).isEqualTo("aCustomValue");
   }
 
 }

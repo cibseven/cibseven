@@ -20,15 +20,14 @@ import org.cibseven.bpm.engine.rest.exception.RestException;
 import org.cibseven.bpm.webapp.AppRuntimeDelegate;
 import org.cibseven.bpm.webapp.plugin.AppPluginRegistry;
 import org.cibseven.bpm.webapp.plugin.spi.AppPlugin;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
@@ -43,43 +42,18 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.webapp.plugin.resource.AbstractAppPluginRootResource.MIME_TYPE_TEXT_CSS;
 import static org.cibseven.bpm.webapp.plugin.resource.AbstractAppPluginRootResource.MIME_TYPE_TEXT_JAVASCRIPT;
 
-@RunWith(Parameterized.class)
 public class AbstractAppPluginRootResourceTest {
 
   public static final String PLUGIN_NAME = "test-plugin";
   public static final String ASSET_DIR = "plugin/asset-dir";
   public static final String ASSET_CONTENT = "content";
 
-  private final String assetName;
-  private final String assetMediaType;
-  private final boolean assetAllowed;
-
   private AppRuntimeDelegate<AppPlugin> runtimeDelegate;
   private AppPluginRegistry<AppPlugin>  pluginRegistry;
   private AbstractAppPluginRootResource<AppPlugin> pluginRootResource;
   private ServletContext mockServletContext;
 
-  public AbstractAppPluginRootResourceTest(String assetName, String assetMediaType, boolean assetAllowed) {
-    this.assetName = assetName;
-    this.assetMediaType = assetMediaType;
-    this.assetAllowed = assetAllowed;
-  }
-
-  @Parameters
-  public static Collection<Object[]> getAssets() {
-    return Arrays.asList(new Object[][]{
-        {"app/plugin.js", MIME_TYPE_TEXT_JAVASCRIPT, true},
-        {"app/plugin.css", MIME_TYPE_TEXT_CSS, true},
-        {"app/asset.js", MIME_TYPE_TEXT_JAVASCRIPT, true},
-        {null, null, false},
-        {"", null, false},
-        {"app/plugin.cs", null, false},
-        {"../..", null, false},
-        {"../../annotations-api.jar", null, false},
-    });
-  }
-
-  @Before
+  @BeforeEach
   public void setup() throws ServletException {
     runtimeDelegate = Mockito.mock(AppRuntimeDelegate.class);
     pluginRegistry = Mockito.mock(AppPluginRegistry.class);
@@ -96,8 +70,22 @@ public class AbstractAppPluginRootResourceTest {
     pluginRootResource.allowedAssets.add("app/asset.css");
   }
 
-  @Test
-  public void shouldGetAssetIfAllowed() throws IOException {
+  public static java.util.stream.Stream<org.junit.jupiter.params.provider.Arguments> getAssets() {
+    return java.util.stream.Stream.of(
+      org.junit.jupiter.params.provider.Arguments.of("app/plugin.js", MIME_TYPE_TEXT_JAVASCRIPT, true),
+      org.junit.jupiter.params.provider.Arguments.of("app/plugin.css", MIME_TYPE_TEXT_CSS, true),
+      org.junit.jupiter.params.provider.Arguments.of("app/asset.js", MIME_TYPE_TEXT_JAVASCRIPT, true),
+      org.junit.jupiter.params.provider.Arguments.of(null, null, false),
+      org.junit.jupiter.params.provider.Arguments.of("", null, false),
+      org.junit.jupiter.params.provider.Arguments.of("app/plugin.cs", null, false),
+      org.junit.jupiter.params.provider.Arguments.of("../..", null, false),
+      org.junit.jupiter.params.provider.Arguments.of("../../annotations-api.jar", null, false)
+    );
+  }
+
+  @ParameterizedTest
+  @MethodSource("getAssets")
+  public void shouldGetAssetIfAllowed(String assetName, String assetMediaType, boolean assetAllowed) throws IOException {
     // given
     String resourceName = "/" + ASSET_DIR + "/" + assetName;
     ByteArrayInputStream inputStream = new ByteArrayInputStream(ASSET_CONTENT.getBytes());

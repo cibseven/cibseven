@@ -139,9 +139,9 @@
           <dependencySourceIncludes><include>org.cibseven.spin:*</include></dependencySourceIncludes>
           <additionalDependencies>
            <additionalDependency>
-             <groupId>junit</groupId>
-             <artifactId>junit</artifactId>
-             <version>${version.junit4}</version>
+             <groupId>org.junit.jupiter</groupId>
+             <artifactId>junit-jupiter-api</artifactId>
+             <version>${version.junit5}</version>
            </additionalDependency>
           </additionalDependencies>
           <notimestamp>true</notimestamp>

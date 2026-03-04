@@ -17,14 +17,17 @@
 package org.cibseven.bpm.webapp.impl.security.filter.csrf;
 
 import org.cibseven.bpm.webapp.impl.util.ServletContextUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockServletContext;
 
-import javax.servlet.ServletException;
-import javax.ws.rs.core.Response;
+import jakarta.servlet.ServletException;
+import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,21 +40,17 @@ public class CsrfPreventionFilterAppPathTest extends CsrfPreventionFilterTest {
 
   protected MockServletContext mockServletContext;
 
-  public CsrfPreventionFilterAppPathTest(String nonModifyingRequestUrl,
-                                         String modifyingRequestUrl,
-                                         boolean isModifyingFetchRequest) {
-    super(nonModifyingRequestUrl, modifyingRequestUrl, isModifyingFetchRequest);
-  }
-
   @Override
+  @BeforeEach
   public void setup() throws Exception {
     mockServletContext = new MockServletContext();
     ServletContextUtil.setAppPath(MY_APP_PATH, mockServletContext);
     super.setup();
   }
-
-  @Test
-  public void shouldCheckNonModifyingRequestTokenGenerationWithRootContextPathAndEmptyAppPath()
+  @ParameterizedTest
+  @MethodSource("getRequestUrls")
+  public void shouldCheckNonModifyingRequestTokenGenerationWithRootContextPathAndEmptyAppPath(String nonModifyingRequestUrl, String modifyingRequestUrl, 
+      boolean isModifyingFetchRequest)
     throws IOException, ServletException {
     // given
     MockServletContext mockServletContext = new MockServletContext();

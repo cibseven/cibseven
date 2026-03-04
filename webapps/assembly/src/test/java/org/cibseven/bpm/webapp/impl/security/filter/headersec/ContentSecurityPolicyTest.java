@@ -17,8 +17,8 @@
 package org.cibseven.bpm.webapp.impl.security.filter.headersec;
 
 import org.cibseven.bpm.webapp.impl.util.HeaderRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.webapp.impl.security.filter.headersec.provider.impl.ContentSecurityPolicyProvider.HEADER_DEFAULT_VALUE;
@@ -27,7 +27,7 @@ import static org.cibseven.bpm.webapp.impl.security.filter.headersec.provider.im
 
 public class ContentSecurityPolicyTest {
 
-  @Rule
+  @RegisterExtension
   public HeaderRule headerRule = new HeaderRule();
 
   @Test

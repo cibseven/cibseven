@@ -24,7 +24,7 @@ import java.util.List;
  *
  * <p>An instance of this file is deserialized fron JSON config by the
  * {@link SecurityFilter} (see
- * {@link SecurityFilter#init(javax.servlet.FilterConfig)}.</p>
+ * {@link SecurityFilter#init(jakarta.servlet.FilterConfig)}.</p>
  *
  * @author Daniel Meyer
  *
