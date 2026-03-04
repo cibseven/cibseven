@@ -24,8 +24,6 @@ import org.cibseven.bpm.model.xml.test.GetModelElementTypeRule;
 import org.cibseven.bpm.model.xml.type.ModelElementType;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
 
 /**
  * @author Sebastian Menski

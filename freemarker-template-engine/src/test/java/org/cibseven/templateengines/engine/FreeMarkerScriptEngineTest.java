@@ -22,10 +22,10 @@ import java.util.Collection;
 import javax.script.*;
 
 import org.cibseven.templateengines.engine.util.Greeter;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -41,18 +41,18 @@ public class FreeMarkerScriptEngineTest {
   protected String template;
   protected String expected;
 
-  @BeforeClass
+  @BeforeAll
   public static void getScriptEngine() {
     ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
     scriptEngine = scriptEngineManager.getEngineByName("freemarker");
   }
 
-  @Before
+  @BeforeEach
   public void createBindings() {
     bindings = new SimpleBindings();
   }
 
-  @After
+  @AfterEach
   public void checkResult() throws ScriptException {
     if (template != null) {
       assertThat(evaluate(template)).isEqualTo(expected);

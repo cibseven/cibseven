@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.model.bpmn.instance.cibseven;
 
+import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.model.bpmn.impl.BpmnModelConstants.CAMUNDA_NS;
-import static org.junit.Assert.fail;
 
 import java.util.Collection;
 

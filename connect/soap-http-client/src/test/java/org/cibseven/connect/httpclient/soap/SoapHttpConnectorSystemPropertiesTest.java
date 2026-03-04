@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 import org.apache.hc.core5.http.HttpHeaders;
@@ -49,10 +48,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 public class SoapHttpConnectorSystemPropertiesTest {
 
   public static final int PORT = 51234;
-
-//  @Rule
-//  public WireMockRule wireMockRule = new WireMockRule(
-//      WireMockConfiguration.wireMockConfig().port(PORT));
 
   protected Set<String> updatedSystemProperties;
 

@@ -23,7 +23,6 @@ import org.cibseven.bpm.model.xml.ModelParseException;
 import org.cibseven.bpm.model.xml.ModelReferenceException;
 import org.cibseven.bpm.model.xml.ModelValidationException;
 import org.cibseven.bpm.model.xml.impl.util.IoUtil;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -32,6 +31,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.model.bpmn.impl.BpmnModelConstants.XML_SCHEMA_NS;
 import static org.cibseven.bpm.model.bpmn.impl.BpmnModelConstants.XPATH_NS;
 
@@ -69,7 +69,7 @@ public class DefinitionsTest extends BpmnModelTest {
   public void shouldNotImportWrongOrderedSequence() {
     try {
       Bpmn.readModelFromStream(getClass().getResourceAsStream("DefinitionsTest.shouldNotImportWrongOrderedSequence.bpmn"));
-      Assert.fail("Model is invalid and should not pass the validation");
+      fail("Model is invalid and should not pass the validation");
     }
     catch (Exception e) {
       assertThat(e).isInstanceOf(ModelParseException.class);
@@ -115,7 +115,7 @@ public class DefinitionsTest extends BpmnModelTest {
       Bpmn.validateModel(bpmnModelInstance);
     }
     catch (ModelValidationException e) {
-      Assert.fail();
+      fail();
     }
   }
 
@@ -142,7 +142,7 @@ public class DefinitionsTest extends BpmnModelTest {
       Bpmn.validateModel(bpmnModelInstance);
     }
     catch (ModelValidationException e) {
-      Assert.fail();
+      fail();
     }
 
     // convert the model to the XML string representation
@@ -210,7 +210,7 @@ public class DefinitionsTest extends BpmnModelTest {
     MessageEventDefinition anotherMessageEventDefinition = bpmnModelInstance.newInstance(MessageEventDefinition.class);
     try {
       anotherMessageEventDefinition.setMessage(anotherMessage);
-      Assert.fail("Message should not be added to message event definition, cause it is not part of the model");
+      fail("Message should not be added to message event definition, cause it is not part of the model");
     }
     catch(Exception e) {
       assertThat(e).isInstanceOf(ModelReferenceException.class);
@@ -230,7 +230,7 @@ public class DefinitionsTest extends BpmnModelTest {
       Bpmn.validateModel(bpmnModelInstance);
     }
     catch (ModelValidationException e) {
-      Assert.fail();
+      fail();
     }
   }
 
@@ -277,7 +277,7 @@ public class DefinitionsTest extends BpmnModelTest {
       Bpmn.validateModel(bpmnModelInstance);
     }
     catch (ModelValidationException e) {
-      Assert.fail();
+      fail();
     }
   }
 
