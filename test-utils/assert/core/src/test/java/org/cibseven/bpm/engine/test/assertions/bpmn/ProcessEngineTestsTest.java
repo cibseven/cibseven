@@ -69,16 +69,21 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.task.TaskQuery;
+import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.assertions.cmmn.CaseDefinitionAssert;
 import org.cibseven.bpm.engine.test.assertions.cmmn.CaseExecutionAssert;
 import org.cibseven.bpm.engine.test.assertions.cmmn.CaseInstanceAssert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 public class ProcessEngineTestsTest {
+
+  @RegisterExtension
+  public ProcessEngineRule processEngineRule = new ProcessEngineRule();
 
   ProcessEngine processEngine;
   MockedStatic<ProcessEngines> processEnginesMockedStatic;

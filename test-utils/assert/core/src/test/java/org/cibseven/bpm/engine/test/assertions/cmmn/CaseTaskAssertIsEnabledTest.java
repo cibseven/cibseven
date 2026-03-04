@@ -28,6 +28,7 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.assertions.helpers.Failure;
 import org.cibseven.bpm.engine.test.assertions.helpers.ProcessAssertTestCase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class CaseTaskAssertIsEnabledTest extends ProcessAssertTestCase {
 
@@ -37,6 +38,8 @@ public class CaseTaskAssertIsEnabledTest extends ProcessAssertTestCase {
   public static final String CASE_KEY = "Case_CaseTaskAssertIsEnabledTest";
   public static final String CASE_KEY_B = "Case_CaseTaskAssertIsEnabledTest_CaseB";
 
+  @RegisterExtension
+  public ProcessEngineRule processEngineRule = new ProcessEngineRule();
 
   @Test
   @Deployment(resources = { "cmmn/CaseTaskAssertIsEnabledTest.cmmn" })

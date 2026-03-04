@@ -17,9 +17,11 @@
 package org.cibseven.bpm.engine.test.assertions.cmmn;
 
 import static org.cibseven.bpm.engine.test.assertions.bpmn.BpmnAwareTests.withVariables;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
@@ -42,10 +44,11 @@ import org.cibseven.bpm.engine.test.assertions.helpers.CaseExecutionQueryFluentA
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * You will notice that this test class does not cover all methods.
@@ -53,6 +56,7 @@ import org.mockito.Mockito;
  * That code is so simplistic, it is not expected to break easily.
  *
  */
+@ExtendWith(MockitoExtension.class)
 public class CmmnAwareTestsTest {
 
   public static final String ACTIVITY_ID = "FOO";
@@ -82,9 +86,9 @@ public class CmmnAwareTestsTest {
     cmmnAwareTestsMockedStatic = mockStatic(CmmnAwareTests.class, CALLS_REAL_METHODS);
     abstractAssertionsMockedStatic = mockStatic(AbstractAssertions.class);
     abstractAssertionsMockedStatic.when(AbstractAssertions::processEngine).thenReturn(processEngine);
-    when(processEngine.getCaseService()).thenReturn(caseService);
+    lenient().when(processEngine.getCaseService()).thenReturn(caseService);
     caseExecutionQuery = mock(CaseExecutionQuery.class, new CaseExecutionQueryFluentAnswer());
-    when(caseService.createCaseExecutionQuery()).thenReturn(caseExecutionQuery);
+    lenient().when(caseService.createCaseExecutionQuery()).thenReturn(caseExecutionQuery);
   }
 
   @AfterEach

@@ -32,10 +32,12 @@ import org.cibseven.bpm.engine.test.assertions.helpers.Failure;
 import org.cibseven.bpm.engine.test.assertions.helpers.ProcessAssertTestCase;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class ProcessInstanceAssertCalledProcessInstanceTest extends ProcessAssertTestCase {
 
-
+  @RegisterExtension
+  public ProcessEngineRule processEngineRule = new ProcessEngineRule();
 
   @Test
   @Deployment(resources = {"bpmn/ProcessInstanceAssert-calledProcessInstance-superProcess1.bpmn", "bpmn/ProcessInstanceAssert-calledProcessInstance-subProcess1.bpmn", "bpmn/ProcessInstanceAssert-calledProcessInstance-subProcess2.bpmn"

@@ -28,12 +28,15 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.assertions.helpers.ProcessAssertTestCase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class TaskWithManualActivationTest extends ProcessAssertTestCase {
 
   public static final String TASK_A = "PI_TaskA";
   public static final String CASE_KEY = "Case_TaskTests";
 
+  @RegisterExtension
+  public ProcessEngineRule processEngineRule = new ProcessEngineRule();
 
   @Test
   @Deployment(resources = { "cmmn/TaskWithManualActivationTest.cmmn" })

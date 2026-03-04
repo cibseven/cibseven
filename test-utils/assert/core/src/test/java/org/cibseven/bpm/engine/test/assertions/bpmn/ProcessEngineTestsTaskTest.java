@@ -29,9 +29,12 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.assertions.helpers.Failure;
 import org.cibseven.bpm.engine.test.assertions.helpers.ProcessAssertTestCase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class ProcessEngineTestsTaskTest extends ProcessAssertTestCase {
 
+  @RegisterExtension
+  public ProcessEngineRule processEngineRule = new ProcessEngineRule();
 
   @Test
   @Deployment(resources = {"bpmn/ProcessEngineTests-task.bpmn"
