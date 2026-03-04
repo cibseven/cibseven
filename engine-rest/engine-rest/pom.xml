@@ -246,7 +246,7 @@
     <dependency>
       <groupId>org.apache.tomcat.embed</groupId>
       <artifactId>tomcat-embed-core</artifactId>
-      <version>${version.tomcat}</version>
+      <version>10.1.20</version> <!-- Ensure Tomcat 10+ is used -->
       <scope>test</scope>
     </dependency>
 
@@ -339,11 +339,7 @@
     <profile>
       <id>distro</id>
       <dependencies>
-        <dependency>
-          <groupId>org.jboss.spec.javax.ws.rs</groupId>
-          <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
-          <scope>provided</scope>
-        </dependency>
+        <!-- Removed jboss-jaxrs-api_2.1_spec for jakarta migration -->
       </dependencies>
       <build>
         <plugins>
@@ -364,11 +360,7 @@
         <version.netty>4.1.42.Final</version.netty>
       </properties>
       <dependencies>
-        <dependency>
-          <groupId>org.jboss.spec.javax.ws.rs</groupId>
-          <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
-          <scope>provided</scope>
-        </dependency>
+        <!-- Removed jboss-jaxrs-api_2.1_spec for jakarta migration -->
         <dependency>
           <groupId>org.jboss.resteasy</groupId>
           <artifactId>resteasy-jaxrs</artifactId>
@@ -561,12 +553,7 @@
       </properties>
 
       <dependencies>
-        <dependency>
-          <groupId>org.jboss.spec.javax.ws.rs</groupId>
-          <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
-          <scope>provided</scope>
-        </dependency>
-
+        <!-- Removed jboss-jaxrs-api_2.1_spec for jakarta migration -->
         <dependency>
           <groupId>org.jboss.resteasy</groupId>
           <artifactId>resteasy-jaxrs</artifactId>

@@ -38,6 +38,7 @@ import org.cibseven.bpm.engine.identity.UserQuery;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -48,10 +49,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class PersistenceConnectionExceptionLoggingTest extends AbstractRestServiceTest {
 
   @RegisterExtension
-  public static TestContainerRule rule = new TestContainerRule();
+  @Order(1) public static TestContainerRule rule = new TestContainerRule();
 
   @RegisterExtension
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
+  @Order(2) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch(REST_API);
 
   protected static final String USER_QUERY_URL = TEST_RESOURCE_ROOT_PATH + "/user";

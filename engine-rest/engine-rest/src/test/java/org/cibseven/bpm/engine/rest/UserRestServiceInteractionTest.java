@@ -59,6 +59,7 @@ import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 
@@ -71,10 +72,10 @@ import io.restassured.http.ContentType;
 public class UserRestServiceInteractionTest extends AbstractRestServiceTest {
 
   @RegisterExtension
-  public static TestContainerRule rule = new TestContainerRule();
+  @Order(1) public static TestContainerRule rule = new TestContainerRule();
 
   @RegisterExtension
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
+  @Order(2) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch(ExceptionLogger.REST_API);
 
   protected static final String SERVICE_URL = TEST_RESOURCE_ROOT_PATH + "/user";
