@@ -28,7 +28,7 @@ import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate.ThrowBpmnErrorDelegateException;
 import org.junit.Assert;
-import org.junit.Rule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Disabled;
 
@@ -36,7 +36,7 @@ import org.junit.jupiter.api.Disabled;
 @Origin("1.1.0")
 public class ParallelNestedNonInterruptingEventSubprocessScenarioTest {
 
-  @Rule
+  @RegisterExtension
   public UpgradeTestRule rule = new UpgradeTestRule();
 
   @Test

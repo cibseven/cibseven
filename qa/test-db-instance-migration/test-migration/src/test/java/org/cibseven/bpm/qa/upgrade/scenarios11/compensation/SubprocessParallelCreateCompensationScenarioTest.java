@@ -21,7 +21,7 @@ import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.junit.Assert;
-import org.junit.Rule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 @Origin("1.1.0")
 public class SubprocessParallelCreateCompensationScenarioTest {
 
-  @Rule
+  @RegisterExtension
   public UpgradeTestRule rule = new UpgradeTestRule();
 
   @Test

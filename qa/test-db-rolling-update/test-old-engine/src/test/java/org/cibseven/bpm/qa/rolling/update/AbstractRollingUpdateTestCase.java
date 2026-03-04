@@ -20,8 +20,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
@@ -47,7 +47,7 @@ public abstract class AbstractRollingUpdateTestCase {
   @Parameter
   public String tag;
 
-  @Rule
+  @RegisterExtension
   public UpgradeTestRule rule = new UpgradeTestRule();
 
   @BeforeEach
