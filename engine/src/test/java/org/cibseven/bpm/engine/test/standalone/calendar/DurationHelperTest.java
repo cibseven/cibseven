@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.standalone.calendar;
 
-import static junit.framework.TestCase.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 

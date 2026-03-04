@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.history;
 
-import static junit.framework.TestCase.fail;
+import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

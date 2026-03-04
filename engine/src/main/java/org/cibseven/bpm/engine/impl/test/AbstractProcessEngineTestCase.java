@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.impl.test;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -53,6 +54,8 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.TestInfo;
 import org.opentest4j.AssertionFailedError;
 import org.slf4j.Logger;
 
@@ -436,6 +439,51 @@ public abstract class AbstractProcessEngineTestCase extends PvmTestCase {
     deploymentIds.add(deploymentId);
 
     return deploymentId;
+  }
+
+  public void setUpAbstractProcessEngineTestCase(TestInfo testInfo) {
+    initializeProcessEngine();
+    initializeServices();
+    String testMethodName = testInfo.getTestMethod().map(Method::getName).orElse(null);
+    try {
+      boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine, getClass(), testMethodName);
+      boolean runsWithRequiredDatabase = TestHelper.annotationRequiredDatabaseCheck(processEngine, getClass(), testMethodName);
+      // ignore test case when current history level is too low or database doesn't match
+      if (hasRequiredHistoryLevel && runsWithRequiredDatabase) {
+        deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, getClass(), testMethodName);
+        // super.runBare(); // Remove this, as JUnit 5 manages test execution
+      }
+    }
+    catch (AssertionFailedError e) {
+      LOG.error("ASSERTION FAILED: " + e, e);
+      exception = e;
+      throw e;
+    }
+    catch (Throwable e) {
+      LOG.error("EXCEPTION: " + e, e);
+      exception = e;
+      throw e;
+    }
+  }
+
+  
+  @AfterEach
+  public void tearDownAbstractProcessEngineTestCase() {
+    identityService.clearAuthentication();
+    processEngineConfiguration.setTenantCheckEnabled(true);
+    deleteDeployments();
+    deleteHistoryCleanupJobs();
+    // only fail if no test failure was recorded
+    TestHelper.assertAndEnsureCleanDbAndCache(processEngine, exception == null);
+    TestHelper.resetIdGenerator(processEngineConfiguration);
+    ClockUtil.reset();
+    closeDownProcessEngine();
+    clearServiceReferences();
+
+    deleteDeployments();
+    clearServiceReferences();
+    closeDownProcessEngine();
+    // Add any additional cleanup logic here if needed
   }
 
 }

@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import junit.framework.AssertionFailedError;
+import org.opentest4j.AssertionFailedError;
 import org.cibseven.bpm.engine.ParseException;
 import org.cibseven.bpm.engine.Problem;
 import org.cibseven.bpm.engine.RepositoryService;

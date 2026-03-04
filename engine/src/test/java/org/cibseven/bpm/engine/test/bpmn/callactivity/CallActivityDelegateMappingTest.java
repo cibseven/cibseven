@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.callactivity;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.fail;
+import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Map;
 

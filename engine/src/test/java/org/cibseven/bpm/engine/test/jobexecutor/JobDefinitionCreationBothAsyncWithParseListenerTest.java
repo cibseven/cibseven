@@ -16,7 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.jobexecutor;
 
-import static junit.framework.TestCase.assertEquals;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.InputStream;
 import java.util.ArrayList;

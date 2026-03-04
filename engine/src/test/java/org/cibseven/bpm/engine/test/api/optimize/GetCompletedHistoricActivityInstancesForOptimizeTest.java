@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.api.optimize;
 
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.delegate.ExecutionListener.EVENTNAME_START;
 

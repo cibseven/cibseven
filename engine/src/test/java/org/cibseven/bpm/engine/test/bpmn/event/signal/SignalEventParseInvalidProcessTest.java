@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.util.Arrays;
 import java.util.Collection;
 
-import junit.framework.AssertionFailedError;
+import org.opentest4j.AssertionFailedError;
 import org.cibseven.bpm.engine.ParseException;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
