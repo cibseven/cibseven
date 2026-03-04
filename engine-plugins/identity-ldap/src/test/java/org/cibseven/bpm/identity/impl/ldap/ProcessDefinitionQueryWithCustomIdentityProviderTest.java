@@ -25,22 +25,22 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.identity.ldap.util.LdapTestEnvironmentRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 @Deployment
 public class ProcessDefinitionQueryWithCustomIdentityProviderTest {
 
-  @ClassRule
-  public static LdapTestEnvironmentRule ldapRule = new LdapTestEnvironmentRule();
-  @Rule
-  public ProcessEngineRule engineRule = new ProcessEngineRule();
+  @RegisterExtension
+  @Order(2) public static LdapTestEnvironmentRule ldapRule = new LdapTestEnvironmentRule();
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProcessEngineRule();
 
   RepositoryService repositoryService;
 
-  @Before
+  @BeforeEach
   public void setup() {
     repositoryService = engineRule.getRepositoryService();
   }

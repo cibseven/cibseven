@@ -16,9 +16,11 @@
  */
 package org.cibseven.bpm.identity.ldap.util;
 
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
-public class LdapTestEnvironmentRule extends ExternalResource {
+public class LdapTestEnvironmentRule implements BeforeEachCallback, AfterEachCallback {
 
   LdapTestEnvironment ldapTestEnvironment;
 
@@ -28,7 +30,8 @@ public class LdapTestEnvironmentRule extends ExternalResource {
   boolean posix = false;
 
   @Override
-  protected void before() throws Exception {
+  public void beforeEach(ExtensionContext context) throws Exception {
+
     if(posix) {
       setupPosix();
     } else {
@@ -37,7 +40,7 @@ public class LdapTestEnvironmentRule extends ExternalResource {
   }
 
   @Override
-  protected void after() {
+  public void afterEach(ExtensionContext context) throws Exception {
     if (ldapTestEnvironment != null) {
       ldapTestEnvironment.shutdown();
       ldapTestEnvironment = null;
@@ -77,4 +80,5 @@ public class LdapTestEnvironmentRule extends ExternalResource {
   public LdapTestEnvironment getLdapTestEnvironment() {
     return ldapTestEnvironment;
   }
+
 }

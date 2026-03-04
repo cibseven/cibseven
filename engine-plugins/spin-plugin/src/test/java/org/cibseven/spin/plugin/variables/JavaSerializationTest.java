@@ -25,8 +25,12 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.json.JSONException;
+
+import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.engine.variable.Variables.objectValue;
 import static org.cibseven.bpm.engine.variable.Variables.serializedObjectValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Here we test how the engine behaves, when more than one object serializers are available.

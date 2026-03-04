@@ -21,10 +21,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.identity.ldap.util.LdapTestEnvironmentRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
@@ -32,14 +32,14 @@ import org.junit.Test;
  */
 public class LdapLoginTest {
 
-  @ClassRule
-  public static LdapTestEnvironmentRule ldapRule = new LdapTestEnvironmentRule();
-  @Rule
-  public ProcessEngineRule engineRule = new ProcessEngineRule();
+  @RegisterExtension
+  @Order(2) public static LdapTestEnvironmentRule ldapRule = new LdapTestEnvironmentRule();
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProcessEngineRule();
 
   IdentityService identityService;
 
-  @Before
+  @BeforeEach
   public void setup() {
     identityService = engineRule.getIdentityService();
   }

@@ -16,8 +16,9 @@
  */
 package org.cibseven.spin.plugin.variables;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.List;
-
 import org.cibseven.bpm.engine.history.HistoricDecisionInputInstance;
 import org.cibseven.bpm.engine.history.HistoricDecisionInstance;
 import org.cibseven.bpm.engine.history.HistoricDecisionOutputInstance;

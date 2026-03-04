@@ -27,23 +27,23 @@ import org.cibseven.bpm.engine.identity.UserQuery;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.identity.ldap.util.LdapTestEnvironment;
 import org.cibseven.bpm.identity.ldap.util.LdapTestEnvironmentRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 public class LdapUserLargeQueryTest {
 
-  @ClassRule
-  public static LdapTestEnvironmentRule ldapRule = new LdapTestEnvironmentRule().additionalNumberOfUsers(80).additionnalNumberOfGroups(5).additionalNumberOfRoles(5); // Attention, stay under 80, there is a limitation in the query on 100
-  @Rule
-  public ProcessEngineRule engineRule = new ProcessEngineRule("camunda.ldap.pages.cfg.xml"); // pageSize = 3 in this configuration
+  @RegisterExtension
+  @Order(2) public static LdapTestEnvironmentRule ldapRule = new LdapTestEnvironmentRule().additionalNumberOfUsers(80).additionnalNumberOfGroups(5).additionalNumberOfRoles(5); // Attention, stay under 80, there is a limitation in the query on 100
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProcessEngineRule("camunda.ldap.pages.cfg.xml"); // pageSize = 3 in this configuration
 
   ProcessEngineConfiguration processEngineConfiguration;
   IdentityService identityService;
   LdapTestEnvironment ldapTestEnvironment;
 
-  @Before
+  @BeforeEach
   public void setup() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     identityService = engineRule.getIdentityService();
