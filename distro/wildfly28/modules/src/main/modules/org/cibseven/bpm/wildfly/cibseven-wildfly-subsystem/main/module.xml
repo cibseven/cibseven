@@ -41,8 +41,5 @@
 
     <module name="org.cibseven.bpm.cibseven-engine-plugins" optional="true" />
 
-    <!-- for LDAP plugin only -->
-    <module name="sun.jdk" />
-
   </dependencies>
 </module>

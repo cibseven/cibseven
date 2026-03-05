@@ -5,7 +5,6 @@
 
   <dependencies>
     <module name="org.slf4j" />
-    <module name="sun.jdk" />
     <module name="org.cibseven.bpm.dmn.cibseven-engine-feel-api" />
     <module name="org.cibseven.commons.cibseven-commons-typed-values" />
     <module name="org.cibseven.commons.cibseven-commons-logging" />
