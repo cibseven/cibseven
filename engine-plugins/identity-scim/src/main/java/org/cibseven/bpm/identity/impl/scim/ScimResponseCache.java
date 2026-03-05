@@ -71,7 +71,7 @@ public class ScimResponseCache {
     }
     evictExpired();
     if (cache.size() >= maxSize) {
-      evictOldest();
+      evictOldest(cache.size() - maxSize + 1);
     }
     cache.put(key, new CacheEntry(response));
   }
@@ -94,9 +94,11 @@ public class ScimResponseCache {
     cache.entrySet().removeIf(entry -> entry.getValue().isExpired(expirationTimeoutMs));
   }
 
-  protected void evictOldest() {
-    cache.entrySet().stream()
+  protected void evictOldest(int count) {
+    for (int i = 0; i < count; ++i) {
+      cache.entrySet().stream()
         .min((a, b) -> Long.compare(a.getValue().createdAt, b.getValue().createdAt))
         .ifPresent(oldest -> cache.remove(oldest.getKey(), oldest.getValue()));
+    }
   }
 }
