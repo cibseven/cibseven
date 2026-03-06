@@ -19,7 +19,8 @@ package org.cibseven.bpm.application;
 import java.util.Comparator;
 import java.util.ServiceLoader;
 
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
+import jakarta.el.ELResolver;
+
 
 /**
  * <p>SPI interface that allows providing a custom ElResolver implementation.</p>

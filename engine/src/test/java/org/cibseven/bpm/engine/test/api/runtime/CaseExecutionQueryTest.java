@@ -1215,6 +1215,249 @@ public class CaseExecutionQueryTest extends PluggableProcessEngineTest {
   }
 
   @Test
+  public void testQueryByNullVariableValueLessThanOrEqual() {
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aNullValue", null)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    try {
+      query.variableValueLessThanOrEqual("aNullValue", null).list();
+      fail();
+    } catch (NotValidException e) {}
+
+  }
+
+  @Test
+  public void testQueryByStringVariableValueLessThanOrEqual() {
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aStringValue", "abc")
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    query.variableValueLessThanOrEqual("aStringValue", "abd");
+
+    verifyQueryResults(query, 1);
+
+    query = caseService.createCaseExecutionQuery();
+
+    query.variableValueLessThanOrEqual("aStringValue", "abc");
+
+    verifyQueryResults(query, 1);
+
+  }
+
+  @Test
+  public void testQueryByBooleanVariableValueLessThanOrEqual() {
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aBooleanValue", true)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    try {
+      query.variableValueLessThanOrEqual("aBooleanValue", false).list();
+      fail();
+    } catch (NotValidException e) {}
+
+  }
+
+  @Test
+  public void testQueryByShortVariableValueLessThanOrEqual() {
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aShortValue", (short) 123)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    query.variableValueLessThanOrEqual("aShortValue", (short) 124);
+
+    verifyQueryResults(query, 1);
+
+    query = caseService.createCaseExecutionQuery();
+
+    query.variableValueLessThanOrEqual("aShortValue", (short) 123);
+
+    verifyQueryResults(query, 1);
+
+  }
+
+  @Test
+  public void testQueryByIntegerVariableValueLessThanOrEquals() {
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("anIntegerValue", 456)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    query.variableValueLessThanOrEqual("anIntegerValue", 457);
+
+    verifyQueryResults(query, 1);
+
+    query = caseService.createCaseExecutionQuery();
+
+    query.variableValueLessThanOrEqual("anIntegerValue", 456);
+
+    verifyQueryResults(query, 1);
+
+  }
+
+  @Test
+  public void testQueryByLongVariableValueLessThanOrEqual() {
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aLongValue", (long) 789)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    query.variableValueLessThanOrEqual("aLongValue", (long) 790);
+
+    verifyQueryResults(query, 1);
+
+    query = caseService.createCaseExecutionQuery();
+
+    query.variableValueLessThanOrEqual("aLongValue", (long) 789);
+
+    verifyQueryResults(query, 1);
+
+  }
+
+  @Test
+  public void testQueryByDateVariableValueLessThanOrEqual() {
+    Date now = new Date();
+
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aDateValue", now)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    Date after = new Date(now.getTime() + 100000);
+
+    query.variableValueLessThanOrEqual("aDateValue", after);
+
+    verifyQueryResults(query, 1);
+
+    query = caseService.createCaseExecutionQuery();
+
+    query.variableValueLessThanOrEqual("aDateValue", now);
+
+    verifyQueryResults(query, 1);
+
+  }
+
+  @Test
+  public void testQueryByDoubleVariableValueLessThanOrEqual() {
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aDoubleValue", 1.5)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    query.variableValueLessThanOrEqual("aDoubleValue", 1.6);
+
+    verifyQueryResults(query, 1);
+
+    query = caseService.createCaseExecutionQuery();
+
+    query.variableValueLessThanOrEqual("aDoubleValue", 1.5);
+
+    verifyQueryResults(query, 1);
+
+  }
+
+  @Test
+  public void testQueryByByteArrayVariableValueLessThanOrEqual() {
+    byte[] bytes = "somebytes".getBytes();
+
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aByteArrayValue", bytes)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    try {
+      query.variableValueLessThanOrEqual("aByteArrayValue", bytes).list();
+      fail();
+    } catch (ProcessEngineException e) {}
+  }
+
+  @Test
+  public void testQueryBySerializableVariableLessThanOrEqual() {
+    List<String> serializable = new ArrayList<String>();
+    serializable.add("one");
+    serializable.add("two");
+    serializable.add("three");
+
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aSerializableValue", serializable)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    try {
+      query.variableValueLessThanOrEqual("aSerializableValue", serializable).list();
+      fail();
+    } catch (ProcessEngineException e) {}
+  }
+
+  @Test
+  public void testQueryByNullVariableValueLike() {
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aNullValue", null)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    try {
+      query.variableValueLike("aNullValue", null).list();
+      fail();
+    } catch (NotValidException e) {}
+
+  }
+
+  @Test
+  public void testQueryByStringVariableValueLike() {
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aStringValue", "abc")
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    query.variableValueLike("aStringValue", "ab%");
+
+    verifyQueryResults(query, 1);
+
+    query = caseService.createCaseExecutionQuery();
+
+    query.variableValueLike("aStringValue", "%bc");
+
+    verifyQueryResults(query, 1);
+
+    query = caseService.createCaseExecutionQuery();
+
+    query.variableValueLike("aStringValue", "%b%");
+
+    verifyQueryResults(query, 1);
+  }
+
+
+
+  @Test
   public void testQueryByNullCaseInstanceVariableValueEquals() {
     caseService
       .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
@@ -1925,12 +2168,6 @@ public class CaseExecutionQueryTest extends PluggableProcessEngineTest {
 
     verifyQueryResults(query, 2);
 
-    query = caseService.createCaseExecutionQuery();
-
-    query.caseInstanceVariableValueLessThan("aShortValue", (short) 123);
-
-    verifyQueryResults(query, 2);
-
   }
 
   @Test
@@ -1946,12 +2183,6 @@ public class CaseExecutionQueryTest extends PluggableProcessEngineTest {
 
     verifyQueryResults(query, 2);
 
-    query = caseService.createCaseExecutionQuery();
-
-    query.caseInstanceVariableValueLessThan("anIntegerValue", 456);
-
-    verifyQueryResults(query, 2);
-
   }
 
   @Test
@@ -1964,12 +2195,6 @@ public class CaseExecutionQueryTest extends PluggableProcessEngineTest {
     CaseExecutionQuery query = caseService.createCaseExecutionQuery();
 
     query.caseInstanceVariableValueLessThan("aLongValue", (long) 790);
-
-    verifyQueryResults(query, 2);
-
-    query = caseService.createCaseExecutionQuery();
-
-    query.caseInstanceVariableValueLessThan("aLongValue", (long) 789);
 
     verifyQueryResults(query, 2);
 
@@ -1992,12 +2217,6 @@ public class CaseExecutionQueryTest extends PluggableProcessEngineTest {
 
     verifyQueryResults(query, 2);
 
-    query = caseService.createCaseExecutionQuery();
-
-    query.caseInstanceVariableValueLessThan("aDateValue", now);
-
-    verifyQueryResults(query, 2);
-
   }
 
   @Test
@@ -2010,12 +2229,6 @@ public class CaseExecutionQueryTest extends PluggableProcessEngineTest {
     CaseExecutionQuery query = caseService.createCaseExecutionQuery();
 
     query.caseInstanceVariableValueLessThan("aDoubleValue", 1.6);
-
-    verifyQueryResults(query, 2);
-
-    query = caseService.createCaseExecutionQuery();
-
-    query.caseInstanceVariableValueLessThan("aDoubleValue", 1.5);
 
     verifyQueryResults(query, 2);
 
@@ -2057,6 +2270,328 @@ public class CaseExecutionQueryTest extends PluggableProcessEngineTest {
       fail();
     } catch (ProcessEngineException e) {}
   }
+
+  @Test
+  public void testQueryByNullCaseInstanceVariableValueLessThanOrEqual() {
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aNullValue", null)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    try {
+      query.caseInstanceVariableValueLessThanOrEqual("aNullValue", null).list();
+      fail();
+    } catch (NotValidException e) {}
+
+  }
+
+  @Test
+  public void testQueryByStringCaseInstanceVariableValueLessThanOrEqual() {
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aStringValue", "abc")
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    query.caseInstanceVariableValueLessThanOrEqual("aStringValue", "abd");
+
+    verifyQueryResults(query, 2);
+
+    query = caseService.createCaseExecutionQuery();
+
+    query.caseInstanceVariableValueLessThanOrEqual("aStringValue", "abc");
+
+    verifyQueryResults(query, 2);
+
+  }
+
+  @Test
+  public void testQueryByBooleanCaseInstanceVariableValueLessThanOrEqual() {
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aBooleanValue", true)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    try {
+      query.caseInstanceVariableValueLessThanOrEqual("aBooleanValue", false).list();
+      fail();
+    } catch (NotValidException e) {}
+
+  }
+
+  @Test
+  public void testQueryByShortCaseInstanceVariableValueLessThanOrEqual() {
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aShortValue", (short) 123)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    query.caseInstanceVariableValueLessThanOrEqual("aShortValue", (short) 124);
+
+    verifyQueryResults(query, 2);
+
+    query = caseService.createCaseExecutionQuery();
+
+    query.caseInstanceVariableValueLessThanOrEqual("aShortValue", (short) 123);
+
+    verifyQueryResults(query, 2);
+
+  }
+
+  @Test
+  public void testQueryByIntegerCaseInstanceVariableValueLessThanOrEquals() {
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("anIntegerValue", 456)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    query.caseInstanceVariableValueLessThanOrEqual("anIntegerValue", 457);
+
+    verifyQueryResults(query, 2);
+
+    query = caseService.createCaseExecutionQuery();
+
+    query.caseInstanceVariableValueLessThanOrEqual("anIntegerValue", 456);
+
+    verifyQueryResults(query, 2);
+
+  }
+
+  @Test
+  public void testQueryByLongCaseInstanceVariableValueLessThanOrEqual() {
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aLongValue", (long) 789)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    query.caseInstanceVariableValueLessThanOrEqual("aLongValue", (long) 790);
+
+    verifyQueryResults(query, 2);
+
+    query = caseService.createCaseExecutionQuery();
+
+    query.caseInstanceVariableValueLessThanOrEqual("aLongValue", (long) 789);
+
+    verifyQueryResults(query, 2);
+
+  }
+
+  @Test
+  public void testQueryByDateCaseInstanceVariableValueLessThanOrEqual() {
+    Date now = new Date();
+
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aDateValue", now)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    Date after = new Date(now.getTime() + 100000);
+
+    query.caseInstanceVariableValueLessThanOrEqual("aDateValue", after);
+
+    verifyQueryResults(query, 2);
+
+    query = caseService.createCaseExecutionQuery();
+
+    query.caseInstanceVariableValueLessThanOrEqual("aDateValue", now);
+
+    verifyQueryResults(query, 2);
+
+  }
+
+  @Test
+  public void testQueryByDoubleCaseInstanceVariableValueLessThanOrEqual() {
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aDoubleValue", 1.5)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    query.caseInstanceVariableValueLessThanOrEqual("aDoubleValue", 1.6);
+
+    verifyQueryResults(query, 2);
+
+    query = caseService.createCaseExecutionQuery();
+
+    query.caseInstanceVariableValueLessThanOrEqual("aDoubleValue", 1.5);
+
+    verifyQueryResults(query, 2);
+
+  }
+
+  @Test
+  public void testQueryByByteArrayCaseInstanceVariableValueLessThanOrEqual() {
+    byte[] bytes = "somebytes".getBytes();
+
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aByteArrayValue", bytes)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    try {
+      query.caseInstanceVariableValueLessThanOrEqual("aByteArrayValue", bytes).list();
+      fail();
+    } catch (ProcessEngineException e) {}
+  }
+
+  @Test
+  public void testQueryBySerializableCaseInstanceVariableLessThanOrEqual() {
+    List<String> serializable = new ArrayList<String>();
+    serializable.add("one");
+    serializable.add("two");
+    serializable.add("three");
+
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aSerializableValue", serializable)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    try {
+      query.caseInstanceVariableValueLessThanOrEqual("aSerializableValue", serializable).list();
+      fail();
+    } catch (ProcessEngineException e) {}
+  }
+
+  @Test
+  public void testQueryByNullCaseInstanceVariableValueLike() {
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aNullValue", null)
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    try {
+      query.caseInstanceVariableValueLike("aNullValue", null).list();
+      fail();
+    } catch (NotValidException e) {}
+
+  }
+
+  @Test
+  public void testQueryByStringCaseInstanceVariableValueLike() {
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("aStringValue", "abc")
+      .create();
+
+    CaseExecutionQuery query = caseService.createCaseExecutionQuery();
+
+    query.caseInstanceVariableValueLike("aStringValue", "ab%");
+
+    verifyQueryResults(query, 2);
+
+    query = caseService.createCaseExecutionQuery();
+
+    query.caseInstanceVariableValueLike("aStringValue", "%bc");
+
+    verifyQueryResults(query, 2);
+
+    query = caseService.createCaseExecutionQuery();
+
+    query.caseInstanceVariableValueLike("aStringValue", "%b%");
+
+    verifyQueryResults(query, 2);
+  }
+
+  @Test
+  public void testCaseVariableValueEqualsNumber() throws Exception {
+    // long
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("var", 123L)
+      .create();
+
+    // non-matching long
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("var", 12345L)
+      .create();
+
+    // short
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("var", (short) 123)
+      .create();
+
+    // double
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("var", 123.0d)
+      .create();
+
+    // integer
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("var", 123)
+      .create();
+
+    // untyped null (should not match)
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("var", null)
+      .create();
+
+    // typed null (should not match)
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("var", Variables.longValue(null))
+      .create();
+
+    caseService
+      .withCaseDefinitionByKey(CASE_DEFINITION_KEY)
+      .setVariable("var", "123")
+      .create();
+
+    assertEquals(4, caseService.createCaseExecutionQuery().variableValueEquals("var", Variables.numberValue(123)).count());
+    assertEquals(4, caseService.createCaseExecutionQuery().variableValueEquals("var", Variables.numberValue(123L)).count());
+    assertEquals(4, caseService.createCaseExecutionQuery().variableValueEquals("var", Variables.numberValue(123.0d)).count());
+    assertEquals(4, caseService.createCaseExecutionQuery().variableValueEquals("var", Variables.numberValue((short) 123)).count());
+
+    assertEquals(1, caseService.createCaseExecutionQuery().variableValueEquals("var", Variables.numberValue(null)).count());
+
+    // other operators
+    assertEquals(4, caseService.createCaseExecutionQuery().variableValueNotEquals("var", Variables.numberValue(123)).count());
+    assertEquals(1, caseService.createCaseExecutionQuery().variableValueGreaterThan("var", Variables.numberValue(123L)).count());
+    assertEquals(5, caseService.createCaseExecutionQuery().variableValueGreaterThanOrEqual("var", Variables.numberValue(123.0d)).count());
+    assertEquals(0, caseService.createCaseExecutionQuery().variableValueLessThan("var", Variables.numberValue((short) 123)).count());
+    assertEquals(4, caseService.createCaseExecutionQuery().variableValueLessThanOrEqual("var", Variables.numberValue((short) 123)).count());
+
+    // two executions per case instance match the query
+    assertEquals(8, caseService.createCaseExecutionQuery().caseInstanceVariableValueEquals("var", Variables.numberValue(123)).count());
+    assertEquals(8, caseService.createCaseExecutionQuery().caseInstanceVariableValueEquals("var", Variables.numberValue(123L)).count());
+    assertEquals(8, caseService.createCaseExecutionQuery().caseInstanceVariableValueEquals("var", Variables.numberValue(123.0d)).count());
+    assertEquals(8, caseService.createCaseExecutionQuery().caseInstanceVariableValueEquals("var", Variables.numberValue((short) 123)).count());
+
+    assertEquals(2, caseService.createCaseExecutionQuery().caseInstanceVariableValueEquals("var", Variables.numberValue(null)).count());
+
+    // other operators
+    assertEquals(8, caseService.createCaseExecutionQuery().caseInstanceVariableValueNotEquals("var", Variables.numberValue(123)).count());
+    assertEquals(2, caseService.createCaseExecutionQuery().caseInstanceVariableValueGreaterThan("var", Variables.numberValue(123L)).count());
+    assertEquals(10, caseService.createCaseExecutionQuery().caseInstanceVariableValueGreaterThanOrEqual("var", Variables.numberValue(123.0d)).count());
+    assertEquals(0, caseService.createCaseExecutionQuery().caseInstanceVariableValueLessThan("var", Variables.numberValue((short) 123)).count());
+    assertEquals(8, caseService.createCaseExecutionQuery().caseInstanceVariableValueLessThanOrEqual("var", Variables.numberValue((short) 123)).count());
+
+  }
+
 
   @Test
   public void testQuerySorting() {

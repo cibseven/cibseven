@@ -23,13 +23,15 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.RuntimeService;
-import org.cibseven.bpm.impl.juel.jakarta.el.PropertyNotFoundException;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
+
+import jakarta.el.PropertyNotFoundException;
+
 import org.junit.jupiter.api.Order;
 
 import org.junit.jupiter.api.Test;

@@ -32,11 +32,12 @@ import org.cibseven.bpm.engine.impl.core.variable.VariableUtil;
 import org.cibseven.bpm.engine.impl.core.variable.event.VariableEvent;
 import org.cibseven.bpm.engine.impl.core.variable.event.VariableEventDispatcher;
 import org.cibseven.bpm.engine.impl.db.entitymanager.DbEntityManager;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.impl.VariableMapImpl;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
+
+import jakarta.el.ELContext;
 
 /**
  * @author Daniel Meyer

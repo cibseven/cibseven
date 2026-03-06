@@ -58,7 +58,7 @@ public class MetricsManagerForCleanupTest {
       configuration.setTaskMetricsEnabled(true));
 
   @RegisterExtension
-  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
   @RegisterExtension
   @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 

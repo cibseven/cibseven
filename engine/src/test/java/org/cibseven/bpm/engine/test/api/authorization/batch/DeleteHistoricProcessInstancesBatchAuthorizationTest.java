@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec.grant;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenarioWithCount.scenario;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -58,6 +60,7 @@ public class DeleteHistoricProcessInstancesBatchAuthorizationTest extends Abstra
     historyService = engineRule.getHistoryService();
   }
 
+  @AfterEach
   public void cleanBatch() {
     super.cleanBatch();
     List<HistoricProcessInstance> list = historyService.createHistoricProcessInstanceQuery().list();

@@ -19,8 +19,9 @@ package org.cibseven.bpm.engine.test.mock;
 import java.beans.FeatureDescriptor;
 import java.util.Iterator;
 
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
+
 
 public class MockElResolver extends ELResolver {
 

@@ -768,12 +768,12 @@ public class UserOperationLogQueryTest extends AbstractUserOperationLogTest {
     assertNull(activeDefinitionEntry.getDeploymentId());
 
     assertEquals(INCLUDE_PROCESS_INSTANCES_PROPERTY, activeDefinitionEntry.getProperty());
-    assertEquals("true", activeDefinitionEntry.getNewValue());
+    assertEquals("false", activeDefinitionEntry.getNewValue());
     assertNull(activeDefinitionEntry.getOrgValue());
     assertEquals(UserOperationLogEntry.CATEGORY_OPERATOR, activeDefinitionEntry.getCategory());
   }
 
-  @Deployment(resources = {ONE_TASK_PROCESS})
+  @Deployment(resources = {"org/cibseven/bpm/engine/test/history/HistoricJobLogTest.testAsyncContinuation.bpmn20.xml"})
   @Test
   public void testQueryJobOperations() {
     // given

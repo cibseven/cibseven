@@ -20,9 +20,10 @@ import org.cibseven.bpm.dmn.engine.impl.spi.el.ElExpression;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.el.JuelExpressionManager;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ValueExpression;
 import org.cibseven.bpm.engine.variable.context.VariableContext;
+
+import jakarta.el.ELContext;
+import jakarta.el.ValueExpression;
 
 /**
  * @author Daniel Meyer

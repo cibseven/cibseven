@@ -43,7 +43,7 @@ import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 
 /**
  * @author Tassilo Weidner
@@ -88,7 +88,7 @@ public abstract class AbstractHistoryCleanupSchedulerTest {
     }
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDownAfterAll() {
     if (engineConfiguration != null) {
       engineConfiguration

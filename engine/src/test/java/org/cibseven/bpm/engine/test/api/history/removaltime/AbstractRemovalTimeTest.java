@@ -49,7 +49,7 @@ import org.cibseven.bpm.engine.test.api.resources.GetByteArrayCommand;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ResetDmnConfigUtil;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Order;
@@ -103,7 +103,7 @@ public abstract class AbstractRemovalTimeTest {
         .init();
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDownAfterAll() {
     if (processEngineConfiguration != null) {
       processEngineConfiguration

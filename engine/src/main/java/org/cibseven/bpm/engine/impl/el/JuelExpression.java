@@ -22,11 +22,12 @@ import org.cibseven.bpm.engine.delegate.VariableScope;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.delegate.ExpressionGetInvocation;
 import org.cibseven.bpm.engine.impl.delegate.ExpressionSetInvocation;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELException;
-import org.cibseven.bpm.impl.juel.jakarta.el.MethodNotFoundException;
-import org.cibseven.bpm.impl.juel.jakarta.el.PropertyNotFoundException;
-import org.cibseven.bpm.impl.juel.jakarta.el.ValueExpression;
+
+import jakarta.el.ELContext;
+import jakarta.el.ELException;
+import jakarta.el.MethodNotFoundException;
+import jakarta.el.PropertyNotFoundException;
+import jakarta.el.ValueExpression;
 
 
 /**

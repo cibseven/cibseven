@@ -20,8 +20,9 @@ import java.beans.FeatureDescriptor;
 import java.util.Collections;
 import java.util.Iterator;
 
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
+
 
 /**
  * @author Thorben Lindhauer

@@ -25,7 +25,7 @@ import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
@@ -52,7 +52,7 @@ public class LicenseKeyDirtyDbTest {
     managementService.setLicenseKey("{\"customer\":\"testCompany\"}");
   }
 
-  @AfterClass
+  @AfterAll
   public static void cleanup() {
     new ProvidedProcessEngineRule().getProcessEngine().getManagementService().deleteLicenseKey();
   }
