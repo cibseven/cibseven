@@ -16,14 +16,14 @@
  */
 package org.cibseven.bpm.dmn.engine.impl.el;
 
-import org.cibseven.bpm.impl.juel.jakarta.el.ArrayELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.BeanELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.CompositeELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ListELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.MapELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ResourceBundleELResolver;
+import jakarta.el.ArrayELResolver;
+import jakarta.el.BeanELResolver;
+import jakarta.el.CompositeELResolver;
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
+import jakarta.el.ListELResolver;
+import jakarta.el.MapELResolver;
+import jakarta.el.ResourceBundleELResolver;
 
 import org.cibseven.bpm.dmn.engine.impl.spi.el.ElExpression;
 import org.cibseven.bpm.dmn.engine.impl.spi.el.ElProvider;

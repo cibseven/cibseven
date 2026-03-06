@@ -15,6 +15,7 @@
     <camunda.osgi.import.additional>
       org.junit.*;resolution:=optional
     </camunda.osgi.import.additional>
+    <version.jakarta.el>4.0.0</version.jakarta.el>
   </properties>
   <dependencies>
     <dependency>
@@ -149,6 +150,19 @@
       <scope>test</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>jakarta.el</artifactId>
+      <version>4.0.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.el</groupId>
+      <artifactId>jakarta.el-api</artifactId>
+      <version>5.0.1</version>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -266,5 +280,19 @@
     <system>GitHub Issues</system>
     <url>https://github.com/cibseven/cibseven/issues</url>
   </issueManagement>
+
+  <repositories>
+    <repository>
+      <id>central</id>
+      <name>Maven Central Repository</name>
+      <url>https://repo.maven.apache.org/maven2</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 
 </project>

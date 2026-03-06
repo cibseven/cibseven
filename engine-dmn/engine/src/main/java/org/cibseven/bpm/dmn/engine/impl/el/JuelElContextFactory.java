@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.dmn.engine.impl.el;
 
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
 
 import org.cibseven.bpm.engine.variable.context.VariableContext;
 
