@@ -40,6 +40,7 @@ public abstract class UserQueryImpl extends AbstractQuery<UserQuery, User> imple
   protected String groupId;
   protected String procDefId;
   protected String tenantId;
+  protected Boolean likePatternIgnoreCase;
 
   public UserQueryImpl() {
   }
@@ -112,6 +113,11 @@ public abstract class UserQueryImpl extends AbstractQuery<UserQuery, User> imple
     return this;
   }
 
+  public UserQuery likePatternIgnoreCase() {
+    this.likePatternIgnoreCase = true;
+    return this;
+  }
+
   //sorting //////////////////////////////////////////////////////////
 
   public UserQuery orderByUserId() {
@@ -161,5 +167,8 @@ public abstract class UserQueryImpl extends AbstractQuery<UserQuery, User> imple
   }
   public String getTenantId() {
     return tenantId;
+  }
+  public Boolean isLikePatternIgnoreCase() {
+    return likePatternIgnoreCase;
   }
 }
