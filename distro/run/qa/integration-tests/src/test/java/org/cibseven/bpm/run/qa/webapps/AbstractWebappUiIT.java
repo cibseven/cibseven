@@ -18,7 +18,7 @@ package org.cibseven.bpm.run.qa.webapps;
 
 import org.cibseven.bpm.util.SeleniumScreenshotRule;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.BeforeClass;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -105,7 +105,7 @@ public class AbstractWebappUiIT extends AbstractWebIT {
     appUrl = testProperties.getApplicationPath("/" + getWebappCtxPath());
   }
 
-  @AfterClass
+  @AfterAll
   public static void quitDriver() {
     driver.quit();
   }

@@ -23,7 +23,7 @@ import java.util.Map;
 import org.cibseven.bpm.container.impl.jboss.extension.BpmPlatformExtension;
 import org.cibseven.bpm.container.impl.jboss.extension.ModelConstants;
 import org.jboss.as.subsystem.test.AbstractSubsystemBaseTest;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.BeforeClass;
 
 /**
@@ -52,7 +52,7 @@ public class BpmPlatformSubsystemWithExpressionsTest extends AbstractSubsystemBa
     System.getProperties().putAll(PROPERTIES);
   }
   
-  @AfterClass
+  @AfterAll
   public static void tearDown() {
     for (String key : PROPERTIES.keySet()) {
       System.clearProperty(key);

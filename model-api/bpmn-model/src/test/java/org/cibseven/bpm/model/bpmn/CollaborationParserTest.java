@@ -17,7 +17,7 @@
 package org.cibseven.bpm.model.bpmn;
 
 import org.cibseven.bpm.model.bpmn.instance.*;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -94,7 +94,7 @@ public class CollaborationParserTest {
   }
 
 
-  @AfterClass
+  @AfterAll
   public static void validateModel() {
     Bpmn.validateModel(modelInstance);
   }

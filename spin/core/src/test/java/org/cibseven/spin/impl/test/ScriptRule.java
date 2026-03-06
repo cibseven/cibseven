@@ -61,7 +61,11 @@ public class ScriptRule implements BeforeEachCallback, AfterEachCallback {
 
   @Override
   public void beforeEach(ExtensionContext context) throws Exception {
-    loadScript(context);
+    // Ensure script engine is available before loading script
+    scriptEngine = getScriptEngine(context);
+    if (scriptEngine != null) {
+      loadScript(context);
+    }
   }
 
   @Override
@@ -82,7 +86,6 @@ public class ScriptRule implements BeforeEachCallback, AfterEachCallback {
    * @throws Exception
    */
   private void loadScript(ExtensionContext context) throws Exception {
-    scriptEngine = getScriptEngine(context);
     if (scriptEngine == null) {
       return;
     }
@@ -109,11 +112,52 @@ public class ScriptRule implements BeforeEachCallback, AfterEachCallback {
    */
   private ScriptEngine getScriptEngine(ExtensionContext context) {
     try {
-      ScriptEngineRule scriptEngineRule = (ScriptEngineRule) context.getTestClass().get().getField("scriptEngine").get(null);
-      return scriptEngineRule.getScriptEngine();
-    } catch (NoSuchFieldException e) {
-      return null;
-    } catch (IllegalAccessException e) {
+      // First try to get from the extension context store
+      ExtensionContext.Store store = context.getStore(ExtensionContext.Namespace.create(ScriptEngineRule.class));
+      ScriptEngine engine = store.get("scriptEngine", ScriptEngine.class);
+      if (engine != null) {
+        return engine;
+      }
+      
+      // Try to find the ScriptEngineRule field in the test class hierarchy
+      Class<?> testClass = context.getTestClass().get();
+      ScriptEngineRule foundRule = null;
+      
+      while (testClass != null && testClass != Object.class) {
+        try {
+          java.lang.reflect.Field field = testClass.getDeclaredField("scriptEngine");
+          field.setAccessible(true);
+          foundRule = (ScriptEngineRule) field.get(null);
+          if (foundRule != null) {
+            break;
+          }
+        } catch (NoSuchFieldException e) {
+          // Try parent class
+        }
+        testClass = testClass.getSuperclass();
+      }
+      
+      if (foundRule != null) {
+        engine = foundRule.getScriptEngine();
+        // Store it for future use
+        if (engine != null) {
+          store.put("scriptEngine", engine);
+        }
+        return engine;
+      }
+      
+      // If not found, create a new ScriptEngineRule and initialize it
+      ScriptEngineRule newRule = new ScriptEngineRule();
+      newRule.beforeAll(context);
+      engine = newRule.getScriptEngine();
+      if (engine != null) {
+        store.put("scriptEngine", engine);
+      }
+      return engine;
+      
+    } catch (Exception e) {
+      // Log error and return null - script engine not available
+      LOG.testDisabled("ScriptEngine not available: " + e.getMessage());
       return null;
     }
   }

@@ -48,6 +48,9 @@ public class ScriptEngineRule implements BeforeAllCallback {
     scriptEngine = createScriptEngine(context);
     if (scriptEngine != null) {
       LOG.scriptEngineFoundForLanguage(scriptEngine.getFactory().getLanguageName());
+      // Store the script engine in the extension context for sharing with ScriptRule
+      ExtensionContext.Store store = context.getStore(ExtensionContext.Namespace.create(ScriptEngineRule.class));
+      store.put("scriptEngine", scriptEngine);
     }
   }
 

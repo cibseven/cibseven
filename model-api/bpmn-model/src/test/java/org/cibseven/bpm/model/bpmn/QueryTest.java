@@ -20,7 +20,7 @@ import org.cibseven.bpm.model.bpmn.instance.FlowNode;
 import org.cibseven.bpm.model.bpmn.instance.Gateway;
 import org.cibseven.bpm.model.bpmn.instance.Task;
 import org.cibseven.bpm.model.xml.type.ModelElementType;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -63,7 +63,7 @@ public class QueryTest {
 
   }
 
-  @AfterClass
+  @AfterAll
   public static void validateModelInstance() {
     Bpmn.validateModel(modelInstance);
   }

@@ -15,8 +15,8 @@
     <dependencies>
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
-            <artifactId>archunit-junit4</artifactId>
-            <version>1.0.1</version>
+            <artifactId>archunit-junit5</artifactId>
+            <version>1.4.1</version>
         </dependency>
     </dependencies>
 

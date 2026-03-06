@@ -23,12 +23,6 @@ import org.cibseven.bpm.engine.impl.el.ReadOnlyMapELResolver;
 import org.cibseven.bpm.engine.impl.el.VariableContextElResolver;
 import org.cibseven.bpm.engine.impl.el.VariableScopeElResolver;
 import org.cibseven.bpm.engine.test.mock.MockElResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ArrayELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.BeanELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.CompositeELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ListELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.MapELResolver;
 import org.springframework.context.ApplicationContext;
 
 

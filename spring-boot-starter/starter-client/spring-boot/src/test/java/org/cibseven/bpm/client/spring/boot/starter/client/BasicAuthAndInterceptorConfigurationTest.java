@@ -24,7 +24,7 @@ import org.cibseven.bpm.client.spring.boot.starter.ParsePropertiesHelper;
 import org.cibseven.bpm.client.spring.boot.starter.client.configuration.RequestInterceptorConfiguration;
 import org.cibseven.bpm.client.spring.boot.starter.client.configuration.SimpleSubscriptionConfiguration;
 import org.cibseven.bpm.client.spring.boot.starter.impl.ClientAutoConfiguration;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.BeforeClass;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -64,7 +64,7 @@ public class BasicAuthAndInterceptorConfigurationTest extends ParsePropertiesHel
     clientBuilder = MockHelper.getClientBuilder();
   }
 
-  @AfterClass
+  @AfterAll
   public static void reset() {
     MockHelper.reset();
   }

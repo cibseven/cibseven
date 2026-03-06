@@ -27,7 +27,7 @@ import org.cibseven.bpm.client.ExternalTaskClient;
 import org.cibseven.bpm.client.ExternalTaskClientBuilder;
 import org.cibseven.bpm.client.topic.TopicSubscription;
 import org.cibseven.bpm.client.topic.TopicSubscriptionBuilder;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.BeforeClass;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -63,7 +63,7 @@ public abstract class MockedTest {
     when(subscriptionBuilder.open()).thenReturn(topicSubscription);
   }
 
-  @AfterClass
+  @AfterAll
   public static void close() {
     if(jdkSupportsMockito()) {
       mockedStatic.close();

@@ -51,6 +51,39 @@
       <artifactId>cibseven-engine-dmn</artifactId>
       <scope>provided</scope>
     </dependency>
+    
+    <!-- FEEL Engine dependencies needed for DMN engine tests -->
+    <dependency>
+      <groupId>org.cibseven.bpm.dmn</groupId>
+      <artifactId>cibseven-engine-feel-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.cibseven.bpm.dmn</groupId>
+      <artifactId>cibseven-engine-feel-juel</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.cibseven.bpm.dmn</groupId>
+      <artifactId>cibseven-engine-feel-scala</artifactId>
+      <scope>test</scope>
+    </dependency>
+    
+    <!-- External Camunda FEEL engine dependency -->
+    <dependency>
+      <groupId>org.camunda.feel</groupId>
+      <artifactId>feel-engine</artifactId>
+      <classifier>scala-shaded</classifier>
+      <scope>test</scope>
+    </dependency>
+    
+    <!-- JUEL dependency for expression evaluation -->
+    <dependency>
+      <groupId>org.cibseven.bpm.juel</groupId>
+      <artifactId>cibseven-juel</artifactId>
+      <scope>test</scope>
+    </dependency>
+    
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
