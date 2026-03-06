@@ -18,11 +18,12 @@ package org.cibseven.bpm.engine.cdi.impl.el;
 
 import java.beans.FeatureDescriptor;
 import java.util.Iterator;
+
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
 import jakarta.enterprise.inject.spi.BeanManager;
 import org.cibseven.bpm.engine.cdi.impl.util.BeanManagerLookup;
 import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
 
 
 /**
@@ -52,6 +53,7 @@ public class CdiResolver extends ELResolver {
   public Iterator<FeatureDescriptor> getFeatureDescriptors(ELContext context, Object base) {
     return getWrappedResolver().getFeatureDescriptors(wrapContext(context), base);
   }
+
 
   @Override
   public Class< ? > getType(ELContext context, Object base, Object property) {

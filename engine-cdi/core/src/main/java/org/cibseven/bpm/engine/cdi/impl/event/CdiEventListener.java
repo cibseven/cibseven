@@ -35,7 +35,7 @@ public class CdiEventListener extends AbstractCdiEventListener {
 
   @Override
   protected void fireEvent(BusinessProcessEvent event, Annotation[] qualifiers) {
-    getBeanManager().fireEvent(event, qualifiers);
+    getBeanManager().getEvent().select(BusinessProcessEvent.class, qualifiers).fire(event);
   }
 
   protected BeanManager getBeanManager() {

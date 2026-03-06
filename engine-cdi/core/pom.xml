@@ -14,8 +14,8 @@
   </parent>
 
   <properties>
-    <arquillian.container.version>4.0.0.Final</arquillian.container.version>
-    <weld.version>5.0.1.Final</weld.version>
+    <weld.version>6.0.4.Final</weld.version>
+    <arquillian.weld.version>4.0.0.Final</arquillian.weld.version>
     <jakarta.enterprise.version>4.0.1</jakarta.enterprise.version>
 
   </properties>
@@ -60,16 +60,14 @@
 	<dependency>
 	  <groupId>org.jboss.arquillian.container</groupId>
 	  <artifactId>arquillian-weld-embedded</artifactId>
-	  <version>${arquillian.container.version}</version>
-	  <scope>test</scope>
+	  <version>${arquillian.weld.version}</version>
+	  <scope>compile</scope>
 	</dependency>
-<!-- proposed by AI but not available on nexus	
-	<dependency>
-	  <groupId>org.jboss.weld.arquillian</groupId>
-	  <artifactId>weld-junit5</artifactId>
-	  <version>3.0.0.Final</version>
-	  <scope>test</scope>
-	</dependency>-->
+    <dependency>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>org.jboss.weld</groupId>
       <artifactId>weld-core-impl</artifactId>
