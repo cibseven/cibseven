@@ -16,15 +16,20 @@
  */
 package org.cibseven.spin.plugin.variables;
 
+import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineException;
-import org.cibseven.bpm.engine.impl.test.PluggableProcessEngineTestCase;
+import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
+import org.cibseven.bpm.engine.TaskService;
 import org.cibseven.bpm.engine.test.Deployment;
+import org.cibseven.bpm.engine.test.junit5.ProcessEngineExtension;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.json.JSONException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.engine.variable.Variables.objectValue;
@@ -37,10 +42,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * @author Svetlana Dorokhova
  */
-public class JavaSerializationTest extends PluggableProcessEngineTestCase {
+@ExtendWith(ProcessEngineExtension.class)
+public class JavaSerializationTest {
+
+  public ProcessEngine processEngine;
+  public RuntimeService runtimeService;
+  public TaskService taskService;
 
   protected static final String ONE_TASK_PROCESS = "org/cibseven/spin/plugin/oneTaskProcess.bpmn20.xml";
 
+  @Test
   @Deployment(resources = ONE_TASK_PROCESS)
   public void testSerializationAsJava() throws JSONException {
     ProcessInstance instance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -67,6 +78,7 @@ public class JavaSerializationTest extends PluggableProcessEngineTestCase {
     assertEquals(JavaSerializable.class.getName(), typedValue.getObjectTypeName());
   }
 
+  @Test
   @Deployment(resources = ONE_TASK_PROCESS)
   public void testJavaSerializedValuesAreProhibited() throws JSONException {
     ProcessInstance instance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -82,6 +94,7 @@ public class JavaSerializationTest extends PluggableProcessEngineTestCase {
 
   }
 
+  @Test
   @Deployment(resources = ONE_TASK_PROCESS)
   public void testJavaSerializedValuesAreProhibitedForTransient() throws JSONException {
     ProcessInstance instance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
@@ -97,6 +110,7 @@ public class JavaSerializationTest extends PluggableProcessEngineTestCase {
 
   }
 
+  @Test
   public void testStandaloneTaskVariable() {
     Task task = taskService.newTask();
     task.setName("gonzoTask");
@@ -116,6 +130,7 @@ public class JavaSerializationTest extends PluggableProcessEngineTestCase {
 
   }
 
+  @Test
   public void testStandaloneTaskTransientVariable() {
     Task task = taskService.newTask();
     task.setName("gonzoTask");

@@ -20,29 +20,29 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineException;
-import org.cibseven.bpm.engine.impl.test.PluggableProcessEngineTestCase;
+import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
+import org.cibseven.bpm.engine.test.junit5.ProcessEngineExtension;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-public class FallbackSerializationTest extends PluggableProcessEngineTestCase {
+@ExtendWith(ProcessEngineExtension.class)
+public class FallbackSerializationTest {
+
+  public ProcessEngine processEngine;
+  public RuntimeService runtimeService;
 
   protected static final String ONE_TASK_PROCESS = "org/cibseven/spin/plugin/oneTaskProcess.bpmn20.xml";
 
-  @BeforeEach
-  void setUp(TestInfo testInfo) throws Exception {
-    this.setUpAbstractProcessEngineTestCase(testInfo);
-  }
-  
   @Deployment(resources = ONE_TASK_PROCESS)
   @Test
   public void testSerializationOfUnknownFormat() {
