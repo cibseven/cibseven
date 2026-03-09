@@ -136,6 +136,13 @@
         <scope>import</scope>
       </dependency>
 
+      <!-- temporary override jackson-core version 2.19.4, referenced from spring-boot 3.5.11, to version 2.21.1 to fix CWE-770 -->
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${version.jackson}</version>
+      </dependency>
+
       <!-- Override common transitive dependencies to ensure consistent versions -->
       <dependency>
         <groupId>org.apache.commons</groupId>
