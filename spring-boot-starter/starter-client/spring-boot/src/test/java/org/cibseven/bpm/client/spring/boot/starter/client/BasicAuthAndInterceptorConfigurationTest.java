@@ -25,9 +25,8 @@ import org.cibseven.bpm.client.spring.boot.starter.client.configuration.RequestI
 import org.cibseven.bpm.client.spring.boot.starter.client.configuration.SimpleSubscriptionConfiguration;
 import org.cibseven.bpm.client.spring.boot.starter.impl.ClientAutoConfiguration;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;

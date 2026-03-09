@@ -20,7 +20,6 @@ import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.util.HttpClientRule;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.util.FilterTestApp;
-import org.junit.After;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;

@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.client.spring;
 
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.RETURNS_SELF;
 import static org.mockito.Mockito.mock;
@@ -28,15 +28,13 @@ import org.cibseven.bpm.client.ExternalTaskClientBuilder;
 import org.cibseven.bpm.client.topic.TopicSubscription;
 import org.cibseven.bpm.client.topic.TopicSubscriptionBuilder;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.BeforeClass;
-import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith({SpringExtension.class, MockitoExtension.class})
 public abstract class MockedTest {
 
   protected static ExternalTaskClient client;
@@ -44,9 +42,6 @@ public abstract class MockedTest {
   protected static TopicSubscriptionBuilder subscriptionBuilder;
 
   protected static MockedStatic<ExternalTaskClient> mockedStatic;
-  
-  @RegisterExtension
-  public MockitoRule mockitoRule = MockitoJUnit.rule();
 
   @BeforeAll
   public static void mockClient() {

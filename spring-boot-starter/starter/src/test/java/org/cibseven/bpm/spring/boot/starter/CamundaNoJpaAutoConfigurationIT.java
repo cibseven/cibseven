@@ -17,7 +17,7 @@
 package org.cibseven.bpm.spring.boot.starter;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.Serializable;
 import java.util.HashMap;

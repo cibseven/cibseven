@@ -19,8 +19,8 @@ package org.cibseven.bpm.client.spring.subscription;
 import org.cibseven.bpm.client.spring.exception.NotOpenedException;
 import org.cibseven.bpm.client.spring.MockedTest;
 import org.cibseven.bpm.client.spring.subscription.configuration.NotOpenedExceptionConfiguration;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 

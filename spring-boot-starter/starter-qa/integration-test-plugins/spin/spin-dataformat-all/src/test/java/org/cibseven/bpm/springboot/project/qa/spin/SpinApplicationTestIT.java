@@ -17,6 +17,7 @@
 package org.cibseven.bpm.springboot.project.qa.spin;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.RuntimeService;
