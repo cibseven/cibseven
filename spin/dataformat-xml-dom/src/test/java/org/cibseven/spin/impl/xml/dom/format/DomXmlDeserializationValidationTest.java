@@ -50,7 +50,7 @@ public class DomXmlDeserializationValidationTest {
     format.getMapper().validateType(int.class, validator);
 
     // then
-    Mockito.verifyZeroInteractions(validator);
+    Mockito.verifyNoInteractions(validator);
   }
 
   @Test

@@ -17,9 +17,10 @@
 package org.cibseven.spin.spi;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,47 +28,51 @@ import java.util.Iterator;
 import java.util.ServiceLoader;
 
 import org.cibseven.spin.DataFormats;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Matchers;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
- * Note: The @RunWith and @PrepareForTest annotations are required by powermock to be able
- * to mock static methods provided by the JDK (i.e. ServiceLoader.load(..) in our case).
- * See https://code.google.com/p/powermock/wiki/MockSystem and
- * https://code.google.com/p/powermock/wiki/MockStatic
+ * Note: This test uses Mockito static mocking to mock ServiceLoader.load(..)
+ * which replaces the previous PowerMock usage.
  *
  * @author Thorben Lindhauer
  */
-@RunWith(PowerMockRunner.class)
 public class DataFormatLoadingTest {
 
   protected ServiceLoader<DataFormatProvider> mockServiceLoader;
 
   @SuppressWarnings("rawtypes")
   protected ServiceLoader<DataFormatConfigurator> mockConfiguratorLoader;
+  
+  private MockedStatic<ServiceLoader> mockServiceLoaderStatic;
 
   @BeforeEach
   @SuppressWarnings("unchecked")
   public void setUp() {
-    mockStatic(ServiceLoader.class);
+    mockServiceLoaderStatic = Mockito.mockStatic(ServiceLoader.class);
 
     mockServiceLoader = mock(ServiceLoader.class);
-    when(ServiceLoader.load(Matchers.eq(DataFormatProvider.class), Matchers.any(ClassLoader.class)))
+    mockServiceLoaderStatic.when(() -> ServiceLoader.load(eq(DataFormatProvider.class), any(ClassLoader.class)))
       .thenReturn(mockServiceLoader);
 
     mockConfiguratorLoader = mock(ServiceLoader.class);
-    when(ServiceLoader.load(Matchers.eq(DataFormatConfigurator.class), Matchers.any(ClassLoader.class)))
+    mockServiceLoaderStatic.when(() -> ServiceLoader.load(eq(DataFormatConfigurator.class), any(ClassLoader.class)))
       .thenReturn(mockConfiguratorLoader);
   }
 
+  @AfterEach
+  public void tearDown() {
+    if (mockServiceLoaderStatic != null) {
+      mockServiceLoaderStatic.close();
+    }
+  }
+
   @Test
-  @PrepareForTest( { DataFormats.class })
   public void testCustomDataFormatProvider() {
     // given a custom data format provider that is returned by the service loader API
     mockProviders(new CustomDataFormatProvider());
@@ -83,7 +88,6 @@ public class DataFormatLoadingTest {
 
 
   @Test
-  @PrepareForTest( { DataFormats.class })
   public void testConfigureDataFormat() {
     // given a custom data format provider that is returned by the service loader API
     mockProviders(new CustomDataFormatProvider());
@@ -98,7 +102,6 @@ public class DataFormatLoadingTest {
   }
 
   @Test
-  @PrepareForTest(DataFormats.class)
   public void testConfigureDataFormatWithConfiguratorList() {
     // given a custom data format provider that is returned by the service loader API
     mockProviders(new CustomDataFormatProvider());
@@ -117,7 +120,6 @@ public class DataFormatLoadingTest {
   }
 
   @Test
-  @PrepareForTest(DataFormats.class)
   public void testRegisterDataFormatWithConfiguratorList() {
     // given a custom data format provider that is returned by the service loader API
     mockProviders(new CustomDataFormatProvider());
@@ -136,7 +138,6 @@ public class DataFormatLoadingTest {
   }
 
   @Test
-  @PrepareForTest(DataFormats.class)
   public void shouldPassConfiguratorPropertiesToProvider() {
     // given a custom data format provider that is returned by the service loader API
     mockProviders(new CustomDataFormatProvider());

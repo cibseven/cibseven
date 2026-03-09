@@ -55,7 +55,7 @@ public class JsonDeserializationValidationTest {
     format.getMapper().validateType(type, validator);
 
     // then
-    Mockito.verifyZeroInteractions(validator);
+    Mockito.verifyNoInteractions(validator);
   }
 
   @Test

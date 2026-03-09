@@ -24,8 +24,6 @@
 
   <properties>
     <json-junit-fluent.version>1.1.6</json-junit-fluent.version>
-    <powermock.version>2.0.9</powermock.version>
-    <mockito.version>3.3.3</mockito.version>
     <spin.version.old>7.23.0</spin.version.old>
     <plugin.version.javadoc>3.3.1</plugin.version.javadoc>
 
@@ -52,21 +50,15 @@
       </dependency>
 
       <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-module-junit4</artifactId>
-        <version>${powermock.version}</version>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>${version.mockito}</version>
       </dependency>
 
       <dependency>
         <groupId>org.mockito</groupId>
-        <artifactId>mockito-core</artifactId>
-        <version>${mockito.version}</version>
-      </dependency>      
-
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-api-mockito2</artifactId>
-        <version>${powermock.version}</version>
+        <artifactId>mockito-junit-jupiter</artifactId>
+        <version>${version.mockito}</version>
       </dependency>
 
       <dependency>

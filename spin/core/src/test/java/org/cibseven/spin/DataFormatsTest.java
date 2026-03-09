@@ -16,7 +16,8 @@
  */
 package org.cibseven.spin;
 
-import org.junit.Assert;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -32,7 +33,7 @@ public class DataFormatsTest {
     dataFormats.registerDataFormats(DataFormats.class.getClassLoader());
 
     // then the operation was successful
-    Assert.assertEquals(0, dataFormats.getAllAvailableDataFormats().size());
+    assertEquals(0, dataFormats.getAllAvailableDataFormats().size());
 
     // note: this checks the existence of API that allows to initialize
     // data formats with a custom class loader; the functionality is actually tested

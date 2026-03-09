@@ -106,18 +106,6 @@
     </dependency>
     
     <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-module-junit4</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito2</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.cibseven.spin</groupId>
       <artifactId>cibseven-spin-core</artifactId>
       <type>test-jar</type>
