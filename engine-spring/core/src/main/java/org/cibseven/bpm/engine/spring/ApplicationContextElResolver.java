@@ -21,6 +21,9 @@ import java.util.Iterator;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.springframework.context.ApplicationContext;
 
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
+
 /**
  * @author Tom Baeyens
  * @author Frederik Heremans

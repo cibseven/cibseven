@@ -162,6 +162,14 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+
+    <!-- Jakarta EL implementation needed for JUEL script execution in tests -->
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>jakarta.el</artifactId>
+      <version>4.0.2</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
 
