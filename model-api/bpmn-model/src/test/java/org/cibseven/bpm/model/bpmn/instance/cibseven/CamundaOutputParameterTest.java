@@ -22,8 +22,8 @@ import org.cibseven.bpm.model.bpmn.instance.BpmnModelElementInstanceTest;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.model.bpmn.impl.BpmnModelConstants.CAMUNDA_NS;
-import static org.junit.Assert.fail;
 
 /**
  * @author Sebastian Menski
