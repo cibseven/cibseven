@@ -28,6 +28,7 @@ import org.cibseven.bpm.identity.ldap.util.LdapTestEnvironment;
 import org.cibseven.bpm.identity.ldap.util.LdapTestEnvironmentRule;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
@@ -43,7 +44,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 public class LdapQueryToleranceTest {
 
   @RegisterExtension
-  @Order(2) public static LdapTestEnvironmentRule ldapRule = new LdapTestEnvironmentRule();
+  public static LdapTestEnvironmentRule ldapRule = new LdapTestEnvironmentRule();
   @RegisterExtension
   @Order(4) public ProcessEngineRule engineRule = new ProcessEngineRule("invalid-id-attributes.cfg.xml");
   @RegisterExtension

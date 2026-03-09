@@ -27,16 +27,15 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.identity.ldap.util.LdapTestEnvironmentRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 
 @Deployment
 public class ProcessDefinitionQueryWithCustomIdentityProviderTest {
 
   @RegisterExtension
-  @Order(2) public static LdapTestEnvironmentRule ldapRule = new LdapTestEnvironmentRule();
+  public static LdapTestEnvironmentRule ldapRule = new LdapTestEnvironmentRule();
   @RegisterExtension
-  @Order(4) public ProcessEngineRule engineRule = new ProcessEngineRule();
+  public ProcessEngineRule engineRule = new ProcessEngineRule();
 
   RepositoryService repositoryService;
 

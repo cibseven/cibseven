@@ -16,20 +16,18 @@
  */
 package org.cibseven.spin.plugin.variables;
 
-import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineException;
-import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
-import org.cibseven.bpm.engine.TaskService;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.cibseven.bpm.engine.test.junit5.ProcessEngineExtension;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.json.JSONException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.TestInfo;
+import org.cibseven.bpm.engine.impl.test.PluggableProcessEngineTestCase;
 
 import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.engine.variable.Variables.objectValue;
@@ -42,15 +40,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * @author Svetlana Dorokhova
  */
-@ExtendWith(ProcessEngineExtension.class)
-public class JavaSerializationTest {
-
-  public ProcessEngine processEngine;
-  public RuntimeService runtimeService;
-  public TaskService taskService;
+public class JavaSerializationTest extends PluggableProcessEngineTestCase{
 
   protected static final String ONE_TASK_PROCESS = "org/cibseven/spin/plugin/oneTaskProcess.bpmn20.xml";
 
+  @BeforeEach
+  public void setUpAbstractProcessEngineTestCase(TestInfo testInfo) {
+    super.setUpAbstractProcessEngineTestCase(testInfo);
+  }
+  
   @Test
   @Deployment(resources = ONE_TASK_PROCESS)
   public void testSerializationAsJava() throws JSONException {
