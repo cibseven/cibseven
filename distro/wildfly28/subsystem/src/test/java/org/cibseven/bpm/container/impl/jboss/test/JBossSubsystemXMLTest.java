@@ -20,12 +20,13 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUBSYSTEM;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.Assert.fail;
+
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -60,7 +61,6 @@ import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceContainer;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
-import org.jboss.threads.EnhancedQueueExecutor;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -325,7 +325,7 @@ public class JBossSubsystemXMLTest extends AbstractSubsystemTest {
           .build();
 
     } catch (XMLStreamException fpe) {
-      assertTrue("Duplicate process engine detected!", fpe.getNestedException().getMessage().contains("A process engine with name '__test' already exists."));
+      assertTrue(fpe.getNestedException().getMessage().contains("A process engine with name '__test' already exists."), "Duplicate process engine detected!");
     }
   }
 
@@ -474,8 +474,8 @@ public class JBossSubsystemXMLTest extends AbstractSubsystemTest {
     assertNotNull(managedQueueExecutorServiceObject);
     assertTrue(managedQueueExecutorServiceObject instanceof ManagedQueueExecutorService);
     ManagedQueueExecutorService managedQueueExecutorService = (ManagedQueueExecutorService) managedQueueExecutorServiceObject;
-    assertEquals("Number of core threads is wrong", SubsystemAttributeDefinitons.DEFAULT_CORE_THREADS, managedQueueExecutorService.getCoreThreads());
-    assertEquals("Number of max threads is wrong", SubsystemAttributeDefinitons.DEFAULT_MAX_THREADS, managedQueueExecutorService.getMaxThreads());
+    assertEquals(SubsystemAttributeDefinitons.DEFAULT_CORE_THREADS, managedQueueExecutorService.getCoreThreads(), "Number of core threads is wrong");
+    assertEquals(SubsystemAttributeDefinitons.DEFAULT_MAX_THREADS, managedQueueExecutorService.getMaxThreads(), "Number of max threads is wrong");
     assertEquals(SubsystemAttributeDefinitons.DEFAULT_KEEPALIVE_TIME, TimeUnit.NANOSECONDS.toSeconds(managedQueueExecutorService.getKeepAlive()));
     assertEquals(false, managedQueueExecutorService.isBlocking());
     assertEquals(SubsystemAttributeDefinitons.DEFAULT_ALLOW_CORE_TIMEOUT, managedQueueExecutorService.isAllowCoreTimeout());

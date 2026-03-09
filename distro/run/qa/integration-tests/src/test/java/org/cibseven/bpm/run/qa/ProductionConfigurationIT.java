@@ -23,7 +23,7 @@ import java.io.IOException;
 import org.cibseven.bpm.run.qa.util.SpringBootManagedContainer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 
 import io.restassured.response.Response;
 

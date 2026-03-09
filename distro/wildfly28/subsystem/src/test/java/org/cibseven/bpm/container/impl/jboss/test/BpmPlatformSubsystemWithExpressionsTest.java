@@ -24,6 +24,7 @@ import org.cibseven.bpm.container.impl.jboss.extension.BpmPlatformExtension;
 import org.cibseven.bpm.container.impl.jboss.extension.ModelConstants;
 import org.jboss.as.subsystem.test.AbstractSubsystemBaseTest;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.BeforeClass;
 
 /**

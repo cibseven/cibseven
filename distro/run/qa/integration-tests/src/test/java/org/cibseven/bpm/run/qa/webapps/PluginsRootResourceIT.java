@@ -19,14 +19,13 @@ package org.cibseven.bpm.run.qa.webapps;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import org.cibseven.bpm.run.qa.util.SpringBootManagedContainer;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.AfterParam;
-import org.junit.runners.Parameterized.BeforeParam;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -41,14 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * then added <code>@BeforeParam</code> and <code>@AfterParam</code> methods for container setup
  * and changed  <code>appBasePath</code> to <code>APP_BASE_PATH</code>, might be removed with https://jira.camunda.com/browse/CAM-11379
  */
-@RunWith(Parameterized.class)
 public class PluginsRootResourceIT extends AbstractWebIT {
-
-  @Parameter(0)
-  public String assetName;
-
-  @Parameter(1)
-  public boolean assetAllowed;
 
   @BeforeEach
   public void createClient() throws Exception {
@@ -57,7 +49,7 @@ public class PluginsRootResourceIT extends AbstractWebIT {
 
   private static SpringBootManagedContainer container;
 
-  @BeforeParam
+  @BeforeAll
   public static void runStartScript(String assetName, boolean assetAllowed) {
     container = new SpringBootManagedContainer("--webapps");
     try {
@@ -67,7 +59,7 @@ public class PluginsRootResourceIT extends AbstractWebIT {
     }
   }
 
-  @AfterParam
+  @AfterAll
   public static void stopApp() {
     try {
       if (container != null) {
@@ -80,7 +72,6 @@ public class PluginsRootResourceIT extends AbstractWebIT {
     }
   }
 
-  @Parameters(name = "Test instance: {index}. Asset: {0}, Allowed: {1}")
   public static Collection<Object[]> getAssets() {
     return Arrays.asList(new Object[][]{
         {"app/plugin.js", true},
@@ -91,16 +82,17 @@ public class PluginsRootResourceIT extends AbstractWebIT {
     });
   }
 
-  @Test
-  public void shouldGetAssetIfAllowed() {
+  @ParameterizedTest
+  @MethodSource("getAssets")
+  public void shouldGetAssetIfAllowed(String assetName, boolean assetAllowed) {
     // when
     HttpResponse<String> response = Unirest.get(APP_BASE_PATH + "api/admin/plugin/adminPlugins/static/" + assetName).asString();
 
     // then
-    assertResponse(assetName, response);
+    assertResponse(assetName, response, assetAllowed);
   }
 
-  protected void assertResponse(String asset, HttpResponse<String> response) {
+  protected void assertResponse(String asset, HttpResponse<String> response, boolean assetAllowed) {
     if (assetAllowed) {
       assertEquals(200, response.getStatus());
     } else {
