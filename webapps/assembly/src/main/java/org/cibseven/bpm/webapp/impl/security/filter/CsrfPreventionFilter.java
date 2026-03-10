@@ -35,7 +35,7 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.webapp.impl.security.filter.util.CookieConstants;
