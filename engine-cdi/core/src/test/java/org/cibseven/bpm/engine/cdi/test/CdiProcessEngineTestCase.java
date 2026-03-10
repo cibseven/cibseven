@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.cdi.test;
 
+import java.util.ServiceLoader;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Callable;
@@ -47,9 +48,12 @@ import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
 import org.cibseven.bpm.engine.impl.util.LogUtil;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.container.test.spi.client.deployment.AuxiliaryArchiveAppender;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,12 +75,27 @@ public abstract class CdiProcessEngineTestCase {
 
   protected Logger logger = Logger.getLogger(getClass().getName());
 
+//  @Deployment
+//  public static JavaArchive createDeployment() {
+//
+//    return ShrinkWrap.create(JavaArchive.class)
+//      .addPackages(true, "org.cibseven.bpm.engine.cdi")
+//      .addPackages(true, "org.cibseven.bpm.engine.cdi.test.impl.beans")
+////      .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
+////      .addAsResource("META-INF/processes.xml")
+//      .addAsManifestResource("META-INF/beans.xml", "beans.xml")
+//      // Add JUnit classes to avoid ClassNotFoundException
+//      .addPackages(true, "org.junit.jupiter")
+//      .addPackages(true, "org.junit.platform");
+//
+//  }
   @Deployment
-  public static JavaArchive createDeployment() {
-
-    return ShrinkWrap.create(JavaArchive.class)
-      .addPackages(true, "org.cibseven.bpm.engine.cdi")
-      .addAsManifestResource("META-INF/beans.xml", "beans.xml");
+  public static WebArchive createDeployment() {
+      return ShrinkWrap.create(WebArchive.class)
+          .addPackages(true, "org.cibseven.bpm.engine.cdi")
+          .addPackages(true, "org.cibseven.bpm.engine.cdi.test.impl.beans")
+          .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
+          .addAsManifestResource("META-INF/beans.xml", "beans.xml");
   }
 
   @RegisterExtension
@@ -99,6 +118,14 @@ public abstract class CdiProcessEngineTestCase {
   protected DecisionService decisionService;
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
+  @BeforeEach
+  public void debugAppenders() {
+      ServiceLoader<AuxiliaryArchiveAppender> appenders = 
+          ServiceLoader.load(AuxiliaryArchiveAppender.class);
+      for (AuxiliaryArchiveAppender appender : appenders) {
+          System.out.println("Found appender: " + appender.getClass().getName());
+      }
+  }
 
   @BeforeEach
   public void setUpCdiProcessEngineTestCase() throws Exception {
