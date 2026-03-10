@@ -19,12 +19,7 @@ package org.cibseven.bpm.qa.rolling.update;
 import java.util.Arrays;
 import java.util.Collection;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
 
 /**
  * The abstract rolling update test case, which should be used as base class from all
@@ -34,24 +29,18 @@ import org.junit.runners.Parameterized.Parameters;
  *
  * @author Christopher Zell <christopher.zell@camunda.com>
  */
-@RunWith(Parameterized.class)
 public abstract class AbstractRollingUpdateTestCase {
 
-  @Parameters(name = "{0} engine")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
           {RollingUpdateConstants.OLD_ENGINE_TAG}, {RollingUpdateConstants.NEW_ENGINE_TAG}
            });
     }
 
-  @Parameter
-  public String tag;
-
   @RegisterExtension
   public UpgradeTestRule rule = new UpgradeTestRule();
 
-  @BeforeEach
-  public void init() {
+  public void init(String tag) {
     rule.setTag(tag);
   }
 }

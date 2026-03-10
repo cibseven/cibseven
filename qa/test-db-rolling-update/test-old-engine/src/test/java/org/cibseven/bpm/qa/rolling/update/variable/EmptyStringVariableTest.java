@@ -16,14 +16,14 @@
  */
 package org.cibseven.bpm.qa.rolling.update.variable;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstanceQuery;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * This test ensures that the old engine can read an empty String variable created by the new engine.
@@ -34,9 +34,11 @@ import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 @ScenarioUnderTest("EmptyStringVariableScenario")
 public class EmptyStringVariableTest extends AbstractRollingUpdateTestCase {
 
-  @Test
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
   @ScenarioUnderTest("init.1")
-  public void shouldFindEmptyStringVariableWithValue() {
+  public void shouldFindEmptyStringVariableWithValue(String tag) {
+    init(tag);
     //given
     VariableInstance variableInstance = rule.getRuntimeService().createVariableInstanceQuery()
         .variableName("myStringVar")
@@ -46,9 +48,11 @@ public class EmptyStringVariableTest extends AbstractRollingUpdateTestCase {
     assertThat(variableInstance.getValue()).isEqualTo("");
   }
 
-  @Test
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
   @ScenarioUnderTest("init.1")
-  public void shouldQueryEmptyStringVariableWithValueEquals() {
+  public void shouldQueryEmptyStringVariableWithValueEquals(String tag) {
+    init(tag);
     //given
     VariableInstanceQuery variableInstanceQuery = rule.getRuntimeService().createVariableInstanceQuery()
         .variableValueEquals("myStringVar", "");
@@ -57,9 +61,11 @@ public class EmptyStringVariableTest extends AbstractRollingUpdateTestCase {
     assertThat(variableInstanceQuery.count()).isEqualTo(1L);
   }
 
-  @Test
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
   @ScenarioUnderTest("init.1")
-  public void shouldQueryEmptyStringVariableWithValueNotEquals() {
+  public void shouldQueryEmptyStringVariableWithValueNotEquals(String tag) {
+    init(tag);
     //given
     VariableInstanceQuery variableInstanceQuery = rule.getRuntimeService().createVariableInstanceQuery()
         .variableValueNotEquals("myStringVar", "");

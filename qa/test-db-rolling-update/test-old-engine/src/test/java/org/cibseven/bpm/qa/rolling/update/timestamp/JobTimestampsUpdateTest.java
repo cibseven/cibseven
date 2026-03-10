@@ -20,7 +20,8 @@ import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Date;
 
@@ -37,8 +38,10 @@ public class JobTimestampsUpdateTest extends AbstractTimestampUpdateTest {
   protected static final Date LOCK_EXP_TIME = new Date(TIME + LOCK_DURATION);
 
   @ScenarioUnderTest("initJobTimestamps.1")
-  @Test
-  public void testDueDateConversion() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
+  public void testDueDateConversion(String tag) {
+    init(tag);
 
     Job job = rule.jobQuery().singleResult();
 
@@ -50,8 +53,10 @@ public class JobTimestampsUpdateTest extends AbstractTimestampUpdateTest {
   }
 
   @ScenarioUnderTest("initJobTimestamps.1")
-  @Test
-  public void testLockExpirationTimeConversion() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
+  public void testLockExpirationTimeConversion(String tag) {
+    init(tag);
 
     JobEntity job = (JobEntity) rule.jobQuery().singleResult();
 

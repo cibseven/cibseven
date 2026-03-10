@@ -24,7 +24,8 @@ import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.rolling.update.RollingUpdateConstants;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -46,10 +47,11 @@ public class HistoryCleanupTest extends AbstractRollingUpdateTestCase {
     ClockUtil.reset();
   }
 
-  @Test
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
   @ScenarioUnderTest("initHistoryCleanup.1")
-  public void testHistoryCleanup() {
-
+  public void testHistoryCleanup(String tag) {
+    init(tag);
     if (RollingUpdateConstants.OLD_ENGINE_TAG.equals(rule.getTag())) { // test cleanup with old engine
 
       Date currentDate = addDays(FIXED_DATE, 1);

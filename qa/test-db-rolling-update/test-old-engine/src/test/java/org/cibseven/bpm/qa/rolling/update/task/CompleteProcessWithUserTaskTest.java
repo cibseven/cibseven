@@ -16,13 +16,16 @@
  */
 package org.cibseven.bpm.qa.rolling.update.task;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import org.cibseven.bpm.engine.TaskService;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.Assert;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * This test ensures that the old engine can complete an
@@ -33,24 +36,26 @@ import org.junit.jupiter.api.Test;
 @ScenarioUnderTest("ProcessWithUserTaskScenario")
 public class CompleteProcessWithUserTaskTest extends AbstractRollingUpdateTestCase {
 
-  @Test
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
   @ScenarioUnderTest("init.1")
-  public void testCompleteProcessWithUserTask() {
+  public void testCompleteProcessWithUserTask(String tag) {
+    init(tag);
     //given an already started process instance
     ProcessInstance oldInstance = rule.processInstance();
-    Assert.assertNotNull(oldInstance);
+    assertNotNull(oldInstance);
 
     //which waits on an user task
     TaskService taskService = rule.getTaskService();
     Task userTask = taskService.createTaskQuery().processInstanceId(oldInstance.getId()).singleResult();
-    Assert.assertNotNull(userTask);
+    assertNotNull(userTask);
 
     //when completing the user task
     taskService.complete(userTask.getId());
 
     //then there exists no more tasks
     //and the process instance is also completed
-    Assert.assertEquals(0, rule.taskQuery().count());
+    assertEquals(0, rule.taskQuery().count());
     rule.assertScenarioEnded();
   }
 

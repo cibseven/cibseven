@@ -23,8 +23,10 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.task.TaskQuery;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -41,9 +43,11 @@ public class CompleteProcessWithCallActivityTest extends AbstractRollingUpdateTe
     runtimeService = rule.getRuntimeService();
   }
 
-  @Test
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
   @ScenarioUnderTest("init.1")
-  public void testCompleteProcessWithCallActivity() {
+  public void testCompleteProcessWithCallActivity(String tag) {
+    init(tag);
     //given process with user task before call activity
     ProcessInstance processInstance = rule.processInstance();
 
@@ -67,9 +71,11 @@ public class CompleteProcessWithCallActivityTest extends AbstractRollingUpdateTe
     rule.assertScenarioEnded();
   }
 
-  @Test
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
   @ScenarioUnderTest("init.complete.one.1")
-  public void testCompleteProcessWithCallActivityAndOneCompletedTask() {
+  public void testCompleteProcessWithCallActivityAndOneCompletedTask(String tag) {
+    init(tag);
     //given process within sub process
     ProcessInstance processInstance = rule.processInstance();
     Execution subProcess = runtimeService.createProcessInstanceQuery().superProcessInstanceId(processInstance.getId()).singleResult();

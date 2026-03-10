@@ -16,13 +16,17 @@
  */
 package org.cibseven.bpm.qa.rolling.update.task;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.Date;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.Assert;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 
 /**
@@ -34,14 +38,16 @@ import org.junit.jupiter.api.Test;
 @ScenarioUnderTest("ProcessWithUserTaskAndTimerScenario")
 public class CompleteProcessWithUserTaskAndTimerTest extends AbstractRollingUpdateTestCase {
 
-  @Test
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
   @ScenarioUnderTest("init.1")
-  public void testCompleteProcessWithUserTaskAndTimer() throws InterruptedException {
+  public void testCompleteProcessWithUserTaskAndTimer(String tag) throws InterruptedException {
+    init(tag);
     //given a process instance with user task and timer boundary event
     Job job = rule.jobQuery().singleResult();
-    Assert.assertNotNull(job);
+    assertNotNull(job);
     //job is not available since timer is set to 2 mintues in the future
-    Assert.assertFalse(!job.isSuspended()
+    assertFalse(!job.isSuspended()
             && job.getRetries() > 0
             && (job.getDuedate() == null
                 || ClockUtil.getCurrentTime().after(job.getDuedate())));
@@ -51,7 +57,7 @@ public class CompleteProcessWithUserTaskAndTimerTest extends AbstractRollingUpda
 
     //then job is available and timer should executed and process instance ends
     job = rule.jobQuery().singleResult();
-    Assert.assertTrue(!job.isSuspended()
+    assertTrue(!job.isSuspended()
             && job.getRetries() > 0
             && (job.getDuedate() == null
                 || ClockUtil.getCurrentTime().after(job.getDuedate())));

@@ -40,7 +40,7 @@ public class SetJobRetriesAsyncTest {
   protected static final String DATA_PREFIX = SetJobRetriesAsyncTest.class.getSimpleName();
   protected static final int GENERATE_PROCESS_INSTANCES_COUNT = 3000;
 
-  @Order(4) protected ProcessEngineRule engineRule = new ProcessEngineRule();
+  protected ProcessEngineRule engineRule = new ProcessEngineRule();
   protected BatchModificationJobHelper helper = new BatchModificationJobHelper(engineRule);
 
   protected EngineDataGenerator generator;

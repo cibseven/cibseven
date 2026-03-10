@@ -16,12 +16,14 @@
  */
 package org.cibseven.bpm.qa.rolling.update.task;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.Assert;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * This test ensures that the old engine can complete an
@@ -32,14 +34,16 @@ import org.junit.jupiter.api.Test;
 @ScenarioUnderTest("ProcessWithAsyncServiceTaskScenario")
 public class CompleteProcessWithAsyncServiceTaskTest extends AbstractRollingUpdateTestCase {
 
-  @Test
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
   @ScenarioUnderTest("init.1")
-  public void testCompleteWithAsyncServiceTask() {
+  public void testCompleteWithAsyncServiceTask(String tag) {
+    init(tag);
     //given process with async service task
     ProcessInstance oldInstance = rule.processInstance();
-    Assert.assertNotNull(oldInstance);
+    assertNotNull(oldInstance);
     Job job = rule.jobQuery().singleResult();
-    Assert.assertNotNull(job);
+    assertNotNull(job);
 
     //when job is executed
     rule.getManagementService().executeJob(job.getId());

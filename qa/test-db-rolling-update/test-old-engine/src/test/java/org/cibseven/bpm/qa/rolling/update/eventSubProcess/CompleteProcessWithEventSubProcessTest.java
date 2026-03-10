@@ -16,13 +16,15 @@
  */
 package org.cibseven.bpm.qa.rolling.update.eventSubProcess;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.Assert;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  *
@@ -31,14 +33,16 @@ import org.junit.jupiter.api.Test;
 @ScenarioUnderTest("ProcessWithEventSubProcessScenario")
 public class CompleteProcessWithEventSubProcessTest extends AbstractRollingUpdateTestCase {
 
-  @Test
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
   @ScenarioUnderTest("init.1")
-  public void testCompleteProcessWithEventSubProcess() {
+  public void testCompleteProcessWithEventSubProcess(String tag) {
+    init(tag);
     //given process within event sub process
     ProcessInstance oldInstance = rule.processInstance();
-    Assert.assertNotNull(oldInstance);
+    assertNotNull(oldInstance);
     Job job = rule.jobQuery().singleResult();
-    Assert.assertNotNull(job);
+    assertNotNull(job);
 
     //when job is executed
     rule.getManagementService().executeJob(job.getId());
@@ -48,21 +52,23 @@ public class CompleteProcessWithEventSubProcessTest extends AbstractRollingUpdat
                     .createTaskQuery()
                     .processInstanceId(oldInstance.getId())
                     .taskName("TaskInEventSubProcess").singleResult();
-    Assert.assertNotNull(task);
+    assertNotNull(task);
     rule.getTaskService().complete(task.getId());
     rule.assertScenarioEnded();
   }
 
-  @Test
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
   @ScenarioUnderTest("init.error.1")
-  public void testCompleteProcessWithInEventSubProcess() {
+  public void testCompleteProcessWithInEventSubProcess(String tag) {
+    init(tag);
     //given process within event sub process
     ProcessInstance oldInstance = rule.processInstance();
     Task task = rule.getTaskService()
                     .createTaskQuery()
                     .processInstanceId(oldInstance.getId())
                     .taskName("TaskInEventSubProcess").singleResult();
-    Assert.assertNotNull(task);
+    assertNotNull(task);
 
     //when task is completed
     rule.getTaskService().complete(task.getId());

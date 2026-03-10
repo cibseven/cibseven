@@ -36,7 +36,9 @@ import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
 import static org.assertj.core.api.Assertions.assertThat;
 /**
  *
@@ -74,9 +76,11 @@ public class AuthorizationTest extends AbstractRollingUpdateTestCase {
     identityService.clearAuthentication();
   }
 
-  @Test
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
   @ScenarioUnderTest("startProcessInstance.1")
-  public void testAuthorization() {
+  public void testAuthorization(String tag) {
+    init(tag);
     //test access process related
     testGetDeployment();
     testGetProcessDefinition();

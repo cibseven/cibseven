@@ -19,11 +19,14 @@ package org.cibseven.bpm.qa.rolling.update.externalTask;
 import java.util.List;
 import org.cibseven.bpm.engine.externaltask.ExternalTask;
 import org.cibseven.bpm.engine.externaltask.LockedExternalTask;
-import org.junit.Assert;
-import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
@@ -35,9 +38,11 @@ public class CompleteProcessWithExternalTaskTest extends AbstractRollingUpdateTe
 
   public static final long LOCK_TIME = 5 * 60 * 1000;
 
-  @Test
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
   @ScenarioUnderTest("init.1")
-  public void testCompleteProcessWithExternalTask() {
+  public void testCompleteProcessWithExternalTask(String tag) throws InterruptedException {
+    init(tag);
     //given process with external task
     String buisnessKey = rule.getBuisnessKey();
     List<LockedExternalTask> externalTasks = rule.getExternalTaskService().fetchAndLock(1, buisnessKey)
@@ -52,9 +57,11 @@ public class CompleteProcessWithExternalTaskTest extends AbstractRollingUpdateTe
     rule.assertScenarioEnded();
   }
 
-  @Test
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
   @ScenarioUnderTest("init.fetch.1")
-  public void testCompleteProcessWithFetchedExternalTask() throws InterruptedException {
+  public void testCompleteProcessWithFetchedExternalTask(String tag) throws InterruptedException {
+    init(tag);
     //given process with locked external task
     String buisnessKey = rule.getBuisnessKey();
     ExternalTask task = rule.getExternalTaskService()
@@ -63,7 +70,7 @@ public class CompleteProcessWithExternalTaskTest extends AbstractRollingUpdateTe
                             .topicName(buisnessKey)
                             .workerId(buisnessKey)
                             .singleResult();
-    Assert.assertNotNull(task);
+    assertNotNull(task);
 
     //when external task is completed
     rule.getExternalTaskService().complete(task.getId(), buisnessKey);

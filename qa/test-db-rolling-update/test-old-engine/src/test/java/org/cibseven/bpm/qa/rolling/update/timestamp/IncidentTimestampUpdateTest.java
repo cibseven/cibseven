@@ -19,7 +19,8 @@ package org.cibseven.bpm.qa.rolling.update.timestamp;
 import org.cibseven.bpm.engine.runtime.Incident;
 import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,8 +32,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class IncidentTimestampUpdateTest extends AbstractTimestampUpdateTest {
 
   @ScenarioUnderTest("initIncidentTimestamp.1")
-  @Test
-  public void testIncidentTimestampConversion() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
+  public void testIncidentTimestampConversion(String tag) {
+    init(tag);
     // given
     String processInstanceId = rule.jobQuery().singleResult().getProcessInstanceId();
 
