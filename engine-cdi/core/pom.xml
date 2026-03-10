@@ -16,7 +16,8 @@
   <properties>
     <weld.version>6.0.4.Final</weld.version>
     <arquillian.weld.version>4.0.0.Final</arquillian.weld.version>
-    <jakarta.enterprise.version>4.0.1</jakarta.enterprise.version>
+    <jakarta.enterprise.version>3.0.1</jakarta.enterprise.version>
+    <jakarta.faces.version>4.0.1</jakarta.faces.version>
 
   </properties>
 
@@ -113,7 +114,7 @@
     <dependency>
       <groupId>jakarta.faces</groupId>
       <artifactId>jakarta.faces-api</artifactId>
-      <version>${jakarta.enterprise.version}</version>
+      <version>${jakarta.faces.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

@@ -16,6 +16,10 @@
  */
 package org.cibseven.bpm.engine.cdi.test.impl.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.cibseven.bpm.BpmPlatform;
 import org.cibseven.bpm.container.RuntimeContainerDelegate;
 import org.cibseven.bpm.engine.ProcessEngine;
@@ -24,9 +28,9 @@ import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.InjectedProcessEngineBean;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
 import org.jboss.arquillian.junit5.ArquillianExtension;
-import org.junit.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
@@ -65,11 +69,11 @@ public class InjectDefaultProcessEngineTest extends CdiProcessEngineTestCase {
 
     //when TestClass is created
     InjectedProcessEngineBean testClass = ProgrammaticBeanLookup.lookup(InjectedProcessEngineBean.class);
-    Assert.assertNotNull(testClass);
+    assertNotNull(testClass);
 
     //then default engine is injected
-    Assert.assertEquals("default", testClass.processEngine.getName());
-    Assert.assertTrue(testClass.processEngine.getProcessEngineConfiguration().getJdbcUrl()
+    assertEquals("default", testClass.processEngine.getName());
+    assertTrue(testClass.processEngine.getProcessEngineConfiguration().getJdbcUrl()
         .contains("default-process-engine"));
   }
 }

@@ -25,6 +25,7 @@ import org.cibseven.bpm.engine.impl.el.VariableScopeElResolver;
 import jakarta.el.ArrayELResolver;
 import jakarta.el.BeanELResolver;
 import jakarta.el.CompositeELResolver;
+import jakarta.el.ELResolver;
 import jakarta.el.ListELResolver;
 import jakarta.el.MapELResolver;
 

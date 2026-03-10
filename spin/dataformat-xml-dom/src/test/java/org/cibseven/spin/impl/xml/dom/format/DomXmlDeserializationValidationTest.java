@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import org.cibseven.spin.DeserializationTypeValidator;
 import org.cibseven.spin.SpinRuntimeException;
-import org.cibseven.spin.xml.SpinXmlDataFormatException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

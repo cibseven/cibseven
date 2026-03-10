@@ -16,6 +16,9 @@
  */
 package org.cibseven.bpm.engine.cdi.test.impl.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import org.cibseven.bpm.BpmPlatform;
 import org.cibseven.bpm.container.RuntimeContainerDelegate;
 import org.cibseven.bpm.engine.ProcessEngine;
@@ -23,14 +26,10 @@ import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
 import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.InjectedProcessEngineBean;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
-import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
@@ -69,9 +68,9 @@ public class InjectCustomProcessEngineTest extends CdiProcessEngineTestCase {
 
     //when TestClass is created
     InjectedProcessEngineBean testClass = ProgrammaticBeanLookup.lookup(InjectedProcessEngineBean.class);
-    Assert.assertNotNull(testClass);
+    assertNotNull(testClass);
 
     //then custom engine is injected
-    Assert.assertEquals("myCustomEngine", testClass.processEngine.getName());
+    assertEquals("myCustomEngine", testClass.processEngine.getName());
   }
 }
