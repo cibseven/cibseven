@@ -50,12 +50,6 @@ public class CdiResolver extends ELResolver {
   }
 
   @Override
-  public Iterator<FeatureDescriptor> getFeatureDescriptors(ELContext context, Object base) {
-    return getWrappedResolver().getFeatureDescriptors(wrapContext(context), base);
-  }
-
-
-  @Override
   public Class< ? > getType(ELContext context, Object base, Object property) {
     return getWrappedResolver().getType(wrapContext(context), base, property);
   }
