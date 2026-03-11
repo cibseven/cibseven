@@ -31,7 +31,7 @@ public class JerseyServerBootstrap extends EmbeddedServerBootstrap {
   protected HttpServer server;
 
   public JerseyServerBootstrap() {
-    super(new JaxrsApplication());
+    super(new JakartarsApplication());
   }
 
   public JerseyServerBootstrap(Application application) {

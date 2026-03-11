@@ -245,7 +245,7 @@
         <version>2.0.0</version>
       </dependency>
 
-      <dependency>
+<!--      <dependency>
         <groupId>org.jboss.spec</groupId>
         <artifactId>jboss-javaee-6.0</artifactId>
         <version>${version.jboss-javaee-spec}</version>
@@ -263,19 +263,7 @@
         <groupId>org.jboss.spec.javax.servlet</groupId>
         <artifactId>jboss-servlet-api_3.0_spec</artifactId>
         <version>1.0.2.Final</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.jboss.spec.javax.ws.rs</groupId>
-        <artifactId>jboss-jaxrs-api_1.1_spec</artifactId>
-        <version>1.0.1.Final</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.jboss.spec.javax.ws.rs</groupId>
-        <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
-        <version>${version.jaxrs.api}</version>
-      </dependency>
+      </dependency>-->
 
       <!-- licensing dependencies -->
       <dependency>
@@ -300,13 +288,13 @@
         <version>${version.tomcat}</version>
       </dependency>
 
-      <dependency>
+<!--      <dependency>
         <groupId>org.jboss.resteasy</groupId>
         <artifactId>resteasy-jaxrs</artifactId>
         <version>${version.resteasy}</version>
-        <!-- The exclusion is there because we don't need the Resteasy client
+        <!- - The exclusion is there because we don't need the Resteasy client
           API in the Rest API test suite and assembly; in case you need to remove
-          the exclusion here, please make sure to add it in the REST API projects -->
+          the exclusion here, please make sure to add it in the REST API projects - ->
         <exclusions>
           <exclusion>
             <artifactId>httpclient5</artifactId>
@@ -323,7 +311,7 @@
         <groupId>org.jboss.resteasy</groupId>
         <artifactId>tjws</artifactId>
         <version>${version.resteasy}</version>
-      </dependency>
+      </dependency>-->
 
       <dependency>
         <groupId>org.apache.directory.server</groupId>

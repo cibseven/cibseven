@@ -66,11 +66,11 @@
     </dependency>
     
     <!-- servlet API -->
-    <dependency>
+<!--    <dependency>
       <groupId>org.jboss.spec.javax.servlet</groupId>
       <artifactId>jboss-servlet-api_3.0_spec</artifactId>
       <scope>provided</scope>
-    </dependency>
+    </dependency>-->
     
     <dependency>
       <groupId>org.springframework</groupId>

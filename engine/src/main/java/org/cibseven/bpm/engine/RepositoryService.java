@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import javax.enterprise.context.Dependent;
+import jakarta.enterprise.context.Dependent;
 
 import org.cibseven.bpm.application.ProcessApplicationReference;
 import org.cibseven.bpm.engine.authorization.Permissions;

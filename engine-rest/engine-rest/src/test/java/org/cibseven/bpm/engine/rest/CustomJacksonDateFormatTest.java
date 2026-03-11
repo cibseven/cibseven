@@ -37,6 +37,7 @@ import org.cibseven.bpm.engine.rest.util.VariablesBuilder;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
@@ -47,6 +48,13 @@ public class CustomJacksonDateFormatTest extends AbstractRestServiceTest {
 
   @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
+
+  @BeforeAll
+  public static void disableJerseyAutoDiscovery() {
+    // Disable Jersey auto-discovery to prevent classloader conflicts
+    System.setProperty("jersey.config.disableAutoDiscovery", "true");
+    System.setProperty("jersey.config.server.disableAutoDiscovery", "true");
+  }
 
   protected static final String PROCESS_INSTANCE_URL = TEST_RESOURCE_ROOT_PATH + "/process-instance";
   protected static final String SINGLE_PROCESS_INSTANCE_URL = PROCESS_INSTANCE_URL + "/{id}";
@@ -72,6 +80,9 @@ public class CustomJacksonDateFormatTest extends AbstractRestServiceTest {
   @AfterAll
   public static void reset() {
     JacksonConfigurator.setDateFormatString(DEFAULT_DATE_FORMAT);
+    // Clean up Jersey system properties
+    System.clearProperty("jersey.config.disableAutoDiscovery");
+    System.clearProperty("jersey.config.server.disableAutoDiscovery");
   }
 
   @Test

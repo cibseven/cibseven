@@ -98,11 +98,27 @@
       <artifactId>jakarta.jakartaee-api</artifactId>
       <version>10.0.0</version>
       <scope>provided</scope>
+      <exclusions>
+        <!-- Exclude to prevent conflicts with explicit Jersey dependencies -->
+        <exclusion>
+          <groupId>jakarta.ws.rs</groupId>
+          <artifactId>jakarta.ws.rs-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-impl</artifactId>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+      <version>4.0.5</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Add JAX-RS API for test classloader -->
+    <dependency>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+      <version>3.1.0</version>
       <scope>test</scope>
     </dependency>
 
@@ -161,6 +177,16 @@
       <version>${version.shrinkwrap.resolvers}</version>
       <scope>test</scope>
       <type>pom</type>
+      <exclusions>
+        <exclusion>
+          <groupId>org.jboss.spec.javax.ws.rs</groupId>
+          <artifactId>jboss-jaxrs-api_1.1_spec</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.spec.javax.ws.rs</groupId>
+          <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -185,6 +211,21 @@
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <!-- Exclude to prevent Jersey version conflicts -->
+        <exclusion>
+          <groupId>org.glassfish.jersey.core</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.glassfish.jersey.inject</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.glassfish.jersey.media</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -339,7 +380,6 @@
     <profile>
       <id>distro</id>
       <dependencies>
-        <!-- Removed jboss-jaxrs-api_2.1_spec for jakarta migration -->
       </dependencies>
       <build>
         <plugins>
@@ -360,8 +400,7 @@
         <version.netty>4.1.42.Final</version.netty>
       </properties>
       <dependencies>
-        <!-- Removed jboss-jaxrs-api_2.1_spec for jakarta migration -->
-        <dependency>
+<!--        <dependency>
           <groupId>org.jboss.resteasy</groupId>
           <artifactId>resteasy-jaxrs</artifactId>
           <version>${version.resteasy}</version>
@@ -372,7 +411,7 @@
               <groupId>org.apache.httpcomponents</groupId>
             </exclusion>
           </exclusions>
-        </dependency>
+        </dependency>-->
 
         <dependency>
           <groupId>io.netty</groupId>
@@ -476,6 +515,32 @@
           <version>${version.jersey3}</version>
           <scope>test</scope>
         </dependency>
+        <!-- Jersey JAXB extension for proper JAXB integration -->
+        <dependency>
+          <groupId>org.glassfish.jersey.media</groupId>
+          <artifactId>jersey-media-jaxb</artifactId>
+          <version>${version.jersey3}</version>
+          <scope>test</scope>
+        </dependency>
+        <!-- Force consistent Jersey core version -->
+        <dependency>
+          <groupId>org.glassfish.jersey.core</groupId>
+          <artifactId>jersey-server</artifactId>
+          <version>${version.jersey3}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.glassfish.jersey.core</groupId>
+          <artifactId>jersey-common</artifactId>
+          <version>${version.jersey3}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.glassfish.jersey.core</groupId>
+          <artifactId>jersey-client</artifactId>
+          <version>${version.jersey3}</version>
+          <scope>test</scope>
+        </dependency>
       </dependencies>
       <build>
         <plugins>
@@ -553,8 +618,7 @@
       </properties>
 
       <dependencies>
-        <!-- Removed jboss-jaxrs-api_2.1_spec for jakarta migration -->
-        <dependency>
+<!--        <dependency>
           <groupId>org.jboss.resteasy</groupId>
           <artifactId>resteasy-jaxrs</artifactId>
           <version>${version.resteasy}</version>
@@ -565,7 +629,7 @@
               <groupId>org.apache.httpcomponents</groupId>
             </exclusion>
           </exclusions>
-        </dependency>
+        </dependency>-->
 
         <dependency>
           <groupId>io.netty</groupId>

@@ -36,7 +36,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 public class JerseySpecifics implements ContainerSpecifics {
 
   protected static final TestRuleFactory DEFAULT_RULE_FACTORY =
-      new EmbeddedServerRuleFactory(new JaxrsApplication());
+      new EmbeddedServerRuleFactory(new JakartarsApplication());
 
   protected static final Map<Class<?>, TestRuleFactory> TEST_RULE_FACTORIES =
       new HashMap<Class<?>, TestRuleFactory>();

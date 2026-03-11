@@ -16,7 +16,9 @@
  */
 package org.cibseven.bpm.engine.rest.util.container;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import jakarta.ws.rs.ApplicationPath;
@@ -29,7 +31,7 @@ import org.cibseven.bpm.engine.rest.impl.CamundaRestResources;
  *
  */
 @ApplicationPath("/")
-public class JaxrsApplication extends Application {
+public class JakartarsApplication extends Application {
 
   @Override
   public Set<Class<?>> getClasses() {
@@ -39,6 +41,17 @@ public class JaxrsApplication extends Application {
     classes.addAll(CamundaRestResources.getConfigurationClasses());
 
     return classes;
+  }
+
+  @Override
+  public Map<String, Object> getProperties() {
+    Map<String, Object> props = new HashMap<String, Object>();
+
+    // Disable Jersey auto-discovery to prevent classloader conflicts
+    props.put("jersey.config.disableAutoDiscovery", true);
+    props.put("jersey.config.server.disableAutoDiscovery", true);
+
+    return props;
   }
 
 }

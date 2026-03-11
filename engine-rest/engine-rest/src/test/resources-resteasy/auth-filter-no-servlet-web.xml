@@ -37,7 +37,7 @@
       </filter-class>
       <init-param>
           <param-name>jakarta.ws.rs.Application</param-name>
-          <param-value>org.cibseven.bpm.engine.rest.util.container.JaxrsApplication</param-value>
+          <param-value>org.cibseven.bpm.engine.rest.util.container.JakartarsApplication</param-value>
       </init-param>
   </filter>
 
