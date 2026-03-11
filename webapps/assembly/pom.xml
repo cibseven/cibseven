@@ -98,14 +98,14 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
-      <version>${version.spring.framework}</version>
+      <version>${version.spring.framework6}</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-web</artifactId>
-      <version>${version.spring.framework}</version>
+      <version>${version.spring.framework6}</version>
       <scope>test</scope>
     </dependency>
 

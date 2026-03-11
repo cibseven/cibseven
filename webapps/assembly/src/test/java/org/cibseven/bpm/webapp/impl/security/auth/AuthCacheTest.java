@@ -25,7 +25,6 @@ import org.cibseven.bpm.webapp.impl.util.ProcessEngineUtil;
 import org.cibseven.bpm.webapp.impl.util.ServletContextUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.mock.web.MockFilterChain;
