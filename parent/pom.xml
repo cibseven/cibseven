@@ -22,7 +22,7 @@
     <version.spring.framework>5.3.39</version.spring.framework>
     <version.spring.framework6>6.2.11</version.spring.framework6>
     <version.spring-boot>3.5.9</version.spring-boot>
-    <version.resteasy>6.2.10.Final</version.resteasy>
+    <version.resteasy>3.15.6.Final</version.resteasy>
     <version.jersey3>3.1.9</version.jersey3>
     <version.jaxrs.api>3.1.0</version.jaxrs.api>
 
