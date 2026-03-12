@@ -32,8 +32,8 @@ import org.cibseven.bpm.container.impl.ejb.deployment.EjbJarParsePlatformXmlStep
 import org.cibseven.bpm.container.impl.ejb.deployment.StartJcaExecutorServiceStep;
 import org.cibseven.bpm.container.impl.ejb.deployment.StopJcaExecutorServiceStep;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;

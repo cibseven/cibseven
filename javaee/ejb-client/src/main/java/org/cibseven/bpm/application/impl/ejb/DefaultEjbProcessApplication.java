@@ -19,8 +19,8 @@ package org.cibseven.bpm.application.impl.ejb;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.ejb.*;
 
 import org.cibseven.bpm.application.ProcessApplication;
