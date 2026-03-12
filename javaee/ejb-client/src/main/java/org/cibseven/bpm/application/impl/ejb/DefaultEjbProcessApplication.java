@@ -21,7 +21,7 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.ejb.*;
+import jakarta.ejb.*;
 
 import org.cibseven.bpm.application.ProcessApplication;
 import org.cibseven.bpm.application.ProcessApplicationInterface;

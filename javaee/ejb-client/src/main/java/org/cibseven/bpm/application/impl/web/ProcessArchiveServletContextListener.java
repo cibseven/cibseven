@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.application.impl.web;
 
-import javax.ejb.EJB;
+import jakarta.ejb.EJB;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
