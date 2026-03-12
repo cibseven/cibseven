@@ -22,7 +22,7 @@ import java.util.Set;
 
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.integrationtest.functional.context.beans.CalledProcessDelegate;

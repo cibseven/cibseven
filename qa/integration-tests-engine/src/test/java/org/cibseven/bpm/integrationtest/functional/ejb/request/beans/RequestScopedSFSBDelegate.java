@@ -18,7 +18,7 @@ package org.cibseven.bpm.integrationtest.functional.ejb.request.beans;
 
 import jakarta.ejb.Stateful;
 import javax.enterprise.context.RequestScoped;
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;

@@ -22,7 +22,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 /**
  * @author Thorben Lindhauer

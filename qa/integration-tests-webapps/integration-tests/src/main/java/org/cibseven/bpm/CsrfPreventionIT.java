@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;

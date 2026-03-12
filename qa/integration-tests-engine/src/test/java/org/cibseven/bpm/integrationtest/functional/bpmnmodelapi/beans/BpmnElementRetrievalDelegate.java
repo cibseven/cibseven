@@ -17,7 +17,7 @@
 package org.cibseven.bpm.integrationtest.functional.bpmnmodelapi.beans;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;

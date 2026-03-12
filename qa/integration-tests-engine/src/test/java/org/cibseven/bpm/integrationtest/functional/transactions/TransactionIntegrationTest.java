@@ -28,7 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import javax.transaction.Status;
 import javax.transaction.UserTransaction;
 

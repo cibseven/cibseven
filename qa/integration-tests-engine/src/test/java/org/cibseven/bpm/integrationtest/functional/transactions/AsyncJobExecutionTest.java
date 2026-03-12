@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.runtime.Job;

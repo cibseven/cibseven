@@ -17,7 +17,7 @@
 package org.cibseven.bpm.integrationtest.functional.cdi.beans;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 @Named
 @ApplicationScoped

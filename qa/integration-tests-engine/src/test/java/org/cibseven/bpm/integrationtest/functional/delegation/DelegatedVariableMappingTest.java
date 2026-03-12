@@ -18,7 +18,7 @@ package org.cibseven.bpm.integrationtest.functional.delegation;
 
 import org.cibseven.bpm.integrationtest.functional.delegation.beans.DelegateVarMapping;
 import javax.enterprise.inject.spi.BeanManager;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;

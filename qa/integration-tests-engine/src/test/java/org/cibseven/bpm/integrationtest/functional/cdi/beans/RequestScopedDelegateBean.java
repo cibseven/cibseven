@@ -17,7 +17,7 @@
 package org.cibseven.bpm.integrationtest.functional.cdi.beans;
 
 import javax.enterprise.context.RequestScoped;
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;

@@ -20,7 +20,7 @@ import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
 
 import jakarta.ejb.Stateless;
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 
 @Named("SFSBDelegate")

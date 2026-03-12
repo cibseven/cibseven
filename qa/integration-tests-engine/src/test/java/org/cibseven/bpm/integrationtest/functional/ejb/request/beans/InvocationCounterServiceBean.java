@@ -19,7 +19,7 @@ package org.cibseven.bpm.integrationtest.functional.ejb.request.beans;
 import jakarta.ejb.Local;
 import jakarta.ejb.Remote;
 import jakarta.ejb.Stateless;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Stateless
 @Remote(InvocationCounterService.class)

@@ -19,7 +19,7 @@ package org.cibseven.bpm.integrationtest.functional.jpa;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
+import jakarta.inject.Named;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 

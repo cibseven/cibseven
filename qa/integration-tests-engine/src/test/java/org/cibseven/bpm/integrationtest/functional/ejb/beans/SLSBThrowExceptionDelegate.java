@@ -21,7 +21,7 @@ import org.cibseven.bpm.engine.delegate.JavaDelegate;
 
 import jakarta.ejb.ApplicationException;
 import jakarta.ejb.Stateless;
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 /**
  * A SLSB acting as a {@link JavaDelegate}

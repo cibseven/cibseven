@@ -19,7 +19,7 @@ package org.cibseven.bpm.integrationtest.jobexecutor.beans;
 import java.io.Serializable;
 
 import jakarta.ejb.Stateless;
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 /**
  * @author Thorben Lindhauer

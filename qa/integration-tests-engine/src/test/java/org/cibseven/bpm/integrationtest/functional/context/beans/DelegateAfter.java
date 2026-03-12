@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.context.beans;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
