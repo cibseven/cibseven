@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.ejb.local.bean;
 
-import javax.ejb.EJB;
+import jakarta.ejb.EJB;
 import javax.inject.Named;
 
 import org.cibseven.bpm.engine.delegate.DelegateExecution;

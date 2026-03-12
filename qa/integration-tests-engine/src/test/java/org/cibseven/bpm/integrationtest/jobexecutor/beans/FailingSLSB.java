@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.jobexecutor.beans;
 
-import javax.ejb.Stateless;
+import jakarta.ejb.Stateless;
 import javax.inject.Named;
 
 import org.cibseven.bpm.engine.delegate.DelegateExecution;

@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.ejb.request.beans;
 
-import javax.ejb.Stateful;
+import jakarta.ejb.Stateful;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Named;
 

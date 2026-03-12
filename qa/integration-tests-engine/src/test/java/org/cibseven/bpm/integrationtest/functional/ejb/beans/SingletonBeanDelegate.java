@@ -19,7 +19,7 @@ package org.cibseven.bpm.integrationtest.functional.ejb.beans;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
 
-import javax.ejb.Singleton;
+import jakarta.ejb.Singleton;
 import javax.inject.Named;
 
 

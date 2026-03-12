@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.integrationtest.functional.ejb.request.beans;
 
-import javax.ejb.Local;
-import javax.ejb.Remote;
-import javax.ejb.Stateless;
+import jakarta.ejb.Local;
+import jakarta.ejb.Remote;
+import jakarta.ejb.Stateless;
 import javax.inject.Inject;
 
 @Stateless
