@@ -42,22 +42,20 @@ import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.TaskService;
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
 import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
-import org.cibseven.bpm.engine.impl.ProcessEngineImpl;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
 import org.cibseven.bpm.engine.impl.util.LogUtil;
-import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.spi.client.deployment.AuxiliaryArchiveAppender;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.cibseven.bpm.engine.test.junit5.ProcessEngineExtension;
 
 /**
  * @author Daniel Meyer
@@ -99,7 +97,10 @@ public abstract class CdiProcessEngineTestCase {
   }
 
   @RegisterExtension
-  public ProcessEngineRule processEngineRule = new ProcessEngineRule();
+  protected static ProcessEngineExtension processEngineExtension = ProcessEngineExtension.builder()
+      .configurationResource("activiti.cfg.xml")
+      .build();
+  //public ProcessEngineRule processEngineRule = new ProcessEngineRule();
 
   protected BeanManager beanManager;
 
@@ -131,12 +132,12 @@ public abstract class CdiProcessEngineTestCase {
   public void setUpCdiProcessEngineTestCase() throws Exception {
 
     if(BpmPlatform.getProcessEngineService().getDefaultProcessEngine() == null) {
-      RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(processEngineRule.getProcessEngine());
+      RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(processEngineExtension.getProcessEngine());
     }
 
     beanManager = ProgrammaticBeanLookup.lookup(BeanManager.class);
-    processEngine = processEngineRule.getProcessEngine();
-    processEngineConfiguration = (ProcessEngineConfigurationImpl) processEngineRule.getProcessEngine().getProcessEngineConfiguration();
+    processEngine = processEngineExtension.getProcessEngine();
+    processEngineConfiguration = (ProcessEngineConfigurationImpl) processEngine.getProcessEngineConfiguration();
     formService = processEngine.getFormService();
     historyService = processEngine.getHistoryService();
     identityService = processEngine.getIdentityService();
@@ -169,7 +170,6 @@ public abstract class CdiProcessEngineTestCase {
     externalTaskService = null;
     caseService = null;
     decisionService = null;
-    processEngineRule = null;
   }
 
   protected void endConversationAndBeginNew(String processInstanceId) {
