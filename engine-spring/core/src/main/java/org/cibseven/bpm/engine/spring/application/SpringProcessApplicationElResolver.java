@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.spring.application;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 import org.cibseven.bpm.application.AbstractProcessApplication;
 import org.cibseven.bpm.application.ProcessApplicationElResolver;
 import org.cibseven.bpm.application.impl.EjbProcessApplication;

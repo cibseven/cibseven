@@ -14,13 +14,12 @@
   </parent>
 
   <properties>
-    <weld.version>6.0.4.Final</weld.version>
-    <arquillian.weld.version>4.0.0.Final</arquillian.weld.version>
-    <jakarta.enterprise.version>3.0.1</jakarta.enterprise.version>
-    <jakarta.faces.version>4.0.1</jakarta.faces.version>
-
+      <weld.version>5.1.2.Final</weld.version>
+      <arquillian.weld.version>4.0.0.Final</arquillian.weld.version>
+      <jakarta.enterprise.version>3.0.0</jakarta.enterprise.version>
+      <jakarta.faces.version>4.0.0</jakarta.faces.version>
   </properties>
-
+  
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -34,6 +33,13 @@
         <groupId>org.jboss.weld</groupId>
         <artifactId>weld-core-bom</artifactId>
         <version>${weld.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.platform</groupId>
+        <artifactId>jakarta.jakartaee-bom</artifactId>
+        <version>10.0.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -92,24 +98,17 @@
     <dependency>
       <groupId>org.jboss.arquillian.core</groupId>
       <artifactId>arquillian-core-spi</artifactId>
-    </dependency>
+      <exclusions>
+          <exclusion>
+              <groupId>org.jboss.arquillian.junit</groupId>
+              <artifactId>arquillian-junit-container</artifactId>
+          </exclusion>
+      </exclusions>
+      </dependency>
     <dependency>
       <groupId>jakarta.enterprise</groupId>
       <artifactId>jakarta.enterprise.cdi-api</artifactId>
       <version>${jakarta.enterprise.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>jakarta.inject</groupId>
-      <artifactId>jakarta.inject-api</artifactId>
-      <version>2.0.1</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>jakarta.enterprise</groupId>
-      <artifactId>jakarta.enterprise.cdi-api</artifactId>
-      <version>${jakarta.enterprise.version}</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>jakarta.faces</groupId>
@@ -126,24 +125,16 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>${version.junit5}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
-      <version>${version.junit5}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>${version.junit5}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.arquillian.junit5</groupId>
-      <artifactId>arquillian-junit5-container</artifactId>
       <scope>test</scope>
     </dependency>
         <dependency>
@@ -176,6 +167,11 @@
       <artifactId>cibseven-bpm-archunit</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.cibseven.bpm</groupId>
+        <artifactId>cibseven-bpm-junit5</artifactId>
+        <scope>test</scope>
     </dependency>
   </dependencies>
 

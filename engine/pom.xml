@@ -138,7 +138,6 @@
     <dependency>
       <groupId>jakarta.enterprise</groupId>
       <artifactId>jakarta.enterprise.cdi-api</artifactId>
-      <version>${jakarta.enterprise.version}</version>
     </dependency>
 
 <!--    <dependency>
