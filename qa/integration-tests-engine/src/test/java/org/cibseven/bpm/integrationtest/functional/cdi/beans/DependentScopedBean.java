@@ -18,7 +18,7 @@ package org.cibseven.bpm.integrationtest.functional.cdi.beans;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import javax.enterprise.context.Dependent;
+import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Named;
 import java.util.ArrayList;
 

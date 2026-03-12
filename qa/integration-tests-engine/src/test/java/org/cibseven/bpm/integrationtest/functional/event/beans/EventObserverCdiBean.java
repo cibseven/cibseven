@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.event.beans;
 
-import javax.enterprise.event.Observes;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
 import org.cibseven.bpm.engine.cdi.BusinessProcess;

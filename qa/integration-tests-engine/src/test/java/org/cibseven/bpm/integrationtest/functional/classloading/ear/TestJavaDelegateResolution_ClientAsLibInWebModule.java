@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 package org.cibseven.bpm.integrationtest.functional.classloading.ear;
-import javax.transaction.SystemException;
+import jakarta.transaction.SystemException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
