@@ -16,7 +16,6 @@
  */
 package org.cibseven.bpm.engine.cdi.test;
 
-import java.util.ServiceLoader;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Callable;
@@ -24,8 +23,6 @@ import java.util.logging.Logger;
 
 import jakarta.enterprise.inject.spi.BeanManager;
 
-import org.cibseven.bpm.BpmPlatform;
-import org.cibseven.bpm.container.RuntimeContainerDelegate;
 import org.cibseven.bpm.engine.AuthorizationService;
 import org.cibseven.bpm.engine.CaseService;
 import org.cibseven.bpm.engine.DecisionService;
@@ -46,13 +43,11 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
 import org.cibseven.bpm.engine.impl.util.LogUtil;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.container.test.spi.client.deployment.AuxiliaryArchiveAppender;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.EmptyAsset;
-import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
+//import org.junit.jupiter.api.AfterEach;
+//import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.cibseven.bpm.engine.test.junit5.ProcessEngineExtension;
@@ -73,36 +68,20 @@ public abstract class CdiProcessEngineTestCase {
 
   protected Logger logger = Logger.getLogger(getClass().getName());
 
-//  @Deployment
-//  public static JavaArchive createDeployment() {
-//
-//    return ShrinkWrap.create(JavaArchive.class)
-//      .addPackages(true, "org.cibseven.bpm.engine.cdi")
-//      .addPackages(true, "org.cibseven.bpm.engine.cdi.test.impl.beans")
-////      .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
-////      .addAsResource("META-INF/processes.xml")
-//      .addAsManifestResource("META-INF/beans.xml", "beans.xml")
-//      // Add JUnit classes to avoid ClassNotFoundException
-//      .addPackages(true, "org.junit.jupiter")
-//      .addPackages(true, "org.junit.platform");
-//
-//  }
   @Deployment
-  public static WebArchive createDeployment() {
-      return ShrinkWrap.create(WebArchive.class)
-          .addPackages(true, "org.cibseven.bpm.engine.cdi")
-          .addPackages(true, "org.cibseven.bpm.engine.cdi.test.impl.beans")
-          .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
-          .addAsManifestResource("META-INF/beans.xml", "beans.xml");
-  }
+  public static JavaArchive createDeployment() {
 
+    return ShrinkWrap.create(JavaArchive.class)
+      .addPackages(true,
+        "org.cibseven.bpm.engine.cdi",
+        "org.cibseven.bpm.engine.cdi.test",
+        "org.cibseven.bpm.engine.experimental")
+      .addAsManifestResource("META-INF/beans.xml", "beans.xml");
+  }
   @RegisterExtension
   protected static ProcessEngineExtension processEngineExtension = ProcessEngineExtension.builder()
       .configurationResource("activiti.cfg.xml")
       .build();
-  //public ProcessEngineRule processEngineRule = new ProcessEngineRule();
-
-  protected BeanManager beanManager;
 
   protected ProcessEngine processEngine;
   protected FormService formService;
@@ -119,57 +98,61 @@ public abstract class CdiProcessEngineTestCase {
   protected DecisionService decisionService;
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
-  @BeforeEach
-  public void debugAppenders() {
-      ServiceLoader<AuxiliaryArchiveAppender> appenders = 
-          ServiceLoader.load(AuxiliaryArchiveAppender.class);
-      for (AuxiliaryArchiveAppender appender : appenders) {
-          System.out.println("Found appender: " + appender.getClass().getName());
-      }
-  }
+//  @BeforeEach
+//  public void debugAppenders() {
+//      ServiceLoader<AuxiliaryArchiveAppender> appenders = 
+//          ServiceLoader.load(AuxiliaryArchiveAppender.class);
+//      for (AuxiliaryArchiveAppender appender : appenders) {
+//          System.out.println("Found appender: " + appender.getClass().getName());
+//      }
+//  }
+//
+//  @BeforeEach
+//  public void setUpCdiProcessEngineTestCase() {
+//
+//    if(BpmPlatform.getProcessEngineService().getDefaultProcessEngine() == null) {
+//      RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(processEngineExtension.getProcessEngine());
+//    }
+//
+//    beanManager = ProgrammaticBeanLookup.lookup(BeanManager.class);
+//    processEngine = processEngineExtension.getProcessEngine();
+//    processEngineConfiguration = (ProcessEngineConfigurationImpl) processEngine.getProcessEngineConfiguration();
+//    formService = processEngine.getFormService();
+//    historyService = processEngine.getHistoryService();
+//    identityService = processEngine.getIdentityService();
+//    managementService = processEngine.getManagementService();
+//    repositoryService = processEngine.getRepositoryService();
+//    runtimeService = processEngine.getRuntimeService();
+//    taskService = processEngine.getTaskService();
+//    authorizationService = processEngine.getAuthorizationService();
+//    filterService = processEngine.getFilterService();
+//    externalTaskService = processEngine.getExternalTaskService();
+//    caseService = processEngine.getCaseService();
+//    decisionService = processEngine.getDecisionService();
+//  }
+//
+//  @AfterEach
+//  public void tearDownCdiProcessEngineTestCase() throws Exception {
+//    RuntimeContainerDelegate.INSTANCE.get().unregisterProcessEngine(processEngine);
+//    beanManager = null;
+//    processEngine = null;
+//    processEngineConfiguration = null;
+//    formService = null;
+//    historyService = null;
+//    identityService = null;
+//    managementService = null;
+//    repositoryService = null;
+//    runtimeService = null;
+//    taskService = null;
+//    authorizationService = null;
+//    filterService = null;
+//    externalTaskService = null;
+//    caseService = null;
+//    decisionService = null;
+//  }
 
-  @BeforeEach
-  public void setUpCdiProcessEngineTestCase() throws Exception {
-
-    if(BpmPlatform.getProcessEngineService().getDefaultProcessEngine() == null) {
-      RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(processEngineExtension.getProcessEngine());
-    }
-
-    beanManager = ProgrammaticBeanLookup.lookup(BeanManager.class);
-    processEngine = processEngineExtension.getProcessEngine();
-    processEngineConfiguration = (ProcessEngineConfigurationImpl) processEngine.getProcessEngineConfiguration();
-    formService = processEngine.getFormService();
-    historyService = processEngine.getHistoryService();
-    identityService = processEngine.getIdentityService();
-    managementService = processEngine.getManagementService();
-    repositoryService = processEngine.getRepositoryService();
-    runtimeService = processEngine.getRuntimeService();
-    taskService = processEngine.getTaskService();
-    authorizationService = processEngine.getAuthorizationService();
-    filterService = processEngine.getFilterService();
-    externalTaskService = processEngine.getExternalTaskService();
-    caseService = processEngine.getCaseService();
-    decisionService = processEngine.getDecisionService();
-  }
-
-  @AfterEach
-  public void tearDownCdiProcessEngineTestCase() throws Exception {
-    RuntimeContainerDelegate.INSTANCE.get().unregisterProcessEngine(processEngine);
-    beanManager = null;
-    processEngine = null;
-    processEngineConfiguration = null;
-    formService = null;
-    historyService = null;
-    identityService = null;
-    managementService = null;
-    repositoryService = null;
-    runtimeService = null;
-    taskService = null;
-    authorizationService = null;
-    filterService = null;
-    externalTaskService = null;
-    caseService = null;
-    decisionService = null;
+  protected BeanManager getBeanManager() {
+    return ProgrammaticBeanLookup.lookup(BeanManager.class);
   }
 
   protected void endConversationAndBeginNew(String processInstanceId) {

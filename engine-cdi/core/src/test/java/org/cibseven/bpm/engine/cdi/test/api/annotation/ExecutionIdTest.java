@@ -22,6 +22,7 @@ import java.util.Set;
 
 import jakarta.enterprise.context.spi.CreationalContext;
 import jakarta.enterprise.inject.spi.Bean;
+import jakarta.enterprise.inject.spi.BeanManager;
 
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
 import org.cibseven.bpm.engine.cdi.annotation.ExecutionIdLiteral;
@@ -56,6 +57,7 @@ public class ExecutionIdTest extends CdiProcessEngineTestCase {
   public void testExecutionIdInjectableByQualifier() {
     getBeanInstance(BusinessProcess.class).startProcessByKey("keyOfTheProcess");
     
+    BeanManager beanManager = getBeanManager();
     Set<Bean<?>> beans = beanManager.getBeans(String.class, new ExecutionIdLiteral());    
     Bean<String> bean = (Bean<java.lang.String>) beanManager.resolve(beans);
     

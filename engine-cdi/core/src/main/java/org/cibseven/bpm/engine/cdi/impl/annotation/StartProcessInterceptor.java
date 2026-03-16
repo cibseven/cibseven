@@ -22,7 +22,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Named;
 import jakarta.interceptor.AroundInvoke;
 import jakarta.interceptor.Interceptor;
 import jakarta.interceptor.InvocationContext;

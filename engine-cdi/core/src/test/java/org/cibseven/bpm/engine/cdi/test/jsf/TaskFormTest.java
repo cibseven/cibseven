@@ -23,6 +23,7 @@ import java.util.Set;
 
 import jakarta.enterprise.inject.AmbiguousResolutionException;
 import jakarta.enterprise.inject.spi.Bean;
+import jakarta.enterprise.inject.spi.BeanManager;
 
 import org.cibseven.bpm.engine.cdi.compat.CamundaTaskForm;
 import org.cibseven.bpm.engine.cdi.compat.FoxTaskForm;
@@ -38,6 +39,7 @@ public class TaskFormTest extends CdiProcessEngineTestCase {
   @Test
   public void testTaskFormInjectable() throws Exception {
 
+    BeanManager beanManager = getBeanManager();
     Set<Bean<?>> taskForm = beanManager.getBeans(TaskForm.class);
     try {
       Bean<? extends Object> bean = beanManager.resolve(taskForm);

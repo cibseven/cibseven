@@ -168,6 +168,7 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+    <!--TODO: move to cibseven bom ?-->
     <dependency>
         <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-bpm-junit5</artifactId>

@@ -41,8 +41,8 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Daniel Meyer
  */
-//@ExtendWith(ArquillianExtension.class)
 public class BusinessProcessBeanTest extends CdiProcessEngineTestCase {
+
 
   /* General test asserting that the business process bean is functional */
   @Test

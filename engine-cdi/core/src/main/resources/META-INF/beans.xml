@@ -10,10 +10,4 @@
         <class>org.cibseven.bpm.engine.cdi.impl.annotation.CompleteTaskInterceptor</class>
         <class>org.cibseven.bpm.engine.cdi.impl.annotation.StartProcessInterceptor</class>
     </interceptors>
-    <weld:scan>
-      <!-- remove CdiJtaProcessEngineConfiguration if jakarta.transaction API is not available -->
-      <weld:exclude name="org.cibseven.bpm.engine.cdi.CdiJtaProcessEngineConfiguration">
-          <weld:if-class-available name="!jakarta.transaction.TransactionManager"/>
-      </weld:exclude>
-    </weld:scan>
 </beans>

@@ -148,6 +148,12 @@
       <artifactId>jul-to-slf4j</artifactId>
       <scope>test</scope>
     </dependency>
+    <!--TODO: move to cibseven bom ?-->
+    <dependency>
+        <groupId>org.cibseven.bpm</groupId>
+        <artifactId>cibseven-bpm-junit5</artifactId>
+        <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
