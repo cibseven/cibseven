@@ -17,12 +17,16 @@
 package org.cibseven.bpm.engine.test.junit5;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.cibseven.bpm.engine.AuthorizationService;
 import org.cibseven.bpm.engine.CaseService;
@@ -34,6 +38,7 @@ import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.ManagementService;
 import org.cibseven.bpm.engine.ProcessEngine;
+import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.ProcessEngineServices;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.RuntimeService;
@@ -47,6 +52,7 @@ import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
@@ -105,6 +111,8 @@ import org.slf4j.Logger;
  * process engine is lower than the specified one then the test is skipped.
  * </p>
  */
+
+//TODO: add TestInstancePreDestroyCallback to call the @AfterEach method not automatically called by Arquillian
 public class ProcessEngineExtension implements TestWatcher,
     TestInstancePostProcessor, BeforeTestExecutionCallback, AfterTestExecutionCallback,
     AfterAllCallback, ParameterResolver, ProcessEngineServices {
@@ -236,9 +244,85 @@ public class ProcessEngineExtension implements TestWatcher,
     if (processEngine == null) {
       initializeProcessEngine();
     }
-    Arrays.stream(testInstance.getClass().getDeclaredFields())
-      .filter(field -> field.getType() == ProcessEngine.class)
-      .forEach(field -> inject(testInstance, field));
+//    getAllFields(testInstance.getClass())
+//    .filter(field -> field.getType() == ProcessEngine.class)
+//    .forEach(field -> inject(testInstance, field, processEngine));
+//    getAllFields(testInstance.getClass())
+//    .filter(field -> ProcessEngineConfiguration.class.isAssignableFrom(field.getType()))
+//    .forEach(field -> inject(testInstance, field, processEngine.getProcessEngineConfiguration()));
+////    Arrays.stream(testInstance.getClass().getDeclaredFields())
+////      .filter(field -> field.getType() == ProcessEngine.class)
+////      .forEach(field -> inject(testInstance, field));
+//    Arrays.stream(ProcessEngineServices.class.getDeclaredMethods())
+//    .filter(method -> method.getName().startsWith("get"))
+//    .map(Method::getReturnType)
+//    .forEach(serviceType -> injectProcessEngineService(testInstance, serviceType));
+    // Call @BeforeEach methods after field injection
+    invokeBeforeEachMethods(testInstance);
+  }
+
+  private Stream<Field> getAllFields(Class<?> clazz) {
+    Stream<Field> fields = Stream.of(clazz.getDeclaredFields());
+    Class<?> superclass = clazz.getSuperclass();
+
+    return superclass != null
+            ? Stream.concat(fields, getAllFields(superclass))
+            : fields;
+  }
+
+  protected void inject(Object testInstance, Field field, Object serviceInstance) {
+    field.setAccessible(true);
+    try {
+      field.set(testInstance, serviceInstance);
+    } catch (IllegalAccessException iae) {
+      throw new RuntimeException(iae);
+    }
+  }
+
+  private void injectProcessEngineService(Object testInstance, Class<?> serviceType) {
+    Objects.requireNonNull(processEngine, "ProcessEngine not initialized");
+    Optional<Object> serviceInstance = Arrays.stream(ProcessEngineServices.class.getDeclaredMethods())
+              .filter(method -> method.getReturnType() == serviceType)
+              .findFirst()
+              .map(method -> {
+                try {
+                  return method.invoke(processEngine);
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                  throw new RuntimeException(e);
+                }
+              });
+
+      serviceInstance.ifPresent(instance -> getAllFields(testInstance.getClass())
+              .filter(field -> field.getType() != Object.class && field.getType().isAssignableFrom(serviceType))
+              .forEach(field -> inject(testInstance, field, instance)));
+  }
+
+  /**
+   * Finds and invokes all methods annotated with @BeforeEach in the testInstance's class and superclasses.
+   */
+  protected void invokeBeforeEachMethods(Object testInstance) {
+    Class<?> clazz = testInstance.getClass();
+    List<Method> beforeEachMethods = new ArrayList<>();
+    while (clazz != null && clazz != Object.class) {
+      for (Method method : clazz.getDeclaredMethods()) {
+        if (method.isAnnotationPresent(BeforeEach.class)) {
+          beforeEachMethods.add(method);
+        }
+      }
+      clazz = clazz.getSuperclass();
+    }
+    for (Method method : beforeEachMethods) {
+      method.setAccessible(true);
+      try {
+        if (method.getParameterCount() == 0) {
+          method.invoke(testInstance);
+        } else {
+          LOG.warn("@BeforeEach method '{}' has parameters and will not be invoked automatically.", method.getName());
+        }
+      } catch (IllegalAccessException | InvocationTargetException e) {
+        throw new RuntimeException("Failed to invoke @BeforeEach method: " + method.getName(), e);
+      }
+    }
   }
 
   // FLUENT BUILDER
