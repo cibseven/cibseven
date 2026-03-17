@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.junit5;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -51,6 +52,7 @@ import org.cibseven.bpm.engine.impl.test.TestHelper;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.AfterAllCallback;
@@ -204,6 +206,8 @@ public class ProcessEngineExtension implements TestWatcher,
     final Method testMethod = context.getTestMethod().orElseThrow(illegalStateException("testMethod not set"));
     final Class<?> testClass = context.getTestClass().orElseThrow(illegalStateException("testClass not set"));
 
+    context.getTestInstance().ifPresent(this::invokeBeforeEachMethods);
+
     deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, testClass, testMethod.getName(), null, testMethod.getParameterTypes());
     boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine, testClass, testMethod.getName(), testMethod.getParameterTypes());
     boolean hasRequiredDatabase = TestHelper.annotationRequiredDatabaseCheck(processEngine, testClass, testMethod.getName(), testMethod.getParameterTypes());
@@ -228,6 +232,8 @@ public class ProcessEngineExtension implements TestWatcher,
    ClockUtil.reset();
    PlatformDiagnosticsRegistry.clear();
 
+   context.getTestInstance().ifPresent(this::invokeAfterEachMethods);
+
    // finally clear database and fail test if database is dirty
    if (ensureCleanAfterTest) {
      TestHelper.assertAndEnsureCleanDbAndCache(processEngine);
@@ -244,21 +250,9 @@ public class ProcessEngineExtension implements TestWatcher,
     if (processEngine == null) {
       initializeProcessEngine();
     }
-//    getAllFields(testInstance.getClass())
-//    .filter(field -> field.getType() == ProcessEngine.class)
-//    .forEach(field -> inject(testInstance, field, processEngine));
-//    getAllFields(testInstance.getClass())
-//    .filter(field -> ProcessEngineConfiguration.class.isAssignableFrom(field.getType()))
-//    .forEach(field -> inject(testInstance, field, processEngine.getProcessEngineConfiguration()));
-////    Arrays.stream(testInstance.getClass().getDeclaredFields())
-////      .filter(field -> field.getType() == ProcessEngine.class)
-////      .forEach(field -> inject(testInstance, field));
-//    Arrays.stream(ProcessEngineServices.class.getDeclaredMethods())
-//    .filter(method -> method.getName().startsWith("get"))
-//    .map(Method::getReturnType)
-//    .forEach(serviceType -> injectProcessEngineService(testInstance, serviceType));
-    // Call @BeforeEach methods after field injection
-    invokeBeforeEachMethods(testInstance);
+    Arrays.stream(testInstance.getClass().getDeclaredFields())
+    .filter(field -> field.getType() == ProcessEngine.class)
+    .forEach(field -> inject(testInstance, field));
   }
 
   private Stream<Field> getAllFields(Class<?> clazz) {
@@ -299,28 +293,49 @@ public class ProcessEngineExtension implements TestWatcher,
 
   /**
    * Finds and invokes all methods annotated with @BeforeEach in the testInstance's class and superclasses.
+   * Superclass methods are invoked first (bottom-up collection, so superclass runs before subclass).
    */
   protected void invokeBeforeEachMethods(Object testInstance) {
-    Class<?> clazz = testInstance.getClass();
-    List<Method> beforeEachMethods = new ArrayList<>();
+    List<Method> beforeEachMethods = collectAnnotatedMethods(testInstance.getClass(), BeforeEach.class);
+    // reverse so superclass @BeforeEach runs first
+    java.util.Collections.reverse(beforeEachMethods);
+    invokeAnnotatedMethods(testInstance, beforeEachMethods, "@BeforeEach");
+  }
+
+  /**
+   * Finds and invokes all methods annotated with @AfterEach in the testInstance's class and superclasses.
+   * Subclass methods are invoked first (same order as JUnit 5 default).
+   */
+  protected void invokeAfterEachMethods(Object testInstance) {
+    List<Method> afterEachMethods = collectAnnotatedMethods(testInstance.getClass(), AfterEach.class);
+    invokeAnnotatedMethods(testInstance, afterEachMethods, "@AfterEach");
+  }
+
+  private List<Method> collectAnnotatedMethods(Class<?> startClass, Class<? extends Annotation> annotation) {
+    List<Method> result = new ArrayList<>();
+    Class<?> clazz = startClass;
     while (clazz != null && clazz != Object.class) {
       for (Method method : clazz.getDeclaredMethods()) {
-        if (method.isAnnotationPresent(BeforeEach.class)) {
-          beforeEachMethods.add(method);
+        if (method.isAnnotationPresent(annotation)) {
+          result.add(method);
         }
       }
       clazz = clazz.getSuperclass();
     }
-    for (Method method : beforeEachMethods) {
+    return result;
+  }
+
+  private void invokeAnnotatedMethods(Object testInstance, List<Method> methods, String annotationLabel) {
+    for (Method method : methods) {
       method.setAccessible(true);
       try {
         if (method.getParameterCount() == 0) {
           method.invoke(testInstance);
         } else {
-          LOG.warn("@BeforeEach method '{}' has parameters and will not be invoked automatically.", method.getName());
+          LOG.warn("{} method '{}' has parameters and will not be invoked automatically.", annotationLabel, method.getName());
         }
       } catch (IllegalAccessException | InvocationTargetException e) {
-        throw new RuntimeException("Failed to invoke @BeforeEach method: " + method.getName(), e);
+        throw new RuntimeException("Failed to invoke " + annotationLabel + " method: " + method.getName(), e);
       }
     }
   }
