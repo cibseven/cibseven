@@ -19,9 +19,7 @@ package org.cibseven.bpm.engine.cdi.test.impl.el;
 import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * @author Sebastian Menski
  */
-@ExtendWith(ArquillianExtension.class)
 public class TaskListenerInvocationTest extends CdiProcessEngineTestCase {
 
   @Test

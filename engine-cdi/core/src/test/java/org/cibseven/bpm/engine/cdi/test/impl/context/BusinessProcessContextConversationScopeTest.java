@@ -20,13 +20,10 @@ import org.cibseven.bpm.engine.cdi.BusinessProcess;
 import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.ProcessScopedMessageBean;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@ExtendWith(ArquillianExtension.class)
 public class BusinessProcessContextConversationScopeTest extends CdiProcessEngineTestCase {
 
   @Test

@@ -51,7 +51,7 @@ public class InjectCustomProcessEngineTest extends CdiProcessEngineTestCase {
   }
 
   @AfterEach
-  public void tearDownCdiProcessEngineTestCase() {
+  public void destroy() {
     RuntimeContainerDelegate.INSTANCE.get().unregisterProcessEngine(processEngine);
 
     if (defaultProcessEngine != null) {

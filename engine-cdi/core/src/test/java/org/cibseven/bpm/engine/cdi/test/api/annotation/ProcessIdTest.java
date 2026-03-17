@@ -21,15 +21,12 @@ import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.jboss.arquillian.junit5.ArquillianExtension;
 
 
 /**
  * 
  * @author Daniel Meyer
  */
-@ExtendWith(ArquillianExtension.class)
 public class ProcessIdTest extends CdiProcessEngineTestCase {
 
   @Test

@@ -21,11 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.MessageBean;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(ArquillianExtension.class)
 public class BeanPropertyElTest extends CdiProcessEngineTestCase {
 
   @Test

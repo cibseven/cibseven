@@ -23,6 +23,8 @@ import java.util.logging.Logger;
 
 import jakarta.enterprise.inject.spi.BeanManager;
 
+import org.cibseven.bpm.BpmPlatform;
+import org.cibseven.bpm.container.RuntimeContainerDelegate;
 import org.cibseven.bpm.engine.AuthorizationService;
 import org.cibseven.bpm.engine.CaseService;
 import org.cibseven.bpm.engine.DecisionService;
@@ -46,8 +48,8 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-//import org.junit.jupiter.api.AfterEach;
-//import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.cibseven.bpm.engine.test.junit5.ProcessEngineExtension;
@@ -79,7 +81,7 @@ public abstract class CdiProcessEngineTestCase {
       .addAsManifestResource("META-INF/beans.xml", "beans.xml");
   }
   @RegisterExtension
-  protected static ProcessEngineExtension processEngineExtension = ProcessEngineExtension.builder()
+  protected ProcessEngineExtension processEngineExtension = ProcessEngineExtension.builder()
       .configurationResource("activiti.cfg.xml")
       .build();
 
@@ -106,50 +108,50 @@ public abstract class CdiProcessEngineTestCase {
 //          System.out.println("Found appender: " + appender.getClass().getName());
 //      }
 //  }
-//
-//  @BeforeEach
-//  public void setUpCdiProcessEngineTestCase() {
-//
-//    if(BpmPlatform.getProcessEngineService().getDefaultProcessEngine() == null) {
-//      RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(processEngineExtension.getProcessEngine());
-//    }
-//
+
+  @BeforeEach
+  public void setUpCdiProcessEngineTestCase() {
+
+    if(BpmPlatform.getProcessEngineService().getDefaultProcessEngine() == null) {
+      RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(processEngineExtension.getProcessEngine());
+    }
+
 //    beanManager = ProgrammaticBeanLookup.lookup(BeanManager.class);
-//    processEngine = processEngineExtension.getProcessEngine();
-//    processEngineConfiguration = (ProcessEngineConfigurationImpl) processEngine.getProcessEngineConfiguration();
-//    formService = processEngine.getFormService();
-//    historyService = processEngine.getHistoryService();
-//    identityService = processEngine.getIdentityService();
-//    managementService = processEngine.getManagementService();
-//    repositoryService = processEngine.getRepositoryService();
-//    runtimeService = processEngine.getRuntimeService();
-//    taskService = processEngine.getTaskService();
-//    authorizationService = processEngine.getAuthorizationService();
-//    filterService = processEngine.getFilterService();
-//    externalTaskService = processEngine.getExternalTaskService();
-//    caseService = processEngine.getCaseService();
-//    decisionService = processEngine.getDecisionService();
-//  }
-//
-//  @AfterEach
-//  public void tearDownCdiProcessEngineTestCase() throws Exception {
-//    RuntimeContainerDelegate.INSTANCE.get().unregisterProcessEngine(processEngine);
+    processEngine = processEngineExtension.getProcessEngine();
+    processEngineConfiguration = (ProcessEngineConfigurationImpl) processEngine.getProcessEngineConfiguration();
+    formService = processEngine.getFormService();
+    historyService = processEngine.getHistoryService();
+    identityService = processEngine.getIdentityService();
+    managementService = processEngine.getManagementService();
+    repositoryService = processEngine.getRepositoryService();
+    runtimeService = processEngine.getRuntimeService();
+    taskService = processEngine.getTaskService();
+    authorizationService = processEngine.getAuthorizationService();
+    filterService = processEngine.getFilterService();
+    externalTaskService = processEngine.getExternalTaskService();
+    caseService = processEngine.getCaseService();
+    decisionService = processEngine.getDecisionService();
+  }
+
+  @AfterEach
+  public void tearDownCdiProcessEngineTestCase() throws Exception {
+    RuntimeContainerDelegate.INSTANCE.get().unregisterProcessEngine(processEngine);
 //    beanManager = null;
-//    processEngine = null;
-//    processEngineConfiguration = null;
-//    formService = null;
-//    historyService = null;
-//    identityService = null;
-//    managementService = null;
-//    repositoryService = null;
-//    runtimeService = null;
-//    taskService = null;
-//    authorizationService = null;
-//    filterService = null;
-//    externalTaskService = null;
-//    caseService = null;
-//    decisionService = null;
-//  }
+    processEngine = null;
+    processEngineConfiguration = null;
+    formService = null;
+    historyService = null;
+    identityService = null;
+    managementService = null;
+    repositoryService = null;
+    runtimeService = null;
+    taskService = null;
+    authorizationService = null;
+    filterService = null;
+    externalTaskService = null;
+    caseService = null;
+    decisionService = null;
+  }
 
   protected BeanManager getBeanManager() {
     return ProgrammaticBeanLookup.lookup(BeanManager.class);
