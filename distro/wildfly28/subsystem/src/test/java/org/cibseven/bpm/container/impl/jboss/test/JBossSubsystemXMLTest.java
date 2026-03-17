@@ -61,6 +61,8 @@ import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceContainer;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -126,6 +128,15 @@ public class JBossSubsystemXMLTest extends AbstractSubsystemTest {
     EXPRESSION_PROPERTIES.put("org.cibseven.bpm.jboss.job-executor.job-acquisition.default.property.lockTimeInMillis", "300000");
     EXPRESSION_PROPERTIES.put("org.cibseven.bpm.jboss.job-executor.job-acquisition.default.property.waitTimeInMillis", "5000");
     EXPRESSION_PROPERTIES.put("org.cibseven.bpm.jboss.job-executor.job-acquisition.default.property.maxJobsPerAcquisition", "3");                                             
+  }
+  @BeforeEach
+  void beforeEach() throws Exception {
+    super.initializeParser();
+  }
+
+  @AfterEach
+  void afterEach() throws Exception {
+    super.cleanup();
   }
 
   @Test

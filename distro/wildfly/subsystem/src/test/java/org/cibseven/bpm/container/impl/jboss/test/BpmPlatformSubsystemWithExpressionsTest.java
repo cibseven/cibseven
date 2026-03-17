@@ -24,7 +24,9 @@ import org.cibseven.bpm.container.impl.jboss.extension.BpmPlatformExtension;
 import org.cibseven.bpm.container.impl.jboss.extension.ModelConstants;
 import org.jboss.as.subsystem.test.AbstractSubsystemBaseTest;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  *
@@ -59,6 +61,16 @@ public class BpmPlatformSubsystemWithExpressionsTest extends AbstractSubsystemBa
     }
   }
   
+  @BeforeEach
+  void beforeEach() throws Exception {
+    super.initializeParser();
+  }
+
+  @AfterEach
+  void afterEach() throws Exception {
+    super.cleanup();
+  }
+
   @Override
   protected String getSubsystemXml() throws IOException {
     try {
