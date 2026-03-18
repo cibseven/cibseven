@@ -59,12 +59,6 @@ pipeline {
             description: "  └─ ✅ Execute Unit and Integration Tests"
         )
 
-        booleanParam(
-            name: 'FAIL_NEVER',
-            defaultValue: false,
-            description: "  └─ Never fail the build, even if tests fail"
-        )
-
         choice(
             name: 'QA_TEST_SUITE',
             choices: ['CUSTOM', 'ALL'],
@@ -94,7 +88,7 @@ pipeline {
         // set bigger timeout to get rid of the maven issue with file locks: https://github.com/apache/maven/issues/9049
         MAVEN_LOCAL_REPO_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
         // set maven options only if params.USE_PRIVATE_REPO is true, otherwise use shared repo as usual
-        MAVEN_OPTS = "${params.USE_PRIVATE_REPO == true ? env.MAVEN_LOCAL_REPO_OPTS : ""} ${params.FAIL_NEVER == true ? -fn : ""}"
+        MAVEN_OPTS = "${params.USE_PRIVATE_REPO == true ? env.MAVEN_LOCAL_REPO_OPTS : ""}"
     }
 
     options {
