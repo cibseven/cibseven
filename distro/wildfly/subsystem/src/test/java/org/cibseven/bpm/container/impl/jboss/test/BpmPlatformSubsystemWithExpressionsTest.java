@@ -23,10 +23,8 @@ import java.util.Map;
 import org.cibseven.bpm.container.impl.jboss.extension.BpmPlatformExtension;
 import org.cibseven.bpm.container.impl.jboss.extension.ModelConstants;
 import org.jboss.as.subsystem.test.AbstractSubsystemBaseTest;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 /**
  *
@@ -49,27 +47,18 @@ public class BpmPlatformSubsystemWithExpressionsTest extends AbstractSubsystemBa
     super(ModelConstants.SUBSYSTEM_NAME, new BpmPlatformExtension());
   }
 
-  @BeforeAll
+  @BeforeClass
   public static void setUp() {
     System.getProperties().putAll(PROPERTIES);
   }
   
-  @AfterAll
+  @AfterClass
   public static void tearDown() {
     for (String key : PROPERTIES.keySet()) {
       System.clearProperty(key);
     }
   }
   
-  @BeforeEach
-  void beforeEach() throws Exception {
-    super.initializeParser();
-  }
-
-  @AfterEach
-  void afterEach() throws Exception {
-    super.cleanup();
-  }
 
   @Override
   protected String getSubsystemXml() throws IOException {
