@@ -36,12 +36,12 @@
     <dependencies>
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-engine-rest-core-jakarta</artifactId>
+        <artifactId>cibseven-engine-rest-core</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-engine-rest-jakarta</artifactId>
+        <artifactId>cibseven-engine-rest</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

@@ -99,7 +99,7 @@
 
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-cdi-jakarta</artifactId>
+      <artifactId>cibseven-engine-cdi</artifactId>
     </dependency>
 
     <dependency>

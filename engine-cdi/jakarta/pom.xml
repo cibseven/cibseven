@@ -15,7 +15,7 @@
 
   <properties>
     <arquillian.container.version>4.0.0.Final</arquillian.container.version>
-    <weld.version>5.0.1.Final</weld.version>
+    <weld.version>5.1.2.Final</weld.version>
   </properties>
 
   <dependencyManagement>

@@ -30,7 +30,7 @@
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-engine-cdi-jakarta</artifactId>
+        <artifactId>cibseven-engine-cdi</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -106,12 +106,6 @@
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-engine-rest</artifactId>
-        <version>${project.version}</version>
-        <classifier>classes</classifier>
-      </dependency>
-      <dependency>
-        <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-engine-rest-jakarta</artifactId>
         <version>${project.version}</version>
         <classifier>classes</classifier>
       </dependency>

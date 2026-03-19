@@ -49,7 +49,7 @@
 
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-cdi-jakarta</artifactId>
+      <artifactId>cibseven-engine-cdi</artifactId>
     </dependency>
     
     <dependency>
@@ -59,7 +59,7 @@
     
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-rest-jakarta</artifactId>
+      <artifactId>cibseven-engine-rest</artifactId>
       <classifier>classes</classifier>
       <version>${project.version}</version>
     </dependency>

@@ -59,7 +59,7 @@
           </systemPropertyVariables>
 
           <dependenciesToScan>
-            <dependency>org.cibseven.bpm:cibseven-engine-cdi-jakarta</dependency>
+            <dependency>org.cibseven.bpm:cibseven-engine-cdi</dependency>
           </dependenciesToScan>
 
           <excludes>
@@ -87,7 +87,7 @@
 
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-cdi-jakarta</artifactId>
+      <artifactId>cibseven-engine-cdi</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
       <classifier>tests-quarkus</classifier>

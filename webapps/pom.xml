@@ -340,7 +340,6 @@
 
   <modules>
     <module>assembly</module>
-    <module>assembly-jakarta</module>
   </modules>
 
   <profiles>

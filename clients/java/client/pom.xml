@@ -145,7 +145,7 @@
 
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-rest-jakarta</artifactId>
+      <artifactId>cibseven-engine-rest</artifactId>
       <scope>test</scope>
       <type>war</type>
       <classifier>tomcat</classifier>
@@ -339,7 +339,7 @@
           <deployables>
             <deployable>
               <groupId>org.cibseven.bpm</groupId>
-              <artifactId>cibseven-engine-rest-jakarta</artifactId>
+              <artifactId>cibseven-engine-rest</artifactId>
               <type>war</type>
               <classifier>tomcat</classifier>
               <pingURL>

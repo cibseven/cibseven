@@ -44,7 +44,7 @@
         </dependency>
         <dependency>
           <groupId>org.cibseven.bpm</groupId>
-          <artifactId>cibseven-engine-rest-jakarta</artifactId>
+          <artifactId>cibseven-engine-rest</artifactId>
           <version>${project.version}</version>
           <classifier>wildfly</classifier>
           <scope>test</scope>
@@ -107,7 +107,7 @@
                 </deployable>
                 <deployable>
                   <groupId>org.cibseven.bpm</groupId>
-                  <artifactId>cibseven-engine-rest-jakarta</artifactId>
+                  <artifactId>cibseven-engine-rest</artifactId>
                   <classifier>wildfly</classifier>
                   <type>war</type>
                   <pingURL>http://localhost:${jboss.http.port}/engine-rest/engine/default/process-definition</pingURL>
@@ -161,7 +161,7 @@
         </dependency>
         <dependency>
           <groupId>org.cibseven.bpm</groupId>
-          <artifactId>cibseven-engine-rest-jakarta</artifactId>
+          <artifactId>cibseven-engine-rest</artifactId>
           <version>${project.version}</version>
           <classifier>wildfly</classifier>
           <scope>test</scope>
@@ -224,7 +224,7 @@
                 </deployable>
                 <deployable>
                   <groupId>org.cibseven.bpm</groupId>
-                  <artifactId>cibseven-engine-rest-jakarta</artifactId>
+                  <artifactId>cibseven-engine-rest</artifactId>
                   <classifier>wildfly</classifier>
                   <type>war</type>
                   <pingURL>http://localhost:${jboss.http.port}/engine-rest/engine/default/process-definition</pingURL>
@@ -393,7 +393,7 @@
         </dependency>
         <dependency>
           <groupId>org.cibseven.bpm</groupId>
-          <artifactId>cibseven-engine-rest-jakarta</artifactId>
+          <artifactId>cibseven-engine-rest</artifactId>
           <version>${project.version}</version>
           <type>war</type>
           <scope>test</scope>
@@ -449,7 +449,7 @@
               <deployables>
                 <deployable>
                   <groupId>org.cibseven.bpm</groupId>
-                  <artifactId>cibseven-engine-rest-jakarta</artifactId>
+                  <artifactId>cibseven-engine-rest</artifactId>
                   <type>war</type>
                   <classifier>tomcat</classifier>
                   <pingURL>http://localhost:${tomcat.connector.http.port}/engine-rest/engine/default/process-definition</pingURL>

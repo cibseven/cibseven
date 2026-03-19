@@ -39,7 +39,7 @@
 
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-rest-jakarta</artifactId>
+      <artifactId>cibseven-engine-rest</artifactId>
       <version>${project.version}</version>
       <classifier>tomcat</classifier>
       <type>war</type>
