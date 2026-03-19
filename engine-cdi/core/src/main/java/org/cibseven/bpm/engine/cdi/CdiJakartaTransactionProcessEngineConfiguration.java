@@ -19,14 +19,11 @@ package org.cibseven.bpm.engine.cdi;
 import org.cibseven.bpm.engine.impl.cfg.JakartaTransactionProcessEngineConfiguration;
 
 /**
- * @author Daniel Meyer
- * @deprecated Use {@link CdiJakartaTransactionProcessEngineConfiguration} instead.
- *             This class has been migrated to use Jakarta Transactions and kept
- *             for backwards compatibility only.
+ * Jakarta Transactions-based {@link JakartaTransactionProcessEngineConfiguration} with CDI
+ * expression manager support, analogous to {@link CdiJtaProcessEngineConfiguration} for
+ * the {@code javax.transaction} namespace.
  */
-// TODO: remove class?
-@Deprecated
-public class CdiJtaProcessEngineConfiguration extends JakartaTransactionProcessEngineConfiguration {
+public class CdiJakartaTransactionProcessEngineConfiguration extends JakartaTransactionProcessEngineConfiguration {
 
   @Override
   protected void initExpressionManager() {
