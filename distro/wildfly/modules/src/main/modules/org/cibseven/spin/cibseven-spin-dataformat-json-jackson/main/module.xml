@@ -11,7 +11,7 @@
     <module name="org.cibseven.commons.cibseven-commons-utils" />
     <module name="org.cibseven.commons.cibseven-commons-typed-values" />
 
-    <module name="com.fasterxml.jackson.core.jackson-databind"/>
+    <module name="com.fasterxml.jackson.core.jackson-databind" slot="@version.jackson@"/>
     <module name="com.jayway.jsonpath.json-path" />
   </dependencies>
 
