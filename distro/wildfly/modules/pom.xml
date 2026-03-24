@@ -246,7 +246,7 @@
                   </mapper>
                 </copy>
                 
-                <!-- copy jackson dependencies to slot (patch for CVE)-->
+                <!-- copy jackson dependencies to main (patch for CVE)-->
                 <copy todir="target/modules" flatten="false">
                   <fileset refid="maven.project.dependencies" />
                   <mapper>
