@@ -240,6 +240,17 @@
                   <fileset refid="maven.project.dependencies" />
                   <mapper>
                     <chainedmapper>
+                      <regexpmapper from="^(.*)/([^/]+)/([^/]*)$$" to="\1/${version.jackson}/\3" handledirsep="yes" />
+                      <regexpmapper from="^(com.fasterxml.jackson.*)\/((jackson.*-)[0-9\.]*).*.jar$$" to="\1/\3${version.jackson}.jar" handledirsep="yes" />
+                    </chainedmapper>
+                  </mapper>
+                </copy>
+                
+                <!-- copy jackson dependencies to slot (patch for CVE)-->
+                <copy todir="target/modules" flatten="false">
+                  <fileset refid="maven.project.dependencies" />
+                  <mapper>
+                    <chainedmapper>
                       <regexpmapper from="^(.*)/([^/]+)/([^/]*)$$" to="\1/main/\3" handledirsep="yes" />
                       <regexpmapper from="^(com.fasterxml.jackson.*)\/((jackson.*-)[0-9\.]*).*.jar$$" to="\1/\3${version.jackson}.jar" handledirsep="yes" />
                     </chainedmapper>
