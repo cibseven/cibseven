@@ -26,7 +26,7 @@
 
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-spring-6</artifactId>
+      <artifactId>cibseven-engine-spring-7</artifactId>
     </dependency>
 
     <!-- Spring dependencies required by camunda-engine-spring -->

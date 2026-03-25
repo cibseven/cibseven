@@ -45,6 +45,11 @@
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
+        <artifactId>cibseven-engine-spring-7</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-engine-rest-core</artifactId>
         <version>${project.version}</version>
       </dependency>
