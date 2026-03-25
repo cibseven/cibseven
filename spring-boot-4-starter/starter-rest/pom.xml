@@ -54,6 +54,11 @@
       <artifactId>h2</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-resttestclient</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -86,6 +91,40 @@
               </resources>
             </configuration>
           </execution>
+          <execution>
+            <id>copy-shared-test-sources</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/generated-test-sources/shared</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>../../spring-boot-starter/starter-rest/src/test/java</directory>
+                  <excludes>
+                    <exclude>**/SampleCamundaRestApplicationIT.java</exclude>
+                    <exclude>**/CamundaBpmRestConfigurationIT.java</exclude>
+                  </excludes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-shared-test-resources</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/generated-test-resources/shared</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>../../spring-boot-starter/starter-rest/src/test/resources</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -103,6 +142,32 @@
               <sources>
                 <source>${project.build.directory}/generated-sources/shared</source>
               </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-test-source</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-test-sources/shared</source>
+              </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-test-resource</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>add-test-resource</goal>
+            </goals>
+            <configuration>
+              <resources>
+                <resource>
+                  <directory>${project.build.directory}/generated-test-resources/shared</directory>
+                </resource>
+              </resources>
             </configuration>
           </execution>
         </executions>

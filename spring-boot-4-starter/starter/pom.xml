@@ -15,7 +15,7 @@
       <dependency>
         <groupId>jakarta.platform</groupId>
         <artifactId>jakarta.jakartaee-bom</artifactId>
-        <version>${version.jakarta-ee-spec}</version>
+        <version>11.0.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -158,6 +158,11 @@
       <artifactId>jaxb-impl</artifactId>
       <version>${version.xml.jaxb-impl4}</version>
     </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-resttestclient</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -194,6 +199,41 @@
               </resources>
             </configuration>
           </execution>
+          <execution>
+            <id>copy-shared-test-sources</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/generated-test-sources/shared</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>../../spring-boot-starter/starter/src/test/java</directory>
+                  <excludes>
+                    <exclude>**/actuator/ProcessEngineHealthIndicatorTest.java</exclude>
+                    <exclude>**/actuator/JobExecutorHealthIndicatorTest.java</exclude>
+                    <exclude>**/CamundaBpmActuatorConfigurationIT.java</exclude>
+                  </excludes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-shared-test-resources</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/generated-test-resources/shared</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>../../spring-boot-starter/starter/src/test/resources</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <!-- Add the copied shared sources as a source directory -->
@@ -212,6 +252,32 @@
               <sources>
                 <source>${project.build.directory}/generated-sources/shared</source>
               </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-test-source</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-test-sources/shared</source>
+              </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-test-resource</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>add-test-resource</goal>
+            </goals>
+            <configuration>
+              <resources>
+                <resource>
+                  <directory>${project.build.directory}/generated-test-resources/shared</directory>
+                </resource>
+              </resources>
             </configuration>
           </execution>
         </executions>
