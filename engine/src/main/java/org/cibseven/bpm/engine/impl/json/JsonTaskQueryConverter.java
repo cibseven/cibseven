@@ -117,6 +117,7 @@ public class JsonTaskQueryConverter extends JsonObjectConverter<TaskQuery> {
   public static final String CASE_INSTANCE_VARIABLES = "caseInstanceVariables";
   public static final String TENANT_IDS = "tenantIds";
   public static final String WITHOUT_TENANT_ID = "withoutTenantId";
+  public static final String LIKE_PATTERN_IGNORE_CASE = "likePatternIgnoreCase";
   public static final String ORDERING_PROPERTIES = "orderingProperties";
   public static final String OR_QUERIES = "orQueries";
 
@@ -218,6 +219,9 @@ public class JsonTaskQueryConverter extends JsonObjectConverter<TaskQuery> {
     JsonUtil.addField(json, CASE_INSTANCE_BUSINESS_KEY_LIKE, query.getCaseInstanceBusinessKeyLike());
     JsonUtil.addField(json, CASE_EXECUTION_ID, query.getCaseExecutionId());
     addTenantIdFields(json, query);
+    if (Boolean.TRUE.equals(query.isLikePatternIgnoreCase())) {
+      JsonUtil.addField(json, LIKE_PATTERN_IGNORE_CASE, true);
+    }
 
     if (query.getQueries().size() > 1 && !isOrQueryActive) {
       JsonArray orQueries = JsonUtil.createArray();
@@ -522,6 +526,9 @@ public class JsonTaskQueryConverter extends JsonObjectConverter<TaskQuery> {
     }
     if (json.has(WITHOUT_TENANT_ID)) {
       query.withoutTenantId();
+    }
+    if (json.has(LIKE_PATTERN_IGNORE_CASE) && JsonUtil.getBoolean(json, LIKE_PATTERN_IGNORE_CASE)) {
+      query.likePatternIgnoreCase();
     }
     if (json.has(ORDER_BY)) {
       List<QueryOrderingProperty> orderingProperties =
