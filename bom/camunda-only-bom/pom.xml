@@ -181,6 +181,44 @@
         <artifactId>cibseven-bpm-spring-boot-starter-test</artifactId>
         <version>${project.version}</version>
       </dependency>
+
+      <!-- Spring Boot 4 Starter artifacts -->
+      <dependency>
+        <groupId>org.cibseven.bpm.springboot</groupId>
+        <artifactId>cibseven-bpm-spring-boot-starter-4</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.cibseven.bpm.springboot</groupId>
+        <artifactId>cibseven-bpm-spring-boot-starter-rest-4</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.cibseven.bpm.springboot</groupId>
+        <artifactId>cibseven-bpm-spring-boot-starter-webapp-4</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.cibseven.bpm.springboot</groupId>
+        <artifactId>cibseven-bpm-spring-boot-starter-webapp-core-4</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.cibseven.bpm.springboot</groupId>
+        <artifactId>cibseven-bpm-spring-boot-starter-security-4</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.cibseven.bpm.springboot</groupId>
+        <artifactId>cibseven-bpm-spring-boot-starter-test-4</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.cibseven.bpm.springboot</groupId>
+        <artifactId>cibseven-bpm-spring-boot-starter-external-task-client-4</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
       <dependency>
         <groupId>org.cibseven.bpm.quarkus</groupId>
         <artifactId>cibseven-bpm-quarkus-engine</artifactId>
