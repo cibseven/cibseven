@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
   classes = WebappExampleApplication.class,
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
+@AutoConfigureTestRestTemplate
 public class WebappTest {
 
   @Autowired
@@ -51,7 +53,7 @@ public class WebappTest {
   @Test
   public void testAdminEndpointAvailable() {
     ResponseEntity<String> response =
-        testRestTemplate.getForEntity("/camunda/app/admin/", String.class);
+        testRestTemplate.getForEntity("/webapp/", String.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
