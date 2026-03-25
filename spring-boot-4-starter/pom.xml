@@ -18,8 +18,6 @@
   <properties>
     <!-- disable parallel unit tests run -->
     <surefire.forkCount>1</surefire.forkCount>
-    <!-- tests need SB4-specific migration (e.g. @MockitoBean), skip for now -->
-    <maven.test.skip>true</maven.test.skip>
   </properties>
 
   <dependencyManagement>

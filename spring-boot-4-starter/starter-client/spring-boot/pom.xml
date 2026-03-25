@@ -71,6 +71,31 @@
     </resources>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-shared-test-sources</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/generated-test-sources/shared</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>../../../spring-boot-starter/starter-client/spring-boot/src/test/java</directory>
+                  <excludes>
+                    <exclude>**/MergeSubscriptionConfigurationTest.java</exclude>
+                    <exclude>**/ClientAutoConfigurationIT.java</exclude>
+                  </excludes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
         <version>3.6.1</version>
@@ -85,6 +110,32 @@
               <sources>
                 <source>../../../spring-boot-starter/starter-client/spring-boot/src/main/java</source>
               </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-test-source</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-test-sources/shared</source>
+              </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-test-resource</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>add-test-resource</goal>
+            </goals>
+            <configuration>
+              <resources>
+                <resource>
+                  <directory>../../../spring-boot-starter/starter-client/spring-boot/src/test/resources</directory>
+                </resource>
+              </resources>
             </configuration>
           </execution>
         </executions>

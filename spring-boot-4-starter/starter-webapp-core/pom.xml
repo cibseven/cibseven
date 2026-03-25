@@ -74,6 +74,21 @@
       <scope>test</scope>
       <version>${version.mockito}</version>
     </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-resttestclient</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-jdbc</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-security</artifactId>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
 
@@ -118,6 +133,44 @@
               </resources>
             </configuration>
           </execution>
+          <execution>
+            <id>copy-shared-test-sources</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/generated-test-sources/shared</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>../../spring-boot-starter/starter-webapp-core/src/test/java</directory>
+                  <excludes>
+                    <exclude>**/apppath/ChangedAppPathIT.java</exclude>
+                    <exclude>**/apppath/containerbasedauth/ChangedAppPathContainerBasedAuthIT.java</exclude>
+                    <exclude>**/apppath/containerbasedauth/ContainerBasedAuthFilterRegistration.java</exclude>
+                    <exclude>**/apppath/EmptyAppPathIT.java</exclude>
+                    <exclude>**/apppath/RequestTrailingSlashIT.java</exclude>
+                    <exclude>**/CamundaBpmWebappAutoConfigurationIntegrationTest.java</exclude>
+                  </excludes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-shared-test-resources</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/generated-test-resources/shared</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>../../spring-boot-starter/starter-webapp-core/src/test/resources</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -135,6 +188,32 @@
               <sources>
                 <source>${project.build.directory}/generated-sources/shared</source>
               </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-test-source</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-test-sources/shared</source>
+              </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-test-resource</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>add-test-resource</goal>
+            </goals>
+            <configuration>
+              <resources>
+                <resource>
+                  <directory>${project.build.directory}/generated-test-resources/shared</directory>
+                </resource>
+              </resources>
             </configuration>
           </execution>
         </executions>
