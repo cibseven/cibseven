@@ -103,6 +103,7 @@
         <module>distro/tomcat</module>
         <module>distro/sql-script</module>
         <module>distro/run</module>
+        <module>distro/run4</module>
 
         <module>clients/java</module>
 
@@ -203,6 +204,7 @@
       </activation>
       <modules>
         <module>distro/run</module>
+        <module>distro/run4</module>
       </modules>
     </profile>
 
