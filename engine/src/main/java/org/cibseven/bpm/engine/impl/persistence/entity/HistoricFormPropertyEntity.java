@@ -24,6 +24,7 @@ import org.cibseven.bpm.engine.impl.history.event.HistoricFormPropertyEventEntit
 /**
  * @author Tom Baeyens
  */
+@SuppressWarnings("deprecation")
 public class HistoricFormPropertyEntity extends HistoricFormPropertyEventEntity implements HistoricFormProperty, HistoricFormField {
 
   private static final long serialVersionUID = 1L;

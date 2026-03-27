@@ -81,7 +81,7 @@ public final class BpmnTestConstants {
   public static final String TEST_PROCESS_TASK_PRIORITY = "13";
   public static final String TEST_SERVICE_TASK_PRIORITY = "${test}";
   public static final String TEST_EXTERNAL_TASK_TOPIC = "${externalTaskTopic}";
-  public static final Integer TEST_HISTORY_TIME_TO_LIVE = 5;
+  public static final String TEST_HISTORY_TIME_TO_LIVE = "5";
   public static final Boolean TEST_STARTABLE_IN_TASKLIST = false;
   public static final String TEST_VERSION_TAG = "v1.0.0";
 
