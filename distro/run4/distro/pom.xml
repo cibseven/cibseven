@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.cibseven.bpm.run</groupId>
+    <artifactId>cibseven-bpm-run4-root</artifactId>
+    <version>2.2.0-SNAPSHOT</version>
+    <relativePath>..</relativePath>
+  </parent>
+
+  <artifactId>cibseven-bpm-run4</artifactId>
+  <name>CIB seven - Run 4 - Distribution</name>
+  <packaging>pom</packaging>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>org.cibseven.bpm.run</groupId>
+      <artifactId>cibseven-bpm-run4-assembly</artifactId>
+      <version>${project.version}</version>
+      <type>tar.gz</type>
+    </dependency>
+
+    <dependency>
+      <groupId>org.cibseven.bpm.distro</groupId>
+      <artifactId>cibseven-sql-scripts</artifactId>
+      <version>${project.version}</version>
+      <type>jar</type>
+    </dependency>
+
+    <!-- make sure this runs after webapps -->
+    <dependency>
+      <groupId>org.cibseven.bpm.run</groupId>
+      <artifactId>cibseven-bpm-run4-modules-webapps</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
+      <exclusions>
+        <!-- we don't need any transitive dependencies -->
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <appendAssemblyId>false</appendAssemblyId>
+          <outputDirectory>target/</outputDirectory>
+          <tarLongFileMode>gnu</tarLongFileMode>
+        </configuration>
+        <executions>
+          <execution>
+            <id>assemble</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>assembly.xml</descriptor>
+              </descriptors>
+              <workDirectory>target/assembly/work</workDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <description>
+    Description of CIB seven - Run - Distribution
+  </description>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
+
+</project>

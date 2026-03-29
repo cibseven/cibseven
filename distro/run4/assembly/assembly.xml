@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
+
+  <id>assembly</id>
+
+  <formats>
+    <format>tar.gz</format>
+  </formats>
+
+  <includeBaseDirectory>false</includeBaseDirectory>
+
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>internal/</outputDirectory>
+      <includes>
+        <include>org.cibseven.bpm.run:cibseven-bpm-run4-core</include>
+      </includes>
+      <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
+    </dependencySet>
+    <dependencySet>
+      <outputDirectory>internal/oauth2/</outputDirectory>
+      <includes>
+        <include>org.cibseven.bpm.run:cibseven-bpm-run4-modules-oauth2</include>
+      </includes>
+      <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
+    </dependencySet>
+    <dependencySet>
+      <outputDirectory>internal/example/</outputDirectory>
+      <includes>
+        <include>org.cibseven.bpm.run:cibseven-bpm-run4-modules-example-invoice</include>
+      </includes>
+      <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
+    </dependencySet>
+    <dependencySet>
+      <outputDirectory />
+      <includes>
+        <include>org.cibseven.bpm:license-book:zip</include>
+      </includes>
+      <unpack>true</unpack>
+    </dependencySet>
+    <dependencySet>
+      <outputDirectory>configuration/userlib/</outputDirectory>
+      <includes>
+        <include>com.h2database:h2</include>
+        <include>org.apache.groovy:groovy:jar:*</include>
+        <include>org.apache.groovy:groovy-jsr223:jar:*</include>
+        <include>org.apache.groovy:groovy-json:jar:*</include>
+        <include>org.apache.groovy:groovy-xml:jar:*</include>
+        <include>org.apache.groovy:groovy-templates:jar:*</include>
+        <include>org.apache.groovy:groovy-dateutil:jar:*</include>
+        <include>org.apache.groovy:groovy-datetime:jar:*</include>
+      </includes>
+    </dependencySet>
+  </dependencySets>
+
+  <files>
+    <file>
+      <source>resources/default.yml</source>
+      <outputDirectory>configuration/</outputDirectory>
+    </file>
+    <file>
+      <source>resources/production.yml</source>
+      <outputDirectory>configuration/</outputDirectory>
+    </file>
+    <file>
+      <source>resources/keystore.p12</source>
+      <outputDirectory>configuration/keystore/</outputDirectory>
+    </file>
+    <file>
+      <source>resources/run.sh</source>
+      <filtered>true</filtered>
+      <outputDirectory>internal/</outputDirectory>
+      <fileMode>0755</fileMode>
+    </file>
+    <file>
+      <source>resources/start.sh</source>
+      <filtered>true</filtered>
+      <outputDirectory />
+      <fileMode>0755</fileMode>
+    </file>
+    <file>
+      <source>resources/shutdown.sh</source>
+      <filtered>true</filtered>
+      <outputDirectory />
+      <fileMode>0755</fileMode>
+    </file>
+    <file>
+      <source>resources/run.bat</source>
+      <filtered>true</filtered>
+      <outputDirectory>internal/</outputDirectory>
+      <fileMode>0644</fileMode>
+    </file>
+    <file>
+      <source>resources/start.bat</source>
+      <filtered>true</filtered>
+      <outputDirectory />
+      <fileMode>0644</fileMode>
+    </file>
+    <file>
+      <source>resources/shutdown.bat</source>
+      <filtered>true</filtered>
+      <outputDirectory />
+      <fileMode>0644</fileMode>
+    </file>
+    <file>
+      <source>../../license/LICENSE</source>
+      <filtered>true</filtered>
+      <lineEnding>crlf</lineEnding>
+      <outputDirectory></outputDirectory>
+    </file>
+    <file>
+      <source>../../license/NOTICE</source>
+      <filtered>true</filtered>
+      <lineEnding>crlf</lineEnding>
+      <outputDirectory></outputDirectory>
+    </file>
+    <file>
+      <source>resources/README.txt</source>
+      <filtered>true</filtered>
+      <lineEnding>crlf</lineEnding>
+      <outputDirectory />
+    </file>
+  </files>
+
+  <fileSets>
+    <fileSet>
+      <directory>../modules/rest/target/dependency/</directory>
+      <outputDirectory>internal/rest/</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>../modules/oauth2/target/dependency/</directory>
+      <outputDirectory>internal/oauth2/</outputDirectory>
+    </fileSet>
+    <!-- create empty resource folder -->
+    <fileSet>
+      <directory>resources/dummyResource</directory>
+      <outputDirectory>configuration/resources/</outputDirectory>
+      <excludes>
+        <exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
+  </fileSets>
+
+</assembly>
