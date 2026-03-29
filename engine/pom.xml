@@ -523,6 +523,18 @@
               <pattern>com.cronutils</pattern>
               <shadedPattern>camundajar.impl.com.cronutils</shadedPattern>
             </relocation>
+            <relocation>
+              <pattern>org.graalvm</pattern>
+              <shadedPattern>camundajar.impl.org.graalvm</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>com.oracle</pattern>
+              <shadedPattern>camundajar.impl.com.oracle</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>com.ibm</pattern>
+              <shadedPattern>camundajar.impl.com.ibm</shadedPattern>
+            </relocation>
           </relocations>
           <transformers>
             <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
