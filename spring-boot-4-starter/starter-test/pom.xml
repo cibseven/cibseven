@@ -33,6 +33,13 @@
       </exclusions>
     </dependency>
 
+    <!-- junit:junit is scoped 'test' by the Spring Boot BOM, but main sources use JUnit 4 APIs -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-engine</artifactId>
