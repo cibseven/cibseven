@@ -38,6 +38,7 @@
 
         <include>org.cibseven.bpm:cibseven-engine:jar</include>
         <include>org.cibseven.bpm.identity:cibseven-identity-ldap:jar</include>
+        <include>org.cibseven.bpm.identity:cibseven-identity-scim:jar</include>
 
         <include>org.mybatis:mybatis:jar:*</include>
         <include>com.fasterxml.uuid:java-uuid-generator:jar:*</include>
@@ -83,6 +84,7 @@
 
         <include>org.cibseven.bpm:cibseven-engine:jar</include>
         <include>org.cibseven.bpm.identity:cibseven-identity-ldap:jar</include>
+        <include>org.cibseven.bpm.identity:cibseven-identity-scim:jar</include>
 
         <include>org.mybatis:mybatis:jar:*</include>
         <include>com.fasterxml.uuid:java-uuid-generator:jar:*</include>
