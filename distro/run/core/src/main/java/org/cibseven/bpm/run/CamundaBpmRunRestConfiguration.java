@@ -19,7 +19,9 @@ package org.cibseven.bpm.run;
 import jakarta.servlet.Filter;
 import org.apache.catalina.filters.CorsFilter;
 import org.cibseven.bpm.engine.rest.security.auth.ProcessEngineAuthenticationFilter;
+import org.cibseven.bpm.engine.rest.security.auth.impl.PseudoAuthenticationProvider;
 import org.cibseven.bpm.engine.rest.security.auth.impl.CompositeAuthenticationProvider;
+import org.cibseven.bpm.engine.rest.security.auth.impl.HttpBasicAuthenticationProvider;
 import org.cibseven.bpm.run.property.CamundaBpmRunAuthenticationProperties;
 import org.cibseven.bpm.run.property.CamundaBpmRunCorsProperty;
 import org.cibseven.bpm.run.property.CamundaBpmRunProperties;
@@ -77,16 +79,15 @@ public class CamundaBpmRunRestConfiguration {
     String[] urlPatterns = new String[] { addUrl(restApiPathPattern, "/*") };
     registration.setAsyncSupported(true);
 
-    // if nothing is set, use Http Basic authentication
+    // if nothing is set or DEFAULT_AUTH is configured, use pseudo (header-based) authentication
     CamundaBpmRunAuthenticationProperties properties = camundaBpmRunProperties.getAuth();
     if (properties.getAuthentication() == null || CamundaBpmRunAuthenticationProperties.DEFAULT_AUTH.equals(properties.getAuthentication())) {
-      urlPatterns = new String[] { addUrl(restApiPathPattern, "/filter/*") };
-    	registration.addInitParameter("authentication-provider", "org.cibseven.bpm.engine.rest.security.auth.impl.PseudoAuthenticationProvider");
+      registration.addInitParameter("authentication-provider", PseudoAuthenticationProvider.class.getName());
     } else if (CamundaBpmRunAuthenticationProperties.COMPOSITE_AUTH.equals(properties.getAuthentication())) {
-    	registration.addInitParameter("authentication-provider", "org.cibseven.bpm.engine.rest.security.auth.impl.CompositeAuthenticationProvider");
+      registration.addInitParameter("authentication-provider", CompositeAuthenticationProvider.class.getName());
     } else if (CamundaBpmRunAuthenticationProperties.BASIC_AUTH.equals(properties.getAuthentication())) {
-    	registration.addInitParameter("authentication-provider", "org.cibseven.bpm.engine.rest.security.auth.impl.HttpBasicAuthenticationProvider");
-	}
+      registration.addInitParameter("authentication-provider", HttpBasicAuthenticationProvider.class.getName());
+    }
     
     registration.addUrlPatterns(urlPatterns);
     return registration;

@@ -6011,4 +6011,45 @@ public class TaskQueryTest extends PluggableProcessEngineTest {
     return ids;
   }
 
+  @Test
+  public void testQueryByAssigneeLikeIgnoreCase() {
+    // The gonzo_ task has assignee "gonzo_"
+    // Without likePatternIgnoreCase, searching with uppercase pattern should not find it
+    TaskQuery queryWithoutIgnoreCase = taskService.createTaskQuery().taskAssigneeLike("GONZO%");
+    assertEquals(0, queryWithoutIgnoreCase.count());
+
+    // With likePatternIgnoreCase, searching with uppercase pattern should find it
+    TaskQuery queryWithIgnoreCase = taskService.createTaskQuery().likePatternIgnoreCase().taskAssigneeLike("GONZO%");
+    assertEquals(1, queryWithIgnoreCase.count());
+    assertNotNull(queryWithIgnoreCase.singleResult());
+    assertEquals("gonzo_", queryWithIgnoreCase.singleResult().getAssignee());
+
+    // Test with mixed case pattern
+    queryWithIgnoreCase = taskService.createTaskQuery().likePatternIgnoreCase().taskAssigneeLike("GoNzO%");
+    assertEquals(1, queryWithIgnoreCase.count());
+  }
+
+  @Test
+  public void testLikeIgnoreCaseWithMultipleFields() {
+    // Create a task with specific values
+    Task task = taskService.newTask();
+    task.setName("TestTaskName");
+    taskService.saveTask(task);
+    taskService.setAssignee(task.getId(), "MyAssignee");
+    
+    try {
+      // Test that likePatternIgnoreCase affects assigneeLike (which is NOT case-insensitive by default)
+      // Without likePatternIgnoreCase, lowercase pattern should not match data stored with mixed case
+      TaskQuery queryWithoutIgnoreCase = taskService.createTaskQuery().taskAssigneeLike("myassig%");
+      assertEquals(0, queryWithoutIgnoreCase.count());
+
+      // With likePatternIgnoreCase, lowercase pattern should match data stored with mixed case
+      TaskQuery queryWithIgnoreCase = taskService.createTaskQuery().likePatternIgnoreCase().taskAssigneeLike("myassig%");
+      assertEquals(1, queryWithIgnoreCase.count());
+
+    } finally {
+      taskService.deleteTask(task.getId(), true);
+    }
+  }
+
 }

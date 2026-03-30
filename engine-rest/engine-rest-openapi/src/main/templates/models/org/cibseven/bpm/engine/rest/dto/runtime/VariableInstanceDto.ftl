@@ -53,7 +53,7 @@
     <@lib.property
         name = "batchId"
         type = "string"
-        desc = "The id of the batch that this variable instance belongs to.<"
+        desc = "The id of the batch that this variable instance belongs to."
     />
     
     <@lib.property

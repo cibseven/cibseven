@@ -48,7 +48,7 @@
               <artifactSet>
                 <excludes>
                   <exclude>org.cibseven.commons:*</exclude>
-                  <exclude>org.cibseven.connect:camunda-connect-core</exclude>
+                  <exclude>org.cibseven.connect:cibseven-connect-core</exclude>
                   <exclude>org.slf4j:*</exclude>
                 </excludes>
               </artifactSet>

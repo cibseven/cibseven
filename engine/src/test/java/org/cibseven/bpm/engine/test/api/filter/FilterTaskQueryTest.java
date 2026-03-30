@@ -1242,6 +1242,49 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
   }
 
   @Test
+  public void testFilterListWithLikePatternIgnoreCaseInStoredQuery() {
+    // given - a filter with likePatternIgnoreCase and assigneeLike stored in the query
+    TaskQuery query = taskService.createTaskQuery()
+        .likePatternIgnoreCase()
+        .taskAssigneeLike("KERMIT%");
+    saveQuery(query);
+
+    // when
+    List<Task> tasks = filterService.list(filter.getId());
+
+    // then - should find task2 assigned to "kermit" (case-insensitive)
+    assertNotNull(tasks);
+    assertThat(tasks).hasSize(1);
+    assertThat(tasks.get(0).getAssignee()).isEqualTo("kermit");
+  }
+
+  @Test
+  public void testFilterListWithLikePatternIgnoreCaseInExtendingQuery() {
+    // given - a filter with a base assigneeLike query (without ignore case)
+    TaskQuery baseQuery = taskService.createTaskQuery().taskAssigneeLike("%ermit");
+    saveQuery(baseQuery);
+
+    // without likePatternIgnoreCase, uppercase pattern finds nothing
+    List<Task> tasksWithoutIgnoreCase = filterService.list(filter.getId());
+    assertNotNull(tasksWithoutIgnoreCase);
+    assertThat(tasksWithoutIgnoreCase).hasSize(1);
+
+    // when - extending query enables likePatternIgnoreCase
+    TaskQuery baseQueryUppercase = taskService.createTaskQuery().taskAssigneeLike("%ERMIT");
+    saveQuery(baseQueryUppercase);
+    List<Task> tasksWithoutFlag = filterService.list(filter.getId());
+    assertThat(tasksWithoutFlag).isEmpty();
+
+    TaskQuery extendingQuery = taskService.createTaskQuery().likePatternIgnoreCase();
+    List<Task> tasks = filterService.list(filter.getId(), extendingQuery);
+
+    // then - should find task2 assigned to "kermit" (case-insensitive via extending query)
+    assertNotNull(tasks);
+    assertThat(tasks).hasSize(1);
+    assertThat(tasks.get(0).getAssignee()).isEqualTo("kermit");
+  }
+
+  @Test
   public void testExecuteTaskQueryCount() {
     TaskQuery query = taskService.createTaskQuery();
 

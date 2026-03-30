@@ -77,7 +77,7 @@
     <dependency>
       <groupId>org.cibseven.commons</groupId>
       <artifactId>cibseven-commons-testing</artifactId>
-      <version>${version}</version>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

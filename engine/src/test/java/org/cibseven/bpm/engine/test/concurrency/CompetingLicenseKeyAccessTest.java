@@ -33,7 +33,7 @@ public class CompetingLicenseKeyAccessTest extends ConcurrencyTestCase {
 
   @Before
   public void setUp() throws Exception {
-    managementService.setLicenseKey("testLicenseKey");
+    managementService.setLicenseKey("{\"customer\":\"testCompany\"}");
   }
 
   @After
@@ -52,7 +52,7 @@ public class CompetingLicenseKeyAccessTest extends ConcurrencyTestCase {
    */
   @Test
   public void testConcurrentlyDeleteAndSetLicense() {
-    managementService.setLicenseKey("testLicenseKey");
+    managementService.setLicenseKey("{\"customer\":\"testCompany\"}");
 
     asyncThread = executeControllableCommand(new FetchAndUpdateLicenseCmd());
 
@@ -79,13 +79,13 @@ public class CompetingLicenseKeyAccessTest extends ConcurrencyTestCase {
    */
   @Test
   public void testConcurrentlyAlterLicense() {
-    managementService.setLicenseKey("testLicenseKey");
+    managementService.setLicenseKey("{\"customer\":\"testCompany\"}");
 
     asyncThread = executeControllableCommand(new FetchAndUpdateLicenseCmd());
 
     asyncThread.waitForSync();
 
-    managementService.setLicenseKey("updatedTestLicenseKey");
+    managementService.setLicenseKey("{\"customer\":\"updated testCompany\"}");
 
     asyncThread.reportInterrupts();
     asyncThread.waitUntilDone();
@@ -104,7 +104,7 @@ public class CompetingLicenseKeyAccessTest extends ConcurrencyTestCase {
 
       monitor.sync();
 
-      licenseKey.setBytes("updatedTestLicenseKeyBySecondThread".getBytes());
+      licenseKey.setBytes("{\"customer\":\"updatedTestLicenseKeyBySecondThread Company\"}".getBytes());
       new SetLicenseKeyCmd(new String(licenseKey.getBytes())).execute(commandContext);
       return null;
     }

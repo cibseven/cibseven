@@ -27,25 +27,25 @@ can look like the following:
 
 ```properties
 # process engine configuration
-quarkus.camunda.generic-config.cmmn-enabled=false
-quarkus.camunda.generic-config.dmn-enabled=false
-quarkus.camunda.generic-config.history=none
+quarkus.cibseven.generic-config.cmmn-enabled=false
+quarkus.cibseven.generic-config.dmn-enabled=false
+quarkus.cibseven.generic-config.history=none
 
 # job executor configuration
-quarkus.camunda.job-executor.thread-pool.max-pool-size=12
-quarkus.camunda.job-executor.thread-pool.queue-size=5
-quarkus.camunda.job-executor.generic-config.max-jobs-per-acquisition=5
-quarkus.camunda.job-executor.generic-config.lock-time-in-millis=500000
-quarkus.camunda.job-executor.generic-config.wait-time-in-millis=7000
-quarkus.camunda.job-executor.generic-config.max-wait=65000
-quarkus.camunda.job-executor.generic-config.backoff-time-in-millis=5
+quarkus.cibseven.job-executor.thread-pool.max-pool-size=12
+quarkus.cibseven.job-executor.thread-pool.queue-size=5
+quarkus.cibseven.job-executor.generic-config.max-jobs-per-acquisition=5
+quarkus.cibseven.job-executor.generic-config.lock-time-in-millis=500000
+quarkus.cibseven.job-executor.generic-config.wait-time-in-millis=7000
+quarkus.cibseven.job-executor.generic-config.max-wait=65000
+quarkus.cibseven.job-executor.generic-config.backoff-time-in-millis=5
 
 # custom data source configuration and selection
 quarkus.datasource.my-datasource.db-kind=h2
 quarkus.datasource.my-datasource.username=camunda
 quarkus.datasource.my-datasource.password=camunda
 quarkus.datasource.my-datasource.jdbc.url=jdbc:h2:mem:camunda;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
-quarkus.camunda.datasource=my-datasource
+quarkus.cibseven.datasource=my-datasource
 ```
 
 ### Local Build

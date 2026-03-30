@@ -24,12 +24,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class LicenseKeyDataDto {
 
-  public static final String SERIALIZED_VALID_UNTIL = "valid-until";
+  public static final String SERIALIZED_EXPIRES = "expires";
   public static final String SERIALIZED_IS_UNLIMITED = "unlimited";
 
   protected String customer;
   protected String type;
-  @JsonProperty(value = SERIALIZED_VALID_UNTIL)
+  @JsonProperty(value = SERIALIZED_EXPIRES)
   protected String validUntil;
   @JsonProperty(value = SERIALIZED_IS_UNLIMITED)
   protected Boolean isUnlimited;
