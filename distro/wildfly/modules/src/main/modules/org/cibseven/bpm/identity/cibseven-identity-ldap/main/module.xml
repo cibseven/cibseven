@@ -5,6 +5,8 @@
 
   <dependencies>
 
+    <module name="sun.jdk" />
+
     <module name="java.base" />
     <module name="java.naming" />
     <module name="org.cibseven.bpm.cibseven-engine" />
