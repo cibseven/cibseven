@@ -19,28 +19,6 @@
       <unpack>true</unpack>
     </dependencySet>
     <dependencySet>
-<<<<<<< HEAD
-=======
-      <outputDirectory>server</outputDirectory>
-      <includes>
-        <include>org.wildfly:wildfly-dist:tar.gz:${version.wildfly}</include>
-      </includes>
-      <unpack>true</unpack>      
-      <unpackOptions>
-        <excludes>
-          <exclude>**/standalone/configuration/standalone.xml</exclude>        
-          <exclude>**/standalone/configuration/standalone-full.xml</exclude> 
-          <exclude>**/bin/standalone.conf</exclude>
-          <exclude>**/bin/standalone.conf.bat</exclude>
-          <!-- exclude wildfly's shipped version of h2database -->
-          <exclude>**/h2database/**</exclude>
-          <!-- exclude system jackson core modules: CWE-770 -->
-          <exclude>**/modules/system/layers/base/com/fasterxml/jackson/core/**</exclude>
-        </excludes>        
-      </unpackOptions>      
-    </dependencySet>
-    <dependencySet>
->>>>>>> origin/main
       <outputDirectory>lib</outputDirectory>
       <includes>
         <include>org.cibseven.bpm.javaee:cibseven-ejb-client-jakarta:jar:${project.version}</include>
