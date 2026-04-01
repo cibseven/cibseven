@@ -61,6 +61,7 @@
           any modules that have a dependency to the webapps. See also the referenced POMs,
           they usually define which modules are covered by the distro profile -->
         <module>spring-boot-starter</module>
+        <module>spring-boot-4-starter</module>
 
         <module>quarkus-extension</module>
 
@@ -102,6 +103,7 @@
         <module>distro/tomcat</module>
         <module>distro/sql-script</module>
         <module>distro/run</module>
+        <module>distro/run4</module>
 
         <module>clients/java</module>
 
@@ -202,6 +204,7 @@
       </activation>
       <modules>
         <module>distro/run</module>
+        <module>distro/run4</module>
       </modules>
     </profile>
 
@@ -235,6 +238,7 @@
       <id>sonatype-oss-release</id>
       <modules>
         <module>spring-boot-starter</module>
+        <module>spring-boot-4-starter</module>
         <module>quarkus-extension</module>
         <module>model-api</module>
 
