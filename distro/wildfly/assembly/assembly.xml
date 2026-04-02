@@ -101,10 +101,6 @@
       <outputDirectory>server/wildfly-${version.wildfly}/standalone/configuration</outputDirectory>
     </file>
     <file>
-      <source>src/wildfly/standalone-full.xml</source>
-      <outputDirectory>server/wildfly-${version.wildfly}/standalone/configuration</outputDirectory>
-    </file>
-    <file>
       <source>src/wildfly/standalone.conf</source>
       <outputDirectory>server/wildfly-${version.wildfly}/bin/</outputDirectory>
     </file>
