@@ -23,7 +23,7 @@ import org.cibseven.bpm.engine.variable.value.TypedValue;
 
 import static org.cibseven.spin.plugin.variable.SpinValues.xmlValue;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author Tassilo Weidner
