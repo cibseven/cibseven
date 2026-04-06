@@ -78,6 +78,8 @@ pipeline {
         // Only used when QA_TEST_SUITE = 'CUSTOM'
         booleanParam(name: 'QA_ENG_IT', defaultValue: false, description: "  └─ Engine Integration")
         booleanParam(name: 'QA_WEB_IT', defaultValue: false, description: "  └─ Web Integration")
+        booleanParam(name: 'QA_RUN_IT', defaultValue: false, description: "  └─ Run Integration")
+        booleanParam(name: 'QA_SPRING_IT', defaultValue: false, description: "  └─ Spring Boot Integration")
         booleanParam(name: 'QA_PERF', defaultValue: false, description: "  └─ Performance")
         booleanParam(name: 'QA_LARGE_DATA', defaultValue: false, description: "  └─ Large Data")
         booleanParam(name: 'QA_OLD_ENG', defaultValue: false, description: "  └─ Old Engine")
@@ -276,6 +278,18 @@ pipeline {
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,webapps-integration" }}
+                    }
+                }
+                stage('Run Integration') {
+                    when { expression { params.QA_RUN_IT || params.QA_TEST_SUITE == 'ALL' }}
+                    steps {
+                        script { withMaven { sh "mvn -f distro/run/pom.xml clean install -Pintegration-test-run" }}
+                    }
+                }
+                stage('Spring Boot Integration') {
+                    when { expression { params.QA_SPRING_IT || params.QA_TEST_SUITE == 'ALL' }}
+                    steps {
+                        script { withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }}
                     }
                 }
                 stage('Performance') {
