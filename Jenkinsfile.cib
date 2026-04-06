@@ -78,6 +78,8 @@ pipeline {
         // Only used when QA_TEST_SUITE = 'CUSTOM'
         booleanParam(name: 'QA_ENG_IT', defaultValue: false, description: "  └─ Engine Integration")
         booleanParam(name: 'QA_WEB_IT', defaultValue: false, description: "  └─ Web Integration")
+        booleanParam(name: 'QA_RUN_IT', defaultValue: false, description: "  └─ Run Integration")
+        booleanParam(name: 'QA_SPRING_IT', defaultValue: false, description: "  └─ Spring Boot Integration")
         booleanParam(name: 'QA_PERF', defaultValue: false, description: "  └─ Performance")
         booleanParam(name: 'QA_LARGE_DATA', defaultValue: false, description: "  └─ Large Data")
         booleanParam(name: 'QA_OLD_ENG', defaultValue: false, description: "  └─ Old Engine")
@@ -141,7 +143,7 @@ pipeline {
                     // https://stackoverflow.com/questions/72978485/git-submodule-update-failed-with-fatal-detected-dubious-ownership-in-repositor
                     sh "git config --global --add safe.directory \$(pwd)"
 
-                    isAnyCustomTest = params.QA_TEST_SUITE == 'CUSTOM' && (params.QA_ENG_IT || params.QA_WEB_IT || params.QA_PERF || params.QA_LARGE_DATA || params.QA_OLD_ENG || params.QA_ROLL_UPD || params.QA_INST_MIGR)
+                    isAnyCustomTest = params.QA_TEST_SUITE == 'CUSTOM' && (params.QA_ENG_IT || params.QA_WEB_IT || params.QA_RUN_IT || params.QA_SPRING_IT || params.QA_PERF || params.QA_LARGE_DATA || params.QA_OLD_ENG || params.QA_ROLL_UPD || params.QA_INST_MIGR)
                 }
                 script {
                     // if use private repo then try to get a repo template from the pool if possible
@@ -276,6 +278,18 @@ pipeline {
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,webapps-integration" }}
+                    }
+                }
+                stage('Run Integration') {
+                    when { expression { params.QA_RUN_IT || params.QA_TEST_SUITE == 'ALL' }}
+                    steps {
+                        script { withMaven { sh "mvn -f distro/run/pom.xml clean install -Pintegration-test-run" }}
+                    }
+                }
+                stage('Spring Boot Integration') {
+                    when { expression { params.QA_SPRING_IT || params.QA_TEST_SUITE == 'ALL' }}
+                    steps {
+                        script { withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }}
                     }
                 }
                 stage('Performance') {

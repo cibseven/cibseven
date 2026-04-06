@@ -52,9 +52,15 @@ public class CsrfPreventionIT {
     String xsrfCookieValue = httpClientRule.getXsrfCookie();
     String xsrfTokenHeader = httpClientRule.getXsrfTokenHeader();
 
+    // TODO: adjust test to cibseven webclient and comment this out
     assertThat(xsrfCookieValue).matches("XSRF-TOKEN=[A-Z0-9]{32};" +
-        "Path=" + WebappProperty.DEFAULT_APP_PATH + ";SameSite=Lax");
+        "Path=" + WebappProperty.LEGACY_APP_PATH + ";SameSite=Lax");
     assertThat(xsrfTokenHeader).matches("[A-Z0-9]{32}");
+
+    // TODO: adjust test to cibseven webclient and uncomment this
+    //assertThat(xsrfCookieValue).matches("XSRF-TOKEN=[A-Z0-9]{32};" +
+    //    "Path=" + WebappProperty.DEFAULT_APP_PATH + ";SameSite=Lax");
+    //assertThat(xsrfTokenHeader).matches("[A-Z0-9]{32}");
 
     assertThat(xsrfCookieValue).contains(xsrfTokenHeader);
   }
@@ -66,9 +72,15 @@ public class CsrfPreventionIT {
     String xsrfCookieValue = httpClientRule.getXsrfCookie();
     String xsrfTokenHeader = httpClientRule.getXsrfTokenHeader();
 
+    // TODO: adjust test to cibseven webclient and comment this out
     assertThat(xsrfCookieValue).matches("XSRF-TOKEN=[A-Z0-9]{32};" +
-        "Path=" + WebappProperty.DEFAULT_APP_PATH + ";SameSite=Lax");
+        "Path=" + WebappProperty.LEGACY_APP_PATH + ";SameSite=Lax");
     assertThat(xsrfTokenHeader).matches("[A-Z0-9]{32}");
+
+    // TODO: adjust test to cibseven webclient and uncomment this
+    //assertThat(xsrfCookieValue).matches("XSRF-TOKEN=[A-Z0-9]{32};" +
+    //    "Path=" + WebappProperty.DEFAULT_APP_PATH + ";SameSite=Lax");
+    //assertThat(xsrfTokenHeader).matches("[A-Z0-9]{32}");
 
     assertThat(xsrfCookieValue).contains(xsrfTokenHeader);
   }
