@@ -26,7 +26,9 @@ import java.util.concurrent.Callable;
 import org.cibseven.bpm.application.InvocationContext;
 import org.cibseven.bpm.application.ProcessApplicationReference;
 import org.cibseven.bpm.engine.delegate.VariableScope;
+import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
+import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cmmn.entity.runtime.CaseExecutionEntity;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.context.ProcessApplicationContextUtil;
@@ -144,10 +146,29 @@ public class VariableInstanceEntity implements VariableInstance, CoreVariableIns
 
   public static void insert(VariableInstanceEntity variableInstance) {
     if (!variableInstance.isTransient()) {
+      validateTaskIdIfEnabled(variableInstance);
       Context
       .getCommandContext()
       .getDbEntityManager()
       .insert(variableInstance);
+    }
+  }
+
+  protected static void validateTaskIdIfEnabled(VariableInstanceEntity variableInstance) {
+    String taskId = variableInstance.getTaskId();
+    if (taskId != null) {
+      ProcessEngineConfigurationImpl config = Context.getProcessEngineConfiguration();
+      if (config != null && config.isCheckVariableTaskId()) {
+        TaskEntity task = Context.getCommandContext()
+            .getTaskManager()
+            .findTaskById(taskId);
+        if (task == null) {
+          throw new ProcessEngineException(
+              "Task with id '" + taskId + "' does not exist. "
+              + "Cannot create variable '" + variableInstance.getName()
+              + "' with a reference to a non-existing task.");
+        }
+      }
     }
   }
 

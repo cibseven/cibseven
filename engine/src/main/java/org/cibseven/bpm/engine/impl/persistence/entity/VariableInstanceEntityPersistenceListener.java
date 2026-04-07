@@ -39,6 +39,7 @@ public class VariableInstanceEntityPersistenceListener implements VariableInstan
 
   @Override
   public void onUpdate(VariableInstanceEntity variable, AbstractVariableScope sourceScope) {
+    VariableInstanceEntity.validateTaskIdIfEnabled(variable);
   }
 
 }

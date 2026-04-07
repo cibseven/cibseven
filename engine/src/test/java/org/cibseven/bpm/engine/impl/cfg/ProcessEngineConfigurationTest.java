@@ -71,6 +71,15 @@ public class ProcessEngineConfigurationTest {
   }
 
   @Test
+  public void shouldDisableCheckVariableTaskIdByDefault() {
+    // when
+    ProcessEngineConfigurationImpl engineConfiguration = (ProcessEngineConfigurationImpl) ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration();
+
+    // then
+    assertThat(engineConfiguration.isCheckVariableTaskId()).isFalse();
+  }
+
+  @Test
   public void shouldUseQuartzCronTypeByDefault() {
     // when
     ProcessEngineConfigurationImpl engineConfiguration = (ProcessEngineConfigurationImpl) ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration();
