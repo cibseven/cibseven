@@ -46,14 +46,14 @@
   <dependencies>
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-rest-core-jakarta</artifactId>
+      <artifactId>cibseven-engine-rest-core</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <!-- dependencies only used for assemblies should be scope provided -->
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-rest-core-jakarta</artifactId>
+      <artifactId>cibseven-engine-rest-core</artifactId>
       <version>${project.version}</version>
       <classifier>sources</classifier>
       <scope>provided</scope>
@@ -61,7 +61,7 @@
 
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-rest-core-jakarta</artifactId>
+      <artifactId>cibseven-engine-rest-core</artifactId>
       <version>${project.version}</version>
       <classifier>tests</classifier>
       <scope>provided</scope>

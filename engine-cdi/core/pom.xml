@@ -197,6 +197,41 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.2.2</version>
+        <configuration>
+          <useDefaultManifestFile combine.self="override" />
+        </configuration>
+        <executions>
+          <execution>
+            <id>create-test-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+            <configuration>
+              <forceCreation>true</forceCreation>
+            </configuration>
+          </execution>
+          <!-- create test jar consumed by the quarkus qa -->
+          <execution>
+            <id>create-test-jar-quarkus</id>
+            <phase>package</phase>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+            <configuration>
+              <classifier>tests-quarkus</classifier>
+              <forceCreation>true</forceCreation>
+              <excludes>
+                <exclude>org/cibseven/bpm/engine/cdi/test/CdiProcessEngineTestCase.class</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <failIfNoTests>false</failIfNoTests>

@@ -26,6 +26,6 @@ public class JerseyTomcatServerBootstrap extends TomcatServerBootstrap {
   }
 
   protected void addRuntimeSpecificLibraries(WebArchive wa, PomEquippedResolveStage resolver) {
-    wa.addAsLibraries(resolver.resolve("org.glassfish.jersey.containers:jersey-container-servlet:2.25.1").withTransitivity().asFile());
+    // Jersey is provided via the parent classloader (test JVM classpath) due to delegate="true" in context.xml
   }
 }
