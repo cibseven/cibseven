@@ -1,0 +1,237 @@
+# This configuration is intended for production use and was created with respect to the security guide.
+# The provided links to documentation guides for each property will give more information about the purpose of each property.
+# security guide: https://docs.cibseven.org/manual/latest/user-guide/security/
+
+camunda.bpm:
+# https://docs.cibseven.org/manual/latest/user-guide/security/#http-header-security-in-webapps
+# https://docs.cibseven.org/manual/latest/webapps/shared-options/header-security/
+  webapp:
+    csrf:
+      enable-same-site-cookie: true
+      same-site-cookie-option: STRICT
+    header-security:
+      hsts-disabled: false
+
+# https://docs.cibseven.org/manual/latest/user-guide/security/#authorization
+# https://docs.cibseven.org/manual/latest/user-guide/process-engine/authorization-service/
+  authorization.enabled: true
+
+# https://docs.cibseven.org/manual/latest/reference/bpmn20/events/timer-events/
+  cron:
+    # By default, the engine uses QUARTZ 2.5.0 cron syntax for timer events.
+    # Alternatively, SPRING53 cron syntax can also be used.
+    type: QUARTZ
+    # Provides compatibility with legacy Quartz 1.8.4 cron syntax used in CIB seven 2.0.x (and earlier)
+    # and Camunda 7.23 (or earlier) for older process definitions.
+    # This option applies only when using QUARTZ cron type.
+    support-legacy-quartz-syntax: true
+
+  generic-properties.properties:
+# https://docs.cibseven.org/manual/latest/user-guide/security/#variable-values-from-untrusted-sources
+    deserialization-type-validation-enabled: true
+    deserialization-allowed-packages:
+    deserialization-allowed-classes:
+# https://docs.cibseven.org/manual/latest/user-guide/security/#password-policy
+# https://docs.cibseven.org/manual/latest/user-guide/process-engine/password-policy/
+    enable-password-policy: true    
+    # update old namespace in script tasks, after migration from camunda to cibseven
+    useCibSevenNamespaceInScripting: false
+    # update old namespace in saved serialized objects, after migration from camunda to cibseven
+    useCibSevenNamespaceInReflection: false
+
+  run:
+# https://docs.cibseven.org/manual/latest/user-guide/security/#authentication
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#authentication
+    auth:
+      enabled: true
+      authentication: composite
+    rest.disable-wadl: true
+    deployment.deploy-changed-only: true
+# https://docs.cibseven.org/manual/latest/user-guide/process-engine/identity-service/#configuration-properties-of-the-ldap-plugin
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#ldap-identity-service
+# Uncomment this section to enable LDAP support for CIB seven Run
+#    ldap:
+#      enabled: true
+#      server-url: ldaps://localhost:4334
+#      administrator-group-name: camunda-admin
+#      accept-untrusted-certificates: false
+#      manager-dn: uid=jonny,ou=office-berlin,o=camunda,c=org
+#      manager-password: s3cr3t
+#      base-dn: o=camunda,c=org
+#      user-search-base: ''
+#      user-search-filter: (objectclass=person)
+#      user-id-attribute: uid
+#      user-firstname-attribute: cn
+#      user-lastname-attribute: sn
+#      user-email-ttribute: mail
+#      user-password-attribute: userpassword
+#      group-search-base: ''
+#      group-search-filter: (objectclass=groupOfNames)
+#      group-id-attribute: cn
+#      group-name-attribute: cn
+#      group-member-attribute: member
+#      sort-control-supported: false
+# https://docs.cibseven.org/manual/latest/user-guide/process-engine/authorization-service/#the-administrator-authorization-plugin
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#ldap-administrator-authorization
+# Uncomment this section to grant administrator authorizations to an existing LDAP user or group
+#    admin-auth:
+#      enabled: true
+#      administrator-user-name: admin
+#      administrator-group-name: admins
+
+server:
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#https
+# do not use the provided certificate in production
+#  ssl:
+#    key-store: classpath:keystore.p12
+#    key-store-password: camunda
+#    key-store-type: pkcs12
+#    key-alias: camunda
+#    key-password: camunda
+#  port: 8443
+
+# https://docs.cibseven.org/manual/latest/user-guide/security/#http-header-security-in-webapps
+# https://docs.cibseven.org/manual/latest/webapps/shared-options/header-security/
+  servlet.session.cookie:
+    secure: true
+    http-only: true
+
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#logging
+# https://docs.cibseven.org/manual/latest/user-guide/logging/#process-engine
+logging:
+   level.root: INFO
+   file.name: logs/cibseven-run.log
+
+# datasource configuration is required
+# do not use the H2 databse in production
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#connect-to-a-database
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#database
+spring.datasource:
+  url: jdbc:h2:./camunda-h2-test-production/process-engine;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
+  driver-class-name: org.h2.Driver
+  username: sa
+  password: sa
+
+# By default, Spring Boot serves static content from any directories called /static or /public or /resources or
+# /META-INF/resources in the classpath. To prevent users from accidentally sharing files, this is disabled here by setting static locations to NULL.
+# https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-spring-mvc-static-content
+spring.web.resources:
+  static-locations: NULL
+
+# All parameters below belong to cibseven-webclient configuration, for more info - see here:
+# https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#cib-seven-webclient-properties
+spring:
+  config:
+    import:
+      - optional:classpath:cibseven-webclient.properties
+      - optional:classpath:cibseven-webclient.yaml
+
+cibseven:
+  webclient:
+    engineRest:
+      # Base URL of the CIB seven engine
+      url: http://localhost:8080
+      # Configurable REST API path (default: /engine-rest)
+      path: /engine-rest
+    historyLevel: full
+    # Token generation
+    authentication:
+      jwtSecret:
+      tokenValidMinutes: 60
+      tokenProlongMinutes: 1440
+    # LDAP
+    ldap:
+      url: ldap://ldap.cibseven.org
+      folder: DC=cibseven,DC=org
+      userNameAttribute: samAccountName
+      userDisplayNameAttribute: name
+      modifiedDateFormat: yyyyMMddHHmmss.SX
+      followReferrals: follow
+    
+    # BPM Provider
+    bpm:
+      provider: org.cibseven.webapp.providers.SevenProvider
+
+    # User providers
+    user:
+      provider: org.cibseven.webapp.auth.SevenUserProvider
+      # provider: org.cibseven.webapp.auth.LdapUserProvider
+      # provider: org.cibseven.webapp.auth.KeycloakUserProvider
+      # provider: org.cibseven.webapp.auth.AdfsUserProvider
+  
+    # Set the wild card is gonna be used for the users search. By default is "*".
+    users:
+      search:
+        wildcard:
+
+    # If this params is set to false, the number of instances and incidents wont be taken.
+    fetchInstances: true
+    fetchIncidents: true
+
+    # External token user creation
+    token:
+      secret: 
+      deny:
+        external:
+          ip: true
+    datasource:
+      fileValue:
+        enabled: false
+    cockpit:
+      url: /camunda/app/cockpit/default/
+    theme: cib
+
+    services:
+      basePath: services/v1
+  
+    api:
+      common:
+        title: "CIB seven webclient API"
+        description: "This API exposes the functionality of CIB seven webclient as a REST service under the Apache License 2.0."
+        termsOfService: "https://www.apache.org/licenses/LICENSE-2.0"
+        license: "Apache 2.0"
+        licenseUrl: "https://www.apache.org/licenses/LICENSE-2.0"
+        contact:
+          name: "CIB seven"
+          url: "https://cibseven.org"
+          email: "info@cibseven.org"
+        # webclient server url for the swagger-ui. Only needs to be set if the automatic detection is wrong.
+        url:
+
+  #    custom:
+  #      spring:
+  #        jackson:
+  #          parser:
+  #            max-size: 25000000
+
+springdoc:
+  api-docs:
+    path: /webapp/v3/api-docs
+  swagger-ui:
+    path: /webapp/swagger-ui
+    operationsSorter: alpha
+    tagsSorter: alpha
+    doc-expansion: none
+
+# Activate "/actuator/info" and "/actuator/health" endpoints
+management:
+  endpoints:
+    enabled-by-default: false # Disable all endpoints by default
+    web:
+      exposure:
+        include: health,info # Include only health and info endpoints
+  endpoint:
+    info:
+      enabled: true # Enable the info endpoint
+    health:
+      enabled: true # Enable the health endpoint
+      probes:
+        enabled: true # Enable health probes (if applicable)
+  info:
+    build:
+      enabled: true # Enable build information
+    git:
+      enabled: true # Enable git information
+      mode: full # Use full mode for git information
+    java:
+      enabled: true # Enable Java information (ensure your setup supports this)
