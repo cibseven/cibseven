@@ -49,11 +49,6 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-engine-rest-core-jakarta</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.cibseven.bpm.identity</groupId>
         <artifactId>cibseven-identity-ldap</artifactId>
         <version>${project.version}</version>
