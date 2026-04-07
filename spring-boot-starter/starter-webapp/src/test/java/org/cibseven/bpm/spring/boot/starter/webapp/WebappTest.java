@@ -51,7 +51,7 @@ public class WebappTest {
   @Test
   public void testAdminEndpointAvailable() {
     ResponseEntity<String> response =
-        testRestTemplate.getForEntity("/camunda/app/admin/", String.class);
+        testRestTemplate.getForEntity("/webapp/", String.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
   }

@@ -7,6 +7,5 @@
     <module name="java.base" />
     <module name="java.desktop" />
     <module name="java.logging" />
-    <module name="sun.jdk" />
   </dependencies>
 </module>

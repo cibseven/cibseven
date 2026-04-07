@@ -6,6 +6,5 @@
   <dependencies>
     <module name="java.base" />
     <module name="java.logging" />
-    <module name="sun.jdk" />
   </dependencies>
 </module>

@@ -141,6 +141,13 @@
             <version>2.16</version>
             <configuration>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
+              <!-- Exclude all selenium-related tests, since they don't work in Jenkins pipeline -->
+              <excludes>
+                <exclude>**/AbstractWebappUiIT.java</exclude>
+                <exclude>**/AbstractWebIT.java</exclude>
+                <exclude>**/LoginIT.java</exclude>
+                <exclude>**/PluginsRootResourceIT.java</exclude>
+              </excludes>
               <dependenciesToScan>
                 <dependenciesToScan>org.cibseven.bpm.run:cibseven-bpm-run-qa-integration-tests</dependenciesToScan>
               </dependenciesToScan>

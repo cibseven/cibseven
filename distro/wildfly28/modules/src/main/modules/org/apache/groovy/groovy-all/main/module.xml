@@ -11,7 +11,7 @@
 
   <dependencies>
     <module name="javax.api" />
-    <module name="sun.jdk" />
+    <module name="com.ibm.icu.icu4j" export="true" />
     <module name="org.cibseven.spin.cibseven-spin-core" />
   </dependencies>
 </module>

@@ -1,0 +1,9 @@
+server:
+  ssl:
+    key-store: classpath:keystore.p12
+    key-store-password: camunda
+    key-store-type: pkcs12
+    key-alias: camunda
+    key-password: camunda
+  port: 8443
+spring.http.clients.imperative.factory: simple

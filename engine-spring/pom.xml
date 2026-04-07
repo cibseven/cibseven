@@ -25,6 +25,7 @@
       </activation>
       <modules>
         <module>core-6</module>
+        <module>core-7</module>
       </modules>
     </profile>
   </profiles>
