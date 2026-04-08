@@ -18,9 +18,8 @@
       <scope>provided</scope>
       <includes>
         <include>org.cibseven.bpm:cibseven-engine-rest-core:jar</include>
-        <include>org.jboss.resteasy:resteasy-jaxrs:jar:*</include>
-        <include>org.jboss.resteasy:async-http-servlet-3.0:jar:*</include>
-        <include>org.jboss.spec.javax.ws.rs:jboss-jaxrs-api_2.1_spec:jar:*</include>
+        <include>org.glassfish.jersey.containers:jersey-container-servlet:jar:*</include>
+        <include>org.glassfish.jersey.inject:jersey-hk2:jar:*</include>
       </includes>
       <excludes>
         <exclude>org.cibseven.bpm:cibseven-engine-rest-core:jar:tests</exclude>
