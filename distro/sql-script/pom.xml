@@ -435,9 +435,9 @@
                 <configuration>
                   <artifactItems>
                     <artifactItem>
-                      <groupId>org.cibseven.bpm.distro</groupId>
-                      <artifactId>cibseven-sql-scripts</artifactId>
-                      <version>${camunda.version.old}</version>
+                      <groupId>org.camunda.bpm.distro</groupId>
+                      <artifactId>camunda-sql-scripts</artifactId>
+                      <version>${camunda.version.old}-cibseven</version>
                       <outputDirectory>${project.build.directory}/test-classes/scripts-old</outputDirectory>
                       <overWrite>true</overWrite>
                     </artifactItem>
