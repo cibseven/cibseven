@@ -69,7 +69,6 @@
 
         <module>javaee/ejb-service</module>
         <module>javaee/ejb-client</module>
-        <module>javaee/ejb-client-jakarta</module>
         <module>javaee/jobexecutor-ra</module>
         <module>javaee/jobexecutor-rar</module>
 
@@ -179,7 +178,6 @@
       </activation>
       <modules>
         <module>javaee/ejb-client</module>
-        <module>javaee/ejb-client-jakarta</module>
         <module>distro/license-book</module>
         <module>distro/wildfly</module>
         <module>distro/wildfly28</module>
@@ -252,7 +250,6 @@
         <module>freemarker-template-engine</module>
 
         <module>javaee/ejb-client</module>
-        <module>javaee/ejb-client-jakarta</module>
 
         <module>webapps</module>
 
