@@ -158,7 +158,7 @@
 
     <dependency>
       <groupId>org.cibseven.bpm.javaee</groupId>
-      <artifactId>cibseven-ejb-client-jakarta</artifactId>
+      <artifactId>cibseven-ejb-client</artifactId>
       <scope>provided</scope>
     </dependency>
 

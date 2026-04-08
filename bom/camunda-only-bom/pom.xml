@@ -69,11 +69,6 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.cibseven.bpm.javaee</groupId>
-        <artifactId>cibseven-ejb-client-jakarta</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.cibseven.bpm.juel</groupId>
         <artifactId>cibseven-juel</artifactId>
         <version>${project.version}</version>
