@@ -32,7 +32,7 @@
 
     <dependency>
       <groupId>org.cibseven.bpm.webapp</groupId>
-      <artifactId>cibseven-webapp-tomcat-jakarta</artifactId>
+      <artifactId>cibseven-webapp-tomcat</artifactId>
       <version>${project.version}</version>
       <type>war</type>
     </dependency>

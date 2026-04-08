@@ -386,7 +386,7 @@
         </dependency>
         <dependency>
           <groupId>org.cibseven.bpm.webapp</groupId>
-          <artifactId>cibseven-webapp-tomcat-jakarta</artifactId>
+          <artifactId>cibseven-webapp-tomcat</artifactId>
           <version>${project.version}</version>
           <type>war</type>
           <scope>test</scope>
@@ -460,7 +460,7 @@
                 </deployable>
                 <deployable>
                   <groupId>org.cibseven.bpm.webapp</groupId>
-                  <artifactId>cibseven-webapp-tomcat-jakarta</artifactId>
+                  <artifactId>cibseven-webapp-tomcat</artifactId>
                   <type>war</type>
                   <pingURL>http://localhost:${tomcat.connector.http.port}/camunda</pingURL>
                   <pingTimeout>${cargo.deploy.timeout}</pingTimeout>
