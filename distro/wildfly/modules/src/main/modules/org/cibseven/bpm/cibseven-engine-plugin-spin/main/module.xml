@@ -14,7 +14,7 @@
 
     <module name="org.cibseven.spin.cibseven-spin-core" />
     <module name="org.cibseven.spin.cibseven-spin-dataformat-json-jackson" services="import" />
-    <module name="org.cibseven.spin.cibseven-spin-dataformat-xml-dom-jakarta" services="import" />
+    <module name="org.cibseven.spin.cibseven-spin-dataformat-xml-dom" services="import" />
 
     <module name="org.cibseven.bpm.dmn.cibseven-engine-feel-scala" />
     <module name="org.camunda.feel.feel-engine" />

@@ -182,7 +182,7 @@
         <jdk>[11,)</jdk>
       </activation>
       <modules>
-        <module>dataformat-xml-dom-jakarta</module>
+        <module>dataformat-xml-dom</module>
       </modules>
     </profile>
   </profiles>
