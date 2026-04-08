@@ -22,7 +22,7 @@
   <dependencies>
     <dependency>
       <groupId>org.cibseven.bpm.webapp</groupId>
-      <artifactId>cibseven-webapp-jakarta</artifactId>
+      <artifactId>cibseven-webapp</artifactId>
       <version>${project.version}</version>
       <type>war</type>
       <scope>runtime</scope>
