@@ -1206,9 +1206,6 @@ public interface ManagementService {
 
   /**
    * Get the stored license key string or <code>null</code> if no license is set.
-   *
-   * @throws AuthorizationException
-   *          If the user is not a member of the group {@link Groups#CAMUNDA_ADMIN}.
    */
   String getLicenseKey();
 
