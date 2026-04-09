@@ -75,49 +75,49 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
   }
 
   private String encryptSignature(String licenseKey) {
-  ObjectMapper objectMapper = new ObjectMapper();
-  try {
-    Map<String, Object> map = objectMapper.readValue(licenseKey, new TypeReference<Map<String, Object>>() {
-    });
-    String signature = (String) map.get("signature");
-    String secret = getSecret();
-    SecretKeySpec key = getAesKey(secret);
-    String jwe = Jwts.builder()
-      .content(signature)
-      .encryptWith(key, Jwts.ENC.A256GCM)
-      .compact();
-    map.put("signature", jwe);
-    return objectMapper.writeValueAsString(map);
-  } catch (JsonProcessingException e) {
-    throw new InvalidRequestException(Status.BAD_REQUEST, e, "Invalid license key JSON format");
-  } catch (Exception e) {
-    throw new InvalidRequestException(Status.INTERNAL_SERVER_ERROR, e,
-        "Failed to encrypt license signature");
+    ObjectMapper objectMapper = new ObjectMapper();
+    try {
+      Map<String, Object> map = objectMapper.readValue(licenseKey, new TypeReference<Map<String, Object>>() {
+      });
+      String signature = (String) map.get("signature");
+      String secret = getSecret();
+      SecretKeySpec key = getAesKey(secret);
+      String jwe = Jwts.builder()
+          .content(signature)
+          .encryptWith(key, Jwts.ENC.A256GCM)
+          .compact();
+      map.put("signature", jwe);
+      return objectMapper.writeValueAsString(map);
+    } catch (JsonProcessingException e) {
+      throw new InvalidRequestException(Status.BAD_REQUEST, e, "Invalid license key JSON format");
+    } catch (Exception e) {
+      throw new InvalidRequestException(Status.INTERNAL_SERVER_ERROR, e,
+          "Failed to encrypt license signature");
+    }
   }
-  }
-  
+
   private String decryptSignature(String licenseKey) {
-      ObjectMapper objectMapper = new ObjectMapper();
-      try {
-          Map<String, Object> map = objectMapper.readValue(licenseKey, new TypeReference<Map<String, Object>>() {
-          });
-          String jwe = (String) map.get("signature");
-          String secret = getSecret();
-          SecretKeySpec key = getAesKey(secret);
-          byte[] payload = Jwts.parser()
-              .decryptWith(key)
-              .build()
-              .parseEncryptedContent(jwe)
-              .getPayload();
-          String signature = new String(payload, StandardCharsets.UTF_8);
-          map.put("signature", signature);
-          return objectMapper.writeValueAsString(map);
-      } catch (JsonProcessingException e) {
-        throw new InvalidRequestException(Status.BAD_REQUEST, e, "Invalid license key JSON format");
-      } catch (Exception e) {
-        throw new InvalidRequestException(Status.INTERNAL_SERVER_ERROR, e,
-            "Failed to decrypt license signature. The JWT secret may have been rotated.");
-      }
+    ObjectMapper objectMapper = new ObjectMapper();
+    try {
+      Map<String, Object> map = objectMapper.readValue(licenseKey, new TypeReference<Map<String, Object>>() {
+      });
+      String jwe = (String) map.get("signature");
+      String secret = getSecret();
+      SecretKeySpec key = getAesKey(secret);
+      byte[] payload = Jwts.parser()
+          .decryptWith(key)
+          .build()
+          .parseEncryptedContent(jwe)
+          .getPayload();
+      String signature = new String(payload, StandardCharsets.UTF_8);
+      map.put("signature", signature);
+      return objectMapper.writeValueAsString(map);
+    } catch (JsonProcessingException e) {
+      throw new InvalidRequestException(Status.BAD_REQUEST, e, "Invalid license key JSON format");
+    } catch (Exception e) {
+      throw new InvalidRequestException(Status.INTERNAL_SERVER_ERROR, e,
+          "Failed to decrypt license signature. The JWT secret may have been rotated.");
+    }
   }
 
 }
