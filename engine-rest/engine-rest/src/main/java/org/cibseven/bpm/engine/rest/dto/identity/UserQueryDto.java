@@ -26,6 +26,7 @@ import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.identity.UserQuery;
 import org.cibseven.bpm.engine.rest.dto.AbstractQueryDto;
 import org.cibseven.bpm.engine.rest.dto.CamundaQueryParam;
+import org.cibseven.bpm.engine.rest.dto.converter.BooleanConverter;
 import org.cibseven.bpm.engine.rest.dto.converter.StringArrayConverter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,6 +62,7 @@ public class UserQueryDto extends AbstractQueryDto<UserQuery> {
   protected String memberOfGroup;
   protected String potentialStarter;
   protected String tenantId;
+  protected Boolean likePatternIgnoreCase;
 
   public UserQueryDto() {
 
@@ -125,6 +127,15 @@ public class UserQueryDto extends AbstractQueryDto<UserQuery> {
     this.tenantId = tenantId;
   }
 
+  @CamundaQueryParam(value = "likePatternIgnoreCase", converter = BooleanConverter.class)
+  public void setLikePatternIgnoreCase(Boolean likePatternIgnoreCase) {
+    this.likePatternIgnoreCase = likePatternIgnoreCase;
+  }
+
+  public Boolean getLikePatternIgnoreCase() {
+    return likePatternIgnoreCase;
+  }
+
   @Override
   protected boolean isValidSortByValue(String value) {
     return VALID_SORT_BY_VALUES.contains(value);
@@ -169,6 +180,9 @@ public class UserQueryDto extends AbstractQueryDto<UserQuery> {
     }
     if (tenantId != null) {
       query.memberOfTenant(tenantId);
+    }
+    if (likePatternIgnoreCase != null && likePatternIgnoreCase) {
+      query.likePatternIgnoreCase();
     }
   }
 

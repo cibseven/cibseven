@@ -23,6 +23,7 @@ import static org.cibseven.bpm.engine.impl.util.ReflectUtil.CIBSEVEN_NAMESPACE;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.script.ScriptEngine;
@@ -30,10 +31,6 @@ import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.HostAccess;
-
-import com.oracle.truffle.js.scriptengine.GraalJSScriptEngine;
 
 /**
  * Custom Script Engine Manager that can execute custom logic:
@@ -92,37 +89,7 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
     boolean useCibSevenNameSpace= config != null && config.isUseCibSevenNamespaceInScripting();
     
     if (useCibSevenNameSpace && GRAAL_JS_SCRIPT_ENGINE_NAME.equalsIgnoreCase(shortName)) {
-
-      CibSevenClassLoader cibSevenClassLoader = new CibSevenClassLoader(Thread.currentThread().getContextClassLoader());
-
-      Context.Builder builder = Context.newBuilder("js").allowExperimentalOptions(true)
-          .hostClassLoader(cibSevenClassLoader)
-          .option(JS_SYNTAX_EXTENSIONS_OPTION, "true")
-          .option(JS_LOAD_OPTION, "true")
-          .option(JS_PRINT_OPTION, "true")
-          .option(JS_GLOBAL_ARGUMENTS_OPTION, "true")
-          .option(JS_SCRIPT_ENGINE_GLOBAL_SCOPE_IMPORT_OPTION, "true");
-
-        if (config.isConfigureScriptEngineHostAccess()) {
-          // make sure Graal JS can provide access to the host and can lookup classes
-//          scriptEngine.getContext().setAttribute("polyglot.js.allowHostAccess", true, ScriptContext.ENGINE_SCOPE);
-//          scriptEngine.getContext().setAttribute("polyglot.js.allowHostClassLookup", true, ScriptContext.ENGINE_SCOPE);
-          builder.allowHostAccess(HostAccess.ALL).allowHostClassLookup(className -> true);
-        }
-        if (config.isEnableScriptEngineLoadExternalResources()) {
-          // make sure Graal JS can load external scripts
-//          scriptEngine.getContext().setAttribute("polyglot.js.allowIO", true, ScriptContext.ENGINE_SCOPE);
-          builder.allowIO(true);
-        }
-        if (config.isEnableScriptEngineNashornCompatibility()) {
-          // enable Nashorn compatibility mode
-//          scriptEngine.getContext().setAttribute("polyglot.js.nashorn-compat", true, ScriptContext.ENGINE_SCOPE);
-          builder.allowAllAccess(true);
-//          builder.allowHostAccess(NASHORN_HOST_ACCESS);
-        }
-
-      return GraalJSScriptEngine.create(null, builder);
-      
+      return createGraalJSScriptEngineWithCibSevenClassLoader(config);
     } else if (useCibSevenNameSpace && GROOVY_SCRIPTING_LANGUAGE.equalsIgnoreCase(shortName)) {
       return org.cibseven.bpm.engine.impl.scripting.util.CibSevenScriptEngineUtil.createGroovyScriptEngine();
     }
@@ -188,6 +155,71 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
 
   protected void disableGraalVMInterpreterOnlyModeWarnings() {
     System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");
+  }
+
+  /**
+   * Creates a GraalJS script engine with CibSevenClassLoader using reflection to avoid compile-time dependency.
+   * Returns null if GraalJS classes are not available at runtime.
+   */
+  protected ScriptEngine createGraalJSScriptEngineWithCibSevenClassLoader(ProcessEngineConfigurationImpl config) {
+    try {
+      ClassLoader cibSevenClassLoader = createCibSevenClassLoader();
+
+      // Use reflection to load GraalVM classes
+      Class<?> contextClass = Class.forName("org.graalvm.polyglot.Context");
+      Class<?> hostAccessClass = Class.forName("org.graalvm.polyglot.HostAccess");
+      Class<?> graalJSEngineClass = Class.forName("com.oracle.truffle.js.scriptengine.GraalJSScriptEngine");
+      Class<?> engineClass = Class.forName("org.graalvm.polyglot.Engine");
+
+      // Context.newBuilder("js")
+      var newBuilderMethod = contextClass.getMethod("newBuilder", String[].class);
+      Object builder = newBuilderMethod.invoke(null, (Object) new String[]{"js"});
+      var builderClass = builder.getClass();
+
+      // .allowExperimentalOptions(true)
+      var allowExpOpts = builderClass.getMethod("allowExperimentalOptions", boolean.class);
+      builder = allowExpOpts.invoke(builder, true);
+
+      // .hostClassLoader(cibSevenClassLoader)
+      var hostClassLoaderMethod = builderClass.getMethod("hostClassLoader", ClassLoader.class);
+      builder = hostClassLoaderMethod.invoke(builder, cibSevenClassLoader);
+
+      // .option(...) calls
+      var optionMethod = builderClass.getMethod("option", String.class, String.class);
+      builder = optionMethod.invoke(builder, JS_SYNTAX_EXTENSIONS_OPTION, "true");
+      builder = optionMethod.invoke(builder, JS_LOAD_OPTION, "true");
+      builder = optionMethod.invoke(builder, JS_PRINT_OPTION, "true");
+      builder = optionMethod.invoke(builder, JS_GLOBAL_ARGUMENTS_OPTION, "true");
+      builder = optionMethod.invoke(builder, JS_SCRIPT_ENGINE_GLOBAL_SCOPE_IMPORT_OPTION, "true");
+
+      if (config.isConfigureScriptEngineHostAccess()) {
+        // make sure Graal JS can provide access to the host and can lookup classes
+        var allField = hostAccessClass.getField("ALL");
+        var hostAccessAll = allField.get(null);
+        var allowHostAccess = builderClass.getMethod("allowHostAccess", hostAccessClass);
+        builder = allowHostAccess.invoke(builder, hostAccessAll);
+        var allowHostClassLookup = builderClass.getMethod("allowHostClassLookup", Predicate.class);
+        builder = allowHostClassLookup.invoke(builder, (Predicate<String>) className -> true);
+      }
+      if (config.isEnableScriptEngineLoadExternalResources()) {
+        // make sure Graal JS can load external scripts
+        var allowIO = builderClass.getMethod("allowIO", boolean.class);
+        builder = allowIO.invoke(builder, true);
+      }
+      if (config.isEnableScriptEngineNashornCompatibility()) {
+        // enable Nashorn compatibility mode
+        var allowAllAccess = builderClass.getMethod("allowAllAccess", boolean.class);
+        builder = allowAllAccess.invoke(builder, true);
+      }
+
+      // GraalJSScriptEngine.create(null, builder)
+      var createMethod = graalJSEngineClass.getMethod("create", engineClass, builderClass);
+      return (ScriptEngine) createMethod.invoke(null, null, builder);
+
+    } catch (Exception e) {
+      System.err.println("Failed to create GraalJS script engine with CibSevenClassLoader: " + e.getMessage());
+      return super.getEngineByName(GRAAL_JS_SCRIPT_ENGINE_NAME);
+    }
   }
 
   /**

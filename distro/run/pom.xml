@@ -102,6 +102,12 @@
         <module>qa</module>
       </modules>
     </profile>
+    <profile>
+      <id>integration-test-run</id>
+      <modules>
+        <module>qa</module>
+      </modules>
+    </profile>
   </profiles>
 
   <licenses>
