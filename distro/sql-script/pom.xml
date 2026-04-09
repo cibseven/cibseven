@@ -129,6 +129,16 @@
               <versionString>${camunda.version.old}</versionString>
             </configuration>
           </execution>
+          <execution>
+            <id>parse-latest-version</id>
+            <goals>
+              <goal>parse-version</goal>
+            </goals>
+            <configuration>
+              <propertyPrefix>camunda.latest</propertyPrefix>
+              <versionString>${camunda.version.latest}</versionString>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
 
@@ -464,6 +474,7 @@
 
                     <touch file="${project.build.directory}/test-classes/local-upgrade-test/sql/upgrade/${database.type}_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch.sql" />
                     <touch file="${project.build.directory}/test-classes/local-upgrade-test/sql/upgrade/${database.type}_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch.sql" />
+                    <touch file="${project.build.directory}/test-classes/local-upgrade-test/sql/upgrade/${database.type}_engine_${camunda.latest.majorVersion}.${camunda.latest.minorVersion}_patch.sql" />
 
                   </target>
                 </configuration>

@@ -149,6 +149,10 @@ public class SqlScriptTest {
     // given
     String currentMajorMinor = properties.getProperty("current.majorminor");
     String oldMajorMinor = properties.getProperty("old.majorminor");
+    String oldVersion = properties.getProperty("old.version");
+
+    // When the current version is a CIBseven version, the DB schema is identical to the latest Camunda 7 version
+    String correspondingCamundaVersion = properties.getProperty("camunda.latest.majorminor");
 
     executeSqlScript("create", "engine");
     executeSqlScript("create", "identity");
@@ -156,14 +160,14 @@ public class SqlScriptTest {
 
     cleanUpDatabaseTables();
 
-    // old CREATE scripts executed
-    executeSqlScript("scripts-old/", "create", "engine_" + oldMajorMinor + ".0");
-    executeSqlScript("scripts-old/", "create", "identity_" + oldMajorMinor + ".0");
+    // old CREATE scripts executed — filename uses the full old version with the "-cibseven" qualifier
+    executeSqlScript("scripts-old/", "create", "engine_" + oldVersion + "-cibseven");
+    executeSqlScript("scripts-old/", "create", "identity_" + oldVersion + "-cibseven");
 
     // when UPGRADE scripts executed
     executeSqlScript("local-upgrade-test/", "upgrade", "engine_" + oldMajorMinor + "_patch");
-    executeSqlScript("local-upgrade-test/", "upgrade", "engine_" + oldMajorMinor + "_to_" + currentMajorMinor);
-    executeSqlScript("local-upgrade-test/", "upgrade", "engine_" + currentMajorMinor + "_patch");
+    executeSqlScript("local-upgrade-test/", "upgrade", "engine_" + oldMajorMinor + "_to_" + correspondingCamundaVersion);
+    executeSqlScript("local-upgrade-test/", "upgrade", "engine_" + correspondingCamundaVersion + "_patch");
 
     // then
     DatabaseSnapshot snapshotUpgraded = createCurrentDatabaseSnapshot();
