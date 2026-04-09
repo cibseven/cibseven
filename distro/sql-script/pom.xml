@@ -129,6 +129,16 @@
               <versionString>${camunda.version.old}</versionString>
             </configuration>
           </execution>
+          <execution>
+            <id>parse-latest-version</id>
+            <goals>
+              <goal>parse-version</goal>
+            </goals>
+            <configuration>
+              <propertyPrefix>camunda.latest</propertyPrefix>
+              <versionString>${camunda.version.latest}</versionString>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
 
@@ -435,9 +445,9 @@
                 <configuration>
                   <artifactItems>
                     <artifactItem>
-                      <groupId>org.cibseven.bpm.distro</groupId>
-                      <artifactId>cibseven-sql-scripts</artifactId>
-                      <version>${camunda.version.old}</version>
+                      <groupId>org.camunda.bpm.distro</groupId>
+                      <artifactId>camunda-sql-scripts</artifactId>
+                      <version>${camunda.version.old}-cibseven</version>
                       <outputDirectory>${project.build.directory}/test-classes/scripts-old</outputDirectory>
                       <overWrite>true</overWrite>
                     </artifactItem>
@@ -464,6 +474,7 @@
 
                     <touch file="${project.build.directory}/test-classes/local-upgrade-test/sql/upgrade/${database.type}_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch.sql" />
                     <touch file="${project.build.directory}/test-classes/local-upgrade-test/sql/upgrade/${database.type}_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch.sql" />
+                    <touch file="${project.build.directory}/test-classes/local-upgrade-test/sql/upgrade/${database.type}_engine_${camunda.latest.majorVersion}.${camunda.latest.minorVersion}_patch.sql" />
 
                   </target>
                 </configuration>
