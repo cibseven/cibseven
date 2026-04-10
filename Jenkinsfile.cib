@@ -281,13 +281,13 @@ pipeline {
                 stage('Run Integration') {
                     when { expression { params.QA_RUN_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f distro/run/pom.xml clean install -Pintegration-test-run" }}
+                        script { withMaven { sh "mvn -f distro/run/pom.xml clean install -Pintegration-test-run,legacy-webapps" }}
                     }
                 }
                 stage('Spring Boot Integration') {
                     when { expression { params.QA_SPRING_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }}
+                        script { withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter,legacy-webapps" }}
                     }
                 }
                 stage('Performance') {
