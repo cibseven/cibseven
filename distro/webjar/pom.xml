@@ -31,15 +31,8 @@
     </dependencies>
   </dependencyManagement>
 
-  <!-- add dependency so this is run after the war was build -->
+  <!-- add dependency so this is run after the war was built -->
   <dependencies>
-    <dependency>
-      <groupId>org.cibseven.bpm.webapp</groupId>
-      <artifactId>cibseven-webapp-jakarta</artifactId>
-      <version>${project.parent.version}</version>
-      <type>jar</type>
-      <classifier>classes</classifier>
-    </dependency>
     <dependency>
       <groupId>org.cibseven.webapp</groupId>
       <artifactId>cibseven-webclient-web</artifactId>
@@ -51,7 +44,7 @@
 
   <build>
     <plugins>
-      <!-- first fetch and unpack the war -->
+      <!-- fetch and unpack the new webclient WAR -->
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
@@ -63,15 +56,6 @@
             </goals>
             <configuration>
               <artifactItems>
-                <artifactItem>
-                  <groupId>org.cibseven.bpm.webapp</groupId>
-                  <artifactId>cibseven-webapp-jakarta</artifactId>
-                  <version>${project.parent.version}</version>
-                  <type>war</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.outputDirectory}/META-INF/resources/webjars/camunda</outputDirectory>
-                  <excludes>META-INF/**</excludes>
-                </artifactItem>
                 <artifactItem>
                   <groupId>org.cibseven.webapp</groupId>
                   <artifactId>cibseven-webclient-web</artifactId>
@@ -87,32 +71,17 @@
           </execution>
         </executions>
       </plugin>
-      <!-- move the security.json from WEB-INF to root (always, independent of frontend build) -->
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>1.8</version>
         <executions>
-          <execution>
-            <id>move-security-filter-rules</id>
-            <phase>generate-resources</phase>
-            <configuration>
-              <target>
-                <move file="${project.build.outputDirectory}/META-INF/resources/webjars/camunda/WEB-INF/securityFilterRules.json" todir="${project.build.outputDirectory}/META-INF/resources/webjars/camunda/" />
-                <delete dir="${project.build.outputDirectory}/META-INF/resources/webjars/camunda/WEB-INF" />
-              </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
+          <!-- add cibseven-welcome page -->
           <execution>
             <id>frontend-resources</id>
             <phase>generate-resources</phase>
             <configuration>
               <skip>${skip.frontend.build}</skip>
               <target>
-                <move file="${project.build.outputDirectory}/META-INF/resources/webjars/camunda/plugin" tofile="${project.build.outputDirectory}/META-INF/resources/plugin" verbose="true" />
-                <!-- add cibseven-welcome page -->
                 <copy todir="${project.build.outputDirectory}/META-INF/resources/cibseven-welcome/">
                   <fileset dir="../cibseven-welcome/" />
                 </copy>
@@ -128,6 +97,80 @@
   </build>
 
   <profiles>
+    <profile>
+      <id>legacy-webapps</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.cibseven.bpm.webapp</groupId>
+          <artifactId>cibseven-webapp-jakarta</artifactId>
+          <version>${project.parent.version}</version>
+          <type>jar</type>
+          <classifier>classes</classifier>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>unpack-legacy</id>
+                <phase>process-sources</phase>
+                <goals>
+                  <goal>unpack</goal>
+                </goals>
+                <configuration>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>org.cibseven.bpm.webapp</groupId>
+                      <artifactId>cibseven-webapp-jakarta</artifactId>
+                      <version>${project.parent.version}</version>
+                      <type>war</type>
+                      <overWrite>true</overWrite>
+                      <outputDirectory>${project.build.outputDirectory}/META-INF/resources/webjars/camunda</outputDirectory>
+                      <excludes>META-INF/**</excludes>
+                    </artifactItem>
+                  </artifactItems>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.8</version>
+            <executions>
+              <!-- move the security.json from WEB-INF to root -->
+              <execution>
+                <id>move-security-filter-rules</id>
+                <phase>generate-resources</phase>
+                <configuration>
+                  <target>
+                    <move file="${project.build.outputDirectory}/META-INF/resources/webjars/camunda/WEB-INF/securityFilterRules.json" todir="${project.build.outputDirectory}/META-INF/resources/webjars/camunda/" />
+                    <delete dir="${project.build.outputDirectory}/META-INF/resources/webjars/camunda/WEB-INF" />
+                  </target>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>legacy-frontend-resources</id>
+                <phase>generate-resources</phase>
+                <configuration>
+                  <skip>${skip.frontend.build}</skip>
+                  <target>
+                    <move file="${project.build.outputDirectory}/META-INF/resources/webjars/camunda/plugin" tofile="${project.build.outputDirectory}/META-INF/resources/plugin" verbose="true" />
+                  </target>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <profile>
       <id>skipFrontendBuild</id>
       <properties>

@@ -28,6 +28,7 @@ import org.cibseven.webapp.rest.BaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcRegistrations;
@@ -57,9 +58,14 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer, WebM
   @Autowired
   private CamundaBpmProperties properties;
 
-  @Bean
-  public CamundaBpmWebappInitializer camundaBpmWebappInitializer() {
-    return new CamundaBpmWebappInitializer(properties);
+  @Configuration
+  @ConditionalOnClass(name = "org.cibseven.bpm.webapp.impl.security.auth.AuthenticationFilter")
+  static class LegacyWebappConfiguration {
+
+    @Bean
+    public CamundaBpmWebappInitializer camundaBpmWebappInitializer(CamundaBpmProperties properties) {
+      return new CamundaBpmWebappInitializer(properties);
+    }
   }
 
   @Bean(name = "resourceLoaderDependingInitHook")

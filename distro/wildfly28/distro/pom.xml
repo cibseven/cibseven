@@ -46,13 +46,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.cibseven.bpm.webapp</groupId>
-      <artifactId>cibseven-webapp-wildfly</artifactId>
-      <version>${project.version}</version>
-      <type>war</type>
-    </dependency>
-
-    <dependency>
       <groupId>org.cibseven.bpm.example</groupId>
       <artifactId>cibseven-example-invoice-jakarta</artifactId>
       <version>${project.version}</version>
@@ -98,6 +91,20 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>legacy-webapps</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.cibseven.bpm.webapp</groupId>
+          <artifactId>cibseven-webapp-wildfly</artifactId>
+          <version>${project.version}</version>
+          <type>war</type>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
   <description>
     Description of CIB seven - Wildfly 28 Distro
