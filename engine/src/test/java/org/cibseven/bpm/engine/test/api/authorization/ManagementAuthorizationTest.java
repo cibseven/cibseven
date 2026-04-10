@@ -595,15 +595,17 @@ public class ManagementAuthorizationTest extends AuthorizationTest {
   }
 
   @Test
-  public void shouldNotGetLicenseKeyWithoutAuthorization() {
+  public void shouldGetLicenseKeyWithoutAuthorization() {
     // given
+    disableAuthorization();
+    managementService.setLicenseKey(LICENSE_KEY);
+    enableAuthorization();
 
-    assertThatThrownBy(() -> {
-      // when
-      managementService.getLicenseKey();
-    })
-        // then
-        .hasMessageContaining(permissionException(Resources.SYSTEM, SystemPermissions.READ));
+    // when
+    String licenseKey = managementService.getLicenseKey();
+
+    // then
+    assertThat(licenseKey).isEqualTo(LICENSE_KEY);
   }
 
   // set license key /////////////////////////////////////
