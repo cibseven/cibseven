@@ -34,6 +34,7 @@ import org.junit.Test;
 
 public class FormPropertyDefaultValueTest extends PluggableProcessEngineTest {
 
+  @SuppressWarnings("deprecation")
   @Deployment
   @Test
   public void testDefaultValue() throws Exception {
@@ -69,6 +70,7 @@ public class FormPropertyDefaultValueTest extends PluggableProcessEngineTest {
     assertEquals(1L, runtimeService.getVariable(processInstance.getId(), "longExpressionProperty"));
   }
   
+  @SuppressWarnings("deprecation")
   @Deployment
   @Test
   public void testStartFormDefaultValue() throws Exception {

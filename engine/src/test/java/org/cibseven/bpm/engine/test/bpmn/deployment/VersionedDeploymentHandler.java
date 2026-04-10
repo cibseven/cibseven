@@ -84,7 +84,7 @@ public class VersionedDeploymentHandler implements DeploymentHandler {
       String[] processDefinitionKeys) {
 
     List<ProcessDefinition> processDefinitions = repositoryService.createProcessDefinitionQuery()
-        .processDefinitionKeysIn(processDefinitionKeys).list();
+        .processDefinitionKeyIn(processDefinitionKeys).list();
 
     Set<String> deploymentIds = new HashSet<>();
     for (ProcessDefinition processDefinition : processDefinitions) {

@@ -57,6 +57,7 @@ public class Cmmn10Test {
     CmmnModelInstance modelInstance = getCmmnModelInstance();
     CasePlanModel casePlanModel = modelInstance.getModelElementsByType(CasePlanModel.class).iterator().next();
 
+    @SuppressWarnings("deprecation")
     Collection<Sentry> exitCriterias = casePlanModel.getExitCriterias();
     assertThat(exitCriterias).hasSize(1);
 
@@ -72,6 +73,7 @@ public class Cmmn10Test {
     CmmnModelInstance modelInstance = getCmmnModelInstance();
     PlanItem planItem = modelInstance.getModelElementsByType(PlanItem.class).iterator().next();
 
+    @SuppressWarnings("deprecation")
     Collection<Sentry> exitCriterias = planItem.getExitCriterias();
     assertThat(exitCriterias).hasSize(1);
 
@@ -87,6 +89,7 @@ public class Cmmn10Test {
     CmmnModelInstance modelInstance = getCmmnModelInstance();
     PlanItem planItem = modelInstance.getModelElementsByType(PlanItem.class).iterator().next();
 
+    @SuppressWarnings("deprecation")
     Collection<Sentry> entryCriterias = planItem.getEntryCriterias();
     assertThat(entryCriterias).hasSize(1);
 
@@ -102,12 +105,14 @@ public class Cmmn10Test {
     CmmnModelInstance modelInstance = getCmmnModelInstance();
     HumanTask humanTask = modelInstance.getModelElementsByType(HumanTask.class).iterator().next();
 
+    @SuppressWarnings("deprecation")
     Collection<InputsCaseParameter> inputs = humanTask.getInputs();
     assertThat(inputs).hasSize(1);
 
     Collection<InputCaseParameter> inputParameters = humanTask.getInputParameters();
     assertThat(inputParameters).isEmpty();
 
+    @SuppressWarnings("deprecation")
     Collection<OutputsCaseParameter> outputs = humanTask.getOutputs();
     assertThat(outputs).hasSize(1);
 
@@ -134,6 +139,7 @@ public class Cmmn10Test {
     CmmnModelInstance modelInstance = getCmmnModelInstance();
     CasePlanModel casePlanModel = modelInstance.getModelElementsByType(CasePlanModel.class).iterator().next();
 
+    @SuppressWarnings("deprecation")
     String description = casePlanModel.getDescription();
     assertThat(description).isEqualTo("This is a description...");
 
@@ -149,6 +155,7 @@ public class Cmmn10Test {
     IfPart ifPart = sentry.getIfPart();
     assertThat(ifPart).isNotNull();
 
+    @SuppressWarnings("deprecation")
     Collection<ConditionExpression> conditions = ifPart.getConditions();
     assertThat(conditions).hasSize(2);
 
@@ -161,6 +168,7 @@ public class Cmmn10Test {
     CmmnModelInstance modelInstance = getCmmnModelInstance();
     Case _case = modelInstance.getModelElementsByType(Case.class).iterator().next();
 
+    @SuppressWarnings("deprecation")
     Collection<CaseRole> roles = _case.getCaseRoles();
     assertThat(roles).hasSize(2);
 
@@ -168,6 +176,7 @@ public class Cmmn10Test {
     assertThat(caseRole).isNull();
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void shouldGetExpressionTextContent() {
     CmmnModelInstance modelInstance = getCmmnModelInstance();

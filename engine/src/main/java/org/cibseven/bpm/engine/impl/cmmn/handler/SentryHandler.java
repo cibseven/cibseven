@@ -52,6 +52,7 @@ public class SentryHandler extends CmmnElementHandler<Sentry, CmmnSentryDeclarat
 
   protected static final CmmnTransformerLogger LOG = ProcessEngineLogger.CMMN_TRANSFORMER_LOGGER;
 
+  @SuppressWarnings("deprecation")
   public CmmnSentryDeclaration handleElement(Sentry element, CmmnHandlerContext context) {
 
     String id = element.getId();
@@ -142,6 +143,7 @@ public class SentryHandler extends CmmnElementHandler<Sentry, CmmnSentryDeclarat
       }
 
       // initialize sentryRef
+      @SuppressWarnings("deprecation")
       Sentry sentryRef = onPart.getSentry();
       if (sentryRef != null) {
         String sentryRefId = sentryRef.getId();
@@ -167,6 +169,7 @@ public class SentryHandler extends CmmnElementHandler<Sentry, CmmnSentryDeclarat
       return;
     }
 
+    @SuppressWarnings("deprecation")
     Collection<ConditionExpression> conditions = ifPart.getConditions();
 
     if (conditions.size() > 1) {
