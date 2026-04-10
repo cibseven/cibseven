@@ -67,7 +67,7 @@ pipeline {
 
         choice(
             name: 'QA_TEST_SUITE',
-            choices: ['CUSTOM', 'ALL'],
+            choices: ['ALL', 'CUSTOM'],
             description: '''🧪 QA Test Suite Selection:
             • ALL - Run all QA tests
             • CUSTOM - Select individual tests below'''
@@ -272,7 +272,6 @@ pipeline {
                 stage('Web Integration') {
                     when { expression { params.QA_WEB_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        // TODO: enable chrome and chromedriver on jenkins and remove the exclusion for org.cibseven.bpm.LoginIT
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,webapps-integration" }}

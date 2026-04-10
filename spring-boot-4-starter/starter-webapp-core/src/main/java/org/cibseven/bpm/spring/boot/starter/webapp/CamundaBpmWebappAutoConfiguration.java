@@ -28,8 +28,8 @@ import org.cibseven.webapp.rest.BaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnResource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.webmvc.autoconfigure.WebMvcRegistrations;
 import org.springframework.context.annotation.Bean;
@@ -59,26 +59,26 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer, WebM
   private CamundaBpmProperties properties;
 
   @Configuration
-  @ConditionalOnClass(name = "org.cibseven.bpm.webapp.impl.security.auth.AuthenticationFilter")
+  @ConditionalOnResource(resources = "classpath:/META-INF/resources/webjars/camunda/securityFilterRules.json")
   static class LegacyWebappConfiguration {
 
     @Bean
     public CamundaBpmWebappInitializer camundaBpmWebappInitializer(CamundaBpmProperties properties) {
       return new CamundaBpmWebappInitializer(properties);
     }
-  }
 
-  @Bean(name = "resourceLoaderDependingInitHook")
-  public InitHook<ResourceLoaderDependingFilter> resourceLoaderDependingInitHook() {
-    return filter -> {
-      filter.setResourceLoader(resourceLoader);
-      filter.setWebappProperty(properties.getWebapp());
-    };
-  }
+    @Bean(name = "resourceLoaderDependingInitHook")
+    public InitHook<ResourceLoaderDependingFilter> resourceLoaderDependingInitHook(ResourceLoader resourceLoader, CamundaBpmProperties properties) {
+      return filter -> {
+        filter.setResourceLoader(resourceLoader);
+        filter.setWebappProperty(properties.getWebapp());
+      };
+    }
 
-  @Bean
-  public LazyInitRegistration lazyInitRegistration() {
-    return new LazyInitRegistration();
+    @Bean
+    public LazyInitRegistration lazyInitRegistration() {
+      return new LazyInitRegistration();
+    }
   }
 
   @Bean
