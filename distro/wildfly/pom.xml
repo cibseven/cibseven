@@ -75,6 +75,10 @@
     <profile>
       <id>legacy-webapps</id>
       <modules>
+        <module>assembly</module>
+        <module>modules</module>
+        <module>subsystem</module>
+        <module>distro</module>
         <module>webapp</module>
       </modules>
     </profile>
