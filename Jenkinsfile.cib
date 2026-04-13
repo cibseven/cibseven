@@ -178,7 +178,7 @@ pipeline {
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
                                 -DOPTIONAL_PGTEST_EXCLUDE=org/cibseven/bpm/engine/impl/identity/db/DbIdentityServicePGTest.java \
-                                -pl org.cibseven.bpm:cibseven-engine-spring-6,:cibseven-spin-core,:cibseven-engine-rest-core,:cibseven-webapp,:cibseven-engine-cdi,:cibseven-example-invoice-jakarta,:cibseven-ejb-client,:cibseven-sql-scripts \
+                                -pl org.cibseven.bpm:cibseven-engine-spring-6,:cibseven-spin-core,:cibseven-engine-rest-core,:cibseven-webapp,:cibseven-engine-cdi,:cibseven-example-invoice,:cibseven-ejb-client,:cibseven-sql-scripts \
                                 -fn
                         """
                     }
