@@ -37,7 +37,7 @@
     <dependencySet>
         <outputFileNameMapping>${artifact.artifactId}-${artifact.version}.${artifact.extension}</outputFileNameMapping>
         <includes>
-            <include>org.cibseven.bpm:cibseven-engine-rest-jakarta:war:*</include>
+            <include>org.cibseven.bpm:cibseven-engine-rest:war:*</include>
         </includes>
         <outputDirectory>server/wildfly-${version.wildfly28}/standalone/deployments</outputDirectory>
     </dependencySet>
