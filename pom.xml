@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.cibseven</groupId>
 	  <artifactId>release-parent</artifactId>
-	  <version>1.1.0</version>
+	  <version>1.4.0</version>
     <!-- do not remove empty tag - http://jira.codehaus.org/browse/MNG-4687 -->
     <relativePath />
   </parent>
@@ -289,7 +289,7 @@
     </profile>
 
   </profiles>
-  
+
   <repositories>
     <repository>
       <id>mvn-group</id>
@@ -299,7 +299,7 @@
       <url>https://artifacts.cibseven.org/repository/mvn-group</url>
     </repository>
   </repositories>
-  
+
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
