@@ -10,6 +10,12 @@
   <groupId>org.cibseven.bpm.springboot</groupId>
   <artifactId>cibseven-bpm-spring-boot-starter-webapp-core</artifactId>
   <name>CIB seven - Spring Boot Starter - Webapps Core</name>
+  
+  <!--Spring Boot will automatically apply tomcat.version to all Tomcat modules-->
+  <properties>
+    <tomcat.version>${version.tomcat}</tomcat.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
