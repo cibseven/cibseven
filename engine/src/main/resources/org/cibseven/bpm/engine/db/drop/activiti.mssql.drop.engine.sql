@@ -213,3 +213,31 @@ if exists (select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME = '
 if exists (select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME = 'ACT_RU_EXT_TASK') drop table ACT_RU_EXT_TASK;
 if exists (select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME = 'ACT_RU_BATCH') drop table ACT_RU_BATCH;
 if exists (select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME = 'ACT_GE_SCHEMA_LOG') drop table ACT_GE_SCHEMA_LOG;
+
+-- CIB seven 2.2: webclient schema (MOD_ namespace).
+
+alter table MOD_PROCESSES_DIAGRAMS_AUD
+    drop constraint fk_mod_processes_diagrams_aud_rev;
+
+alter table MOD_DIAGRAM_USAGE
+    drop constraint fk_mod_diagram_usage_diagram;
+
+alter table MOD_DIAGRAM_USAGE
+    drop constraint fk_mod_diagram_usage_session;
+
+alter table MOD_FORM_USAGE
+    drop constraint fk_mod_form_usage_form;
+
+alter table MOD_FORM_USAGE
+    drop constraint fk_mod_form_usage_session;
+
+if exists (select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME = 'MOD_DIAGRAM_USAGE') drop table MOD_DIAGRAM_USAGE;
+if exists (select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME = 'MOD_FORM_USAGE') drop table MOD_FORM_USAGE;
+if exists (select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME = 'MOD_PROCESSES_DIAGRAMS_AUD') drop table MOD_PROCESSES_DIAGRAMS_AUD;
+if exists (select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME = 'MOD_PROCESSES_DIAGRAMS') drop table MOD_PROCESSES_DIAGRAMS;
+if exists (select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME = 'MOD_USER_SESSIONS') drop table MOD_USER_SESSIONS;
+if exists (select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME = 'MOD_FORMS') drop table MOD_FORMS;
+if exists (select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME = 'MOD_REVINFO') drop table MOD_REVINFO;
+if exists (select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME = 'MOD_ELEMENT_TEMPLATES') drop table MOD_ELEMENT_TEMPLATES;
+
+if exists (select 1 from sys.sequences where name = 'hibernate_sequence') drop sequence hibernate_sequence;

@@ -168,4 +168,16 @@
     <tagDatabase tag="7.24.0"/>
   </changeSet>
 
+  <changeSet author="CIB seven" id="2.1-to-2.2">
+    <sqlFile path="upgrade/${db.name}_engine_2.1_to_2.2.sql"
+             encoding="UTF-8"
+             relativeToChangelogFile="true"
+             splitStatements="true"
+             stripComments="true"/>
+  </changeSet>
+
+  <changeSet author="CIB seven" id="cibseven-2.2.0-tag">
+    <tagDatabase tag="cibseven-2.2.0"/>
+  </changeSet>
+
 </databaseChangeLog>

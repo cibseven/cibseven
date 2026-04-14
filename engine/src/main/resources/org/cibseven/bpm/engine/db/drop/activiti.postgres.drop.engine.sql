@@ -219,3 +219,40 @@ drop table ACT_RU_TASK_METER_LOG;
 drop table ACT_RU_EXT_TASK;
 drop table ACT_RU_BATCH;
 drop table ACT_GE_SCHEMA_LOG;
+
+-- CIB seven 2.2: webclient schema (MOD_ namespace).
+
+alter table MOD_PROCESSES_DIAGRAMS_AUD
+    drop constraint fk_mod_processes_diagrams_aud_rev;
+
+alter table MOD_DIAGRAM_USAGE
+    drop constraint fk_mod_diagram_usage_diagram;
+
+alter table MOD_DIAGRAM_USAGE
+    drop constraint fk_mod_diagram_usage_session;
+
+alter table MOD_FORM_USAGE
+    drop constraint fk_mod_form_usage_form;
+
+alter table MOD_FORM_USAGE
+    drop constraint fk_mod_form_usage_session;
+
+alter table MOD_ELEMENT_TEMPLATES
+    drop constraint uq_mod_element_templates_template_id;
+
+alter table MOD_PROCESSES_DIAGRAMS
+    drop constraint uq_mod_processes_diagrams_processkey;
+
+alter table MOD_FORMS
+    drop constraint uq_mod_forms_formid;
+
+drop table MOD_DIAGRAM_USAGE;
+drop table MOD_FORM_USAGE;
+drop table MOD_PROCESSES_DIAGRAMS_AUD;
+drop table MOD_PROCESSES_DIAGRAMS;
+drop table MOD_USER_SESSIONS;
+drop table MOD_FORMS;
+drop table MOD_REVINFO;
+drop table MOD_ELEMENT_TEMPLATES;
+
+drop sequence hibernate_sequence;

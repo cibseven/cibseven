@@ -195,3 +195,31 @@ drop table if exists ACT_RU_TASK_METER_LOG;
 drop table if exists ACT_RU_EXT_TASK;
 drop table if exists ACT_RU_BATCH;
 drop table if exists ACT_GE_SCHEMA_LOG;
+
+-- CIB seven 2.2: webclient schema (MOD_ namespace).
+
+alter table MOD_PROCESSES_DIAGRAMS_AUD
+    drop FOREIGN KEY fk_mod_processes_diagrams_aud_rev;
+
+alter table MOD_DIAGRAM_USAGE
+    drop FOREIGN KEY fk_mod_diagram_usage_diagram;
+
+alter table MOD_DIAGRAM_USAGE
+    drop FOREIGN KEY fk_mod_diagram_usage_session;
+
+alter table MOD_FORM_USAGE
+    drop FOREIGN KEY fk_mod_form_usage_form;
+
+alter table MOD_FORM_USAGE
+    drop FOREIGN KEY fk_mod_form_usage_session;
+
+drop table if exists MOD_DIAGRAM_USAGE;
+drop table if exists MOD_FORM_USAGE;
+drop table if exists MOD_PROCESSES_DIAGRAMS_AUD;
+drop table if exists MOD_PROCESSES_DIAGRAMS;
+drop table if exists MOD_USER_SESSIONS;
+drop table if exists MOD_FORMS;
+drop table if exists MOD_REVINFO;
+drop table if exists MOD_ELEMENT_TEMPLATES;
+
+drop sequence if exists hibernate_sequence;
