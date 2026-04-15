@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
 import org.cibseven.bpm.engine.cdi.impl.annotation.CompleteTaskInterceptor;
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.DeclarativeProcessController;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
  * 
  * @author Daniel Meyer
  */
-public class CompleteTaskTest extends CdiProcessEngineTestCase {
+public class CompleteTaskTest extends CdiProcessEngineTestCaseBase {
 
   @Test
   @Deployment(resources = "org/cibseven/bpm/engine/cdi/test/api/annotation/CompleteTaskTest.bpmn20.xml")

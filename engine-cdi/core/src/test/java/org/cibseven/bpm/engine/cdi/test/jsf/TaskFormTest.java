@@ -28,13 +28,13 @@ import jakarta.enterprise.inject.spi.BeanManager;
 import org.cibseven.bpm.engine.cdi.compat.CamundaTaskForm;
 import org.cibseven.bpm.engine.cdi.compat.FoxTaskForm;
 import org.cibseven.bpm.engine.cdi.jsf.TaskForm;
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
  */
-public class TaskFormTest extends CdiProcessEngineTestCase {
+public class TaskFormTest extends CdiProcessEngineTestCaseBase {
 
   @Test
   public void testTaskFormInjectable() throws Exception {

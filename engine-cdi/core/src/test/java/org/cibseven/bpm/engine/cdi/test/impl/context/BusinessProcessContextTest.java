@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.CreditCard;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.junit.jupiter.api.Test;
@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
  * 
  * @author Daniel Meyer
  */
-public class BusinessProcessContextTest extends CdiProcessEngineTestCase {
+public class BusinessProcessContextTest extends CdiProcessEngineTestCaseBase {
   
   @Test
   @Deployment

@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.cdi.test.impl.event;
 
 import org.cibseven.bpm.engine.cdi.BusinessProcessEvent;
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class EventNotificationTest extends CdiProcessEngineTestCase {
+public class EventNotificationTest extends CdiProcessEngineTestCaseBase {
 
   @Test
   @Deployment(resources = {"org/cibseven/bpm/engine/cdi/test/impl/event/EventNotificationTest.process1.bpmn20.xml"})

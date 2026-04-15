@@ -23,7 +23,7 @@ import org.cibseven.bpm.BpmPlatform;
 import org.cibseven.bpm.container.RuntimeContainerDelegate;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.InjectedProcessEngineBean;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
 import org.junit.jupiter.api.AfterEach;
@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Christopher Zell <christopher.zell@camunda.com>
  */
-public class InjectCustomProcessEngineTest extends CdiProcessEngineTestCase {
+public class InjectCustomProcessEngineTest extends CdiProcessEngineTestCaseBase {
 
   protected ProcessEngine defaultProcessEngine = null;
   protected ProcessEngine processEngine = null;

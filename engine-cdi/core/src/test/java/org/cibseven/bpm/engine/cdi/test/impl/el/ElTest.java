@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.MessageBean;
 import org.cibseven.bpm.engine.cdi.test.impl.el.beans.DependentScopedBean;
 import org.cibseven.bpm.engine.test.Deployment;
@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Daniel Meyer
  */
-public class ElTest extends CdiProcessEngineTestCase {
+public class ElTest extends CdiProcessEngineTestCaseBase {
 
   @Test
   @Deployment

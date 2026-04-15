@@ -22,12 +22,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-public class ProcessVariablesTest extends CdiProcessEngineTestCase {
+public class ProcessVariablesTest extends CdiProcessEngineTestCaseBase {
 
   @Disabled
   @Test

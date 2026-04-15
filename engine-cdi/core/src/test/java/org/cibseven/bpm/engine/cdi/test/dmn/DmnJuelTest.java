@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.cdi.test.dmn;
 
 import org.cibseven.bpm.dmn.engine.DmnDecisionResult;
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +26,7 @@ import jakarta.inject.Named;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DmnJuelTest extends CdiProcessEngineTestCase {
+public class DmnJuelTest extends CdiProcessEngineTestCaseBase {
 
   @Named
   @Dependent

@@ -28,7 +28,7 @@ import java.util.Collections;
 import org.cibseven.bpm.engine.TaskService;
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
 import org.cibseven.bpm.engine.cdi.ProcessEngineCdiException;
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Daniel Meyer
  */
-public class BusinessProcessBeanTest extends CdiProcessEngineTestCase {
+public class BusinessProcessBeanTest extends CdiProcessEngineTestCaseBase {
 
 
   /* General test asserting that the business process bean is functional */

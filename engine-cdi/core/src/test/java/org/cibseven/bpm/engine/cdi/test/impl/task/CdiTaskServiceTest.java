@@ -16,12 +16,12 @@
  */
 package org.cibseven.bpm.engine.cdi.test.impl.task;
 
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.junit.jupiter.api.Test;
 
-public class CdiTaskServiceTest extends CdiProcessEngineTestCase {
+public class CdiTaskServiceTest extends CdiProcessEngineTestCaseBase {
   
   @Test
   public void testClaimTask() {

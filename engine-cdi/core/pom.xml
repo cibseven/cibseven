@@ -224,9 +224,6 @@
             <configuration>
               <classifier>tests-quarkus</classifier>
               <forceCreation>true</forceCreation>
-              <excludes>
-                <exclude>org/cibseven/bpm/engine/cdi/test/CdiProcessEngineTestCase.class</exclude>
-              </excludes>
             </configuration>
           </execution>
         </executions>

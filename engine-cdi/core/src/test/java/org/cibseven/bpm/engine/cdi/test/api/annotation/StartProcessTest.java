@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
 import org.cibseven.bpm.engine.cdi.impl.annotation.StartProcessInterceptor;
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.DeclarativeProcessController;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.variable.type.ValueType;
@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Daniel Meyer
  */
-public class StartProcessTest extends CdiProcessEngineTestCase {
+public class StartProcessTest extends CdiProcessEngineTestCaseBase {
 
   @Test
   @Deployment(resources = "org/cibseven/bpm/engine/cdi/test/api/annotation/StartProcessTest.bpmn20.xml")

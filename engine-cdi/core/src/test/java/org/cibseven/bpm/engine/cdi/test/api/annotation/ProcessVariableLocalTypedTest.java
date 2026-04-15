@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.DeclarativeProcessController;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.variable.VariableMap;
@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
  * @author Roman Smirnov
  *
  */
-public class ProcessVariableLocalTypedTest extends CdiProcessEngineTestCase {
+public class ProcessVariableLocalTypedTest extends CdiProcessEngineTestCaseBase {
 
   @Test
   @Deployment(resources = "org/cibseven/bpm/engine/cdi/test/api/annotation/CompleteTaskTest.bpmn20.xml")

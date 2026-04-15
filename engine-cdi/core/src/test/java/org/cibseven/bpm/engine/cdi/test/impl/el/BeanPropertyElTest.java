@@ -18,12 +18,12 @@ package org.cibseven.bpm.engine.cdi.test.impl.el;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.MessageBean;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.junit.jupiter.api.Test;
 
-public class BeanPropertyElTest extends CdiProcessEngineTestCase {
+public class BeanPropertyElTest extends CdiProcessEngineTestCaseBase {
 
   @Test
   @Deployment

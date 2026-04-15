@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.cdi.test.impl.el;
 
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.junit.jupiter.api.Test;
@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * @author Sebastian Menski
  */
-public class TaskListenerInvocationTest extends CdiProcessEngineTestCase {
+public class TaskListenerInvocationTest extends CdiProcessEngineTestCaseBase {
 
   @Test
   @Deployment

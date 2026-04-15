@@ -26,14 +26,14 @@ import jakarta.inject.Named;
 
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.junit.jupiter.api.Test;
 
-public class SignalEventTest extends CdiProcessEngineTestCase {
+public class SignalEventTest extends CdiProcessEngineTestCaseBase {
 
   @Named
   @Dependent

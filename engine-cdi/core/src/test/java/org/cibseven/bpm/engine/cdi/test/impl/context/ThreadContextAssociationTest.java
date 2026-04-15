@@ -19,7 +19,7 @@ package org.cibseven.bpm.engine.cdi.test.impl.context;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.ProcessScopedMessageBean;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
  * 
  * @author Daniel Meyer
  */
-public class ThreadContextAssociationTest extends CdiProcessEngineTestCase {
+public class ThreadContextAssociationTest extends CdiProcessEngineTestCaseBase {
   
   @Test
   @Deployment
