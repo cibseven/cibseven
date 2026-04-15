@@ -52,10 +52,22 @@ services:
       - "1433:1433"
     environment:
       ACCEPT_EULA: "Y"
-      SA_PASSWORD: "Camunda-BPM123"
       MSSQL_SA_PASSWORD: "Camunda-BPM123"
     volumes:
       - sqlserver-data:/var/opt/mssql
+      - ./init-mssql.sql:/init-mssql.sql:ro
+    entrypoint:
+      - bash
+      - -c
+      - |
+        /opt/mssql/bin/sqlservr &
+        SQLPID=$$!
+        for i in $$(seq 1 30); do
+          sleep 2
+          /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Camunda-BPM123" -C -Q "SELECT 1" > /dev/null 2>&1 && break
+        done
+        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Camunda-BPM123" -C -i /init-mssql.sql
+        wait $$SQLPID
 
   db2:
     image: icr.io/db2_community/db2:11.5.9.0
