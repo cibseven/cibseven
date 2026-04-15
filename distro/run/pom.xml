@@ -15,6 +15,11 @@
   <description>This is the root of CIB seven Run</description>
   <packaging>pom</packaging>
 
+  <properties>
+    <!-- Spring Boot will automatically apply tomcat.version to all Tomcat modules -->
+    <tomcat.version>${version.tomcat}</tomcat.version>
+  </properties>
+
   <dependencyManagement>
     <dependencies>
 

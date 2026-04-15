@@ -18,8 +18,6 @@
   <properties>
     <!-- disable parallel unit tests run -->
     <surefire.forkCount>1</surefire.forkCount>
-    <!-- Spring Boot will automatically apply tomcat.version to all Tomcat modules -->
-    <tomcat.version>${version.tomcat}</tomcat.version>
   </properties>
 
   <dependencyManagement>
