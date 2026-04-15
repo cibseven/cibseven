@@ -647,12 +647,6 @@ CREATE TABLE IF NOT EXISTS mod_processes_diagrams_aud (
     CONSTRAINT mod_fk_resources_aud_rev FOREIGN KEY (rev) REFERENCES mod_revinfo(rev)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE SEQUENCE IF NOT EXISTS mod_hibernate_sequence
-    START WITH 1
-    INCREMENT BY 1
-    MINVALUE 1
-    MAXVALUE 9223372036854775807
-    CACHE 1;
 
 CREATE TABLE IF NOT EXISTS mod_user_sessions (
     id VARCHAR(36) PRIMARY KEY,
