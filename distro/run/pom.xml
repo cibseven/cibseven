@@ -15,11 +15,6 @@
   <description>This is the root of CIB seven Run</description>
   <packaging>pom</packaging>
 
-  <properties>
-    <!-- Spring Boot will automatically apply tomcat.version to all Tomcat modules -->
-    <tomcat.version>${version.tomcat}</tomcat.version>
-  </properties>
-
   <dependencyManagement>
     <dependencies>
 
@@ -29,6 +24,23 @@
         <version>${version.spring-boot}</version>
         <scope>import</scope>
         <type>pom</type>
+      </dependency>
+
+      <!-- Override Tomcat version from Spring Boot BOM -->
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-core</artifactId>
+        <version>${version.tomcat}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-el</artifactId>
+        <version>${version.tomcat}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-websocket</artifactId>
+        <version>${version.tomcat}</version>
       </dependency>
 
       <dependency>
