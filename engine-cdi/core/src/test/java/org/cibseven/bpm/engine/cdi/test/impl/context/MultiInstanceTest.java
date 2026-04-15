@@ -22,11 +22,14 @@ import org.cibseven.bpm.engine.cdi.BusinessProcess;
 import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.junit.jupiter.api.Test;
+import org.jboss.arquillian.junit5.ArquillianExtension;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Daniel Meyer
  *
  */
+@ExtendWith(ArquillianExtension.class)
 public class MultiInstanceTest extends CdiProcessEngineTestCaseBase {
 
   @Test

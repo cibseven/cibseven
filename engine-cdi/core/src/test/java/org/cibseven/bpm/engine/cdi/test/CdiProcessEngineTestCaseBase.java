@@ -45,7 +45,6 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
 import org.cibseven.bpm.engine.impl.util.LogUtil;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.AfterEach;
@@ -61,7 +60,6 @@ import org.cibseven.bpm.engine.test.junit5.ProcessEngineExtension;
  * When creating a new test class, extend it with this class and add a
  * @ExtendWith(ArquillianExtension.class) annotation to the child class.
  */
-@ExtendWith(ArquillianExtension.class)
 public abstract class CdiProcessEngineTestCaseBase {
 
   static {

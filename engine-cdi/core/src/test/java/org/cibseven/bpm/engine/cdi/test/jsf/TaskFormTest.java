@@ -29,11 +29,14 @@ import org.cibseven.bpm.engine.cdi.compat.CamundaTaskForm;
 import org.cibseven.bpm.engine.cdi.compat.FoxTaskForm;
 import org.cibseven.bpm.engine.cdi.jsf.TaskForm;
 import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Daniel Meyer
  */
+@ExtendWith(ArquillianExtension.class)
 public class TaskFormTest extends CdiProcessEngineTestCaseBase {
 
   @Test

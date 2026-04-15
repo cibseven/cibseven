@@ -25,6 +25,8 @@ import org.cibseven.bpm.engine.cdi.test.impl.beans.DeclarativeProcessController;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.junit.jupiter.api.Test;
+import org.jboss.arquillian.junit5.ArquillianExtension;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Testcase for assuring that the {@link CompleteTaskInterceptor} works as
@@ -32,6 +34,7 @@ import org.junit.jupiter.api.Test;
  * 
  * @author Daniel Meyer
  */
+@ExtendWith(ArquillianExtension.class)
 public class CompleteTaskTest extends CdiProcessEngineTestCaseBase {
 
   @Test
