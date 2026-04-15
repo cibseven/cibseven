@@ -280,12 +280,18 @@ pipeline {
                 stage('Run Integration') {
                     when { expression { params.QA_RUN_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
+                        // TODO: remove this after complete migration from webapp tests to webclient tests
+                        script { withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests -Plegacy-webapps" }}
+
                         script { withMaven { sh "mvn -f distro/run/pom.xml clean install -Pintegration-test-run,legacy-webapps" }}
                     }
                 }
                 stage('Spring Boot Integration') {
                     when { expression { params.QA_SPRING_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
+                        // TODO: remove this after complete migration from webapp tests to webclient tests
+                        script { withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests -Plegacy-webapps" }}
+
                         script { withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter,legacy-webapps" }}
                     }
                 }
