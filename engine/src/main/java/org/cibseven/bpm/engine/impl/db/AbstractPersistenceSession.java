@@ -115,6 +115,10 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
         dbSchemaCreateDmnHistory();
       }
     }
+
+    if (processEngineConfiguration.isModelerEnabled()) {
+      dbSchemaCreateModeler();
+    }
   }
 
   protected abstract void dbSchemaCreateIdentity();
@@ -131,9 +135,15 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
 
   protected abstract void dbSchemaCreateDmnHistory();
 
+  protected abstract void dbSchemaCreateModeler();
+
 
   public void dbSchemaDrop() {
     ProcessEngineConfigurationImpl processEngineConfiguration = Context.getProcessEngineConfiguration();
+
+    if (processEngineConfiguration.isModelerEnabled()) {
+      dbSchemaDropModeler();
+    }
 
     if (processEngineConfiguration.isDmnEnabled()) {
       dbSchemaDropDmn();
@@ -176,6 +186,8 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
 
   protected abstract void dbSchemaDropDmnHistory();
 
+  protected abstract void dbSchemaDropModeler();
+
   public void dbSchemaPrune() {
     ProcessEngineConfigurationImpl processEngineConfiguration = Context.getProcessEngineConfiguration();
     if (isHistoryTablePresent() && !processEngineConfiguration.isDbHistoryUsed()) {
@@ -196,6 +208,9 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
     if(isDmnHistoryTablePresent() && (!processEngineConfiguration.isDmnEnabled() || !processEngineConfiguration.isDbHistoryUsed())) {
       dbSchemaDropDmnHistory();
     }
+    if (isModelerTablePresent() && !processEngineConfiguration.isModelerEnabled()) {
+      dbSchemaDropModeler();
+    }
   }
 
   public abstract boolean isEngineTablePresent();
@@ -211,6 +226,8 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
   public abstract boolean isDmnTablePresent();
 
   public abstract boolean isDmnHistoryTablePresent();
+
+  public abstract boolean isModelerTablePresent();
 
   public void dbSchemaUpdate() {
     ProcessEngineConfigurationImpl processEngineConfiguration = Context.getProcessEngineConfiguration();
@@ -241,6 +258,10 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
 
     if(!isDmnHistoryTablePresent() && processEngineConfiguration.isDmnEnabled() && processEngineConfiguration.isDbHistoryUsed()) {
       dbSchemaCreateDmnHistory();
+    }
+
+    if (!isModelerTablePresent() && processEngineConfiguration.isModelerEnabled()) {
+      dbSchemaCreateModeler();
     }
 
   }

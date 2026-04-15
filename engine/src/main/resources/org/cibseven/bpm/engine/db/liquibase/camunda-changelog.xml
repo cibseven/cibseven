@@ -168,4 +168,28 @@
     <tagDatabase tag="7.24.0"/>
   </changeSet>
 
+  <changeSet author="CIB" id="7.24-to-2.1">
+    <sqlFile path="upgrade/${db.name}_engine_7.24_to_2.1.sql"
+             encoding="UTF-8"
+             relativeToChangelogFile="true"
+             splitStatements="true"
+             stripComments="true"/>
+  </changeSet>
+
+  <changeSet author="CIB" id="2.1.0-tag">
+    <tagDatabase tag="2.1.0"/>
+  </changeSet>
+
+  <changeSet author="CIB" id="2.1-to-2.2">
+    <sqlFile path="upgrade/${db.name}_engine_2.1_to_2.2.sql"
+             encoding="UTF-8"
+             relativeToChangelogFile="true"
+             splitStatements="true"
+             stripComments="true"/>
+  </changeSet>
+
+  <changeSet author="CIB" id="2.2.0-tag">
+    <tagDatabase tag="2.2.0"/>
+  </changeSet>
+
 </databaseChangeLog>

@@ -211,3 +211,18 @@ drop table ACT_RU_TASK_METER_LOG;
 drop table ACT_RU_EXT_TASK;
 drop table ACT_RU_BATCH;
 drop table ACT_GE_SCHEMA_LOG;
+
+
+
+-- MODELER
+DROP TABLE mod_form_usage;
+DROP TABLE mod_diagram_usage;
+DROP TABLE mod_forms;
+DROP TABLE mod_user_sessions;
+DROP TABLE mod_processes_diagrams_aud;
+DROP TABLE mod_revinfo;
+DROP TABLE mod_processes_diagrams;
+DROP TABLE mod_element_templates;
+
+-- Drop sequences
+DROP SEQUENCE mod_hibernate_sequence;

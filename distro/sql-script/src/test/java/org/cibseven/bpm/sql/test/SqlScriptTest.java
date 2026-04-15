@@ -182,6 +182,7 @@ public class SqlScriptTest {
 
   protected void executeSqlScript(String baseDirectory, String sqlFolder, String sqlScript) throws LiquibaseException {
     String scriptFileName = String.format("%ssql/%s/%s_%s.sql", baseDirectory, sqlFolder, databaseType, sqlScript);
+	System.out.println("Try to load and execute SQL script: " + scriptFileName);
     String statements = IoUtil.inputStreamAsString(getClass().getClassLoader().getResourceAsStream(scriptFileName));
     SQLFileChange sqlFileChange = new SQLFileChange();
     sqlFileChange.setSql(statements);
