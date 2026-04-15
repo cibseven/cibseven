@@ -55,6 +55,12 @@
       <version>${version.liquibase}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-test-utils-testcontainers</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
 
