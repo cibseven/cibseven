@@ -91,6 +91,13 @@
       <version>${project.version}</version>
       <type>test-jar</type>
       <classifier>tests-quarkus</classifier>
+      <exclusions>
+        <!-- Exclude Weld embedded container to avoid conflict with quarkus-arquillian on the classpath -->
+        <exclusion>
+          <groupId>org.jboss.arquillian.container</groupId>
+          <artifactId>arquillian-weld-embedded</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Quarkus dependencies -->
