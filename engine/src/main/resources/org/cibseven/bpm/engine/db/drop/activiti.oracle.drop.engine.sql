@@ -231,5 +231,4 @@ DROP TABLE mod_processes_diagrams CASCADE CONSTRAINTS;
 DROP TABLE mod_element_templates CASCADE CONSTRAINTS;
 
 -- Drop sequences
-DROP SEQUENCE mod_hibernate_sequence;
 DROP SEQUENCE mod_revinfo_seq;

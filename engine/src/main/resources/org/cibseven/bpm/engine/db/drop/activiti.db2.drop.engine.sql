@@ -224,5 +224,3 @@ DROP TABLE mod_revinfo;
 DROP TABLE mod_processes_diagrams;
 DROP TABLE mod_element_templates;
 
--- Drop sequences
-DROP SEQUENCE mod_hibernate_sequence;

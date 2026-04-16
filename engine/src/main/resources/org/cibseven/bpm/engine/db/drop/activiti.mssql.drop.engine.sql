@@ -227,5 +227,3 @@ IF OBJECT_ID('mod_revinfo', 'U') IS NOT NULL DROP TABLE mod_revinfo;
 IF OBJECT_ID('mod_processes_diagrams', 'U') IS NOT NULL DROP TABLE mod_processes_diagrams;
 IF OBJECT_ID('mod_element_templates', 'U') IS NOT NULL DROP TABLE mod_element_templates;
 
--- Drop sequences
-IF OBJECT_ID('mod_hibernate_sequence', 'SO') IS NOT NULL DROP SEQUENCE mod_hibernate_sequence;

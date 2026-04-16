@@ -209,6 +209,3 @@ DROP TABLE IF EXISTS mod_processes_diagrams_aud;
 DROP TABLE IF EXISTS mod_revinfo;
 DROP TABLE IF EXISTS mod_processes_diagrams;
 DROP TABLE IF EXISTS mod_element_templates;
-
--- Drop sequences
-DROP SEQUENCE IF EXISTS mod_hibernate_sequence;

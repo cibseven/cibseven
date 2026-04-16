@@ -25,7 +25,7 @@ values ('1500', CURRENT_TIMESTAMP, '2.2.0');
 
 CREATE TABLE IF NOT EXISTS mod_element_templates (
     id VARCHAR(36) PRIMARY KEY,
-    active BOOLEAN DEFAULT TRUE NOT NULL,
+    active BOOLEAN DEFAULT TRUE,
     version INTEGER DEFAULT 1,
     template_id VARCHAR(100) NOT NULL UNIQUE,
     name VARCHAR(200) NOT NULL,
@@ -40,20 +40,20 @@ CREATE TABLE IF NOT EXISTS mod_element_templates (
 
 CREATE TABLE IF NOT EXISTS mod_processes_diagrams (
     id VARCHAR(36) PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(255),
     processkey VARCHAR(100) NOT NULL UNIQUE,
     description VARCHAR(150),
-    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created TIMESTAMP,
+    updated TIMESTAMP,
     active BOOLEAN DEFAULT TRUE NOT NULL,
-    type VARCHAR(50) NOT NULL DEFAULT 'bpmn-c7',
-    version INTEGER,
+    type VARCHAR(50) NOT NULL,
+    version INTEGER DEFAULT 1,
     diagram VARBINARY(32600),
     updated_by VARCHAR(100)
 );
 
 CREATE TABLE IF NOT EXISTS mod_revinfo (
-    REV INT AUTO_INCREMENT PRIMARY KEY,
+    REV BIGINT AUTO_INCREMENT PRIMARY KEY,
     REVTSTMP BIGINT
 );
 
@@ -65,12 +65,12 @@ CREATE TABLE IF NOT EXISTS mod_processes_diagrams_aud (
     created TIMESTAMP,
     updated TIMESTAMP,
     active BOOLEAN DEFAULT TRUE,
-    type VARCHAR(50) DEFAULT 'bpmn-c7',
-    version INTEGER,
+    type VARCHAR(50),
+    version INTEGER DEFAULT 1,
     diagram_mod BOOLEAN DEFAULT false,
     diagram VARBINARY(32600),
     updated_by VARCHAR(100),
-    rev INT NOT NULL,
+    rev BIGINT NOT NULL,
     revtype TINYINT,
     CONSTRAINT mod_pk_resources_aud PRIMARY KEY (id, rev),
     CONSTRAINT mod_fk_resources_aud_rev FOREIGN KEY (rev) REFERENCES mod_revinfo(rev)
@@ -78,8 +78,6 @@ CREATE TABLE IF NOT EXISTS mod_processes_diagrams_aud (
 
 -- Envers expected revision sequence for H2
 CREATE SEQUENCE IF NOT EXISTS mod_revinfo_seq START WITH 1 INCREMENT BY 50;
-
-CREATE SEQUENCE IF NOT EXISTS mod_hibernate_sequence START WITH 1 INCREMENT BY 1;
 
 CREATE TABLE IF NOT EXISTS mod_user_sessions (
     id VARCHAR(36) PRIMARY KEY,
@@ -102,8 +100,8 @@ CREATE TABLE IF NOT EXISTS mod_diagram_usage (
 CREATE TABLE IF NOT EXISTS mod_forms (
     id VARCHAR(36) PRIMARY KEY,
     description VARCHAR(150),
-    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated TIMESTAMP DEFAULT '1970-01-01 00:00:00',
+    created TIMESTAMP,
+    updated TIMESTAMP,
     active BOOLEAN DEFAULT TRUE NOT NULL,
     form_schema VARBINARY(32600) NOT NULL,
     formid VARCHAR(100) NOT NULL UNIQUE,

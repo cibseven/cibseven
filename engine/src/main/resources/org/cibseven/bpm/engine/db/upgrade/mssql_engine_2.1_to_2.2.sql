@@ -24,7 +24,7 @@ values ('1500', CURRENT_TIMESTAMP, '2.2.0');
 
 CREATE TABLE mod_element_templates (
     id NVARCHAR(36) NOT NULL PRIMARY KEY,
-    active BIT DEFAULT 1 NOT NULL,
+    active BIT DEFAULT 1,
     version INT DEFAULT 1,
     template_id NVARCHAR(100) NOT NULL UNIQUE,
     name NVARCHAR(200) NOT NULL,
@@ -42,17 +42,17 @@ CREATE TABLE mod_processes_diagrams (
     name NVARCHAR(255) NOT NULL,
     processkey NVARCHAR(100) NOT NULL UNIQUE,
     description NVARCHAR(150),
-    created DATETIME2 DEFAULT GETDATE() NOT NULL,
-    updated DATETIME2 DEFAULT GETDATE() NOT NULL,
+    created DATETIME2,
+    updated DATETIME2,
     active BIT DEFAULT 1 NOT NULL,
-    type NVARCHAR(50) NOT NULL DEFAULT 'bpmn-c7',
-    version INT,
+    type NVARCHAR(50) NOT NULL,
+    version INT DEFAULT 1,
     diagram VARBINARY(MAX),
     updated_by NVARCHAR(100)
 );
 
 CREATE TABLE mod_revinfo (
-    rev INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    rev BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
     revtstmp BIGINT
 );
 
@@ -64,23 +64,16 @@ CREATE TABLE mod_processes_diagrams_aud (
     created DATETIME2,
     updated DATETIME2,
     active BIT DEFAULT 1,
-    type NVARCHAR(50) DEFAULT 'bpmn-c7',
-    version INT,
+    type NVARCHAR(50),
+    version INT DEFAULT 1,
     diagram_mod BIT DEFAULT 0,
     diagram VARBINARY(MAX),
     updated_by NVARCHAR(100),
-    rev INT NOT NULL,
+    rev BIGINT NOT NULL,
     revtype SMALLINT,
     CONSTRAINT mod_pk_resources_aud PRIMARY KEY (id, rev),
     CONSTRAINT mod_fk_resources_aud_rev FOREIGN KEY (rev) REFERENCES mod_revinfo(rev)
 );
-
-CREATE SEQUENCE mod_hibernate_sequence
-    START WITH 1
-    INCREMENT BY 1
-    MINVALUE 1
-    MAXVALUE 9223372036854775807
-    CACHE 1;
 
 CREATE TABLE mod_user_sessions (
     id NVARCHAR(36) NOT NULL PRIMARY KEY,
@@ -97,14 +90,14 @@ CREATE TABLE mod_diagram_usage (
     opened_at DATETIME2 DEFAULT GETDATE() NOT NULL,
     closed_at DATETIME2,
     CONSTRAINT mod_fk_diagram_usage_diagram FOREIGN KEY (diagram_id) REFERENCES mod_processes_diagrams(id) ON DELETE CASCADE,
-    CONSTRAINT mod_fk_diagram_usage_session FOREIGN KEY (session_id) REFERENCES mod_user_sessions(id)
+    CONSTRAINT mod_fk_diagram_usage_session FOREIGN KEY (session_id) REFERENCES mod_user_sessions(id) ON DELETE CASCADE
 );
 
 CREATE TABLE mod_forms (
     id NVARCHAR(36) NOT NULL PRIMARY KEY,
     description NVARCHAR(150),
-    created DATETIME2 DEFAULT GETDATE(),
-    updated DATETIME2 DEFAULT '1970-01-01T00:00:00',
+    created DATETIME2,
+    updated DATETIME2,
     active BIT DEFAULT 1 NOT NULL,
     form_schema VARBINARY(MAX) NOT NULL,
     formid NVARCHAR(100) NOT NULL UNIQUE,
@@ -120,5 +113,5 @@ CREATE TABLE mod_form_usage (
     opened_at DATETIME2 DEFAULT GETDATE() NOT NULL,
     closed_at DATETIME2,
     CONSTRAINT mod_fk_form_usage_form FOREIGN KEY (form_id) REFERENCES mod_forms(id) ON DELETE CASCADE,
-    CONSTRAINT mod_fk_form_usage_session FOREIGN KEY (session_id) REFERENCES mod_user_sessions(id)
+    CONSTRAINT mod_fk_form_usage_session FOREIGN KEY (session_id) REFERENCES mod_user_sessions(id) ON DELETE CASCADE
 );
