@@ -33,7 +33,8 @@
     <camunda.version.old>7.23.0</camunda.version.old>
     <cibseven.version.old>2.1.0</cibseven.version.old>
 
-    
+    <!-- Testcontainers JDBC URL parameters. By default, an empty string -->
+    <database.tc.params />
   </properties>
 
   <dependencyManagement>
@@ -113,13 +114,12 @@
 
         <database.type>db2</database.type>
         <database.driver>com.ibm.db2.jcc.DB2Driver</database.driver>
-        <database.host>localhost</database.host>
         <database.name>engine</database.name>
         <database.port>50000</database.port>
-        <database.username>db2inst1</database.username>
-        <database.password>camunda</database.password>
 
-        <database.url>jdbc:db2://${database.host}:${database.port}/${database.name}</database.url>
+        <database.tc.url>camdb2:11.5.0.0</database.tc.url>
+        <database.tc.params>/${database.name}</database.tc.params>
+        <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
 
       </properties>
     </profile>
@@ -248,8 +248,9 @@
         <database.type>mariadb</database.type>
         <database.driver>org.mariadb.jdbc.Driver</database.driver>
         <database.datasource.class>org.mariadb.jdbc.MySQLDataSource</database.datasource.class>
-
-        <database.url>jdbc:mariadb://localhost:${database.port}/${database.name}</database.url>
+        <database.tc.url>cammariadb:11.4</database.tc.url>
+        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}</database.tc.params>
+        <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
 
       <dependencies>
@@ -291,8 +292,9 @@
         <database.type>mysql</database.type>
         <database.driver>com.mysql.cj.jdbc.Driver</database.driver>
         <database.datasource.class>com.mysql.cj.jdbc.MysqlDataSource</database.datasource.class>
-
-        <database.url>jdbc:mysql://localhost:${database.port}/${database.name}?sendFractionalSeconds=false</database.url>
+        <database.tc.url>cammysql:8.0</database.tc.url>
+        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}?sendFractionalSeconds=false</database.tc.params>
+        <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
 
       <dependencies>
@@ -333,8 +335,8 @@
         <database.type>oracle</database.type>
         <database.driver>oracle.jdbc.OracleDriver</database.driver>
         <database.datasource.class>oracle.jdbc.pool.OracleDataSource</database.datasource.class>
-
-        <database.url>jdbc:oracle:thin:@localhost:${database.port}/FREEPDB1</database.url>
+        <database.tc.url>camoracle:21-slim-faststart</database.tc.url>
+        <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
       <dependencies>
         <dependency>
@@ -378,7 +380,9 @@
         <database.datasource.class>org.postgresql.ds.PGSimpleDataSource</database.datasource.class>
         <jboss.datasource.filename>postgresql-ds.xml</jboss.datasource.filename>
         <hibernate.dialect>org.hibernate.dialect.PostgreSQLDialect</hibernate.dialect>
-        <database.url>jdbc:postgresql://localhost:${database.port}/${database.name}</database.url>
+        <database.tc.url>campostgresql:13.2</database.tc.url>
+        <database.tc.params>TC_DAEMON=true</database.tc.params>
+        <database.url>jdbc:tc:${database.tc.url}:///${database.name}/${database.tc.params}</database.url>
       </properties>
 
       <dependencies>
@@ -420,15 +424,16 @@
         <!-- copied from nexus-settings.xml -->
         <database.host>localhost</database.host>
         <database.port>1433</database.port>
-        <database.name>process-engine</database.name>
-        <database.username>camunda</database.username>
-        <database.password>Camunda-BPM123</database.password>
+        <database.name>camengine</database.name>
+        <database.username>sa</database.username>
+        <database.password></database.password>
 
         <database.type>mssql</database.type>
         <database.driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</database.driver>
         <database.datasource.class>com.microsoft.sqlserver.jdbc.SQLServerDataSource</database.datasource.class>
-
-        <database.url>jdbc:sqlserver://localhost:${database.port};databaseName=${database.name};encrypt=false</database.url>
+        <database.tc.url>camsqlserver:2019-latest</database.tc.url>
+        <database.tc.params>;databaseName=${database.name};user=${database.username};password=${database.password}</database.tc.params>
+        <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
 
       <dependencies>
