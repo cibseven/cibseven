@@ -101,6 +101,15 @@ public class SchemaLogEnsureSqlScriptTest extends SchemaLogTestCase {
     for (int i = 0; i < length; i++) {
       int v1Part = i < v1_.length ? Integer.parseInt(v1_[i]) : 0;
       int v2Part = i < v2_.length ? Integer.parseInt(v2_[i]) : 0;
+
+      // workaround for the version switch from Camunda 7 to CIB seven 2: will work till CIB seven 5.0 version 
+      if (i == 0 && v1Part <= 5 && v2Part >= 6) {
+        return true;
+      } else if (i == 0 && v1Part >= 6 && v2Part <= 5) {
+        return false;
+      }
+      
+      // usual version comparison
       if(v1Part != v2Part) {
         return v1Part > v2Part;
       }
