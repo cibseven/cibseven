@@ -55,6 +55,12 @@
       <version>${version.liquibase}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-test-utils-testcontainers</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
 
@@ -116,7 +122,7 @@
               <goal>parse-version</goal>
             </goals>
             <configuration>
-              <propertyPrefix>camunda.current</propertyPrefix>
+              <propertyPrefix>cibseven.current</propertyPrefix>
             </configuration>
           </execution>
           <execution>
@@ -125,8 +131,8 @@
               <goal>parse-version</goal>
             </goals>
             <configuration>
-              <propertyPrefix>camunda.old</propertyPrefix>
-              <versionString>${camunda.version.old}</versionString>
+              <propertyPrefix>cibseven.old</propertyPrefix>
+              <versionString>${cibseven.version.old}</versionString>
             </configuration>
           </execution>
         </executions>
@@ -285,66 +291,66 @@
               <target>
                 <!-- create concatenated patch scripts for easier testing -->
                 <!-- db2 patches -->
-                <concat destfile="target/upgrade-test/sql/upgrade/db2_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="db2_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/db2_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="db2_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch*.sql" />
                 </concat>
 
-                <concat destfile="target/upgrade-test/sql/upgrade/db2_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="db2_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/db2_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="db2_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch*.sql" />
                 </concat>
 
                 <!-- h2 patches -->
-                <concat destfile="target/upgrade-test/sql/upgrade/h2_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="h2_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/h2_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="h2_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch*.sql" />
                 </concat>
 
-                <concat destfile="target/upgrade-test/sql/upgrade/h2_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="h2_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/h2_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="h2_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch*.sql" />
                 </concat>
 
                 <!-- mssql patches -->
-                <concat destfile="target/upgrade-test/sql/upgrade/mssql_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mssql_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/mssql_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mssql_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch*.sql" />
                 </concat>
 
-                <concat destfile="target/upgrade-test/sql/upgrade/mssql_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mssql_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/mssql_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mssql_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch*.sql" />
                 </concat>
 
                 <!-- mysql patches -->
-                <concat destfile="target/upgrade-test/sql/upgrade/mysql_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mysql_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/mysql_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mysql_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch*.sql" />
                 </concat>
 
-                <concat destfile="target/upgrade-test/sql/upgrade/mysql_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mysql_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/mysql_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mysql_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch*.sql" />
                 </concat>
 
                 <!-- mariadb patches -->
-                <concat destfile="target/upgrade-test/sql/upgrade/mariadb_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mariadb_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/mariadb_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mariadb_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch*.sql" />
                 </concat>
 
-                <concat destfile="target/upgrade-test/sql/upgrade/mariadb_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mariadb_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/mariadb_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mariadb_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch*.sql" />
                 </concat>
 
                 <!-- oracle patches -->
-                <concat destfile="target/upgrade-test/sql/upgrade/oracle_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="oracle_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/oracle_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="oracle_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch*.sql" />
                 </concat>
 
-                <concat destfile="target/upgrade-test/sql/upgrade/oracle_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="oracle_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/oracle_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="oracle_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch*.sql" />
                 </concat>
 
                 <!-- postgres patches -->
-                <concat destfile="target/upgrade-test/sql/upgrade/postgres_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="postgres_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/postgres_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="postgres_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch*.sql" />
                 </concat>
 
-                <concat destfile="target/upgrade-test/sql/upgrade/postgres_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="postgres_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/postgres_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="postgres_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch*.sql" />
                 </concat>
 
                 <copy todir="target/upgrade-test/sql/upgrade">
@@ -437,7 +443,7 @@
                     <artifactItem>
                       <groupId>org.cibseven.bpm.distro</groupId>
                       <artifactId>cibseven-sql-scripts</artifactId>
-                      <version>${camunda.version.old}</version>
+                      <version>${cibseven.version.old}</version>
                       <outputDirectory>${project.build.directory}/test-classes/scripts-old</outputDirectory>
                       <overWrite>true</overWrite>
                     </artifactItem>
@@ -462,8 +468,8 @@
                     <!-- create the SQL scripts so that the files exist even if they do not exist in the distribution.
                     (this can be the case if there are no db upgrades (yet) for a particular release ) -->
 
-                    <touch file="${project.build.directory}/test-classes/local-upgrade-test/sql/upgrade/${database.type}_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch.sql" />
-                    <touch file="${project.build.directory}/test-classes/local-upgrade-test/sql/upgrade/${database.type}_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch.sql" />
+                    <touch file="${project.build.directory}/test-classes/local-upgrade-test/sql/upgrade/${database.type}_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch.sql" />
+                    <touch file="${project.build.directory}/test-classes/local-upgrade-test/sql/upgrade/${database.type}_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch.sql" />
 
                   </target>
                 </configuration>
