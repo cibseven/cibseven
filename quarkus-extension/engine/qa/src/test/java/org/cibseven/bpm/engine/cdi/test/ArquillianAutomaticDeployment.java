@@ -16,7 +16,6 @@
  */
 package org.cibseven.bpm.engine.cdi.test;
 
-import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.DeploymentConfiguration;
 import org.jboss.arquillian.container.test.api.DeploymentConfiguration.DeploymentContentBuilder;
 import org.jboss.arquillian.container.test.spi.client.deployment.AutomaticDeployment;
@@ -24,34 +23,15 @@ import org.jboss.arquillian.test.spi.TestClass;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 
-import java.lang.reflect.Method;
-
 public class ArquillianAutomaticDeployment implements AutomaticDeployment {
 
   @Override
   public DeploymentConfiguration generateDeploymentScenario(TestClass testClass) {
-    // If the test class already declares a @Deployment method, skip the automatic
-    // deployment to avoid duplicate '_DEFAULT_' archive name conflicts.
-    if (hasDeploymentMethod(testClass.getJavaClass())) {
-      return null;
-    }
-
     JavaArchive jar = ShrinkWrap.create(JavaArchive.class)
         .addPackages(true, this.getClass().getPackage())
         .addAsResource("application.properties");
 
     return new DeploymentContentBuilder(jar).get();
-  }
-
-  private boolean hasDeploymentMethod(Class<?> clazz) {
-    for (Class<?> c = clazz; c != null && c != Object.class; c = c.getSuperclass()) {
-      for (Method method : c.getDeclaredMethods()) {
-        if (method.isAnnotationPresent(Deployment.class)) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
 }
