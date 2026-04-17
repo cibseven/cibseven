@@ -62,7 +62,7 @@
             <dependency>org.cibseven.bpm:cibseven-engine-cdi</dependency>
           </dependenciesToScan>
 
-            <excludes>
+          <excludes>
             <!-- See https://jira.camunda.com/browse/CAM-13751 -->
             <exclude>**/BeanPropertyElTest.java</exclude>
 
@@ -112,18 +112,6 @@
     <dependency>
       <groupId>org.jboss.arquillian.junit</groupId>
       <artifactId>arquillian-junit-container</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.jboss.arquillian.junit5</groupId>
-      <artifactId>arquillian-junit5-container</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.jboss.arquillian.junit5</groupId>
-      <artifactId>arquillian-junit5-core</artifactId>
       <scope>test</scope>
     </dependency>
 
