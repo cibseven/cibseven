@@ -204,6 +204,10 @@ public class SqlScriptTest {
     String databaseUser = properties.getProperty("database.username");
     String databasePassword = properties.getProperty("database.password");
     String databaseClass = properties.getProperty("database.driver");
+    // Testcontainers jdbc:tc: URLs require the Testcontainers JDBC driver
+    if (databaseUrl != null && databaseUrl.startsWith("jdbc:tc:")) {
+      databaseClass = "org.testcontainers.jdbc.ContainerDatabaseDriver";
+    }
     return DatabaseFactory.getInstance().openDatabase(databaseUrl, databaseUser, databasePassword, databaseClass, null,
         null, null, new ClassLoaderResourceAccessor());
   }
