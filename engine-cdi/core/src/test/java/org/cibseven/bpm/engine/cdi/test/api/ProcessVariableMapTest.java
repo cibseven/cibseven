@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Michael Scholz
  */
-public class ProcessVariableMapTest extends CdiProcessEngineTestCaseBase {
+public class ProcessVariableMapTest extends CdiProcessEngineTestCase {
 
   private static final String VARNAME_1 = "aVariable";
   private static final String VARNAME_2 = "anotherVariable";

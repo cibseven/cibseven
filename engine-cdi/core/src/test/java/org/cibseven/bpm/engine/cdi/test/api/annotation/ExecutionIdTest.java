@@ -26,7 +26,7 @@ import jakarta.enterprise.inject.spi.BeanManager;
 
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
 import org.cibseven.bpm.engine.cdi.annotation.ExecutionIdLiteral;
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
  * 
  * @author Daniel Meyer
  */
-public class ExecutionIdTest extends CdiProcessEngineTestCaseBase {
+public class ExecutionIdTest extends CdiProcessEngineTestCase {
   
   @Test
   @Deployment

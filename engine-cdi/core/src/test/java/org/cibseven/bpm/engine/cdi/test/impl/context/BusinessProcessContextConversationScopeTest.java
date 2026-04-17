@@ -17,14 +17,14 @@
 package org.cibseven.bpm.engine.cdi.test.impl.context;
 
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.ProcessScopedMessageBean;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class BusinessProcessContextConversationScopeTest extends CdiProcessEngineTestCaseBase {
+public class BusinessProcessContextConversationScopeTest extends CdiProcessEngineTestCase {
 
   @Test
   @Deployment

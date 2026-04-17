@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.cdi.test.api.annotation;
 
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
 import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
  * 
  * @author Daniel Meyer
  */
-public class BusinessKeyTest extends CdiProcessEngineTestCaseBase {
+public class BusinessKeyTest extends CdiProcessEngineTestCase {
   
   @Test
   @Deployment

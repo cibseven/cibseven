@@ -62,7 +62,7 @@ import org.cibseven.bpm.engine.test.junit5.ProcessEngineExtension;
  * @ExtendWith(ArquillianExtension.class) annotation to the child class.
  */
 @ExtendWith(ArquillianExtension.class)
-public abstract class CdiProcessEngineTestCaseBase {
+public abstract class CdiProcessEngineTestCase {
 
   static {
     LogUtil.readJavaUtilLoggingConfigFromClasspath();

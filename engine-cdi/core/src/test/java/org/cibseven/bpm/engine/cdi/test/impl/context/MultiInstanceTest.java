@@ -19,7 +19,7 @@ package org.cibseven.bpm.engine.cdi.test.impl.context;
 import java.util.Arrays;
 
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
-import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
+import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
  * @author Daniel Meyer
  *
  */
-public class MultiInstanceTest extends CdiProcessEngineTestCaseBase {
+public class MultiInstanceTest extends CdiProcessEngineTestCase {
 
   @Test
   @Deployment
