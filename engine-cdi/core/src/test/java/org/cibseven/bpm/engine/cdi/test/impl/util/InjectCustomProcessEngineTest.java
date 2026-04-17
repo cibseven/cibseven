@@ -26,49 +26,35 @@ import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
 import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.InjectedProcessEngineBean;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Christopher Zell <christopher.zell@camunda.com>
+ *
+ * Engine registration/unregistration is done inside the test method with try/finally
+ * so it does not interfere with the Quarkus-managed engine lifecycle (Arc container).
  */
 public class InjectCustomProcessEngineTest extends CdiProcessEngineTestCase {
 
-  protected ProcessEngine defaultProcessEngine = null;
-  protected ProcessEngine processEngine = null;
-
-  @BeforeEach
-  public void init() {
-    processEngine = TestHelper.getProcessEngine("org/cibseven/bpm/engine/cdi/test/impl/util/camunda.cfg.xml");
-    defaultProcessEngine = BpmPlatform.getProcessEngineService().getDefaultProcessEngine();
-
-    if (defaultProcessEngine != null) {
-      RuntimeContainerDelegate.INSTANCE.get().unregisterProcessEngine(defaultProcessEngine);
-    }
-
-    RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(processEngine);
-  }
-
-  @AfterEach
-  public void destroy() {
-    RuntimeContainerDelegate.INSTANCE.get().unregisterProcessEngine(processEngine);
-
-    if (defaultProcessEngine != null) {
-      RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(defaultProcessEngine);
-    }
-  }
-
-//TODO: init/deinit code should be moved into the test method as Before/AfterEach doesn't work with Arquillian 
   @Test
   public void testProcessEngineInject() {
-    //given only custom engine exist
+    ProcessEngine previousDefault = BpmPlatform.getProcessEngineService().getDefaultProcessEngine();
+    ProcessEngine customEngine = TestHelper.getProcessEngine("org/cibseven/bpm/engine/cdi/test/impl/util/camunda.cfg.xml");
 
-    //when TestClass is created
-    InjectedProcessEngineBean testClass = ProgrammaticBeanLookup.lookup(InjectedProcessEngineBean.class);
-    assertNotNull(testClass);
+    try {
+      if (previousDefault != null) {
+        RuntimeContainerDelegate.INSTANCE.get().unregisterProcessEngine(previousDefault);
+      }
+      RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(customEngine);
 
-    //then custom engine is injected
-    assertEquals("myCustomEngine", testClass.processEngine.getName());
+      InjectedProcessEngineBean testClass = ProgrammaticBeanLookup.lookup(InjectedProcessEngineBean.class);
+      assertNotNull(testClass);
+      assertEquals("myCustomEngine", testClass.processEngine.getName());
+    } finally {
+      RuntimeContainerDelegate.INSTANCE.get().unregisterProcessEngine(customEngine);
+      if (previousDefault != null) {
+        RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(previousDefault);
+      }
+    }
   }
 }

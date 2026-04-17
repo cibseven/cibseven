@@ -19,6 +19,7 @@ package org.cibseven.bpm.engine.cdi.test;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.InjectableInstance;
 import io.quarkus.arc.InstanceHandle;
+import io.quarkus.test.QuarkusUnitTest;
 import org.cibseven.bpm.BpmPlatform;
 import org.cibseven.bpm.engine.AuthorizationService;
 import org.cibseven.bpm.engine.CaseService;
@@ -33,19 +34,37 @@ import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.TaskService;
+import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
+import org.cibseven.bpm.engine.experimental.InjectProcessVariable;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
+import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.quarkus.engine.extension.QuarkusProcessEngineConfiguration;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.BeanManager;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class CdiProcessEngineTestCase {
+
+  @RegisterExtension
+  protected static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
+      .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
+          .addAsResource("application.properties")
+          .addPackages(true, CdiProcessEngineTestCase.class.getPackage())
+          .addPackages(true, InjectProcessVariable.class.getPackage()));
 
   protected String deploymentId;
 
@@ -70,7 +89,7 @@ public class CdiProcessEngineTestCase {
   protected Set<InstanceHandle<?>> beanInstanceHandles = new HashSet<>();
 
   @BeforeEach
-  public void before() {
+  public void before(TestInfo testInfo) throws Throwable {
     Set<String> processEngineNames = BpmPlatform.getProcessEngineService()
         .getProcessEngineNames();
     if (processEngineNames.size() != 1) throw new RuntimeException(
@@ -95,6 +114,31 @@ public class CdiProcessEngineTestCase {
     externalTaskService = processEngine.getExternalTaskService();
     caseService = processEngine.getCaseService();
     decisionService = processEngine.getDecisionService();
+
+    Method testMethod = testInfo.getTestMethod().orElse(null);
+    assertThat(testMethod).isNotNull();
+
+    String[] resources = getDeploymentResources(testMethod.getDeclaringClass(), testMethod);
+    deploymentId = deploy(testMethod.getDeclaringClass(), testMethod.getName(), resources);
+  }
+
+  private String[] getDeploymentResources(Class<?> testClass, Method method) throws Throwable {
+    for (var annotation : method.getAnnotations()) {
+      // Handle proxy-wrapped annotations due to multiple classloaders (test jar vs quarkus QA)
+      if (Proxy.isProxyClass(annotation.getClass())
+          && Deployment.class.getName().equals(annotation.annotationType().getName())) {
+        String[] resources = (String[]) Proxy.getInvocationHandler(annotation)
+            .invoke(annotation, Deployment.class.getDeclaredMethod("resources"), null);
+        if (resources.length > 0) return resources;
+        return new String[] { TestHelper.getBpmnProcessDefinitionResource(testClass, method.getName()) };
+      } else if (annotation instanceof Deployment) {
+        Deployment deploymentAnnotation = (Deployment) annotation;
+        String[] resources = deploymentAnnotation.resources();
+        if (resources.length > 0) return resources;
+        return new String[] { TestHelper.getBpmnProcessDefinitionResource(testClass, method.getName()) };
+      }
+    }
+    return null;
   }
 
   @AfterEach
@@ -133,6 +177,10 @@ public class CdiProcessEngineTestCase {
     decisionService = null;
   }
 
+  protected BeanManager getBeanManager() {
+    return ProgrammaticBeanLookup.lookup(BeanManager.class);
+  }
+
   protected <T> T getBeanInstance(Class<T> clazz) {
     InjectableInstance<T> select = Arc.container().select(clazz);
     InstanceHandle<T> handle = select.getHandle();
@@ -146,10 +194,11 @@ public class CdiProcessEngineTestCase {
     return instance.get();
   }
 
-  public void deploy(Class<?> testClass, String methodName, String[] resources) {
+  public String deploy(Class<?> testClass, String methodName, String[] resources) {
     if (resources != null) {
-      deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, resources, testClass, methodName);
+      return TestHelper.annotationDeploymentSetUp(processEngine, resources, testClass, methodName);
     }
+    return null;
   }
 
   public void waitForJobExecutorToProcessAllJobs(long maxMillisToWait, long intervalMillis) {
@@ -161,10 +210,8 @@ public class CdiProcessEngineTestCase {
 
     @Produces
     public QuarkusProcessEngineConfiguration customEngineConfig() {
-
       QuarkusProcessEngineConfiguration engineConfig = new QuarkusProcessEngineConfiguration();
       engineConfig.setJobExecutorActivate(false);
-
       return engineConfig;
     }
 
