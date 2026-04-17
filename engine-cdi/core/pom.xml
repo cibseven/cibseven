@@ -68,7 +68,7 @@
 	  <groupId>org.jboss.arquillian.container</groupId>
 	  <artifactId>arquillian-weld-embedded</artifactId>
 	  <version>${arquillian.weld.version}</version>
-	  <scope>test</scope>
+	  <scope>compile</scope>
 	</dependency>
     <dependency>
       <groupId>jakarta.inject</groupId>
