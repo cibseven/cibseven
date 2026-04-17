@@ -30,14 +30,11 @@ import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.engine.variable.value.StringValue;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.junit.jupiter.api.Test;
-import org.jboss.arquillian.junit5.ArquillianExtension;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Roman Smirnov
  *
  */
-@ExtendWith(ArquillianExtension.class)
 public class ProcessVariableLocalTypedTest extends CdiProcessEngineTestCaseBase {
 
   @Test

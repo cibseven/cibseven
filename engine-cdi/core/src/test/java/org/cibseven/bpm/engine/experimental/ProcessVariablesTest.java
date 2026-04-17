@@ -24,12 +24,9 @@ import java.util.Map;
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
 import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(ArquillianExtension.class)
 public class ProcessVariablesTest extends CdiProcessEngineTestCaseBase {
 
   @Disabled

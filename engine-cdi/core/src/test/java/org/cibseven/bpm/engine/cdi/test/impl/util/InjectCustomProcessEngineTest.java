@@ -26,16 +26,13 @@ import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
 import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.InjectedProcessEngineBean;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
-import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Christopher Zell <christopher.zell@camunda.com>
  */
-@ExtendWith(ArquillianExtension.class)
 public class InjectCustomProcessEngineTest extends CdiProcessEngineTestCaseBase {
 
   protected ProcessEngine defaultProcessEngine = null;

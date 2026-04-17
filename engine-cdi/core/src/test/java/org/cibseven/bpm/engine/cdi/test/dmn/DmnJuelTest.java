@@ -20,15 +20,12 @@ import org.cibseven.bpm.dmn.engine.DmnDecisionResult;
 import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCaseBase;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.junit.jupiter.api.Test;
-import org.jboss.arquillian.junit5.ArquillianExtension;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Named;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(ArquillianExtension.class)
 public class DmnJuelTest extends CdiProcessEngineTestCaseBase {
 
   @Named

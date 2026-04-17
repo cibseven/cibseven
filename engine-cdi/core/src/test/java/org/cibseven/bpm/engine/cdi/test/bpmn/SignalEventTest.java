@@ -32,10 +32,7 @@ import org.cibseven.bpm.engine.delegate.JavaDelegate;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.junit.jupiter.api.Test;
-import org.jboss.arquillian.junit5.ArquillianExtension;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(ArquillianExtension.class)
 public class SignalEventTest extends CdiProcessEngineTestCaseBase {
 
   @Named
