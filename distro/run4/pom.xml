@@ -25,22 +25,14 @@
         <scope>import</scope>
         <type>pom</type>
       </dependency>
-      
-      <!-- Override Tomcat version from Spring Boot BOM -->
+
+      <!-- Override Tomcat versions from Spring Boot BOM for all Tomcat artifacts -->
       <dependency>
-        <groupId>org.apache.tomcat.embed</groupId>
-        <artifactId>tomcat-embed-core</artifactId>
+        <groupId>org.apache.tomcat</groupId>
+        <artifactId>tomcat-bom</artifactId>
         <version>${version.tomcat.springboot4}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.tomcat.embed</groupId>
-        <artifactId>tomcat-embed-el</artifactId>
-        <version>${version.tomcat.springboot4}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.tomcat.embed</groupId>
-        <artifactId>tomcat-embed-websocket</artifactId>
-        <version>${version.tomcat.springboot4}</version>
+        <scope>import</scope>
+        <type>pom</type>
       </dependency>
 
       <dependency>
