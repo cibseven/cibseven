@@ -250,11 +250,11 @@ pipeline {
                 stage('Engine Integration') {
                     when { expression { params.QA_ENG_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,engine-integration-jakarta" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly-domain,h2,engine-integration-jakarta" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,engine-integration-jakarta" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28-domain,h2,engine-integration-jakarta" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,engine-integration" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly-domain,h2,engine-integration" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,engine-integration" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28-domain,h2,engine-integration" }}
                     }
                 }
                 stage('Web Integration') {
@@ -342,13 +342,13 @@ pipeline {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat9,postgresql,engine-integration" }}}
                         }
                         stage('engine-IT-tomcat-10-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat,postgresql,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat,postgresql,engine-integration" }}}
                         }
                         stage('engine-IT-wildfly-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,engine-integration" }}}
                         }
                         stage('engine-IT-XA-wildfly-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,postgresql-xa,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,postgresql-xa,engine-integration" }}}
                         }
                         stage('webapp-IT-tomcat-9-h2') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat9,h2,webapps-integration" }}}
