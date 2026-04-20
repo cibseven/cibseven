@@ -315,6 +315,8 @@
                 <append>false</append>
                 <home>${tomcat.runtime}</home>
                 <timeout>${cargo.timeout}</timeout>
+                <output>${project.build.directory}/tomcat-server.log</output>
+                <log>${project.build.directory}/tomcat-cargo.log</log>
               </container>
               <configuration>
                 <type>standalone</type>
@@ -323,6 +325,13 @@
                   <cargo.servlet.port>${tomcat.connector.http.port}</cargo.servlet.port>
                   <cargo.tomcat.ajp.port>${tomcat.connector.ajp.port}</cargo.tomcat.ajp.port>
                 </properties>
+                <configfiles>
+                  <configfile>
+                    <file>${project.basedir}/src/test/resources/context.xml</file>
+                    <todir>conf</todir>
+                    <tofile>context.xml</tofile>
+                  </configfile>
+                </configfiles>
               </configuration>
               <deployables>
                 <deployable>
@@ -437,6 +446,8 @@
                 <append>false</append>
                 <home>${tomcat.runtime}</home>
                 <timeout>${cargo.timeout}</timeout>
+                <output>${project.build.directory}/tomcat-server.log</output>
+                <log>${project.build.directory}/tomcat-cargo.log</log>
               </container>
               <configuration>
                 <type>standalone</type>
@@ -445,6 +456,13 @@
                   <cargo.servlet.port>${tomcat.connector.http.port}</cargo.servlet.port>
                   <cargo.tomcat.ajp.port>${tomcat.connector.ajp.port}</cargo.tomcat.ajp.port>
                 </properties>
+                <configfiles>
+                  <configfile>
+                    <file>${project.basedir}/src/test/resources/context.xml</file>
+                    <todir>conf</todir>
+                    <tofile>context.xml</tofile>
+                  </configfile>
+                </configfiles>
               </configuration>
               <deployables>
                 <deployable>
@@ -515,7 +533,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-failsafe-plugin</artifactId>
-            <version>3.0.0-M3</version>
+            <version>${version.surefire}</version>
             <configuration>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <dependenciesToScan>

@@ -29,7 +29,7 @@ import org.cibseven.bpm.engine.rest.exception.RestExceptionHandler;
 import org.cibseven.bpm.engine.rest.mapper.JacksonConfigurator;
 import org.cibseven.bpm.webapp.impl.security.auth.UserAuthenticationResource;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
 /**
  * The rest api exposed by the admin application

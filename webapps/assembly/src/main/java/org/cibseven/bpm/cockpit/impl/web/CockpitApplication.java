@@ -28,7 +28,7 @@ import org.cibseven.bpm.engine.rest.exception.ExceptionHandler;
 import org.cibseven.bpm.engine.rest.exception.RestExceptionHandler;
 import org.cibseven.bpm.engine.rest.mapper.JacksonConfigurator;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
 /**
  * The cockpit rest api exposed by the application.

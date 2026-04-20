@@ -18,6 +18,9 @@
 <!-- The contents of this file will be loaded for each web application -->
 <Context antiResourceLocking="true">
 
+    <!-- Scan shared lib JARs for ServletContainerInitializers (needed for process application auto-detection) -->
+    <JarScanner scanClassPath="true" />
+
     <!-- Default set of monitored resources. If one of these changes, the    -->
     <!-- web application will be reloaded.                                   -->
     <WatchedResource>WEB-INF/web.xml</WatchedResource>

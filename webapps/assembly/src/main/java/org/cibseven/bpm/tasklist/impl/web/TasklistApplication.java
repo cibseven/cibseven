@@ -28,7 +28,7 @@ import org.cibseven.bpm.engine.rest.mapper.JacksonConfigurator;
 import org.cibseven.bpm.tasklist.Tasklist;
 import org.cibseven.bpm.tasklist.plugin.spi.TasklistPlugin;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
 /**
  * @author Roman Smirnov
