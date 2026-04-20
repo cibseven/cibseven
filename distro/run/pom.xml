@@ -26,15 +26,6 @@
         <type>pom</type>
       </dependency>
 
-      <!-- Override Tomcat versions from Spring Boot BOM for all Tomcat artifacts -->
-      <dependency>
-        <groupId>org.apache.tomcat</groupId>
-        <artifactId>tomcat-bom</artifactId>
-        <version>${version.tomcat}</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-
       <dependency>
         <groupId>org.graalvm.js</groupId>
         <artifactId>js</artifactId>
