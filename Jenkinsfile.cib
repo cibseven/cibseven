@@ -357,7 +357,7 @@ pipeline {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}}
                         }
                         stage('webapp-IT-wildfly-h2') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration -pl '!integration-tests-engine-jakarta'" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration -pl '!integration-tests-engine'" }}}
                         }
                     }
                 }

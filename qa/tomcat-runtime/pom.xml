@@ -140,7 +140,7 @@
     </profile>
 
     <profile>
-      <id>engine-integration-jakarta</id>
+      <id>engine-integration</id>
       <dependencies>
         <dependency>
           <groupId>org.jboss.weld.servlet</groupId>
