@@ -116,11 +116,9 @@
         <database.driver>com.ibm.db2.jcc.DB2Driver</database.driver>
         <database.name>engine</database.name>
         <database.port>50000</database.port>
-        <database.username>db2inst1</database.username>
-        <database.password>foobar1234</database.password>
 
         <database.tc.url>camdb2:11.5.0.0</database.tc.url>
-        <database.tc.params>/${database.name}</database.tc.params>
+        <database.tc.params>/${database.name}?TC_DAEMON=true</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
 
       </properties>
