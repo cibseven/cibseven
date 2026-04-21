@@ -28,23 +28,29 @@ import org.cibseven.bpm.engine.history.HistoricProcessInstance;
 import org.cibseven.bpm.engine.impl.db.sql.DbSqlSessionFactory;
 import org.cibseven.bpm.engine.impl.util.CollectionUtil;
 import org.cibseven.bpm.engine.repository.Deployment;
+import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.qa.largedata.util.EngineDataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class DeleteDeploymentCascadeTest {
 
+  @RegisterExtension
+  public ProcessEngineRule processEngineRule = new ProcessEngineRule("camunda.cfg.xml");
   protected static final String DATA_PREFIX = DeleteDeploymentCascadeTest.class.getSimpleName();
 
   protected int GENERATE_PROCESS_INSTANCES_COUNT = 2500;
-  protected ProcessEngine processEngine;
   protected RepositoryService repositoryService;
   protected HistoryService historyService;
   protected EngineDataGenerator generator;
   
   @BeforeEach
   public void init() {
+    ProcessEngine processEngine = processEngineRule.getProcessEngine();
+    repositoryService = processEngine.getRepositoryService();
+    historyService = processEngine.getHistoryService();
     // generate data
     generator = new EngineDataGenerator(processEngine, GENERATE_PROCESS_INSTANCES_COUNT, DATA_PREFIX);
     generator.deployDefinitions();

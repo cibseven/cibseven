@@ -44,14 +44,18 @@ import org.cibseven.bpm.engine.impl.test.TestHelper;
 import org.cibseven.bpm.engine.impl.test.RequiredDatabase;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * JUnit 5 compatible ProcessEngineRule as a JUnit Jupiter extension.
  */
-public class ProcessEngineRule implements BeforeEachCallback, AfterEachCallback, ProcessEngineServices {
+public class ProcessEngineRule implements BeforeEachCallback, AfterEachCallback, BeforeAllCallback, AfterAllCallback, ProcessEngineServices {
+
+  static private boolean isStatic = false;
 
   protected String configurationResource = "camunda.cfg.xml";
   protected String configurationResourceCompat = "activiti.cfg.xml";
@@ -59,7 +63,6 @@ public class ProcessEngineRule implements BeforeEachCallback, AfterEachCallback,
   protected List<String> additionalDeployments = new ArrayList<>();
 
   protected boolean ensureCleanAfterTest = false;
-
   protected ProcessEngine processEngine;
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RepositoryService repositoryService;
@@ -102,7 +105,18 @@ public class ProcessEngineRule implements BeforeEachCallback, AfterEachCallback,
   }
 
   @Override
+  public void beforeAll(ExtensionContext context) throws Exception {
+    isStatic = true;
+    init(context);
+  }
+
+  @Override
   public void beforeEach(ExtensionContext context) throws Exception {
+    if (isStatic)
+      return;
+    init(context);
+  }
+  public void init(ExtensionContext context) throws Exception {
     if (processEngine == null) {
       initializeProcessEngine();
     }
@@ -115,34 +129,47 @@ public class ProcessEngineRule implements BeforeEachCallback, AfterEachCallback,
 
     RequiredHistoryLevel reqHistoryLevel = context.getElement().map(
         element -> element.getAnnotation(RequiredHistoryLevel.class)).orElse(null);
-    boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine,
-        reqHistoryLevel, testClass.get(), method.get().getName());
+    if (method.isPresent()) {
+      boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine,
+          reqHistoryLevel, testClass.get(), method.get().getName());
 
-    RequiredDatabase requiredDatabase = method.get().getAnnotation(RequiredDatabase.class);
-    //RequiredDatabase requiredDatabase = description.getAnnotation(RequiredDatabase.class);
-    boolean runsWithRequiredDatabase = TestHelper.annotationRequiredDatabaseCheck(processEngine,
-    requiredDatabase, testClass.get(), method.get().getName());
-    assumeTrue(hasRequiredHistoryLevel, "ignored because the current history level is too low");
-    assumeTrue(runsWithRequiredDatabase, "ignored because the database doesn't match the required ones");
+      RequiredDatabase requiredDatabase = method.get().getAnnotation(RequiredDatabase.class);
+      boolean runsWithRequiredDatabase = TestHelper.annotationRequiredDatabaseCheck(processEngine,
+      requiredDatabase, testClass.get(), method.get().getName());
+      assumeTrue(hasRequiredHistoryLevel, "ignored because the current history level is too low");
+      assumeTrue(runsWithRequiredDatabase, "ignored because the database doesn't match the required ones");
     
     
-    //from starting(Description description) method
-    String methodName = method.get().getName();
-    if (methodName != null) {
-      // cut off method variant suffix "[variant name]" for parameterized tests
-      int methodNameVariantStart = methodName.indexOf('[');
-      int methodNameEnd = methodNameVariantStart < 0 ? methodName.length() : methodNameVariantStart;
-      methodName = methodName.substring(0, methodNameEnd);
+      //from starting(Description description) method
+      String methodName = method.get().getName();
+      if (methodName != null) {
+        // cut off method variant suffix "[variant name]" for parameterized tests
+        int methodNameVariantStart = methodName.indexOf('[');
+        int methodNameEnd = methodNameVariantStart < 0 ? methodName.length() : methodNameVariantStart;
+        methodName = methodName.substring(0, methodNameEnd);
+      }
+      deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, testClass.get(), methodName, method.get().getParameterTypes());
     }
-    deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, testClass.get(), methodName, method.get().getParameterTypes());
   
+  }
+  @Override
+  public void afterAll(ExtensionContext context) throws Exception {
+    deInit(context);
   }
 
   @Override
   public void afterEach(ExtensionContext context) throws Exception {
+    if (isStatic)
+      return;
+    deInit(context);
+  }
+
+  public void deInit(ExtensionContext context) throws Exception {
     identityService.clearAuthentication();
     processEngine.getProcessEngineConfiguration().setTenantCheckEnabled(true);
-    TestHelper.annotationDeploymentTearDown(processEngine, deploymentId, context.getRequiredTestClass(), context.getRequiredTestMethod().getName());
+    if (deploymentId != null) {
+      TestHelper.annotationDeploymentTearDown(processEngine, deploymentId, context.getRequiredTestClass(), context.getRequiredTestMethod().getName());
+    }
     for (String additionalDeployment : additionalDeployments) {
       TestHelper.deleteDeployment(processEngine, additionalDeployment);
     }

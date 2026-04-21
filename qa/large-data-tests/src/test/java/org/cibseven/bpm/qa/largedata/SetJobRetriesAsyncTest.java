@@ -34,12 +34,14 @@ import org.cibseven.bpm.qa.largedata.util.EngineDataGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class SetJobRetriesAsyncTest {
 
   protected static final String DATA_PREFIX = SetJobRetriesAsyncTest.class.getSimpleName();
   protected static final int GENERATE_PROCESS_INSTANCES_COUNT = 3000;
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProcessEngineRule();
   protected BatchModificationJobHelper helper = new BatchModificationJobHelper(engineRule);
 
