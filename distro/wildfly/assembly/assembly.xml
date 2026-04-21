@@ -54,6 +54,10 @@
         <exclude>standalone/configuration/standalone-full.xml</exclude>
         <exclude>bin/standalone.conf</exclude>
         <exclude>bin/standalone.conf.bat</exclude>
+        <!-- exclude wildfly's shipped version of h2database -->
+        <exclude>**/h2database/**</exclude>
+        <!-- exclude system jackson core modules: CWE-770 -->
+        <exclude>**/modules/system/layers/base/com/fasterxml/jackson/core/**</exclude>
       </excludes>
     </fileSet>
     
