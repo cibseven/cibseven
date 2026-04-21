@@ -204,6 +204,12 @@ public class SqlScriptTest {
     String databaseUser = properties.getProperty("database.username");
     String databasePassword = properties.getProperty("database.password");
     String databaseClass = properties.getProperty("database.driver");
+    // Properties files don't decode XML entities, but database URLs from
+    // database/pom.xml use &amp; encoding (intended for XML resource filtering).
+    // Unescape so the JDBC URL contains proper '&' characters.
+    if (databaseUrl != null) {
+      databaseUrl = databaseUrl.replace("&amp;", "&");
+    }
     // Testcontainers jdbc:tc: URLs require the Testcontainers JDBC driver
     if (databaseUrl != null && databaseUrl.startsWith("jdbc:tc:")) {
       databaseClass = "org.testcontainers.jdbc.ContainerDatabaseDriver";
