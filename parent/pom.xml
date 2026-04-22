@@ -139,6 +139,7 @@
       </dependency>
 
       <!-- temporary override jackson-core version 2.19.4, referenced from spring-boot 3.5.11, to version 2.21.1 to fix CWE-770 -->
+	  <!-- need to remove when a new spring-boot updates this dependency -->
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-core</artifactId>
@@ -152,7 +153,8 @@
         <version>${version.commons-lang3}</version>
       </dependency>
 
-      <!-- Override plexus-utils version to fix CVE-2025-67030 -->
+      <!-- temporary override plexus-utils, referenced by org.jboss.shrinkwrap.resolver, to version 3.6.1 to fix CVE-2025-67030 -->
+	  <!-- need to remove when a new org.jboss.shrinkwrap.resolver updates this dependency -->
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-utils</artifactId>
