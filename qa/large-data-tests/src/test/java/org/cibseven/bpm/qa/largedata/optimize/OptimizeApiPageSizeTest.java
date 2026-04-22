@@ -17,7 +17,7 @@
 package org.cibseven.bpm.qa.largedata.optimize;
 
 import org.cibseven.bpm.engine.impl.OptimizeService;
-import org.cibseven.bpm.engine.test.ProcessEngineRule;
+import org.cibseven.bpm.engine.test.ProcessEngineRuleStatic;
 import org.cibseven.bpm.qa.largedata.util.EngineDataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -35,7 +35,7 @@ public class OptimizeApiPageSizeTest {
   private static final int OPTIMIZE_PAGE_SIZE = 10_000;
 
   @RegisterExtension
-  static ProcessEngineRule processEngineRule = new ProcessEngineRule("camunda.cfg.xml");
+  static ProcessEngineRuleStatic processEngineRule = new ProcessEngineRuleStatic("camunda.cfg.xml");
 
   @BeforeAll
   public static void init() {
