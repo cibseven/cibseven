@@ -101,6 +101,8 @@ public class EngineRule implements BeforeEachCallback, AfterEachCallback {
 
   public EngineRule(Supplier<Properties> properties) {
     this.properties = properties.get();
+    initializeHttpClient();
+    initializeObjectMapper();
   }
 
   @Override

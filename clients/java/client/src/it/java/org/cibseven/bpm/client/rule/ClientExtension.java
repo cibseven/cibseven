@@ -68,6 +68,10 @@ public class ClientExtension implements BeforeEachCallback, AfterEachCallback {
   }
 
   public ExternalTaskClient client() {
+    if (client == null) {
+      builder.disableAutoFetching();
+      client = builder.build();
+    }
     return client;
   }
 
