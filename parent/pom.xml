@@ -154,7 +154,7 @@
       </dependency>
 
       <!-- temporary override plexus-utils, referenced by org.jboss.shrinkwrap.resolver, to version 3.6.1 to fix CVE-2025-67030 -->
-	  <!-- need to remove when a new org.jboss.shrinkwrap.resolver updates this dependency -->
+      <!-- need to remove when a new org.jboss.shrinkwrap.resolver updates this dependency -->
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-utils</artifactId>
