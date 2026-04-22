@@ -74,7 +74,7 @@
     <version.tomcat>10.1.52</version.tomcat>
 
     <version.arquillian>1.1.10.Final</version.arquillian>
-    <version.shrinkwrap.resolvers>2.2.2</version.shrinkwrap.resolvers>
+    <version.shrinkwrap.resolvers>3.3.5</version.shrinkwrap.resolvers>
     <version.selenium>4.26.0</version.selenium>
     <version.chromedriver>138.0.7204.94</version.chromedriver>
     <version.freemarker>2.3.31</version.freemarker>
@@ -150,6 +150,13 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
         <version>${version.commons-lang3}</version>
+      </dependency>
+
+      <!-- Override plexus-utils version to fix CVE-2025-67030 -->
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-utils</artifactId>
+        <version>3.6.1</version>
       </dependency>
 
       <!-- Override Log4j version to fix CVE-2025-68161 -->
