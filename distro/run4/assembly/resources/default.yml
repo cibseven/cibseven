@@ -41,24 +41,35 @@ camunda.bpm:
     # update old namespace in saved serialized objects, after migration from camunda to cibseven
     useCibSevenNamespaceInReflection: false
 
-# datasource configuration is required
-spring.datasource:
-  url: jdbc:h2:./camunda-h2-default/process-engine;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
-  driver-class-name: org.h2.Driver
-  username: sa
-  password: sa
-
-# By default, Spring Boot serves static content from any directories called /static or /public or /resources or
-# /META-INF/resources in the classpath. To prevent users from accidentally sharing files, this is disabled here by setting static locations to NULL.
-# https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-spring-mvc-static-content
-spring.web.resources:
-  static-locations: NULL
-
 spring:
   config:
     import:
       - optional:classpath:cibseven-webclient.properties
       - optional:classpath:cibseven-webclient.yaml
+  # datasource configuration is required
+  datasource:
+    url: jdbc:h2:./camunda-h2-default/process-engine;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: sa
+  # jpa is needed for the modeler, if enabled
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: none
+      id:
+        new_generator_mappings: true
+    properties:
+      hibernate:
+        integration:
+          envers:
+            enabled: false
+  web:
+    resources:
+      # By default, Spring Boot serves static content from any directories called /static or /public or /resources or
+      # /META-INF/resources in the classpath. To prevent users from accidentally sharing files, this is disabled here by setting static locations to NULL.
+      # https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-spring-mvc-static-content
+      static-locations: NULL
 
 logging:
   level:
@@ -66,6 +77,8 @@ logging:
 
 cibseven:
   webclient:
+    modeler:
+      enabled: true
     # Engine rest
     engineRest:
       url: http://localhost:8080
