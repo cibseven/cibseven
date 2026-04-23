@@ -33,9 +33,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.jsonwebtoken.Jwts;
+import java.util.Arrays;
+import java.util.Base64;
+import java.security.SecureRandom;
+import javax.crypto.Cipher;
+import javax.crypto.spec.GCMParameterSpec;
 
 public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware implements LicenseRestService {
+
+       private static final int GCM_IV_LENGTH = 12;
+       private static final int GCM_TAG_LENGTH_BITS = 128;
+       private static final SecureRandom RNG = new SecureRandom();
 
   public LicenseRestServiceImpl(String engineName, ObjectMapper objectMapper) {
     super(engineName, objectMapper);
@@ -82,11 +90,15 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
       String signature = (String) map.get("signature");
       String secret = getSecret();
       SecretKeySpec key = getAesKey(secret);
-      String jwe = Jwts.builder()
-          .content(signature)
-          .encryptWith(key, Jwts.ENC.A256GCM)
-          .compact();
-      map.put("signature", jwe);
+      byte[] iv = new byte[GCM_IV_LENGTH];
+      RNG.nextBytes(iv);
+      Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+      cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv));
+      byte[] ct = cipher.doFinal(signature.getBytes(StandardCharsets.UTF_8));
+      byte[] out = new byte[iv.length + ct.length];
+      System.arraycopy(iv, 0, out, 0, iv.length);
+      System.arraycopy(ct, 0, out, iv.length, ct.length);
+      map.put("signature", Base64.getEncoder().encodeToString(out));
       return objectMapper.writeValueAsString(map);
     } catch (JsonProcessingException e) {
       throw new InvalidRequestException(Status.BAD_REQUEST, e, "Invalid license key JSON format");
@@ -101,22 +113,20 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
     try {
       Map<String, Object> map = objectMapper.readValue(licenseKey, new TypeReference<Map<String, Object>>() {
       });
-      String jwe = (String) map.get("signature");
-      String secret = getSecret();
-      SecretKeySpec key = getAesKey(secret);
-      byte[] payload = Jwts.parser()
-          .decryptWith(key)
-          .build()
-          .parseEncryptedContent(jwe)
-          .getPayload();
-      String signature = new String(payload, StandardCharsets.UTF_8);
+      String encoded = (String) map.get("signature");
+      SecretKeySpec key = getAesKey(getSecret());
+      byte[] raw = Base64.getDecoder().decode(encoded);
+      byte[] iv = Arrays.copyOfRange(raw, 0, GCM_IV_LENGTH);
+      byte[] ct = Arrays.copyOfRange(raw, GCM_IV_LENGTH, raw.length);
+      Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+      cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv));
+      String signature = new String(cipher.doFinal(ct), StandardCharsets.UTF_8);
       map.put("signature", signature);
       return objectMapper.writeValueAsString(map);
     } catch (JsonProcessingException e) {
       throw new InvalidRequestException(Status.BAD_REQUEST, e, "Invalid license key JSON format");
     } catch (Exception e) {
-      throw new InvalidRequestException(Status.INTERNAL_SERVER_ERROR, e,
-          "Failed to decrypt license signature. The JWT secret may have been rotated.");
+      throw new InvalidRequestException(Status.BAD_REQUEST, e, "Failed to decrypt license signature. The JWT secret may have been rotated.");
     }
   }
 
