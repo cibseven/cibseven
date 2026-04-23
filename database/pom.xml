@@ -118,10 +118,34 @@
         <database.port>50000</database.port>
 
         <database.tc.url>camdb2:11.5.0.0</database.tc.url>
-        <database.tc.params>/${database.name}</database.tc.params>
+        <database.tc.params>/${database.name}?TC_DAEMON=true</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
 
       </properties>
+      <dependencies>
+        <dependency>
+          <groupId>com.ibm.db2</groupId>
+          <artifactId>jcc</artifactId>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>sql-maven-plugin</artifactId>
+              <dependencies>
+                <dependency>
+                  <groupId>com.ibm.db2</groupId>
+                  <artifactId>jcc</artifactId>
+                  <version>${version.db2}</version>
+                </dependency>
+              </dependencies>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>	  	
     </profile>
 
     <profile>
@@ -293,7 +317,7 @@
         <database.driver>com.mysql.cj.jdbc.Driver</database.driver>
         <database.datasource.class>com.mysql.cj.jdbc.MysqlDataSource</database.datasource.class>
         <database.tc.url>cammysql:8.0</database.tc.url>
-        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}?sendFractionalSeconds=false</database.tc.params>
+        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}&amp;amp;sendFractionalSeconds=false</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
 
