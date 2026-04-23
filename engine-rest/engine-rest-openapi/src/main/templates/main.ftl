@@ -39,6 +39,7 @@
     {"name": "Authorization"},
     {"name": "Batch"},
     {"name": "Condition"},
+    {"name": "Configuration"},
     {"name": "Decision Definition"},
     {"name": "Decision Requirements Definition"},
     {"name": "Deployment"},
