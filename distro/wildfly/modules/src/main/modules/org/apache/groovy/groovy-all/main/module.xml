@@ -10,7 +10,10 @@
   </resources>
 
   <dependencies>
-    <module name="javax.api" />
+    <module name="java.se"/>
+    <module name="java.xml"/>
+    <module name="java.xml.crypto"/>
+    <module name="jdk.xml.dom"/>
     <module name="com.ibm.icu.icu4j" export="true" />
     <module name="org.cibseven.spin.cibseven-spin-core" />
   </dependencies>
