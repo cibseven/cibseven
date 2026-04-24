@@ -1,0 +1,7 @@
+bpmn-js/
+cmmn-js/
+dmn-js/
+lib/**/*.src.js
+lib/**/*.build.js
+lib/**/*.page.js
+lib/**/*Spec.js
