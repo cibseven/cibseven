@@ -699,7 +699,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   protected boolean isDbIdentityUsed = true;
   protected boolean isDbHistoryUsed = true;
-  protected boolean modelerEnabled = false;
+  protected boolean modelerEnabled = true;
 
   protected DelegateInterceptor delegateInterceptor;
 
