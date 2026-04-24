@@ -39,6 +39,7 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
 
   private static final int GCM_IV_LENGTH = 12;
   private static final int GCM_TAG_LENGTH_BITS = 128;
+  private static final int GCM_TAG_LENGTH_BYTES = GCM_TAG_LENGTH_BITS / 8;
   private static final SecureRandom RNG = new SecureRandom();
 
   public LicenseRestServiceImpl(String engineName, ObjectMapper objectMapper) {
@@ -84,10 +85,13 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
       Map<String, Object> map = objectMapper.readValue(licenseKey, new TypeReference<Map<String, Object>>() {
       });
       Object sigObj = map.get("signature");
-      if (!(sigObj instanceof String) || ((String) sigObj).isEmpty()) {
+      if (!(sigObj instanceof String)) {
         return licenseKey;
       }
       String signature = (String) sigObj;
+      if (signature.isEmpty()) {
+        return licenseKey;
+      }
       String secret = getSecret();
       SecretKeySpec key = getAesKey(secret);
       byte[] iv = new byte[GCM_IV_LENGTH];
@@ -120,7 +124,7 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
       }
       SecretKeySpec key = getAesKey(getSecret());
       byte[] raw = Base64.getDecoder().decode(encoded);
-      if (raw.length < GCM_IV_LENGTH + 16) {
+      if (raw.length < GCM_IV_LENGTH + GCM_TAG_LENGTH_BYTES) {
         throw new InvalidRequestException(Status.BAD_REQUEST,
             "Invalid license key payload: signature is too short");
       }
