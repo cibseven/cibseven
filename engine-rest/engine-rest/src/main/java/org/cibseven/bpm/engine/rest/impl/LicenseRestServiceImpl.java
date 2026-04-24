@@ -121,9 +121,17 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
       if (encoded == null || encoded.isEmpty()) {
         throw new InvalidRequestException(Status.BAD_REQUEST,
             "Invalid license key payload: missing signature");
+      String encoded = (String) map.get("signature");
+      if (encoded == null || encoded.isEmpty()) {
+        throw new InvalidRequestException(Status.BAD_REQUEST,
+            "Invalid license key payload: missing signature");
       }
       SecretKeySpec key = getAesKey(getSecret());
       byte[] raw = Base64.getDecoder().decode(encoded);
+      if (raw.length < GCM_IV_LENGTH + 16) {
+        throw new InvalidRequestException(Status.BAD_REQUEST,
+            "Invalid license key payload: signature is too short");
+      }
       if (raw.length < GCM_IV_LENGTH + GCM_TAG_LENGTH_BYTES) {
         throw new InvalidRequestException(Status.BAD_REQUEST,
             "Invalid license key payload: signature is too short");
