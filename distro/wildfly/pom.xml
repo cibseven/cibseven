@@ -79,7 +79,6 @@
         <module>modules</module>
         <module>subsystem</module>
         <module>distro</module>
-        <module>webapp</module>
       </modules>
     </profile>
   </profiles>

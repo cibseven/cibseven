@@ -90,7 +90,7 @@
         <dependency>
           <groupId>org.cibseven.bpm.webapp</groupId>
           <artifactId>cibseven-webapp-tomcat-jakarta</artifactId>
-          <version>${project.version}</version>
+          <version>2.1.0</version>
           <type>war</type>
         </dependency>
       </dependencies>

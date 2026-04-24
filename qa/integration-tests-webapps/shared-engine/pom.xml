@@ -38,7 +38,7 @@
         <dependency>
           <groupId>org.cibseven.bpm.webapp</groupId>
           <artifactId>cibseven-webapp-wildfly</artifactId>
-          <version>${project.version}</version>
+          <version>2.1.0</version>
           <type>war</type>
           <scope>test</scope>
         </dependency>
@@ -155,7 +155,7 @@
         <dependency>
           <groupId>org.cibseven.bpm.webapp</groupId>
           <artifactId>cibseven-webapp-wildfly</artifactId>
-          <version>${project.version}</version>
+          <version>2.1.0</version>
           <type>war</type>
           <scope>test</scope>
         </dependency>
@@ -272,7 +272,7 @@
         <dependency>
           <groupId>org.cibseven.bpm.webapp</groupId>
           <artifactId>cibseven-webapp-tomcat</artifactId>
-          <version>${project.version}</version>
+          <version>2.1.0</version>
           <type>war</type>
           <scope>test</scope>
         </dependency>
@@ -387,7 +387,7 @@
         <dependency>
           <groupId>org.cibseven.bpm.webapp</groupId>
           <artifactId>cibseven-webapp-tomcat-jakarta</artifactId>
-          <version>${project.version}</version>
+          <version>2.1.0</version>
           <type>war</type>
           <scope>test</scope>
         </dependency>
