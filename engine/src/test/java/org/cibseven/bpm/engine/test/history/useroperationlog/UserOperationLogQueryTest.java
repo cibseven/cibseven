@@ -20,9 +20,6 @@ import static org.cibseven.bpm.engine.EntityTypes.JOB;
 import static org.cibseven.bpm.engine.EntityTypes.JOB_DEFINITION;
 import static org.cibseven.bpm.engine.EntityTypes.PROCESS_DEFINITION;
 import static org.cibseven.bpm.engine.EntityTypes.PROCESS_INSTANCE;
-import static org.cibseven.bpm.engine.history.UserOperationLogEntry.ENTITY_TYPE_ATTACHMENT;
-import static org.cibseven.bpm.engine.history.UserOperationLogEntry.ENTITY_TYPE_IDENTITY_LINK;
-import static org.cibseven.bpm.engine.history.UserOperationLogEntry.ENTITY_TYPE_TASK;
 import static org.cibseven.bpm.engine.history.UserOperationLogEntry.OPERATION_TYPE_ACTIVATE;
 import static org.cibseven.bpm.engine.history.UserOperationLogEntry.OPERATION_TYPE_ACTIVATE_JOB;
 import static org.cibseven.bpm.engine.history.UserOperationLogEntry.OPERATION_TYPE_ACTIVATE_JOB_DEFINITION;
@@ -210,9 +207,9 @@ public class UserOperationLogQueryTest extends AbstractUserOperationLogTest {
     assertEquals(18, query().count());
 
     // entity type
-    assertEquals(11, query().entityType(ENTITY_TYPE_TASK).count());
-    assertEquals(4, query().entityType(ENTITY_TYPE_IDENTITY_LINK).count());
-    assertEquals(2, query().entityType(ENTITY_TYPE_ATTACHMENT).count());
+    assertEquals(11, query().entityType(EntityTypes.TASK).count());
+    assertEquals(4, query().entityType(EntityTypes.IDENTITY_LINK).count());
+    assertEquals(2, query().entityType(EntityTypes.ATTACHMENT).count());
     assertEquals(0, query().entityType("unknown entity type").count());
   }
 
