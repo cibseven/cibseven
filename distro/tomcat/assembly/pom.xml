@@ -108,6 +108,11 @@
     </dependency>
 
     <dependency>
+      <groupId>org.cibseven.bpm.identity</groupId>
+      <artifactId>cibseven-identity-scim</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.cibseven.spin</groupId>
       <artifactId>cibseven-spin-core</artifactId>
     </dependency>
