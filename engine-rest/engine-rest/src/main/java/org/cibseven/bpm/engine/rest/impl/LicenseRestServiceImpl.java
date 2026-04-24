@@ -16,34 +16,30 @@
  */
 package org.cibseven.bpm.engine.rest.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.Map;
-
+import javax.crypto.Cipher;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.ws.rs.core.Response.Status;
-
 import org.cibseven.bpm.engine.rest.LicenseRestService;
 import org.cibseven.bpm.engine.rest.dto.license.LicenseKeyDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.security.auth.impl.jwt.Configuration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.util.Arrays;
-import java.util.Base64;
-import java.security.SecureRandom;
-import javax.crypto.Cipher;
-import javax.crypto.spec.GCMParameterSpec;
-
 public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware implements LicenseRestService {
 
-       private static final int GCM_IV_LENGTH = 12;
-       private static final int GCM_TAG_LENGTH_BITS = 128;
-       private static final SecureRandom RNG = new SecureRandom();
+  private static final int GCM_IV_LENGTH = 12;
+  private static final int GCM_TAG_LENGTH_BITS = 128;
+  private static final SecureRandom RNG = new SecureRandom();
 
   public LicenseRestServiceImpl(String engineName, ObjectMapper objectMapper) {
     super(engineName, objectMapper);
@@ -67,7 +63,7 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
     String secret = Configuration.getInstance().getSecret();
     if (secret == null || secret.isEmpty()) {
       throw new InvalidRequestException(Status.FORBIDDEN,
-          "JWT secret is not configured. Cannot encrypt/decrypt license signature.");
+          "Encryption secret is not configured. Cannot encrypt/decrypt license signature.");
     }
     return secret;
   }
@@ -87,7 +83,11 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
     try {
       Map<String, Object> map = objectMapper.readValue(licenseKey, new TypeReference<Map<String, Object>>() {
       });
-      String signature = (String) map.get("signature");
+      Object sigObj = map.get("signature");
+      if (!(sigObj instanceof String) || ((String) sigObj).isEmpty()) {
+        return licenseKey;
+      }
+      String signature = (String) sigObj;
       String secret = getSecret();
       SecretKeySpec key = getAesKey(secret);
       byte[] iv = new byte[GCM_IV_LENGTH];
@@ -114,8 +114,16 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
       Map<String, Object> map = objectMapper.readValue(licenseKey, new TypeReference<Map<String, Object>>() {
       });
       String encoded = (String) map.get("signature");
+      if (encoded == null || encoded.isEmpty()) {
+        throw new InvalidRequestException(Status.BAD_REQUEST,
+            "Invalid license key payload: missing signature");
+      }
       SecretKeySpec key = getAesKey(getSecret());
       byte[] raw = Base64.getDecoder().decode(encoded);
+      if (raw.length < GCM_IV_LENGTH + 16) {
+        throw new InvalidRequestException(Status.BAD_REQUEST,
+            "Invalid license key payload: signature is too short");
+      }
       byte[] iv = Arrays.copyOfRange(raw, 0, GCM_IV_LENGTH);
       byte[] ct = Arrays.copyOfRange(raw, GCM_IV_LENGTH, raw.length);
       Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
@@ -126,7 +134,8 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
     } catch (JsonProcessingException e) {
       throw new InvalidRequestException(Status.BAD_REQUEST, e, "Invalid license key JSON format");
     } catch (Exception e) {
-      throw new InvalidRequestException(Status.BAD_REQUEST, e, "Failed to decrypt license signature. The JWT secret may have been rotated.");
+      throw new InvalidRequestException(Status.BAD_REQUEST, e,
+          "Failed to decrypt license signature. Verify that the configured encryption secret matches the one used for encryption.");
     }
   }
 
