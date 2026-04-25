@@ -139,6 +139,38 @@
         <artifactId>maven-resources-plugin</artifactId>
         <executions>
           <execution>
+            <id>copy-webapp</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/generated-resources/jakarta-webapp</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${basedir}/../assembly/src/main/webapp</directory>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-resources</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/generated-resources/jakarta</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${basedir}/../assembly/src/main/resources</directory>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
             <id>copy-test-sources</id>
             <phase>generate-test-sources</phase>
             <goals>
@@ -198,6 +230,26 @@
         </configuration>
         <executions>
           <execution>
+            <id>transform-webapp</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>transform</goal>
+            </goals>
+            <configuration>
+              <transformDirectory>${project.build.directory}/generated-resources/jakarta-webapp</transformDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>transform-jakarta-resources</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>transform</goal>
+            </goals>
+            <configuration>
+              <transformDirectory>${project.build.directory}/generated-resources/jakarta</transformDirectory>
+            </configuration>
+          </execution>
+          <execution>
             <id>transform-test-sources</id>
             <phase>generate-test-sources</phase>
             <goals>
@@ -224,6 +276,20 @@
         <artifactId>build-helper-maven-plugin</artifactId>
         <version>3.2.0</version>
         <executions>
+          <execution>
+            <id>add-jakarta-resource</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>add-resource</goal>
+            </goals>
+            <configuration>
+              <resources>
+                <resource>
+                  <directory>${basedir}/target/generated-resources/jakarta</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
           <execution>
             <id>add-jakarta-test-source</id>
             <phase>generate-test-sources</phase>
