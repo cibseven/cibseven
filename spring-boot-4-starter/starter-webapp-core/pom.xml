@@ -29,7 +29,7 @@
     <dependency>
       <groupId>org.cibseven.bpm.webapp</groupId>
       <artifactId>cibseven-webapp-jakarta</artifactId>
-      <version>2.1.0</version>
+      <version>2.1.5</version>
       <type>jar</type>
       <classifier>classes</classifier>
     </dependency>
