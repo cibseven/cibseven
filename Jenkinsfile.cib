@@ -282,8 +282,15 @@ pipeline {
                     steps {
                         // TODO: remove this after complete migration from webapp tests to webclient tests
                         script { withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests -Plegacy-webapps" }}
+                        script { withMaven { sh "mvn -f distro/run/pom.xml clean install -DskipTests -Plegacy-webapps" }}
 
-                        script { withMaven { sh "mvn -f distro/run/pom.xml clean install -Pintegration-test-run,legacy-webapps" }}
+                        // Integration tests with legacy webapps enabled
+                        script { withMaven { sh "mvn -f distro/run/pom.xml clean install -Pintegration-test-run" }}
+
+                        // TODO: remove this after complete migration from webapp tests to webclient tests
+                        // reinstall webjar and run distro without the legacy webapps
+                        script { withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests" }}
+                        script { withMaven { sh "mvn -f distro/run/pom.xml clean install -DskipTests" }}
                     }
                 }
                 stage('Spring Boot Integration') {
@@ -293,6 +300,10 @@ pipeline {
                         script { withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests -Plegacy-webapps" }}
 
                         script { withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter,legacy-webapps" }}
+
+                        // TODO: remove this after complete migration from webapp tests to webclient tests
+                        // reinstall webjar without the legacy webapps
+                        script { withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests" }}
                     }
                 }
                 stage('Performance') {
