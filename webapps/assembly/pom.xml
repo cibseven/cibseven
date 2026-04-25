@@ -11,18 +11,13 @@
   </parent>
 
   <artifactId>cibseven-webapp</artifactId>
-  <packaging>war</packaging>
-  <name>CIB seven - Webapp - Assembly</name>
+  <packaging>jar</packaging>
+  <name>CIB seven - Webapp - Assembly (Tests Only)</name>
   <inceptionYear>2014</inceptionYear>
 
   <properties>
-    <java.resources.override>src/main/runtime/default/resources</java.resources.override>
-    <properties.override>src/main/runtime/default/config.properties</properties.override>
-
-    <!-- generate a bom of compile time dependencies for the license book.
-    Note: Every compile time dependency will end up in the license book. Please
-    declare only dependencies that are actually needed -->
-    <skip-third-party-bom>false</skip-third-party-bom>
+    <maven.install.skip>true</maven.install.skip>
+    <maven.deploy.skip>true</maven.deploy.skip>
   </properties>
 
   <dependencyManagement>
@@ -46,6 +41,15 @@
   </dependencyManagement>
 
   <dependencies>
+
+    <!-- published webapp classes JAR (replaces local source compilation) -->
+    <dependency>
+      <groupId>org.cibseven.bpm.webapp</groupId>
+      <artifactId>cibseven-webapp</artifactId>
+      <version>2.1.5</version>
+      <type>jar</type>
+      <classifier>classes</classifier>
+    </dependency>
 
     <!-- jee spec -->
     <dependency>
@@ -97,17 +101,6 @@
   </dependencies>
 
   <build>
-    <finalName>camunda-webapp</finalName>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-      </resource>
-      <resource>
-        <directory>${java.resources.override}</directory>
-        <filtering>true</filtering>
-      </resource>
-    </resources>
-
     <testResources>
       <testResource>
         <directory>src/test/resources</directory>
@@ -118,7 +111,12 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-war-plugin</artifactId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/*.java</exclude>
+          </excludes>
+        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -128,74 +126,10 @@
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>license-maven-plugin</artifactId>
-        <version>${version.license-maven-plugin}</version>
-        <configuration>
-          <excludedScopes>test</excludedScopes>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>generate-resources</phase>
-            <configuration>
-              <target>
-                <mkdir dir="${project.basedir}/target/webapp" />
-              </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-resources-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>copy-resources-assembly</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${basedir}/target/webapp</outputDirectory>
-              <resources>
-                <resource>
-                  <directory>${basedir}/../frontend/target/webapp</directory>
-                  <filtering>false</filtering>
-                </resource>
-              </resources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 
   <profiles>
-    <profile>
-      <id>sonatype-oss-release</id>
-      <properties>
-        <!-- skip building the frontend-sources zip artifact
-        when releasing the community edition (alpha/minor releases) -->
-        <skip-zip-frontend-sources>true</skip-zip-frontend-sources>
-      </properties>
-    </profile>
-
     <profile>
       <id>os</id>
       <activation>
@@ -210,296 +144,9 @@
     </profile>
 
     <profile>
-      <id>develop</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.jboss.resteasy</groupId>
-          <artifactId>resteasy-jaxrs</artifactId>
-          <scope>runtime</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.jboss.spec.javax.ws.rs</groupId>
-          <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.cibseven.bpm</groupId>
-          <artifactId>cibseven-engine</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.cibseven.bpm</groupId>
-          <artifactId>cibseven-engine-plugin-spin</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.cibseven.spin</groupId>
-          <artifactId>cibseven-spin-dataformat-json-jackson</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.cibseven.spin</groupId>
-          <artifactId>cibseven-spin-dataformat-xml-dom</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.cibseven.bpm</groupId>
-          <artifactId>cibseven-engine-plugin-connect</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.cibseven.bpm.identity</groupId>
-          <artifactId>cibseven-identity-ldap</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>com.h2database</groupId>
-          <artifactId>h2</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>com.fasterxml.uuid</groupId>
-          <artifactId>java-uuid-generator</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>ch.qos.logback</groupId>
-          <artifactId>logback-classic</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>com.sun.xml.bind</groupId>
-          <artifactId>jaxb-impl</artifactId>
-          <version>${version.xml.jaxb-impl}</version>
-        </dependency>
-        <dependency>
-          <groupId>org.graalvm.js</groupId>
-          <artifactId>js</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.graalvm.js</groupId>
-          <artifactId>js-scriptengine</artifactId>
-        </dependency>
-      </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <executions>
-              <execution>
-                <phase>generate-resources</phase>
-                <configuration>
-                  <tasks>
-                    <mkdir dir="${project.basedir}/target/webapp" />
-                    <mkdir dir="${project.basedir}/target/cibseven-welcome" />
-                  </tasks>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-maven-plugin</artifactId>
-            <configuration>
-              <webAppConfig>
-                <contextPath>/camunda</contextPath>
-                <defaultsDescriptor>${project.basedir}/src/main/runtime/develop/jetty/webdefault.xml</defaultsDescriptor>
-                <resourceBases>
-                  <resourceBase>${project.basedir}/target/webapp</resourceBase>
-                  <resourceBase>${project.basedir}/src/main/webapp</resourceBase>
-                </resourceBases>
-              </webAppConfig>
-              <contextHandlers>
-                <contextHandler implementation="org.eclipse.jetty.maven.plugin.JettyWebAppContext">
-                  <war>${project.basedir}/target/cibseven-welcome/</war>
-                  <contextPath>/cibseven-welcome</contextPath>
-                </contextHandler>
-              </contextHandlers>
-            </configuration>
-          </plugin>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>add-sources</id>
-                <goals>
-                  <goal>add-source</goal>
-                </goals>
-                <configuration>
-                  <sources>
-                    <source>src/main/runtime/develop/java</source>
-                  </sources>
-                </configuration>
-              </execution>
-              <execution>
-                <id>add-resources</id>
-                <goals>
-                  <goal>add-resource</goal>
-                </goals>
-                <configuration>
-                  <resources>
-                    <resource>
-                      <directory>src/main/runtime/develop/resources</directory>
-                    </resource>
-                  </resources>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-      <properties>
-        <java.resources.override>src/main/runtime/develop/resources</java.resources.override>
-      </properties>
-    </profile>
-
-    <profile>
       <id>h2</id>
       <properties>
         <project.parent.basedir>./</project.parent.basedir>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>dev-e2e</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.jboss.resteasy</groupId>
-          <artifactId>resteasy-jaxrs</artifactId>
-          <scope>runtime</scope>
-        </dependency>
-        <!-- We need to override the "provided" scope
-          from the main dependency declaration here or
-          else the dependency will not be available in Jetty
-          (see also Jetty plugin config option useProvidedScope) -->
-        <dependency>
-          <groupId>org.jboss.spec.javax.ws.rs</groupId>
-          <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
-        </dependency>
-      </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <executions>
-              <execution>
-                <phase>generate-resources</phase>
-                <configuration>
-                  <tasks>
-                    <mkdir dir="${project.basedir}/target/webapp" />
-                    <mkdir dir="${project.basedir}/target/cibseven-welcome" />
-                  </tasks>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-maven-plugin</artifactId>
-            <version>${version.jetty}</version>
-            <configuration>
-              <webAppConfig>
-                <contextPath>/camunda</contextPath>
-                <defaultsDescriptor>${project.basedir}/src/main/runtime/test/jetty/webdefault.xml</defaultsDescriptor>
-                <resourceBases>
-                  <resourceBase>${project.basedir}/target/webapp</resourceBase>
-                  <resourceBase>${project.basedir}/src/main/webapp</resourceBase>
-                </resourceBases>
-              </webAppConfig>
-              <contextHandlers>
-                <contextHandler implementation="org.eclipse.jetty.maven.plugin.JettyWebAppContext">
-                  <war>${basedir}/target/engine-rest.war</war>
-                  <contextPath>/engine-rest</contextPath>
-                </contextHandler>
-                <contextHandler implementation="org.eclipse.jetty.maven.plugin.JettyWebAppContext">
-                  <war>${project.basedir}/target/cibseven-welcome/</war>
-                  <contextPath>/cibseven-welcome</contextPath>
-                </contextHandler>
-              </contextHandlers>
-            </configuration>
-            <dependencies>
-              <dependency>
-                <groupId>org.cibseven.bpm</groupId>
-                <artifactId>cibseven-engine</artifactId>
-                <version>${project.version}</version>
-              </dependency>
-              <dependency>
-                <groupId>org.cibseven.bpm.identity</groupId>
-                <artifactId>cibseven-identity-ldap</artifactId>
-                <version>${project.version}</version>
-              </dependency>
-              <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-jdk14</artifactId>
-                <version>${version.slf4j}</version>
-              </dependency>
-              <dependency>
-                <groupId>com.h2database</groupId>
-                <artifactId>h2</artifactId>
-                <version>${version.h2}</version>
-              </dependency>
-              <dependency>
-                <groupId>com.fasterxml.uuid</groupId>
-                <artifactId>java-uuid-generator</artifactId>
-                <version>${version.uuid-generator}</version>
-              </dependency>
-            </dependencies>
-          </plugin>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>add-sources</id>
-                <goals>
-                  <goal>add-source</goal>
-                </goals>
-                <configuration>
-                  <sources>
-                    <source>src/main/runtime/test/java</source>
-                  </sources>
-                </configuration>
-              </execution>
-              <execution>
-                <id>add-resources</id>
-                <goals>
-                  <goal>add-resource</goal>
-                </goals>
-                <configuration>
-                  <resources>
-                    <resource>
-                      <directory>src/main/runtime/test/resources</directory>
-                    </resource>
-                  </resources>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <version>2.10</version>
-            <executions>
-              <execution>
-                <id>copy</id>
-                <phase>generate-resources</phase>
-                <goals>
-                  <goal>copy</goal>
-                </goals>
-                <configuration>
-                  <artifactItems>
-                    <artifactItem>
-                      <groupId>org.cibseven.bpm</groupId>
-                      <artifactId>cibseven-engine-rest</artifactId>
-                      <version>${project.version}</version>
-                      <type>war</type>
-                      <classifier>tomcat</classifier>
-                      <overWrite>true</overWrite>
-                      <outputDirectory>${project.build.directory}/</outputDirectory>
-                      <destFileName>engine-rest.war</destFileName>
-                    </artifactItem>
-                  </artifactItems>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-      <properties>
-        <java.resources.override>src/main/runtime/test/resources</java.resources.override>
       </properties>
     </profile>
 
@@ -602,18 +249,6 @@
       <properties>
         <jdbcBatchProcessing>false</jdbcBatchProcessing>
       </properties>
-    </profile>
-
-    <profile>
-      <id>license-header-check</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>com.mycila</groupId>
-            <artifactId>license-maven-plugin</artifactId>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
 
   </profiles>

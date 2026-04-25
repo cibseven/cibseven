@@ -224,6 +224,8 @@
       <!-- profile for running webapp unit tests in QA -->
       <id>check-webapps</id>
       <modules>
+        <module>webapps</module>
+
         <module>internal-dependencies</module>
         <module>parent</module>
         <module>bom</module>
