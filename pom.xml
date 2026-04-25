@@ -92,6 +92,8 @@
         <module>engine-spring</module>
         <module>engine-rest</module>
 
+        <module>webapps</module>
+
         <module>examples</module>
 
         <module>engine-plugins</module>
@@ -144,6 +146,8 @@
         <module>engine-cdi</module>
         <module>engine-spring</module>
         <module>engine-rest</module>
+
+        <module>webapps</module>
 
         <module>examples</module>
 
@@ -224,8 +228,6 @@
       <!-- profile for running webapp unit tests in QA -->
       <id>check-webapps</id>
       <modules>
-        <module>webapps</module>
-
         <module>internal-dependencies</module>
         <module>parent</module>
         <module>bom</module>
@@ -254,6 +256,8 @@
 
         <module>javaee/ejb-client</module>
         <module>javaee/ejb-client-jakarta</module>
+
+        <module>webapps</module>
 
         <module>engine-plugins</module>
 
