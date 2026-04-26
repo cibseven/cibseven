@@ -13,7 +13,7 @@
 
   <properties>
     <cibseven.version.current>${project.version}</cibseven.version.current>
-    <cibseven.version.previous>2.0.0</cibseven.version.previous>
+    <cibseven.version.previous>2.1.0</cibseven.version.previous>
   </properties>
 
   <dependencies>

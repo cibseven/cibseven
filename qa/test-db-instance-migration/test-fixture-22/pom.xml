@@ -7,25 +7,28 @@
     <version>2.2.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>cibseven-qa-upgrade-test-fixture-21</artifactId>
+  <artifactId>cibseven-qa-upgrade-test-fixture-22</artifactId>
   <packaging>jar</packaging>
-  <name>CIB seven BPM - QA - upgrade - instance migration - test fixture - 2.1.0</name>
+  <name>CIB seven BPM - QA - upgrade - instance migration - test fixture - 2.2.0</name>
 
   <properties>
-    <cibseven.version.previous>2.0.0</cibseven.version.previous>
+    <!-- delete when 2.2.0 is released -->
+    <cibseven.version.current>${project.version}</cibseven.version.current>
+    <cibseven.version.previous>2.1.0</cibseven.version.previous>
   </properties>
 
-   <dependencyManagement>
-     <dependencies>
-       <dependency>
-         <groupId>org.cibseven.bpm</groupId>
-         <artifactId>cibseven-bom</artifactId>
-         <version>2.1.0</version>
-         <scope>import</scope>
-         <type>pom</type>
-       </dependency>
-     </dependencies>
-   </dependencyManagement>
+  <!-- uncomment when 2.2.0 is released -->
+<!--   <dependencyManagement> -->
+<!--     <dependencies> -->
+<!--       <dependency> -->
+<!--         <groupId>org.cibseven.bpm</groupId> -->
+<!--         <artifactId>cibseven-bom</artifactId> -->
+<!--         <version>2.2.0</version> -->
+<!--         <scope>import</scope> -->
+<!--         <type>pom</type> -->
+<!--       </dependency> -->
+<!--     </dependencies> -->
+<!--   </dependencyManagement> -->
 
   <dependencies>
     <dependency>
@@ -123,7 +126,9 @@
                     <artifactItem>
                       <groupId>org.cibseven.bpm.distro</groupId>
                       <artifactId>cibseven-sql-scripts</artifactId>
-                      <version>2.1.0</version>
+                      <!-- Replace after 2.2.0 release -->
+                      <version>${cibseven.version.current}</version>
+                      <!--<version>2.2.0</version>-->
                       <type>test-jar</type>
                       <outputDirectory>${project.build.directory}/scripts-current</outputDirectory>
                       <overWrite>true</overWrite>
@@ -161,7 +166,7 @@
   </profiles>
 
   <description>
-    Description of CIB seven - QA - upgrade - instance migration - test fixture - 2.1.0
+    Description of CIB seven - QA - upgrade - instance migration - test fixture - 2.2.0
   </description>
 
   <licenses>
