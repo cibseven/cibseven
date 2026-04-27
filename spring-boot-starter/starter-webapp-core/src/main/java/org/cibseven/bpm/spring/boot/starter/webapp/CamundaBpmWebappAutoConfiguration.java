@@ -59,6 +59,8 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer, WebM
   @Autowired
   private CamundaBpmProperties properties;
 
+  // This conditionally enabled/disabled LegacyWebappConfiguration should be completely removed 
+  // when the legacy webapps is completely removed and the webapps related tests are ported to the webclient
   @Configuration
   @ConditionalOnResource(resources = "classpath:/META-INF/resources/webjars/camunda/securityFilterRules.json")
   @ConditionalOnClass(name = "org.cibseven.bpm.cockpit.impl.web.bootstrap.CockpitContainerBootstrap")
