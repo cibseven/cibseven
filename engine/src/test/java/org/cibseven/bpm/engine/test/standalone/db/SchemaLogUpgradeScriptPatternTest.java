@@ -87,6 +87,12 @@ public class SchemaLogUpgradeScriptPatternTest extends SchemaLogTestCase {
       // next patch version
       versions.add(versionParts[0] + "." + versionParts[1] + "." + (Integer.parseInt(versionParts[2]) + 1));
     } else if (isMinorLevel(version)) {
+      // switch from Camunda 7.24 to CIB seven 2.1 (or 2.2)
+      if (Integer.parseInt(versionParts[0]) == 7 && Integer.parseInt(versionParts[1]) == 24) {
+        versions.add("2.1");
+        versions.add("2.2");
+      }
+
       // next minor version
       versions.add(versionParts[0] + "." + (Integer.parseInt(versionParts[1]) + 1));
       // next major version

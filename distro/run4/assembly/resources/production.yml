@@ -156,7 +156,7 @@ cibseven:
     user:
       provider: org.cibseven.webapp.auth.SevenUserProvider
       # provider: org.cibseven.webapp.auth.LdapUserProvider
-      # provider: org.cibseven.webapp.auth.KeycloakUserProvider
+      # provider: org.cibseven.webapp.auth.OAuth2UserProvider
       # provider: org.cibseven.webapp.auth.AdfsUserProvider
   
     # Set the wild card is gonna be used for the users search. By default is "*".

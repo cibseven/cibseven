@@ -699,6 +699,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   protected boolean isDbIdentityUsed = true;
   protected boolean isDbHistoryUsed = true;
+  protected boolean modelerEnabled = false;
 
   protected DelegateInterceptor delegateInterceptor;
 
@@ -2067,6 +2068,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     dbSqlSessionFactory.setDbHistoryUsed(isDbHistoryUsed);
     dbSqlSessionFactory.setCmmnEnabled(cmmnEnabled);
     dbSqlSessionFactory.setDmnEnabled(dmnEnabled);
+    dbSqlSessionFactory.setModelerEnabled(modelerEnabled);
     dbSqlSessionFactory.setDatabaseTablePrefix(databaseTablePrefix);
 
     //hack for the case when schema is defined via databaseTablePrefix parameter and not via databaseSchema parameter
@@ -3784,6 +3786,14 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public void setDbHistoryUsed(boolean isDbHistoryUsed) {
     this.isDbHistoryUsed = isDbHistoryUsed;
+  }
+
+  public boolean isModelerEnabled() {
+    return modelerEnabled;
+  }
+
+  public void setModelerEnabled(boolean modelerEnabled) {
+    this.modelerEnabled = modelerEnabled;
   }
 
   public List<ResolverFactory> getResolverFactories() {

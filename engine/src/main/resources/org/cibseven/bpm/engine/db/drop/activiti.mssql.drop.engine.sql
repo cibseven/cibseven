@@ -213,3 +213,17 @@ if exists (select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME = '
 if exists (select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME = 'ACT_RU_EXT_TASK') drop table ACT_RU_EXT_TASK;
 if exists (select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME = 'ACT_RU_BATCH') drop table ACT_RU_BATCH;
 if exists (select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME = 'ACT_GE_SCHEMA_LOG') drop table ACT_GE_SCHEMA_LOG;
+
+
+
+-- MODELER
+
+IF OBJECT_ID('mod_form_usage', 'U') IS NOT NULL DROP TABLE mod_form_usage;
+IF OBJECT_ID('mod_diagram_usage', 'U') IS NOT NULL DROP TABLE mod_diagram_usage;
+IF OBJECT_ID('mod_forms', 'U') IS NOT NULL DROP TABLE mod_forms;
+IF OBJECT_ID('mod_user_sessions', 'U') IS NOT NULL DROP TABLE mod_user_sessions;
+IF OBJECT_ID('mod_processes_diagrams_aud', 'U') IS NOT NULL DROP TABLE mod_processes_diagrams_aud;
+IF OBJECT_ID('mod_revinfo', 'U') IS NOT NULL DROP TABLE mod_revinfo;
+IF OBJECT_ID('mod_processes_diagrams', 'U') IS NOT NULL DROP TABLE mod_processes_diagrams;
+IF OBJECT_ID('mod_element_templates', 'U') IS NOT NULL DROP TABLE mod_element_templates;
+

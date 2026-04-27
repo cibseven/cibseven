@@ -442,6 +442,9 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
       if (dbSqlSessionFactory.isDmnEnabled() && !isDmnTablePresent()) {
         missingComponents.add("decision.engine");
       }
+      if (dbSqlSessionFactory.isModelerEnabled() && !isModelerTablePresent()) {
+        missingComponents.add("modeler");
+      }
 
       if (!missingComponents.isEmpty()) {
         throw LOG.missingTableException(missingComponents);
@@ -537,6 +540,16 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
     executeMandatorySchemaResource("drop", "decision.history");
   }
 
+  @Override
+  protected void dbSchemaCreateModeler() {
+    executeMandatorySchemaResource("create", "modeler");
+  }
+
+  @Override
+  protected void dbSchemaDropModeler() {
+    executeMandatorySchemaResource("drop", "modeler");
+  }
+
   public void executeMandatorySchemaResource(String operation, String component) {
     executeSchemaResource(operation, component, getResourceForDbOperation(operation, operation, component), false);
   }
@@ -572,6 +585,11 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
   @Override
   public boolean isDmnHistoryTablePresent() {
     return isTablePresent("ACT_HI_DECINST");
+  }
+
+  @Override
+  public boolean isModelerTablePresent() {
+    return isTablePresent("MOD_ELEMENT_TEMPLATES");
   }
 
   public boolean isTablePresent(String tableName) {

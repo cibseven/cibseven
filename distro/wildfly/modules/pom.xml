@@ -12,7 +12,7 @@
   <name>CIB seven - Wildfly Modules</name>
 
   <properties>
-    <org.jboss.shrinkwrap.resolver.version>1.0.0-beta-5</org.jboss.shrinkwrap.resolver.version>
+    <org.jboss.shrinkwrap.resolver.version>2.2.7</org.jboss.shrinkwrap.resolver.version>
     <!-- generate a bom of compile time dependencies for the license book.
     Note: Every compile time dependency will end up in the license book. Please
     declare only dependencies that are actually needed -->
