@@ -24,6 +24,10 @@
       <excludes>
         <exclude>org.cibseven.bpm:cibseven-engine-rest-core:jar:tests</exclude>
         <exclude>org.cibseven.bpm:cibseven-engine-rest-core:jar:sources</exclude>
+        <exclude>net.bytebuddy:byte-buddy:jar:*</exclude>
+        <exclude>net.bytebuddy:byte-buddy-agent:jar:*</exclude>
+        <exclude>uk.org.webcompere:system-stubs-core:jar:*</exclude>
+        <exclude>uk.org.webcompere:system-stubs-jupiter:jar:*</exclude>
       </excludes>
     </dependencySet>
 

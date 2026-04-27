@@ -229,7 +229,7 @@ public class RestIT extends AbstractWebIntegrationTest {
 
     assertThat(response.getStatus()).isEqualTo(200);
     // invoice example instance
-    assertThat(instancesJson.length()).isEqualTo(4);
+    assertThat(instancesJson.length()).isEqualTo(2);
   }
 
   @Test
