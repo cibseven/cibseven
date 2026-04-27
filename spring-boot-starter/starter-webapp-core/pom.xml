@@ -28,6 +28,7 @@
     <dependency>
       <groupId>org.cibseven.bpm.webapp</groupId>
       <artifactId>cibseven-webapp-jakarta</artifactId>
+      <version>${version.legacy-webapps}</version>
       <type>jar</type>
       <classifier>classes</classifier>
     </dependency>

@@ -69,7 +69,15 @@
         <module>assembly</module>
         <module>modules</module>
         <module>subsystem</module>
-        <module>webapp</module>
+        <module>distro</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>legacy-webapps</id>
+      <modules>
+        <module>assembly</module>
+        <module>modules</module>
+        <module>subsystem</module>
         <module>distro</module>
       </modules>
     </profile>

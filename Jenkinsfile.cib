@@ -67,7 +67,7 @@ pipeline {
 
         choice(
             name: 'QA_TEST_SUITE',
-            choices: ['CUSTOM', 'ALL'],
+            choices: ['ALL', 'CUSTOM'],
             description: '''🧪 QA Test Suite Selection:
             • ALL - Run all QA tests
             • CUSTOM - Select individual tests below'''
@@ -272,7 +272,6 @@ pipeline {
                 stage('Web Integration') {
                     when { expression { params.QA_WEB_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        // TODO: enable chrome and chromedriver on jenkins and remove the exclusion for org.cibseven.bpm.LoginIT
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,webapps-integration" }}
@@ -281,13 +280,30 @@ pipeline {
                 stage('Run Integration') {
                     when { expression { params.QA_RUN_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
+                        // TODO: remove this after complete migration from webapp tests to webclient tests
+                        script { withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests -Plegacy-webapps" }}
+                        script { withMaven { sh "mvn -f distro/run/pom.xml clean install -DskipTests -Plegacy-webapps" }}
+
+                        // Integration tests with legacy webapps enabled
                         script { withMaven { sh "mvn -f distro/run/pom.xml clean install -Pintegration-test-run" }}
+
+                        // TODO: remove this after complete migration from webapp tests to webclient tests
+                        // reinstall webjar and run distro without the legacy webapps
+                        script { withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests" }}
+                        script { withMaven { sh "mvn -f distro/run/pom.xml clean install -DskipTests" }}
                     }
                 }
                 stage('Spring Boot Integration') {
                     when { expression { params.QA_SPRING_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }}
+                        // TODO: remove this after complete migration from webapp tests to webclient tests
+                        script { withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests -Plegacy-webapps" }}
+
+                        script { withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter,legacy-webapps" }}
+
+                        // TODO: remove this after complete migration from webapp tests to webclient tests
+                        // reinstall webjar without the legacy webapps
+                        script { withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests" }}
                     }
                 }
                 stage('Performance') {
