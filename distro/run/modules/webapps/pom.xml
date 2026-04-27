@@ -58,7 +58,7 @@
         <dependency>
           <groupId>org.cibseven.bpm.webapp</groupId>
           <artifactId>cibseven-webapp-jakarta</artifactId>
-          <version>2.1.5</version>
+          <version>${version.legacy-webapps}</version>
           <classifier>classes</classifier>
         </dependency>
       </dependencies>

@@ -123,38 +123,38 @@
       <dependency>
         <groupId>org.cibseven.bpm.webapp</groupId>
         <artifactId>cibseven-webapp-webjar</artifactId>
-        <version>2.1.5</version>
+        <version>${version.legacy-webapps}</version>
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm.webapp</groupId>
         <artifactId>cibseven-webapp</artifactId>
-        <version>2.1.5</version>
+        <version>${version.legacy-webapps}</version>
         <type>war</type>
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm.webapp</groupId>
         <artifactId>cibseven-webapp-jakarta</artifactId>
-        <version>2.1.5</version>
+        <version>${version.legacy-webapps}</version>
         <type>war</type>
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm.webapp</groupId>
         <artifactId>cibseven-webapp</artifactId>
-        <version>2.1.5</version>
+        <version>${version.legacy-webapps}</version>
         <type>jar</type>
         <classifier>classes</classifier>
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm.webapp</groupId>
         <artifactId>cibseven-webapp-jakarta</artifactId>
-        <version>2.1.5</version>
+        <version>${version.legacy-webapps}</version>
         <type>jar</type>
         <classifier>classes</classifier>
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm.webapp</groupId>
         <artifactId>cibseven-webapp-webjar-ee</artifactId>
-        <version>2.1.5</version>
+        <version>${version.legacy-webapps}</version>
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm.springboot</groupId>
