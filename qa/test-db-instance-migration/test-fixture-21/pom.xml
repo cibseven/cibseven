@@ -123,8 +123,9 @@
                     <artifactItem>
                       <groupId>org.cibseven.bpm.distro</groupId>
                       <artifactId>cibseven-sql-scripts</artifactId>
-                      <version>2.1.0</version>
-                      <type>test-jar</type>
+                      <!-- <version>2.1.0</version> SHOULD BE THIS ONE FOR fixture-2.1, BUT ABSENT ON NEXUS, so temporary use 2.1.5 -->
+                      <version>2.1.5</version>
+                      <type>jar</type>
                       <outputDirectory>${project.build.directory}/scripts-current</outputDirectory>
                       <overWrite>true</overWrite>
                     </artifactItem>
