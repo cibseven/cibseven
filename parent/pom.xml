@@ -21,7 +21,9 @@
     <version.quarkus>3.27.0</version.quarkus>
     <version.spring.framework>5.3.39</version.spring.framework>
     <version.spring.framework6>6.2.11</version.spring.framework6>
-    <version.spring-boot>3.5.12</version.spring-boot>
+    <version.spring.framework7>7.0.6</version.spring.framework7>
+    <version.spring-boot>3.5.14</version.spring-boot>
+    <version.spring-boot4>4.0.6</version.spring-boot4>
     <version.resteasy>3.15.6.Final</version.resteasy>
     <version.jersey2>2.34</version.jersey2>
     <!-- use minimum version of resteasy and jersey -->
@@ -38,7 +40,7 @@
     <version.openjpa>2.4.3</version.openjpa>
     <version.hibernate>5.6.5.Final</version.hibernate>
     <version.hikaricp>4.0.3</version.hikaricp>
-    <version.jackson>2.21.1</version.jackson>
+    <version.jackson>2.21.2</version.jackson>
     <version.xml.bind-api>2.3.3</version.xml.bind-api>
     <version.xml.jaxb-impl>2.3.6</version.xml.jaxb-impl>
     <version.xml.jaxb-impl4>4.0.5</version.xml.jaxb-impl4>
@@ -49,7 +51,7 @@
 
     <version.slf4j>1.7.26</version.slf4j>
     <version.logback>1.2.13</version.logback>
-    <version.log4j2>2.25.3</version.log4j2>
+    <version.log4j2>2.25.4</version.log4j2>
     <version.junit>4.13.1</version.junit>
     <version.assertj>2.9.1</version.assertj>
     <version.mockito>5.17.0</version.mockito>
@@ -68,11 +70,11 @@
     <version.wildfly28>28.0.1.Final</version.wildfly28>
     <version.wildfly28.core>20.0.2.Final</version.wildfly28.core>
 
-    <version.tomcat9>9.0.110</version.tomcat9>
-    <version.tomcat>10.1.52</version.tomcat>
+    <version.tomcat9>9.0.117</version.tomcat9>
+    <version.tomcat>10.1.54</version.tomcat>
 
     <version.arquillian>1.1.10.Final</version.arquillian>
-    <version.shrinkwrap.resolvers>2.2.2</version.shrinkwrap.resolvers>
+    <version.shrinkwrap.resolvers>2.2.7</version.shrinkwrap.resolvers>
     <version.selenium>4.26.0</version.selenium>
     <version.chromedriver>138.0.7204.94</version.chromedriver>
     <version.freemarker>2.3.31</version.freemarker>
@@ -136,18 +138,19 @@
         <scope>import</scope>
       </dependency>
 
-      <!-- temporary override jackson-core version 2.19.4, referenced from spring-boot 3.5.11, to version 2.21.1 to fix CWE-770 -->
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-core</artifactId>
-        <version>${version.jackson}</version>
-      </dependency>
-
       <!-- Override common transitive dependencies to ensure consistent versions -->
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
         <version>${version.commons-lang3}</version>
+      </dependency>
+
+      <!-- temporary override plexus-utils, referenced by org.jboss.shrinkwrap.resolver, to version 3.6.1 to fix CVE-2025-67030 -->
+      <!-- need to remove when a new org.jboss.shrinkwrap.resolver updates this dependency -->
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-utils</artifactId>
+        <version>3.6.1</version>
       </dependency>
 
       <!-- Override Log4j version to fix CVE-2025-68161 -->

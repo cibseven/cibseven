@@ -195,3 +195,17 @@ drop table if exists ACT_RU_TASK_METER_LOG;
 drop table if exists ACT_RU_EXT_TASK;
 drop table if exists ACT_RU_BATCH;
 drop table if exists ACT_GE_SCHEMA_LOG;
+
+
+
+-- MODELER
+
+DROP TABLE IF EXISTS mod_form_usage;
+DROP TABLE IF EXISTS mod_diagram_usage;
+DROP TABLE IF EXISTS mod_forms;
+DROP TABLE IF EXISTS mod_user_sessions;
+DROP TABLE IF EXISTS mod_processes_diagrams_aud;
+DROP TABLE IF EXISTS mod_revinfo;
+DROP TABLE IF EXISTS mod_processes_diagrams;
+DROP TABLE IF EXISTS mod_element_templates;
+

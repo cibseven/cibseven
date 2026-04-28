@@ -27,7 +27,7 @@
       <id>mariadb</id>
       <properties>
         <database.host>localhost</database.host>
-        <database.port>3306</database.port>
+        <database.port>3307</database.port>
         <database.name>process-engine</database.name>
         <database.username>camunda</database.username>
         <database.password>camunda</database.password>

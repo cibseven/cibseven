@@ -4,12 +4,10 @@
 
 import de.cib.pipeline.library.Constants
 import de.cib.pipeline.library.kubernetes.BuildPodCreator
-import de.cib.pipeline.library.logging.Logger
 import de.cib.pipeline.library.ConstantsInternal
 import de.cib.pipeline.library.MavenProjectInformation
 import groovy.transform.Field
 
-@Field Logger log = new Logger(this)
 @Field MavenProjectInformation mavenProjectInformation = null
 @Field String mavenLocalRepoRedirected = null
 @Field Map pipelineParams = [
@@ -78,6 +76,8 @@ pipeline {
         // Only used when QA_TEST_SUITE = 'CUSTOM'
         booleanParam(name: 'QA_ENG_IT', defaultValue: false, description: "  └─ Engine Integration")
         booleanParam(name: 'QA_WEB_IT', defaultValue: false, description: "  └─ Web Integration")
+        booleanParam(name: 'QA_RUN_IT', defaultValue: false, description: "  └─ Run Integration")
+        booleanParam(name: 'QA_SPRING_IT', defaultValue: false, description: "  └─ Spring Boot Integration")
         booleanParam(name: 'QA_PERF', defaultValue: false, description: "  └─ Performance")
         booleanParam(name: 'QA_LARGE_DATA', defaultValue: false, description: "  └─ Large Data")
         booleanParam(name: 'QA_OLD_ENG', defaultValue: false, description: "  └─ Old Engine")
@@ -129,19 +129,19 @@ pipeline {
                     def groupId = pom.groupId
                     if (groupId == null) {
                         groupId = pom.parent.groupId
-                        log.info "parent groupId is used"
+                        echo "parent groupId is used"
                     }
 
                     mavenProjectInformation = new MavenProjectInformation(groupId, pom.artifactId, pom.version, pom.name, pom.description)
 
-                    log.info "Build Project: ${mavenProjectInformation.groupId}:${mavenProjectInformation.artifactId}, ${mavenProjectInformation.name} with version ${mavenProjectInformation.version}"
+                    echo "Build Project: ${mavenProjectInformation.groupId}:${mavenProjectInformation.artifactId}, ${mavenProjectInformation.name} with version ${mavenProjectInformation.version}"
                     // Avoid Git "dubious ownership" error in checked out repository. Needed in
                     // build containers with newer Git versions. Originates from Jenkins running
                     // pipeline as root but repository being owned by user 1000. For more, see
                     // https://stackoverflow.com/questions/72978485/git-submodule-update-failed-with-fatal-detected-dubious-ownership-in-repositor
                     sh "git config --global --add safe.directory \$(pwd)"
 
-                    isAnyCustomTest = params.QA_TEST_SUITE == 'CUSTOM' && (params.QA_ENG_IT || params.QA_WEB_IT || params.QA_PERF || params.QA_LARGE_DATA || params.QA_OLD_ENG || params.QA_ROLL_UPD || params.QA_INST_MIGR)
+                    isAnyCustomTest = params.QA_TEST_SUITE == 'CUSTOM' && (params.QA_ENG_IT || params.QA_WEB_IT || params.QA_RUN_IT || params.QA_SPRING_IT || params.QA_PERF || params.QA_LARGE_DATA || params.QA_OLD_ENG || params.QA_ROLL_UPD || params.QA_INST_MIGR)
                 }
                 script {
                     // if use private repo then try to get a repo template from the pool if possible
@@ -276,6 +276,18 @@ pipeline {
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,webapps-integration" }}
+                    }
+                }
+                stage('Run Integration') {
+                    when { expression { params.QA_RUN_IT || params.QA_TEST_SUITE == 'ALL' }}
+                    steps {
+                        script { withMaven { sh "mvn -f distro/run/pom.xml clean install -Pintegration-test-run" }}
+                    }
+                }
+                stage('Spring Boot Integration') {
+                    when { expression { params.QA_SPRING_IT || params.QA_TEST_SUITE == 'ALL' }}
+                    steps {
+                        script { withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }}
                     }
                 }
                 stage('Performance') {
@@ -578,7 +590,7 @@ pipeline {
     post {
         always {
             script {
-                log.info 'End of the build'
+                echo 'End of the build'
 
                 // move back to the repo pool to reuse
                 if (params.USE_PRIVATE_REPO) {
@@ -589,19 +601,19 @@ pipeline {
 
         success {
             script {
-                log.info '✅ Build successful'
+                echo '✅ Build successful'
             }
         }
 
         unstable {
             script {
-                log.warning '⚠️ Build unstable'
+                echo '⚠️ Build unstable'
             }
         }
 
         failure {
             script {
-                log.warning '❌ Build failed'
+                echo '❌ Build failed'
                 if (env.BRANCH_NAME == 'main') {
                     notifyResult(
                         office365WebhookId: pipelineParams.office365WebhookId,
@@ -613,7 +625,7 @@ pipeline {
 
         fixed {
             script {
-                log.info '✅ Previous issues fixed'
+                echo '✅ Previous issues fixed'
                 if (env.BRANCH_NAME == 'main') {
                     notifyResult(
                         office365WebhookId: pipelineParams.office365WebhookId,
