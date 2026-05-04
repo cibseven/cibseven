@@ -640,7 +640,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected boolean standaloneTasksEnabled = true;
 
   /**
-   * When set to false, the engine will validate that the TASK_ID_ referenced
+   * When set to true, the engine will validate that the TASK_ID_ referenced
    * by a variable exists in ACT_RU_TASK before inserting the variable into ACT_RU_VARIABLE.
    * This prevents orphaned task variable references.
    */
