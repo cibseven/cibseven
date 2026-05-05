@@ -39,6 +39,12 @@
 
       <dependency>
         <groupId>org.cibseven.connect</groupId>
+        <artifactId>cibseven-connect-agent-connector</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.cibseven.connect</groupId>
         <artifactId>cibseven-connect-connectors-all</artifactId>
         <version>${project.version}</version>
       </dependency>

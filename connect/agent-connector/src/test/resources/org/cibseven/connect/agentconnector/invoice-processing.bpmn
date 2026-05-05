@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Invoice Processing with AI Agent — BPMN 2.0
+
+  This process receives an invoice (as plain text in the 'invoiceText' process variable),
+  sends it to a LangChain4j agent via the langchain4j-agent-connector, and then routes
+  to a human review task so an accountant can verify the extracted data.
+
+  Required process variables before start:
+    message            (String) — raw invoice text
+    langchain4jApiKey  (String, optional) — overrides OPENAI_API_KEY env var
+    langchain4jBaseUrl (String, optional) — overrides OPENAI_BASE_URL env var
+                        e.g. https://openrouter.ai/api/v1 to route through OpenRouter
+    langchain4jMcpUrl  (String, optional) — MCP server URL, defaults to http://localhost:9090/
+
+  Process variables set after the service task:
+    agentResult   (String) — JSON with extracted invoice fields
+-->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd"
+             id="invoice-processing-definitions"
+             targetNamespace="http://cibseven.org/schema/bpmn"
+             exporter="CIB seven"
+             exporterVersion="2.2.0">
+
+  <process id="invoiceProcessing" name="Invoice Processing with AI Agent" isExecutable="true"
+            camunda:historyTimeToLive="99">
+
+    <startEvent id="StartEvent_1" name="Invoice Received">
+      <extensionElements>
+        <camunda:formData>
+          <camunda:formField id="message" label="Message" type="string"
+                             defaultValue="List all available MCP tools, call each one, and return the results as a JSON array." />
+          <camunda:formField id="reviewer" label="Reviewer" type="string" defaultValue="demo" />
+          <camunda:formField id="langchain4jApiKey" label="Open AI Api Key" type="string" />
+          <camunda:formField id="langchain4jBaseUrl" label="OpenAI URL" type="string" defaultValue="https://api.openai.com/v1" />
+          <camunda:formField id="langchain4jMcpUrl" label="MCP Server URL (optional)" type="string"
+                             defaultValue="http://localhost:9090/" />
+          <camunda:formField id="agentName" label="Agent Name" type="string" defaultValue="mcp-tool-runner" />
+          <camunda:formField id="agentDescription" label="Agent Description" type="string"
+                             defaultValue="An agent that discovers all tools available on the connected MCP server, calls each of them in sequence, and collects every result as a JSON object into a JSON array." />
+          <camunda:formField id="instruction" label="Instruction" type="string"
+                             defaultValue="You have access to an MCP server. Follow these steps exactly: 1) List every tool that is available on the MCP server. 2) Call each tool one by one, passing sensible default arguments when required. 3) After every tool call, append its result as a JSON object to an internal results array. Each element must have the fields: toolName (string), arguments (object), result (any). 4) After all tools have been called, return ONLY the final JSON array — no explanation, no markdown fences, just the raw JSON array." />
+        </camunda:formData>
+      </extensionElements>
+      <outgoing>Flow_1</outgoing>
+    </startEvent>
+
+    <sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_ExtractInvoiceData" />
+
+    <serviceTask id="Task_ExtractInvoiceData" name="Extract Invoice Data (AI Agent)">
+      <extensionElements>
+        <camunda:connector>
+          <camunda:connectorId>langchain4j-agent-connector</camunda:connectorId>
+          <camunda:inputOutput>
+
+            <!-- ── Agent configuration ────────────────────────── -->
+            <camunda:inputParameter name="agentName">${agentName}</camunda:inputParameter>
+            <camunda:inputParameter name="agentDescription">${agentDescription}</camunda:inputParameter>
+            <camunda:inputParameter name="instruction">${instruction}</camunda:inputParameter>
+            <camunda:inputParameter name="model">gpt-5.4-nano</camunda:inputParameter>
+
+            <!-- ── Runtime inputs from process variables ────────── -->
+            <!-- ${message} is the raw invoice string set before process start -->
+            <camunda:inputParameter name="message">${message}</camunda:inputParameter>
+            <!-- ${langchain4jApiKey} overrides OPENAI_API_KEY env var; omit or leave null to use env var -->
+            <camunda:inputParameter name="apiKey">${langchain4jApiKey}</camunda:inputParameter>
+            <!-- ${langchain4jBaseUrl} overrides OPENAI_BASE_URL env var; omit or leave null to use env var -->
+            <!-- Examples: https://openrouter.ai/api/v1 (OpenRouter), http://localhost:11434/v1 (Ollama) -->
+            <camunda:inputParameter name="baseUrl">${langchain4jBaseUrl}</camunda:inputParameter>
+            <!-- MCP server URL (Streamable HTTP transport) -->
+            <camunda:inputParameter name="mcpServerUrl">${langchain4jMcpUrl}</camunda:inputParameter>
+
+            <!-- ── Output mapping to process variables ───────────── -->
+            <!-- agentResult receives the final text response from the LLM -->
+            <camunda:outputParameter name="agentResult">${output}</camunda:outputParameter>
+            <!-- agentChatLog receives the JSON-serialised chat log for the invocation -->
+            <camunda:outputParameter name="agentChatLog">${chatLog}</camunda:outputParameter>
+
+          </camunda:inputOutput>
+        </camunda:connector>
+      </extensionElements>
+      <incoming>Flow_1</incoming>
+      <outgoing>Flow_2</outgoing>
+    </serviceTask>
+
+    <sequenceFlow id="Flow_2" sourceRef="Task_ExtractInvoiceData" targetRef="Task_ReviewInvoice" />
+
+    <userTask id="Task_ReviewInvoice" name="Review Extracted Invoice Data"
+              camunda:assignee="${reviewer}">
+      <documentation>
+        The accountant reviews the AI-extracted invoice data stored in 'agentResult'
+        and approves or corrects it before the invoice is booked.
+      </documentation>
+      <incoming>Flow_2</incoming>
+      <outgoing>Flow_3</outgoing>
+    </userTask>
+
+    <sequenceFlow id="Flow_3" sourceRef="Task_ReviewInvoice" targetRef="EndEvent_1" />
+
+    <endEvent id="EndEvent_1" name="Invoice Processed">
+      <incoming>Flow_3</incoming>
+    </endEvent>
+
+  </process>
+
+  <!-- ── BPMN Diagram Interchange (for modeler rendering) ──────────────────── -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="invoiceProcessing">
+
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="152" y="82" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="127" y="125" width="87" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_ExtractInvoiceData_di" bpmnElement="Task_ExtractInvoiceData">
+        <dc:Bounds x="250" y="60" width="180" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_ReviewInvoice_di" bpmnElement="Task_ReviewInvoice">
+        <dc:Bounds x="490" y="60" width="180" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+        <dc:Bounds x="732" y="82" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="706" y="125" width="89" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="188" y="100" />
+        <di:waypoint x="250" y="100" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="430" y="100" />
+        <di:waypoint x="490" y="100" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="670" y="100" />
+        <di:waypoint x="732" y="100" />
+      </bpmndi:BPMNEdge>
+
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</definitions>
