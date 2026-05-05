@@ -69,9 +69,11 @@ class AgentChatListener implements ChatModelListener {
   }
 
   /**
-   * Writes the chat log onto the current process execution as a marker variable, so that
-   * every instance interacting with the AI agent connector can be discovered (e.g. in Cockpit)
-   * without requiring the BPMN to declare a matching {@code <camunda:outputParameter>}.
+   * Writes the chat log as a marker variable local to the current activity's execution, so
+   * that every instance interacting with the AI agent connector can be discovered (e.g. in
+   * Cockpit) without requiring the BPMN to declare a matching {@code <camunda:outputParameter>}.
+   * Scoping the variable locally keeps it attached to the connector's activity rather than
+   * propagating it to the process instance.
    *
    * <p>Uses the engine's internal thread-local {@link Context}; when invoked outside an engine
    * command context (e.g. from a unit test), the marker variable is skipped but the serialised
@@ -105,7 +107,7 @@ class AgentChatListener implements ChatModelListener {
     // Default Java serialization is always registered (unlike Spin/Jackson) and stores
     // in ACT_GE_BYTEARRAY, so it bypasses the VARCHAR(4000) limit.
     Object value = Variables.objectValue(chatLog).create();
-    execution.setVariable(AgentConnector.VAR_CHAT_LOG, value);
+    execution.setVariableLocal(AgentConnector.VAR_CHAT_LOG, value);
     return chatLog;
   }
 
