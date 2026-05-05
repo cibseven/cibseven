@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,8 @@ import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
 import dev.langchain4j.mcp.client.transport.http.StreamableHttpMcpTransport;
+import dev.langchain4j.memory.chat.ChatMemoryProvider;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
@@ -42,6 +45,7 @@ import dev.langchain4j.model.openai.OpenAiResponsesChatModel;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.Result;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.tool.ToolExecution;
@@ -75,9 +79,24 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
 
   private static final Logger LOG = LoggerFactory.getLogger(AgentConnectorImpl.class);
 
-  /** Internal AI service interface — one anonymous proxy is built per request. */
+  /**
+   * Internal AI service interface used for stateless invocations.
+   *
+   * <p>{@link AiServices} rejects {@link MemoryId} parameters unless a
+   * {@link ChatMemoryProvider} is registered, so two flavors of the interface
+   * are needed: this one without memory and {@link LangChainMemoryAgent} with.
+   */
   interface LangChainAgent {
     Result<String> chat(@UserMessage String message);
+  }
+
+  /**
+   * Internal AI service interface used when chat memory is active. The
+   * {@link MemoryId} value is what {@link ChatMemoryProvider} uses to look up
+   * (or create) the {@code MessageWindowChatMemory} bound to this conversation.
+   */
+  interface LangChainMemoryAgent {
+    Result<String> chat(@MemoryId Object memoryId, @UserMessage String message);
   }
 
   public AgentConnectorImpl() {
@@ -99,7 +118,10 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
 
     List<McpClient> mcpClients = createMcpClients(request);
 
-    AiServices<LangChainAgent> builder = AiServices.builder(LangChainAgent.class)
+    String memoryId = resolveMemoryId(request);
+
+    Class<?> agentClass = (memoryId != null) ? LangChainMemoryAgent.class : LangChainAgent.class;
+    AiServices<?> builder = AiServices.builder(agentClass)
         .chatModel(chatModel)
         .systemMessageProvider(chatMemoryId -> buildSystemPrompt(request));
     if (!tools.isEmpty()) {
@@ -111,14 +133,23 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
           .build();
       builder.toolProvider(mcpToolProvider);
     }
+    if (memoryId != null) {
+      builder.chatMemoryProvider(createChatMemoryProvider(request));
+    }
     ContentRetriever contentRetriever = createContentRetriever(request);
     LOG.debug("contentRetriever: " + contentRetriever);
     if (contentRetriever != null) {
       builder.contentRetriever(contentRetriever);
     }
-    LangChainAgent agent = builder.build();
 
-    Result<String> result = agent.chat(request.getMessage());
+    Result<String> result;
+    if (memoryId != null) {
+      LangChainMemoryAgent agent = (LangChainMemoryAgent) builder.build();
+      result = agent.chat(memoryId, request.getMessage());
+    } else {
+      LangChainAgent agent = (LangChainAgent) builder.build();
+      result = agent.chat(request.getMessage());
+    }
     String output = result.content();
 
     for (ToolExecution exec : result.toolExecutions()) {
@@ -127,7 +158,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     }
     LOG.debug("Total tokens: {}", result.tokenUsage());
 
-    return new AgentResponseImpl(output);
+    return new AgentResponseImpl(output, memoryId);
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -142,6 +173,41 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       return url;
     }
     return AgentConnectorConstants.DEFAULT_BASE_URL;
+  }
+
+  /**
+   * Resolves the chat-memory id for this invocation, or {@code null} when
+   * memory is disabled. When {@code useChatMemory} is active and no
+   * {@code memoryId} is supplied, a fresh UUID is generated so the caller can
+   * persist it (via the {@code memoryId} output parameter) and reuse it on
+   * subsequent invocations.
+   */
+  private String resolveMemoryId(AgentRequest request) {
+    if (!request.isUseChatMemory()) {
+      return null;
+    }
+    String id = request.getMemoryId();
+    if (id != null && !id.isEmpty()) {
+      return id;
+    }
+    String generated = UUID.randomUUID().toString();
+    LOG.debug("Generated new chat memory id: {}", generated);
+    return generated;
+  }
+
+  /**
+   * Factory method — builds the {@link ChatMemoryProvider} used when chat
+   * memory is active. Each provider call returns a {@link MessageWindowChatMemory}
+   * bound to the shared {@link AgentChatMemoryStore}, so memory survives between
+   * connector invocations within the same JVM.
+   */
+  protected ChatMemoryProvider createChatMemoryProvider(AgentRequest request) {
+    int maxMessages = request.getChatMemoryMaxMessages();
+    return memoryId -> MessageWindowChatMemory.builder()
+        .id(memoryId)
+        .maxMessages(maxMessages)
+        .chatMemoryStore(AgentChatMemoryStore.getStore())
+        .build();
   }
 
   private String resolveApiKey(AgentRequest request) {

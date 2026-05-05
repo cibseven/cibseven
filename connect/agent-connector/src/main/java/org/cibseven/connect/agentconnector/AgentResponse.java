@@ -25,6 +25,10 @@ import org.cibseven.connect.spi.ConnectorResponse;
  * for BPMN output mapping:
  * <ul>
  *   <li>{@code output} — the final text response produced by the agent</li>
+ *   <li>{@code memoryId} — identifier of the chat-memory entry used by this
+ *       invocation (only populated when {@code useChatMemory} was active);
+ *       persist this value into a process variable to continue the same
+ *       conversation on a subsequent invocation, e.g. after a human task</li>
  * </ul>
  *
  * <p>The chat log is not returned via the response: when
@@ -35,5 +39,11 @@ public interface AgentResponse extends ConnectorResponse {
 
   /** Returns the final text response produced by the agent. */
   String getOutput();
+
+  /**
+   * Returns the chat memory identifier used during this invocation, or
+   * {@code null} when chat memory was not activated.
+   */
+  String getMemoryId();
 
 }

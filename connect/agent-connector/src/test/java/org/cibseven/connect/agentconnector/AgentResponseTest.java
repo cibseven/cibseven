@@ -43,4 +43,29 @@ public class AgentResponseTest {
     assertThat((String) response.getResponseParameter(AgentConnector.PARAM_NAME_OUTPUT)).isNull();
   }
 
+  @Test
+  public void shouldDefaultMemoryIdToEmpty() {
+    AgentResponseImpl response = new AgentResponseImpl("answer");
+    assertThat(response.getMemoryId()).isEqualTo("");
+    Object memoryIdParam = response.getResponseParameter(AgentConnector.PARAM_NAME_MEMORY_ID);
+    assertThat(memoryIdParam).isEqualTo("");
+  }
+
+  @Test
+  public void shouldExposeMemoryIdViaTypedGetterAndParameterMap() {
+    AgentResponseImpl response = new AgentResponseImpl("answer", "mem-42");
+    assertThat(response.getMemoryId()).isEqualTo("mem-42");
+    assertThat((String) response.getResponseParameter(AgentConnector.PARAM_NAME_MEMORY_ID))
+        .isEqualTo("mem-42");
+  }
+
+  @Test
+  public void shouldExposeNullMemoryIdParameterWhenNull() {
+    // The memoryId key must always be present in the response parameter map — even when null —
+    // so BPMN output mappings like ${memoryId} resolve cleanly instead of throwing PropertyNotFoundException.
+    AgentResponseImpl response = new AgentResponseImpl("answer", null);
+    assertThat(response.getResponseParameters()).containsKey(AgentConnector.PARAM_NAME_MEMORY_ID);
+    assertThat((String) response.getResponseParameter(AgentConnector.PARAM_NAME_MEMORY_ID)).isNull();
+  }
+
 }

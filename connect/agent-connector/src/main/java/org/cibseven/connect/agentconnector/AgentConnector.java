@@ -59,6 +59,11 @@ import org.cibseven.connect.spi.Connector;
  *         ]
  *       </camunda:inputParameter>
  *
+ *       <!-- Chat memory (e.g. human-feedback loop) -->
+ *       <camunda:inputParameter name="useChatMemory">true</camunda:inputParameter>
+ *       <camunda:inputParameter name="memoryId">${execution.getVariable('memoryId')}</camunda:inputParameter>
+ *       <camunda:inputParameter name="chatMemoryMaxMessages">20</camunda:inputParameter>
+ *
  *       <!-- RAG / pgvector embedding store -->
  *       <camunda:inputParameter name="pgHost">localhost</camunda:inputParameter>
  *       <camunda:inputParameter name="pgPort">5432</camunda:inputParameter>
@@ -76,6 +81,7 @@ import org.cibseven.connect.spi.Connector;
  *
  *       <!-- Output -->
  *       <camunda:outputParameter name="agentOutput">${output}</camunda:outputParameter>
+ *       <camunda:outputParameter name="memoryId">${memoryId}</camunda:outputParameter>
  *     </camunda:inputOutput>
  * </camunda:connector>
  * }</pre>
@@ -191,6 +197,35 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * Allowed values are model-dependent and forwarded as-is to the OpenAI builder.
    */
   String PARAM_NAME_REASONING_SUMMARY = "reasoningSummary";
+
+  // ── Chat memory input parameter names ─────────────────────────────────────
+
+  /**
+   * Optional. Activates the per-conversation chat memory backed by
+   * {@link org.cibseven.connect.agentconnector.impl.AgentChatMemoryStore}.
+   * When {@code true}, the agent's prior messages — keyed by
+   * {@link #PARAM_NAME_MEMORY_ID} — are replayed on every invocation so a
+   * BPMN process can resume the same conversation, typically after a
+   * human-feedback user task. Defaults to {@code false} (stateless).
+   */
+  String PARAM_NAME_USE_CHAT_MEMORY = "useChatMemory";
+
+  /**
+   * Optional. Identifier of the chat memory entry to reuse across invocations.
+   * Used together with {@link #PARAM_NAME_USE_CHAT_MEMORY}. When the flag is
+   * active and this parameter is {@code null} or empty, the connector generates
+   * a new UUID and exposes it as the {@link #PARAM_NAME_MEMORY_ID} output so
+   * the caller can persist it (e.g. into a process variable) and pass it back
+   * on the next invocation.
+   */
+  String PARAM_NAME_MEMORY_ID = "memoryId";
+
+  /**
+   * Optional. Sliding window size (max number of messages retained) for the
+   * chat memory of a given {@link #PARAM_NAME_MEMORY_ID}. Defaults to
+   * {@value AgentConnectorConstants#DEFAULT_CHAT_MEMORY_MAX_MESSAGES}.
+   */
+  String PARAM_NAME_CHAT_MEMORY_MAX_MESSAGES = "chatMemoryMaxMessages";
 
   // ── RAG / pgvector input parameter names ──────────────────────────────────
 

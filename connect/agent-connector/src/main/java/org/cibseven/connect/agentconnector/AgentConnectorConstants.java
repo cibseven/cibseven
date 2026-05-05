@@ -65,6 +65,15 @@ public final class AgentConnectorConstants {
   /** Default character overlap between consecutive chunks. */
   public static final int DEFAULT_CHUNK_OVERLAP = 50;
 
+  // ── Chat memory defaults ──────────────────────────────────────────────────
+
+  /**
+   * Default sliding window size (number of messages) for the per-memory-id chat
+   * memory used when {@code useChatMemory} is activated and no explicit
+   * {@code chatMemoryMaxMessages} is provided.
+   */
+  public static final int DEFAULT_CHAT_MEMORY_MAX_MESSAGES = 20;
+
   private AgentConnectorConstants() {
     // utility class
   }

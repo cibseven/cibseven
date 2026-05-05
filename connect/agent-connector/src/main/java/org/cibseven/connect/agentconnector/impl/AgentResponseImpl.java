@@ -36,9 +36,15 @@ public class AgentResponseImpl extends AbstractConnectorResponse implements Agen
   private static final int CAMUNDA_STRING_LIMIT = 4000;
 
   private final String output;
+  private final String memoryId;
 
   public AgentResponseImpl(String output) {
+    this(output, "");
+  }
+
+  public AgentResponseImpl(String output, String memoryId) {
     this.output = output;
+    this.memoryId = memoryId;
   }
 
   // ── AbstractConnectorResponse ──────────────────────────────────────────────
@@ -52,6 +58,11 @@ public class AgentResponseImpl extends AbstractConnectorResponse implements Agen
         ? Variables.objectValue(output).serializationDataFormat("application/json").create()
         : output;
     responseParameters.put(AgentConnector.PARAM_NAME_OUTPUT, outputValue);
+
+    // Always expose the memoryId key — even when chat memory is disabled and the value is null —
+    // so BPMN output mappings such as <camunda:outputParameter name="memoryId">${memoryId}</camunda:outputParameter>
+    // resolve cleanly to null instead of failing with PropertyNotFoundException.
+    responseParameters.put(AgentConnector.PARAM_NAME_MEMORY_ID, memoryId);
   }
 
   // ── AgentResponse ──────────────────────────────────────────────────────────
@@ -59,6 +70,11 @@ public class AgentResponseImpl extends AbstractConnectorResponse implements Agen
   @Override
   public String getOutput() {
     return output;
+  }
+
+  @Override
+  public String getMemoryId() {
+    return memoryId;
   }
 
 }

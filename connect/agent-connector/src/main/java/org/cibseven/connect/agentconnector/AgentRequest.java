@@ -95,6 +95,25 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
    */
   AgentRequest reasoningSummary(String reasoningSummary);
 
+  // ── Chat memory fluent setters ─────────────────────────────────────────────
+
+  /**
+   * Enables or disables chat memory for this invocation. When enabled, the
+   * agent's prior messages are loaded from {@code AgentChatMemoryStore} keyed
+   * by {@link #memoryId(String)} and the new exchange is appended.
+   */
+  AgentRequest useChatMemory(boolean useChatMemory);
+
+  /**
+   * Optional. Memory identifier to reuse across invocations. When unset and
+   * {@link #useChatMemory(boolean)} is {@code true}, the connector generates a
+   * new UUID on first call.
+   */
+  AgentRequest memoryId(String memoryId);
+
+  /** Sliding-window size (max messages retained) for the chat memory. */
+  AgentRequest chatMemoryMaxMessages(int chatMemoryMaxMessages);
+
   // ── RAG / pgvector fluent setters ──────────────────────────────────────────
 
   /** PostgreSQL host — when set, RAG is activated using pgvector. */
@@ -146,6 +165,12 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   String getReasoningEffort();
 
   String getReasoningSummary();
+
+  // ── Chat memory typed getters ──────────────────────────────────────────────
+
+  boolean isUseChatMemory();
+  String getMemoryId();
+  int getChatMemoryMaxMessages();
 
   // ── RAG / pgvector typed getters ───────────────────────────────────────────
 

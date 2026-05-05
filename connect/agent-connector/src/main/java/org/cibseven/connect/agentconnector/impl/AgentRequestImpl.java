@@ -122,6 +122,26 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
     return this;
   }
 
+  // ── Chat memory setters ────────────────────────────────────────────────────
+
+  @Override
+  public AgentRequest useChatMemory(boolean useChatMemory) {
+    setRequestParameter(AgentConnector.PARAM_NAME_USE_CHAT_MEMORY, useChatMemory);
+    return this;
+  }
+
+  @Override
+  public AgentRequest memoryId(String memoryId) {
+    setRequestParameter(AgentConnector.PARAM_NAME_MEMORY_ID, memoryId);
+    return this;
+  }
+
+  @Override
+  public AgentRequest chatMemoryMaxMessages(int chatMemoryMaxMessages) {
+    setRequestParameter(AgentConnector.PARAM_NAME_CHAT_MEMORY_MAX_MESSAGES, chatMemoryMaxMessages);
+    return this;
+  }
+
   // ── RAG / pgvector setters ─────────────────────────────────────────────────
 
   @Override
@@ -261,6 +281,29 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   @Override
   public String getReasoningSummary() {
     return getRequestParameter(AgentConnector.PARAM_NAME_REASONING_SUMMARY);
+  }
+
+  // ── Chat memory getters ────────────────────────────────────────────────────
+
+  @Override
+  public boolean isUseChatMemory() {
+    Object val = getRequestParameter(AgentConnector.PARAM_NAME_USE_CHAT_MEMORY);
+    if (val == null) return false;
+    if (val instanceof Boolean) return (Boolean) val;
+    return Boolean.parseBoolean(val.toString());
+  }
+
+  @Override
+  public String getMemoryId() {
+    return getRequestParameter(AgentConnector.PARAM_NAME_MEMORY_ID);
+  }
+
+  @Override
+  public int getChatMemoryMaxMessages() {
+    Object val = getRequestParameter(AgentConnector.PARAM_NAME_CHAT_MEMORY_MAX_MESSAGES);
+    if (val == null) return AgentConnectorConstants.DEFAULT_CHAT_MEMORY_MAX_MESSAGES;
+    if (val instanceof Integer) return (Integer) val;
+    return Integer.parseInt(val.toString());
   }
 
   // ── RAG / pgvector getters ─────────────────────────────────────────────────
