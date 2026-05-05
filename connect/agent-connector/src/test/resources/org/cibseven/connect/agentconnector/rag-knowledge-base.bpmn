@@ -180,9 +180,13 @@
             <!-- Embedding dimension — must match the model used during ingestion (text-embedding-3-small = 1536, AllMiniLmL6V2 = 384) -->
             <camunda:inputParameter name="embeddingDimension">${embeddingDimension}</camunda:inputParameter>
 
+            <!-- ── Chat log persistence ──────────────────────────── -->
+            <!-- The connector writes/updates the named process variable on every chat
+                 model event. Leave empty to skip persistence entirely. -->
+            <camunda:inputParameter name="chatLogVariable">agentChatLog</camunda:inputParameter>
+
             <!-- ── Output ─────────────────────────────────────────── -->
             <camunda:outputParameter name="agentAnswer">${output}</camunda:outputParameter>
-            <camunda:outputParameter name="agentChatLog">${chatLog}</camunda:outputParameter>
 
           </camunda:inputOutput>
         </camunda:connector>

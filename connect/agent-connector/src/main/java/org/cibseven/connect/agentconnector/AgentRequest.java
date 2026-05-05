@@ -109,6 +109,14 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   AgentRequest embeddingDimension(int embeddingDimension);
   AgentRequest embeddingModelName(String embeddingModelName);
 
+  /**
+   * Optional. Name of the process-scoped variable where the chat log is persisted.
+   * When set, the variable's existing content (if any) is loaded as the starting
+   * point and updated after every chat model event. When empty or absent, no
+   * chat log is written.
+   */
+  AgentRequest chatLogVariable(String chatLogVariable);
+
   // ── Typed getters ──────────────────────────────────────────────────────────
 
   String getAgentName();
@@ -151,5 +159,7 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   double getMinRagScore();
   int getEmbeddingDimension();
   String getEmbeddingModelName();
+
+  String getChatLogVariable();
 
 }

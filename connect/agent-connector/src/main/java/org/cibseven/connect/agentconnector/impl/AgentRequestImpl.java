@@ -184,6 +184,12 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
     return this;
   }
 
+  @Override
+  public AgentRequest chatLogVariable(String chatLogVariable) {
+    setRequestParameter(AgentConnector.PARAM_NAME_CHAT_LOG_VARIABLE, chatLogVariable);
+    return this;
+  }
+
   // ── Typed getters ──────────────────────────────────────────────────────────
 
   @Override
@@ -318,6 +324,11 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   @Override
   public String getEmbeddingModelName() {
     return getRequestParameter(AgentConnector.PARAM_NAME_EMBEDDING_MODEL_NAME);
+  }
+
+  @Override
+  public String getChatLogVariable() {
+    return getRequestParameter(AgentConnector.PARAM_NAME_CHAT_LOG_VARIABLE);
   }
 
   @Override

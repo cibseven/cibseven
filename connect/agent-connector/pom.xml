@@ -72,7 +72,7 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- JSON serialisation for the chatLog output — provided by the engine runtime (Spin/REST).
+    <!-- JSON serialisation for the chat log persistence — provided by the engine runtime (Spin/REST).
          Version pinned to the cibseven-parent property so it stays in lockstep with the engine. -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>

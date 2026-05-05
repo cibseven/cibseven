@@ -34,7 +34,6 @@ import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
 import dev.langchain4j.mcp.client.transport.http.StreamableHttpMcpTransport;
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.chat.listener.ChatModelListener;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
@@ -128,14 +127,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     }
     LOG.debug("Total tokens: {}", result.tokenUsage());
 
-    String chatLog = "";
-    for (ChatModelListener listener : chatModel.listeners()) {
-      if (listener instanceof AgentChatListener) {
-        chatLog = ((AgentChatListener) listener).writeChatLogVariable();
-      }
-    }
-
-    return new AgentResponseImpl(output, chatLog);
+    return new AgentResponseImpl(output);
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -331,6 +323,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     String modelName = request.getModel();
     String reasoningEffort = request.getReasoningEffort();
     String reasoningSummary = request.getReasoningSummary();
+    AgentChatListener listener = new AgentChatListener(request.getChatLogVariable());
 
     if (reasoningSummary != null && !reasoningSummary.isEmpty()) {
       if (customHeaders != null && !customHeaders.isEmpty()) {
@@ -341,7 +334,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
           .apiKey(apiKey)
           .baseUrl(baseUrl)
           .modelName(modelName)
-          .listeners(List.of(new AgentChatListener()))
+          .listeners(List.of(listener))
           .reasoningSummary(reasoningSummary);
       if (reasoningEffort != null && !reasoningEffort.isEmpty()) {
         rb.reasoningEffort(reasoningEffort);
@@ -353,7 +346,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         .apiKey(apiKey)
         .modelName(modelName)
         .baseUrl(baseUrl)
-        .listeners(List.of(new AgentChatListener()));
+        .listeners(List.of(listener));
         // 2026.03.18, Oleg: logXXX is not working here, somehow
         /*
         .logRequests(true)   // logs every request sent to the LLM

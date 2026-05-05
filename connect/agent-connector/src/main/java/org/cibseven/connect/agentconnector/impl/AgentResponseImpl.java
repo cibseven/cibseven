@@ -36,15 +36,9 @@ public class AgentResponseImpl extends AbstractConnectorResponse implements Agen
   private static final int CAMUNDA_STRING_LIMIT = 4000;
 
   private final String output;
-  private final String chatLog;
 
   public AgentResponseImpl(String output) {
-    this(output, "");
-  }
-
-  public AgentResponseImpl(String output, String chatLog) {
     this.output = output;
-    this.chatLog = (chatLog != null) ? chatLog : "";
   }
 
   // ── AbstractConnectorResponse ──────────────────────────────────────────────
@@ -58,11 +52,6 @@ public class AgentResponseImpl extends AbstractConnectorResponse implements Agen
         ? Variables.objectValue(output).serializationDataFormat("application/json").create()
         : output;
     responseParameters.put(AgentConnector.PARAM_NAME_OUTPUT, outputValue);
-
-    Object chatLogValue = (chatLog.length() > CAMUNDA_STRING_LIMIT)
-        ? Variables.objectValue(chatLog).serializationDataFormat("application/json").create()
-        : chatLog;
-    responseParameters.put(AgentConnector.PARAM_NAME_CHAT_LOG, chatLogValue);
   }
 
   // ── AgentResponse ──────────────────────────────────────────────────────────
@@ -70,11 +59,6 @@ public class AgentResponseImpl extends AbstractConnectorResponse implements Agen
   @Override
   public String getOutput() {
     return output;
-  }
-
-  @Override
-  public String getChatLog() {
-    return chatLog;
   }
 
 }

@@ -76,11 +76,14 @@
             <!-- MCP server URL (Streamable HTTP transport) -->
             <camunda:inputParameter name="mcpServerUrl">${langchain4jMcpUrl}</camunda:inputParameter>
 
+            <!-- ── Chat log persistence ─────────────────────────── -->
+            <!-- The connector writes/updates the named process variable on every chat
+                 model event. Leave empty to skip persistence entirely. -->
+            <camunda:inputParameter name="chatLogVariable">agentChatLog</camunda:inputParameter>
+
             <!-- ── Output mapping to process variables ───────────── -->
             <!-- agentResult receives the final text response from the LLM -->
             <camunda:outputParameter name="agentResult">${output}</camunda:outputParameter>
-            <!-- agentChatLog receives the JSON-serialised chat log for the invocation -->
-            <camunda:outputParameter name="agentChatLog">${chatLog}</camunda:outputParameter>
 
           </camunda:inputOutput>
         </camunda:connector>

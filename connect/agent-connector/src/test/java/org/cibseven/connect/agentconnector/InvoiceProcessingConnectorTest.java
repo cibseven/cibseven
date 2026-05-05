@@ -112,16 +112,14 @@ public class InvoiceProcessingConnectorTest {
    * that simulates a successful Gemini invocation.
    */
   static class StubbedAgentConnector extends AgentConnectorImpl {
-    static final String STUBBED_CHAT_LOG = "[{\"type\":\"response\",\"answer\":\"stub\"}]";
 
     Map<String, Object> lastRequestParameters;
     String stubbedOutput = EXPECTED_JSON_OUTPUT;
-    String stubbedChatLog = STUBBED_CHAT_LOG;
 
     @Override
     public AgentResponse execute(AgentRequest request) {
       lastRequestParameters = new HashMap<>(request.getRequestParameters());
-      return new AgentResponseImpl(stubbedOutput, stubbedChatLog);
+      return new AgentResponseImpl(stubbedOutput);
     }
   }
 
@@ -180,9 +178,10 @@ public class InvoiceProcessingConnectorTest {
   // ── BPMN output parameter mapping ────────────────────────────────────────
 
   /**
-   * Verifies that the connector response contains the parameter keys referenced in
-   * the {@code camunda:outputParameter} section of {@code invoice-processing.bpmn}:
-   * {@code output} (→ agentResult) and {@code chatLog} (→ agentChatLog).
+   * Verifies that the connector response contains the {@code output} parameter referenced
+   * in the {@code camunda:outputParameter} section of {@code invoice-processing.bpmn}.
+   * The chat log is no longer exposed via the response — it is written directly to the
+   * process variable named in the {@code chatLogVariable} input parameter.
    */
   @Test
   public void shouldExposeOutputParamKeysMatchingBpmnOutputMapping() {
@@ -196,11 +195,6 @@ public class InvoiceProcessingConnectorTest {
     // The BPMN uses ${output} → agentResult
     String agentResult = (String) response.getResponseParameter(AgentConnector.PARAM_NAME_OUTPUT);
     assertThat(agentResult).isEqualTo(EXPECTED_JSON_OUTPUT);
-
-    // The BPMN uses ${chatLog} → agentChatLog
-    String agentChatLog = (String) response.getResponseParameter(AgentConnector.PARAM_NAME_CHAT_LOG);
-    assertThat(agentChatLog).isEqualTo(StubbedAgentConnector.STUBBED_CHAT_LOG);
-    assertThat(response.getChatLog()).isEqualTo(StubbedAgentConnector.STUBBED_CHAT_LOG);
   }
 
   // ── Response content ─────────────────────────────────────────────────────

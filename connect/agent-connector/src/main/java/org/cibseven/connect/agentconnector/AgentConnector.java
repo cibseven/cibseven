@@ -71,16 +71,23 @@ import org.cibseven.connect.spi.Connector;
  *       <camunda:inputParameter name="embeddingDimension">384</camunda:inputParameter>
  *       <camunda:inputParameter name="embeddingModelName">text-embedding-3-small</camunda:inputParameter>
  *
+ *       <!-- Chat log persistence (optional) -->
+ *       <camunda:inputParameter name="chatLogVariable">agentChatLog</camunda:inputParameter>
+ *
  *       <!-- Output -->
  *       <camunda:outputParameter name="agentOutput">${output}</camunda:outputParameter>
- *       <camunda:outputParameter name="agentChatLog">${chatLog}</camunda:outputParameter>
  *     </camunda:inputOutput>
  * </camunda:connector>
  * }</pre>
  *
- * <p>After every invocation the connector also sets the process variable
- * {@value #VAR_CHAT_LOG} on the current execution as a marker for discovery in
- * Cockpit / History API, regardless of BPMN ioMapping.
+ * <p>When {@link #PARAM_NAME_CHAT_LOG_VARIABLE chatLogVariable} is set, the connector
+ * persists the chat log as a process-scoped variable with that name and updates it on
+ * every {@code request}/{@code response}/{@code error} event of the underlying chat
+ * model. If a variable with the configured name already exists when the connector
+ * runs, its content is deserialised and used as the starting point — so multiple
+ * invocations within the same process instance accumulate into a single timeline.
+ * The chat log is no longer exposed as an output parameter because its serialised
+ * form regularly exceeds the {@code VARCHAR(4000)} limit of Camunda's TEXT_ column.
  */
 public interface AgentConnector extends Connector<AgentRequest> {
 
@@ -239,23 +246,19 @@ public interface AgentConnector extends Connector<AgentRequest> {
    */
   String PARAM_NAME_EMBEDDING_MODEL_NAME = "embeddingModelName";
 
+  /**
+   * Optional. Name of the process-scoped variable where the JSON-serialised chat
+   * log is persisted. When the variable already exists at connector invocation
+   * time, its content is decoded and the new events are appended; otherwise the
+   * variable is created. The variable is updated after every request/response/error
+   * callback of the underlying chat model. When this parameter is empty or absent,
+   * no chat log is persisted.
+   */
+  String PARAM_NAME_CHAT_LOG_VARIABLE = "chatLogVariable";
+
   // ── Output parameter names ─────────────────────────────────────────────────
 
   /** The final text response produced by the agent. */
   String PARAM_NAME_OUTPUT = "output";
-
-  /**
-   * JSON-serialised chat log for the current invocation (the same value written
-   * to {@link #VAR_CHAT_LOG}). Empty string when serialisation fails.
-   */
-  String PARAM_NAME_CHAT_LOG = "chatLog";
-
-  /**
-   * Process variable always set by the connector on the current execution after
-   * each invocation, regardless of BPMN ioMapping. Acts as a marker to discover
-   * (in Cockpit or via the History API) every process instance that interacted
-   * with the AI agent connector.
-   */
-  String VAR_CHAT_LOG = "cibseven-ai-agent-connector-chat-log";
 
 }

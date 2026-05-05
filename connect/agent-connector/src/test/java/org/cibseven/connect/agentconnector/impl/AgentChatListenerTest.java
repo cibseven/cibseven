@@ -184,28 +184,31 @@ public class AgentChatListenerTest {
   }
 
   @Test
-  public void shouldReturnSerialisedChatLogFromWriteChatLogVariable() throws Exception {
-    AgentChatListener listener = new AgentChatListener();
+  public void shouldDisablePersistenceWhenNoVariableNameProvided() {
+    assertThat(new AgentChatListener().variableName()).isNull();
+    assertThat(new AgentChatListener(null).variableName()).isNull();
+    assertThat(new AgentChatListener("").variableName()).isNull();
+  }
+
+  @Test
+  public void shouldRetainProvidedVariableName() {
+    AgentChatListener listener = new AgentChatListener("agentChatLog");
+
+    assertThat(listener.variableName()).isEqualTo("agentChatLog");
+    assertThat(listener.events()).isEmpty();
+  }
+
+  @Test
+  public void shouldNotFailWhenInvokedOutsideEngineContextWithVariableName() {
+    AgentChatListener listener = new AgentChatListener("agentChatLog");
 
     ChatRequest request = ChatRequest.builder()
         .messages(Collections.singletonList(UserMessage.from("Hi"))).build();
     listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
 
-    String chatLog = listener.writeChatLogVariable();
-
-    assertThat(chatLog)
-        .isNotEmpty()
-        .startsWith("[")
-        .endsWith("]")
-        .contains("\"type\":\"request\"");
-  }
-
-  @Test
-  public void shouldReturnEmptyJsonArrayWhenNoEventsCaptured() throws Exception {
-    AgentChatListener listener = new AgentChatListener();
-
-    String chatLog = listener.writeChatLogVariable();
-
-    assertThat(chatLog).isEqualTo("[]");
+    // Persistence is a no-op without a BpmnExecutionContext, but the in-memory event
+    // list is still populated so callers/tests can inspect what would have been written.
+    assertThat(listener.events()).hasSize(1);
+    assertThat(listener.events().get(0)).containsEntry("type", "request");
   }
 }

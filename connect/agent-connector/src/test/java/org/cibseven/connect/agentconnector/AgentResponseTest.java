@@ -43,31 +43,4 @@ public class AgentResponseTest {
     assertThat((String) response.getResponseParameter(AgentConnector.PARAM_NAME_OUTPUT)).isNull();
   }
 
-  @Test
-  public void shouldExposeChatLogViaTypedGetter() {
-    AgentResponseImpl response = new AgentResponseImpl("answer", "[{\"type\":\"response\"}]");
-    assertThat(response.getChatLog()).isEqualTo("[{\"type\":\"response\"}]");
-  }
-
-  @Test
-  public void shouldExposeChatLogInGenericParameterMap() {
-    AgentResponseImpl response = new AgentResponseImpl("answer", "[{\"type\":\"response\"}]");
-    assertThat((String) response.getResponseParameter(AgentConnector.PARAM_NAME_CHAT_LOG))
-        .isEqualTo("[{\"type\":\"response\"}]");
-  }
-
-  @Test
-  public void shouldDefaultChatLogToEmptyWhenNull() {
-    AgentResponseImpl response = new AgentResponseImpl("answer", null);
-    assertThat(response.getChatLog()).isEmpty();
-    assertThat((String) response.getResponseParameter(AgentConnector.PARAM_NAME_CHAT_LOG)).isEmpty();
-  }
-
-  @Test
-  public void shouldDefaultChatLogToEmptyWhenSingleArgConstructor() {
-    AgentResponseImpl response = new AgentResponseImpl("answer");
-    assertThat(response.getChatLog()).isEmpty();
-    assertThat((String) response.getResponseParameter(AgentConnector.PARAM_NAME_CHAT_LOG)).isEmpty();
-  }
-
 }

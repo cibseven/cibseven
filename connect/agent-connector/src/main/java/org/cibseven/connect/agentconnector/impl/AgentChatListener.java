@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
@@ -47,13 +48,18 @@ import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.cibseven.connect.agentconnector.AgentConnector;
 
 /**
  * Captures every {@link ChatModelListener} event (request / response / error) into a
- * structured list and persists it as a JSON marker variable on the current process
- * execution via {@link #writeChatLogVariable()}. The JSON is consumed by the webclient
- * frontend (Vue.js) to render a timeline-style visualisation of the agent run.
+ * structured list and — when a process variable name is configured — persists it as
+ * a JSON-serialised process variable updated after every event. The JSON is consumed
+ * by the webclient frontend (Vue.js) to render a timeline-style visualisation of the
+ * agent run.
+ *
+ * <p>When the variable already holds a previous chat log at construction time, its
+ * content is decoded so subsequent events accumulate on top instead of overwriting
+ * earlier history. When no variable name is supplied, the listener just collects
+ * events in memory and never touches the engine.
  */
 class AgentChatListener implements ChatModelListener {
 
@@ -61,54 +67,92 @@ class AgentChatListener implements ChatModelListener {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
+  private static final TypeReference<List<Map<String, Object>>> EVENT_LIST_TYPE =
+      new TypeReference<List<Map<String, Object>>>() {};
+
+  private final String variableName;
   private final List<Map<String, Object>> events = new ArrayList<>();
+
+  /** Test/no-engine constructor: collects events in memory but never persists. */
+  AgentChatListener() {
+    this(null);
+  }
+
+  /**
+   * @param variableName name of the process variable that should hold the chat log,
+   *        or {@code null}/empty to disable persistence entirely. When set and a
+   *        variable with that name already exists on the current execution, its
+   *        previous value is decoded and seeded into {@link #events()}.
+   */
+  AgentChatListener(String variableName) {
+    this.variableName = (variableName != null && !variableName.isEmpty()) ? variableName : null;
+    if (this.variableName != null) {
+      loadExistingEvents();
+    }
+  }
 
   /** Package-private view of the captured events, for tests. */
   List<Map<String, Object>> events() {
     return events;
   }
 
-  /**
-   * Writes the chat log as a marker variable local to the current activity's execution, so
-   * that every instance interacting with the AI agent connector can be discovered (e.g. in
-   * Cockpit) without requiring the BPMN to declare a matching {@code <camunda:outputParameter>}.
-   * Scoping the variable locally keeps it attached to the connector's activity rather than
-   * propagating it to the process instance.
-   *
-   * <p>Uses the engine's internal thread-local {@link Context}; when invoked outside an engine
-   * command context (e.g. from a unit test), the marker variable is skipped but the serialised
-   * chat log is still returned so callers can expose it as a connector output parameter.
-   *
-   * @return the JSON-serialised chat log, or an empty string when serialisation fails
-   */
-  public String writeChatLogVariable() {
+  /** Configured variable name, or {@code null} when persistence is disabled. */
+  String variableName() {
+    return variableName;
+  }
+
+  private void loadExistingEvents() {
+    ExecutionEntity execution = currentExecution();
+    if (execution == null) {
+      return;
+    }
+    Object existing = execution.getVariable(variableName);
+    if (existing == null) {
+      return;
+    }
+    String json = existing.toString();
+    if (json.isEmpty()) {
+      return;
+    }
+    try {
+      List<Map<String, Object>> previous = MAPPER.readValue(json, EVENT_LIST_TYPE);
+      events.addAll(previous);
+    } catch (JsonProcessingException e) {
+      LOG.warn("Failed to decode previous chat log from variable '{}'; starting with an empty log.",
+          variableName, e);
+    }
+  }
+
+  private void persistEvents() {
+    if (variableName == null) {
+      return;
+    }
     String chatLog;
     try {
       chatLog = MAPPER.writeValueAsString(events);
     } catch (JsonProcessingException e) {
-      LOG.error("Failed to serialise chatLog events to JSON; skipping '{}' marker variable.",
-          AgentConnector.VAR_CHAT_LOG, e);
-      return "";
+      LOG.error("Failed to serialise chatLog events to JSON; skipping update of '{}'.",
+          variableName, e);
+      return;
     }
-
-    BpmnExecutionContext ctx = Context.getBpmnExecutionContext();
-    if (ctx == null) {
-      LOG.warn("Cannot write '{}' marker variable: no BpmnExecutionContext on the current thread "
-          + "(connector invoked outside an engine command context).", AgentConnector.VAR_CHAT_LOG);
-      return chatLog;
-    }
-    ExecutionEntity execution = ctx.getExecution();
+    ExecutionEntity execution = currentExecution();
     if (execution == null) {
-      LOG.warn("Cannot write '{}' marker variable: BpmnExecutionContext has no ExecutionEntity.",
-          AgentConnector.VAR_CHAT_LOG);
-      return chatLog;
+      LOG.warn("Cannot update '{}' chat log variable: no BpmnExecutionContext on the current "
+          + "thread (connector invoked outside an engine command context).", variableName);
+      return;
     }
-
     // Default Java serialization is always registered (unlike Spin/Jackson) and stores
     // in ACT_GE_BYTEARRAY, so it bypasses the VARCHAR(4000) limit.
     Object value = Variables.objectValue(chatLog).create();
-    execution.setVariableLocal(AgentConnector.VAR_CHAT_LOG, value);
-    return chatLog;
+    execution.setVariable(variableName, value);
+  }
+
+  private static ExecutionEntity currentExecution() {
+    BpmnExecutionContext ctx = Context.getBpmnExecutionContext();
+    if (ctx == null) {
+      return null;
+    }
+    return ctx.getExecution();
   }
 
   @Override
@@ -140,6 +184,7 @@ class AgentChatListener implements ChatModelListener {
       LOG.debug("Available tools: {}", tools);
     }
     events.add(event);
+    persistEvents();
   }
 
   @Override
@@ -174,6 +219,7 @@ class AgentChatListener implements ChatModelListener {
       LOG.debug("Tokens: {}", usage);
     }
     events.add(event);
+    persistEvents();
   }
 
   @Override
@@ -184,6 +230,7 @@ class AgentChatListener implements ChatModelListener {
     event.put("message", ctx.error().getMessage());
     events.add(event);
     LOG.error("LLM ERROR: {}", ctx.error().getMessage(), ctx.error());
+    persistEvents();
   }
 
   private static String extractContent(ChatMessage msg) {

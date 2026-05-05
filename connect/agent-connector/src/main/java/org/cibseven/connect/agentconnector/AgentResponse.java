@@ -21,19 +21,19 @@ import org.cibseven.connect.spi.ConnectorResponse;
 /**
  * Response interface for the LangChain4j agent connector.
  *
- * <p>After a successful execution the following output parameters are available
+ * <p>After a successful execution the following output parameter is available
  * for BPMN output mapping:
  * <ul>
  *   <li>{@code output} — the final text response produced by the agent</li>
- *   <li>{@code chatLog} — JSON-serialised chat log for the current invocation</li>
  * </ul>
+ *
+ * <p>The chat log is not returned via the response: when
+ * {@link AgentConnector#PARAM_NAME_CHAT_LOG_VARIABLE chatLogVariable} is configured,
+ * the connector writes/updates a process variable directly during the invocation.
  */
 public interface AgentResponse extends ConnectorResponse {
 
   /** Returns the final text response produced by the agent. */
   String getOutput();
-
-  /** Returns the JSON-serialised chat log for the current invocation, never null. */
-  String getChatLog();
 
 }
