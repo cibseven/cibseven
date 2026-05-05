@@ -159,14 +159,12 @@ public class VariableInstanceEntity implements VariableInstance, CoreVariableIns
     if (taskId != null) {
       ProcessEngineConfigurationImpl config = Context.getProcessEngineConfiguration();
       if (config != null && config.isCheckVariableTaskId()) {
-        TaskEntity task = Context.getCommandContext()
-            .getTaskManager()
-            .findTaskById(taskId);
-        if (task == null) {
+        TaskEntity task = variableInstance.getTask();
+        if (task == null || task.isDeleted()) {
           throw new ProcessEngineException(
-              "Task with id '" + taskId + "' does not exist. "
+              "Task with id '" + taskId + "' is already deleted. "
               + "Cannot create variable '" + variableInstance.getName()
-              + "' with a reference to a non-existing task.");
+              + "' with a reference to a deleted task.");
         }
       }
     }
