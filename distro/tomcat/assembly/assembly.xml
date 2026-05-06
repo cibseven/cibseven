@@ -172,6 +172,11 @@
       <source>src/conf/bpm-platform.xml</source>
       <outputDirectory>server/apache-tomcat-${version.tomcat}/conf/</outputDirectory>
     </file>
+
+    <file>
+      <source>src/conf/Catalina/localhost/webapp.xml</source>
+      <outputDirectory>server/apache-tomcat-${version.tomcat}/conf/Catalina/localhost/</outputDirectory>
+    </file>
       
     <file>
       <source>src/tomcat/setenv.bat</source>
