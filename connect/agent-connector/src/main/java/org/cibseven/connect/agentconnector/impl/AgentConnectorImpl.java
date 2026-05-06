@@ -219,9 +219,9 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     if (apiKey != null && !apiKey.isEmpty()) {
       return apiKey;
     }
-    throw new AgentConnectorException(
-        "No API key provided: set the OPENAI_API_KEY environment variable "
-        + "or supply the 'apiKey' request parameter");
+    LOG.warn("No API key provided: set the OPENAI_API_KEY environment variable "
+        + "or supply the 'apiKey' request parameter (ignore if the target endpoint does not require one)");
+    return null;
   }
 
   private List<Object> resolveToolInstances(AgentRequest request) {
