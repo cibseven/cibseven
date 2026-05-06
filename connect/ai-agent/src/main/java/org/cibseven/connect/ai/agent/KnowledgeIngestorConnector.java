@@ -24,7 +24,7 @@ import org.cibseven.connect.spi.Connector;
  * <p>Use the connector ID {@value #ID} in a BPMN service task:
  * <pre>{@code
  * <camunda:connector>
- *   <camunda:connectorId>langchain4j-knowledge-ingestor</camunda:connectorId>
+ *   <camunda:connectorId>cibseven-knowledge-ingestor</camunda:connectorId>
  *   <camunda:inputOutput>
  *     <camunda:inputParameter name="content">${documentText}</camunda:inputParameter>
  *     <camunda:inputParameter name="source">${documentSource}</camunda:inputParameter>
@@ -43,7 +43,7 @@ import org.cibseven.connect.spi.Connector;
 public interface KnowledgeIngestorConnector extends Connector<KnowledgeIngestorRequest> {
 
   /** Connector ID used in {@code <camunda:connectorId>}. */
-  String ID = "langchain4j-knowledge-ingestor";
+  String ID = "cibseven-knowledge-ingestor";
 
   // ── Input parameter names ──────────────────────────────────────────────────
 

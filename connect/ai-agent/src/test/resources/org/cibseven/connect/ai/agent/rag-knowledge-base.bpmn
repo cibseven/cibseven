@@ -6,8 +6,8 @@
 
     1. Ingest: a text document is split, embedded (OpenAI text-embedding-3-small, 1536-dim
        when embeddingModelName is set; falls back to AllMiniLmL6V2, 384-dim otherwise),
-       and stored in a pgvector table via the langchain4j-knowledge-ingestor connector.
-    2. Query: the langchain4j-agent-connector uses the same pgvector table as a
+       and stored in a pgvector table via the cibseven-knowledge-ingestor connector.
+    2. Query: the cibseven-ai-agent uses the same pgvector table as a
        content retriever to answer a user question with RAG.
     3. Review: a human reviews the AI answer before the process ends.
 
@@ -100,7 +100,7 @@
     <serviceTask id="Task_IngestDocument" name="Ingest Document into Knowledge Base">
       <extensionElements>
         <camunda:connector>
-          <camunda:connectorId>langchain4j-knowledge-ingestor</camunda:connectorId>
+          <camunda:connectorId>cibseven-knowledge-ingestor</camunda:connectorId>
           <camunda:inputOutput>
 
             <!-- ── Document content ───────────────────────────────── -->
@@ -145,7 +145,7 @@
     <serviceTask id="Task_QueryWithRag" name="Answer Question using RAG">
       <extensionElements>
         <camunda:connector>
-          <camunda:connectorId>langchain4j-agent-connector</camunda:connectorId>
+          <camunda:connectorId>cibseven-ai-agent</camunda:connectorId>
           <camunda:inputOutput>
 
             <!-- ── Agent configuration ────────────────────────────── -->

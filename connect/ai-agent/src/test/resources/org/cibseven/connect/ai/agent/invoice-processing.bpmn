@@ -3,7 +3,7 @@
   Invoice Processing with AI Agent — BPMN 2.0
 
   This process receives an invoice (as plain text in the 'invoiceText' process variable),
-  sends it to a LangChain4j agent via the langchain4j-agent-connector, and then routes
+  sends it to a LangChain4j agent via the cibseven-ai-agent, and then routes
   to a human review task so an accountant can verify the extracted data.
 
   Required process variables before start:
@@ -56,7 +56,7 @@
     <serviceTask id="Task_ExtractInvoiceData" name="Extract Invoice Data (AI Agent)">
       <extensionElements>
         <camunda:connector>
-          <camunda:connectorId>langchain4j-agent-connector</camunda:connectorId>
+          <camunda:connectorId>cibseven-ai-agent</camunda:connectorId>
           <camunda:inputOutput>
 
             <!-- ── Agent configuration ────────────────────────── -->

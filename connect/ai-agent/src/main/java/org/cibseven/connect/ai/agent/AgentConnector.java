@@ -26,7 +26,7 @@ import org.cibseven.connect.spi.Connector;
  * {@code instruction} and {@code message} are required, the rest are optional.
  * <pre>{@code
  * <camunda:connector>
- *     <camunda:connectorId>langchain4j-agent-connector</camunda:connectorId>
+ *     <camunda:connectorId>cibseven-ai-agent</camunda:connectorId>
  *     <camunda:inputOutput>
  *       <!-- Core agent configuration -->
  *       <camunda:inputParameter name="agentName">my-agent</camunda:inputParameter>
@@ -95,7 +95,7 @@ import org.cibseven.connect.spi.Connector;
 public interface AgentConnector extends Connector<AgentRequest> {
 
   /** Connector ID used in {@code <camunda:connectorId>}. */
-  String ID = "langchain4j-agent-connector";
+  String ID = "cibseven-ai-agent";
 
   // ── Input parameter names ──────────────────────────────────────────────────
 

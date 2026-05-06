@@ -36,7 +36,7 @@ public class AgentConnectorTest {
   @Test
   public void shouldReturnCorrectConnectorId() {
     assertThat(connector.getId()).isEqualTo(AgentConnector.ID);
-    assertThat(connector.getId()).isEqualTo("langchain4j-agent-connector");
+    assertThat(connector.getId()).isEqualTo("cibseven-ai-agent");
   }
 
   @Test
