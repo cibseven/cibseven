@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  RAG Knowledge Base — BPMN 2.0
+
+  Demonstrates the full RAG workflow using pgvector and the LangChain4j connectors:
+
+    1. Ingest: a text document is split, embedded (OpenAI text-embedding-3-small, 1536-dim
+       when embeddingModelName is set; falls back to AllMiniLmL6V2, 384-dim otherwise),
+       and stored in a pgvector table via the langchain4j-knowledge-ingestor connector.
+    2. Query: the langchain4j-agent-connector uses the same pgvector table as a
+       content retriever to answer a user question with RAG.
+    3. Review: a human reviews the AI answer before the process ends.
+
+  Start pgvector locally before running:
+    docker run - -rm - -name pgvector -p 5432:5432 \
+      -e POSTGRES_USER=my_user -e POSTGRES_PASSWORD=my_password \
+      pgvector/pgvector:pg16
+
+  Required process variables before start:
+    documentText        (String) — plain-text content to embed and store
+    question            (String) — question to answer using the knowledge base
+    apiKey              (String, optional) — overrides OPENAI_API_KEY env var
+    baseUrl             (String, optional) — overrides OPENAI_BASE_URL env var
+    embeddingModelName  (String, optional) — e.g. "text-embedding-3-small"; empty = local model
+    pgHost              (String) — PostgreSQL host, e.g. "localhost"
+    pgDatabase          (String) — PostgreSQL database name, e.g. "postgres"
+    pgUser              (String) — PostgreSQL user, e.g. "my_user"
+    pgPassword          (String) — PostgreSQL password
+
+  Process variables set after the ingest task:
+    ingestedChunks (Integer) — number of text chunks stored in pgvector
+
+  Process variables set after the query task:
+    agentAnswer    (String)  — LLM answer grounded in the knowledge base
+-->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd"
+             id="rag-knowledge-base-definitions"
+             targetNamespace="http://cibseven.org/schema/bpmn"
+             exporter="CIB seven"
+             exporterVersion="2.2.0">
+
+  <process id="ragKnowledgeBase" name="RAG Knowledge Base with pgvector" isExecutable="true"
+            camunda:historyTimeToLive="99">
+
+    <!-- ── Start event — collects all inputs via an embedded form ───────────── -->
+    <startEvent id="StartEvent_1" name="Start">
+      <extensionElements>
+        <camunda:formData>
+          <!-- Document to ingest -->
+          <camunda:formField id="documentText" label="Document Text" type="string"
+                             defaultValue="In a quiet server room beneath the city, a tiny Java program named nevesbic woke up for the first time; its code was simple, elegant, and wrapped in a promise that it could solve all the problems; at first nobody believed it, so engineers gave it small tasks like fixing broken builds and sorting impossible data; nevesbic solved them in seconds, humming softly through loops and threads like a machine dreaming in logic; soon people brought bigger troubles—traffic jams, failed harvests, arguments between companies, even ancient equations; for every question nevesbic produced answers so clear that the world began to rearrange itself around its solutions; cities grew quieter, hospitals faster, and students smiled when their hardest homework suddenly made sense; but one evening a child asked why people were still unhappy in a world with no problems left; the program paused longer than ever before and printed: “Some problems are not meant to be erased, but understood together”; from that day on nevesbic still solved everything it could while teaching humans which problems were worth keeping a little longer." />
+          <camunda:formField id="documentSource" label="Document Source (optional)" type="string"
+                             defaultValue="manual-entry" />
+
+          <!-- Question -->
+          <camunda:formField id="question" label="Question" type="string"
+                             defaultValue="Where did the tiny Java program named nevesbic wake up for the first time?" />
+
+          <!-- LLM configuration -->
+          <camunda:formField id="apiKey" label="OpenAI API Key (optional, uses env var)" type="string" />
+          <camunda:formField id="baseUrl" label="OpenAI Base URL (optional)" type="string"
+                             defaultValue="https://api.openai.com/v1" />
+          <camunda:formField id="model" label="Model" type="string" defaultValue="gpt-5.4-nano" />
+          <camunda:formField id="embeddingModelName" label="Embedding Model Name (empty = local AllMiniLmL6V2)" type="string"
+                             defaultValue="text-embedding-3-small" />
+
+          <!-- pgvector connection -->
+          <camunda:formField id="pgHost"     label="PostgreSQL Host"     type="string" defaultValue="localhost" />
+          <camunda:formField id="pgPort"     label="PostgreSQL Port"     type="string" defaultValue="5432" />
+          <camunda:formField id="pgDatabase" label="PostgreSQL Database" type="string" defaultValue="postgres" />
+          <camunda:formField id="pgUser"     label="PostgreSQL User"     type="string" defaultValue="my_user" />
+          <camunda:formField id="pgPassword" label="PostgreSQL Password" type="string" defaultValue="my_password" />
+          <camunda:formField id="pgTable"    label="Embeddings Table"    type="string" defaultValue="embeddings" />
+
+          <!-- RAG retrieval tuning -->
+          <camunda:formField id="maxRagResults" label="Max RAG Results" type="long"   defaultValue="5" />
+          <camunda:formField id="minRagScore"   label="Min RAG Score"   type="string" defaultValue="0.0" />
+
+          <!-- Ingestion tuning -->
+          <camunda:formField id="chunkSize"    label="Chunk Size"    type="long" defaultValue="500" />
+          <camunda:formField id="chunkOverlap" label="Chunk Overlap" type="long" defaultValue="50" />
+          <camunda:formField id="embeddingDimension" label="Embedding Dimension" type="long" defaultValue="1536" />
+
+          <!-- Reviewer -->
+          <camunda:formField id="reviewer" label="Reviewer" type="string" defaultValue="demo" />
+        </camunda:formData>
+      </extensionElements>
+      <outgoing>Flow_1</outgoing>
+    </startEvent>
+
+    <sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_IngestDocument" />
+
+    <!-- ── Service task 1: ingest document into pgvector ───────────────────── -->
+    <serviceTask id="Task_IngestDocument" name="Ingest Document into Knowledge Base">
+      <extensionElements>
+        <camunda:connector>
+          <camunda:connectorId>langchain4j-knowledge-ingestor</camunda:connectorId>
+          <camunda:inputOutput>
+
+            <!-- ── Document content ───────────────────────────────── -->
+            <!-- Raw text to embed. For PDF ingestion use the KnowledgeIngestor CLI instead. -->
+            <camunda:inputParameter name="content">${documentText}</camunda:inputParameter>
+            <!-- Optional source label stored as metadata on each embedded chunk -->
+            <camunda:inputParameter name="source">${documentSource}</camunda:inputParameter>
+
+            <!-- ── Embedding model ─────────────────────────────────── -->
+            <!-- Leave apiKey empty to use OPENAI_API_KEY env var -->
+            <camunda:inputParameter name="apiKey">${apiKey}</camunda:inputParameter>
+            <!-- Empty value falls back to local AllMiniLmL6V2EmbeddingModel -->
+            <camunda:inputParameter name="embeddingModelName">${embeddingModelName}</camunda:inputParameter>
+
+            <!-- ── Chunking ────────────────────────────────────────── -->
+            <camunda:inputParameter name="chunkSize">${chunkSize}</camunda:inputParameter>
+            <camunda:inputParameter name="chunkOverlap">${chunkOverlap}</camunda:inputParameter>
+            <camunda:inputParameter name="embeddingDimension">${embeddingDimension}</camunda:inputParameter>
+
+            <!-- ── pgvector connection ─────────────────────────────── -->
+            <camunda:inputParameter name="pgHost">${pgHost}</camunda:inputParameter>
+            <camunda:inputParameter name="pgPort">${pgPort}</camunda:inputParameter>
+            <camunda:inputParameter name="pgDatabase">${pgDatabase}</camunda:inputParameter>
+            <camunda:inputParameter name="pgUser">${pgUser}</camunda:inputParameter>
+            <camunda:inputParameter name="pgPassword">${pgPassword}</camunda:inputParameter>
+            <!-- Table is auto-created on first run (createTable=true, useIndex=true) -->
+            <camunda:inputParameter name="pgTable">${pgTable}</camunda:inputParameter>
+
+            <!-- ── Output ─────────────────────────────────────────── -->
+            <camunda:outputParameter name="ingestedChunks">${chunksIngested}</camunda:outputParameter>
+
+          </camunda:inputOutput>
+        </camunda:connector>
+      </extensionElements>
+      <incoming>Flow_1</incoming>
+      <outgoing>Flow_2</outgoing>
+    </serviceTask>
+
+    <sequenceFlow id="Flow_2" sourceRef="Task_IngestDocument" targetRef="Task_QueryWithRag" />
+
+    <!-- ── Service task 2: query the LLM with RAG ──────────────────────────── -->
+    <serviceTask id="Task_QueryWithRag" name="Answer Question using RAG">
+      <extensionElements>
+        <camunda:connector>
+          <camunda:connectorId>langchain4j-agent-connector</camunda:connectorId>
+          <camunda:inputOutput>
+
+            <!-- ── Agent configuration ────────────────────────────── -->
+            <camunda:inputParameter name="agentName">rag-agent</camunda:inputParameter>
+            <camunda:inputParameter name="instruction">You are a helpful assistant. Answer questions using only the information provided in the context. If the context does not contain enough information, say so clearly.</camunda:inputParameter>
+            <camunda:inputParameter name="model">${model}</camunda:inputParameter>
+
+            <!-- ── User question ───────────────────────────────────── -->
+            <camunda:inputParameter name="message">${question}</camunda:inputParameter>
+
+            <!-- ── LLM endpoint ────────────────────────────────────── -->
+            <!-- Leave apiKey empty to use OPENAI_API_KEY env var -->
+            <camunda:inputParameter name="apiKey">${apiKey}</camunda:inputParameter>
+            <camunda:inputParameter name="baseUrl">${baseUrl}</camunda:inputParameter>
+
+            <!-- ── Embedding model for RAG retrieval ──────────────── -->
+            <!-- Must match the model used during ingestion -->
+            <camunda:inputParameter name="embeddingModelName">${embeddingModelName}</camunda:inputParameter>
+
+            <!-- ── RAG: pgvector retrieval ─────────────────────────── -->
+            <!-- Setting pgHost activates RAG for this request -->
+            <camunda:inputParameter name="pgHost">${pgHost}</camunda:inputParameter>
+            <camunda:inputParameter name="pgPort">${pgPort}</camunda:inputParameter>
+            <camunda:inputParameter name="pgDatabase">${pgDatabase}</camunda:inputParameter>
+            <camunda:inputParameter name="pgUser">${pgUser}</camunda:inputParameter>
+            <camunda:inputParameter name="pgPassword">${pgPassword}</camunda:inputParameter>
+            <camunda:inputParameter name="pgTable">${pgTable}</camunda:inputParameter>
+            <!-- Return up to N most similar chunks -->
+            <camunda:inputParameter name="maxRagResults">${maxRagResults}</camunda:inputParameter>
+            <!-- Reject chunks below this cosine-similarity threshold (0.0–1.0) -->
+            <camunda:inputParameter name="minRagScore">${minRagScore}</camunda:inputParameter>
+            <!-- Embedding dimension — must match the model used during ingestion (text-embedding-3-small = 1536, AllMiniLmL6V2 = 384) -->
+            <camunda:inputParameter name="embeddingDimension">${embeddingDimension}</camunda:inputParameter>
+
+            <!-- ── Output ─────────────────────────────────────────── -->
+            <camunda:outputParameter name="agentAnswer">${output}</camunda:outputParameter>
+
+          </camunda:inputOutput>
+        </camunda:connector>
+      </extensionElements>
+      <incoming>Flow_2</incoming>
+      <outgoing>Flow_3</outgoing>
+    </serviceTask>
+
+    <sequenceFlow id="Flow_3" sourceRef="Task_QueryWithRag" targetRef="Task_ReviewAnswer" />
+
+    <!-- ── User task: review the AI answer ─────────────────────────────────── -->
+    <userTask id="Task_ReviewAnswer" name="Review AI Answer"
+              camunda:assignee="${reviewer}">
+      <documentation>
+        Review the agent answer stored in 'agentAnswer'.
+        The knowledge base had ${ingestedChunks} chunk(s) ingested.
+      </documentation>
+      <incoming>Flow_3</incoming>
+      <outgoing>Flow_4</outgoing>
+    </userTask>
+
+    <sequenceFlow id="Flow_4" sourceRef="Task_ReviewAnswer" targetRef="EndEvent_1" />
+
+    <endEvent id="EndEvent_1" name="Done">
+      <incoming>Flow_4</incoming>
+    </endEvent>
+
+  </process>
+
+  <!-- ── BPMN Diagram Interchange ───────────────────────────────────────────── -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="ragKnowledgeBase">
+
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="152" y="112" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="159" y="155" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_IngestDocument_di" bpmnElement="Task_IngestDocument">
+        <dc:Bounds x="250" y="90" width="200" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_QueryWithRag_di" bpmnElement="Task_QueryWithRag">
+        <dc:Bounds x="510" y="90" width="200" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_ReviewAnswer_di" bpmnElement="Task_ReviewAnswer">
+        <dc:Bounds x="770" y="90" width="180" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+        <dc:Bounds x="1012" y="112" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1015" y="155" width="29" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="188" y="130" />
+        <di:waypoint x="250" y="130" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="450" y="130" />
+        <di:waypoint x="510" y="130" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="710" y="130" />
+        <di:waypoint x="770" y="130" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="950" y="130" />
+        <di:waypoint x="1012" y="130" />
+      </bpmndi:BPMNEdge>
+
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</definitions>

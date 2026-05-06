@@ -39,7 +39,7 @@
 
       <dependency>
         <groupId>org.cibseven.connect</groupId>
-        <artifactId>cibseven-connect-agent-connector</artifactId>
+        <artifactId>cibseven-connect-ai-agent</artifactId>
         <version>${project.version}</version>
       </dependency>
 
