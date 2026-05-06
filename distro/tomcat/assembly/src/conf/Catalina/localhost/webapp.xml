@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- The contents of this file will be loaded for the webapps application -->
+<Context>
+    <ResourceLink name="jdbc/ProcessEngine"
+              global="jdbc/ProcessEngine"
+              type="javax.sql.DataSource" />
+
+</Context>
+
+
