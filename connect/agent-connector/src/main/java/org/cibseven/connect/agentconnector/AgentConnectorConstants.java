@@ -65,6 +65,14 @@ public final class AgentConnectorConstants {
   /** Default character overlap between consecutive chunks. */
   public static final int DEFAULT_CHUNK_OVERLAP = 50;
 
+  // ── Agent connector flag ──────────────────────────────────────────────────
+
+  /**
+   * Flag that indicates the execution of the agent connector in the process;
+   * only possible value is {@code true}.
+   */
+  public static final String AGENT_CONNECTOR_FLAG_VARIABLE_NAME = "cibseven-langchain4j-agent-connector";
+
   // ── Chat memory defaults ──────────────────────────────────────────────────
 
   /**

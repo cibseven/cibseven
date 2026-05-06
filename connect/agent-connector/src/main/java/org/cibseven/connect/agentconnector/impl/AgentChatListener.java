@@ -49,6 +49,8 @@ import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.variable.Variables;
 
+import org.cibseven.connect.agentconnector.AgentConnectorConstants;
+
 /**
  * Captures every {@link ChatModelListener} event (request / response / error) into a
  * structured list and — when a process variable name is configured — persists it as
@@ -72,6 +74,7 @@ class AgentChatListener implements ChatModelListener {
 
   private final String variableName;
   private final List<Map<String, Object>> events = new ArrayList<>();
+  private boolean flagWritten = false;
 
   /** Test/no-engine constructor: collects events in memory but never persists. */
   AgentChatListener() {
@@ -145,6 +148,11 @@ class AgentChatListener implements ChatModelListener {
     // in ACT_GE_BYTEARRAY, so it bypasses the VARCHAR(4000) limit.
     Object value = Variables.objectValue(chatLog).create();
     execution.setVariable(variableName, value);
+    if (!flagWritten) {
+      // Flag that indicates the execution of the agent connector in the process
+      execution.setVariable(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
+      flagWritten = true;
+    }
   }
 
   private static ExecutionEntity currentExecution() {
