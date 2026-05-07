@@ -5,6 +5,16 @@
     <ResourceLink name="jdbc/ProcessEngine"
               global="jdbc/ProcessEngine"
               type="javax.sql.DataSource" />
+  
+    <Parameter
+        name="cibseven.webclient.modeler.enabled"
+        value="true"
+        override="false" />
+
+    <Parameter
+        name="spring.datasource.jndi-name"
+        value="java:comp/env/jdbc/ProcessEngine"
+        override="true" />
 
 </Context>
 
