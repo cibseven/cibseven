@@ -133,6 +133,12 @@
       <directory>../modules/oauth2/target/dependency/</directory>
       <outputDirectory>internal/oauth2/</outputDirectory>
     </fileSet>
+    <!-- ai-agent ships into userlib so it is always on the engine classpath
+         and registers via the cibseven-connect SPI without requiring an opt-in flag -->
+    <fileSet>
+      <directory>../modules/ai-agent/target/dependency/</directory>
+      <outputDirectory>configuration/userlib/</outputDirectory>
+    </fileSet>
     <!-- create empty resource folder -->
     <fileSet>
       <directory>resources/dummyResource</directory>
@@ -140,6 +146,10 @@
       <excludes>
         <exclude>*/**</exclude>
       </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>resources/element-templates</directory>
+      <outputDirectory>configuration/resources/element-templates/</outputDirectory>
     </fileSet>
   </fileSets>
 
