@@ -101,6 +101,7 @@
         <module>distro/license-book</module>
         <module>distro/jboss</module>
         <module>distro/tomcat</module>
+        <module>distro/tomcat11</module>
         <module>distro/sql-script</module>
         <module>distro/run</module>
         <module>distro/run4</module>
@@ -170,6 +171,7 @@
       <modules>
         <module>distro/license-book</module>
         <module>distro/tomcat</module>
+        <module>distro/tomcat11</module>
       </modules>
     </profile>
 

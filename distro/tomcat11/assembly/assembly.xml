@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="urn:maven:assembly:1.1.0-SNAPSHOT">
+    
+  <id>assemble</id>
+    
+  <formats>
+    <format>tar.gz</format>
+  </formats>
+
+  <includeBaseDirectory>false</includeBaseDirectory>
+
+  <dependencySets>
+   <dependencySet>
+      <outputDirectory>/</outputDirectory>
+      <includes>
+        <include>org.cibseven.bpm:license-book:zip</include>
+      </includes>
+      <unpack>true</unpack>
+    </dependencySet>
+   <dependencySet>
+      <outputDirectory>server/</outputDirectory>
+      <includes>
+        <include>org.apache.tomcat:tomcat:tar.gz</include>
+      </includes>
+      <unpackOptions>
+        <excludes>
+          <exclude>**/conf/server.xml</exclude>
+        </excludes>
+      </unpackOptions>
+      <unpack>true</unpack>
+    </dependencySet>
+    <dependencySet>
+      <outputDirectory>server/apache-tomcat-${version.tomcat11}/lib</outputDirectory>
+      <includes>
+
+        <include>com.h2database:h2:jar</include>
+
+        <include>org.cibseven.bpm:cibseven-engine:jar</include>
+        <include>org.cibseven.bpm.identity:cibseven-identity-ldap:jar</include>
+
+        <include>org.mybatis:mybatis:jar:*</include>
+        <include>com.fasterxml.uuid:java-uuid-generator:jar:*</include>
+        <include>joda-time:joda-time:jar:*</include>
+        <include>org.apache.groovy:groovy:jar:*</include>
+        <include>org.apache.groovy:groovy-jsr223:jar:*</include>
+        <include>org.apache.groovy:groovy-json:jar:*</include>
+        <include>org.apache.groovy:groovy-xml:jar:*</include>
+        <include>org.apache.groovy:groovy-templates:jar:*</include>
+        <include>org.apache.groovy:groovy-dateutil:jar:*</include>
+        <include>org.apache.groovy:groovy-datetime:jar:*</include>
+
+        <include>org.graalvm.js:*</include>
+        <include>org.graalvm.regex:regex:jar:*</include>
+        <include>org.graalvm.truffle:truffle-api:jar:*</include>
+        <include>org.graalvm.sdk:graal-sdk:jar:*</include>
+        <include>com.ibm.icu:icu4j:jar:*</include>
+        <include>org.slf4j:slf4j-api:jar:*</include>
+        <include>org.slf4j:slf4j-jdk14:jar:*</include>
+
+        <include>org.cibseven.bpm:cibseven-engine-plugin-*:jar</include>
+        <include>org.cibseven.spin:cibseven-spin-core*:jar</include>
+        <include>org.cibseven.spin:cibseven-spin-dataformat-all*:jar</include>
+        <include>org.cibseven.connect:*:jar</include>
+        <include>org.cibseven.commons:*:jar</include>
+
+        <include>org.cibseven.bpm.model:*:jar</include>
+        <include>org.cibseven.bpm.dmn:*:jar</include>
+        <include>org.cibseven.bpm.juel:*:jar</include>
+
+        <include>org.camunda.feel:*:jar</include>
+
+        <include>org.freemarker:*:jar</include>
+        <include>org.cibseven.template-engines:*:jar</include>
+      </includes>
+    </dependencySet>
+
+    <dependencySet>
+      <outputDirectory>lib/</outputDirectory>
+      <includes>
+
+        <include>com.h2database:h2:jar</include>
+
+        <include>org.cibseven.bpm:cibseven-engine:jar</include>
+        <include>org.cibseven.bpm.identity:cibseven-identity-ldap:jar</include>
+
+        <include>org.mybatis:mybatis:jar:*</include>
+        <include>com.fasterxml.uuid:java-uuid-generator:jar:*</include>
+        <include>joda-time:joda-time:jar:*</include>
+        <include>org.apache.groovy:groovy:jar:*</include>
+        <include>org.apache.groovy:groovy-jsr223:jar:*</include>
+        <include>org.apache.groovy:groovy-json:jar:*</include>
+        <include>org.apache.groovy:groovy-xml:jar:*</include>
+        <include>org.apache.groovy:groovy-templates:jar:*</include>
+        <include>org.apache.groovy:groovy-dateutil:jar:*</include>
+        <include>org.apache.groovy:groovy-datetime:jar:*</include>
+        <include>org.graalvm.js:*</include>
+        <include>org.graalvm.regex:regex:jar:*</include>
+        <include>org.graalvm.truffle:truffle-api:jar:*</include>
+        <include>org.graalvm.sdk:graal-sdk:jar:*</include>
+        <include>com.ibm.icu:icu4j:jar:*</include>
+        <include>org.slf4j:slf4j-api:jar:*</include>
+        <include>org.slf4j:slf4j-jdk14:jar:*</include>
+
+        <include>org.cibseven.bpm:cibseven-engine-plugin-*:jar</include>
+        <include>org.cibseven.spin:cibseven-spin-core*:jar</include>
+        <include>org.cibseven.spin:cibseven-spin-dataformat-all*:jar</include>
+        <include>org.cibseven.connect:*:jar</include>
+        <include>org.cibseven.commons:*:jar</include>
+
+        <include>org.cibseven.bpm.model:*:jar</include>
+        <include>org.cibseven.bpm.dmn:*:jar</include>
+        <include>org.cibseven.bpm.juel:*:jar</include>
+
+        <include>org.camunda.feel:*:jar</include>
+
+        <include>org.freemarker:*:jar</include>
+        <include>org.cibseven.template-engines:*:jar</include>
+      </includes>
+    </dependencySet>
+  </dependencySets>
+
+  <files>
+    <file>
+      <source>src/README.txt</source>
+      <filtered>true</filtered>
+      <lineEnding>crlf</lineEnding>
+      <outputDirectory></outputDirectory>
+    </file>
+    <file>
+      <source>../../license/LICENSE</source>
+      <filtered>true</filtered>
+      <lineEnding>crlf</lineEnding>
+      <outputDirectory></outputDirectory>
+    </file>
+    <file>
+      <source>../../license/NOTICE</source>
+      <filtered>true</filtered>
+      <lineEnding>crlf</lineEnding>
+      <outputDirectory></outputDirectory>
+    </file>
+    <file>
+      <source>src/start-cibseven.bat</source>
+      <filtered>true</filtered>
+      <outputDirectory></outputDirectory>
+    </file>
+    <file>
+      <source>src/start-cibseven.sh</source>
+      <filtered>true</filtered>
+      <outputDirectory></outputDirectory>
+      <fileMode>0755</fileMode>
+    </file>
+    <file>
+      <source>src/shutdown-cibseven.bat</source>
+      <filtered>true</filtered>
+      <outputDirectory></outputDirectory>
+    </file>
+    <file>
+      <source>src/shutdown-cibseven.sh</source>
+      <filtered>true</filtered>
+      <outputDirectory></outputDirectory>
+      <fileMode>0755</fileMode>
+    </file>
+
+    <file>
+      <source>src/conf/server.xml</source>
+      <outputDirectory>server/apache-tomcat-${version.tomcat11}/conf/</outputDirectory>
+    </file>
+    
+    <file>
+      <source>src/conf/bpm-platform.xml</source>
+      <outputDirectory>server/apache-tomcat-${version.tomcat11}/conf/</outputDirectory>
+    </file>
+
+    <file>
+      <source>src/conf/Catalina/localhost/webapp.xml</source>
+      <outputDirectory>server/apache-tomcat-${version.tomcat11}/conf/Catalina/localhost/</outputDirectory>
+    </file>
+      
+    <file>
+      <source>src/tomcat/setenv.bat</source>
+      <outputDirectory>server/apache-tomcat-${version.tomcat11}/bin/</outputDirectory>
+    </file>
+    <file>
+      <source>src/tomcat/setenv.sh</source>
+      <outputDirectory>server/apache-tomcat-${version.tomcat11}/bin/</outputDirectory>
+    </file>
+  </files>
+</assembly>
