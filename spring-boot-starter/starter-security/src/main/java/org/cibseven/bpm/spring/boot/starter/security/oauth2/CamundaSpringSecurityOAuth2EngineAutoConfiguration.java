@@ -17,6 +17,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
@@ -58,6 +59,7 @@ public class CamundaSpringSecurityOAuth2EngineAutoConfiguration {
   }
   
   @Bean
+  @ConditionalOnMissingBean(name = "engineRestAuthenticationFilter")
   public FilterRegistrationBean<?> engineRestAuthenticationFilter(JerseyApplicationPath applicationPath) {
     FilterRegistrationBean<Filter> filterRegistration = new FilterRegistrationBean<>();
     filterRegistration.setName("Container Based Authentication Filter for engine-rest");
@@ -73,6 +75,7 @@ public class CamundaSpringSecurityOAuth2EngineAutoConfiguration {
 
   @Bean
   @ConditionalOnProperty(name = "identity-provider.group-name-attribute", prefix = OAuth2Properties.PREFIX)
+  @ConditionalOnMissingBean(name = "oauth2JwtAuthenticationConverter")
   protected JwtAuthenticationConverter oauth2JwtAuthenticationConverter() {
       JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
       converter.setJwtGrantedAuthoritiesConverter((Converter<Jwt, Collection<GrantedAuthority>>) jwt -> {
@@ -111,6 +114,7 @@ public class CamundaSpringSecurityOAuth2EngineAutoConfiguration {
 
   @Bean
   @Order(1) 
+  @ConditionalOnMissingBean(name = "engineRestSecurityFilterChain")
   public SecurityFilterChain engineRestSecurityFilterChain(HttpSecurity http, 
           JerseyApplicationPath applicationPath,
           @Nullable JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
