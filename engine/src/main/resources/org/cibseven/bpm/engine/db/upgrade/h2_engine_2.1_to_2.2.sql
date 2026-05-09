@@ -29,9 +29,9 @@ CREATE TABLE IF NOT EXISTS mod_element_templates (
     version INTEGER DEFAULT 1,
     template_id VARCHAR(100) NOT NULL UNIQUE,
     name VARCHAR(200) NOT NULL,
-    description VARCHAR(32600),
+    description CLOB,
     origin VARCHAR(50) NOT NULL,
-    content VARCHAR(32600),
+    content CLOB,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     created_by VARCHAR(100),
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS mod_processes_diagrams (
     active BOOLEAN DEFAULT TRUE NOT NULL,
     type VARCHAR(50) NOT NULL,
     version INTEGER DEFAULT 1,
-    diagram VARBINARY(32600),
+    diagram BLOB,
     updated_by VARCHAR(100)
 );
 
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS mod_processes_diagrams_aud (
     type VARCHAR(50),
     version INTEGER DEFAULT 1,
     diagram_mod BOOLEAN DEFAULT false,
-    diagram VARBINARY(32600),
+    diagram BLOB,
     updated_by VARCHAR(100),
     rev BIGINT NOT NULL,
     revtype TINYINT,
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS mod_forms (
     created TIMESTAMP,
     updated TIMESTAMP,
     active BOOLEAN DEFAULT TRUE NOT NULL,
-    form_schema VARBINARY(32600) NOT NULL,
+    form_schema BLOB NOT NULL,
     formid VARCHAR(100) NOT NULL UNIQUE,
     version INTEGER DEFAULT 1,
     updated_by VARCHAR(100)
