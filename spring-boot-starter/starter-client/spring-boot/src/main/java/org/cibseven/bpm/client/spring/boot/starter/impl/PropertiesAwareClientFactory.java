@@ -88,7 +88,7 @@ public class PropertiesAwareClientFactory extends ClientFactory implements Resou
         .additionalParameters(oauth2.getAdditionalParameters())
         .expiryBuffer(Duration.ofSeconds(oauth2.getExpiryBufferSeconds()));
 
-    if (oauth2.getClientSecret() != null) {
+    if (oauth2.getClientSecret() != null && !oauth2.getClientSecret().isBlank()) {
       builder.clientSecret(oauth2.getClientSecret());
     } else {
       builder.clientAssertionProvider(buildAssertionProvider(oauth2));

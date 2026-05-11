@@ -72,7 +72,7 @@ import static org.apache.hc.core5.http.HttpHeaders.AUTHORIZATION;
  *   .build();
  * }</pre>
  */
-public class OAuth2ClientCredentialsProvider implements ClientRequestInterceptor {
+public class OAuth2ClientCredentialsProvider implements ClientRequestInterceptor, java.io.Closeable {
 
   protected static final ExternalTaskClientLogger LOG = ExternalTaskClientLogger.CLIENT_LOGGER;
 
@@ -108,8 +108,13 @@ public class OAuth2ClientCredentialsProvider implements ClientRequestInterceptor
         ? Collections.emptyMap()
         : Collections.unmodifiableMap(new LinkedHashMap<>(builder.additionalParameters));
     this.expiryBuffer = builder.expiryBuffer;
-    this.httpClient = HttpClients.createDefault();
-    this.objectMapper = new ObjectMapper();
+    this.httpClient = builder.httpClient != null ? builder.httpClient : HttpClients.createDefault();
+    this.objectMapper = builder.objectMapper != null ? builder.objectMapper : new ObjectMapper();
+  }
+
+  @Override
+  public void close() throws IOException {
+    httpClient.close();
   }
 
   public static Builder builder() {
@@ -140,7 +145,7 @@ public class OAuth2ClientCredentialsProvider implements ClientRequestInterceptor
     params.add(new BasicNameValuePair("grant_type", GRANT_TYPE_CLIENT_CREDENTIALS));
     params.add(new BasicNameValuePair("client_id", clientId));
 
-    if (clientSecret != null) {
+    if (clientSecret != null && !clientSecret.isBlank()) {
       params.add(new BasicNameValuePair("client_secret", clientSecret));
     } else {
       params.add(new BasicNameValuePair("client_assertion_type", ASSERTION_TYPE));
@@ -168,7 +173,9 @@ public class OAuth2ClientCredentialsProvider implements ClientRequestInterceptor
     try {
       String[] result = httpClient.execute(request, response -> {
         int statusCode = response.getCode();
-        String body = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+        String body = response.getEntity() != null
+            ? EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8)
+            : "";
 
         if (statusCode != 200) {
           JsonNode errorJson = parseJsonSilently(body);
@@ -183,6 +190,10 @@ public class OAuth2ClientCredentialsProvider implements ClientRequestInterceptor
 
       JsonNode json = objectMapper.readTree(result[0]);
       String accessToken = json.path("access_token").asText();
+      if (accessToken == null || accessToken.isBlank()) {
+        throw new ExternalTaskClientException(
+            "Token endpoint response did not contain a valid access_token");
+      }
       long expiresIn = json.path("expires_in").asLong(3600L);
 
       cachedToken = accessToken;
@@ -218,6 +229,8 @@ public class OAuth2ClientCredentialsProvider implements ClientRequestInterceptor
     private String resource;
     private Map<String, String> additionalParameters = new LinkedHashMap<>();
     private Duration expiryBuffer = Duration.ofSeconds(30);
+    private CloseableHttpClient httpClient;
+    private ObjectMapper objectMapper;
 
     /**
      * Sets the OAuth2 token endpoint URI (required).
@@ -311,6 +324,24 @@ public class OAuth2ClientCredentialsProvider implements ClientRequestInterceptor
       return this;
     }
 
+    /**
+     * Sets a custom {@link CloseableHttpClient} for token requests (optional).
+     * If not set, a default client is created via {@link HttpClients#createDefault()}.
+     */
+    public Builder httpClient(CloseableHttpClient httpClient) {
+      this.httpClient = httpClient;
+      return this;
+    }
+
+    /**
+     * Sets a custom {@link ObjectMapper} for parsing token responses (optional).
+     * If not set, a default instance is created.
+     */
+    public Builder objectMapper(ObjectMapper objectMapper) {
+      this.objectMapper = objectMapper;
+      return this;
+    }
+
     public OAuth2ClientCredentialsProvider build() {
       if (tokenUri == null || tokenUri.isBlank()) {
         throw LOG.oauth2TokenUriNullException();
@@ -318,13 +349,17 @@ public class OAuth2ClientCredentialsProvider implements ClientRequestInterceptor
       if (clientId == null || clientId.isBlank()) {
         throw LOG.oauth2ClientIdNullException();
       }
-      if (clientSecret == null && clientAssertionProvider == null) {
+      if ((clientSecret == null || clientSecret.isBlank()) && clientAssertionProvider == null) {
         throw new ExternalTaskClientException(
             "Either clientSecret or clientAssertionProvider must be configured on OAuth2ClientCredentialsProvider");
       }
       if (clientSecret != null && clientAssertionProvider != null) {
         throw new ExternalTaskClientException(
             "Only one of clientSecret or clientAssertionProvider may be set on OAuth2ClientCredentialsProvider, not both");
+      }
+      if (expiryBuffer != null && expiryBuffer.isNegative()) {
+        throw new ExternalTaskClientException(
+            "expiryBuffer must not be negative on OAuth2ClientCredentialsProvider");
       }
       return new OAuth2ClientCredentialsProvider(this);
     }

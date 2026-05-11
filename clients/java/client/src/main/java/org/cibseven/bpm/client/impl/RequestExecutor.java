@@ -125,7 +125,7 @@ public class RequestExecutor {
         if (statusLine.getStatusCode() >= 300) {
           try {
             RestException engineException;
-            if (entity.getContentLength() == 0) {
+            if (entity == null || entity.getContentLength() == 0) {
               EngineRestExceptionDto dto = new EngineRestExceptionDto();
               dto.setMessage("No body in response, unable to parse error message");
               engineException = dto.toRestException();
@@ -139,7 +139,7 @@ public class RequestExecutor {
             throw engineException;
 
           } finally {
-            EntityUtils.consume(entity);
+              EntityUtils.consume(entity);
           }
         }
         return entity == null ? null : handleEntity(entity);

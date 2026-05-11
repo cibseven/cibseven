@@ -21,8 +21,6 @@ import io.jsonwebtoken.Jwts;
 import org.cibseven.bpm.client.exception.ExternalTaskClientException;
 
 import java.security.PrivateKey;
-import java.security.interfaces.ECPrivateKey;
-import java.security.interfaces.RSAPrivateKey;
 import java.util.Date;
 import java.util.UUID;
 
