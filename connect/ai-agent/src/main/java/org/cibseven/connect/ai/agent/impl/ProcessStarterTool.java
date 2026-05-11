@@ -21,6 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -63,6 +67,25 @@ public class ProcessStarterTool {
 
     /** Default delay between polls when the caller does not supply {@code pollIntervalMillis}. */
     static final long DEFAULT_POLL_INTERVAL_MILLIS = 2000L;
+
+    /**
+     * Dedicated executor for engine calls. A cached daemon-thread pool is used
+     * instead of the JVM-wide {@code ForkJoinPool.commonPool()} because this
+     * tool performs blocking engine queries and {@code Thread.sleep} polling —
+     * the common pool is sized for CPU-bound parallel work and is shared with
+     * the rest of the JVM (e.g. parallel streams), so blocking it would
+     * degrade unrelated workloads.
+     */
+    private static final ExecutorService ENGINE_EXECUTOR = Executors.newCachedThreadPool(
+            new ThreadFactory() {
+                private final AtomicInteger seq = new AtomicInteger();
+                @Override
+                public Thread newThread(Runnable r) {
+                    Thread t = new Thread(r, "cibseven-agent-tool-" + seq.incrementAndGet());
+                    t.setDaemon(true);
+                    return t;
+                }
+            });
 
     @Tool("Starts a CIB seven process by its definition key, polls until it ends (or until the "
             + "retry budget is exhausted) and returns its output variables. The result map "
@@ -211,7 +234,7 @@ public class ProcessStarterTool {
                 } finally {
                     identityService.clearAuthentication();
                 }
-            }).get();
+            }, ENGINE_EXECUTOR).get();
         } catch (ExecutionException e) {
             Throwable cause = e.getCause();
             if (cause instanceof RuntimeException) {

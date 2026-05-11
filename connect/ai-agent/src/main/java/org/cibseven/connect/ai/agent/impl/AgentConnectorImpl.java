@@ -421,14 +421,14 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     String description = request.getAgentDescription();
     String instruction = request.getInstruction();
     boolean callerInstruction = instruction != null && !instruction.isEmpty();
-    LOG.info("buildSystemPrompt: callerInstructionPresent={}, descriptionPresent={}",
+    LOG.debug("buildSystemPrompt: callerInstructionPresent={}, descriptionPresent={}",
         callerInstruction, description != null && !description.isEmpty());
     if (!callerInstruction) {
       instruction = loadDefaultInstruction();
     }
     boolean hasDescription = description != null && !description.isEmpty();
     boolean hasInstruction = instruction != null && !instruction.isEmpty();
-    LOG.info("buildSystemPrompt: resolved instruction length={}, description length={}",
+    LOG.debug("buildSystemPrompt: resolved instruction length={}, description length={}",
         hasInstruction ? instruction.length() : 0,
         hasDescription ? description.length() : 0);
     if (hasDescription && hasInstruction) {
@@ -444,36 +444,32 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    * <p>Returns {@code null} when the resource is missing or unreadable —
    * the connector still runs without a system prompt in that case; the
    * failure is logged at ERROR level.
-   *
-   * <p>TODO(debug): the {@code INFO}-level logging in this method is
-   * temporary and should be downgraded to {@code DEBUG} once the
-   * distribution packaging is confirmed to ship the resource correctly.
    */
   static String loadDefaultInstruction() {
     String cached = defaultInstructionCache;
     if (cached != null) {
-      LOG.info("loadDefaultInstruction: cache hit ({} chars)", cached.length());
+      LOG.debug("loadDefaultInstruction: cache hit ({} chars)", cached.length());
       return cached;
     }
 
     ClassLoader ownCl = AgentConnectorImpl.class.getClassLoader();
     ClassLoader ctxCl = Thread.currentThread().getContextClassLoader();
-    LOG.info("loadDefaultInstruction: cache miss, resource='{}', "
+    LOG.debug("loadDefaultInstruction: cache miss, resource='{}', "
         + "AgentConnectorImpl classLoader={}, contextClassLoader={}",
         DEFAULT_INSTRUCTION_RESOURCE, ownCl, ctxCl);
 
     java.net.URL url = AgentConnectorImpl.class.getResource(DEFAULT_INSTRUCTION_RESOURCE);
-    LOG.info("loadDefaultInstruction: AgentConnectorImpl.class.getResource -> {}", url);
+    LOG.debug("loadDefaultInstruction: AgentConnectorImpl.class.getResource -> {}", url);
 
     InputStream in = AgentConnectorImpl.class.getResourceAsStream(DEFAULT_INSTRUCTION_RESOURCE);
     if (in == null && ctxCl != null) {
-      LOG.info("loadDefaultInstruction: own classloader miss, retrying via contextClassLoader");
+      LOG.debug("loadDefaultInstruction: own classloader miss, retrying via contextClassLoader");
       // contextClassLoader.getResource expects no leading slash
       String name = DEFAULT_INSTRUCTION_RESOURCE.startsWith("/")
           ? DEFAULT_INSTRUCTION_RESOURCE.substring(1)
           : DEFAULT_INSTRUCTION_RESOURCE;
       java.net.URL ctxUrl = ctxCl.getResource(name);
-      LOG.info("loadDefaultInstruction: contextClassLoader.getResource('{}') -> {}", name, ctxUrl);
+      LOG.debug("loadDefaultInstruction: contextClassLoader.getResource('{}') -> {}", name, ctxUrl);
       in = ctxCl.getResourceAsStream(name);
     }
 
@@ -487,7 +483,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     try (InputStream stream = in) {
       cached = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
       defaultInstructionCache = cached;
-      LOG.info("loadDefaultInstruction: loaded {} chars from {}",
+      LOG.debug("loadDefaultInstruction: loaded {} chars from {}",
           cached.length(), DEFAULT_INSTRUCTION_RESOURCE);
       return cached;
     } catch (IOException e) {
