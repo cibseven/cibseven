@@ -16,6 +16,9 @@
  */
 package org.cibseven.connect.ai.agent.impl;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,6 +30,16 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.cibseven.bpm.BpmPlatform;
+import org.cibseven.bpm.engine.ProcessEngine;
+import org.cibseven.bpm.engine.history.HistoricProcessInstance;
+import org.cibseven.bpm.engine.identity.Group;
+import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
+import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.identity.Authentication;
+import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.rag.content.Content;
@@ -142,23 +155,166 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       builder.contentRetriever(contentRetriever);
     }
 
-    Result<String> result;
-    if (memoryId != null) {
-      LangChainMemoryAgent agent = (LangChainMemoryAgent) builder.build();
-      result = agent.chat(memoryId, request.getMessage());
-    } else {
-      LangChainAgent agent = (LangChainAgent) builder.build();
-      result = agent.chat(request.getMessage());
-    }
-    String output = result.content();
+    // Forward the engine reference and the caller's engine authentication to
+    // any @Tool that needs them (e.g. ProcessStarterTool). The engine is
+    // captured here, on the connector's calling thread, because the same
+    // BpmPlatform lookup may return null on a LangChain4j worker thread.
+    // Authentication is forwarded so engine-level authorization checks run
+    // against the user that triggered the AI agent — not the worker thread.
+    ProcessEngine callerEngine = captureProcessEngine();
+    Authentication callerAuth = captureCallerAuthentication(callerEngine);
+    ProcessStarterToolContext.setEngine(callerEngine);
+    ProcessStarterToolContext.setAuthentication(callerAuth);
+    try {
+      Result<String> result;
+      if (memoryId != null) {
+        LangChainMemoryAgent agent = (LangChainMemoryAgent) builder.build();
+        result = agent.chat(memoryId, request.getMessage());
+      } else {
+        LangChainAgent agent = (LangChainAgent) builder.build();
+        result = agent.chat(request.getMessage());
+      }
+      String output = result.content();
 
-    for (ToolExecution exec : result.toolExecutions()) {
-      LOG.debug("Tool: {}, Args: {}, Result: {}",
-          exec.request().name(), exec.request().arguments(), exec.result());
-    }
-    LOG.debug("Total tokens: {}", result.tokenUsage());
+      for (ToolExecution exec : result.toolExecutions()) {
+        LOG.debug("Tool: {}, Args: {}, Result: {}",
+            exec.request().name(), exec.request().arguments(), exec.result());
+      }
+      LOG.debug("Total tokens: {}", result.tokenUsage());
 
-    return new AgentResponseImpl(output, memoryId);
+      return new AgentResponseImpl(output, memoryId);
+    } finally {
+      ProcessStarterToolContext.clear();
+    }
+  }
+
+  /**
+   * Resolves the {@link ProcessEngine} that invoked this connector.
+   *
+   * <p>Prefers the engine driving the current command — read from the
+   * engine's per-thread {@link Context} stack — so a connector wired to a
+   * non-default engine still gets the correct one. Falls back to
+   * {@link BpmPlatform#getDefaultProcessEngine()} when no command context is
+   * active (e.g. the connector is exercised from a non-engine thread or unit
+   * test). Returns {@code null} when neither is reachable. Failures are
+   * swallowed and logged at debug level.
+   */
+  private ProcessEngine captureProcessEngine() {
+    try {
+      ProcessEngineConfigurationImpl config = Context.getProcessEngineConfiguration();
+      if (config != null) {
+        ProcessEngine engine = config.getProcessEngine();
+        if (engine != null) {
+          LOG.debug("Resolved invoking engine '{}' from command context", engine.getName());
+          return engine;
+        }
+      }
+    } catch (Exception e) {
+      LOG.debug("Could not resolve engine from command context: {}", e.toString());
+    }
+    try {
+      ProcessEngine engine = BpmPlatform.getDefaultProcessEngine();
+      if (engine == null) {
+        LOG.debug("BpmPlatform.getDefaultProcessEngine() returned null on connector thread");
+      }
+      return engine;
+    } catch (Exception e) {
+      LOG.debug("No process engine reachable from connector thread: {}", e.toString());
+      return null;
+    }
+  }
+
+  /**
+   * Resolves the {@link Authentication} to forward to tool calls.
+   *
+   * <p>Tries two sources, in order:
+   * <ol>
+   *   <li>The current per-thread engine authentication, populated by an
+   *       interactive caller (e.g. REST request handler) — present when the
+   *       service task runs synchronously inside the starter's command.</li>
+   *   <li>The starter of the executing process instance — used when the
+   *       service task is async and the connector runs on a JobExecutor
+   *       thread, which carries no inherited authentication. Resolved via
+   *       {@code historicProcessInstance.getStartUserId()} for the BPMN
+   *       execution currently on the thread, plus the starter's group
+   *       memberships so authorization checks against group permissions
+   *       still pass.</li>
+   * </ol>
+   * Returns {@code null} when {@code engine} is null or neither source
+   * yields a user.
+   */
+  private Authentication captureCallerAuthentication(ProcessEngine engine) {
+    if (engine == null) {
+      return null;
+    }
+    try {
+      Authentication current = engine.getIdentityService().getCurrentAuthentication();
+      if (current != null) {
+        return current;
+      }
+    } catch (Exception e) {
+      LOG.debug("Could not read current authentication from IdentityService: {}", e.toString());
+    }
+    return deriveAuthenticationFromProcessInstance(engine);
+  }
+
+  /**
+   * Builds an {@link Authentication} from the start user of the BPMN process
+   * instance currently on the thread. Used as a fallback when no interactive
+   * authentication is available (typical for async service tasks executed by
+   * the JobExecutor). The returned {@code Authentication} carries the
+   * starter's userId, their group ids, and the process instance's tenantId
+   * (if any). Returns {@code null} when the executing BPMN context, the
+   * historic process instance record, or the start user cannot be resolved.
+   */
+  private Authentication deriveAuthenticationFromProcessInstance(ProcessEngine engine) {
+    String processInstanceId = null;
+    try {
+      BpmnExecutionContext executionContext = Context.getBpmnExecutionContext();
+      if (executionContext != null) {
+        ExecutionEntity execution = executionContext.getExecution();
+        if (execution != null) {
+          processInstanceId = execution.getProcessInstanceId();
+        }
+      }
+    } catch (Exception e) {
+      LOG.debug("Could not read BPMN execution context: {}", e.toString());
+    }
+    if (processInstanceId == null) {
+      LOG.debug("No BPMN execution context on thread; cannot derive authentication from process instance");
+      return null;
+    }
+    try {
+      HistoricProcessInstance hpi = engine.getHistoryService()
+          .createHistoricProcessInstanceQuery()
+          .processInstanceId(processInstanceId)
+          .singleResult();
+      if (hpi == null) {
+        LOG.debug("No historic process instance found for id '{}'", processInstanceId);
+        return null;
+      }
+      String startUserId = hpi.getStartUserId();
+      if (startUserId == null || startUserId.isEmpty()) {
+        LOG.debug("Process instance '{}' has no startUserId; leaving authentication null", processInstanceId);
+        return null;
+      }
+      List<String> groupIds = new ArrayList<>();
+      try {
+        for (Group g : engine.getIdentityService().createGroupQuery().groupMember(startUserId).list()) {
+          groupIds.add(g.getId());
+        }
+      } catch (Exception e) {
+        LOG.debug("Could not look up groups for user '{}': {}", startUserId, e.toString());
+      }
+      List<String> tenantIds = (hpi.getTenantId() != null) ? List.of(hpi.getTenantId()) : null;
+      LOG.debug("Derived authentication from process instance '{}': user='{}', groups={}, tenants={}",
+          processInstanceId, startUserId, groupIds, tenantIds);
+      return new Authentication(startUserId, groupIds, tenantIds);
+    } catch (Exception e) {
+      LOG.debug("Could not derive authentication from process instance '{}': {}",
+          processInstanceId, e.toString());
+      return null;
+    }
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -251,13 +407,93 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     return toolInstances;
   }
 
+  /**
+   * Classpath resource used as the system prompt when the caller does not
+   * supply {@code instruction}. See {@link AgentConnector#PARAM_NAME_INSTRUCTION}.
+   */
+  static final String DEFAULT_INSTRUCTION_RESOURCE =
+      "/org/cibseven/connect/ai/agent/default-instruction.txt";
+
+  /** Lazily loaded cache for {@link #DEFAULT_INSTRUCTION_RESOURCE}. */
+  private static volatile String defaultInstructionCache;
+
   private String buildSystemPrompt(AgentRequest request) {
     String description = request.getAgentDescription();
     String instruction = request.getInstruction();
-    if (description != null && !description.isEmpty()) {
+    boolean callerInstruction = instruction != null && !instruction.isEmpty();
+    LOG.info("buildSystemPrompt: callerInstructionPresent={}, descriptionPresent={}",
+        callerInstruction, description != null && !description.isEmpty());
+    if (!callerInstruction) {
+      instruction = loadDefaultInstruction();
+    }
+    boolean hasDescription = description != null && !description.isEmpty();
+    boolean hasInstruction = instruction != null && !instruction.isEmpty();
+    LOG.info("buildSystemPrompt: resolved instruction length={}, description length={}",
+        hasInstruction ? instruction.length() : 0,
+        hasDescription ? description.length() : 0);
+    if (hasDescription && hasInstruction) {
       return description + "\n\n" + instruction;
     }
-    return instruction;
+    return hasInstruction ? instruction : description;
+  }
+
+  /**
+   * Loads the bundled default system prompt from the classpath and caches it
+   * for subsequent invocations.
+   *
+   * <p>Returns {@code null} when the resource is missing or unreadable —
+   * the connector still runs without a system prompt in that case; the
+   * failure is logged at ERROR level.
+   *
+   * <p>TODO(debug): the {@code INFO}-level logging in this method is
+   * temporary and should be downgraded to {@code DEBUG} once the
+   * distribution packaging is confirmed to ship the resource correctly.
+   */
+  static String loadDefaultInstruction() {
+    String cached = defaultInstructionCache;
+    if (cached != null) {
+      LOG.info("loadDefaultInstruction: cache hit ({} chars)", cached.length());
+      return cached;
+    }
+
+    ClassLoader ownCl = AgentConnectorImpl.class.getClassLoader();
+    ClassLoader ctxCl = Thread.currentThread().getContextClassLoader();
+    LOG.info("loadDefaultInstruction: cache miss, resource='{}', "
+        + "AgentConnectorImpl classLoader={}, contextClassLoader={}",
+        DEFAULT_INSTRUCTION_RESOURCE, ownCl, ctxCl);
+
+    java.net.URL url = AgentConnectorImpl.class.getResource(DEFAULT_INSTRUCTION_RESOURCE);
+    LOG.info("loadDefaultInstruction: AgentConnectorImpl.class.getResource -> {}", url);
+
+    InputStream in = AgentConnectorImpl.class.getResourceAsStream(DEFAULT_INSTRUCTION_RESOURCE);
+    if (in == null && ctxCl != null) {
+      LOG.info("loadDefaultInstruction: own classloader miss, retrying via contextClassLoader");
+      // contextClassLoader.getResource expects no leading slash
+      String name = DEFAULT_INSTRUCTION_RESOURCE.startsWith("/")
+          ? DEFAULT_INSTRUCTION_RESOURCE.substring(1)
+          : DEFAULT_INSTRUCTION_RESOURCE;
+      java.net.URL ctxUrl = ctxCl.getResource(name);
+      LOG.info("loadDefaultInstruction: contextClassLoader.getResource('{}') -> {}", name, ctxUrl);
+      in = ctxCl.getResourceAsStream(name);
+    }
+
+    if (in == null) {
+      LOG.error("Default agent instruction resource not found on classpath: {} "
+          + "(own classloader={}, contextClassLoader={})",
+          DEFAULT_INSTRUCTION_RESOURCE, ownCl, ctxCl);
+      return null;
+    }
+
+    try (InputStream stream = in) {
+      cached = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+      defaultInstructionCache = cached;
+      LOG.info("loadDefaultInstruction: loaded {} chars from {}",
+          cached.length(), DEFAULT_INSTRUCTION_RESOURCE);
+      return cached;
+    } catch (IOException e) {
+      LOG.error("Failed to read {} from classpath", DEFAULT_INSTRUCTION_RESOURCE, e);
+      return null;
+    }
   }
 
   /**

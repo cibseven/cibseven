@@ -22,8 +22,10 @@ import org.cibseven.connect.spi.Connector;
  * Marker interface and constants for the LangChain4j agent connector.
  *
  * <p>Use the connector ID {@value #ID} in a BPMN service task. The example below
- * shows every supported input/output parameter; only {@code agentName},
- * {@code instruction} and {@code message} are required, the rest are optional.
+ * shows every supported input/output parameter; only {@code agentName} and
+ * {@code message} are required, the rest are optional. When {@code instruction}
+ * is empty, the bundled default system prompt from
+ * {@code /org/cibseven/connect/ai/agent/default-instruction.txt} is used.
  * <pre>{@code
  * <camunda:connector>
  *     <camunda:connectorId>cibseven-ai-agent</camunda:connectorId>
@@ -105,7 +107,14 @@ public interface AgentConnector extends Connector<AgentRequest> {
   /** Optional. Human-readable description of the agent. */
   String PARAM_NAME_AGENT_DESCRIPTION = "agentDescription";
 
-  /** Required. System instruction for the LLM. */
+  /**
+   * Optional. System instruction for the LLM. When {@code null} or empty,
+   * the connector falls back to the bundled default prompt at
+   * {@code /org/cibseven/connect/ai/agent/default-instruction.txt}, which
+   * describes the generic CIB seven agent role and its possible capabilities
+   * (tools, RAG, chat memory, reasoning). Override this parameter to specialise
+   * the agent for a concrete task.
+   */
   String PARAM_NAME_INSTRUCTION = "instruction";
 
   /**

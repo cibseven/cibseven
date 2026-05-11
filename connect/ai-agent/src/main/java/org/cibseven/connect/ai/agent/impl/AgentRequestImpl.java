@@ -365,8 +365,9 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
 
   @Override
   protected boolean isRequestValid() {
+    // {@code instruction} is optional: when empty, {@link AgentConnectorImpl}
+    // falls back to the bundled default system prompt.
     return getAgentName() != null && !getAgentName().isEmpty()
-        && getInstruction() != null && !getInstruction().isEmpty()
         && getMessage() != null && !getMessage().isEmpty();
   }
 
