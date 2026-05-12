@@ -1,0 +1,362 @@
+{
+  "$schema": "https://unpkg.com/@camunda/element-templates-json-schema/resources/schema.json",
+  "name": "CIB seven AI Agent",
+  "id": "org.cibseven.connect.ai.agent",
+  "version": 1,
+  "description": "Element template for the cibseven-ai-agent connector.",
+  "keywords": ["ai", "agent", "llm", "openai", "rag", "mcp", "langchain4j"],
+  "appliesTo": [
+    "bpmn:ServiceTask"
+  ],
+  "groups": [
+    { "id": "input",  "label": "Input"  },
+    { "id": "agent",  "label": "Agent"  },
+    { "id": "tools",  "label": "Tools"  },
+    { "id": "memory", "label": "Memory" },
+    { "id": "rag",    "label": "RAG"    }
+  ],
+  "properties": [],
+  "scopes": [
+    {
+      "type": "camunda:Connector",
+      "properties": [
+        {
+          "type": "Hidden",
+          "value": "cibseven-ai-agent",
+          "binding": {
+            "type": "property",
+            "name": "connectorId"
+          }
+        },
+        {
+          "label": "Agent name",
+          "type": "String",
+          "group": "input",
+          "value": "CIB seven AI Agent",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "agentName"
+          },
+          "constraints": {
+            "notEmpty": true
+          }
+        },
+        {
+          "label": "Message",
+          "type": "Text",
+          "group": "input",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "message"
+          },
+          "constraints": {
+            "notEmpty": true
+          }
+        },
+        {
+          "label": "Instruction",
+          "type": "Text",
+          "group": "input",
+          "description": "System prompt for the LLM. Leave empty to use the bundled default prompt (generic CIB seven agent that uses any wired-in tools, RAG and chat memory). Override to specialise the agent for a concrete task.",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "instruction"
+          }
+        },
+        {
+          "label": "Base URL",
+          "type": "String",
+          "group": "agent",
+          "description": "API base URL. Examples: https://api.openai.com/v1 (OpenAI, default), https://openrouter.ai/api/v1 (OpenRouter), http://localhost:11434/v1 (Ollama), etc.",
+          "placeholder": "https://api.openai.com/v1",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "baseUrl"
+          }
+        },
+        {
+          "label": "Model",
+          "type": "String",
+          "group": "agent",
+          "description": "LLM model identifier, e.g. gpt-5.5, claude-opus-4.7, gemma-4-26b. On OpenRouter prefix with provider: openai/gpt-5.5.",
+          "placeholder": "gpt-5.4-nano",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "model"
+          }
+        },
+        {
+          "label": "API key",
+          "type": "String",
+          "group": "agent",
+          "description": "API key for the LLM provider. Use an expression to reference a process variable, e.g. ${apiKey}.",
+          "placeholder": "${apiKey}",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "apiKey"
+          }
+        },
+        {
+          "label": "HTTP headers",
+          "type": "Text",
+          "group": "agent",
+          "description": "Additional request headers as a JSON object, e.g. {\"Authorization\": \"Bearer sk-...\"}.",
+          "placeholder": "{\"Authorization\": \"Bearer sk-...\"}",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "openaiCustomHeaders"
+          }
+        },
+        {
+          "label": "Reasoning effort",
+          "type": "String",
+          "group": "agent",
+          "description": "For o-series models: low, medium, or high.",
+          "placeholder": "medium",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "reasoningEffort"
+          }
+        },
+        {
+          "label": "Reasoning summary",
+          "type": "String",
+          "group": "agent",
+          "description": "For o-series models: auto, concise, or detailed.",
+          "placeholder": "auto",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "reasoningSummary"
+          }
+        },
+        {
+          "label": "Agent description",
+          "type": "Text",
+          "group": "agent",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "agentDescription"
+          }
+        },
+        {
+          "label": "MCP server URL",
+          "type": "String",
+          "group": "tools",
+          "description": "URL of a single MCP server. Use http://localhost:8080/mcp if the mcp-process-executor plugin is enabled on this instance.",
+          "placeholder": "http://localhost:8080/mcp",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "mcpServerUrl"
+          }
+        },
+        {
+          "label": "MCP custom headers",
+          "type": "Text",
+          "group": "tools",
+          "description": "Additional HTTP headers for the MCP server as JSON, e.g. {\"Authorization\": \"Bearer token\"}.",
+          "placeholder": "{\"Authorization\": \"Bearer token\"}",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "mcpCustomHeaders"
+          }
+        },
+        {
+          "label": "MCP servers",
+          "type": "Text",
+          "group": "tools",
+          "description": "JSON array of MCP server configs: [{\"url\": \"...\", \"headers\": {...}}]. Use instead of MCP server URL for multiple servers.",
+          "placeholder": "[{\"url\": \"http://localhost:3000/sse\"}]",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "mcpServers"
+          }
+        },
+        {
+          "label": "Tool classes",
+          "type": "Text",
+          "group": "tools",
+          "description": "Comma-separated fully-qualified class names of @Tool-annotated beans to register with the agent. Built-in: org.cibseven.connect.ai.agent.impl.ProcessStarterTool — starts a CIB seven process by definition key, polls until it ends (or the retry budget is exhausted) and returns its output variables, so the LLM can launch a process and react to its result without orchestrating its own polling loop.",
+          "placeholder": "org.cibseven.connect.ai.agent.impl.ProcessStarterTool,com.example.MyTool,com.example.AnotherTool",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "toolClasses"
+          }
+        },
+        {
+          "id": "useChatMemory",
+          "label": "Use chat memory",
+          "type": "Dropdown",
+          "group": "memory",
+          "value": "${false}",
+          "choices": [
+            { "name": "No",  "value": "${false}" },
+            { "name": "Yes", "value": "${true}"  }
+          ],
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "useChatMemory"
+          }
+        },
+        {
+          "label": "Memory ID",
+          "type": "String",
+          "group": "memory",
+          "description": "Leave empty to start a new conversation (ID returned in output). Set ${memoryId} to reuse a known ID. In a loop use ${execution.getVariable('memoryId')}: creates memory on first iteration, reuses it on subsequent ones.",
+          "placeholder": "${execution.getVariable('memoryId')}",
+          "condition": {
+            "property": "useChatMemory",
+            "equals": "${true}"
+          },
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "memoryId"
+          }
+        },
+        {
+          "label": "Chat memory max messages",
+          "type": "String",
+          "group": "memory",
+          "description": "Sliding window size: how many messages to retain. Older messages are dropped. Default: 20.",
+          "value": "20",
+          "condition": {
+            "property": "useChatMemory",
+            "equals": "${true}"
+          },
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "chatMemoryMaxMessages"
+          }
+        },
+        {
+          "label": "PostgreSQL host",
+          "type": "String",
+          "group": "rag",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "pgHost"
+          }
+        },
+        {
+          "label": "PostgreSQL port",
+          "type": "String",
+          "group": "rag",
+          "placeholder": "5432",
+          "constraints": {
+            "pattern": {
+              "value": "^(\\d+)?$",
+              "message": "Must be a numeric port number"
+            }
+          },
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "pgPort"
+          }
+        },
+        {
+          "label": "PostgreSQL database",
+          "type": "String",
+          "group": "rag",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "pgDatabase"
+          }
+        },
+        {
+          "label": "PostgreSQL user",
+          "type": "String",
+          "group": "rag",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "pgUser"
+          }
+        },
+        {
+          "label": "PostgreSQL password",
+          "type": "String",
+          "group": "rag",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "pgPassword"
+          }
+        },
+        {
+          "label": "PostgreSQL table",
+          "type": "String",
+          "group": "rag",
+          "placeholder": "langchain4j_embeddings",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "pgTable"
+          }
+        },
+        {
+          "label": "Max RAG results",
+          "type": "String",
+          "group": "rag",
+          "description": "Maximum number of documents to retrieve from the vector store.",
+          "placeholder": "5",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "maxRagResults"
+          }
+        },
+        {
+          "label": "Min RAG score",
+          "type": "String",
+          "group": "rag",
+          "description": "Minimum similarity score (0.0–1.0) for RAG results to be included. Default: 0.0 (no filtering).",
+          "placeholder": "0.0",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "minRagScore"
+          }
+        },
+        {
+          "label": "Embedding dimension",
+          "type": "String",
+          "group": "rag",
+          "description": "Dimension of the embedding vectors. Default: 384 (AllMiniLmL6V2), 1536 for text-embedding-ada-002.",
+          "placeholder": "384",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "embeddingDimension"
+          }
+        },
+        {
+          "label": "Embedding model name",
+          "type": "String",
+          "group": "rag",
+          "description": "Name of the embedding model used to encode documents and queries. Default: AllMiniLmL6V2 (local, 384-dim). Use text-embedding-ada-002 for OpenAI.",
+          "placeholder": "AllMiniLmL6V2",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "embeddingModelName"
+          }
+        },
+        {
+          "label": "Output variable for agent answer",
+          "description": "Process variable that will receive the agent's text response (${output}).",
+          "type": "String",
+          "value": "agentResult",
+          "binding": {
+            "type": "camunda:outputParameter",
+            "source": "${output}"
+          },
+          "constraints": {
+            "notEmpty": true
+          }
+        },
+        {
+          "label": "Output variable for memory id",
+          "description": "Process variable that will receive the chat memory id (${memoryId}). Leave the field unset to skip this output.",
+          "type": "String",
+          "value": "memoryId",
+          "binding": {
+            "type": "camunda:outputParameter",
+            "source": "${memoryId}"
+          }
+        }
+      ]
+    }
+  ]
+}

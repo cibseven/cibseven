@@ -79,6 +79,10 @@ cibseven:
   webclient:
     modeler:
       enabled: true
+      templates:
+        paths:
+          # or, all JSON files in that directory (Spring resolves the glob)
+          - "file:configuration/resources/element-templates/*.json"
     # Engine rest
     engineRest:
       url: http://localhost:8080
