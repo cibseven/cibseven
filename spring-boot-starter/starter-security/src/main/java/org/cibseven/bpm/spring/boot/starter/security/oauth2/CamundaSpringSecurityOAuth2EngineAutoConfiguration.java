@@ -13,6 +13,7 @@ import org.cibseven.bpm.spring.boot.starter.rest.CamundaBpmRestInitializer;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.OAuth2AuthenticationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -117,7 +118,7 @@ public class CamundaSpringSecurityOAuth2EngineAutoConfiguration {
   @ConditionalOnMissingBean(name = "engineRestSecurityFilterChain")
   public SecurityFilterChain engineRestSecurityFilterChain(HttpSecurity http, 
           JerseyApplicationPath applicationPath,
-          @Nullable JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
+          @Nullable @Qualifier("oauth2JwtAuthenticationConverter") JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
 
     logger.info("Enabling Camunda Spring Security oauth2 integration for engine-rest");
     String engineRestPath = applicationPath.getPath();
