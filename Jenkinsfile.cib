@@ -525,6 +525,7 @@ pipeline {
                                     sh """
                                         mvn -f ${pipelineParams.pom} \
                                             compile \
+                                            -pl !org.cibseven.bpm:cibseven-engine-spring-6,!:cibseven-spin-core,!:cibseven-engine-rest-core-jakarta,!:cibseven-webapp-jakarta,!:cibseven-engine-cdi-jakarta,!:cibseven-example-invoice-jakarta,!:cibseven-ejb-client-jakarta,!:cibseven-sql-scripts \
                                             sonar:sonar \
                                             -Dmaven.test.skip \
                                             -DskipTests \
