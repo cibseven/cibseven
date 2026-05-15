@@ -527,7 +527,7 @@ pipeline {
                                             compile sonar:sonar \
                                             -V -U -T4 \
                                             -Pwebapps-integration \
-                                            -DskipTests \
+                                            -Dmaven.test.skip \
                                             -Dlicense.skipDownloadLicenses=true \
                                             -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json \
                                             -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html
