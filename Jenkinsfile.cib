@@ -483,6 +483,7 @@ pipeline {
                     expression { params.SAST }
                 }
             }
+            failFast true
             parallel {
                 stage('OWASP Dependency-Track') {
                     steps {
