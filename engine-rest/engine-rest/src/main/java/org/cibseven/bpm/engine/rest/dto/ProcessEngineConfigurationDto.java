@@ -20,24 +20,34 @@ import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 
 public class ProcessEngineConfigurationDto {
 
-  private String history;
+  private String engineName;
+  private String historyLevel;
   private boolean authorizationEnabled;
   private boolean enablePasswordPolicy;
 
   public static ProcessEngineConfigurationDto fromProcessEngineConfiguration(ProcessEngineConfiguration configuration) {
     ProcessEngineConfigurationDto dto = new ProcessEngineConfigurationDto();
-    dto.history = configuration.getHistory();
+    dto.engineName = configuration.getProcessEngineName();
+    dto.historyLevel = configuration.getHistory();
     dto.authorizationEnabled = configuration.isAuthorizationEnabled();
     dto.enablePasswordPolicy = configuration.isEnablePasswordPolicy();
     return dto;
   }
 
-  public String getHistory() {
-    return history;
+  public String getEngineName() {
+    return engineName;
   }
 
-  public void setHistory(String history) {
-    this.history = history;
+  public void setEngineName(String engineName) {
+    this.engineName = engineName;
+  }
+
+  public String getHistoryLevel() {
+    return historyLevel;
+  }
+
+  public void setHistoryLevel(String historyLevel) {
+    this.historyLevel = historyLevel;
   }
 
   public boolean isAuthorizationEnabled() {

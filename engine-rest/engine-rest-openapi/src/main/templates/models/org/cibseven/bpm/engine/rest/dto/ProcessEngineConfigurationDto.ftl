@@ -2,7 +2,12 @@
 <@lib.dto>
 
     <@lib.property
-        name = "history"
+        name = "engineName"
+        type = "string"
+        desc = "The name of the process engine." />
+
+    <@lib.property
+        name = "historyLevel"
         type = "string"
         desc = "The history level of the process engine, e.g., `full`, `audit`, `none`." />
 

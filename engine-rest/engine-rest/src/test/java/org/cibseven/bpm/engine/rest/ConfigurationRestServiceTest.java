@@ -43,6 +43,7 @@ public class ConfigurationRestServiceTest extends AbstractRestServiceTest {
   public void setUpMocks() {
     mockEngineConfiguration = processEngine.getProcessEngineConfiguration();
 
+    when(mockEngineConfiguration.getProcessEngineName()).thenReturn("default");
     when(mockEngineConfiguration.getHistory()).thenReturn("full");
     when(mockEngineConfiguration.isAuthorizationEnabled()).thenReturn(true);
     when(mockEngineConfiguration.isEnablePasswordPolicy()).thenReturn(false);
@@ -54,7 +55,8 @@ public class ConfigurationRestServiceTest extends AbstractRestServiceTest {
       .header(ACCEPT_JSON_HEADER)
     .then().expect()
       .statusCode(Status.OK.getStatusCode())
-      .body("history", equalTo("full"))
+      .body("engineName", equalTo("default"))
+      .body("historyLevel", equalTo("full"))
       .body("authorizationEnabled", equalTo(true))
       .body("enablePasswordPolicy", equalTo(false))
     .when().get(CONFIGURATION_URL);
@@ -67,7 +69,8 @@ public class ConfigurationRestServiceTest extends AbstractRestServiceTest {
       .pathParam("name", "default")
     .then().expect()
       .statusCode(Status.OK.getStatusCode())
-      .body("history", equalTo("full"))
+      .body("engineName", equalTo("default"))
+      .body("historyLevel", equalTo("full"))
       .body("authorizationEnabled", equalTo(true))
       .body("enablePasswordPolicy", equalTo(false))
     .when().get(NAMED_ENGINE_CONFIGURATION_URL);
@@ -75,6 +78,7 @@ public class ConfigurationRestServiceTest extends AbstractRestServiceTest {
 
   @Test
   public void testGetConfigurationDifferentValues() {
+    when(mockEngineConfiguration.getProcessEngineName()).thenReturn("custom");
     when(mockEngineConfiguration.getHistory()).thenReturn("none");
     when(mockEngineConfiguration.isAuthorizationEnabled()).thenReturn(false);
     when(mockEngineConfiguration.isEnablePasswordPolicy()).thenReturn(true);
@@ -83,7 +87,8 @@ public class ConfigurationRestServiceTest extends AbstractRestServiceTest {
       .header(ACCEPT_JSON_HEADER)
     .then().expect()
       .statusCode(Status.OK.getStatusCode())
-      .body("history", equalTo("none"))
+      .body("engineName", equalTo("custom"))
+      .body("historyLevel", equalTo("none"))
       .body("authorizationEnabled", equalTo(false))
       .body("enablePasswordPolicy", equalTo(true))
     .when().get(CONFIGURATION_URL);

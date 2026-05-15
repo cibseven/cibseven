@@ -16,7 +16,8 @@
                        "summary": "Status 200 Response",
                        "description": "The Response content of a status 200",
                        "value": {
-                           "history": "full",
+                           "engineName": "default",
+                           "historyLevel": "full",
                            "authorizationEnabled": false,
                            "enablePasswordPolicy": false
                          }
