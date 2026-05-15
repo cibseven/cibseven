@@ -476,45 +476,78 @@ pipeline {
             }
         }
 
-        stage('OWASP Dependency-Track') {
+        stage('SAST') {
             when {
                 allOf {
-                    branch 'main'
-                    expression { params.SAST == true }
+                    //branch 'main'
+                    expression { params.SAST }
                 }
             }
-            steps {
-                script {
-                    withMaven() {
-                        sh """
-                            mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
-                                -Dlicense.skipDownloadLicenses=true \
-                                -Dmaven.test.skip \
-                                -DskipTests
-                        """
-                    }
+            parallel {
+                stage('OWASP Dependency-Track') {
+                    steps {
+                        script {
+                            withMaven() {
+                                sh """
+                                    mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
+                                        -Dlicense.skipDownloadLicenses=true \
+                                        -Dmaven.test.skip \
+                                        -DskipTests
+                                """
+                            }
 
-                    withCredentials([string(credentialsId: Constants.DEPENDENCY_TRACK_CREDENTIALS_ID, variable: 'API_KEY')]) {
-                        dependencyTrackPublisher(
-                            autoCreateProjects: true,
-                            artifact: 'target/bom.xml',
-                            projectName: mavenProjectInformation.artifactId,
-                            projectVersion: mavenProjectInformation.version,
-                            projectProperties: [
-                                description: mavenProjectInformation.description,
-                                group: mavenProjectInformation.groupId,
-                                tags: ['maven'],
-                                isLatest: true
-                            ],
-                            synchronous: pipelineParams.dependencyTrackSynchronous,
-                            failOnViolationFail: false,
-                            dependencyTrackApiKey: API_KEY
-                        )
+                            withCredentials([string(credentialsId: Constants.DEPENDENCY_TRACK_CREDENTIALS_ID, variable: 'API_KEY')]) {
+                                dependencyTrackPublisher(
+                                    autoCreateProjects: true,
+                                    artifact: 'target/bom.xml',
+                                    projectName: mavenProjectInformation.artifactId,
+                                    projectVersion: mavenProjectInformation.version,
+                                    projectProperties: [
+                                        description: mavenProjectInformation.description,
+                                        group: mavenProjectInformation.groupId,
+                                        tags: ['maven'],
+                                        isLatest: true
+                                    ],
+                                    synchronous: pipelineParams.dependencyTrackSynchronous,
+                                    failOnViolationFail: false,
+                                    dependencyTrackApiKey: API_KEY
+                                )
+                            }
+                        }
+                    }
+                }
+
+                stage('SonarQube') {
+                    steps {
+                        script {
+                            withSonarQubeEnv(credentialsId: Constants.SONARQUBE_CREDENTIALS_ID, installationName: 'SonarQube') {
+                                withMaven() {
+                                    sh """
+                                        mvn -f ${pipelineParams.pom} \
+                                            compile \
+                                            sonar:sonar \
+                                            -Dmaven.test.skip \
+                                            -DskipTests \
+                                            -Dlicense.skipDownloadLicenses=true \
+                                            -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json \
+                                            -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html
+                                    """
+                                }
+                            }
+                            timeout(time: 5, unit: 'MINUTES') {
+                                script {
+                                    def qg = waitForQualityGate()
+                                    if (qg.status != 'OK') {
+                                        echo "WARNING: Pipeline unstable due to quality gate failure: ${qg.status}"
+                                        currentBuild.result = 'UNSTABLE'
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
-
 
         stage('Documentation, OpenAPI') {
             when {
