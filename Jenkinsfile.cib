@@ -56,7 +56,7 @@ pipeline {
         booleanParam(
             name: 'SAST',
             defaultValue: true,
-            description: "  └─ 🛡️ Static Application Security Testing with Dependency-Track (🕒 10-11 minutes). Runs only for 'main' branch. See output at https://dependencytrack.cib.de/projects?searchText=seven"
+            description: "  └─ 🛡️ Static Application Security Testing with Dependency-Track (🕒 10-11 minutes) and SonarQube. Runs only for 'main' branch. See output at https://dependencytrack.cib.de/projects?searchText=seven"
         )
 
         booleanParam(
@@ -479,6 +479,7 @@ pipeline {
         stage('SAST') {
             when {
                 allOf {
+                    branch 'main'
                     expression { params.SAST }
                 }
             }
