@@ -40,7 +40,7 @@ import org.cibseven.connect.spi.Connector;
  *       <!-- LLM endpoint / authentication -->
  *       <camunda:inputParameter name="baseUrl">http://localhost:11434/v1</camunda:inputParameter>
  *       <camunda:inputParameter name="apiKey">${secrets.OPENAI_API_KEY}</camunda:inputParameter>
- *       <camunda:inputParameter name="openaiCustomHeaders">Authorization: Basic dXNlcjpwYXNz|X-Tenant: acme</camunda:inputParameter>
+ *       <camunda:inputParameter name="customHeaders">{"Authorization": "Basic dXNlcjpwYXNz", "X-Tenant": "acme"}</camunda:inputParameter>
  *
  *       <!-- Reasoning controls -->
  *       <camunda:inputParameter name="reasoningEffort">medium</camunda:inputParameter>
@@ -144,10 +144,10 @@ public interface AgentConnector extends Connector<AgentRequest> {
 
   /**
    * Optional. Custom HTTP headers attached to every request sent to the OpenAI-compatible
-   * endpoint. Format: {@code key: value} pairs separated by {@code |}.
-   * Example: {@code "Authorization: Basic dXNlcjpwYXNz|X-Tenant: acme"}
+   * endpoint. Format: JSON object of {@code String} → {@code String} pairs.
+   * Example: {@code {"Authorization": "Basic dXNlcjpwYXNz", "X-Tenant": "acme"}}
    */
-  String PARAM_NAME_OPENAI_CUSTOM_HEADERS = "openaiCustomHeaders";
+  String PARAM_NAME_CUSTOM_HEADERS = "customHeaders";
 
   /**
    * Optional. JSON array describing one or more MCP (Model Context Protocol)

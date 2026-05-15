@@ -87,8 +87,8 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   }
 
   @Override
-  public AgentRequest openaiCustomHeaders(String openaiCustomHeaders) {
-    setRequestParameter(AgentConnector.PARAM_NAME_OPENAI_CUSTOM_HEADERS, openaiCustomHeaders);
+  public AgentRequest customHeaders(String customHeaders) {
+    setRequestParameter(AgentConnector.PARAM_NAME_CUSTOM_HEADERS, customHeaders);
     return this;
   }
 
@@ -236,8 +236,8 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   }
 
   @Override
-  public String getOpenaiCustomHeaders() {
-    return getRequestParameter(AgentConnector.PARAM_NAME_OPENAI_CUSTOM_HEADERS);
+  public String getCustomHeaders() {
+    return getRequestParameter(AgentConnector.PARAM_NAME_CUSTOM_HEADERS);
   }
 
   @Override

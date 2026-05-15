@@ -17,6 +17,9 @@
 package org.cibseven.connect.ai.agent.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,12 +27,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.cibseven.connect.ai.agent.AgentConnectorConstants;
+import org.junit.After;
 import org.junit.Test;
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.TextContent;
+import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.listener.ChatModelErrorContext;
 import dev.langchain4j.model.chat.listener.ChatModelRequestContext;
@@ -39,6 +48,17 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 
 public class AgentChatListenerTest {
+
+  /** Tracks BpmnExecutionContext pushed onto the engine's per-thread stack so {@link #tearDown()} drains it. */
+  private boolean pushedExecution;
+
+  @After
+  public void tearDown() {
+    if (pushedExecution) {
+      try { Context.removeExecutionContext(); } catch (Exception ignored) {}
+      pushedExecution = false;
+    }
+  }
 
   @Test
   public void shouldStartWithNoCapturedEvents() {
@@ -202,5 +222,188 @@ public class AgentChatListenerTest {
     // list is still populated so callers/tests can inspect what would have been written.
     assertThat(listener.events()).hasSize(1);
     assertThat(listener.events().get(0)).containsEntry("type", "request");
+  }
+
+  // ── extractContent: per-message-type branches ────────────────────────────
+
+  @Test
+  public void shouldExtractMultiContentUserMessageViaToString() {
+    AgentChatListener listener = new AgentChatListener();
+
+    // Two TextContents → hasSingleText() is false → falls back to toString().
+    UserMessage multi = new UserMessage(TextContent.from("hello"), TextContent.from("world"));
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(multi)).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> messages =
+        (List<Map<String, Object>>) listener.events().get(0).get("messages");
+    String content = (String) messages.get(0).get("content");
+    // toString of a UserMessage with multiple TextContents mentions both texts.
+    assertThat(content).contains("hello").contains("world");
+  }
+
+  @Test
+  public void shouldExtractAiMessageAsJsonWithTextAndThinking() throws Exception {
+    AgentChatListener listener = new AgentChatListener();
+
+    AiMessage ai = AiMessage.builder()
+        .text("final answer")
+        .thinking("reasoned step-by-step")
+        .build();
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(ai)).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> messages =
+        (List<Map<String, Object>>) listener.events().get(0).get("messages");
+    String json = (String) messages.get(0).get("content");
+    @SuppressWarnings("unchecked")
+    Map<String, Object> decoded = new com.fasterxml.jackson.databind.ObjectMapper()
+        .readValue(json, Map.class);
+    assertThat(decoded)
+        .containsEntry("text", "final answer")
+        .containsEntry("thinking", "reasoned step-by-step");
+  }
+
+  @Test
+  public void shouldExtractToolExecutionResultMessageContent() {
+    AgentChatListener listener = new AgentChatListener();
+
+    ToolExecutionResultMessage toolResult =
+        ToolExecutionResultMessage.from("call-1", "lookupCustomer", "{\"customer\":\"Acme\"}");
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(toolResult)).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> messages =
+        (List<Map<String, Object>>) listener.events().get(0).get("messages");
+    assertThat(messages.get(0))
+        .containsEntry("content", "{\"customer\":\"Acme\"}")
+        .containsEntry("toolName", "lookupCustomer");
+  }
+
+  // ── persistEvents + variableName derivation when run under an execution context ──
+
+  @Test
+  public void shouldDeriveVariableNameAndPersistEventsToExecutionVariable() {
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("extractInvoice");
+    when(execution.getVariable(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "extractInvoice"))
+        .thenReturn(null);
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener();
+    String expectedVar = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "extractInvoice";
+    assertThat(listener.variableName()).isEqualTo(expectedVar);
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    // The chat-log variable AND the connector-flag variable must both be written on
+    // the first persistEvents() call.
+    verify(execution).setVariable(org.mockito.Matchers.eq(expectedVar), org.mockito.Matchers.any());
+    verify(execution).setVariable(
+        AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
+  }
+
+  @Test
+  public void shouldWriteConnectorFlagVariableOnlyOnceAcrossMultipleEvents() {
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("agentTask");
+    when(execution.getVariable(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask"))
+        .thenReturn(null);
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener();
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    listener.onResponse(new ChatModelResponseContext(
+        ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
+        request, null, new HashMap<>()));
+    listener.onError(new ChatModelErrorContext(
+        new RuntimeException("late failure"), request, null, new HashMap<>()));
+
+    // 3 events → chat-log variable written 3 times; flag exactly once.
+    verify(execution, org.mockito.Mockito.times(3))
+        .setVariable(org.mockito.Matchers.eq(
+            AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask"),
+            org.mockito.Matchers.any());
+    verify(execution, org.mockito.Mockito.times(1))
+        .setVariable(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
+  }
+
+  // ── loadExistingEvents: prior log resumed on construction ────────────────
+
+  @Test
+  public void shouldResumeFromExistingLogVariableOnConstruction() {
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "resumable";
+    String priorJson = "[{\"type\":\"request\",\"timestamp\":\"2026-05-15T10:00:00Z\"}]";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("resumable");
+    when(execution.getVariable(varName)).thenReturn(priorJson);
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener();
+
+    assertThat(listener.events()).hasSize(1);
+    assertThat(listener.events().get(0)).containsEntry("type", "request");
+  }
+
+  @Test
+  public void shouldStartWithEmptyEventsWhenExistingVariableIsEmptyString() {
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "blank";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("blank");
+    when(execution.getVariable(varName)).thenReturn("");
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener();
+    assertThat(listener.events()).isEmpty();
+  }
+
+  @Test
+  public void shouldStartWithEmptyEventsWhenExistingLogIsMalformed() {
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "bad";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("bad");
+    when(execution.getVariable(varName)).thenReturn("not-json {{{");
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener();
+    // Malformed JSON is logged and silently swallowed — the listener proceeds with an empty log.
+    assertThat(listener.events()).isEmpty();
+  }
+
+  @Test
+  public void shouldDisablePersistenceWhenActivityIdEmpty() {
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn(""); // present but blank
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener();
+    assertThat(listener.variableName()).isNull();
+
+    // persistEvents must short-circuit on null variableName: no setVariable calls.
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    verify(execution, org.mockito.Mockito.never())
+        .setVariable(org.mockito.Matchers.anyString(), org.mockito.Matchers.any());
+    verify(execution, org.mockito.Mockito.never())
+        .setVariable(org.mockito.Matchers.anyString(), org.mockito.Matchers.anyBoolean());
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+
+  private void pushExecution(ExecutionEntity execution) {
+    Context.setExecutionContext(execution);
+    pushedExecution = true;
   }
 }

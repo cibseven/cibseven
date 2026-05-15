@@ -107,7 +107,7 @@
           "placeholder": "{\"Authorization\": \"Bearer sk-...\"}",
           "binding": {
             "type": "camunda:inputParameter",
-            "name": "openaiCustomHeaders"
+            "name": "customHeaders"
           }
         },
         {

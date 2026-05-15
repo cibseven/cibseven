@@ -126,8 +126,8 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     List<Object> tools = resolveToolInstances(request);
     String apiKey = resolveApiKey(request);
     String baseUrl = resolveBaseUrl(request);
-    Map<String, String> openaiHeaders = parseCustomHeaders(request.getOpenaiCustomHeaders());
-    ChatModel chatModel = createChatModel(request, apiKey, baseUrl, openaiHeaders);
+    Map<String, String> customHeaders = parseCustomHeaders(request.getCustomHeaders());
+    ChatModel chatModel = createChatModel(request, apiKey, baseUrl, customHeaders);
 
     List<McpClient> mcpClients = createMcpClients(request);
 
@@ -541,18 +541,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     LOG.info("RAG activated: host={}:{}, db={}, table={}, dimension={}, maxResults={}, minScore={}",
         pgHost, request.getPgPort(), request.getPgDatabase(), table, dimension, maxResults, minScore);
     EmbeddingModel embeddingModel = createEmbeddingModel(request);
-    EmbeddingStore<TextSegment> embeddingStore = PgVectorEmbeddingStore.builder()
-        .host(pgHost)
-        .port(Integer.parseInt(request.getPgPort()))
-        .database(request.getPgDatabase())
-        .user(request.getPgUser())
-        .password(request.getPgPassword())
-        .table(table)
-        .dimension(dimension)
-        .createTable(false)
-        .useIndex(true)
-        .indexListSize(100)
-        .build();
+    EmbeddingStore<TextSegment> embeddingStore = createRagEmbeddingStore(request);
     ContentRetriever delegate = EmbeddingStoreContentRetriever.builder()
         .embeddingStore(embeddingStore)
         .embeddingModel(embeddingModel)
@@ -575,6 +564,26 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       }
       return results;
     };
+  }
+
+  /**
+   * Factory method — builds the pgvector embedding store used as the RAG
+   * backend. Override in tests to inject a stubbed store and avoid opening a
+   * real database connection.
+   */
+  protected EmbeddingStore<TextSegment> createRagEmbeddingStore(AgentRequest request) {
+    return PgVectorEmbeddingStore.builder()
+        .host(request.getPgHost())
+        .port(Integer.parseInt(request.getPgPort()))
+        .database(request.getPgDatabase())
+        .user(request.getPgUser())
+        .password(request.getPgPassword())
+        .table(request.getPgTable())
+        .dimension(request.getEmbeddingDimension())
+        .createTable(false)
+        .useIndex(true)
+        .indexListSize(100)
+        .build();
   }
 
   /**
@@ -614,7 +623,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
 
     if (reasoningSummary != null && !reasoningSummary.isEmpty()) {
       if (customHeaders != null && !customHeaders.isEmpty()) {
-        LOG.warn("'openaiCustomHeaders' is ignored when 'reasoningSummary' is set: "
+        LOG.warn("'customHeaders' is ignored when 'reasoningSummary' is set: "
             + "the OpenAI Responses API builder does not yet expose customHeaders.");
       }
       OpenAiResponsesChatModel.Builder rb = OpenAiResponsesChatModel.builder()
@@ -659,7 +668,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     }
   }
 
-  private static final ObjectMapper MCP_SERVERS_MAPPER = new ObjectMapper();
+  private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
   /**
    * Parses the {@code mcpServers} JSON array into a list of {@link McpServerSpec}.
@@ -673,7 +682,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     }
     List<Map<String, Object>> entries;
     try {
-      entries = MCP_SERVERS_MAPPER.readValue(raw, new TypeReference<List<Map<String, Object>>>() {});
+      entries = JSON_MAPPER.readValue(raw, new TypeReference<List<Map<String, Object>>>() {});
     } catch (Exception e) {
       throw new AgentConnectorException(
           "Could not parse 'mcpServers': expected a JSON array of {url, headers?} objects", e);
@@ -703,28 +712,31 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
   }
 
   /**
-   * Parses a {@code key: value|key: value} string into an ordered map.
-   * Returns an empty (mutable) map when the input is null, blank, or contains no
-   * well-formed pairs. Pairs without a {@code :} separator and pairs with a blank
-   * key are silently skipped; the first {@code :} in a pair separates key from value.
-   * Keys and values are trimmed, so {@code key:value} (no space) is also accepted.
+   * Parses a JSON object of {@code String} → {@code String} pairs into an ordered map.
+   * Returns an empty (mutable) map when the input is null or blank. Entries with a
+   * blank key or a {@code null} value are silently skipped; non-string values are
+   * coerced via {@link Object#toString()}.
+   * Throws {@link AgentConnectorException} when the input is not a valid JSON object.
    */
   static Map<String, String> parseCustomHeaders(String raw) {
     Map<String, String> headers = new LinkedHashMap<>();
-    if (raw == null || raw.isEmpty()) {
+    if (raw == null || raw.trim().isEmpty()) {
       return headers;
     }
-    for (String pair : raw.split("\\|")) {
-      int colon = pair.indexOf(':');
-      if (colon < 0) {
+    Map<String, Object> entries;
+    try {
+      entries = JSON_MAPPER.readValue(raw, new TypeReference<Map<String, Object>>() {});
+    } catch (Exception e) {
+      throw new AgentConnectorException(
+          "Could not parse 'customHeaders': expected a JSON object of string→string pairs", e);
+    }
+    for (Map.Entry<String, Object> entry : entries.entrySet()) {
+      String key = entry.getKey().trim();
+      Object value = entry.getValue();
+      if (key.isEmpty() || value == null) {
         continue;
       }
-      String key = pair.substring(0, colon).trim();
-      String value = pair.substring(colon + 1).trim();
-      if (key.isEmpty()) {
-        continue;
-      }
-      headers.put(key, value);
+      headers.put(key, value.toString());
     }
     return headers;
   }

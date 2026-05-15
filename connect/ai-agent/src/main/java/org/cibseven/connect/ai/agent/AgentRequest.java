@@ -57,10 +57,10 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   AgentRequest baseUrl(String baseUrl);
 
   /**
-   * Optional. Custom HTTP headers attached to every OpenAI request,
-   * encoded as {@code key: value} pairs separated by {@code |}.
+   * Optional. Custom HTTP headers attached to every OpenAI-compatible request,
+   * encoded as a JSON object of {@code String} → {@code String} pairs.
    */
-  AgentRequest openaiCustomHeaders(String openaiCustomHeaders);
+  AgentRequest customHeaders(String customHeaders);
 
   /**
    * Optional. JSON array describing one or more MCP servers with per-server
@@ -132,7 +132,7 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
 
   String getBaseUrl();
 
-  String getOpenaiCustomHeaders();
+  String getCustomHeaders();
 
   String getMcpServers();
 
