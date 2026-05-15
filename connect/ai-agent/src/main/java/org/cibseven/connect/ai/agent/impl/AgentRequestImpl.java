@@ -87,20 +87,8 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   }
 
   @Override
-  public AgentRequest mcpServerUrl(String mcpServerUrl) {
-    setRequestParameter(AgentConnector.PARAM_NAME_MCP_SERVER_URL, mcpServerUrl);
-    return this;
-  }
-
-  @Override
   public AgentRequest openaiCustomHeaders(String openaiCustomHeaders) {
     setRequestParameter(AgentConnector.PARAM_NAME_OPENAI_CUSTOM_HEADERS, openaiCustomHeaders);
-    return this;
-  }
-
-  @Override
-  public AgentRequest mcpCustomHeaders(String mcpCustomHeaders) {
-    setRequestParameter(AgentConnector.PARAM_NAME_MCP_CUSTOM_HEADERS, mcpCustomHeaders);
     return this;
   }
 
@@ -248,18 +236,8 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   }
 
   @Override
-  public String getMcpServerUrl() {
-    return getRequestParameter(AgentConnector.PARAM_NAME_MCP_SERVER_URL);
-  }
-
-  @Override
   public String getOpenaiCustomHeaders() {
     return getRequestParameter(AgentConnector.PARAM_NAME_OPENAI_CUSTOM_HEADERS);
-  }
-
-  @Override
-  public String getMcpCustomHeaders() {
-    return getRequestParameter(AgentConnector.PARAM_NAME_MCP_CUSTOM_HEADERS);
   }
 
   @Override

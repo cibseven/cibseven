@@ -11,7 +11,8 @@
     langchain4jApiKey  (String, optional) — overrides OPENAI_API_KEY env var
     langchain4jBaseUrl (String, optional) — overrides OPENAI_BASE_URL env var
                         e.g. https://openrouter.ai/api/v1 to route through OpenRouter
-    langchain4jMcpUrl  (String, optional) — MCP server URL, defaults to http://localhost:9090/
+    langchain4jMcpServers (String, optional) — JSON array of MCP server configs,
+                          e.g. [{"url": "http://localhost:9090/"}]
 
   Process variables set after the service task:
     agentResult   (String) — JSON with extracted invoice fields
@@ -39,8 +40,8 @@
           <camunda:formField id="reviewer" label="Reviewer" type="string" defaultValue="demo" />
           <camunda:formField id="langchain4jApiKey" label="Open AI Api Key" type="string" />
           <camunda:formField id="langchain4jBaseUrl" label="OpenAI URL" type="string" defaultValue="https://api.openai.com/v1" />
-          <camunda:formField id="langchain4jMcpUrl" label="MCP Server URL (optional)" type="string"
-                             defaultValue="http://localhost:9090/" />
+          <camunda:formField id="langchain4jMcpServers" label="MCP Servers JSON (optional)" type="string"
+                             defaultValue="[{&quot;url&quot;: &quot;http://localhost:9090/&quot;}]" />
           <camunda:formField id="agentName" label="Agent Name" type="string" defaultValue="mcp-tool-runner" />
           <camunda:formField id="agentDescription" label="Agent Description" type="string"
                              defaultValue="An agent that discovers all tools available on the connected MCP server, calls each of them in sequence, and collects every result as a JSON object into a JSON array." />
@@ -73,8 +74,8 @@
             <!-- ${langchain4jBaseUrl} overrides OPENAI_BASE_URL env var; omit or leave null to use env var -->
             <!-- Examples: https://openrouter.ai/api/v1 (OpenRouter), http://localhost:11434/v1 (Ollama) -->
             <camunda:inputParameter name="baseUrl">${langchain4jBaseUrl}</camunda:inputParameter>
-            <!-- MCP server URL (Streamable HTTP transport) -->
-            <camunda:inputParameter name="mcpServerUrl">${langchain4jMcpUrl}</camunda:inputParameter>
+            <!-- MCP servers (JSON array, Streamable HTTP transport) -->
+            <camunda:inputParameter name="mcpServers">${langchain4jMcpServers}</camunda:inputParameter>
 
             <!-- ── Output mapping to process variables ───────────── -->
             <!-- agentResult receives the final text response from the LLM -->

@@ -495,22 +495,11 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
   /**
    * Factory method — override in tests to inject stubbed MCP clients.
    *
-   * <p>Builds the list from two sources, in this order:
-   * <ol>
-   *   <li>The legacy single-server fields ({@code mcpServerUrl} +
-   *       {@code mcpCustomHeaders}), if {@code mcpServerUrl} is set.</li>
-   *   <li>Each entry of the {@code mcpServers} JSON array, if set.</li>
-   * </ol>
-   * Returns an empty list when neither is configured.
+   * <p>Builds one client per entry of the {@code mcpServers} JSON array.
+   * Returns an empty list when {@code mcpServers} is not configured.
    */
   protected List<McpClient> createMcpClients(AgentRequest request) {
     List<McpClient> clients = new ArrayList<>();
-
-    String legacyUrl = request.getMcpServerUrl();
-    if (legacyUrl != null && !legacyUrl.isEmpty()) {
-      clients.add(buildMcpClient(legacyUrl, parseCustomHeaders(request.getMcpCustomHeaders())));
-    }
-
     for (McpServerSpec spec : parseMcpServers(request.getMcpServers())) {
       clients.add(buildMcpClient(spec.url, spec.headers));
     }

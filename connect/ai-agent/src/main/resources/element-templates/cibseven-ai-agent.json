@@ -142,33 +142,11 @@
           }
         },
         {
-          "label": "MCP server URL",
-          "type": "String",
-          "group": "tools",
-          "description": "URL of a single MCP server. Use http://localhost:8080/mcp if the mcp-process-executor plugin is enabled on this instance.",
-          "placeholder": "http://localhost:8080/mcp",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "mcpServerUrl"
-          }
-        },
-        {
-          "label": "MCP custom headers",
-          "type": "Text",
-          "group": "tools",
-          "description": "Additional HTTP headers for the MCP server as JSON, e.g. {\"Authorization\": \"Bearer token\"}.",
-          "placeholder": "{\"Authorization\": \"Bearer token\"}",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "mcpCustomHeaders"
-          }
-        },
-        {
           "label": "MCP servers",
           "type": "Text",
           "group": "tools",
-          "description": "JSON array of MCP server configs: [{\"url\": \"...\", \"headers\": {...}}]. Use instead of MCP server URL for multiple servers.",
-          "placeholder": "[{\"url\": \"http://localhost:3000/sse\"}]",
+          "description": "JSON array of MCP server configs: [{\"url\": \"...\", \"headers\": {...}}]. Each entry's headers is a JSON object of header name → value. Use http://localhost:8080/mcp if the mcp-process-executor plugin is enabled on this instance.",
+          "placeholder": "[{\"url\": \"http://localhost:8080/mcp\", \"headers\": {\"Authorization\": \"Bearer token\"}}]",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "mcpServers"

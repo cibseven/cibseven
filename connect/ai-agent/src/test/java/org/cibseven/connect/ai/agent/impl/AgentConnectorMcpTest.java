@@ -31,8 +31,7 @@ import org.junit.Test;
 import dev.langchain4j.mcp.client.McpClient;
 
 /**
- * Tests for the legacy single-server fields, the new {@code mcpServers} JSON array,
- * their combinations, and absence — covering both
+ * Tests for the {@code mcpServers} JSON array and its edge cases — covering both
  * {@link AgentConnectorImpl#parseMcpServers(String)} and
  * {@link AgentConnectorImpl#createMcpClients(AgentRequest)}.
  *
@@ -75,44 +74,6 @@ public class AgentConnectorMcpTest {
   }
 
   @Test
-  public void shouldBuildSingleClientFromLegacyFieldsOnly() {
-    AgentRequest request = connector.createRequest()
-        .mcpServerUrl("http://legacy/mcp")
-        .mcpCustomHeaders("Authorization: Bearer abc|X-Tenant: acme");
-
-    List<McpClient> clients = connector.createMcpClients(request);
-
-    assertThat(clients).hasSize(1);
-    assertThat(connector.urls).containsExactly("http://legacy/mcp");
-    assertThat(connector.headers.get(0))
-        .containsEntry("Authorization", "Bearer abc")
-        .containsEntry("X-Tenant", "acme");
-  }
-
-  @Test
-  public void shouldBuildSingleClientFromLegacyUrlWithoutHeaders() {
-    AgentRequest request = connector.createRequest()
-        .mcpServerUrl("http://legacy/mcp");
-
-    List<McpClient> clients = connector.createMcpClients(request);
-
-    assertThat(clients).hasSize(1);
-    assertThat(connector.urls).containsExactly("http://legacy/mcp");
-    assertThat(connector.headers.get(0)).isEmpty();
-  }
-
-  @Test
-  public void shouldIgnoreLegacyHeadersWhenLegacyUrlIsAbsent() {
-    AgentRequest request = connector.createRequest()
-        .mcpCustomHeaders("Authorization: Bearer orphan");
-
-    List<McpClient> clients = connector.createMcpClients(request);
-
-    assertThat(clients).isEmpty();
-    assertThat(connector.urls).isEmpty();
-  }
-
-  @Test
   public void shouldBuildClientsFromMcpServersJsonOnly() {
     AgentRequest request = connector.createRequest()
         .mcpServers("["
@@ -129,26 +90,6 @@ public class AgentConnectorMcpTest {
     assertThat(connector.headers.get(0)).containsExactly(Map.entry("Authorization", "Bearer one"));
     assertThat(connector.headers.get(1)).isEmpty();
     assertThat(connector.headers.get(2)).containsExactly(Map.entry("X-Workspace", "ws3"));
-  }
-
-  @Test
-  public void shouldCombineLegacyAndJsonServersWithLegacyFirst() {
-    AgentRequest request = connector.createRequest()
-        .mcpServerUrl("http://legacy/mcp")
-        .mcpCustomHeaders("Authorization: Bearer legacy")
-        .mcpServers("["
-            + "{\"url\":\"http://json1/mcp\",\"headers\":{\"X-Tag\":\"json1\"}},"
-            + "{\"url\":\"http://json2/mcp\"}"
-            + "]");
-
-    List<McpClient> clients = connector.createMcpClients(request);
-
-    assertThat(clients).hasSize(3);
-    assertThat(connector.urls)
-        .containsExactly("http://legacy/mcp", "http://json1/mcp", "http://json2/mcp");
-    assertThat(connector.headers.get(0)).containsEntry("Authorization", "Bearer legacy");
-    assertThat(connector.headers.get(1)).containsEntry("X-Tag", "json1");
-    assertThat(connector.headers.get(2)).isEmpty();
   }
 
   @Test

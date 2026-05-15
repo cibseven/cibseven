@@ -49,11 +49,7 @@ import org.cibseven.connect.spi.Connector;
  *       <!-- Tools: Java @Tool classes -->
  *       <camunda:inputParameter name="toolClasses">com.example.WeatherTools,com.example.CalendarTools</camunda:inputParameter>
  *
- *       <!-- Tools: legacy single MCP server -->
- *       <camunda:inputParameter name="mcpServerUrl">http://localhost:3000/sse</camunda:inputParameter>
- *       <camunda:inputParameter name="mcpCustomHeaders">Authorization: Bearer abc123|X-Workspace: default</camunda:inputParameter>
- *
- *       <!-- Tools: multiple MCP servers (JSON) -->
+ *       <!-- Tools: MCP servers (JSON array) -->
  *       <camunda:inputParameter name="mcpServers">
  *         [
  *           {"url": "http://server1/mcp", "headers": {"Authorization": "Bearer abc"}},
@@ -141,14 +137,6 @@ public interface AgentConnector extends Connector<AgentRequest> {
   String PARAM_NAME_BASE_URL = "baseUrl";
 
   /**
-   * Optional. MCP (Model Context Protocol) server URL (HTTP+SSE transport).
-   * When provided, tools exposed by the MCP server are made available to the agent
-   * in addition to any {@code toolClasses}.
-   * Example: {@code "http://localhost:3000/sse"}
-   */
-  String PARAM_NAME_MCP_SERVER_URL = "mcpServerUrl";
-
-  /**
    * Optional. Override the {@code OPENAI_API_KEY} for this specific request.
    * The environment variable {@code OPENAI_API_KEY} is the recommended approach.
    */
@@ -162,20 +150,10 @@ public interface AgentConnector extends Connector<AgentRequest> {
   String PARAM_NAME_OPENAI_CUSTOM_HEADERS = "openaiCustomHeaders";
 
   /**
-   * Optional. Custom HTTP headers attached to every request sent to the MCP server
-   * configured via {@link #PARAM_NAME_MCP_SERVER_URL}. Has no effect on entries declared
-   * in {@link #PARAM_NAME_MCP_SERVERS} — those carry their own headers.
-   * Format: {@code key: value} pairs separated by {@code |}.
-   * Example: {@code "Authorization: Bearer abc123|X-Workspace: default"}
-   */
-  String PARAM_NAME_MCP_CUSTOM_HEADERS = "mcpCustomHeaders";
-
-  /**
-   * Optional. JSON array describing one or more MCP servers, each with its own
-   * URL and (optional) custom HTTP headers. Tools exposed by each server are
-   * registered with the agent in addition to the legacy single-server fields
-   * {@link #PARAM_NAME_MCP_SERVER_URL} / {@link #PARAM_NAME_MCP_CUSTOM_HEADERS}
-   * and any {@code toolClasses}.
+   * Optional. JSON array describing one or more MCP (Model Context Protocol)
+   * servers, each with its own URL and (optional) custom HTTP headers. Tools
+   * exposed by each server are registered with the agent in addition to any
+   * {@code toolClasses}.
    *
    * <p>Each entry must have a {@code url} string; {@code headers} is an optional
    * object of {@code String} → {@code String} pairs. Example:

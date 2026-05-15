@@ -57,29 +57,15 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   AgentRequest baseUrl(String baseUrl);
 
   /**
-   * Optional. MCP server SSE URL (e.g. {@code "http://localhost:3000/sse"}).
-   * When set, tools exposed by the MCP server are registered with the agent.
-   */
-  AgentRequest mcpServerUrl(String mcpServerUrl);
-
-  /**
    * Optional. Custom HTTP headers attached to every OpenAI request,
    * encoded as {@code key: value} pairs separated by {@code |}.
    */
   AgentRequest openaiCustomHeaders(String openaiCustomHeaders);
 
   /**
-   * Optional. Custom HTTP headers attached to every MCP request to the server
-   * configured via {@link #mcpServerUrl(String)}, encoded as {@code key: value}
-   * pairs separated by {@code |}.
-   */
-  AgentRequest mcpCustomHeaders(String mcpCustomHeaders);
-
-  /**
    * Optional. JSON array describing one or more MCP servers with per-server
    * custom headers. See {@link AgentConnector#PARAM_NAME_MCP_SERVERS} for the
-   * expected shape. Combined with the legacy {@link #mcpServerUrl(String)}
-   * field — both contribute clients to the agent.
+   * expected shape.
    */
   AgentRequest mcpServers(String mcpServers);
 
@@ -146,11 +132,7 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
 
   String getBaseUrl();
 
-  String getMcpServerUrl();
-
   String getOpenaiCustomHeaders();
-
-  String getMcpCustomHeaders();
 
   String getMcpServers();
 
