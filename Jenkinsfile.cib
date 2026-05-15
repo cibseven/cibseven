@@ -479,12 +479,45 @@ pipeline {
         stage('SAST') {
             when {
                 allOf {
-                    //branch 'main'
                     expression { params.SAST }
                 }
             }
-            failFast true
-            parallel {
+
+            stages {
+
+                stage('SonarQube') {
+                    steps {
+                        script {
+                            withSonarQubeEnv(
+                                credentialsId: Constants.SONARQUBE_CREDENTIALS_ID,
+                                installationName: 'SonarQube'
+                            ) {
+                                withMaven() {
+                                    sh """
+                                        mvn -f ${pipelineParams.pom} \
+                                            compile sonar:sonar \
+                                            -V -U -T4 \
+                                            -Pwebapps-integration \
+                                            -Dmaven.test.skip=true \
+                                            -Dlicense.skipDownloadLicenses=true \
+                                            -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json \
+                                            -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html
+                                    """
+                                }
+                            }
+
+                            timeout(time: 5, unit: 'MINUTES') {
+                                def qg = waitForQualityGate()
+
+                                if (qg.status != 'OK') {
+                                    echo "WARNING: Pipeline unstable due to quality gate failure: ${qg.status}"
+                                    currentBuild.result = 'UNSTABLE'
+                                }
+                            }
+                        }
+                    }
+                }
+
                 stage('OWASP Dependency-Track') {
                     steps {
                         script {
@@ -492,12 +525,16 @@ pipeline {
                                 sh """
                                     mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
                                         -Dlicense.skipDownloadLicenses=true \
-                                        -Dmaven.test.skip \
-                                        -DskipTests
+                                        -Dmaven.test.skip=true
                                 """
                             }
 
-                            withCredentials([string(credentialsId: Constants.DEPENDENCY_TRACK_CREDENTIALS_ID, variable: 'API_KEY')]) {
+                            withCredentials([
+                                string(
+                                    credentialsId: Constants.DEPENDENCY_TRACK_CREDENTIALS_ID,
+                                    variable: 'API_KEY'
+                                )
+                            ]) {
                                 dependencyTrackPublisher(
                                     autoCreateProjects: true,
                                     artifact: 'target/bom.xml',
@@ -505,44 +542,14 @@ pipeline {
                                     projectVersion: mavenProjectInformation.version,
                                     projectProperties: [
                                         description: mavenProjectInformation.description,
-                                        group: mavenProjectInformation.groupId,
-                                        tags: ['maven'],
-                                        isLatest: true
+                                        group      : mavenProjectInformation.groupId,
+                                        tags       : ['maven'],
+                                        isLatest   : true
                                     ],
                                     synchronous: pipelineParams.dependencyTrackSynchronous,
                                     failOnViolationFail: false,
                                     dependencyTrackApiKey: API_KEY
                                 )
-                            }
-                        }
-                    }
-                }
-
-                stage('SonarQube') {
-                    steps {
-                        script {
-                            withSonarQubeEnv(credentialsId: Constants.SONARQUBE_CREDENTIALS_ID, installationName: 'SonarQube') {
-                                withMaven() {
-                                    sh """
-                                        mvn -f ${pipelineParams.pom} \
-                                            compile sonar:sonar \
-                                            -V -U -T4 \
-                                            -Pwebapps-integration \
-                                            -Dmaven.test.skip \
-                                            -Dlicense.skipDownloadLicenses=true \
-                                            -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json \
-                                            -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html
-                                    """
-                                }
-                            }
-                            timeout(time: 5, unit: 'MINUTES') {
-                                script {
-                                    def qg = waitForQualityGate()
-                                    if (qg.status != 'OK') {
-                                        echo "WARNING: Pipeline unstable due to quality gate failure: ${qg.status}"
-                                        currentBuild.result = 'UNSTABLE'
-                                    }
-                                }
                             }
                         }
                     }
