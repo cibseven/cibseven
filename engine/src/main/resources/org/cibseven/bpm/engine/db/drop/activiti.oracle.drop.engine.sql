@@ -216,19 +216,3 @@ drop table  ACT_RU_TASK_METER_LOG;
 drop table  ACT_RU_EXT_TASK;
 drop table  ACT_RU_BATCH;
 drop table  ACT_GE_SCHEMA_LOG;
-
-
-
--- MODELER
-
-DROP TABLE mod_form_usage CASCADE CONSTRAINTS;
-DROP TABLE mod_diagram_usage CASCADE CONSTRAINTS;
-DROP TABLE mod_forms CASCADE CONSTRAINTS;
-DROP TABLE mod_user_sessions CASCADE CONSTRAINTS;
-DROP TABLE mod_processes_diagrams_aud CASCADE CONSTRAINTS;
-DROP TABLE mod_revinfo CASCADE CONSTRAINTS;
-DROP TABLE mod_processes_diagrams CASCADE CONSTRAINTS;
-DROP TABLE mod_element_templates CASCADE CONSTRAINTS;
-
--- Drop sequences
-DROP SEQUENCE mod_revinfo_seq;

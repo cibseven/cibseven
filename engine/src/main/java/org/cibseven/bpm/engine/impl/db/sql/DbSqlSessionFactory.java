@@ -846,7 +846,7 @@ public class DbSqlSessionFactory implements SessionFactory {
   protected boolean isDbHistoryUsed = true;
   protected boolean cmmnEnabled = true;
   protected boolean dmnEnabled = true;
-  protected boolean modelerEnabled = false;
+  protected boolean modelerEnabled = true;
 
   protected boolean jdbcBatchProcessing;
 

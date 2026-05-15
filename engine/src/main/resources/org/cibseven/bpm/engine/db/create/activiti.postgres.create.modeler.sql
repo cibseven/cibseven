@@ -14,24 +14,15 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 --
-
-insert into ACT_GE_SCHEMA_LOG
-values ('1500', CURRENT_TIMESTAMP, '2.2.0');
-
-
-
-
--- MODELER
-
 CREATE TABLE IF NOT EXISTS mod_element_templates (
     id VARCHAR(36) PRIMARY KEY,
     active BOOLEAN DEFAULT TRUE,
     version INTEGER DEFAULT 1,
     template_id VARCHAR(100) NOT NULL UNIQUE,
     name VARCHAR(200) NOT NULL,
-    description CLOB,
+    description TEXT,
     origin VARCHAR(50) NOT NULL,
-    content CLOB,
+    content TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     created_by VARCHAR(100),
@@ -48,13 +39,13 @@ CREATE TABLE IF NOT EXISTS mod_processes_diagrams (
     active BOOLEAN DEFAULT TRUE NOT NULL,
     type VARCHAR(50) NOT NULL,
     version INTEGER DEFAULT 1,
-    diagram BLOB,
+    diagram BYTEA,
     updated_by VARCHAR(100)
 );
 
 CREATE TABLE IF NOT EXISTS mod_revinfo (
-    REV BIGINT AUTO_INCREMENT PRIMARY KEY,
-    REVTSTMP BIGINT
+    rev BIGSERIAL PRIMARY KEY,
+    revtstmp BIGINT
 );
 
 CREATE TABLE IF NOT EXISTS mod_processes_diagrams_aud (
@@ -68,15 +59,14 @@ CREATE TABLE IF NOT EXISTS mod_processes_diagrams_aud (
     type VARCHAR(50),
     version INTEGER DEFAULT 1,
     diagram_mod BOOLEAN DEFAULT false,
-    diagram BLOB,
+    diagram BYTEA,
     updated_by VARCHAR(100),
     rev BIGINT NOT NULL,
-    revtype TINYINT,
+    revtype SMALLINT,
     CONSTRAINT mod_pk_resources_aud PRIMARY KEY (id, rev),
     CONSTRAINT mod_fk_resources_aud_rev FOREIGN KEY (rev) REFERENCES mod_revinfo(rev)
 );
 
--- Envers expected revision sequence for H2
 CREATE SEQUENCE IF NOT EXISTS mod_revinfo_seq START WITH 1 INCREMENT BY 50;
 
 CREATE TABLE IF NOT EXISTS mod_user_sessions (
@@ -103,7 +93,7 @@ CREATE TABLE IF NOT EXISTS mod_forms (
     created TIMESTAMP,
     updated TIMESTAMP,
     active BOOLEAN DEFAULT TRUE NOT NULL,
-    form_schema BLOB NOT NULL,
+    form_schema BYTEA NOT NULL,
     formid VARCHAR(100) NOT NULL UNIQUE,
     version INTEGER DEFAULT 1,
     updated_by VARCHAR(100)

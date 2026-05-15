@@ -14,106 +14,96 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 --
-
-insert into ACT_GE_SCHEMA_LOG
-values ('1500', CURRENT_TIMESTAMP, '2.2.0');
-
-
-
-
--- MODELER
-
-CREATE TABLE IF NOT EXISTS mod_element_templates (
-    id VARCHAR(36) PRIMARY KEY,
-    active BOOLEAN DEFAULT TRUE,
-    version INTEGER DEFAULT 1,
-    template_id VARCHAR(100) NOT NULL UNIQUE,
-    name VARCHAR(200) NOT NULL,
+CREATE TABLE mod_element_templates (
+    id VARCHAR2(36 CHAR) PRIMARY KEY,
+    active NUMBER(1) DEFAULT 1,
+    version NUMBER(11) DEFAULT 1,
+    template_id VARCHAR2(100 CHAR) NOT NULL UNIQUE,
+    name VARCHAR2(200 CHAR) NOT NULL,
     description CLOB,
-    origin VARCHAR(50) NOT NULL,
+    origin VARCHAR2(50 CHAR) NOT NULL,
     content CLOB,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    created_by VARCHAR(100),
-    updated_by VARCHAR(100)
+    created_by VARCHAR2(100 CHAR),
+    updated_by VARCHAR2(100 CHAR)
 );
 
-CREATE TABLE IF NOT EXISTS mod_processes_diagrams (
-    id VARCHAR(36) PRIMARY KEY,
-    name VARCHAR(255),
-    processkey VARCHAR(100) NOT NULL UNIQUE,
-    description VARCHAR(150),
+CREATE TABLE mod_processes_diagrams (
+    id VARCHAR2(36) PRIMARY KEY,
+    name VARCHAR2(255),
+    processkey VARCHAR2(100) NOT NULL UNIQUE,
+    description VARCHAR2(150),
     created TIMESTAMP,
     updated TIMESTAMP,
-    active BOOLEAN DEFAULT TRUE NOT NULL,
-    type VARCHAR(50) NOT NULL,
-    version INTEGER DEFAULT 1,
+    active NUMBER(1) DEFAULT 1 NOT NULL,
+    type VARCHAR2(50) NOT NULL,
+    version NUMBER(10,0) DEFAULT 1,
     diagram BLOB,
-    updated_by VARCHAR(100)
+    updated_by VARCHAR2(100 CHAR)
 );
 
-CREATE TABLE IF NOT EXISTS mod_revinfo (
-    REV BIGINT AUTO_INCREMENT PRIMARY KEY,
-    REVTSTMP BIGINT
+CREATE TABLE mod_revinfo (
+    rev NUMBER(19) NOT NULL PRIMARY KEY,
+    revtstmp NUMBER(19)
 );
 
-CREATE TABLE IF NOT EXISTS mod_processes_diagrams_aud (
-    id VARCHAR(36) NOT NULL,
-    name VARCHAR(255),
-    processkey VARCHAR(100),
-    description VARCHAR(150),
+CREATE SEQUENCE mod_revinfo_seq START WITH 1 INCREMENT BY 50;
+
+CREATE TABLE mod_processes_diagrams_aud (
+    id VARCHAR2(36) NOT NULL,
+    name VARCHAR2(255),
+    processkey VARCHAR2(100),
+    description VARCHAR2(150),
     created TIMESTAMP,
     updated TIMESTAMP,
-    active BOOLEAN DEFAULT TRUE,
-    type VARCHAR(50),
-    version INTEGER DEFAULT 1,
-    diagram_mod BOOLEAN DEFAULT false,
+    active NUMBER(1) DEFAULT 1,
+    type VARCHAR2(50),
+    version NUMBER(11) DEFAULT 1,
+    diagram_mod NUMBER(1) DEFAULT 0,
     diagram BLOB,
-    updated_by VARCHAR(100),
-    rev BIGINT NOT NULL,
-    revtype TINYINT,
+    updated_by VARCHAR2(100 CHAR),
+    rev NUMBER(19) NOT NULL,
+    revtype NUMBER(6,0),
     CONSTRAINT mod_pk_resources_aud PRIMARY KEY (id, rev),
     CONSTRAINT mod_fk_resources_aud_rev FOREIGN KEY (rev) REFERENCES mod_revinfo(rev)
 );
 
--- Envers expected revision sequence for H2
-CREATE SEQUENCE IF NOT EXISTS mod_revinfo_seq START WITH 1 INCREMENT BY 50;
-
-CREATE TABLE IF NOT EXISTS mod_user_sessions (
-    id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(100) NOT NULL,
+CREATE TABLE mod_user_sessions (
+    id VARCHAR2(36) PRIMARY KEY,
+    user_id VARCHAR2(100 CHAR) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     expires_at TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS mod_diagram_usage (
-    id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(100) NOT NULL,
-    diagram_id VARCHAR(36) NOT NULL,
-    session_id VARCHAR(36) NOT NULL,
+CREATE TABLE mod_diagram_usage (
+    id VARCHAR2(36) PRIMARY KEY,
+    user_id VARCHAR2(100 CHAR) NOT NULL,
+    diagram_id VARCHAR2(36) NOT NULL,
+    session_id VARCHAR2(36) NOT NULL,
     opened_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     closed_at TIMESTAMP,
     CONSTRAINT mod_fk_diagram_usage_diagram FOREIGN KEY (diagram_id) REFERENCES mod_processes_diagrams(id) ON DELETE CASCADE,
     CONSTRAINT mod_fk_diagram_usage_session FOREIGN KEY (session_id) REFERENCES mod_user_sessions(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS mod_forms (
-    id VARCHAR(36) PRIMARY KEY,
-    description VARCHAR(150),
+CREATE TABLE mod_forms (
+    id VARCHAR2(36 CHAR) PRIMARY KEY,
+    description VARCHAR2(150 CHAR),
     created TIMESTAMP,
     updated TIMESTAMP,
-    active BOOLEAN DEFAULT TRUE NOT NULL,
+    active NUMBER(1) DEFAULT 1 NOT NULL,
     form_schema BLOB NOT NULL,
-    formid VARCHAR(100) NOT NULL UNIQUE,
-    version INTEGER DEFAULT 1,
-    updated_by VARCHAR(100)
+    formid VARCHAR2(100 CHAR) NOT NULL UNIQUE,
+    version NUMBER(11) DEFAULT 1,
+    updated_by VARCHAR2(100 CHAR)
 );
 
-CREATE TABLE IF NOT EXISTS mod_form_usage (
-    id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(100) NOT NULL,
-    form_id VARCHAR(36) NOT NULL,
-    session_id VARCHAR(36) NOT NULL,
+CREATE TABLE mod_form_usage (
+    id VARCHAR2(36) PRIMARY KEY,
+    user_id VARCHAR2(100 CHAR) NOT NULL,
+    form_id VARCHAR2(36) NOT NULL,
+    session_id VARCHAR2(36) NOT NULL,
     opened_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     closed_at TIMESTAMP,
     CONSTRAINT mod_fk_form_usage_form FOREIGN KEY (form_id) REFERENCES mod_forms(id) ON DELETE CASCADE,

@@ -14,15 +14,6 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 --
-
-insert into ACT_GE_SCHEMA_LOG
-values ('1500', CURRENT_TIMESTAMP, '2.2.0');
-
-
-
-
--- MODELER
-
 CREATE TABLE IF NOT EXISTS mod_element_templates (
     id VARCHAR(36) PRIMARY KEY,
     active BOOLEAN DEFAULT TRUE,
