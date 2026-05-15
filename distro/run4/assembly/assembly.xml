@@ -148,7 +148,7 @@
       </excludes>
     </fileSet>
     <fileSet>
-      <directory>resources/element-templates</directory>
+      <directory>../../../connect/ai-agent/src/main/resources/element-templates</directory>
       <outputDirectory>configuration/resources/element-templates/</outputDirectory>
     </fileSet>
   </fileSets>

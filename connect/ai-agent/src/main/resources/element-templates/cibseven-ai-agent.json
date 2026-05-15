@@ -4,6 +4,9 @@
   "id": "org.cibseven.connect.ai.agent",
   "version": 1,
   "description": "Element template for the cibseven-ai-agent connector.",
+  "icon": {
+    "contents": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBhcmlhLWhpZGRlbj0idHJ1ZSI+PHBhdGggZD0iTTkgMiBMMTAuNCA4LjYgTDE3IDEwIEwxMC40IDExLjQgTDkgMTggTDcuNiAxMS40IEwxIDEwIEw3LjYgOC42IFoiIGZpbGw9IiNFMTFFMTkiPjwvcGF0aD48cGF0aCBkPSJNMTcuNSAxMyBMMTguMiAxNS44IEwyMSAxNi41IEwxOC4yIDE3LjIgTDE3LjUgMjAgTDE2LjggMTcuMiBMMTQgMTYuNSBMMTYuOCAxNS44IFoiIGZpbGw9IiMwRjIxMzMiPjwvcGF0aD48L3N2Zz4="
+  },
   "keywords": ["ai", "agent", "llm", "openai", "rag", "mcp", "langchain4j"],
   "appliesTo": [
     "bpmn:ServiceTask"

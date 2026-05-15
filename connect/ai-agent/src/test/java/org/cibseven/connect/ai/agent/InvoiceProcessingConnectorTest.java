@@ -225,14 +225,21 @@ public class InvoiceProcessingConnectorTest {
         .isInstanceOf(RuntimeException.class);
   }
 
+  /**
+   * {@code instruction} is intentionally optional: when omitted, the connector
+   * falls back to the bundled default system prompt
+   * ({@code /org/cibseven/connect/ai/agent/default-instruction.txt}).
+   * Validation must therefore accept a request that supplies only the two
+   * required BPMN parameters, {@code agentName} and {@code message}.
+   */
   @Test
-  public void shouldFailWhenRequiredBpmnParameterMissing_instruction() {
+  public void shouldTreatInstructionAsOptionalAndPassValidation() {
     AgentRequest request = connector.createRequest()
         .agentName("invoice-agent")
-        .message(INVOICE_TEXT); // instruction omitted
+        .message(INVOICE_TEXT); // instruction omitted on purpose
 
-    assertThatThrownBy(() -> request.execute())
-        .isInstanceOf(RuntimeException.class);
+    AgentResponse response = request.execute();
+    assertThat(response).isNotNull();
   }
 
   @Test

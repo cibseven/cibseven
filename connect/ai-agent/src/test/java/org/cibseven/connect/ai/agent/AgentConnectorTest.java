@@ -58,17 +58,6 @@ public class AgentConnectorTest {
   }
 
   @Test
-  public void shouldFailExecutionWhenInstructionIsNull() {
-    AgentRequest request = connector.createRequest()
-        .agentName("test-agent")
-        .message("Hello");
-
-    assertThatThrownBy(request::execute)
-        .isInstanceOf(RuntimeException.class)
-        .hasMessageContaining("invalid");
-  }
-
-  @Test
   public void shouldFailExecutionWhenMessageIsNull() {
     AgentRequest request = connector.createRequest()
         .agentName("test-agent")

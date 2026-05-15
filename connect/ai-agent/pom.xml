@@ -110,6 +110,18 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <excludes>
+          <!-- element templates are consumed by Modeler from the distro's
+               configuration/resources/element-templates/ directory; the
+               distro assemblies pick them up from here directly, so we
+               keep them out of the connector jar to avoid duplication -->
+          <exclude>element-templates/**</exclude>
+        </excludes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
