@@ -495,7 +495,7 @@ pipeline {
                                 withMaven() {
                                     sh """
                                         mvn -f ${pipelineParams.pom} \
-                                            compile sonar:sonar \
+                                            package sonar:sonar \
                                             -V -U -T4 \
                                             -Pwebapps-integration \
                                             -Dmaven.test.skip=true \
