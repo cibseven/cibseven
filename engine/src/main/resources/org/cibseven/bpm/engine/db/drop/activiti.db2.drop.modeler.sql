@@ -14,11 +14,11 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 --
-DROP TABLE mod_form_usage;
-DROP TABLE mod_diagram_usage;
-DROP TABLE mod_forms;
-DROP TABLE mod_user_sessions;
-DROP TABLE mod_processes_diagrams_aud;
-DROP TABLE mod_revinfo;
-DROP TABLE mod_processes_diagrams;
-DROP TABLE mod_element_templates;
+DROP TABLE MOD_FORM_USAGE;
+DROP TABLE MOD_DIAGRAM_USAGE;
+DROP TABLE MOD_FORMS;
+DROP TABLE MOD_USER_SESSIONS;
+DROP TABLE MOD_PROCESSES_DIAGRAMS_AUD;
+DROP TABLE MOD_REVINFO;
+DROP TABLE MOD_PROCESSES_DIAGRAMS;
+DROP TABLE MOD_ELEMENT_TEMPLATES;

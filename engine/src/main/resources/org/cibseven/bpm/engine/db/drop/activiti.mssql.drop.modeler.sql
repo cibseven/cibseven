@@ -14,11 +14,11 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 --
-IF OBJECT_ID('mod_form_usage', 'U') IS NOT NULL DROP TABLE mod_form_usage;
-IF OBJECT_ID('mod_diagram_usage', 'U') IS NOT NULL DROP TABLE mod_diagram_usage;
-IF OBJECT_ID('mod_forms', 'U') IS NOT NULL DROP TABLE mod_forms;
-IF OBJECT_ID('mod_user_sessions', 'U') IS NOT NULL DROP TABLE mod_user_sessions;
-IF OBJECT_ID('mod_processes_diagrams_aud', 'U') IS NOT NULL DROP TABLE mod_processes_diagrams_aud;
-IF OBJECT_ID('mod_revinfo', 'U') IS NOT NULL DROP TABLE mod_revinfo;
-IF OBJECT_ID('mod_processes_diagrams', 'U') IS NOT NULL DROP TABLE mod_processes_diagrams;
-IF OBJECT_ID('mod_element_templates', 'U') IS NOT NULL DROP TABLE mod_element_templates;
+IF OBJECT_ID('MOD_FORM_USAGE', 'U') IS NOT NULL DROP TABLE MOD_FORM_USAGE;
+IF OBJECT_ID('MOD_DIAGRAM_USAGE', 'U') IS NOT NULL DROP TABLE MOD_DIAGRAM_USAGE;
+IF OBJECT_ID('MOD_FORMS', 'U') IS NOT NULL DROP TABLE MOD_FORMS;
+IF OBJECT_ID('MOD_USER_SESSIONS', 'U') IS NOT NULL DROP TABLE MOD_USER_SESSIONS;
+IF OBJECT_ID('MOD_PROCESSES_DIAGRAMS_AUD', 'U') IS NOT NULL DROP TABLE MOD_PROCESSES_DIAGRAMS_AUD;
+IF OBJECT_ID('MOD_REVINFO', 'U') IS NOT NULL DROP TABLE MOD_REVINFO;
+IF OBJECT_ID('MOD_PROCESSES_DIAGRAMS', 'U') IS NOT NULL DROP TABLE MOD_PROCESSES_DIAGRAMS;
+IF OBJECT_ID('MOD_ELEMENT_TEMPLATES', 'U') IS NOT NULL DROP TABLE MOD_ELEMENT_TEMPLATES;
