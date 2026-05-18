@@ -17,6 +17,7 @@
 package org.cibseven.connect.ai.agent.impl;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -181,8 +182,44 @@ public class ProcessStarterTool {
             result.put("ended", ended);
             result.put("attempts", attempts);
             result.put("outputs", outputs);
+
+            publishAuditRecord(key, pid, defId, state, ended, attempts);
             return result;
         });
+    }
+
+    /**
+     * Publishes a side-effect record onto the active {@link AgentChatListener}
+     * (when one is registered for the current thread) so the audit log carries
+     * the resulting {@code processInstanceId} and the principal under which
+     * the process was started — the Art. 14 evidence trail for autonomous
+     * agent actions. No-op when the tool runs outside an agent connector turn
+     * (e.g. direct invocation in unit tests).
+     */
+    private static void publishAuditRecord(String key, String processInstanceId,
+            String processDefinitionId, String state, boolean ended, int attempts) {
+        AgentChatListener listener = ProcessStarterToolContext.getActiveListener();
+        if (listener == null) {
+            return;
+        }
+        Map<String, Object> record = new LinkedHashMap<>();
+        record.put("tool", "runProcessByKey");
+        record.put("processDefinitionKey", key);
+        record.put("processInstanceId", processInstanceId);
+        record.put("processDefinitionId", processDefinitionId);
+        record.put("state", state);
+        record.put("ended", ended);
+        record.put("attempts", attempts);
+        Authentication executingAs = ProcessStarterToolContext.getAuthentication();
+        if (executingAs != null && executingAs.getUserId() != null) {
+            record.put("executedAs", executingAs.getUserId());
+        }
+        try {
+            listener.recordToolSideEffect(record);
+        } catch (RuntimeException e) {
+            // Audit publishing must never break the tool itself.
+            LOG.debug("Could not publish tool audit record: {}", e.toString());
+        }
     }
 
     /**

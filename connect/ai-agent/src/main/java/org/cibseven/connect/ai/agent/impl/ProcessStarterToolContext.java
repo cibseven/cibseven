@@ -40,6 +40,14 @@ public final class ProcessStarterToolContext {
 
   private static final ThreadLocal<ProcessEngine> ENGINE = new ThreadLocal<>();
   private static final ThreadLocal<Authentication> AUTH = new ThreadLocal<>();
+  /**
+   * Pointer to the {@link AgentChatListener} owning the in-flight model call.
+   * Tools (e.g. {@link ProcessStarterTool}) publish side-effect records here so
+   * the listener can stitch the resulting {@code processInstanceId} and the
+   * executing principal into the audit event for the LLM turn that triggered
+   * the tool.
+   */
+  private static final ThreadLocal<AgentChatListener> LISTENER = new ThreadLocal<>();
 
   private ProcessStarterToolContext() {
   }
@@ -68,8 +76,21 @@ public final class ProcessStarterToolContext {
     return AUTH.get();
   }
 
+  static void setActiveListener(AgentChatListener listener) {
+    if (listener == null) {
+      LISTENER.remove();
+    } else {
+      LISTENER.set(listener);
+    }
+  }
+
+  static AgentChatListener getActiveListener() {
+    return LISTENER.get();
+  }
+
   public static void clear() {
     ENGINE.remove();
     AUTH.remove();
+    LISTENER.remove();
   }
 }

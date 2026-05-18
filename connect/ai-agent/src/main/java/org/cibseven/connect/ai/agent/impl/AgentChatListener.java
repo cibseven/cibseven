@@ -16,11 +16,17 @@
  */
 package org.cibseven.connect.ai.agent.impl;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -37,33 +43,53 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.ModelProvider;
 import dev.langchain4j.model.chat.listener.ChatModelErrorContext;
 import dev.langchain4j.model.chat.listener.ChatModelListener;
 import dev.langchain4j.model.chat.listener.ChatModelRequestContext;
 import dev.langchain4j.model.chat.listener.ChatModelResponseContext;
 import dev.langchain4j.model.chat.request.ChatRequest;
+import dev.langchain4j.model.chat.response.ChatResponseMetadata;
+import dev.langchain4j.model.output.FinishReason;
 import dev.langchain4j.model.output.TokenUsage;
 
 import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
 import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.identity.Authentication;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.variable.Variables;
 
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 
 /**
- * Captures every {@link ChatModelListener} event (request / response / error) into a
- * structured list and — when invoked inside a BPMN execution context — persists it as
- * a JSON-serialised process variable updated after every event. The JSON is consumed
- * by the webclient frontend (Vue.js) to render a timeline-style visualisation of the
- * agent run.
+ * {@link ChatModelListener} that emits one structured audit event per LLM
+ * request, response, or error. The event payload carries the fields required
+ * by EU AI Act Art. 12 (record-keeping) and Art. 26 (deployer obligations):
+ * run identity ({@code runId} + {@code eventSeq}), model identity
+ * ({@code provider}, {@code model}, {@code endpoint}), process correlation
+ * ({@code processInstanceId}, {@code processDefinitionKey/Id},
+ * {@code businessKey}, {@code tenantId}, {@code executionId},
+ * {@code activityId}), caller identity ({@code userId}, {@code groupIds}),
+ * outcome ({@code finishReason}, {@code durationMs}, {@code errorClass} +
+ * short stack on failures), and per-tool side-effects published by
+ * {@link ProcessStarterTool} (resulting {@code processInstanceId} +
+ * executing principal).
  *
- * <p>The variable name is derived automatically from the current activity:
- * {@code AGENT_CONNECTOR_LOG_PREFIX + activityId}. When a variable with that name
- * already exists at construction time, its content is decoded so subsequent events
- * accumulate on top instead of overwriting earlier history. When the listener is
- * invoked without a {@link BpmnExecutionContext} (e.g. unit tests), it just collects
- * events in memory and never touches the engine.
+ * <p>The chat-log variable name is derived automatically from the current
+ * activity: {@code AGENT_CONNECTOR_LOG_PREFIX + activityId}. When a variable
+ * with that name already exists at construction time, its content is decoded
+ * so subsequent events accumulate on top instead of overwriting earlier
+ * history. When the listener is invoked without a {@link BpmnExecutionContext}
+ * (e.g. unit tests), it just collects events in memory and never touches the
+ * engine.
+ *
+ * <h3>Content redaction</h3>
+ * Setting the {@value #REDACT_CONTENT_PROPERTY} system property to
+ * {@code true} replaces every {@code messages[].content} string with a
+ * JSON-encoded marker carrying a SHA-256 hash and the original character
+ * length, to satisfy GDPR-conservative deployments at the cost of
+ * frontend readability. The default is unredacted (preserves the existing
+ * webclient JSON contract).
  */
 class AgentChatListener implements ChatModelListener {
 
@@ -74,12 +100,100 @@ class AgentChatListener implements ChatModelListener {
   private static final TypeReference<List<Map<String, Object>>> EVENT_LIST_TYPE =
       new TypeReference<List<Map<String, Object>>>() {};
 
+  /** Number of stack frames retained per error event. */
+  private static final int ERROR_STACK_DEPTH = 5;
+
+  /**
+   * Per-request attribute key used to stash {@code System.nanoTime()} on
+   * {@link #onRequest} so {@link #onResponse} / {@link #onError} can compute a
+   * {@code durationMs}. Anchored on a sentinel object so the key collides with
+   * nothing else stuffed into {@code ctx.attributes()} by other listeners.
+   */
+  private static final Object KEY_START_NANOS = new Object() {
+    @Override public String toString() {
+      return "cibseven-ai-agent.startNanos";
+    }
+  };
+
+  /**
+   * System property that, when set to {@code true}, redacts message content
+   * (replaces each {@code messages[].content} with a JSON-encoded
+   * {@code {hash,length,redacted}} marker). Default {@code false}.
+   */
+  static final String REDACT_CONTENT_PROPERTY = "cibseven.connect.ai-agent.redactContent";
+
+  // ── run identity ─────────────────────────────────────────────────────────
+  private final String runId;
+  private final AtomicInteger eventSeq = new AtomicInteger();
+
+  // ── model identity (nullable when constructed without context) ───────────
+  private final String configuredModel;
+  private final String endpoint;
+
+  // ── BPMN correlation (captured at construction time on the engine thread) ─
+  private final String processInstanceId;
+  private final String processDefinitionId;
+  private final String processDefinitionKey;
+  private final String businessKey;
+  private final String tenantId;
+  private final String executionId;
+  private final String activityId;
+
+  // ── caller (captured at construction time) ───────────────────────────────
+  private final String userId;
+  private final List<String> groupIds;
+
+  // ── persistence ──────────────────────────────────────────────────────────
   private final String variableName;
   private final List<Map<String, Object>> events = new ArrayList<>();
   private boolean flagWritten = false;
 
+  /**
+   * Tool-side-effect records pushed by tools (e.g. {@link ProcessStarterTool})
+   * while a model call is in flight. Drained onto the next emitted event so
+   * the audit log carries the resulting {@code processInstanceId} and
+   * executing principal alongside the tool call that triggered it.
+   */
+  private final List<Map<String, Object>> pendingToolSideEffects = new ArrayList<>();
+
   AgentChatListener() {
-    String activityId = currentActivityId();
+    this(null, null);
+  }
+
+  AgentChatListener(String configuredModel, String endpoint) {
+    this.runId = UUID.randomUUID().toString();
+    this.configuredModel = configuredModel;
+    this.endpoint = endpoint;
+
+    ExecutionEntity execution = currentExecution();
+    if (execution != null) {
+      this.activityId = execution.getActivityId();
+      this.processInstanceId = execution.getProcessInstanceId();
+      this.processDefinitionId = execution.getProcessDefinitionId();
+      this.processDefinitionKey = safeRead(execution::getProcessDefinitionKey, "processDefinitionKey");
+      this.businessKey = safeRead(execution::getBusinessKey, "businessKey");
+      this.tenantId = safeRead(execution::getTenantId, "tenantId");
+      this.executionId = execution.getId();
+    } else {
+      this.activityId = null;
+      this.processInstanceId = null;
+      this.processDefinitionId = null;
+      this.processDefinitionKey = null;
+      this.businessKey = null;
+      this.tenantId = null;
+      this.executionId = null;
+    }
+
+    Authentication auth = ProcessStarterToolContext.getAuthentication();
+    if (auth != null) {
+      this.userId = auth.getUserId();
+      List<String> g = auth.getGroupIds();
+      this.groupIds = (g == null) ? null : Collections.unmodifiableList(new ArrayList<>(g));
+    } else {
+      this.userId = null;
+      this.groupIds = null;
+    }
+
     this.variableName = (activityId != null && !activityId.isEmpty())
         ? AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + activityId
         : null;
@@ -98,9 +212,46 @@ class AgentChatListener implements ChatModelListener {
     return variableName;
   }
 
-  private static String currentActivityId() {
-    ExecutionEntity execution = currentExecution();
-    return execution != null ? execution.getActivityId() : null;
+  /** UUID identifying this listener instance. Exposed for tests / tool linkage. */
+  String runId() {
+    return runId;
+  }
+
+  /**
+   * Records a side effect produced by a tool call (e.g. the
+   * {@code processInstanceId} started by {@link ProcessStarterTool} and the
+   * principal under which it ran). The record is held until the next event is
+   * emitted, then merged onto that event under {@code toolSideEffects}.
+   *
+   * <p>Provides the Art. 14 evidence trail for autonomous agent actions.
+   */
+  void recordToolSideEffect(Map<String, Object> sideEffect) {
+    if (sideEffect == null || sideEffect.isEmpty()) {
+      return;
+    }
+    pendingToolSideEffects.add(new LinkedHashMap<>(sideEffect));
+  }
+
+  private static ExecutionEntity currentExecution() {
+    BpmnExecutionContext ctx = Context.getBpmnExecutionContext();
+    if (ctx == null) {
+      return null;
+    }
+    return ctx.getExecution();
+  }
+
+  /**
+   * Reads a property from the current execution entity, swallowing any
+   * runtime failure (e.g. lazy-init blowing up because the entity is detached
+   * during a test) so listener construction never aborts the connector run.
+   */
+  private static <T> T safeRead(java.util.function.Supplier<T> reader, String field) {
+    try {
+      return reader.get();
+    } catch (RuntimeException e) {
+      LOG.debug("Could not read '{}' from current execution: {}", field, e.toString());
+      return null;
+    }
   }
 
   private void loadExistingEvents() {
@@ -119,6 +270,9 @@ class AgentChatListener implements ChatModelListener {
     try {
       List<Map<String, Object>> previous = MAPPER.readValue(json, EVENT_LIST_TYPE);
       events.addAll(previous);
+      // Continue numbering after the previous tail so eventSeq is monotonic
+      // across resumed runs.
+      eventSeq.set(previous.size());
     } catch (JsonProcessingException e) {
       LOG.warn("Failed to decode previous chat log from variable '{}'; starting with an empty log.",
           variableName, e);
@@ -154,20 +308,15 @@ class AgentChatListener implements ChatModelListener {
     }
   }
 
-  private static ExecutionEntity currentExecution() {
-    BpmnExecutionContext ctx = Context.getBpmnExecutionContext();
-    if (ctx == null) {
-      return null;
-    }
-    return ctx.getExecution();
-  }
+  // ── ChatModelListener callbacks ──────────────────────────────────────────
 
   @Override
   public void onRequest(ChatModelRequestContext ctx) {
     ChatRequest req = ctx.chatRequest();
-    Map<String, Object> event = new LinkedHashMap<>();
-    event.put("type", "request");
-    event.put("timestamp", Instant.now().toString());
+    Map<String, Object> event = newEvent("request", ctx.modelProvider(), req);
+
+    // Track per-request start time so onResponse / onError can compute duration.
+    ctx.attributes().put(KEY_START_NANOS, System.nanoTime());
 
     List<Map<String, Object>> messages = new ArrayList<>();
     for (ChatMessage msg : req.messages()) {
@@ -176,6 +325,7 @@ class AgentChatListener implements ChatModelListener {
       m.put("content", extractContent(msg));
       if (msg instanceof ToolExecutionResultMessage) {
         m.put("toolName", ((ToolExecutionResultMessage) msg).toolName());
+        m.put("toolCallId", ((ToolExecutionResultMessage) msg).id());
       }
       messages.add(m);
       LOG.debug("[{}] {}", msg.type(), msg);
@@ -190,21 +340,20 @@ class AgentChatListener implements ChatModelListener {
       event.put("tools", tools);
       LOG.debug("Available tools: {}", tools);
     }
-    events.add(event);
-    persistEvents();
+    appendEvent(event);
   }
 
   @Override
   public void onResponse(ChatModelResponseContext ctx) {
     AiMessage aiMsg = ctx.chatResponse().aiMessage();
-    Map<String, Object> event = new LinkedHashMap<>();
-    event.put("type", "response");
-    event.put("timestamp", Instant.now().toString());
+    Map<String, Object> event = newEvent("response", ctx.modelProvider(), ctx.chatRequest());
+    putDuration(event, ctx.attributes());
 
     if (aiMsg.hasToolExecutionRequests()) {
       List<Map<String, Object>> toolCalls = new ArrayList<>();
       for (ToolExecutionRequest req : aiMsg.toolExecutionRequests()) {
         Map<String, Object> call = new LinkedHashMap<>();
+        call.put("id", req.id());
         call.put("name", req.name());
         call.put("arguments", req.arguments());
         toolCalls.add(call);
@@ -216,6 +365,24 @@ class AgentChatListener implements ChatModelListener {
       LOG.debug("FINAL ANSWER: {}", aiMsg.text());
     }
 
+    ChatResponseMetadata metadata = ctx.chatResponse().metadata();
+    if (metadata != null) {
+      FinishReason finish = metadata.finishReason();
+      if (finish != null) {
+        event.put("finishReason", finish.name());
+      }
+      String responseModel = metadata.modelName();
+      if (responseModel != null && !responseModel.isEmpty()) {
+        // Provider-reported snapshot/version supersedes the configured model
+        // (e.g. "gpt-4o-2024-08-06" vs request's "gpt-4o").
+        event.put("model", responseModel);
+      }
+      String responseId = metadata.id();
+      if (responseId != null && !responseId.isEmpty()) {
+        event.put("responseId", responseId);
+      }
+    }
+
     TokenUsage usage = ctx.chatResponse().tokenUsage();
     if (usage != null) {
       Map<String, Object> tokens = new LinkedHashMap<>();
@@ -225,22 +392,131 @@ class AgentChatListener implements ChatModelListener {
       event.put("tokens", tokens);
       LOG.debug("Tokens: {}", usage);
     }
-    events.add(event);
-    persistEvents();
+    appendEvent(event);
   }
 
   @Override
   public void onError(ChatModelErrorContext ctx) {
+    Map<String, Object> event = newEvent("error", ctx.modelProvider(), ctx.chatRequest());
+    putDuration(event, ctx.attributes());
+
+    Throwable error = ctx.error();
+    if (error != null) {
+      event.put("errorClass", error.getClass().getName());
+      event.put("message", error.getMessage());
+      event.put("stack", shortStack(error));
+    }
+    LOG.error("LLM ERROR: {}", error != null ? error.getMessage() : null, error);
+    appendEvent(event);
+  }
+
+  // ── event construction helpers ───────────────────────────────────────────
+
+  /**
+   * Builds the common envelope for every event: run identity, model identity,
+   * BPMN correlation, caller, timestamp. Model identity falls back to the
+   * configured values when the response context does not override them.
+   */
+  private Map<String, Object> newEvent(String type, ModelProvider provider, ChatRequest req) {
     Map<String, Object> event = new LinkedHashMap<>();
-    event.put("type", "error");
+    event.put("type", type);
+    event.put("runId", runId);
+    event.put("eventSeq", eventSeq.getAndIncrement());
     event.put("timestamp", Instant.now().toString());
-    event.put("message", ctx.error().getMessage());
+
+    if (provider != null) {
+      event.put("provider", provider.name());
+    }
+    String model = requestModel(req);
+    if (model == null) {
+      model = configuredModel;
+    }
+    if (model != null && !model.isEmpty()) {
+      event.put("model", model);
+    }
+    if (endpoint != null && !endpoint.isEmpty()) {
+      event.put("endpoint", endpoint);
+    }
+
+    if (processInstanceId != null) event.put("processInstanceId", processInstanceId);
+    if (processDefinitionId != null) event.put("processDefinitionId", processDefinitionId);
+    if (processDefinitionKey != null) event.put("processDefinitionKey", processDefinitionKey);
+    if (businessKey != null) event.put("businessKey", businessKey);
+    if (tenantId != null) event.put("tenantId", tenantId);
+    if (executionId != null) event.put("executionId", executionId);
+    if (activityId != null) event.put("activityId", activityId);
+
+    if (userId != null) event.put("userId", userId);
+    if (groupIds != null && !groupIds.isEmpty()) event.put("groupIds", groupIds);
+    return event;
+  }
+
+  private static String requestModel(ChatRequest req) {
+    if (req == null || req.parameters() == null) {
+      return null;
+    }
+    return req.parameters().modelName();
+  }
+
+  private static void putDuration(Map<String, Object> event, Map<Object, Object> attributes) {
+    if (attributes == null) {
+      return;
+    }
+    Object start = attributes.get(KEY_START_NANOS);
+    if (!(start instanceof Long)) {
+      return;
+    }
+    long ms = (System.nanoTime() - (Long) start) / 1_000_000L;
+    event.put("durationMs", ms);
+  }
+
+  /**
+   * Drains any pending tool-side-effect records onto the event before
+   * appending it to the audit list.
+   */
+  private void appendEvent(Map<String, Object> event) {
+    if (!pendingToolSideEffects.isEmpty()) {
+      event.put("toolSideEffects", new ArrayList<>(pendingToolSideEffects));
+      pendingToolSideEffects.clear();
+    }
     events.add(event);
-    LOG.error("LLM ERROR: {}", ctx.error().getMessage(), ctx.error());
     persistEvents();
   }
 
+  /**
+   * Returns the first {@value #ERROR_STACK_DEPTH} frames of {@code t}'s stack
+   * trace as a single newline-joined string. Sufficient to classify the
+   * failure type for Art. 79 (serious-incident detection) without bloating the
+   * audit payload with full traces.
+   */
+  private static String shortStack(Throwable t) {
+    StackTraceElement[] frames = t.getStackTrace();
+    if (frames.length == 0) {
+      return "";
+    }
+    int n = Math.min(ERROR_STACK_DEPTH, frames.length);
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < n; i++) {
+      if (i > 0) sb.append('\n');
+      sb.append("\tat ").append(frames[i].toString());
+    }
+    if (frames.length > n) {
+      sb.append("\n\t... ").append(frames.length - n).append(" more");
+    }
+    return sb.toString();
+  }
+
+  // ── message content extraction ───────────────────────────────────────────
+
   private static String extractContent(ChatMessage msg) {
+    String plain = extractPlainContent(msg);
+    if (Boolean.getBoolean(REDACT_CONTENT_PROPERTY)) {
+      return redact(plain);
+    }
+    return plain;
+  }
+
+  private static String extractPlainContent(ChatMessage msg) {
     if (msg instanceof UserMessage) {
       UserMessage user = (UserMessage) msg;
       return user.hasSingleText() ? user.singleText() : user.toString();
@@ -263,11 +539,49 @@ class AgentChatListener implements ChatModelListener {
             + "falling back to plain answer text.", e);
         return text;
       }
-
     }
     if (msg instanceof ToolExecutionResultMessage) {
       return ((ToolExecutionResultMessage) msg).text();
     }
     return msg.toString();
+  }
+
+  /**
+   * Replaces {@code plain} with a JSON-encoded redaction marker carrying a
+   * SHA-256 hash and the original character length. The marker is stable for
+   * the same input so deployers can correlate redacted entries against
+   * external retention stores without rehydrating plaintext.
+   */
+  static String redact(String plain) {
+    if (plain == null) {
+      return null;
+    }
+    Map<String, Object> marker = new LinkedHashMap<>();
+    marker.put("redacted", true);
+    marker.put("length", plain.length());
+    marker.put("hash", sha256(plain));
+    try {
+      return MAPPER.writeValueAsString(marker);
+    } catch (JsonProcessingException e) {
+      LOG.error("Failed to encode redaction marker; falling back to empty string.", e);
+      return "";
+    }
+  }
+
+  private static String sha256(String s) {
+    try {
+      MessageDigest md = MessageDigest.getInstance("SHA-256");
+      byte[] digest = md.digest(s.getBytes(StandardCharsets.UTF_8));
+      StringBuilder hex = new StringBuilder(digest.length * 2 + 7);
+      hex.append("sha256:");
+      for (byte b : digest) {
+        hex.append(Character.forDigit((b >> 4) & 0xF, 16));
+        hex.append(Character.forDigit(b & 0xF, 16));
+      }
+      return hex.toString();
+    } catch (NoSuchAlgorithmException e) {
+      // SHA-256 is mandated by the JDK spec — surfacing this as runtime is fine.
+      throw new IllegalStateException("SHA-256 not available on this JVM", e);
+    }
   }
 }

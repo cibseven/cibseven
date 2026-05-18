@@ -127,33 +127,6 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     String apiKey = resolveApiKey(request);
     String baseUrl = resolveBaseUrl(request);
     Map<String, String> customHeaders = parseCustomHeaders(request.getCustomHeaders());
-    ChatModel chatModel = createChatModel(request, apiKey, baseUrl, customHeaders);
-
-    List<McpClient> mcpClients = createMcpClients(request);
-
-    String memoryId = resolveMemoryId(request);
-
-    Class<?> agentClass = (memoryId != null) ? LangChainMemoryAgent.class : LangChainAgent.class;
-    AiServices<?> builder = AiServices.builder(agentClass)
-        .chatModel(chatModel)
-        .systemMessageProvider(chatMemoryId -> buildSystemPrompt(request));
-    if (!tools.isEmpty()) {
-      builder.tools(tools.toArray());
-    }
-    if (!mcpClients.isEmpty()) {
-      ToolProvider mcpToolProvider = McpToolProvider.builder()
-          .mcpClients(mcpClients)
-          .build();
-      builder.toolProvider(mcpToolProvider);
-    }
-    if (memoryId != null) {
-      builder.chatMemoryProvider(createChatMemoryProvider(request));
-    }
-    ContentRetriever contentRetriever = createContentRetriever(request);
-    LOG.debug("contentRetriever: " + contentRetriever);
-    if (contentRetriever != null) {
-      builder.contentRetriever(contentRetriever);
-    }
 
     // Forward the engine reference and the caller's engine authentication to
     // any @Tool that needs them (e.g. ProcessStarterTool). The engine is
@@ -161,11 +134,43 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     // BpmPlatform lookup may return null on a LangChain4j worker thread.
     // Authentication is forwarded so engine-level authorization checks run
     // against the user that triggered the AI agent — not the worker thread.
+    //
+    // Must be set BEFORE createChatModel(): AgentChatListener reads the
+    // authentication in its constructor to capture userId / groupIds on every
+    // audit event (Art. 12 record-keeping).
     ProcessEngine callerEngine = captureProcessEngine();
     Authentication callerAuth = captureCallerAuthentication(callerEngine);
     ProcessStarterToolContext.setEngine(callerEngine);
     ProcessStarterToolContext.setAuthentication(callerAuth);
     try {
+      ChatModel chatModel = createChatModel(request, apiKey, baseUrl, customHeaders);
+
+      List<McpClient> mcpClients = createMcpClients(request);
+
+      String memoryId = resolveMemoryId(request);
+
+      Class<?> agentClass = (memoryId != null) ? LangChainMemoryAgent.class : LangChainAgent.class;
+      AiServices<?> builder = AiServices.builder(agentClass)
+          .chatModel(chatModel)
+          .systemMessageProvider(chatMemoryId -> buildSystemPrompt(request));
+      if (!tools.isEmpty()) {
+        builder.tools(tools.toArray());
+      }
+      if (!mcpClients.isEmpty()) {
+        ToolProvider mcpToolProvider = McpToolProvider.builder()
+            .mcpClients(mcpClients)
+            .build();
+        builder.toolProvider(mcpToolProvider);
+      }
+      if (memoryId != null) {
+        builder.chatMemoryProvider(createChatMemoryProvider(request));
+      }
+      ContentRetriever contentRetriever = createContentRetriever(request);
+      LOG.debug("contentRetriever: " + contentRetriever);
+      if (contentRetriever != null) {
+        builder.contentRetriever(contentRetriever);
+      }
+
       Result<String> result;
       if (memoryId != null) {
         LangChainMemoryAgent agent = (LangChainMemoryAgent) builder.build();
@@ -619,7 +624,10 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     String modelName = request.getModel();
     String reasoningEffort = request.getReasoningEffort();
     String reasoningSummary = request.getReasoningSummary();
-    AgentChatListener listener = new AgentChatListener();
+    AgentChatListener listener = new AgentChatListener(modelName, baseUrl);
+    // Make the listener reachable to @Tool classes so they can publish
+    // side-effect audit records onto the in-flight model turn.
+    ProcessStarterToolContext.setActiveListener(listener);
 
     if (reasoningSummary != null && !reasoningSummary.isEmpty()) {
       if (customHeaders != null && !customHeaders.isEmpty()) {

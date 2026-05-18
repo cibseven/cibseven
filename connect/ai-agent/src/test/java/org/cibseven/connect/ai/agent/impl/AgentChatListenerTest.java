@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.identity.Authentication;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.junit.After;
@@ -40,11 +41,14 @@ import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.TextContent;
 import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.ModelProvider;
 import dev.langchain4j.model.chat.listener.ChatModelErrorContext;
 import dev.langchain4j.model.chat.listener.ChatModelRequestContext;
 import dev.langchain4j.model.chat.listener.ChatModelResponseContext;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.chat.response.ChatResponseMetadata;
+import dev.langchain4j.model.output.FinishReason;
 import dev.langchain4j.model.output.TokenUsage;
 
 public class AgentChatListenerTest {
@@ -58,6 +62,10 @@ public class AgentChatListenerTest {
       try { Context.removeExecutionContext(); } catch (Exception ignored) {}
       pushedExecution = false;
     }
+    // Clear thread-locals that may have been set by tests exercising auth /
+    // tool-side-effect linkage so they don't leak into subsequent tests.
+    ProcessStarterToolContext.clear();
+    System.clearProperty(AgentChatListener.REDACT_CONTENT_PROPERTY);
   }
 
   @Test
@@ -398,6 +406,251 @@ public class AgentChatListenerTest {
         .setVariable(org.mockito.Matchers.anyString(), org.mockito.Matchers.any());
     verify(execution, org.mockito.Mockito.never())
         .setVariable(org.mockito.Matchers.anyString(), org.mockito.Matchers.anyBoolean());
+  }
+
+  // ── Audit envelope (EU AI Act Art. 12 record-keeping) ────────────────────
+
+  @Test
+  public void shouldStampRunIdAndMonotonicEventSeqOnEveryEvent() {
+    AgentChatListener listener = new AgentChatListener();
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    listener.onResponse(new ChatModelResponseContext(
+        ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
+        request, null, new HashMap<>()));
+    listener.onError(new ChatModelErrorContext(
+        new RuntimeException("boom"), request, null, new HashMap<>()));
+
+    List<Map<String, Object>> events = listener.events();
+    String runId = (String) events.get(0).get("runId");
+    assertThat(runId).isNotNull().isNotEmpty();
+    assertThat(events.get(1)).containsEntry("runId", runId);
+    assertThat(events.get(2)).containsEntry("runId", runId);
+    assertThat(events.get(0)).containsEntry("eventSeq", 0);
+    assertThat(events.get(1)).containsEntry("eventSeq", 1);
+    assertThat(events.get(2)).containsEntry("eventSeq", 2);
+  }
+
+  @Test
+  public void shouldRecordProviderAndConfiguredModelAndEndpoint() {
+    AgentChatListener listener = new AgentChatListener("gpt-4o-mini", "https://api.openai.com/v1");
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, ModelProvider.OPEN_AI, new HashMap<>()));
+
+    Map<String, Object> event = listener.events().get(0);
+    assertThat(event).containsEntry("provider", "OPEN_AI")
+        .containsEntry("model", "gpt-4o-mini")
+        .containsEntry("endpoint", "https://api.openai.com/v1");
+  }
+
+  @Test
+  public void shouldOverrideConfiguredModelWithProviderReportedSnapshot() {
+    AgentChatListener listener = new AgentChatListener("gpt-4o", null);
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    ChatResponseMetadata meta = ChatResponseMetadata.builder()
+        .modelName("gpt-4o-2024-08-06")
+        .build();
+    ChatResponse response = ChatResponse.builder()
+        .aiMessage(AiMessage.from("ok"))
+        .metadata(meta)
+        .build();
+    listener.onResponse(new ChatModelResponseContext(response, request, ModelProvider.OPEN_AI, new HashMap<>()));
+
+    Map<String, Object> event = listener.events().get(0);
+    assertThat(event).containsEntry("model", "gpt-4o-2024-08-06");
+  }
+
+  @Test
+  public void shouldRecordFinishReasonOnResponse() {
+    AgentChatListener listener = new AgentChatListener();
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    ChatResponseMetadata meta = ChatResponseMetadata.builder()
+        .finishReason(FinishReason.CONTENT_FILTER)
+        .build();
+    ChatResponse response = ChatResponse.builder()
+        .aiMessage(AiMessage.from("…"))
+        .metadata(meta)
+        .build();
+    listener.onResponse(new ChatModelResponseContext(response, request, null, new HashMap<>()));
+
+    assertThat(listener.events().get(0)).containsEntry("finishReason", "CONTENT_FILTER");
+  }
+
+  @Test
+  public void shouldComputeDurationMsBetweenRequestAndResponse() throws Exception {
+    AgentChatListener listener = new AgentChatListener();
+    Map<Object, Object> attributes = new HashMap<>();
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, attributes));
+    Thread.sleep(5);
+    listener.onResponse(new ChatModelResponseContext(
+        ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
+        request, null, attributes));
+
+    Object duration = listener.events().get(1).get("durationMs");
+    assertThat(duration).isInstanceOf(Long.class);
+    assertThat((Long) duration).isGreaterThanOrEqualTo(0L);
+  }
+
+  @Test
+  public void shouldRecordErrorClassAndShortStackOnFailure() {
+    AgentChatListener listener = new AgentChatListener();
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onError(new ChatModelErrorContext(
+        new IllegalStateException("nope"), request, null, new HashMap<>()));
+
+    Map<String, Object> event = listener.events().get(0);
+    assertThat(event).containsEntry("errorClass", "java.lang.IllegalStateException")
+        .containsEntry("message", "nope")
+        .containsKey("stack");
+    String stack = (String) event.get("stack");
+    assertThat(stack).contains("AgentChatListenerTest");
+  }
+
+  // ── BPMN correlation + caller identity (Art. 12(3), Art. 26(3)) ─────────
+
+  @Test
+  public void shouldEmbedFullProcessCorrelationInEveryEvent() {
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("agentTask");
+    when(execution.getId()).thenReturn("exec-1");
+    when(execution.getProcessInstanceId()).thenReturn("pi-1");
+    when(execution.getProcessDefinitionId()).thenReturn("pd-1:v1:42");
+    when(execution.getProcessDefinitionKey()).thenReturn("invoiceProcess");
+    when(execution.getBusinessKey()).thenReturn("BK-9000");
+    when(execution.getTenantId()).thenReturn("tenant-a");
+    when(execution.getVariable(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask"))
+        .thenReturn(null);
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener();
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    Map<String, Object> event = listener.events().get(0);
+    assertThat(event)
+        .containsEntry("processInstanceId", "pi-1")
+        .containsEntry("processDefinitionId", "pd-1:v1:42")
+        .containsEntry("processDefinitionKey", "invoiceProcess")
+        .containsEntry("businessKey", "BK-9000")
+        .containsEntry("tenantId", "tenant-a")
+        .containsEntry("executionId", "exec-1")
+        .containsEntry("activityId", "agentTask");
+  }
+
+  @Test
+  public void shouldEmbedCallerUserIdAndGroupIdsFromForwardedAuthentication() {
+    ProcessStarterToolContext.setAuthentication(new Authentication(
+        "alice", Arrays.asList("finance", "approvers")));
+
+    AgentChatListener listener = new AgentChatListener();
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    Map<String, Object> event = listener.events().get(0);
+    assertThat(event).containsEntry("userId", "alice");
+    assertThat(event.get("groupIds")).isEqualTo(Arrays.asList("finance", "approvers"));
+  }
+
+  // ── Tool-side-effect linkage (Art. 14) ───────────────────────────────────
+
+  @Test
+  public void shouldMergePendingToolSideEffectsOntoNextEvent() {
+    AgentChatListener listener = new AgentChatListener();
+
+    Map<String, Object> sideEffect = new HashMap<>();
+    sideEffect.put("tool", "runProcessByKey");
+    sideEffect.put("processInstanceId", "pi-99");
+    sideEffect.put("executedAs", "alice");
+    listener.recordToolSideEffect(sideEffect);
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(ToolExecutionResultMessage.from(
+            "call-1", "runProcessByKey", "{\"processInstanceId\":\"pi-99\"}")))
+        .build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> sideEffects =
+        (List<Map<String, Object>>) listener.events().get(0).get("toolSideEffects");
+    assertThat(sideEffects).hasSize(1);
+    assertThat(sideEffects.get(0))
+        .containsEntry("processInstanceId", "pi-99")
+        .containsEntry("executedAs", "alice");
+  }
+
+  @Test
+  public void shouldDrainToolSideEffectsAfterAttachingThem() {
+    AgentChatListener listener = new AgentChatListener();
+
+    Map<String, Object> sideEffect = new HashMap<>();
+    sideEffect.put("processInstanceId", "pi-1");
+    listener.recordToolSideEffect(sideEffect);
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("first"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    // Side-effect was consumed by the first event only.
+    assertThat(listener.events().get(0)).containsKey("toolSideEffects");
+    assertThat(listener.events().get(1)).doesNotContainKey("toolSideEffects");
+  }
+
+  // ── Content redaction (Art. 10 / GDPR) ───────────────────────────────────
+
+  @Test
+  public void shouldReplaceContentWithRedactionMarkerWhenRedactionEnabled() throws Exception {
+    System.setProperty(AgentChatListener.REDACT_CONTENT_PROPERTY, "true");
+    AgentChatListener listener = new AgentChatListener();
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("sensitive PII"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> messages =
+        (List<Map<String, Object>>) listener.events().get(0).get("messages");
+    String content = (String) messages.get(0).get("content");
+    @SuppressWarnings("unchecked")
+    Map<String, Object> decoded = new com.fasterxml.jackson.databind.ObjectMapper()
+        .readValue(content, Map.class);
+    assertThat(decoded).containsEntry("redacted", true)
+        .containsEntry("length", "sensitive PII".length());
+    String hash = (String) decoded.get("hash");
+    assertThat(hash).startsWith("sha256:");
+    // SHA-256 = 32 bytes → 64 hex chars; with the "sha256:" prefix, 71 chars total.
+    assertThat(hash.length()).isEqualTo(71);
+  }
+
+  @Test
+  public void shouldNotRedactByDefault() {
+    AgentChatListener listener = new AgentChatListener();
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("plaintext"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> messages =
+        (List<Map<String, Object>>) listener.events().get(0).get("messages");
+    assertThat(messages.get(0)).containsEntry("content", "plaintext");
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
