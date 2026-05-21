@@ -378,6 +378,11 @@
     from (
 
     SELECT SELF.*, DEF.NAME_, DEF.VERSION_, DEF.DEPLOYMENT_ID_
+    <include refid="historicProcessInstancesByQueryCriteriaFiltering"/>
+    ) RES
+  </sql>
+
+  <sql id="historicProcessInstancesByQueryCriteriaFiltering">
     FROM ${prefix}ACT_HI_PROCINST SELF
 
     LEFT JOIN ${prefix}ACT_RE_PROCDEF DEF
@@ -497,6 +502,12 @@
                 #{item}
               </foreach>
             </if>
+            <if test="query.processDefinitionKeyNotIn != null &amp;&amp; query.processDefinitionKeyNotIn.size() > 0">
+              ${queryType} DEF.KEY_ not in
+              <foreach item="item" index="index" collection="query.processDefinitionKeyNotIn" open="(" separator="," close=")">
+                #{item}
+              </foreach>
+            </if>
             <if test="query.processDefinitionName != null">
               ${queryType} DEF.NAME_ = #{query.processDefinitionName}
             </if>
@@ -529,15 +540,6 @@
             <if test="query.finishedAfter != null">
               ${queryType} SELF.END_TIME_ &gt;= #{query.finishedAfter}
             </if>
-            <if test="query.processKeyNotIn != null">
-              ${queryType} (
-                <foreach collection="query.processKeyNotIn" index="index" item="procDefKey"
-                         open="(" separator=" and " close=")">
-                  DEF.KEY_ not like #{procDefKey} ESCAPE ${escapeChar}
-                </foreach>
-              )
-            </if>
-
             <if test="query.state != null and !query.state.isEmpty()">
               ${queryType} (
               SELF.STATE_ IS NOT NULL
@@ -749,9 +751,6 @@
 
       <include refid="org.cibseven.bpm.engine.impl.persistence.entity.TenantEntity.queryTenantCheckWithSelfPrefix"/>
     </where>
-
-    ) RES
-
   </sql>
 
   <select id="selectHistoricProcessInstanceByNativeQuery" parameterType="java.util.Map"

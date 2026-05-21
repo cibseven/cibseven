@@ -606,6 +606,10 @@ public class HistoricProcessInstanceQueryImpl extends AbstractVariableQueryImpl<
     return processKeyNotIn;
   }
 
+  public List<String> getProcessDefinitionKeyNotIn() {
+    return processKeyNotIn;
+  }
+
   public Date getStartedAfter() {
     return startedAfter;
   }
