@@ -48,6 +48,7 @@ import dev.langchain4j.model.chat.listener.ChatModelResponseContext;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.response.ChatResponseMetadata;
+import dev.langchain4j.model.openai.OpenAiChatRequestParameters;
 import dev.langchain4j.model.output.FinishReason;
 import dev.langchain4j.model.output.TokenUsage;
 
@@ -651,6 +652,169 @@ public class AgentChatListenerTest {
     List<Map<String, Object>> messages =
         (List<Map<String, Object>>) listener.events().get(0).get("messages");
     assertThat(messages.get(0)).containsEntry("content", "plaintext");
+  }
+
+  // ── Schema versioning (Gap 7) ────────────────────────────────────────────
+
+  @Test
+  public void shouldStampSchemaVersionAsFirstFieldOnEveryEvent() {
+    AgentChatListener listener = new AgentChatListener();
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    listener.onResponse(new ChatModelResponseContext(
+        ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
+        request, null, new HashMap<>()));
+
+    for (Map<String, Object> event : listener.events()) {
+      assertThat(event).containsEntry("schemaVersion", AgentChatListener.SCHEMA_VERSION);
+      // First key must be schemaVersion so downstream consumers can sniff it without parsing the whole payload.
+      assertThat(event.keySet().iterator().next()).isEqualTo("schemaVersion");
+    }
+  }
+
+  // ── Model invocation parameters (Gap 4 — Art. 15 reproducibility) ────────
+
+  @Test
+  public void shouldRecordOpenAiModelParamsOnRequestEvent() {
+    AgentChatListener listener = new AgentChatListener();
+
+    OpenAiChatRequestParameters params = OpenAiChatRequestParameters.builder()
+        .temperature(0.3)
+        .topP(0.9)
+        .maxOutputTokens(512)
+        .seed(42)
+        .reasoningEffort("medium")
+        .build();
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi")))
+        .parameters(params)
+        .build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> modelParams = (Map<String, Object>) listener.events().get(0).get("modelParams");
+    assertThat(modelParams)
+        .containsEntry("temperature", 0.3)
+        .containsEntry("topP", 0.9)
+        .containsEntry("maxTokens", 512)
+        .containsEntry("seed", 42)
+        .containsEntry("reasoningEffort", "medium");
+  }
+
+  @Test
+  public void shouldOmitModelParamsBlockWhenAllValuesAreNull() {
+    AgentChatListener listener = new AgentChatListener();
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    // No params set on the builder → modelParams block is omitted entirely.
+    assertThat(listener.events().get(0)).doesNotContainKey("modelParams");
+  }
+
+  @Test
+  public void shouldOmitModelParamsBlockOnResponseEvent() {
+    AgentChatListener listener = new AgentChatListener();
+
+    OpenAiChatRequestParameters params = OpenAiChatRequestParameters.builder()
+        .temperature(0.5)
+        .build();
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi")))
+        .parameters(params)
+        .build();
+    listener.onResponse(new ChatModelResponseContext(
+        ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
+        request, null, new HashMap<>()));
+
+    // modelParams belongs on the request side only — response events don't repeat it.
+    assertThat(listener.events().get(0)).doesNotContainKey("modelParams");
+  }
+
+  // ── Auth-capture hardening (Art. 12(3)) ──────────────────────────────────
+
+  @Test
+  public void shouldStampUserIdSourceContextWhenAuthenticationResolved() {
+    ProcessStarterToolContext.setAuthentication(new Authentication("alice", Collections.emptyList()));
+    AgentChatListener listener = new AgentChatListener();
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    Map<String, Object> event = listener.events().get(0);
+    assertThat(event)
+        .containsEntry("userId", "alice")
+        .containsEntry("userIdSource", "context");
+  }
+
+  @Test
+  public void shouldStampUserIdSourceMissingWhenExecutionContextHasNoAuthentication() {
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("agentTask");
+    when(execution.getId()).thenReturn("exec-1");
+    when(execution.getVariable(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask"))
+        .thenReturn(null);
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener();
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    Map<String, Object> event = listener.events().get(0);
+    assertThat(event)
+        .containsKey("userId")
+        .containsEntry("userIdSource", "missing");
+    assertThat(event.get("userId")).isNull();
+  }
+
+  @Test
+  public void shouldOmitUserIdFieldsEntirelyWhenNoExecutionContextAndNoAuthentication() {
+    AgentChatListener listener = new AgentChatListener();
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    Map<String, Object> event = listener.events().get(0);
+    // No execution context → not part of an audited BPMN run, so the userId
+    // field stays out entirely (no implicit "missing" claim).
+    assertThat(event)
+        .doesNotContainKey("userId")
+        .doesNotContainKey("userIdSource");
+  }
+
+  // ── Last-response identity (Art. 50(2) AI-output marker source) ──────────
+
+  @Test
+  public void shouldExposeLastResponseIdentityForAiMetaMarker() {
+    AgentChatListener listener = new AgentChatListener("gpt-4o", null);
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    ChatResponseMetadata meta = ChatResponseMetadata.builder()
+        .modelName("gpt-4o-2024-08-06")
+        .id("resp-abc")
+        .build();
+    listener.onResponse(new ChatModelResponseContext(
+        ChatResponse.builder().aiMessage(AiMessage.from("answer")).metadata(meta).build(),
+        request, ModelProvider.OPEN_AI, new HashMap<>()));
+
+    Map<String, String> identity = listener.lastResponseIdentity();
+    assertThat(identity)
+        .containsEntry("provider", "OPEN_AI")
+        .containsEntry("model", "gpt-4o-2024-08-06")
+        .containsEntry("responseId", "resp-abc");
+  }
+
+  @Test
+  public void shouldReturnEmptyIdentityWhenNoResponseObserved() {
+    AgentChatListener listener = new AgentChatListener();
+    assertThat(listener.lastResponseIdentity()).isEmpty();
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────

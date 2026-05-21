@@ -25,6 +25,13 @@ import org.cibseven.connect.spi.ConnectorResponse;
  * for BPMN output mapping:
  * <ul>
  *   <li>{@code output} — the final text response produced by the agent</li>
+ *   <li>{@code outputAiMeta} — EU AI Act Art. 50(2) marker. A
+ *       {@code Map<String,Object>} carrying {@code aiGenerated=true},
+ *       {@code runId}, {@code provider}, {@code model}, {@code responseId},
+ *       and {@code generatedAt}. Mapped as a sibling of {@code output}
+ *       (typically named {@code <outputVar>__aiMeta}) so downstream Human
+ *       Tasks, gateways, and audit consumers can detect AI-generated content
+ *       without parsing the answer text</li>
  *   <li>{@code memoryId} — identifier of the chat-memory entry used by this
  *       invocation (only populated when {@code useChatMemory} was active);
  *       persist this value into a process variable to continue the same
@@ -39,6 +46,13 @@ public interface AgentResponse extends ConnectorResponse {
 
   /** Returns the final text response produced by the agent. */
   String getOutput();
+
+  /**
+   * Returns the EU AI Act Art. 50(2) marker describing the AI-generated nature
+   * of {@link #getOutput()}, or {@code null} when no marker could be assembled
+   * (e.g. the agent returned no successful response).
+   */
+  java.util.Map<String, Object> getOutputAiMeta();
 
   /**
    * Returns the chat memory identifier used during this invocation, or

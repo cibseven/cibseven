@@ -76,6 +76,7 @@ import org.cibseven.connect.spi.Connector;
  *
  *       <!-- Output -->
  *       <camunda:outputParameter name="agentOutput">${output}</camunda:outputParameter>
+ *       <camunda:outputParameter name="agentOutput__aiMeta">${outputAiMeta}</camunda:outputParameter>
  *       <camunda:outputParameter name="memoryId">${memoryId}</camunda:outputParameter>
  *     </camunda:inputOutput>
  * </camunda:connector>
@@ -269,5 +270,19 @@ public interface AgentConnector extends Connector<AgentRequest> {
 
   /** The final text response produced by the agent. */
   String PARAM_NAME_OUTPUT = "output";
+
+  /**
+   * EU AI Act Art. 50(2) machine-readable marker for AI-generated output.
+   *
+   * <p>A {@code Map<String,Object>} carrying {@code aiGenerated=true},
+   * the {@code runId} that produced the answer, the model identity
+   * ({@code provider}, {@code model}, {@code responseId}), and a
+   * {@code generatedAt} ISO-8601 timestamp. BPMN designers map it as a
+   * sibling of the main output variable, e.g.
+   * {@code <camunda:outputParameter name="agentOutput__aiMeta">${outputAiMeta}</camunda:outputParameter>},
+   * so downstream Human Tasks, gateways, and history consumers can distinguish
+   * AI-generated values from human-authored ones.
+   */
+  String PARAM_NAME_OUTPUT_AI_META = "outputAiMeta";
 
 }

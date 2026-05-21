@@ -19,6 +19,7 @@ package org.cibseven.connect.ai.agent.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -187,10 +188,41 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       }
       LOG.debug("Total tokens: {}", result.tokenUsage());
 
-      return new AgentResponseImpl(output, memoryId);
+      Map<String, Object> aiMeta = buildOutputAiMeta();
+      return new AgentResponseImpl(output, memoryId, aiMeta);
     } finally {
       ProcessStarterToolContext.clear();
     }
+  }
+
+  /**
+   * Assembles the EU AI Act Art. 50(2) machine-readable AI-output marker from
+   * the {@link AgentChatListener} that observed the agent's final turn. Returns
+   * {@code null} when no listener is reachable (defensive — the listener is
+   * always installed by {@link #createChatModel}, so this only happens in
+   * heavily-stubbed test paths). Falls back gracefully when the listener saw
+   * the request but no response (e.g. a model error on the first turn): the
+   * marker still carries {@code aiGenerated}, {@code runId}, and
+   * {@code generatedAt}.
+   *
+   * <p>{@code generatedAt} reuses the timestamp the listener recorded on the
+   * final {@code response} audit event so it lines up byte-for-byte with that
+   * event — taking {@link Instant#now()} here would drift to a later wall
+   * clock because tool unwinding and AiServices proxy teardown happen between
+   * the response and this call.
+   */
+  private Map<String, Object> buildOutputAiMeta() {
+    AgentChatListener listener = ProcessStarterToolContext.getActiveListener();
+    if (listener == null) {
+      return null;
+    }
+    Map<String, Object> meta = new LinkedHashMap<>();
+    meta.put("aiGenerated", true);
+    meta.put("runId", listener.runId());
+    meta.putAll(listener.lastResponseIdentity());
+    String generatedAt = listener.lastResponseTimestamp();
+    meta.put("generatedAt", generatedAt != null ? generatedAt : Instant.now().toString());
+    return meta;
   }
 
   /**

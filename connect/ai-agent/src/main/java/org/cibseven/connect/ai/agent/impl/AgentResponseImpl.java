@@ -16,6 +16,7 @@
  */
 package org.cibseven.connect.ai.agent.impl;
 
+import java.util.Collections;
 import java.util.Map;
 
 import org.cibseven.bpm.engine.variable.Variables;
@@ -37,14 +38,21 @@ public class AgentResponseImpl extends AbstractConnectorResponse implements Agen
 
   private final String output;
   private final String memoryId;
+  private final Map<String, Object> outputAiMeta;
 
   public AgentResponseImpl(String output) {
-    this(output, "");
+    this(output, "", null);
   }
 
   public AgentResponseImpl(String output, String memoryId) {
+    this(output, memoryId, null);
+  }
+
+  public AgentResponseImpl(String output, String memoryId, Map<String, Object> outputAiMeta) {
     this.output = output;
     this.memoryId = memoryId;
+    this.outputAiMeta = (outputAiMeta == null) ? null
+        : Collections.unmodifiableMap(new java.util.LinkedHashMap<>(outputAiMeta));
   }
 
   // ── AbstractConnectorResponse ──────────────────────────────────────────────
@@ -63,6 +71,12 @@ public class AgentResponseImpl extends AbstractConnectorResponse implements Agen
     // so BPMN output mappings such as <camunda:outputParameter name="memoryId">${memoryId}</camunda:outputParameter>
     // resolve cleanly to null instead of failing with PropertyNotFoundException.
     responseParameters.put(AgentConnector.PARAM_NAME_MEMORY_ID, memoryId);
+
+    // EU AI Act Art. 50(2) marker. Always present in the parameter map so the
+    // BPMN ${outputAiMeta} expression resolves cleanly (to null when no model
+    // response was observed). Map values flow through the engine as a plain
+    // java.util.Map — accessible from EL as ${outputAiMeta.aiGenerated} etc.
+    responseParameters.put(AgentConnector.PARAM_NAME_OUTPUT_AI_META, outputAiMeta);
   }
 
   // ── AgentResponse ──────────────────────────────────────────────────────────
@@ -70,6 +84,11 @@ public class AgentResponseImpl extends AbstractConnectorResponse implements Agen
   @Override
   public String getOutput() {
     return output;
+  }
+
+  @Override
+  public Map<String, Object> getOutputAiMeta() {
+    return outputAiMeta;
   }
 
   @Override

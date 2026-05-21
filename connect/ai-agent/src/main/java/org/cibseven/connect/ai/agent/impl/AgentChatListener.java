@@ -49,7 +49,10 @@ import dev.langchain4j.model.chat.listener.ChatModelListener;
 import dev.langchain4j.model.chat.listener.ChatModelRequestContext;
 import dev.langchain4j.model.chat.listener.ChatModelResponseContext;
 import dev.langchain4j.model.chat.request.ChatRequest;
+import dev.langchain4j.model.chat.request.ChatRequestParameters;
 import dev.langchain4j.model.chat.response.ChatResponseMetadata;
+import dev.langchain4j.model.openai.OpenAiChatRequestParameters;
+import dev.langchain4j.model.openai.OpenAiResponsesChatRequestParameters;
 import dev.langchain4j.model.output.FinishReason;
 import dev.langchain4j.model.output.TokenUsage;
 
@@ -104,6 +107,13 @@ class AgentChatListener implements ChatModelListener {
   private static final int ERROR_STACK_DEPTH = 5;
 
   /**
+   * Event schema version stamped on every emitted event. Increment when adding
+   * or removing top-level fields so downstream consumers (Vue webclient, future
+   * Kafka sink, SAP integration) can detect and adapt to changes.
+   */
+  static final int SCHEMA_VERSION = 1;
+
+  /**
    * Per-request attribute key used to stash {@code System.nanoTime()} on
    * {@link #onRequest} so {@link #onResponse} / {@link #onError} can compute a
    * {@code durationMs}. Anchored on a sentinel object so the key collides with
@@ -147,6 +157,12 @@ class AgentChatListener implements ChatModelListener {
   private final String variableName;
   private final List<Map<String, Object>> events = new ArrayList<>();
   private boolean flagWritten = false;
+
+  // ── last-response state (for Art. 50(2) AI-output marker) ────────────────
+  private volatile String lastProvider;
+  private volatile String lastModel;
+  private volatile String lastResponseId;
+  private volatile String lastResponseTimestamp;
 
   /**
    * Tool-side-effect records pushed by tools (e.g. {@link ProcessStarterTool})
@@ -199,6 +215,18 @@ class AgentChatListener implements ChatModelListener {
         : null;
     if (this.variableName != null) {
       loadExistingEvents();
+    }
+    // EU AI Act Art. 12(3) audit trail requires caller identity. Silent omission
+    // is a compliance smell, so when the listener constructs inside a BPMN
+    // execution context but no authentication was resolved upstream
+    // (AgentConnectorImpl tries the engine IdentityService and the
+    // process-instance starter; both can fail e.g. for system-initiated starts),
+    // emit a one-time WARN per runId.
+    if (execution != null && (userId == null || userId.isEmpty())) {
+      LOG.warn("EU AI Act Art. 12(3): no caller identity resolved for runId={} "
+          + "(processInstanceId={}, activityId={}). Events will carry "
+          + "userIdSource=\"missing\" so the absence is explicit.",
+          runId, processInstanceId, activityId);
     }
   }
 
@@ -314,6 +342,7 @@ class AgentChatListener implements ChatModelListener {
   public void onRequest(ChatModelRequestContext ctx) {
     ChatRequest req = ctx.chatRequest();
     Map<String, Object> event = newEvent("request", ctx.modelProvider(), req);
+    putModelParams(event, req);
 
     // Track per-request start time so onResponse / onError can compute duration.
     ctx.attributes().put(KEY_START_NANOS, System.nanoTime());
@@ -347,6 +376,7 @@ class AgentChatListener implements ChatModelListener {
   public void onResponse(ChatModelResponseContext ctx) {
     AiMessage aiMsg = ctx.chatResponse().aiMessage();
     Map<String, Object> event = newEvent("response", ctx.modelProvider(), ctx.chatRequest());
+    this.lastResponseTimestamp = (String) event.get("timestamp");
     putDuration(event, ctx.attributes());
 
     if (aiMsg.hasToolExecutionRequests()) {
@@ -376,11 +406,20 @@ class AgentChatListener implements ChatModelListener {
         // Provider-reported snapshot/version supersedes the configured model
         // (e.g. "gpt-4o-2024-08-06" vs request's "gpt-4o").
         event.put("model", responseModel);
+        this.lastModel = responseModel;
+      } else {
+        this.lastModel = (String) event.get("model");
       }
       String responseId = metadata.id();
       if (responseId != null && !responseId.isEmpty()) {
         event.put("responseId", responseId);
+        this.lastResponseId = responseId;
       }
+    } else {
+      this.lastModel = (String) event.get("model");
+    }
+    if (ctx.modelProvider() != null) {
+      this.lastProvider = ctx.modelProvider().name();
     }
 
     TokenUsage usage = ctx.chatResponse().tokenUsage();
@@ -419,6 +458,7 @@ class AgentChatListener implements ChatModelListener {
    */
   private Map<String, Object> newEvent(String type, ModelProvider provider, ChatRequest req) {
     Map<String, Object> event = new LinkedHashMap<>();
+    event.put("schemaVersion", SCHEMA_VERSION);
     event.put("type", type);
     event.put("runId", runId);
     event.put("eventSeq", eventSeq.getAndIncrement());
@@ -446,7 +486,16 @@ class AgentChatListener implements ChatModelListener {
     if (executionId != null) event.put("executionId", executionId);
     if (activityId != null) event.put("activityId", activityId);
 
-    if (userId != null) event.put("userId", userId);
+    if (userId != null && !userId.isEmpty()) {
+      event.put("userId", userId);
+      event.put("userIdSource", "context");
+    } else if (executionId != null) {
+      // Inside a BPMN execution context but identity could not be resolved.
+      // Make the absence explicit rather than implicit by field omission so
+      // Art. 12(3) audits flag it instead of treating it as untracked.
+      event.put("userId", null);
+      event.put("userIdSource", "missing");
+    }
     if (groupIds != null && !groupIds.isEmpty()) event.put("groupIds", groupIds);
     return event;
   }
@@ -456,6 +505,64 @@ class AgentChatListener implements ChatModelListener {
       return null;
     }
     return req.parameters().modelName();
+  }
+
+  /**
+   * Records the model invocation parameters needed for Art. 15 (robustness,
+   * reproducibility): {@code temperature}, {@code topP}, {@code maxOutputTokens},
+   * plus the OpenAI-specific {@code seed} and {@code reasoningEffort} when the
+   * provider exposes them. Fields are omitted when the LangChain4j builder did
+   * not set them, keeping events compact.
+   */
+  private static void putModelParams(Map<String, Object> event, ChatRequest req) {
+    if (req == null) {
+      return;
+    }
+    ChatRequestParameters params = req.parameters();
+    if (params == null) {
+      return;
+    }
+    Map<String, Object> modelParams = new LinkedHashMap<>();
+    if (params.temperature() != null) modelParams.put("temperature", params.temperature());
+    if (params.topP() != null) modelParams.put("topP", params.topP());
+    if (params.maxOutputTokens() != null) modelParams.put("maxTokens", params.maxOutputTokens());
+    if (params instanceof OpenAiChatRequestParameters) {
+      OpenAiChatRequestParameters openAi = (OpenAiChatRequestParameters) params;
+      if (openAi.seed() != null) modelParams.put("seed", openAi.seed());
+      if (openAi.reasoningEffort() != null) modelParams.put("reasoningEffort", openAi.reasoningEffort());
+    } else if (params instanceof OpenAiResponsesChatRequestParameters) {
+      OpenAiResponsesChatRequestParameters responses = (OpenAiResponsesChatRequestParameters) params;
+      if (responses.reasoningEffort() != null) modelParams.put("reasoningEffort", responses.reasoningEffort());
+    }
+    if (!modelParams.isEmpty()) {
+      event.put("modelParams", modelParams);
+    }
+  }
+
+  /**
+   * Snapshot of model identity from the most recent response, exposed for the
+   * Art. 50(2) AI-generated-output marker emitted by the connector after the
+   * agent invocation finishes. Empty when no response was observed (e.g. error
+   * before first turn). The map shape matches the corresponding audit-event
+   * fields ({@code provider}, {@code model}, {@code responseId}).
+   */
+  Map<String, String> lastResponseIdentity() {
+    Map<String, String> identity = new LinkedHashMap<>();
+    if (lastProvider != null) identity.put("provider", lastProvider);
+    if (lastModel != null) identity.put("model", lastModel);
+    if (lastResponseId != null) identity.put("responseId", lastResponseId);
+    return identity;
+  }
+
+  /**
+   * ISO-8601 wall-clock timestamp recorded on the last {@code response} event,
+   * or {@code null} when no response was observed. Reused by the connector to
+   * stamp the Art. 50(2) AI-output marker's {@code generatedAt} so it aligns
+   * exactly with the corresponding audit event instead of drifting to a later
+   * "now" captured after tool unwinding.
+   */
+  String lastResponseTimestamp() {
+    return lastResponseTimestamp;
   }
 
   private static void putDuration(Map<String, Object> event, Map<Object, Object> attributes) {
