@@ -90,6 +90,8 @@
       </build>
     </profile>
   </profiles>
+
+  <build>
     <pluginManagement>
       <plugins>
         <plugin>
