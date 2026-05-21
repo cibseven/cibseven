@@ -47,7 +47,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
   org.cibseven.webapp.SevenWebclientContext.class
 })
 @Configuration
-@ConditionalOnProperty(prefix = WebappProperty.PREFIX, name = "enabled", matchIfMissing = true)
 @ConditionalOnBean(CamundaBpmProperties.class)
 @ConditionalOnWebApplication
 @AutoConfigureAfter(CamundaBpmAutoConfiguration.class)
@@ -62,6 +61,7 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer, WebM
   // This conditionally enabled/disabled LegacyWebappConfiguration should be completely removed 
   // when the legacy webapps is completely removed and the webapps related tests are ported to the webclient
   @Configuration
+  @ConditionalOnProperty(prefix = WebappProperty.PREFIX, name = "installed", havingValue = "true")
   @ConditionalOnResource(resources = "classpath:/META-INF/resources/webjars/camunda/securityFilterRules.json")
   @ConditionalOnClass(name = "org.cibseven.bpm.cockpit.impl.web.bootstrap.CockpitContainerBootstrap")
   static class LegacyWebappConfiguration {

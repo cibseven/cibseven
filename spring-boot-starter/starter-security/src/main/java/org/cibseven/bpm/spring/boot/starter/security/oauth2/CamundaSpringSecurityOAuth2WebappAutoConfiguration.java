@@ -22,6 +22,7 @@ import jakarta.servlet.Filter;
 
 import org.cibseven.bpm.engine.rest.security.auth.ProcessEngineAuthenticationFilter;
 import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
+import org.cibseven.bpm.spring.boot.starter.property.WebappProperty;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.AuthorizeTokenFilter;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.OAuth2AuthenticationProvider;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.OAuth2GrantedAuthoritiesMapper;
@@ -32,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.client.ClientsConfiguredCondition;
@@ -57,6 +59,8 @@ import java.util.Map;
 @AutoConfigureAfter(CamundaSpringSecurityOAuth2CommonAutoConfiguration.class)
 @ConditionalOnBean(CamundaBpmProperties.class)
 @Conditional(ClientsConfiguredCondition.class)
+@ConditionalOnProperty(prefix = WebappProperty.PREFIX, name = "installed", havingValue = "true")
+@ConditionalOnClass(name = "org.cibseven.bpm.webapp.impl.security.auth.ContainerBasedAuthenticationFilter")
 @EnableConfigurationProperties(OAuth2Properties.class)
 @Configuration
 public class CamundaSpringSecurityOAuth2WebappAutoConfiguration {

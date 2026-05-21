@@ -31,6 +31,7 @@
       <version>${version.legacy-webapps}</version>
       <type>jar</type>
       <classifier>classes</classifier>
+      <optional>true</optional>
     </dependency>
 
     <dependency>
