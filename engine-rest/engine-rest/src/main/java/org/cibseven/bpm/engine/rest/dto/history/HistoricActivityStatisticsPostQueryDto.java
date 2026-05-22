@@ -411,6 +411,7 @@ public class HistoricActivityStatisticsPostQueryDto extends AbstractQueryDto<His
 
     if (queries != null) {
       for (HistoricActivityStatisticsPostQueryDto orQueryDto : queries) {
+        orQueryDto.setObjectMapper(objectMapper);
         HistoricActivityStatisticsPostQueryImpl orQuery = new HistoricActivityStatisticsPostQueryImpl(processDefinitionId);
         orQuery.setIsOrQueryActive();
         orQueryDto.applyFilters(orQuery);

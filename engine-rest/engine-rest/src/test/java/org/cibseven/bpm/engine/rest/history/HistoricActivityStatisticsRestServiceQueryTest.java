@@ -754,6 +754,21 @@ public class HistoricActivityStatisticsRestServiceQueryTest extends AbstractRest
   }
 
   @Test
+  public void testPostOrQueryVariables() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{\"orQueries\":[{\"variables\":[{\"name\":\"myVar\",\"operator\":\"eq\",\"value\":\"hello\"}]}]}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    verify(historicActivityStatisticsPostQuery).addOrQuery(any(HistoricActivityStatisticsPostQueryImpl.class));
+    verify(historicActivityStatisticsPostQuery).list();
+    verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
+  }
+
+  @Test
   public void testPostVariableValueGreaterThan() {
     given()
       .contentType(POST_JSON_CONTENT_TYPE)
