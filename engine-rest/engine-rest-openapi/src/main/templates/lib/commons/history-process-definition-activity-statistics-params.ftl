@@ -272,7 +272,7 @@
 
   "orQueries": {
     "type": "array",
-    "dto": "HistoricProcessActivityQueryDto",
+    "dto": "HistoricActivityStatisticsPostQueryDto",
     "desc": "A JSON array of nested historic process activity queries with OR semantics.
 
              A result matches a nested query if it fulfills at least one of the query's predicates.
