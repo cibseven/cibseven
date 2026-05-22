@@ -652,6 +652,7 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
 
   protected void checkQueryOk() {
     super.checkQueryOk();
+    ensureNotNull("processDefinitionId", processDefinitionId);
   }
 
   // Getters /////////////////////////////////////////////////
