@@ -227,7 +227,6 @@ public class HistoricActivityStatisticsRestServiceQueryTest extends AbstractRest
           + "\"processInstanceIds\":[\"p2\",\"p3\"],"
           + "\"processInstanceIdNotIn\":[\"p4\",\"p5\"],"
           + "\"rootProcessInstanceId\":\"rp1\","
-          + "\"rootProcessInstances\":true,"
           + "\"startedBy\":\"demo\","
           + "\"superProcessInstanceId\":\"sp1\","
           + "\"subProcessInstanceId\":\"subp1\","
@@ -250,13 +249,29 @@ public class HistoricActivityStatisticsRestServiceQueryTest extends AbstractRest
 
     verify(historicActivityStatisticsPostQuery).processInstanceIdNotIn(new String[] {"p4", "p5"});
     verify(historicActivityStatisticsPostQuery).rootProcessInstanceId("rp1");
-    verify(historicActivityStatisticsPostQuery).rootProcessInstances();
     verify(historicActivityStatisticsPostQuery).startedBy("demo");
     verify(historicActivityStatisticsPostQuery).superProcessInstanceId("sp1");
     verify(historicActivityStatisticsPostQuery).subProcessInstanceId("subp1");
     verify(historicActivityStatisticsPostQuery).superCaseInstanceId("sc1");
     verify(historicActivityStatisticsPostQuery).subCaseInstanceId("subc1");
     verify(historicActivityStatisticsPostQuery).caseInstanceId("c1");
+    verify(historicActivityStatisticsPostQuery).list();
+    verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
+  }
+
+  @Test
+  public void testPostRootProcessInstancesFilter() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{"
+          + "\"rootProcessInstances\":true"
+          + "}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    verify(historicActivityStatisticsPostQuery).rootProcessInstances();
     verify(historicActivityStatisticsPostQuery).list();
     verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
   }
