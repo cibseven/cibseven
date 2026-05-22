@@ -58,8 +58,8 @@ public class AgentRequestTest {
 
   @Test
   public void shouldSetAndGetModel() {
-    AgentRequest request = connector.createRequest().model("gemini-2.0-flash");
-    assertThat(request.getModel()).isEqualTo("gemini-2.0-flash");
+    AgentRequest request = connector.createRequest().model("gpt-5.4-nano");
+    assertThat(request.getModel()).isEqualTo("gpt-5.4-nano");
   }
 
   @Test

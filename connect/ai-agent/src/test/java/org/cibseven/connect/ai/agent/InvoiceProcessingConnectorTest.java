@@ -43,7 +43,7 @@ import org.junit.Test;
  *
  * <p>These tests replicate that three-step lifecycle directly — without an engine
  * dependency — using a {@link StubbedAgentConnector} inner class that bypasses the
- * real Google ADK call and returns predictable output.
+ * real LLM call and returns predictable output.
  *
  * @see <a href="src/test/resources/org/cibseven/connect/ai/agent/invoice-processing.bpmn">invoice-processing.bpmn</a>
  */
@@ -70,7 +70,7 @@ public class InvoiceProcessingConnectorTest {
       + "Line Items:\n"
       + "  1. Professional Services - BPMN Engine Integration Consulting\n"
       + "     5 days x EUR 1,200.00/day                          EUR 6,000.00\n"
-      + "  2. Google ADK Agent Connector - License (annual)       EUR 1,500.00\n"
+      + "  2. AI Agent Connector - License (annual)       EUR 1,500.00\n"
       + "  3. Setup & Configuration Support (8 hrs x EUR 150.00)  EUR 1,200.00\n\n"
       + "                                            Subtotal:   EUR 8,700.00\n"
       + "                                            VAT (19%):  EUR 1,653.00\n"
@@ -81,7 +81,7 @@ public class InvoiceProcessingConnectorTest {
       + "Reference: INV-2026-03-0047";
 
   /**
-   * Expected JSON that a real Gemini call would return for {@link #INVOICE_TEXT}.
+   * Expected JSON that a real LLM call would return for {@link #INVOICE_TEXT}.
    * The connector stores this in the {@code output} response parameter, which the
    * engine then maps to the {@code agentOutput} process variable.
    */
@@ -96,7 +96,7 @@ public class InvoiceProcessingConnectorTest {
       + "  \"lineItems\": [\n"
       + "    { \"description\": \"Professional Services - BPMN Engine Integration Consulting\","
       + " \"amount\": 6000.00 },\n"
-      + "    { \"description\": \"Google ADK Agent Connector - License (annual)\","
+      + "    { \"description\": \"AI Agent Connector - License (annual)\","
       + " \"amount\": 1500.00 },\n"
       + "    { \"description\": \"Setup & Configuration Support\", \"amount\": 1200.00 }\n"
       + "  ]\n"
@@ -105,11 +105,11 @@ public class InvoiceProcessingConnectorTest {
   // ── Stub connector ───────────────────────────────────────────────────────
 
   /**
-   * Test double that bypasses the Google ADK call entirely.
+   * Test double that bypasses the real LLM call entirely.
    *
    * <p>Captures the full request parameter map so individual tests can assert
    * that parameters were wired up correctly, and returns configurable output
-   * that simulates a successful Gemini invocation.
+   * that simulates a successful LLM invocation.
    */
   static class StubbedAgentConnector extends AgentConnectorImpl {
 
@@ -142,9 +142,9 @@ public class InvoiceProcessingConnectorTest {
         .agentName("invoice-agent")
         .agentDescription("Invoice processing assistant that extracts structured data from invoice text")
         .instruction("You are an invoice processing assistant.")
-        .model("gemini-2.5-flash")
+        .model("gpt-5.4-nano")
         .message(INVOICE_TEXT)
-        .apiKey("AIzaSy-test-key");
+        .apiKey("test-api-key");
 
     AgentResponse response = request.execute();
 
@@ -152,8 +152,8 @@ public class InvoiceProcessingConnectorTest {
     assertThat(connector.lastRequestParameters)
         .containsEntry(AgentConnector.PARAM_NAME_AGENT_NAME, "invoice-agent")
         .containsEntry(AgentConnector.PARAM_NAME_MESSAGE, INVOICE_TEXT)
-        .containsEntry(AgentConnector.PARAM_NAME_MODEL, "gemini-2.5-flash")
-        .containsEntry(AgentConnector.PARAM_NAME_API_KEY, "AIzaSy-test-key");
+        .containsEntry(AgentConnector.PARAM_NAME_MODEL, "gpt-5.4-nano")
+        .containsEntry(AgentConnector.PARAM_NAME_API_KEY, "test-api-key");
   }
 
   /**
@@ -279,12 +279,12 @@ public class InvoiceProcessingConnectorTest {
         .agentName("invoice-agent")
         .instruction("Extract invoice fields.")
         .message(INVOICE_TEXT)
-        .apiKey("AIzaSy-bpmn-override-key"); // engine resolves ${langchain4jApiKey}
+        .apiKey("bpmn-override-api-key"); // engine resolves ${langchain4jApiKey}
 
     request.execute();
 
     assertThat((String) connector.lastRequestParameters.get(AgentConnector.PARAM_NAME_API_KEY))
-        .isEqualTo("AIzaSy-bpmn-override-key");
+        .isEqualTo("bpmn-override-api-key");
   }
 
   /**
