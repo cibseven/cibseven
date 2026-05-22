@@ -34,9 +34,13 @@ public class CamundaBpmWebappAutoConfigurationIntegrationTest {
 
   private String bpmDisabled = CamundaBpmProperties.PREFIX + ".enabled=false";
 
-  private String webappEnabled = WebappProperty.PREFIX + ".enabled=true";
+  // "enabled" is renamed to "installed" after webapp removal
+  // private String webappEnabled = WebappProperty.PREFIX + ".enabled=true";
+  private String webappEnabled = WebappProperty.PREFIX + ".installed=true";
 
-  private String webappDisabled = WebappProperty.PREFIX + ".enabled=false";
+  // "enabled" is renamed to "installed" after webapp removal
+  // private String webappDisabled = WebappProperty.PREFIX + ".enabled=false";
+  private String webappDisabled = WebappProperty.PREFIX + ".installed=false";
 
   private String webclientPrefix = "cibseven.webclient";
   // ToDo: add tests for webclient enabled/disabled
