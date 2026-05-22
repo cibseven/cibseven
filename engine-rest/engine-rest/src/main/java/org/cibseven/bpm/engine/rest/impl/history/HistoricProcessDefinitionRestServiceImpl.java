@@ -61,6 +61,21 @@ public class HistoricProcessDefinitionRestServiceImpl extends AbstractRestProces
   }
 
   @Override
+  public List<HistoricActivityStatisticsDto> queryHistoricActivityStatistics(String processDefinitionId, HistoricActivityStatisticsPostQueryDto queryDto) {
+    queryDto.setObjectMapper(getObjectMapper());
+    queryDto.setProcessDefinitionId(processDefinitionId);
+    HistoricActivityStatisticsPostQuery query = queryDto.toQuery(getProcessEngine());
+
+    List<HistoricActivityStatistics> matchingStatistics = query.list();
+
+    List<HistoricActivityStatisticsDto> result = new ArrayList<>();
+    for (HistoricActivityStatistics statistic : matchingStatistics) {
+      result.add(HistoricActivityStatisticsDto.fromHistoricActivityStatistics(statistic));
+    }
+    return result;
+  }
+
+  @Override
   public List<CleanableHistoricProcessInstanceReportResultDto> getCleanableHistoricProcessInstanceReport(UriInfo uriInfo, Integer firstResult, Integer maxResults) {
     CleanableHistoricProcessInstanceReportDto queryDto = new CleanableHistoricProcessInstanceReportDto(objectMapper, uriInfo.getQueryParameters());
     CleanableHistoricProcessInstanceReport query = queryDto.toQuery(getProcessEngine());
@@ -82,19 +97,4 @@ public class HistoricProcessDefinitionRestServiceImpl extends AbstractRestProces
 
     return result;
   }
-
-    @Override
-    public List<HistoricActivityStatisticsDto> queryHistoricActivityStatistics(String processDefinitionId, HistoricActivityStatisticsPostQueryDto queryDto) {
-      queryDto.setObjectMapper(getObjectMapper());
-      queryDto.setProcessDefinitionId(processDefinitionId);
-      HistoricActivityStatisticsPostQuery query = queryDto.toQuery(getProcessEngine());
-
-      List<HistoricActivityStatistics> matchingStatistics = query.list();
-
-      List<HistoricActivityStatisticsDto> result = new ArrayList<>();
-      for (HistoricActivityStatistics statistic : matchingStatistics) {
-        result.add(HistoricActivityStatisticsDto.fromHistoricActivityStatistics(statistic));
-      }
-      return result;
-    }
 }

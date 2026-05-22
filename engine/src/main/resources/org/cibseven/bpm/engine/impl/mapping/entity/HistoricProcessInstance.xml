@@ -502,11 +502,13 @@
                 #{item}
               </foreach>
             </if>
-            <if test="query.processDefinitionKeyNotIn != null &amp;&amp; query.processDefinitionKeyNotIn.size() > 0">
-              ${queryType} DEF.KEY_ not in
-              <foreach item="item" index="index" collection="query.processDefinitionKeyNotIn" open="(" separator="," close=")">
-                #{item}
-              </foreach>
+            <if test="query.processDefinitionKeyNotIn != null">
+              ${queryType} (
+                <foreach collection="query.processDefinitionKeyNotIn" index="index" item="procDefKey"
+                         open="(" separator=" and " close=")">
+                  DEF.KEY_ not like #{procDefKey} ESCAPE ${escapeChar}
+                </foreach>
+              )
             </if>
             <if test="query.processDefinitionName != null">
               ${queryType} DEF.NAME_ = #{query.processDefinitionName}

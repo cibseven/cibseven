@@ -1,18 +1,18 @@
 /*
- * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH
+ * Copyright CIB software GmbH and/or licensed to CIB software GmbH
  * under one or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information regarding copyright
- * ownership. Camunda licenses this file to you under the Apache License,
+ * ownership. CIB software licenses this file to you under the Apache License,
  * Version 2.0; you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 package org.cibseven.bpm.engine.impl;
 
@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.history.HistoricActivityStatistics;
 import org.cibseven.bpm.engine.history.HistoricActivityStatisticsPostQuery;
 import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
@@ -99,6 +100,7 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
 
   // User and Case filters
   protected String startedBy;
+  protected boolean isRootProcessInstances;
   protected String superProcessInstanceId;
   protected String subProcessInstanceId;
   protected String superCaseInstanceId;
@@ -216,7 +218,13 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
 
   @Override
   public HistoricActivityStatisticsPostQueryImpl rootProcessInstances() {
-    this.rootProcessInstances = true;
+    if (superProcessInstanceId != null) {
+      throw new BadUserRequestException("Invalid query usage: cannot set both rootProcessInstances and superProcessInstanceId");
+    }
+    if (superCaseInstanceId != null) {
+      throw new BadUserRequestException("Invalid query usage: cannot set both rootProcessInstances and superCaseInstanceId");
+    }
+    isRootProcessInstances = true;
     return this;
   }
 
@@ -396,6 +404,9 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
 
   @Override
   public HistoricActivityStatisticsPostQueryImpl superProcessInstanceId(String superProcessInstanceId) {
+    if (isRootProcessInstances) {
+      throw new BadUserRequestException("Invalid query usage: cannot set both rootProcessInstances and superProcessInstanceId");
+    }
     this.superProcessInstanceId = superProcessInstanceId;
     return this;
   }
@@ -619,13 +630,23 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
   }
 
   protected void ensureVariablesInitialized() {
+    ProcessEngineConfigurationImpl config = Context.getProcessEngineConfiguration();
+    VariableSerializers serializers = config.getVariableSerializers();
+    String dbType = config.getDatabaseType();
     List<QueryVariableValue> vars = getQueryVariableValues();
     if (!vars.isEmpty()) {
-      ProcessEngineConfigurationImpl config = Context.getProcessEngineConfiguration();
-      VariableSerializers serializers = config.getVariableSerializers();
-      String dbType = config.getDatabaseType();
       for (QueryVariableValue var : vars) {
         var.initialize(serializers, dbType);
+      }
+    }
+    for (HistoricActivityStatisticsPostQueryImpl query : getQueries()) {
+      if (query != this) {
+        List<QueryVariableValue> orQueryVars = query.getQueryVariableValues();
+        if (!orQueryVars.isEmpty()) {
+          for (QueryVariableValue var : orQueryVars) {
+            var.initialize(serializers, dbType);
+          }
+        }
       }
     }
   }
@@ -677,7 +698,7 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
   }
 
   public boolean isRootProcessInstances() {
-    return rootProcessInstances;
+    return isRootProcessInstances;
   }
 
   public String getProcessDefinitionKey() {

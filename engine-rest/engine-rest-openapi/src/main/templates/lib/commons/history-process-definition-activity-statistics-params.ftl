@@ -272,12 +272,12 @@
 
   "orQueries": {
     "type": "array",
-    "dto": "HistoricProcessInstanceQueryDto",
-    "desc": "A JSON array of nested historic process instance queries with OR semantics.
+    "dto": "HistoricProcessActivityQueryDto",
+    "desc": "A JSON array of nested historic process activity queries with OR semantics.
 
-             A process instance matches a nested query if it fulfills at least one of the query's predicates.
+             A result matches a nested query if it fulfills at least one of the query's predicates.
 
-             With multiple nested queries, a process instance must fulfill at least one predicate of each query
+             With multiple nested queries, a result must fulfill at least one predicate of each query
              ([Conjunctive Normal Form](https://en.wikipedia.org/wiki/Conjunctive_normal_form)).
 
              See the [User Guide](${docsUrl}/user-guide/process-engine/process-engine-api/#or-queries) for more information about OR queries."

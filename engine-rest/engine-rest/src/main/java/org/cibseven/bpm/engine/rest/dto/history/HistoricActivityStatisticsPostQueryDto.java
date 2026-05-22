@@ -1,18 +1,18 @@
 /*
- * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH
+ * Copyright CIB software GmbH and/or licensed to CIB software GmbH
  * under one or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information regarding copyright
- * ownership. Camunda licenses this file to you under the Apache License,
+ * ownership. CIB software licenses this file to you under the Apache License,
  * Version 2.0; you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 package org.cibseven.bpm.engine.rest.dto.history;
 
@@ -29,13 +29,7 @@ import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.history.HistoricActivityStatisticsPostQuery;
 import org.cibseven.bpm.engine.impl.HistoricActivityStatisticsPostQueryImpl;
 import org.cibseven.bpm.engine.rest.dto.AbstractQueryDto;
-import org.cibseven.bpm.engine.rest.dto.CamundaQueryParam;
 import org.cibseven.bpm.engine.rest.dto.VariableQueryParameterDto;
-import org.cibseven.bpm.engine.rest.dto.converter.BooleanConverter;
-import org.cibseven.bpm.engine.rest.dto.converter.DateConverter;
-import org.cibseven.bpm.engine.rest.dto.converter.StringListConverter;
-import org.cibseven.bpm.engine.rest.dto.converter.StringSetConverter;
-import org.cibseven.bpm.engine.rest.dto.converter.VariableListConverter;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -99,13 +93,13 @@ public class HistoricActivityStatisticsPostQueryDto extends AbstractQueryDto<His
   private List<VariableQueryParameterDto> variables;
   protected Boolean variableNamesIgnoreCase;
   protected Boolean variableValuesIgnoreCase;
-  private List<HistoricActivityStatisticsPostQueryDto> queries;
+  private List<HistoricActivityStatisticsPostQueryDto> orQueries;
 
   public HistoricActivityStatisticsPostQueryDto() {
   }
 
-  public HistoricActivityStatisticsPostQueryDto(ObjectMapper objectMapper,String processDefinitionId, MultivaluedMap<String, String> queryParameters) {
-    super(objectMapper, queryParameters);
+  public HistoricActivityStatisticsPostQueryDto(ObjectMapper objectMapper,String processDefinitionId, MultivaluedMap<String, String> bodyParams) {
+    super(objectMapper, bodyParams);
     this.processDefinitionId = processDefinitionId;
   }
 
@@ -113,277 +107,222 @@ public class HistoricActivityStatisticsPostQueryDto extends AbstractQueryDto<His
     this.processDefinitionId = processDefinitionId;
   }
 
-  @CamundaQueryParam("orQueries")
-  public void setQueries(List<HistoricActivityStatisticsPostQueryDto> queries) {
-    this.queries = queries;
+  public void setOrQueries(List<HistoricActivityStatisticsPostQueryDto> orQueries) {
+    this.orQueries = orQueries;
   }
 
-  @CamundaQueryParam("processInstanceId")
   public void setProcessInstanceId(String processInstanceId) {
     this.processInstanceId = processInstanceId;
   }
 
-  @CamundaQueryParam(value = "processInstanceIds", converter = StringSetConverter.class)
   public void setProcessInstanceIds(Set<String> processInstanceIds) {
     this.processInstanceIds = processInstanceIds;
   }
 
-  @CamundaQueryParam(value = "processInstanceIdNotIn", converter = StringListConverter.class)
   public void setProcessInstanceIdNotIn(List<String> processInstanceIdNotIn) {
     this.processInstanceIdNotIn = processInstanceIdNotIn;
   }
 
-  @CamundaQueryParam("rootProcessInstanceId")
   public void setRootProcessInstanceId(String rootProcessInstanceId) {
     this.rootProcessInstanceId = rootProcessInstanceId;
   }
 
-  @CamundaQueryParam("processDefinitionName")
   public void setProcessDefinitionName(String processDefinitionName) {
     this.processDefinitionName = processDefinitionName;
   }
 
-  @CamundaQueryParam("processDefinitionNameLike")
   public void setProcessDefinitionNameLike(String processDefinitionNameLike) {
     this.processDefinitionNameLike = processDefinitionNameLike;
   }
 
-  @CamundaQueryParam("processDefinitionKey")
   public void setProcessDefinitionKey(String processDefinitionKey) {
     this.processDefinitionKey = processDefinitionKey;
   }
 
-  @CamundaQueryParam(value = "processDefinitionKeyIn", converter = StringListConverter.class)
   public void setProcessDefinitionKeyIn(List<String> processDefinitionKeys) {
     this.processDefinitionKeys = processDefinitionKeys;
   }
 
-  @CamundaQueryParam(value = "processDefinitionKeyNotIn", converter = StringListConverter.class)
   public void setProcessDefinitionKeyNotIn(List<String> processDefinitionKeys) {
     this.processDefinitionKeyNotIn = processDefinitionKeys;
   }
 
-  @CamundaQueryParam("processInstanceBusinessKey")
   public void setProcessInstanceBusinessKey(String businessKey) {
     this.processInstanceBusinessKey = businessKey;
   }
 
-  @CamundaQueryParam(value = "processInstanceBusinessKeyIn", converter = StringListConverter.class)
   public void setProcessInstanceBusinessKeyIn(List<String> businessKeyIn) {
     this.processInstanceBusinessKeyIn = businessKeyIn;
   }
 
-  @CamundaQueryParam("processInstanceBusinessKeyLike")
   public void setProcessInstanceBusinessKeyLike(String businessKeyLike) {
     this.processInstanceBusinessKeyLike = businessKeyLike;
   }
 
-  @CamundaQueryParam(value = "rootProcessInstances", converter = BooleanConverter.class)
   public void setRootProcessInstances(Boolean rootProcessInstances) {
     this.rootProcessInstances = rootProcessInstances;
   }
 
-  @CamundaQueryParam(value = "finished", converter = BooleanConverter.class)
   public void setFinished(Boolean finished) {
     this.finished = finished;
   }
 
-  @CamundaQueryParam(value = "unfinished", converter = BooleanConverter.class)
   public void setUnfinished(Boolean unfinished) {
     this.unfinished = unfinished;
   }
 
-  @CamundaQueryParam(value = "withJobsRetrying", converter = BooleanConverter.class)
   public void setWithJobsRetrying(Boolean withJobsRetrying) {
     this.withJobsRetrying = withJobsRetrying;
   }
 
-  @CamundaQueryParam(value = "withIncidents", converter = BooleanConverter.class)
   public void setWithIncidents(Boolean withIncidents) {
     this.withIncidents = withIncidents;
   }
 
-  @CamundaQueryParam(value = "withRootIncidents", converter = BooleanConverter.class)
   public void setWithRootIncidents(Boolean withRootIncidents) {
     this.withRootIncidents = withRootIncidents;
   }
 
-  @CamundaQueryParam(value = "incidentStatus")
   public void setIncidentStatus(String status) {
     this.incidentStatus = status;
   }
 
-  @CamundaQueryParam(value = "incidentMessage")
   public void setIncidentMessage(String incidentMessage) {
     this.incidentMessage = incidentMessage;
   }
 
-  @CamundaQueryParam(value = "incidentMessageLike")
   public void setIncidentMessageLike(String incidentMessageLike) {
     this.incidentMessageLike = incidentMessageLike;
   }
 
-  @CamundaQueryParam(value = "startedBefore", converter = DateConverter.class)
   public void setStartedBefore(Date startedBefore) {
     this.startedBefore = startedBefore;
   }
 
-  @CamundaQueryParam(value = "startedAfter", converter = DateConverter.class)
   public void setStartedAfter(Date startedAfter) {
     this.startedAfter = startedAfter;
   }
 
-  @CamundaQueryParam(value = "finishedBefore", converter = DateConverter.class)
   public void setFinishedBefore(Date finishedBefore) {
     this.finishedBefore = finishedBefore;
   }
 
-  @CamundaQueryParam(value = "finishedAfter", converter = DateConverter.class)
   public void setFinishedAfter(Date finishedAfter) {
     this.finishedAfter = finishedAfter;
   }
 
-  @CamundaQueryParam("startedBy")
   public void setStartedBy(String startedBy) {
     this.startedBy = startedBy;
   }
 
-  @CamundaQueryParam("superProcessInstanceId")
   public void setSuperProcessInstanceId(String superProcessInstanceId) {
     this.superProcessInstanceId = superProcessInstanceId;
   }
 
-  @CamundaQueryParam("subProcessInstanceId")
   public void setSubProcessInstanceId(String subProcessInstanceId) {
     this.subProcessInstanceId = subProcessInstanceId;
   }
 
-  @CamundaQueryParam("superCaseInstanceId")
   public void setSuperCaseInstanceId(String superCaseInstanceId) {
     this.superCaseInstanceId = superCaseInstanceId;
   }
 
-  @CamundaQueryParam("subCaseInstanceId")
   public void setSubCaseInstanceId(String subCaseInstanceId) {
     this.subCaseInstanceId = subCaseInstanceId;
   }
 
-  @CamundaQueryParam("caseInstanceId")
   public void setCaseInstanceId(String caseInstanceId) {
     this.caseInstanceId = caseInstanceId;
   }
 
-  @CamundaQueryParam(value = "variables", converter = VariableListConverter.class)
   public void setVariables(List<VariableQueryParameterDto> variables) {
     this.variables = variables;
   }
 
-  @CamundaQueryParam(value = "variableNamesIgnoreCase", converter = BooleanConverter.class)
   public void setVariableNamesIgnoreCase(Boolean variableNamesIgnoreCase) {
     this.variableNamesIgnoreCase = variableNamesIgnoreCase;
   }
 
-  @CamundaQueryParam(value = "variableValuesIgnoreCase", converter = BooleanConverter.class)
   public void setVariableValuesIgnoreCase(Boolean variableValuesIgnoreCase) {
     this.variableValuesIgnoreCase = variableValuesIgnoreCase;
   }
 
-  @CamundaQueryParam(value = "incidentType")
   public void setIncidentType(String incidentType) {
     this.incidentType = incidentType;
   }
 
-  @CamundaQueryParam(value = "incidentIdIn", converter = StringListConverter.class)
   public void setIncidentIdIn(List<String> incidentIds) {
     this.incidentIds = incidentIds;
   }
 
-  @CamundaQueryParam(value = "tenantIdIn", converter = StringListConverter.class)
   public void setTenantIdIn(List<String> tenantIds) {
     this.tenantIds = tenantIds;
   }
 
-  @CamundaQueryParam(value = "withoutTenantId", converter = BooleanConverter.class)
   public void setWithoutTenantId(Boolean withoutTenantId) {
     this.withoutTenantId = withoutTenantId;
   }
 
-  @CamundaQueryParam(value = "executedActivityAfter", converter = DateConverter.class)
   public void setExecutedActivityAfter(Date executedActivityAfter) {
     this.executedActivityAfter = executedActivityAfter;
   }
 
-  @CamundaQueryParam(value = "executedActivityIdIn", converter = StringListConverter.class)
   public void setExecutedActivityIdIn(List<String> executedActivityIds) {
     this.executedActivityIdIn = executedActivityIds;
   }
 
-  @CamundaQueryParam(value = "executedActivityBefore", converter = DateConverter.class)
   public void setExecutedActivityBefore(Date executedActivityBefore) {
     this.executedActivityBefore = executedActivityBefore;
   }
 
-  @CamundaQueryParam(value = "activeActivityIdIn", converter = StringListConverter.class)
   public void setActiveActivityIdIn(List<String> activeActivityIdIn) {
     this.activeActivityIdIn = activeActivityIdIn;
   }
 
-  @CamundaQueryParam(value = "activityIdIn", converter = StringListConverter.class)
   public void setActivityIdIn(List<String> activityIdIn) {
     this.activityIdIn = activityIdIn;
   }
 
-  @CamundaQueryParam(value = "executedJobAfter", converter = DateConverter.class)
   public void setExecutedJobAfter(Date executedJobAfter) {
     this.executedJobAfter = executedJobAfter;
   }
 
-  @CamundaQueryParam(value = "executedJobBefore", converter = DateConverter.class)
   public void setExecutedJobBefore(Date executedJobBefore) {
     this.executedJobBefore = executedJobBefore;
   }
 
-  @CamundaQueryParam(value = "active", converter = BooleanConverter.class)
   public void setActive(Boolean active) {
     this.active = active;
   }
 
-  @CamundaQueryParam(value = "suspended", converter = BooleanConverter.class)
   public void setSuspended(Boolean suspended) {
     this.suspended = suspended;
   }
 
-  @CamundaQueryParam(value = "completed", converter = BooleanConverter.class)
   public void setCompleted(Boolean completed) {
     this.completed = completed;
   }
 
-  @CamundaQueryParam(value = "externallyTerminated", converter = BooleanConverter.class)
   public void setExternallyTerminated(Boolean externallyTerminated) {
     this.externallyTerminated = externallyTerminated;
   }
 
-  @CamundaQueryParam(value = "internallyTerminated", converter = BooleanConverter.class)
   public void setInternallyTerminated(Boolean internallyTerminated) {
     this.internallyTerminated = internallyTerminated;
   }
 
-  @CamundaQueryParam(value = "includeCanceled", converter = BooleanConverter.class)
   public void setIncludeCanceled(Boolean includeCanceled) {
     this.includeCanceled = includeCanceled;
   }
 
-  @CamundaQueryParam(value = "includeFinished", converter = BooleanConverter.class)
   public void setIncludeFinished(Boolean includeFinished) {
     this.includeFinished = includeFinished;
   }
 
-  @CamundaQueryParam(value = "includeCompleteScope", converter = BooleanConverter.class)
   public void setIncludeCompleteScope(Boolean includeCompleteScope) {
     this.includeCompleteScope = includeCompleteScope;
   }
 
-  @CamundaQueryParam(value = "includeIncidents", converter = BooleanConverter.class)
   public void setIncludeIncidents(Boolean includeIncidents) {
     this.includeIncidents = includeIncidents;
   }
@@ -409,8 +348,8 @@ public class HistoricActivityStatisticsPostQueryDto extends AbstractQueryDto<His
       query.includeIncidents();
     }
 
-    if (queries != null) {
-      for (HistoricActivityStatisticsPostQueryDto orQueryDto : queries) {
+    if (orQueries != null) {
+      for (HistoricActivityStatisticsPostQueryDto orQueryDto : orQueries) {
         orQueryDto.setObjectMapper(objectMapper);
         HistoricActivityStatisticsPostQueryImpl orQuery = new HistoricActivityStatisticsPostQueryImpl(processDefinitionId);
         orQuery.setIsOrQueryActive();

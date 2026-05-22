@@ -77,7 +77,7 @@ public class HistoricProcessInstanceQueryImpl extends AbstractVariableQueryImpl<
   protected String subProcessInstanceId;
   protected String superCaseInstanceId;
   protected String subCaseInstanceId;
-  protected List<String> processKeyNotIn;
+  protected List<String> processDefinitionKeyNotIn;
   protected Date startedBefore;
   protected Date startedAfter;
   protected Date finishedBefore;
@@ -243,7 +243,7 @@ public class HistoricProcessInstanceQueryImpl extends AbstractVariableQueryImpl<
   public HistoricProcessInstanceQuery processDefinitionKeyNotIn(List<String> processDefinitionKeys) {
     ensureNotContainsNull("processDefinitionKeys", processDefinitionKeys);
     ensureNotContainsEmptyString("processDefinitionKeys", processDefinitionKeys);
-    this.processKeyNotIn = processDefinitionKeys;
+    this.processDefinitionKeyNotIn = processDefinitionKeys;
     return this;
   }
 
@@ -330,7 +330,7 @@ public class HistoricProcessInstanceQueryImpl extends AbstractVariableQueryImpl<
       || (finished && unfinished)
       || CompareUtil.areNotInAscendingOrder(startedAfter, startedBefore)
       || CompareUtil.areNotInAscendingOrder(finishedAfter, finishedBefore)
-      || CompareUtil.elementIsContainedInList(processDefinitionKey, processKeyNotIn)
+      || CompareUtil.elementIsContainedInList(processDefinitionKey, processDefinitionKeyNotIn)
       || CompareUtil.elementIsNotContainedInList(processInstanceId, processInstanceIds)
       || CompareUtil.elementIsContainedInArray(processInstanceId, processInstanceIdNotIn)
       || CompareUtil.elementsAreContainedInArray(processInstanceIds, processInstanceIdNotIn);
@@ -602,12 +602,8 @@ public class HistoricProcessInstanceQueryImpl extends AbstractVariableQueryImpl<
     this.superProcessInstanceId = superProcessInstanceId;
   }
 
-  public List<String> getProcessKeyNotIn() {
-    return processKeyNotIn;
-  }
-
   public List<String> getProcessDefinitionKeyNotIn() {
-    return processKeyNotIn;
+    return processDefinitionKeyNotIn;
   }
 
   public Date getStartedAfter() {
