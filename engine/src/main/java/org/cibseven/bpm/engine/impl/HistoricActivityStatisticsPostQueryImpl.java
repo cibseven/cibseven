@@ -60,7 +60,6 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
   protected Set<String> processInstanceIds;
   protected String[] processInstanceIdNotIn;
   protected String rootProcessInstanceId;
-  protected boolean rootProcessInstances;
 
   // Process Definition filters
   protected String processDefinitionKey;
