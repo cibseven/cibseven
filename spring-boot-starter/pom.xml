@@ -119,7 +119,6 @@
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
             <trimStackTrace>false</trimStackTrace>
             <systemPropertyVariables>
-              <camunda.bpm.webapp.installed>true</camunda.bpm.webapp.installed>
             </systemPropertyVariables>
           </configuration>
         </plugin>
@@ -130,7 +129,6 @@
           <configuration>
             <systemPropertyVariables>
               <cibseven.webclient.authentication.jwtSecret>RtURHZ7SQYfLoX902wcjlvduW2qe9g0bjMUczmffjiTjzU9phbv3mK54zHMqeGK6cqgoEBTIUE6RqwvemSqbpD40qUPXVRElvDHGhn4OAEfjeEP2ANah8GJejSA08E820mForcQHBmediqg2DzIrxnDXyf2</cibseven.webclient.authentication.jwtSecret>
-              <camunda.bpm.webapp.installed>true</camunda.bpm.webapp.installed>
             </systemPropertyVariables>
           </configuration>
           </plugin>        
