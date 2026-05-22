@@ -9,6 +9,8 @@ camunda:
           lock-duration: 33
         topic-two:
           process-definition-key: proc-def-key
+    webapp.installed: true
+
 logging:
   level:
     org.cibseven.bpm.client: debug

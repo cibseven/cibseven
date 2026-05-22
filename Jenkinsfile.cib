@@ -299,7 +299,7 @@ pipeline {
                         // TODO: remove this after complete migration from webapp tests to webclient tests
                         script { withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests -Plegacy-webapps" }}
 
-                        script { withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter,legacy-webapps" }}
+                        script { withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }}
 
                         // TODO: remove this after complete migration from webapp tests to webclient tests
                         // reinstall webjar without the legacy webapps
