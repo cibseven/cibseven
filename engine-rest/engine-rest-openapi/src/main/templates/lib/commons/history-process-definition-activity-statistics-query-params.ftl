@@ -9,22 +9,22 @@
   </#assign>
 
 <#assign params = {
-  "canceled": {
+  "includeCanceled": {
     "type": "boolean",
     "desc": "Whether to include the number of canceled activity instances in the result or not. Valid
              values are `true` or `false`. Default: `false`."
   },
-  "finished": {
+  "includeFinished": {
     "type": "boolean",
     "desc": "Whether to include the number of finished activity instances in the result or not. Valid
              values are `true` or `false`. Default: `false`."
   },
-  "completeScope": {
+  "includeCompleteScope": {
     "type": "boolean",
     "desc": "Whether to include the number of activity instances which completed a scope in the result
              or not. Valid values are `true` or `false`. Default: `false`."
   },
-  "incidents": {
+  "includeIncidents": {
     "type": "boolean",
     "desc": "Whether to include the number of incidents. Valid values are `true` or `false`. Default: `false`."
   },

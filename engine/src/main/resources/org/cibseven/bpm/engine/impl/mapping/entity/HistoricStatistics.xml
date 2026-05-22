@@ -165,7 +165,7 @@
               , sum(CASE WHEN INC.INCIDENT_STATE_ = 2 THEN 1 ELSE 0 END) as DELETED_INCIDENT_COUNT_
               from ${prefix}ACT_HI_INCIDENT INC            
               
-              INNER JOIN ${prefix}filtered_pi PI
+              INNER JOIN filtered_pi PI
               ON INC.PROC_INST_ID_ = PI.PROC_INST_ID_
 
               where INC.PROC_DEF_ID_ = #{processDefinitionId}

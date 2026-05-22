@@ -29,11 +29,11 @@ import java.util.stream.Collectors;
 
 import org.cibseven.bpm.engine.history.HistoricActivityStatistics;
 import org.cibseven.bpm.engine.history.HistoricActivityStatisticsPostQuery;
+import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.interceptor.CommandExecutor;
-import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 import org.cibseven.bpm.engine.impl.variable.serializer.VariableSerializers;
 
 /**
@@ -115,6 +115,7 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
   protected String[] activityIds;
 
   // Activity State filters
+  
   protected boolean active;
   protected boolean suspended;
   protected boolean completed;
@@ -130,7 +131,7 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
   protected List<HistoricActivityStatisticsPostQueryImpl> queries;
   protected boolean isOrQueryActive = false;
 
-  protected Set<String> state;
+  protected Set<String> state = new HashSet<>();
   protected Date startDateBy;
   protected Date startDateOn;
   protected Date finishDateBy;
@@ -465,30 +466,35 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
   @Override
   public HistoricActivityStatisticsPostQueryImpl active() {
     this.active = true;
+    addState("ACTIVE");
     return this;
   }
 
   @Override
   public HistoricActivityStatisticsPostQueryImpl suspended() {
     this.suspended = true;
+    addState("SUSPENDED");
     return this;
   }
 
   @Override
   public HistoricActivityStatisticsPostQueryImpl completed() {
     this.completed = true;
+    addState("COMPLETED");
     return this;
   }
 
   @Override
   public HistoricActivityStatisticsPostQueryImpl externallyTerminated() {
     this.externallyTerminated = true;
+    addState("EXTERNALLY_TERMINATED");
     return this;
   }
 
   @Override
   public HistoricActivityStatisticsPostQueryImpl internallyTerminated() {
     this.internallyTerminated = true;
+    addState("INTERNALLY_TERMINATED");
     return this;
   }
   
@@ -534,6 +540,9 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
   public HistoricActivityStatisticsPostQueryImpl variableValueLike(String variableName, String variableValue) {
     addVariable(variableName, variableValue, QueryOperator.LIKE, true);
     return this;
+  }
+  protected void addState(String state) {
+    this.state.add(state);
   }
 
   @Override
