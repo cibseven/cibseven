@@ -81,11 +81,9 @@ public class HistoricActivityStatisticsRestServiceQueryTest extends AbstractRest
 
     historicActivityStatisticsQuery = mock(HistoricActivityStatisticsQueryImpl.class);
     when(processEngine.getHistoryService().createHistoricActivityStatisticsQuery(eq(MockProvider.EXAMPLE_PROCESS_DEFINITION_ID))).thenReturn(historicActivityStatisticsQuery);
-    when(processEngine.getHistoryService().createHistoricActivityStatisticsQuery(eq(MockProvider.EXAMPLE_PROCESS_DEFINITION_ID))).thenReturn(historicActivityStatisticsQuery);
     when(historicActivityStatisticsQuery.unlimitedList()).thenReturn(mocks);
 
     historicActivityStatisticsPostQuery= mock(HistoricActivityStatisticsPostQueryImpl.class);
-    when(processEngine.getHistoryService().createHistoricActivityStatisticsPostQuery(eq(MockProvider.EXAMPLE_PROCESS_DEFINITION_ID))).thenReturn(historicActivityStatisticsPostQuery);
     when(processEngine.getHistoryService().createHistoricActivityStatisticsPostQuery(eq(MockProvider.EXAMPLE_PROCESS_DEFINITION_ID))).thenReturn(historicActivityStatisticsPostQuery);
     doReturn(mocks).when(historicActivityStatisticsPostQuery).list();
   }
