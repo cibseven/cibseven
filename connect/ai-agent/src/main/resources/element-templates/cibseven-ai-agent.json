@@ -5,7 +5,7 @@
   "version": 1,
   "description": "Element template for the cibseven-ai-agent connector.",
   "icon": {
-    "contents": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBhcmlhLWhpZGRlbj0idHJ1ZSI+PHBhdGggZD0iTTkgMiBMMTAuNCA4LjYgTDE3IDEwIEwxMC40IDExLjQgTDkgMTggTDcuNiAxMS40IEwxIDEwIEw3LjYgOC42IFoiIGZpbGw9IiNFMTFFMTkiPjwvcGF0aD48cGF0aCBkPSJNMTcuNSAxMyBMMTguMiAxNS44IEwyMSAxNi41IEwxOC4yIDE3LjIgTDE3LjUgMjAgTDE2LjggMTcuMiBMMTQgMTYuNSBMMTYuOCAxNS44IFoiIGZpbGw9IiMwRjIxMzMiPjwvcGF0aD48L3N2Zz4="
+    "contents": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTkuNTAwMSAxLjAwMDAxTDYuODQzODUgNi44NDM3NkwxLjAwMDEgOS41MDAwMUw2Ljg0Mzg1IDEyLjE1NjNMOS41MDAxIDE4TDEyLjE1NjMgMTIuMTU2M0wxOC4wMDAxIDkuNTAwMDFMMTIuMTU2MyA2Ljg0Mzc2IiBmaWxsPSIjRTExRTE5Ii8+CjxwYXRoIGQ9Ik0xOCAxM0wxNi40Mzc1IDE2LjQzNzVMMTMgMThMMTYuNDM3NSAxOS41NjI1TDE4IDIzTDE5LjU2MjUgMTkuNTYyNUwyMyAxOEwxOS41NjI1IDE2LjQzNzUiIGZpbGw9IiMwRjIxMzMiLz4KPC9zdmc+Cg=="
   },
   "keywords": ["ai", "agent", "llm", "openai", "rag", "mcp", "langchain4j"],
   "appliesTo": [
