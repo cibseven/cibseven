@@ -29,7 +29,7 @@ import org.cibseven.connect.spi.ConnectorResponse;
  *       {@code Map<String,Object>} carrying {@code aiGenerated=true},
  *       {@code runId}, {@code provider}, {@code model}, {@code responseId},
  *       and {@code generatedAt}. Mapped as a sibling of {@code output}
- *       (typically named {@code <outputVar>__aiMeta}) so downstream Human
+ *       (typically named {@code <outputVar>_aiMeta}) so downstream Human
  *       Tasks, gateways, and audit consumers can detect AI-generated content
  *       without parsing the answer text</li>
  *   <li>{@code memoryId} — identifier of the chat-memory entry used by this

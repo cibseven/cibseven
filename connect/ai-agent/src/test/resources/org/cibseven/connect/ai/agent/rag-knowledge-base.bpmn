@@ -31,7 +31,7 @@
     ingestedChunks (Integer) — number of text chunks stored in pgvector
 
   Process variables set after the query task:
-    agentAnswer    (String)  — LLM answer grounded in the knowledge base
+    agentOutput    (String)  — LLM answer grounded in the knowledge base
 -->
 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -181,7 +181,7 @@
             <camunda:inputParameter name="embeddingDimension">${embeddingDimension}</camunda:inputParameter>
 
             <!-- ── Output ─────────────────────────────────────────── -->
-            <camunda:outputParameter name="agentAnswer">${output}</camunda:outputParameter>
+            <camunda:outputParameter name="agentOutput">${output}</camunda:outputParameter>
 
           </camunda:inputOutput>
         </camunda:connector>
@@ -196,7 +196,7 @@
     <userTask id="Task_ReviewAnswer" name="Review AI Answer"
               camunda:assignee="${reviewer}">
       <documentation>
-        Review the agent answer stored in 'agentAnswer'.
+        Review the agent answer stored in 'agentOutput'.
         The knowledge base had ${ingestedChunks} chunk(s) ingested.
       </documentation>
       <incoming>Flow_3</incoming>

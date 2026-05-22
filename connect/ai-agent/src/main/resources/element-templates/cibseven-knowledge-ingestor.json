@@ -207,7 +207,7 @@
           "label": "Output variable for ingested chunk count",
           "description": "Process variable that will receive the number of chunks successfully embedded and stored (${chunksIngested}).",
           "type": "String",
-          "value": "chunksIngested",
+          "value": "ingestedChunks",
           "binding": {
             "type": "camunda:outputParameter",
             "source": "${chunksIngested}"

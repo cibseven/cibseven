@@ -83,7 +83,7 @@ public class InvoiceProcessingConnectorTest {
   /**
    * Expected JSON that a real Gemini call would return for {@link #INVOICE_TEXT}.
    * The connector stores this in the {@code output} response parameter, which the
-   * engine then maps to the {@code agentResult} process variable.
+   * engine then maps to the {@code agentOutput} process variable.
    */
   static final String EXPECTED_JSON_OUTPUT =
       "{\n"
@@ -192,9 +192,9 @@ public class InvoiceProcessingConnectorTest {
 
     AgentResponse response = request.execute();
 
-    // The BPMN uses ${output} → agentResult
-    String agentResult = (String) response.getResponseParameter(AgentConnector.PARAM_NAME_OUTPUT);
-    assertThat(agentResult).isEqualTo(EXPECTED_JSON_OUTPUT);
+    // The BPMN uses ${output} → agentOutput
+    String agentOutput = (String) response.getResponseParameter(AgentConnector.PARAM_NAME_OUTPUT);
+    assertThat(agentOutput).isEqualTo(EXPECTED_JSON_OUTPUT);
   }
 
   // ── Response content ─────────────────────────────────────────────────────

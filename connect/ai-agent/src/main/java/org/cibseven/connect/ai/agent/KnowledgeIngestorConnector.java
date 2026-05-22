@@ -32,7 +32,7 @@ import org.cibseven.connect.spi.Connector;
  *     <camunda:inputParameter name="pgDatabase">postgres</camunda:inputParameter>
  *     <camunda:inputParameter name="pgUser">my_user</camunda:inputParameter>
  *     <camunda:inputParameter name="pgPassword">${pgPassword}</camunda:inputParameter>
- *     <camunda:outputParameter name="ingestedCount">${chunksIngested}</camunda:outputParameter>
+ *     <camunda:outputParameter name="ingestedChunks">${chunksIngested}</camunda:outputParameter>
  *   </camunda:inputOutput>
  * </camunda:connector>
  * }</pre>

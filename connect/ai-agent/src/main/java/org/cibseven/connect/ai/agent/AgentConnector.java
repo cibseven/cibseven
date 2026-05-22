@@ -76,7 +76,7 @@ import org.cibseven.connect.spi.Connector;
  *
  *       <!-- Output -->
  *       <camunda:outputParameter name="agentOutput">${output}</camunda:outputParameter>
- *       <camunda:outputParameter name="agentOutput__aiMeta">${outputAiMeta}</camunda:outputParameter>
+ *       <camunda:outputParameter name="agentOutput_aiMeta">${outputAiMeta}</camunda:outputParameter>
  *       <camunda:outputParameter name="memoryId">${memoryId}</camunda:outputParameter>
  *     </camunda:inputOutput>
  * </camunda:connector>
@@ -115,7 +115,8 @@ public interface AgentConnector extends Connector<AgentRequest> {
   String PARAM_NAME_INSTRUCTION = "instruction";
 
   /**
-   * Optional. Gemini model identifier.
+   * Optional. LLM model identifier (e.g. {@code gpt-5.4-nano}, {@code claude-opus-4.7},
+   * {@code gemma-4-26b}; on OpenRouter prefix with provider, e.g. {@code openai/gpt-5.4-nano}).
    * Defaults to {@value AgentConnectorConstants#DEFAULT_MODEL}.
    */
   String PARAM_NAME_MODEL = "model";
@@ -279,7 +280,7 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * ({@code provider}, {@code model}, {@code responseId}), and a
    * {@code generatedAt} ISO-8601 timestamp. BPMN designers map it as a
    * sibling of the main output variable, e.g.
-   * {@code <camunda:outputParameter name="agentOutput__aiMeta">${outputAiMeta}</camunda:outputParameter>},
+   * {@code <camunda:outputParameter name="agentOutput_aiMeta">${outputAiMeta}</camunda:outputParameter>},
    * so downstream Human Tasks, gateways, and history consumers can distinguish
    * AI-generated values from human-authored ones.
    */

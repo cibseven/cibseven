@@ -79,7 +79,7 @@ public final class AgentConnectorConstants {
    * task running the connector writes its own chat log without further
    * configuration from the BPMN designer.
    */
-  public static final String AGENT_CONNECTOR_LOG_PREFIX = "cibseven-connect-ai-agent.";
+  public static final String AGENT_CONNECTOR_LOG_PREFIX = "cibseven-connect-ai-agent_";
 
   // ── Chat memory defaults ──────────────────────────────────────────────────
 

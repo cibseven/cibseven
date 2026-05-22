@@ -15,7 +15,7 @@
                           e.g. [{"url": "http://localhost:9090/"}]
 
   Process variables set after the service task:
-    agentResult   (String) — JSON with extracted invoice fields
+    agentOutput   (String) — JSON with extracted invoice fields
 -->
 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -38,8 +38,8 @@
           <camunda:formField id="message" label="Message" type="string"
                              defaultValue="List all available MCP tools, call each one, and return the results as a JSON array." />
           <camunda:formField id="reviewer" label="Reviewer" type="string" defaultValue="demo" />
-          <camunda:formField id="langchain4jApiKey" label="Open AI Api Key" type="string" />
-          <camunda:formField id="langchain4jBaseUrl" label="OpenAI URL" type="string" defaultValue="https://api.openai.com/v1" />
+          <camunda:formField id="langchain4jApiKey" label="OpenAI API Key" type="string" />
+          <camunda:formField id="langchain4jBaseUrl" label="OpenAI Base URL" type="string" defaultValue="https://api.openai.com/v1" />
           <camunda:formField id="langchain4jMcpServers" label="MCP Servers JSON (optional)" type="string"
                              defaultValue="[{&quot;url&quot;: &quot;http://localhost:9090/&quot;}]" />
           <camunda:formField id="agentName" label="Agent Name" type="string" defaultValue="mcp-tool-runner" />
@@ -78,8 +78,8 @@
             <camunda:inputParameter name="mcpServers">${langchain4jMcpServers}</camunda:inputParameter>
 
             <!-- ── Output mapping to process variables ───────────── -->
-            <!-- agentResult receives the final text response from the LLM -->
-            <camunda:outputParameter name="agentResult">${output}</camunda:outputParameter>
+            <!-- agentOutput receives the final text response from the LLM -->
+            <camunda:outputParameter name="agentOutput">${output}</camunda:outputParameter>
 
           </camunda:inputOutput>
         </camunda:connector>
@@ -93,7 +93,7 @@
     <userTask id="Task_ReviewInvoice" name="Review Extracted Invoice Data"
               camunda:assignee="${reviewer}">
       <documentation>
-        The accountant reviews the AI-extracted invoice data stored in 'agentResult'
+        The accountant reviews the AI-extracted invoice data stored in 'agentOutput'
         and approves or corrects it before the invoice is booked.
       </documentation>
       <incoming>Flow_2</incoming>

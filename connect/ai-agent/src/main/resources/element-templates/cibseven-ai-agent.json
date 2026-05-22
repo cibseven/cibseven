@@ -315,10 +315,10 @@
           }
         },
         {
-          "label": "Output variable for agent answer",
+          "label": "Output variable for agent response",
           "description": "Process variable that will receive the agent's text response (${output}).",
           "type": "String",
-          "value": "agentResult",
+          "value": "agentOutput",
           "binding": {
             "type": "camunda:outputParameter",
             "source": "${output}"
@@ -328,7 +328,7 @@
           }
         },
         {
-          "label": "Output variable for memory id",
+          "label": "Output variable for memory ID",
           "description": "Process variable that will receive the chat memory id (${memoryId}). Leave the field unset to skip this output.",
           "type": "String",
           "value": "memoryId",
