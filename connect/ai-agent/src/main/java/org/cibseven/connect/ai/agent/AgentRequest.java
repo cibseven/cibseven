@@ -34,6 +34,13 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
 
   AgentRequest instruction(String instruction);
 
+  /**
+   * Optional. Controls how {@link #instruction(String)} is combined with the
+   * bundled default system prompt. See
+   * {@link AgentConnector#PARAM_NAME_INSTRUCTION_MODE} for allowed values.
+   */
+  AgentRequest instructionMode(String instructionMode);
+
   AgentRequest model(String model);
 
   AgentRequest message(String message);
@@ -121,6 +128,13 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   String getAgentDescription();
 
   String getInstruction();
+
+  /**
+   * Returns the resolved {@code instructionMode} — falls back to
+   * {@link AgentConnectorConstants#DEFAULT_INSTRUCTION_MODE} when the parameter
+   * is unset or empty.
+   */
+  String getInstructionMode();
 
   String getModel();
 

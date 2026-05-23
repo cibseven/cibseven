@@ -60,10 +60,26 @@
           "label": "Instruction",
           "type": "Text",
           "group": "input",
-          "description": "System prompt for the LLM. Leave empty to use the bundled default prompt (generic CIB seven agent that uses any wired-in tools, RAG and chat memory). Override to specialise the agent for a concrete task.",
+          "description": "System prompt for the LLM. Leave empty to use the bundled default prompt (generic CIB seven agent that uses any wired-in tools, RAG and chat memory). Override to specialise the agent for a concrete task. See 'Instruction mode' to control whether this value replaces or augments the bundled default.",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "instruction"
+          }
+        },
+        {
+          "label": "Instruction mode",
+          "type": "Dropdown",
+          "group": "input",
+          "value": "replace",
+          "description": "How 'Instruction' is combined with the bundled CIB seven default prompt. 'Replace' (default) uses only your instruction. 'Append' keeps the default and adds your instruction after it. 'Prepend' puts your instruction before the default. Ignored when 'Instruction' is empty.",
+          "choices": [
+            { "name": "Replace default",    "value": "replace" },
+            { "name": "Append to default",  "value": "append"  },
+            { "name": "Prepend to default", "value": "prepend" }
+          ],
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "instructionMode"
           }
         },
         {

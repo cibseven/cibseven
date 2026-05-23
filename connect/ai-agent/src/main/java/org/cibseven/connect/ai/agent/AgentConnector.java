@@ -34,6 +34,7 @@ import org.cibseven.connect.spi.Connector;
  *       <camunda:inputParameter name="agentName">my-agent</camunda:inputParameter>
  *       <camunda:inputParameter name="agentDescription">Customer support agent</camunda:inputParameter>
  *       <camunda:inputParameter name="instruction">You are a helpful assistant.</camunda:inputParameter>
+ *       <camunda:inputParameter name="instructionMode">append</camunda:inputParameter>
  *       <camunda:inputParameter name="model">gpt-5.4-nano</camunda:inputParameter>
  *       <camunda:inputParameter name="message">${userMessage}</camunda:inputParameter>
  *
@@ -110,9 +111,28 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * {@code /org/cibseven/connect/ai/agent/default-instruction.txt}, which
    * describes the generic CIB seven agent role and its possible capabilities
    * (tools, RAG, chat memory, reasoning). Override this parameter to specialise
-   * the agent for a concrete task.
+   * the agent for a concrete task. See {@link #PARAM_NAME_INSTRUCTION_MODE} for
+   * how this value is combined with the bundled default.
    */
   String PARAM_NAME_INSTRUCTION = "instruction";
+
+  /**
+   * Optional. Controls how the caller-supplied {@link #PARAM_NAME_INSTRUCTION}
+   * is combined with the bundled default system prompt. Allowed values:
+   * <ul>
+   *   <li>{@code "replace"} (default) — the bundled default is discarded and
+   *       only {@code instruction} is sent to the LLM. Matches the historical
+   *       behaviour.</li>
+   *   <li>{@code "append"} — the bundled default is sent first, followed by
+   *       {@code instruction}, separated by a blank line.</li>
+   *   <li>{@code "prepend"} — {@code instruction} is sent first, followed by
+   *       the bundled default, separated by a blank line.</li>
+   * </ul>
+   * When {@code instruction} is empty the mode is ignored — only the bundled
+   * default is used. An unknown value causes the connector to reject the
+   * request with {@code AgentConnectorException}.
+   */
+  String PARAM_NAME_INSTRUCTION_MODE = "instructionMode";
 
   /**
    * Optional. LLM model identifier (e.g. {@code gpt-5.4-nano}, {@code claude-opus-4.7},

@@ -57,6 +57,12 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   }
 
   @Override
+  public AgentRequest instructionMode(String instructionMode) {
+    setRequestParameter(AgentConnector.PARAM_NAME_INSTRUCTION_MODE, instructionMode);
+    return this;
+  }
+
+  @Override
   public AgentRequest model(String model) {
     setRequestParameter(AgentConnector.PARAM_NAME_MODEL, model);
     return this;
@@ -207,6 +213,14 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   @Override
   public String getInstruction() {
     return getRequestParameter(AgentConnector.PARAM_NAME_INSTRUCTION);
+  }
+
+  @Override
+  public String getInstructionMode() {
+    String mode = getRequestParameter(AgentConnector.PARAM_NAME_INSTRUCTION_MODE);
+    return (mode == null || mode.isEmpty())
+        ? AgentConnectorConstants.DEFAULT_INSTRUCTION_MODE
+        : mode;
   }
 
   @Override

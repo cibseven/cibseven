@@ -90,6 +90,34 @@ public final class AgentConnectorConstants {
    */
   public static final int DEFAULT_CHAT_MEMORY_MAX_MESSAGES = 20;
 
+  // ── instructionMode values ────────────────────────────────────────────────
+
+  /**
+   * {@code instructionMode} value — the modeler's {@code instruction} replaces
+   * the bundled default prompt entirely. Default mode for backwards compatibility.
+   */
+  public static final String INSTRUCTION_MODE_REPLACE = "replace";
+
+  /**
+   * {@code instructionMode} value — the modeler's {@code instruction} is
+   * appended to the bundled default prompt, separated by
+   * {@link #INSTRUCTION_MODE_SEPARATOR}.
+   */
+  public static final String INSTRUCTION_MODE_APPEND = "append";
+
+  /**
+   * {@code instructionMode} value — the modeler's {@code instruction} is
+   * prepended to the bundled default prompt, separated by
+   * {@link #INSTRUCTION_MODE_SEPARATOR}.
+   */
+  public static final String INSTRUCTION_MODE_PREPEND = "prepend";
+
+  /** Default for {@code instructionMode} when the parameter is unset. */
+  public static final String DEFAULT_INSTRUCTION_MODE = INSTRUCTION_MODE_REPLACE;
+
+  /** Separator used between the bundled default prompt and the caller instruction. */
+  public static final String INSTRUCTION_MODE_SEPARATOR = "\n\n";
+
   private AgentConnectorConstants() {
     // utility class
   }

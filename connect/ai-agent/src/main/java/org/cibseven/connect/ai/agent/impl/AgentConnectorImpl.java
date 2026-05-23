@@ -456,22 +456,59 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
 
   private String buildSystemPrompt(AgentRequest request) {
     String description = request.getAgentDescription();
-    String instruction = request.getInstruction();
-    boolean callerInstruction = instruction != null && !instruction.isEmpty();
-    LOG.debug("buildSystemPrompt: callerInstructionPresent={}, descriptionPresent={}",
-        callerInstruction, description != null && !description.isEmpty());
-    if (!callerInstruction) {
-      instruction = loadDefaultInstruction();
-    }
+    String callerInstruction = request.getInstruction();
+    String mode = request.getInstructionMode();
+    boolean hasCallerInstruction = callerInstruction != null && !callerInstruction.isEmpty();
+    LOG.debug("buildSystemPrompt: callerInstructionPresent={}, instructionMode={}, descriptionPresent={}",
+        hasCallerInstruction, mode, description != null && !description.isEmpty());
+
+    String instruction = combineWithDefault(callerInstruction, mode);
+
     boolean hasDescription = description != null && !description.isEmpty();
     boolean hasInstruction = instruction != null && !instruction.isEmpty();
     LOG.debug("buildSystemPrompt: resolved instruction length={}, description length={}",
         hasInstruction ? instruction.length() : 0,
         hasDescription ? description.length() : 0);
     if (hasDescription && hasInstruction) {
-      return description + "\n\n" + instruction;
+      return description + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR + instruction;
     }
     return hasInstruction ? instruction : description;
+  }
+
+  /**
+   * Combines the caller-supplied {@code instruction} with the bundled default
+   * prompt according to {@code mode}. When the caller did not supply an
+   * instruction, the bundled default is returned regardless of the mode.
+   *
+   * @throws AgentConnectorException when {@code mode} is set to an unknown value
+   */
+  private String combineWithDefault(String callerInstruction, String mode) {
+    boolean hasCallerInstruction = callerInstruction != null && !callerInstruction.isEmpty();
+    if (!hasCallerInstruction) {
+      return loadDefaultInstruction();
+    }
+    switch (mode) {
+      case AgentConnectorConstants.INSTRUCTION_MODE_REPLACE:
+        return callerInstruction;
+      case AgentConnectorConstants.INSTRUCTION_MODE_APPEND: {
+        String defaultPrompt = loadDefaultInstruction();
+        return (defaultPrompt == null || defaultPrompt.isEmpty())
+            ? callerInstruction
+            : defaultPrompt + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR + callerInstruction;
+      }
+      case AgentConnectorConstants.INSTRUCTION_MODE_PREPEND: {
+        String defaultPrompt = loadDefaultInstruction();
+        return (defaultPrompt == null || defaultPrompt.isEmpty())
+            ? callerInstruction
+            : callerInstruction + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR + defaultPrompt;
+      }
+      default:
+        throw new AgentConnectorException("Unknown instructionMode '" + mode
+            + "'. Allowed values: "
+            + AgentConnectorConstants.INSTRUCTION_MODE_REPLACE + ", "
+            + AgentConnectorConstants.INSTRUCTION_MODE_APPEND + ", "
+            + AgentConnectorConstants.INSTRUCTION_MODE_PREPEND + ".");
+    }
   }
 
   /**

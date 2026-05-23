@@ -431,6 +431,68 @@ public class AgentConnectorImplCoverageTest {
     assertThat(prompt).isEqualTo("You are an extractor.\n\nReturn JSON.");
   }
 
+  // ── buildSystemPrompt — instructionMode branches ────────────────────────
+
+  @Test
+  public void buildSystemPromptReplaceModeShouldUseOnlyCallerInstruction() throws Exception {
+    AgentRequest request = connector.createRequest()
+        .instruction("Return JSON.")
+        .instructionMode(AgentConnectorConstants.INSTRUCTION_MODE_REPLACE);
+    String prompt = invokeBuildSystemPrompt(request);
+    assertThat(prompt).isEqualTo("Return JSON.");
+  }
+
+  @Test
+  public void buildSystemPromptAppendModeShouldKeepDefaultThenCallerInstruction() throws Exception {
+    String defaultPrompt = AgentConnectorImpl.loadDefaultInstruction();
+    AgentRequest request = connector.createRequest()
+        .instruction("Return JSON.")
+        .instructionMode(AgentConnectorConstants.INSTRUCTION_MODE_APPEND);
+    String prompt = invokeBuildSystemPrompt(request);
+    assertThat(prompt).isEqualTo(defaultPrompt
+        + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR
+        + "Return JSON.");
+  }
+
+  @Test
+  public void buildSystemPromptPrependModeShouldPutCallerInstructionBeforeDefault() throws Exception {
+    String defaultPrompt = AgentConnectorImpl.loadDefaultInstruction();
+    AgentRequest request = connector.createRequest()
+        .instruction("Return JSON.")
+        .instructionMode(AgentConnectorConstants.INSTRUCTION_MODE_PREPEND);
+    String prompt = invokeBuildSystemPrompt(request);
+    assertThat(prompt).isEqualTo("Return JSON."
+        + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR
+        + defaultPrompt);
+  }
+
+  @Test
+  public void buildSystemPromptAppendModeShouldFallBackToDefaultWhenInstructionEmpty()
+      throws Exception {
+    String defaultPrompt = AgentConnectorImpl.loadDefaultInstruction();
+    AgentRequest request = connector.createRequest()
+        .instructionMode(AgentConnectorConstants.INSTRUCTION_MODE_APPEND);
+    String prompt = invokeBuildSystemPrompt(request);
+    assertThat(prompt).isEqualTo(defaultPrompt);
+  }
+
+  @Test
+  public void buildSystemPromptShouldRejectUnknownInstructionMode() {
+    AgentRequest request = connector.createRequest()
+        .instruction("Return JSON.")
+        .instructionMode("merge");
+    try {
+      invokeBuildSystemPrompt(request);
+      fail("expected AgentConnectorException, but no exception was thrown");
+    } catch (InvocationTargetException ite) {
+      assertThat(ite.getCause())
+          .isInstanceOf(AgentConnectorException.class)
+          .hasMessageContaining("Unknown instructionMode 'merge'");
+    } catch (Exception e) {
+      fail("expected InvocationTargetException, got " + e.getClass().getName());
+    }
+  }
+
   // ── buildMcpClient — exercise the real factory body once ────────────────
 
   /**
