@@ -47,7 +47,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
   org.cibseven.webapp.SevenWebclientContext.class
 })
 @Configuration
-@ConditionalOnProperty(prefix = WebappProperty.PREFIX, name = "enabled", matchIfMissing = true)
 @ConditionalOnBean(CamundaBpmProperties.class)
 @ConditionalOnWebApplication
 @AutoConfigureAfter(CamundaBpmAutoConfiguration.class)

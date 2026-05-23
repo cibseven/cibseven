@@ -89,7 +89,7 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer, WebM
   public FaviconResourceResolver faviconResourceResolver() {
     return new FaviconResourceResolver();
   }
-  
+
   @Override
   public RequestMappingHandlerMapping getRequestMappingHandlerMapping() {
     RequestMappingHandlerMapping mapping = new RequestMappingHandlerMapping();
@@ -115,9 +115,9 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer, WebM
     registry.addResourceHandler(legacyApplicationPath + "/favicon.ico")
         .addResourceLocations(legacyClasspath + "/") // add slash to get rid of the WARN log
         .resourceChain(true)
-        .addResolver(faviconResourceResolver());    
-      
-     registry.addResourceHandler(webapp.getApplicationPath() + "/**").addResourceLocations("classpath:" + webapp.getWebjarClasspath()+ "/");     
+        .addResolver(faviconResourceResolver());
+
+     registry.addResourceHandler(webapp.getApplicationPath() + "/**").addResourceLocations("classpath:" + webapp.getWebjarClasspath()+ "/");
 
   }
 
