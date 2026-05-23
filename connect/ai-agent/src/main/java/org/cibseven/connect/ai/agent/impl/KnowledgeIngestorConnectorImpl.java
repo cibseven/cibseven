@@ -16,10 +16,15 @@
  */
 package org.cibseven.connect.ai.agent.impl;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentSplitter;
@@ -33,6 +38,7 @@ import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.pgvector.PgVectorEmbeddingStore;
 
+import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.cibseven.connect.ai.agent.KnowledgeIngestorConnector;
 import org.cibseven.connect.ai.agent.KnowledgeIngestorRequest;
 import org.cibseven.connect.ai.agent.KnowledgeIngestorResponse;
@@ -56,6 +62,8 @@ public class KnowledgeIngestorConnectorImpl
     implements KnowledgeIngestorConnector {
 
   private static final Logger LOG = LoggerFactory.getLogger(KnowledgeIngestorConnectorImpl.class);
+
+  private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
   public KnowledgeIngestorConnectorImpl() {
     super(KnowledgeIngestorConnector.ID);
@@ -116,6 +124,11 @@ public class KnowledgeIngestorConnectorImpl
    * Factory method — override in tests to inject a stubbed embedding model.
    * Uses {@code OpenAiEmbeddingModel} when {@code embeddingModelName} is set,
    * otherwise falls back to the local {@code AllMiniLmL6V2EmbeddingModel}.
+   *
+   * <p>{@code baseUrl} and {@code customHeaders} are honored on the OpenAI
+   * branch, so a request that targets a private/Azure/sovereign endpoint
+   * sends its ingestion embeddings to the same place — without this, the
+   * entire ingested corpus silently defaults to {@code https://api.openai.com/v1}.
    */
   protected EmbeddingModel createEmbeddingModel(KnowledgeIngestorRequest request) {
     String modelName = request.getEmbeddingModelName();
@@ -124,12 +137,57 @@ public class KnowledgeIngestorConnectorImpl
       if (apiKey == null || apiKey.isEmpty()) {
         apiKey = System.getenv("OPENAI_API_KEY");
       }
-      return OpenAiEmbeddingModel.builder()
-          .apiKey(apiKey)
-          .modelName(modelName)
-          .build();
+      String baseUrl = resolveBaseUrl(request);
+      Map<String, String> customHeaders = parseCustomHeaders(request.getCustomHeaders());
+      return buildOpenAiEmbeddingModel(apiKey, modelName, baseUrl, customHeaders);
     }
     return new AllMiniLmL6V2EmbeddingModel();
+  }
+
+  /**
+   * Builds the OpenAI embedding model with the resolved coordinates.
+   * Extracted from {@link #createEmbeddingModel(KnowledgeIngestorRequest)} so
+   * tests can override it to capture the arguments the connector forwards to
+   * LangChain4j.
+   */
+  protected EmbeddingModel buildOpenAiEmbeddingModel(String apiKey, String modelName,
+      String baseUrl, Map<String, String> customHeaders) {
+    OpenAiEmbeddingModel.OpenAiEmbeddingModelBuilder builder = OpenAiEmbeddingModel.builder()
+        .apiKey(apiKey)
+        .modelName(modelName);
+    if (baseUrl != null && !baseUrl.isEmpty()) {
+      builder.baseUrl(baseUrl);
+    }
+    if (customHeaders != null && !customHeaders.isEmpty()) {
+      builder.customHeaders(customHeaders);
+    }
+    return builder.build();
+  }
+
+  static String resolveBaseUrl(KnowledgeIngestorRequest request) {
+    String url = request.getBaseUrl();
+    if (url != null && !url.isEmpty()) {
+      return url;
+    }
+    url = System.getenv(AgentConnectorConstants.ENV_BASE_URL);
+    if (url != null && !url.isEmpty()) {
+      return url;
+    }
+    return AgentConnectorConstants.DEFAULT_BASE_URL;
+  }
+
+  static Map<String, String> parseCustomHeaders(String raw) {
+    if (raw == null || raw.trim().isEmpty()) {
+      return new LinkedHashMap<>();
+    }
+    try {
+      Map<String, String> parsed = JSON_MAPPER.readValue(raw,
+          new TypeReference<Map<String, String>>() {});
+      return parsed != null ? parsed : new LinkedHashMap<>();
+    } catch (Exception e) {
+      throw new AgentConnectorException(
+          "Could not parse 'customHeaders': expected a JSON object of string→string pairs", e);
+    }
   }
 
   /** Factory method — override in tests to inject a stubbed embedding store. */

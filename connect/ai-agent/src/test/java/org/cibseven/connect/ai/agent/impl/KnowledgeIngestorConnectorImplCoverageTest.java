@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.cibseven.connect.ai.agent.KnowledgeIngestorRequest;
 import org.cibseven.connect.ai.agent.KnowledgeIngestorResponse;
@@ -80,6 +82,67 @@ public class KnowledgeIngestorConnectorImplCoverageTest {
     EmbeddingModel model = connector.createEmbeddingModel(request);
     assertThat(model).isNotNull();
     assertThat(model.getClass().getName()).contains("OpenAiEmbeddingModel");
+  }
+
+  @Test
+  public void createEmbeddingModelShouldForwardBaseUrlAndCustomHeadersToOpenAi() {
+    AtomicReference<String> capturedApiKey = new AtomicReference<>();
+    AtomicReference<String> capturedModelName = new AtomicReference<>();
+    AtomicReference<String> capturedBaseUrl = new AtomicReference<>();
+    AtomicReference<Map<String, String>> capturedHeaders = new AtomicReference<>();
+
+    KnowledgeIngestorConnectorImpl spy = new KnowledgeIngestorConnectorImpl() {
+      @Override
+      protected EmbeddingModel buildOpenAiEmbeddingModel(String apiKey, String modelName,
+          String baseUrl, Map<String, String> customHeaders) {
+        capturedApiKey.set(apiKey);
+        capturedModelName.set(modelName);
+        capturedBaseUrl.set(baseUrl);
+        capturedHeaders.set(customHeaders);
+        return new ZeroEmbeddingModel();
+      }
+    };
+
+    KnowledgeIngestorRequest request = spy.createRequest()
+        .embeddingModelName("text-embedding-3-small")
+        .apiKey("test-key")
+        .baseUrl("https://azure-openai.contoso.eu/v1")
+        .customHeaders("{\"X-Tenant\":\"acme\"}");
+
+    EmbeddingModel model = spy.createEmbeddingModel(request);
+    assertThat(model).isNotNull();
+    assertThat(capturedApiKey.get()).isEqualTo("test-key");
+    assertThat(capturedModelName.get()).isEqualTo("text-embedding-3-small");
+    assertThat(capturedBaseUrl.get()).isEqualTo("https://azure-openai.contoso.eu/v1");
+    assertThat(capturedHeaders.get()).containsEntry("X-Tenant", "acme");
+  }
+
+  @Test
+  public void resolveBaseUrlShouldPreferRequestOverEnvAndDefault() {
+    KnowledgeIngestorRequest request = connector.createRequest()
+        .baseUrl("https://gateway.internal/v1");
+    assertThat(KnowledgeIngestorConnectorImpl.resolveBaseUrl(request))
+        .isEqualTo("https://gateway.internal/v1");
+  }
+
+  @Test
+  public void parseCustomHeadersShouldReturnEmptyMapForNullOrBlank() {
+    assertThat(KnowledgeIngestorConnectorImpl.parseCustomHeaders(null)).isEmpty();
+    assertThat(KnowledgeIngestorConnectorImpl.parseCustomHeaders("")).isEmpty();
+    assertThat(KnowledgeIngestorConnectorImpl.parseCustomHeaders("   ")).isEmpty();
+  }
+
+  @Test
+  public void parseCustomHeadersShouldParseJsonObject() {
+    Map<String, String> headers = KnowledgeIngestorConnectorImpl.parseCustomHeaders(
+        "{\"X-Tenant\":\"acme\",\"X-Trace\":\"42\"}");
+    assertThat(headers).containsEntry("X-Tenant", "acme").containsEntry("X-Trace", "42");
+  }
+
+  @Test
+  public void parseCustomHeadersShouldThrowOnMalformedJson() {
+    assertThatThrownBy(() -> KnowledgeIngestorConnectorImpl.parseCustomHeaders("not a json"))
+        .isInstanceOf(AgentConnectorException.class);
   }
 
   @Test

@@ -33,6 +33,8 @@ public interface KnowledgeIngestorRequest extends ConnectorRequest<KnowledgeInge
   KnowledgeIngestorRequest embeddingDimension(int embeddingDimension);
   KnowledgeIngestorRequest apiKey(String apiKey);
   KnowledgeIngestorRequest embeddingModelName(String embeddingModelName);
+  KnowledgeIngestorRequest baseUrl(String baseUrl);
+  KnowledgeIngestorRequest customHeaders(String customHeaders);
   KnowledgeIngestorRequest pgHost(String pgHost);
   KnowledgeIngestorRequest pgPort(String pgPort);
   KnowledgeIngestorRequest pgDatabase(String pgDatabase);
@@ -50,6 +52,8 @@ public interface KnowledgeIngestorRequest extends ConnectorRequest<KnowledgeInge
   int getEmbeddingDimension();
   String getApiKey();
   String getEmbeddingModelName();
+  String getBaseUrl();
+  String getCustomHeaders();
   String getPgHost();
   String getPgPort();
   String getPgDatabase();

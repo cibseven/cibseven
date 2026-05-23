@@ -83,6 +83,8 @@ public interface KnowledgeIngestorConnector extends Connector<KnowledgeIngestorR
   // embedding model params — same names as AgentConnector for consistency
   String PARAM_NAME_API_KEY              = AgentConnector.PARAM_NAME_API_KEY;
   String PARAM_NAME_EMBEDDING_MODEL_NAME = AgentConnector.PARAM_NAME_EMBEDDING_MODEL_NAME;
+  String PARAM_NAME_BASE_URL             = AgentConnector.PARAM_NAME_BASE_URL;
+  String PARAM_NAME_CUSTOM_HEADERS       = AgentConnector.PARAM_NAME_CUSTOM_HEADERS;
 
   // pgvector params — same names as AgentConnector for consistency
   String PARAM_NAME_PG_HOST     = AgentConnector.PARAM_NAME_PG_HOST;

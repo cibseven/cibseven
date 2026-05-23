@@ -627,6 +627,13 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    * Factory method — override in tests to inject a stubbed embedding model.
    * Uses {@code OpenAiEmbeddingModel} when {@code embeddingModelName} is set on the request,
    * otherwise falls back to the local {@code AllMiniLmL6V2EmbeddingModel}.
+   *
+   * <p>The OpenAI embedding endpoint is resolved the same way as the chat
+   * endpoint — via {@link #resolveBaseUrl(AgentRequest)} and
+   * {@link #parseCustomHeaders(String)} — so a request that points the chat
+   * model at a private/Azure/sovereign endpoint sends its embedding traffic
+   * to the same place. Without this, embeddings silently default to
+   * {@code https://api.openai.com/v1} regardless of {@code baseUrl}.
    */
   protected EmbeddingModel createEmbeddingModel(AgentRequest request) {
     String modelName = request.getEmbeddingModelName();
@@ -635,12 +642,30 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       if (apiKey == null || apiKey.isEmpty()) {
         apiKey = System.getenv("OPENAI_API_KEY");
       }
-      return OpenAiEmbeddingModel.builder()
-          .apiKey(apiKey)
-          .modelName(modelName)
-          .build();
+      String baseUrl = resolveBaseUrl(request);
+      Map<String, String> customHeaders = parseCustomHeaders(request.getCustomHeaders());
+      return buildOpenAiEmbeddingModel(apiKey, modelName, baseUrl, customHeaders);
     }
     return new AllMiniLmL6V2EmbeddingModel();
+  }
+
+  /**
+   * Builds the OpenAI embedding model with the resolved coordinates.
+   * Extracted from {@link #createEmbeddingModel(AgentRequest)} so tests can
+   * override it to capture the arguments the connector forwards to LangChain4j.
+   */
+  protected EmbeddingModel buildOpenAiEmbeddingModel(String apiKey, String modelName,
+      String baseUrl, Map<String, String> customHeaders) {
+    OpenAiEmbeddingModel.OpenAiEmbeddingModelBuilder builder = OpenAiEmbeddingModel.builder()
+        .apiKey(apiKey)
+        .modelName(modelName);
+    if (baseUrl != null && !baseUrl.isEmpty()) {
+      builder.baseUrl(baseUrl);
+    }
+    if (customHeaders != null && !customHeaders.isEmpty()) {
+      builder.customHeaders(customHeaders);
+    }
+    return builder.build();
   }
 
   /**

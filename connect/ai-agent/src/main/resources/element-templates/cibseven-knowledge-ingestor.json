@@ -122,6 +122,28 @@
           }
         },
         {
+          "label": "Base URL",
+          "type": "String",
+          "group": "embedding",
+          "description": "Override the OpenAI-compatible endpoint the embedding model talks to (Azure OpenAI, a private gateway, vLLM, LiteLLM, etc.). Leave empty to use the OPENAI_BASE_URL env var or the public OpenAI default.",
+          "placeholder": "https://api.openai.com/v1",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "baseUrl"
+          }
+        },
+        {
+          "label": "Custom headers",
+          "type": "String",
+          "group": "embedding",
+          "description": "Optional JSON object of extra HTTP headers added to every embedding request (e.g. gateway auth). Example: {\"X-Tenant\":\"acme\"}. Avoid placing the bearer here when a separate API key field is provided.",
+          "placeholder": "{\"X-Header\":\"value\"}",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "customHeaders"
+          }
+        },
+        {
           "label": "Embedding dimension",
           "type": "String",
           "group": "embedding",

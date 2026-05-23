@@ -85,6 +85,18 @@ public class KnowledgeIngestorRequestImpl
   }
 
   @Override
+  public KnowledgeIngestorRequest baseUrl(String baseUrl) {
+    setRequestParameter(KnowledgeIngestorConnector.PARAM_NAME_BASE_URL, baseUrl);
+    return this;
+  }
+
+  @Override
+  public KnowledgeIngestorRequest customHeaders(String customHeaders) {
+    setRequestParameter(KnowledgeIngestorConnector.PARAM_NAME_CUSTOM_HEADERS, customHeaders);
+    return this;
+  }
+
+  @Override
   public KnowledgeIngestorRequest pgHost(String pgHost) {
     setRequestParameter(KnowledgeIngestorConnector.PARAM_NAME_PG_HOST, pgHost);
     return this;
@@ -169,6 +181,16 @@ public class KnowledgeIngestorRequestImpl
   @Override
   public String getEmbeddingModelName() {
     return getRequestParameter(KnowledgeIngestorConnector.PARAM_NAME_EMBEDDING_MODEL_NAME);
+  }
+
+  @Override
+  public String getBaseUrl() {
+    return getRequestParameter(KnowledgeIngestorConnector.PARAM_NAME_BASE_URL);
+  }
+
+  @Override
+  public String getCustomHeaders() {
+    return getRequestParameter(KnowledgeIngestorConnector.PARAM_NAME_CUSTOM_HEADERS);
   }
 
   @Override

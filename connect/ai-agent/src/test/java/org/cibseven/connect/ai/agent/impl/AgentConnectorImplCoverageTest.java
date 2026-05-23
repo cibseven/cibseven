@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.cibseven.connect.ai.agent.AgentRequest;
@@ -280,6 +281,61 @@ public class AgentConnectorImplCoverageTest {
     EmbeddingModel model = connector.createEmbeddingModel(request);
     assertThat(model).isNotNull();
     assertThat(model.getClass().getName()).contains("OpenAiEmbeddingModel");
+  }
+
+  @Test
+  public void createEmbeddingModelShouldForwardBaseUrlAndCustomHeadersToOpenAi() {
+    AtomicReference<String> capturedApiKey = new AtomicReference<>();
+    AtomicReference<String> capturedModelName = new AtomicReference<>();
+    AtomicReference<String> capturedBaseUrl = new AtomicReference<>();
+    AtomicReference<Map<String, String>> capturedHeaders = new AtomicReference<>();
+
+    AgentConnectorImpl spy = new AgentConnectorImpl() {
+      @Override
+      protected EmbeddingModel buildOpenAiEmbeddingModel(String apiKey, String modelName,
+          String baseUrl, Map<String, String> customHeaders) {
+        capturedApiKey.set(apiKey);
+        capturedModelName.set(modelName);
+        capturedBaseUrl.set(baseUrl);
+        capturedHeaders.set(customHeaders);
+        return new ZeroEmbeddingModel();
+      }
+    };
+
+    AgentRequest request = spy.createRequest()
+        .embeddingModelName("text-embedding-3-small")
+        .apiKey("test-key")
+        .baseUrl("https://azure-openai.contoso.eu/v1")
+        .customHeaders("{\"X-Tenant\":\"acme\"}");
+
+    EmbeddingModel model = spy.createEmbeddingModel(request);
+    assertThat(model).isNotNull();
+    assertThat(capturedApiKey.get()).isEqualTo("test-key");
+    assertThat(capturedModelName.get()).isEqualTo("text-embedding-3-small");
+    assertThat(capturedBaseUrl.get()).isEqualTo("https://azure-openai.contoso.eu/v1");
+    assertThat(capturedHeaders.get()).containsEntry("X-Tenant", "acme");
+  }
+
+  @Test
+  public void createEmbeddingModelShouldFallBackToDefaultBaseUrlWhenRequestBaseUrlUnset() {
+    AtomicReference<String> capturedBaseUrl = new AtomicReference<>();
+
+    AgentConnectorImpl spy = new AgentConnectorImpl() {
+      @Override
+      protected EmbeddingModel buildOpenAiEmbeddingModel(String apiKey, String modelName,
+          String baseUrl, Map<String, String> customHeaders) {
+        capturedBaseUrl.set(baseUrl);
+        return new ZeroEmbeddingModel();
+      }
+    };
+
+    AgentRequest request = spy.createRequest()
+        .embeddingModelName("text-embedding-3-small")
+        .apiKey("test-key"); // baseUrl unset → resolveBaseUrl returns env or DEFAULT_BASE_URL
+
+    spy.createEmbeddingModel(request);
+    // Either the env var resolves first, or the constant default applies — never null.
+    assertThat(capturedBaseUrl.get()).isNotNull();
   }
 
   // ── createChatModel: custom headers + reasoningEffort on the standard model ─
