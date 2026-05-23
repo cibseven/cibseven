@@ -344,6 +344,16 @@
           }
         },
         {
+          "label": "Output variable for AI-output marker (EU AI Act Art. 50(2))",
+          "description": "Process variable that will receive a machine-readable marker for AI-generated output (${outputAiMeta}): a Map with aiGenerated=true, runId, provider, model, responseId, generatedAt. Map it as a sibling of the agent response (e.g. agentOutput_aiMeta) so downstream tasks and history consumers can distinguish AI-generated values from human-authored ones. Leave the field unset to skip this output.",
+          "type": "String",
+          "value": "agentOutput_aiMeta",
+          "binding": {
+            "type": "camunda:outputParameter",
+            "source": "${outputAiMeta}"
+          }
+        },
+        {
           "label": "Output variable for memory ID",
           "description": "Process variable that will receive the chat memory id (${memoryId}). Leave the field unset to skip this output.",
           "type": "String",
