@@ -1004,6 +1004,92 @@ public class AgentChatListenerTest {
     assertThat(listener.lastResponseIdentity()).isEmpty();
   }
 
+  // ── RAG retrieval audit (Art. 10 / 12 / 26) ──────────────────────────────
+
+  @Test
+  public void shouldEmitRetrievalEventWithEnvelopeAndPayload() {
+    AgentChatListener listener = new AgentChatListener();
+
+    Map<String, Object> payload = new HashMap<>();
+    payload.put("query", "what is BPMN");
+    payload.put("resultCount", 2);
+
+    listener.recordRetrievalEvent(payload);
+
+    assertThat(listener.events()).hasSize(1);
+    Map<String, Object> event = listener.events().get(0);
+    assertThat(event)
+        .containsEntry("type", "retrieval")
+        .containsEntry("schemaVersion", AgentChatListener.SCHEMA_VERSION)
+        .containsEntry("eventSeq", 0)
+        .containsEntry("query", "what is BPMN")
+        .containsEntry("resultCount", 2);
+    assertThat(event).containsKey("runId").containsKey("timestamp");
+  }
+
+  @Test
+  public void retrievalEventShouldOmitChatModelIdentityFields() {
+    AgentChatListener listener = new AgentChatListener("gpt-5.4-nano", "https://example/v1");
+
+    Map<String, Object> payload = new HashMap<>();
+    payload.put("query", "hi");
+    listener.recordRetrievalEvent(payload);
+
+    Map<String, Object> event = listener.events().get(0);
+    // Retrieval has its own embeddingModel / store sub-blocks — the chat-model
+    // identity fields must not leak onto it.
+    assertThat(event).doesNotContainKey("provider")
+        .doesNotContainKey("model")
+        .doesNotContainKey("endpoint");
+  }
+
+  @Test
+  public void shouldIgnoreNullRetrievalPayload() {
+    AgentChatListener listener = new AgentChatListener();
+    listener.recordRetrievalEvent(null);
+    assertThat(listener.events()).isEmpty();
+  }
+
+  @Test
+  public void shouldDrainPendingToolSideEffectsOntoRetrievalEvent() {
+    AgentChatListener listener = new AgentChatListener();
+
+    Map<String, Object> sideEffect = new HashMap<>();
+    sideEffect.put("tool", "startProcess");
+    sideEffect.put("processInstanceId", "pi-7");
+    listener.recordToolSideEffect(sideEffect);
+
+    Map<String, Object> payload = new HashMap<>();
+    payload.put("query", "anything");
+    listener.recordRetrievalEvent(payload);
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> sideEffects =
+        (List<Map<String, Object>>) listener.events().get(0).get("toolSideEffects");
+    assertThat(sideEffects).hasSize(1);
+    assertThat(sideEffects.get(0)).containsEntry("processInstanceId", "pi-7");
+  }
+
+  @Test
+  public void retrievalEventSeqShouldShareCounterWithChatEvents() {
+    AgentChatListener listener = new AgentChatListener();
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("first"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    Map<String, Object> payload = new HashMap<>();
+    payload.put("query", "rag query");
+    listener.recordRetrievalEvent(payload);
+
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    assertThat(listener.events().get(0)).containsEntry("eventSeq", 0);
+    assertThat(listener.events().get(1)).containsEntry("eventSeq", 1)
+        .containsEntry("type", "retrieval");
+    assertThat(listener.events().get(2)).containsEntry("eventSeq", 2);
+  }
+
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   private void pushExecution(ExecutionEntity execution) {

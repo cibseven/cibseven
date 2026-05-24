@@ -385,6 +385,33 @@ class AgentChatListener implements ChatModelListener {
     pendingToolSideEffects.add(new LinkedHashMap<>(sideEffect));
   }
 
+  /**
+   * Emits one {@code retrieval} audit event into the per-{@code runId} stream
+   * with the same envelope (schemaVersion, runId, eventSeq, timestamp, BPMN
+   * correlation, caller identity) as request/response/error events, plus the
+   * caller-supplied payload describing the RAG retrieval — typically
+   * {@code query}, {@code embeddingModel}, {@code store}, {@code parameters},
+   * {@code results}, {@code resultCount}, {@code durationMs}, and on failure
+   * {@code errorClass} / {@code message} / {@code stack}.
+   *
+   * <p>The model-identity block ({@code provider} / {@code model} /
+   * {@code endpoint}) of the chat envelope is intentionally omitted: retrieval
+   * has its own provider/model under the {@code embeddingModel} field, and its
+   * own endpoint under the {@code store} block. Adding the chat-model endpoint
+   * here would be misleading.
+   *
+   * <p>Provides the Art. 10 / 12 / 26 evidence trail for which retrieved
+   * documents grounded the model's answer.
+   */
+  void recordRetrievalEvent(Map<String, Object> payload) {
+    if (payload == null) {
+      return;
+    }
+    Map<String, Object> event = newRetrievalEvent();
+    event.putAll(payload);
+    appendEvent(event);
+  }
+
   private static ExecutionEntity currentExecution() {
     BpmnExecutionContext ctx = Context.getBpmnExecutionContext();
     if (ctx == null) {
@@ -579,17 +606,13 @@ class AgentChatListener implements ChatModelListener {
   // ── event construction helpers ───────────────────────────────────────────
 
   /**
-   * Builds the common envelope for every event: run identity, model identity,
-   * BPMN correlation, caller, timestamp. Model identity falls back to the
-   * configured values when the response context does not override them.
+   * Builds the common envelope for every chat event: run identity, model
+   * identity, BPMN correlation, caller, timestamp. Model identity falls back
+   * to the configured values when the response context does not override them.
    */
   private Map<String, Object> newEvent(String type, ModelProvider provider, ChatRequest req) {
     Map<String, Object> event = new LinkedHashMap<>();
-    event.put("schemaVersion", SCHEMA_VERSION);
-    event.put("type", type);
-    event.put("runId", runId);
-    event.put("eventSeq", eventSeq.getAndIncrement());
-    event.put("timestamp", Instant.now().toString());
+    putEnvelopeStart(event, type);
 
     if (provider != null) {
       event.put("provider", provider.name());
@@ -605,6 +628,31 @@ class AgentChatListener implements ChatModelListener {
       event.put("endpoint", endpoint);
     }
 
+    putCorrelationAndCaller(event);
+    return event;
+  }
+
+  /**
+   * Envelope for {@code retrieval} events. Same shape as {@link #newEvent}
+   * minus the chat-model identity block (retrievals carry their own
+   * {@code embeddingModel} + {@code store} sub-blocks).
+   */
+  private Map<String, Object> newRetrievalEvent() {
+    Map<String, Object> event = new LinkedHashMap<>();
+    putEnvelopeStart(event, "retrieval");
+    putCorrelationAndCaller(event);
+    return event;
+  }
+
+  private void putEnvelopeStart(Map<String, Object> event, String type) {
+    event.put("schemaVersion", SCHEMA_VERSION);
+    event.put("type", type);
+    event.put("runId", runId);
+    event.put("eventSeq", eventSeq.getAndIncrement());
+    event.put("timestamp", Instant.now().toString());
+  }
+
+  private void putCorrelationAndCaller(Map<String, Object> event) {
     if (processInstanceId != null) event.put("processInstanceId", processInstanceId);
     if (processDefinitionId != null) event.put("processDefinitionId", processDefinitionId);
     if (processDefinitionKey != null) event.put("processDefinitionKey", processDefinitionKey);
@@ -624,7 +672,6 @@ class AgentChatListener implements ChatModelListener {
       event.put("userIdSource", "missing");
     }
     if (groupIds != null && !groupIds.isEmpty()) event.put("groupIds", groupIds);
-    return event;
   }
 
   private static String requestModel(ChatRequest req) {
@@ -721,9 +768,11 @@ class AgentChatListener implements ChatModelListener {
    * Returns the first {@value #ERROR_STACK_DEPTH} frames of {@code t}'s stack
    * trace as a single newline-joined string. Sufficient to classify the
    * failure type for Art. 79 (serious-incident detection) without bloating the
-   * audit payload with full traces.
+   * audit payload with full traces. Package-private so the retrieval audit
+   * path in {@code AgentConnectorImpl} can produce identically-shaped
+   * {@code stack} fields on retrieval errors.
    */
-  private static String shortStack(Throwable t) {
+  static String shortStack(Throwable t) {
     StackTraceElement[] frames = t.getStackTrace();
     if (frames.length == 0) {
       return "";
@@ -743,7 +792,18 @@ class AgentChatListener implements ChatModelListener {
   // ── message content extraction ───────────────────────────────────────────
 
   private static String extractContent(ChatMessage msg) {
-    String plain = extractPlainContent(msg);
+    return maybeRedact(extractPlainContent(msg));
+  }
+
+  /**
+   * Applies the deployment-wide content-redaction policy to a single string:
+   * returns the SHA-256 + length marker when {@link #isRedactContentEnabled()}
+   * is on, otherwise returns the input unchanged. Exposed so non-listener
+   * audit sites (e.g. the RAG retriever wrapper in {@code AgentConnectorImpl})
+   * can apply the same GDPR-conservative gate to non-{@code messages[].content}
+   * payloads such as retrieval queries and chunk text.
+   */
+  static String maybeRedact(String plain) {
     if (isRedactContentEnabled()) {
       return redact(plain);
     }

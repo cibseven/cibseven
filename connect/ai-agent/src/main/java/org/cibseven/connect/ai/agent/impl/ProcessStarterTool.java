@@ -108,7 +108,7 @@ public class ProcessStarterTool {
         int retries = Math.max(0, maxRetries != null ? maxRetries : DEFAULT_MAX_RETRIES);
         long interval = Math.max(0L, pollIntervalMillis != null ? pollIntervalMillis : DEFAULT_POLL_INTERVAL_MILLIS);
 
-        LOG.info("runProcessByKey: key='{}', retries={}, interval={}ms", key, retries, interval);
+        LOG.debug("runProcessByKey: key='{}', retries={}, interval={}ms", key, retries, interval);
 
         return runAsCaller(engine -> {
             RuntimeService runtimeService = engine.getRuntimeService();
@@ -118,7 +118,7 @@ public class ProcessStarterTool {
             ProcessInstance instance = runtimeService.startProcessInstanceByKey(key, startVars);
             String pid = instance.getId();
             String defId = instance.getProcessDefinitionId();
-            LOG.info("[{}] Started process, definitionId='{}'", pid, defId);
+            LOG.debug("[{}] Started process, definitionId='{}'", pid, defId);
 
             boolean ended = instance.isEnded();
             String state = ended ? "COMPLETED" : "ACTIVE";
@@ -172,7 +172,7 @@ public class ProcessStarterTool {
                 }
             }
 
-            LOG.info("[{}] Returning: state={}, ended={}, attempts={}, outputKeys={}",
+            LOG.debug("[{}] Returning: state={}, ended={}, attempts={}, outputKeys={}",
                     pid, state, ended, attempts, outputs.keySet());
 
             Map<String, Object> result = new HashMap<>();

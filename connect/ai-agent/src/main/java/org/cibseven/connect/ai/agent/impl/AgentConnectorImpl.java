@@ -42,8 +42,10 @@ import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.identity.Authentication;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 
+import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.rag.content.Content;
+import dev.langchain4j.rag.content.ContentMetadata;
 import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
@@ -601,6 +603,22 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    * Factory method — builds and returns a {@link ContentRetriever} backed by pgvector
    * when {@code pgHost} is present in the request, or {@code null} to skip RAG entirely.
    * Override in tests to inject a stubbed retriever.
+   *
+   * <p>The returned {@link ContentRetriever} wraps the underlying
+   * {@link EmbeddingStoreContentRetriever} to (a) keep the existing SLF4J
+   * logging and (b) emit a {@code type: "retrieval"} event into the
+   * {@link AgentChatListener} active on the calling thread (via
+   * {@link ProcessStarterToolContext#getActiveListener()}). The retrieval
+   * event carries the query, embedding-model identity, the pgvector store
+   * coordinates (host/port/database/table/dimension — never the password),
+   * the retrieval parameters ({@code maxResults}, {@code minScore}), and
+   * per-chunk {@code {score, content, length, metadata}} entries. Query and
+   * chunk text are run through {@link AgentChatListener#maybeRedact(String)}
+   * so they honour the same {@code redactContent} opt-in that chat events
+   * already respect. On failure the event carries {@code errorClass},
+   * {@code message}, and a short stack identical in shape to {@code onError}
+   * — see EU AI Act Art. 10 (data governance) / Art. 12 (record-keeping) /
+   * Art. 26 (deployer monitoring).
    */
   protected ContentRetriever createContentRetriever(AgentRequest request) {
     String pgHost = request.getPgHost();
@@ -608,12 +626,32 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       LOG.debug("RAG not activated: pgHost not set");
       return null;
     }
-    String table = request.getPgTable();
-    int dimension = request.getEmbeddingDimension();
-    int maxResults = request.getMaxRagResults();
-    double minScore = request.getMinRagScore();
-    LOG.info("RAG activated: host={}:{}, db={}, table={}, dimension={}, maxResults={}, minScore={}",
-        pgHost, request.getPgPort(), request.getPgDatabase(), table, dimension, maxResults, minScore);
+    final String pgPort = request.getPgPort();
+    final String pgDatabase = request.getPgDatabase();
+    final String table = request.getPgTable();
+    final int dimension = request.getEmbeddingDimension();
+    final int maxResults = request.getMaxRagResults();
+    final double minScore = request.getMinRagScore();
+    LOG.debug("RAG activated: host={}:{}, db={}, table={}, dimension={}, maxResults={}, minScore={}",
+        pgHost, pgPort, pgDatabase, table, dimension, maxResults, minScore);
+    final String embeddingModelName = request.getEmbeddingModelName();
+    final boolean localEmbedding = (embeddingModelName == null || embeddingModelName.isEmpty());
+    final Map<String, Object> embeddingDesc = new LinkedHashMap<>();
+    embeddingDesc.put("provider", localEmbedding ? "local" : "openai");
+    embeddingDesc.put("model", localEmbedding ? "AllMiniLmL6V2EmbeddingModel" : embeddingModelName);
+
+    final Map<String, Object> storeDesc = new LinkedHashMap<>();
+    storeDesc.put("kind", "pgvector");
+    storeDesc.put("host", pgHost);
+    storeDesc.put("port", pgPort);
+    storeDesc.put("database", pgDatabase);
+    storeDesc.put("table", table);
+    storeDesc.put("dimension", dimension);
+
+    final Map<String, Object> parameters = new LinkedHashMap<>();
+    parameters.put("maxResults", maxResults);
+    parameters.put("minScore", minScore);
+
     EmbeddingModel embeddingModel = createEmbeddingModel(request);
     EmbeddingStore<TextSegment> embeddingStore = createRagEmbeddingStore(request);
     ContentRetriever delegate = EmbeddingStoreContentRetriever.builder()
@@ -623,21 +661,94 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         .minScore(minScore)
         .build();
     return query -> {
-      List<Content> results = delegate.retrieve(query);
-      if (results.isEmpty()) {
-        LOG.warn("RAG retrieved 0 results for query: \"{}\" (minScore={}, table={}). "
-            + "Consider lowering minRagScore or check that content was ingested.",
-            query.text(), minScore, table);
-      } else {
-        LOG.info("RAG retrieved {} result(s) for query: \"{}\"", results.size(), query.text());
-        for (int i = 0; i < results.size(); i++) {
-          String preview = results.get(i).textSegment().text().replace('\n', ' ');
-          if (preview.length() > 120) preview = preview.substring(0, 120) + "…";
-          LOG.debug("  RAG context[{}]: {}", i, preview);
+      long startNanos = System.nanoTime();
+      Map<String, Object> retrievalEvent = new LinkedHashMap<>();
+      retrievalEvent.put("query", AgentChatListener.maybeRedact(query.text()));
+      retrievalEvent.put("embeddingModel", embeddingDesc);
+      retrievalEvent.put("store", storeDesc);
+      retrievalEvent.put("parameters", parameters);
+      try {
+        List<Content> results = delegate.retrieve(query);
+        long durationMs = (System.nanoTime() - startNanos) / 1_000_000L;
+        retrievalEvent.put("resultCount", results.size());
+        retrievalEvent.put("results", describeRetrievalResults(results));
+        retrievalEvent.put("durationMs", durationMs);
+        if (results.isEmpty()) {
+          LOG.warn("RAG retrieved 0 results for query: \"{}\" (minScore={}, table={}). "
+              + "Consider lowering minRagScore or check that content was ingested.",
+              query.text(), minScore, table);
+        } else {
+          LOG.debug("RAG retrieved {} result(s) for query: \"{}\"", results.size(), query.text());
+          for (int i = 0; i < results.size(); i++) {
+            String preview = results.get(i).textSegment().text().replace('\n', ' ');
+            if (preview.length() > 120) preview = preview.substring(0, 120) + "…";
+            LOG.debug("  RAG context[{}]: {}", i, preview);
+          }
+        }
+        emitRetrievalEvent(retrievalEvent);
+        return results;
+      } catch (RuntimeException e) {
+        long durationMs = (System.nanoTime() - startNanos) / 1_000_000L;
+        retrievalEvent.put("durationMs", durationMs);
+        retrievalEvent.put("errorClass", e.getClass().getName());
+        retrievalEvent.put("message", e.getMessage());
+        retrievalEvent.put("stack", AgentChatListener.shortStack(e));
+        LOG.error("RAG retrieval failed for query: \"{}\" (table={}): {}",
+            query.text(), table, e.toString());
+        emitRetrievalEvent(retrievalEvent);
+        throw e;
+      }
+    };
+  }
+
+  /**
+   * Builds the per-chunk audit payload for a list of retrieved contents.
+   * Each entry carries the similarity score (when present), the chunk text
+   * (redacted under the existing {@code redactContent} opt-in), its length
+   * for after-the-fact size analysis, and any non-empty {@code TextSegment}
+   * metadata (typically source-doc identifiers, page numbers, etc. — not PII,
+   * so emitted unredacted).
+   */
+  private static List<Map<String, Object>> describeRetrievalResults(List<Content> results) {
+    List<Map<String, Object>> described = new ArrayList<>(results.size());
+    for (Content content : results) {
+      Map<String, Object> entry = new LinkedHashMap<>();
+      Map<ContentMetadata, Object> contentMeta = content.metadata();
+      if (contentMeta != null) {
+        Object score = contentMeta.get(ContentMetadata.SCORE);
+        if (score != null) {
+          entry.put("score", score);
+        }
+        Object embeddingId = contentMeta.get(ContentMetadata.EMBEDDING_ID);
+        if (embeddingId != null) {
+          entry.put("embeddingId", embeddingId);
         }
       }
-      return results;
-    };
+      TextSegment segment = content.textSegment();
+      if (segment != null) {
+        String text = segment.text();
+        if (text != null) {
+          entry.put("content", AgentChatListener.maybeRedact(text));
+          entry.put("length", text.length());
+        }
+        Metadata metadata = segment.metadata();
+        if (metadata != null) {
+          Map<String, Object> metaMap = metadata.toMap();
+          if (metaMap != null && !metaMap.isEmpty()) {
+            entry.put("metadata", metaMap);
+          }
+        }
+      }
+      described.add(entry);
+    }
+    return described;
+  }
+
+  private static void emitRetrievalEvent(Map<String, Object> payload) {
+    AgentChatListener listener = ProcessStarterToolContext.getActiveListener();
+    if (listener != null) {
+      listener.recordRetrievalEvent(payload);
+    }
   }
 
   /**

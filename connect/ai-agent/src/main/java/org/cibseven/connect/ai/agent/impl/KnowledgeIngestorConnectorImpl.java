@@ -69,7 +69,7 @@ public class KnowledgeIngestorConnectorImpl
   @Override
   public KnowledgeIngestorResponse execute(KnowledgeIngestorRequest request) {
     Document document = buildDocument(request);
-    LOG.info("Ingesting document: contentLength={} chars, source={}, chunkSize={}, chunkOverlap={}, dimension={}",
+    LOG.debug("Ingesting document: contentLength={} chars, source={}, chunkSize={}, chunkOverlap={}, dimension={}",
         document.text().length(), request.getSource(),
         request.getChunkSize(), request.getChunkOverlap(), request.getEmbeddingDimension());
 
@@ -78,7 +78,7 @@ public class KnowledgeIngestorConnectorImpl
         request.getChunkOverlap());
 
     List<TextSegment> segments = splitter.split(document);
-    LOG.info("Document split into {} chunk(s). Embedding and storing into table={} on host={}:{}",
+    LOG.debug("Document split into {} chunk(s). Embedding and storing into table={} on host={}:{}",
         segments.size(), request.getPgTable(), request.getPgHost(), request.getPgPort());
 
     EmbeddingModel embeddingModel = createEmbeddingModel(request);
@@ -87,7 +87,7 @@ public class KnowledgeIngestorConnectorImpl
     List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
     store.addAll(embeddings, segments);
 
-    LOG.info("Successfully ingested {} chunk(s) into pgvector table={}",
+    LOG.debug("Successfully ingested {} chunk(s) into pgvector table={}",
         segments.size(), request.getPgTable());
     return new KnowledgeIngestorResponseImpl(segments.size());
   }

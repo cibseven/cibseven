@@ -29,6 +29,7 @@ import java.util.Map;
 
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.cibseven.connect.ai.agent.AgentRequest;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -394,6 +395,186 @@ public class AgentConnectorImplCoverageTest {
         TextSegment.from(text));
   }
 
+  // ── createContentRetriever — audit-event emission (EU AI Act Art. 10/12/26) ─
+
+  /**
+   * Tears down listener / redaction state that the retrieval-audit tests
+   * install, so they don't leak into the rest of the suite.
+   */
+  @After
+  public void clearRetrievalAuditState() {
+    ProcessStarterToolContext.clear();
+    System.clearProperty(AgentChatListener.REDACT_CONTENT_PROPERTY);
+  }
+
+  @Test
+  public void retrieverLambdaShouldEmitRetrievalEventOnSuccess() {
+    RagStubConnector ragConnector = new RagStubConnector();
+    ragConnector.store.matches = Arrays.asList(
+        match(0.91, "BPMN models business processes."),
+        match(0.74, "DMN models business decisions."));
+
+    AgentRequest request = ragConnector.createRequest()
+        .pgHost("pg-host").pgPort("5433").pgDatabase("ragdb").pgUser("u").pgPassword("p")
+        .pgTable("docs").embeddingDimension(8).maxRagResults(5).minRagScore(0.5);
+
+    AgentChatListener listener = new AgentChatListener("gpt-5.4-nano", "https://chat/v1");
+    ProcessStarterToolContext.setActiveListener(listener);
+
+    ContentRetriever retriever = ragConnector.createContentRetriever(request);
+    retriever.retrieve(Query.from("how do business processes work"));
+
+    assertThat(listener.events()).hasSize(1);
+    Map<String, Object> event = listener.events().get(0);
+    assertThat(event)
+        .containsEntry("type", "retrieval")
+        .containsEntry("query", "how do business processes work")
+        .containsEntry("resultCount", 2);
+    assertThat(event).containsKey("durationMs");
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> embeddingModel = (Map<String, Object>) event.get("embeddingModel");
+    assertThat(embeddingModel)
+        .containsEntry("provider", "local")
+        .containsEntry("model", "AllMiniLmL6V2EmbeddingModel");
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> store = (Map<String, Object>) event.get("store");
+    assertThat(store)
+        .containsEntry("kind", "pgvector")
+        .containsEntry("host", "pg-host")
+        .containsEntry("port", "5433")
+        .containsEntry("database", "ragdb")
+        .containsEntry("table", "docs")
+        .containsEntry("dimension", 8);
+    // Password must NEVER appear in the audit event.
+    assertThat(store).doesNotContainKey("password").doesNotContainKey("user");
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> parameters = (Map<String, Object>) event.get("parameters");
+    assertThat(parameters)
+        .containsEntry("maxResults", 5)
+        .containsEntry("minScore", 0.5);
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> results = (List<Map<String, Object>>) event.get("results");
+    assertThat(results).hasSize(2);
+    assertThat(results.get(0))
+        .containsEntry("score", 0.91)
+        .containsEntry("content", "BPMN models business processes.")
+        .containsEntry("length", "BPMN models business processes.".length());
+  }
+
+  @Test
+  public void retrieverLambdaShouldUseOpenAiEmbeddingDescriptorWhenModelNameSet() {
+    RagStubConnector ragConnector = new RagStubConnector();
+    ragConnector.store.matches = List.of();
+
+    AgentRequest request = ragConnector.createRequest()
+        .pgHost("h").pgPort("5432").pgDatabase("d").pgUser("u").pgPassword("p")
+        .pgTable("t").embeddingDimension(8).maxRagResults(3).minRagScore(0.0)
+        .embeddingModelName("text-embedding-3-small")
+        .apiKey("test-key");
+
+    AgentChatListener listener = new AgentChatListener();
+    ProcessStarterToolContext.setActiveListener(listener);
+
+    ContentRetriever retriever = ragConnector.createContentRetriever(request);
+    retriever.retrieve(Query.from("anything"));
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> embeddingModel =
+        (Map<String, Object>) listener.events().get(0).get("embeddingModel");
+    assertThat(embeddingModel)
+        .containsEntry("provider", "openai")
+        .containsEntry("model", "text-embedding-3-small");
+  }
+
+  @Test
+  public void retrieverLambdaShouldRedactQueryAndChunksWhenRedactionEnabled()
+      throws com.fasterxml.jackson.core.JsonProcessingException {
+    System.setProperty(AgentChatListener.REDACT_CONTENT_PROPERTY, "true");
+
+    RagStubConnector ragConnector = new RagStubConnector();
+    String sensitive = "patient John Doe presented with chest pain";
+    ragConnector.store.matches = List.of(match(0.8, sensitive));
+
+    AgentRequest request = ragConnector.createRequest()
+        .pgHost("h").pgPort("5432").pgDatabase("d").pgUser("u").pgPassword("p")
+        .pgTable("t").embeddingDimension(8).maxRagResults(3).minRagScore(0.0);
+
+    AgentChatListener listener = new AgentChatListener();
+    ProcessStarterToolContext.setActiveListener(listener);
+
+    ContentRetriever retriever = ragConnector.createContentRetriever(request);
+    retriever.retrieve(Query.from("PII-bearing question about a patient"));
+
+    Map<String, Object> event = listener.events().get(0);
+    String redactedQuery = (String) event.get("query");
+    assertThatRedacted(redactedQuery, "PII-bearing question about a patient".length());
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> results = (List<Map<String, Object>>) event.get("results");
+    String redactedChunk = (String) results.get(0).get("content");
+    assertThatRedacted(redactedChunk, sensitive.length());
+    // length still reflects the original plaintext length, not the marker.
+    assertThat(results.get(0)).containsEntry("length", sensitive.length());
+  }
+
+  @Test
+  public void retrieverLambdaShouldEmitErrorEventWhenDelegateThrows() {
+    RagStubConnector ragConnector = new RagStubConnector();
+    ragConnector.store.failure = new IllegalStateException("pgvector connection refused");
+
+    AgentRequest request = ragConnector.createRequest()
+        .pgHost("h").pgPort("5432").pgDatabase("d").pgUser("u").pgPassword("p")
+        .pgTable("t").embeddingDimension(8).maxRagResults(3).minRagScore(0.0);
+
+    AgentChatListener listener = new AgentChatListener();
+    ProcessStarterToolContext.setActiveListener(listener);
+
+    ContentRetriever retriever = ragConnector.createContentRetriever(request);
+    assertThatThrownBy(() -> retriever.retrieve(Query.from("anything")))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("pgvector connection refused");
+
+    assertThat(listener.events()).hasSize(1);
+    Map<String, Object> event = listener.events().get(0);
+    assertThat(event)
+        .containsEntry("type", "retrieval")
+        .containsEntry("errorClass", "java.lang.IllegalStateException")
+        .containsEntry("message", "pgvector connection refused");
+    assertThat(event).containsKey("stack").containsKey("durationMs");
+    assertThat(event).doesNotContainKey("results").doesNotContainKey("resultCount");
+  }
+
+  @Test
+  public void retrieverLambdaShouldStillFunctionWithoutActiveListener() {
+    RagStubConnector ragConnector = new RagStubConnector();
+    ragConnector.store.matches = List.of(match(0.9, "any text"));
+
+    AgentRequest request = ragConnector.createRequest()
+        .pgHost("h").pgPort("5432").pgDatabase("d").pgUser("u").pgPassword("p")
+        .pgTable("t").embeddingDimension(8).maxRagResults(3).minRagScore(0.0);
+
+    // Deliberately no setActiveListener — engine-agnostic fallback.
+    ProcessStarterToolContext.clear();
+
+    ContentRetriever retriever = ragConnector.createContentRetriever(request);
+    List<Content> results = retriever.retrieve(Query.from("anything"));
+    assertThat(results).hasSize(1);
+  }
+
+  private static void assertThatRedacted(String marker, int expectedLength)
+      throws com.fasterxml.jackson.core.JsonProcessingException {
+    @SuppressWarnings("unchecked")
+    Map<String, Object> decoded = new com.fasterxml.jackson.databind.ObjectMapper()
+        .readValue(marker, Map.class);
+    assertThat(decoded).containsEntry("redacted", true)
+        .containsEntry("length", expectedLength);
+    assertThat((String) decoded.get("hash")).startsWith("sha256:");
+  }
+
   // ── buildSystemPrompt — all four combinations of description × instruction ─
 
   @Test
@@ -602,6 +783,8 @@ public class AgentConnectorImplCoverageTest {
    */
   static final class StubEmbeddingStore implements EmbeddingStore<TextSegment> {
     List<EmbeddingMatch<TextSegment>> matches = List.of();
+    /** Set non-null to make {@link #search} throw — exercises the retriever error path. */
+    RuntimeException failure;
 
     @Override public String add(Embedding embedding) { return "id"; }
     @Override public void add(String id, Embedding embedding) {}
@@ -613,6 +796,9 @@ public class AgentConnectorImplCoverageTest {
     }
     @Override
     public EmbeddingSearchResult<TextSegment> search(EmbeddingSearchRequest request) {
+      if (failure != null) {
+        throw failure;
+      }
       return new EmbeddingSearchResult<>(matches);
     }
   }
