@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/@camunda/element-templates-json-schema/resources/schema.json",
-  "name": "CIB seven AI Agent",
+  "name": "CIB seven - AI Agent",
   "id": "org.cibseven.connect.ai.agent",
   "version": 1,
   "description": "Element template for the cibseven-ai-agent connector.",
@@ -222,6 +222,22 @@
           "binding": {
             "type": "camunda:inputParameter",
             "name": "chatMemoryMaxMessages"
+          }
+        },
+        {
+          "label": "Persist chat-log audit variable",
+          "type": "Dropdown",
+          "group": "agent",
+          "value": "",
+          "description": "Override the chat-log variable for this activity. 'No' skips the DB write (pair with an external audit sink for EU AI Act Art. 12 / 26(6) compliance).",
+          "choices": [
+            { "name": "Use global default", "value": ""         },
+            { "name": "Yes",                "value": "${true}"  },
+            { "name": "No",                 "value": "${false}" }
+          ],
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "persistChatLog"
           }
         },
         {

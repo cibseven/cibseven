@@ -67,6 +67,9 @@ public class AgentChatListenerTest {
     // tool-side-effect linkage so they don't leak into subsequent tests.
     ProcessStarterToolContext.clear();
     System.clearProperty(AgentChatListener.REDACT_CONTENT_PROPERTY);
+    System.clearProperty(AgentChatListener.CHAT_LOG_VARIABLE_PROPERTY);
+    // Restore the env-var lookup seam in case a test replaced it.
+    AgentChatListener.ENV_READER = System::getenv;
   }
 
   @Test
@@ -388,6 +391,190 @@ public class AgentChatListenerTest {
     AgentChatListener listener = new AgentChatListener();
     // Malformed JSON is logged and silently swallowed — the listener proceeds with an empty log.
     assertThat(listener.events()).isEmpty();
+  }
+
+  // ── chatLogVariable.enabled=false opt-out (DB-bloat control, CIB7-1395) ──
+
+  @Test
+  public void shouldSkipChatLogVariableWriteWhenChatLogVariableDisabled() {
+    System.setProperty(AgentChatListener.CHAT_LOG_VARIABLE_PROPERTY, "false");
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("agentTask");
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener();
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    listener.onResponse(new ChatModelResponseContext(
+        ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
+        request, null, new HashMap<>()));
+
+    // Chat-log variable must NOT be written for any of the events.
+    verify(execution, org.mockito.Mockito.never())
+        .setVariable(org.mockito.Matchers.eq(varName), org.mockito.Matchers.any());
+    // The connector flag variable is suppressed too — it points at the chat-log
+    // timeline and would be misleading without it.
+    verify(execution, org.mockito.Mockito.never())
+        .setVariable(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
+    // The in-memory event timeline must still be built so an external sink
+    // (Kafka/JMS/SAP) can consume it.
+    assertThat(listener.events()).hasSize(2);
+  }
+
+  @Test
+  public void shouldSkipLoadingExistingChatLogWhenDisabled() {
+    System.setProperty(AgentChatListener.CHAT_LOG_VARIABLE_PROPERTY, "false");
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "resumable";
+    String priorJson = "[{\"type\":\"request\",\"timestamp\":\"2026-05-15T10:00:00Z\"}]";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("resumable");
+    when(execution.getVariable(varName)).thenReturn(priorJson);
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener();
+
+    // The opt-out short-circuits loadExistingEvents() — prior events are not
+    // restored from the engine variable.
+    assertThat(listener.events()).isEmpty();
+    verify(execution, org.mockito.Mockito.never()).getVariable(varName);
+  }
+
+  @Test
+  public void shouldPersistChatLogVariableWhenPropertyExplicitlyTrue() {
+    // Explicit "true" must behave like the default — verifies the parser.
+    System.setProperty(AgentChatListener.CHAT_LOG_VARIABLE_PROPERTY, "true");
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("agentTask");
+    when(execution.getVariable(varName)).thenReturn(null);
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener();
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    verify(execution).setVariable(org.mockito.Matchers.eq(varName), org.mockito.Matchers.any());
+    verify(execution).setVariable(
+        AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
+  }
+
+  @Test
+  public void isChatLogVariableEnabledShouldDefaultToTrueWhenPropertyUnset() {
+    System.clearProperty(AgentChatListener.CHAT_LOG_VARIABLE_PROPERTY);
+    assertThat(AgentChatListener.isChatLogVariableEnabled()).isTrue();
+  }
+
+  @Test
+  public void isChatLogVariableEnabledShouldFallBackToEnvVarWhenPropertyUnset() {
+    System.clearProperty(AgentChatListener.CHAT_LOG_VARIABLE_PROPERTY);
+    AgentChatListener.ENV_READER = name ->
+        AgentChatListener.CHAT_LOG_VARIABLE_ENV_VAR.equals(name) ? "false" : null;
+    assertThat(AgentChatListener.isChatLogVariableEnabled()).isFalse();
+  }
+
+  @Test
+  public void isChatLogVariableEnabledShouldPreferSystemPropertyOverEnvVar() {
+    // System property says true, env var says false → system property wins.
+    System.setProperty(AgentChatListener.CHAT_LOG_VARIABLE_PROPERTY, "true");
+    AgentChatListener.ENV_READER = name ->
+        AgentChatListener.CHAT_LOG_VARIABLE_ENV_VAR.equals(name) ? "false" : null;
+    assertThat(AgentChatListener.isChatLogVariableEnabled()).isTrue();
+  }
+
+  @Test
+  public void perActivityFalseShouldOverrideGlobalTrue() {
+    // No system property, no env var → global resolves to true. Per-activity
+    // false must still suppress the chat-log variable write.
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("agentTask");
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener(null, null, Boolean.FALSE);
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    verify(execution, org.mockito.Mockito.never())
+        .setVariable(org.mockito.Matchers.eq(varName), org.mockito.Matchers.any());
+    verify(execution, org.mockito.Mockito.never())
+        .setVariable(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
+    assertThat(listener.events()).hasSize(1);
+  }
+
+  @Test
+  public void perActivityTrueShouldOverrideGlobalFalse() {
+    // Global flag = false; per-activity true must restore the chat-log write.
+    System.setProperty(AgentChatListener.CHAT_LOG_VARIABLE_PROPERTY, "false");
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("agentTask");
+    when(execution.getVariable(varName)).thenReturn(null);
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener(null, null, Boolean.TRUE);
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    verify(execution).setVariable(org.mockito.Matchers.eq(varName), org.mockito.Matchers.any());
+  }
+
+  @Test
+  public void perActivityNullShouldFallThroughToGlobal() {
+    // Per-activity null + global=false → variable skipped, identical to the
+    // global-only opt-out test above.
+    System.setProperty(AgentChatListener.CHAT_LOG_VARIABLE_PROPERTY, "false");
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("agentTask");
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener(null, null, null);
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    verify(execution, org.mockito.Mockito.never())
+        .setVariable(org.mockito.Matchers.eq(varName), org.mockito.Matchers.any());
+  }
+
+  // ── redactContent env-var fallback (normalised in the same pass) ────────
+
+  @Test
+  public void isRedactContentEnabledShouldDefaultToFalse() {
+    System.clearProperty(AgentChatListener.REDACT_CONTENT_PROPERTY);
+    assertThat(AgentChatListener.isRedactContentEnabled()).isFalse();
+  }
+
+  @Test
+  public void isRedactContentEnabledShouldFallBackToEnvVar() {
+    System.clearProperty(AgentChatListener.REDACT_CONTENT_PROPERTY);
+    AgentChatListener.ENV_READER = name ->
+        AgentChatListener.REDACT_CONTENT_ENV_VAR.equals(name) ? "true" : null;
+    assertThat(AgentChatListener.isRedactContentEnabled()).isTrue();
+  }
+
+  @Test
+  public void isRedactContentEnabledShouldPreferSystemPropertyOverEnvVar() {
+    System.setProperty(AgentChatListener.REDACT_CONTENT_PROPERTY, "false");
+    AgentChatListener.ENV_READER = name ->
+        AgentChatListener.REDACT_CONTENT_ENV_VAR.equals(name) ? "true" : null;
+    assertThat(AgentChatListener.isRedactContentEnabled()).isFalse();
+  }
+
+  @Test
+  public void isChatLogVariableEnabledShouldReturnFalseWhenPropertyFalse() {
+    System.setProperty(AgentChatListener.CHAT_LOG_VARIABLE_PROPERTY, "false");
+    assertThat(AgentChatListener.isChatLogVariableEnabled()).isFalse();
   }
 
   @Test

@@ -136,6 +136,12 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
     return this;
   }
 
+  @Override
+  public AgentRequest persistChatLog(Boolean persistChatLog) {
+    setRequestParameter(AgentConnector.PARAM_NAME_PERSIST_CHAT_LOG, persistChatLog);
+    return this;
+  }
+
   // ── RAG / pgvector setters ─────────────────────────────────────────────────
 
   @Override
@@ -290,6 +296,16 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
     if (val == null) return AgentConnectorConstants.DEFAULT_CHAT_MEMORY_MAX_MESSAGES;
     if (val instanceof Integer) return (Integer) val;
     return Integer.parseInt(val.toString());
+  }
+
+  @Override
+  public Boolean getPersistChatLog() {
+    Object val = getRequestParameter(AgentConnector.PARAM_NAME_PERSIST_CHAT_LOG);
+    if (val == null) return null;
+    if (val instanceof Boolean) return (Boolean) val;
+    String s = val.toString().trim();
+    if (s.isEmpty()) return null;
+    return Boolean.parseBoolean(s);
   }
 
   // ── RAG / pgvector getters ─────────────────────────────────────────────────

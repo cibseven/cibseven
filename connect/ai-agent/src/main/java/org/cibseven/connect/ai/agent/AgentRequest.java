@@ -107,6 +107,15 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   /** Sliding-window size (max messages retained) for the chat memory. */
   AgentRequest chatMemoryMaxMessages(int chatMemoryMaxMessages);
 
+  // ── EU AI Act audit fluent setter ─────────────────────────────────────────
+
+  /**
+   * Per-activity override for the chat-log audit variable. See
+   * {@link AgentConnector#PARAM_NAME_PERSIST_CHAT_LOG}. Pass {@code null} to
+   * defer to the deployment-wide default.
+   */
+  AgentRequest persistChatLog(Boolean persistChatLog);
+
   // ── RAG / pgvector fluent setters ──────────────────────────────────────────
 
   /** PostgreSQL host — when set, RAG is activated using pgvector. */
@@ -159,6 +168,15 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   boolean isUseChatMemory();
   String getMemoryId();
   int getChatMemoryMaxMessages();
+
+  // ── EU AI Act audit typed getter ──────────────────────────────────────────
+
+  /**
+   * Per-activity override for the chat-log audit variable. Returns
+   * {@code null} when unset (caller must fall through to the deployment-wide
+   * resolver — typically {@code AgentChatListener.isChatLogVariableEnabled()}).
+   */
+  Boolean getPersistChatLog();
 
   // ── RAG / pgvector typed getters ───────────────────────────────────────────
 

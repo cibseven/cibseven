@@ -118,4 +118,30 @@ public class AgentRequestTest {
     assertThat(request).isInstanceOf(AgentRequestImpl.class);
   }
 
+  // ── persistChatLog round-trip (CIB7-1395) ────────────────────────────────
+
+  @Test
+  public void shouldReturnNullPersistChatLogByDefault() {
+    AgentRequest request = connector.createRequest();
+    assertThat(request.getPersistChatLog()).isNull();
+  }
+
+  @Test
+  public void shouldRoundTripPersistChatLogBooleanTrue() {
+    AgentRequest request = connector.createRequest().persistChatLog(Boolean.TRUE);
+    assertThat(request.getPersistChatLog()).isTrue();
+  }
+
+  @Test
+  public void shouldRoundTripPersistChatLogBooleanFalse() {
+    AgentRequest request = connector.createRequest().persistChatLog(Boolean.FALSE);
+    assertThat(request.getPersistChatLog()).isFalse();
+  }
+
+  @Test
+  public void shouldTreatExplicitNullPersistChatLogAsUnset() {
+    AgentRequest request = connector.createRequest().persistChatLog(null);
+    assertThat(request.getPersistChatLog()).isNull();
+  }
+
 }

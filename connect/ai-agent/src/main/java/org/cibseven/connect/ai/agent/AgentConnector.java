@@ -63,6 +63,9 @@ import org.cibseven.connect.spi.Connector;
  *       <camunda:inputParameter name="memoryId">${execution.getVariable('memoryId')}</camunda:inputParameter>
  *       <camunda:inputParameter name="chatMemoryMaxMessages">20</camunda:inputParameter>
  *
+ *       <!-- EU AI Act audit -->
+ *       <camunda:inputParameter name="persistChatLog">true</camunda:inputParameter>
+ *
  *       <!-- RAG / pgvector embedding store -->
  *       <camunda:inputParameter name="pgHost">localhost</camunda:inputParameter>
  *       <camunda:inputParameter name="pgPort">5432</camunda:inputParameter>
@@ -232,6 +235,27 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * {@value AgentConnectorConstants#DEFAULT_CHAT_MEMORY_MAX_MESSAGES}.
    */
   String PARAM_NAME_CHAT_MEMORY_MAX_MESSAGES = "chatMemoryMaxMessages";
+
+  /**
+   * Optional. Per-activity override for the EU AI Act chat-log audit variable
+   * ({@code cibseven-connect-ai-agent_<activityId>}). Tri-state:
+   * <ul>
+   *   <li>{@code null} / empty / unset — fall through to the deployment-wide
+   *       default (system property {@code cibseven.connect.ai-agent.chatLogVariable.enabled}
+   *       or env var {@code CIBSEVEN_CONNECT_AI_AGENT_CHAT_LOG_VARIABLE_ENABLED};
+   *       built-in default {@code true} for compliance).</li>
+   *   <li>{@code true} — write the chat-log variable for this activity,
+   *       overriding a global {@code false}.</li>
+   *   <li>{@code false} — skip the chat-log variable for this activity,
+   *       overriding a global {@code true}.</li>
+   * </ul>
+   * In all cases the in-memory event timeline is still built and still
+   * emitted to SLF4J / the {@code HistoryEventHandler} chain, so external
+   * audit sinks keep working. Disabling here without an external sink breaks
+   * EU AI Act Art. 12 / 26(6) record-keeping — the modeler is responsible
+   * for that trade-off.
+   */
+  String PARAM_NAME_PERSIST_CHAT_LOG = "persistChatLog";
 
   // ── RAG / pgvector input parameter names ──────────────────────────────────
 

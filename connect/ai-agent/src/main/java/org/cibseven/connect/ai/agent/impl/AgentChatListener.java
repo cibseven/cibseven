@@ -87,12 +87,39 @@ import org.cibseven.connect.ai.agent.AgentConnectorConstants;
  * engine.
  *
  * <h3>Content redaction</h3>
- * Setting the {@value #REDACT_CONTENT_PROPERTY} system property to
+ * Setting the {@value #REDACT_CONTENT_PROPERTY} system property (or the
+ * matching {@value #REDACT_CONTENT_ENV_VAR} environment variable) to
  * {@code true} replaces every {@code messages[].content} string with a
  * JSON-encoded marker carrying a SHA-256 hash and the original character
  * length, to satisfy GDPR-conservative deployments at the cost of
  * frontend readability. The default is unredacted (preserves the existing
  * webclient JSON contract).
+ *
+ * <h3>Chat-log variable opt-out (DB-bloat control)</h3>
+ * The per-activity {@code cibseven-connect-ai-agent_<activityId>} process
+ * variable can be suppressed at two scopes:
+ * <ul>
+ *   <li><b>Per activity</b> — the {@code persistChatLog} connector input
+ *       parameter (boolean). When set, overrides the deployment-wide
+ *       default for that one service task only. Empty / unset → fall
+ *       through to the deployment default.</li>
+ *   <li><b>Deployment-wide</b> — system property
+ *       {@value #CHAT_LOG_VARIABLE_PROPERTY} or environment variable
+ *       {@value #CHAT_LOG_VARIABLE_ENV_VAR}, resolved in that order. The
+ *       system property wins when both are set. Default {@code true}.</li>
+ * </ul>
+ * When disabled (at either scope) the listener still builds the in-memory
+ * event timeline and emits to SLF4J, so external audit sinks (Kafka / JMS /
+ * SAP via a custom {@code HistoryEventHandler}) keep working. The connector
+ * flag variable ({@link AgentConnectorConstants#AGENT_CONNECTOR_FLAG_VARIABLE_NAME})
+ * is also suppressed: it points at the chat-log timeline, so writing it
+ * without the timeline would be misleading.
+ *
+ * <p><b>EU AI Act warning:</b> disabling the variable removes the in-engine
+ * traceability used to satisfy Art. 12 (record-keeping) and Art. 26(6)
+ * (≥ 6-month retention). Deployments that disable it must route the audit
+ * events through an external sink for the duration required by their risk
+ * tier and document the sink as the official record.
  */
 class AgentChatListener implements ChatModelListener {
 
@@ -121,7 +148,7 @@ class AgentChatListener implements ChatModelListener {
    */
   private static final Object KEY_START_NANOS = new Object() {
     @Override public String toString() {
-      return "cibseven-ai-agent.startNanos";
+      return "cibseven-connect-ai-agent.startNanos";
     }
   };
 
@@ -131,6 +158,88 @@ class AgentChatListener implements ChatModelListener {
    * {@code {hash,length,redacted}} marker). Default {@code false}.
    */
   static final String REDACT_CONTENT_PROPERTY = "cibseven.connect.ai-agent.redactContent";
+
+  /** Environment-variable fallback for {@link #REDACT_CONTENT_PROPERTY}. */
+  static final String REDACT_CONTENT_ENV_VAR = "CIBSEVEN_CONNECT_AI_AGENT_REDACT_CONTENT";
+
+  /**
+   * System property that, when set to {@code false}, disables the per-activity
+   * chat-log process variable at the deployment level. The in-memory event
+   * list is still emitted to SLF4J so external audit sinks keep working; only
+   * the engine DB write is skipped. Default {@code true} (variable is written
+   * — Art. 12 / 26(6) compliant by default).
+   */
+  static final String CHAT_LOG_VARIABLE_PROPERTY =
+      "cibseven.connect.ai-agent.chatLogVariable.enabled";
+
+  /** Environment-variable fallback for {@link #CHAT_LOG_VARIABLE_PROPERTY}. */
+  static final String CHAT_LOG_VARIABLE_ENV_VAR =
+      "CIBSEVEN_CONNECT_AI_AGENT_CHAT_LOG_VARIABLE_ENABLED";
+
+  /** Guards the one-time boot-log entry announcing the resolved global flag. */
+  private static final java.util.concurrent.atomic.AtomicBoolean CHAT_LOG_FLAG_LOGGED =
+      new java.util.concurrent.atomic.AtomicBoolean(false);
+
+  /**
+   * Environment-variable lookup seam. Defaults to {@link System#getenv(String)};
+   * tests replace it to simulate env vars without spawning a new JVM. Always
+   * restore to {@link System#getenv(String)::apply} after the test.
+   */
+  static java.util.function.Function<String, String> ENV_READER = System::getenv;
+
+  /**
+   * Resolves a boolean flag from a system property, falling back to an
+   * environment variable (via {@link #ENV_READER}), then to
+   * {@code defaultValue}. The system property wins when both are set so
+   * {@code -D} overrides can be applied without editing the container env.
+   * Empty / blank values are treated as unset.
+   */
+  static boolean resolveBooleanFlag(String systemProperty, String envVar, boolean defaultValue) {
+    String fromSys = System.getProperty(systemProperty);
+    if (fromSys != null && !fromSys.trim().isEmpty()) {
+      return Boolean.parseBoolean(fromSys.trim());
+    }
+    String fromEnv = ENV_READER.apply(envVar);
+    if (fromEnv != null && !fromEnv.trim().isEmpty()) {
+      return Boolean.parseBoolean(fromEnv.trim());
+    }
+    return defaultValue;
+  }
+
+  /**
+   * Resolves the deployment-wide chat-log variable flag from system property
+   * → env var → default ({@code true}). Logs the resolved value exactly once
+   * per JVM lifetime: WARN on the non-default {@code false} (compliance-
+   * relevant deviation), DEBUG on {@code true}.
+   */
+  static boolean isChatLogVariableEnabled() {
+    boolean enabled = resolveBooleanFlag(CHAT_LOG_VARIABLE_PROPERTY, CHAT_LOG_VARIABLE_ENV_VAR, true);
+    if (CHAT_LOG_FLAG_LOGGED.compareAndSet(false, true)) {
+      if (!enabled) {
+        LOG.warn("AI Agent connector: per-activity chat-log variable is DISABLED "
+            + "deployment-wide (system property {} or env var {} = false). The "
+            + "in-engine EU AI Act Art. 12 / 26(6) audit trail will not be "
+            + "persisted as a process variable — pair this setting with an "
+            + "external audit sink (Kafka/JMS/SAP via a custom HistoryEventHandler) "
+            + "to remain compliant.",
+            CHAT_LOG_VARIABLE_PROPERTY, CHAT_LOG_VARIABLE_ENV_VAR);
+      } else {
+        LOG.debug("AI Agent connector: per-activity chat-log variable is enabled "
+            + "(default, or {}/{} explicitly true).",
+            CHAT_LOG_VARIABLE_PROPERTY, CHAT_LOG_VARIABLE_ENV_VAR);
+      }
+    }
+    return enabled;
+  }
+
+  /**
+   * Resolves the deployment-wide content-redaction flag from system property
+   * → env var → default ({@code false}). Silent — no per-call or boot-log
+   * announcement; matches the existing {@code redactContent} behaviour.
+   */
+  static boolean isRedactContentEnabled() {
+    return resolveBooleanFlag(REDACT_CONTENT_PROPERTY, REDACT_CONTENT_ENV_VAR, false);
+  }
 
   // ── run identity ─────────────────────────────────────────────────────────
   private final String runId;
@@ -155,6 +264,7 @@ class AgentChatListener implements ChatModelListener {
 
   // ── persistence ──────────────────────────────────────────────────────────
   private final String variableName;
+  private final boolean chatLogVariableEnabled;
   private final List<Map<String, Object>> events = new ArrayList<>();
   private boolean flagWritten = false;
 
@@ -173,10 +283,20 @@ class AgentChatListener implements ChatModelListener {
   private final List<Map<String, Object>> pendingToolSideEffects = new ArrayList<>();
 
   AgentChatListener() {
-    this(null, null);
+    this(null, null, null);
   }
 
   AgentChatListener(String configuredModel, String endpoint) {
+    this(configuredModel, endpoint, null);
+  }
+
+  /**
+   * @param perActivityChatLogEnabled when non-{@code null}, overrides the
+   *   deployment-wide chat-log variable flag for this listener only. When
+   *   {@code null}, the flag is resolved from system property / env var /
+   *   built-in default via {@link #isChatLogVariableEnabled()}.
+   */
+  AgentChatListener(String configuredModel, String endpoint, Boolean perActivityChatLogEnabled) {
     this.runId = UUID.randomUUID().toString();
     this.configuredModel = configuredModel;
     this.endpoint = endpoint;
@@ -210,10 +330,15 @@ class AgentChatListener implements ChatModelListener {
       this.groupIds = null;
     }
 
+    // Per-activity override wins; otherwise fall through to the deployment-wide
+    // resolver (which is the path that logs the one-time WARN/DEBUG).
+    this.chatLogVariableEnabled = (perActivityChatLogEnabled != null)
+        ? perActivityChatLogEnabled
+        : isChatLogVariableEnabled();
     this.variableName = (activityId != null && !activityId.isEmpty())
         ? AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + activityId
         : null;
-    if (this.variableName != null) {
+    if (this.variableName != null && this.chatLogVariableEnabled) {
       loadExistingEvents();
     }
     // EU AI Act Art. 12(3) audit trail requires caller identity. Silent omission
@@ -308,8 +433,21 @@ class AgentChatListener implements ChatModelListener {
   }
 
   private void persistEvents() {
-    if (variableName == null) {
+    if (variableName == null || !chatLogVariableEnabled) {
+      // No persistence target → also no connector-flag write. The flag points
+      // at the chat-log timeline and is meaningless without it.
       return;
+    }
+    ExecutionEntity execution = currentExecution();
+    if (execution == null) {
+      LOG.warn("Cannot update '{}' chat log variable: no BpmnExecutionContext on the current "
+          + "thread (connector invoked outside an engine command context).", variableName);
+      return;
+    }
+    if (!flagWritten) {
+      // Flag that indicates the execution of the agent connector in the process.
+      execution.setVariable(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
+      flagWritten = true;
     }
     String chatLog;
     try {
@@ -319,21 +457,10 @@ class AgentChatListener implements ChatModelListener {
           variableName, e);
       return;
     }
-    ExecutionEntity execution = currentExecution();
-    if (execution == null) {
-      LOG.warn("Cannot update '{}' chat log variable: no BpmnExecutionContext on the current "
-          + "thread (connector invoked outside an engine command context).", variableName);
-      return;
-    }
     // Default Java serialization is always registered (unlike Spin/Jackson) and stores
     // in ACT_GE_BYTEARRAY, so it bypasses the VARCHAR(4000) limit.
     Object value = Variables.objectValue(chatLog).create();
     execution.setVariable(variableName, value);
-    if (!flagWritten) {
-      // Flag that indicates the execution of the agent connector in the process
-      execution.setVariable(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
-      flagWritten = true;
-    }
   }
 
   // ── ChatModelListener callbacks ──────────────────────────────────────────
@@ -617,7 +744,7 @@ class AgentChatListener implements ChatModelListener {
 
   private static String extractContent(ChatMessage msg) {
     String plain = extractPlainContent(msg);
-    if (Boolean.getBoolean(REDACT_CONTENT_PROPERTY)) {
+    if (isRedactContentEnabled()) {
       return redact(plain);
     }
     return plain;

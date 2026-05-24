@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/@camunda/element-templates-json-schema/resources/schema.json",
-  "name": "CIB seven Knowledge Ingestor",
+  "name": "CIB seven - Knowledge Ingestor",
   "id": "org.cibseven.connect.ai.agent.knowledge-ingestor",
   "version": 1,
   "description": "Element template for the cibseven-knowledge-ingestor connector. Embeds text content into a pgvector knowledge base for later RAG retrieval by the AI Agent.",

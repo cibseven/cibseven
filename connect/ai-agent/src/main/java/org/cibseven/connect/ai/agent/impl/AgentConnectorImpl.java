@@ -693,7 +693,8 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     String modelName = request.getModel();
     String reasoningEffort = request.getReasoningEffort();
     String reasoningSummary = request.getReasoningSummary();
-    AgentChatListener listener = new AgentChatListener(modelName, baseUrl);
+    AgentChatListener listener =
+        new AgentChatListener(modelName, baseUrl, request.getPersistChatLog());
     // Make the listener reachable to @Tool classes so they can publish
     // side-effect audit records onto the in-flight model turn.
     ProcessStarterToolContext.setActiveListener(listener);
