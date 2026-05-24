@@ -161,8 +161,8 @@
           "label": "MCP servers",
           "type": "Text",
           "group": "tools",
-          "description": "JSON array of MCP server configs: [{\"url\": \"...\", \"headers\": {...}}]. Each entry's headers is a JSON object of header name → value. Use http://localhost:8080/mcp if the mcp-process-executor plugin is enabled on this instance.",
-          "placeholder": "[{\"url\": \"http://localhost:8080/mcp\", \"headers\": {\"Authorization\": \"Bearer token\"}}]",
+          "description": "JSON array of MCP server configs: [{\"name\": \"...\", \"url\": \"...\", \"headers\": {...}}]. The optional 'name' (1-32 chars of [a-zA-Z0-9_-]) is used as a prefix to disambiguate tool names across servers — the agent sees '<name>__<toolName>' instead of just '<toolName>', so two MCP servers exposing the same tool name no longer collide. When 'name' is omitted, the connector derives a slug from the URL host/port (e.g. localhost:8081 → 'localhost-8081'). Each entry's headers is a JSON object of header name → value. Use http://localhost:8080/mcp if the mcp-process-executor plugin is enabled on this instance.",
+          "placeholder": "[{\"name\": \"engine\", \"url\": \"http://localhost:8081/mcp\"}, {\"name\": \"krank\", \"url\": \"http://localhost:8082/mcp\", \"headers\": {\"Authorization\": \"Bearer token\"}}]",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "mcpServers"

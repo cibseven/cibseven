@@ -18,6 +18,7 @@ package org.cibseven.connect.ai.agent.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -42,6 +43,8 @@ import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.identity.Authentication;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 
+import dev.langchain4j.agent.tool.Tool;
+import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.rag.content.Content;
@@ -145,10 +148,40 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     Authentication callerAuth = captureCallerAuthentication(callerEngine);
     ProcessStarterToolContext.setEngine(callerEngine);
     ProcessStarterToolContext.setAuthentication(callerAuth);
+    // MCP clients live for the duration of this single agent invocation. Declared
+    // out here (not inside the try) so the finally block can close them — without
+    // close() each DefaultMcpClient leaks its health-check scheduler thread and
+    // the HTTP transport for the JVM lifetime, which over many BPMN runs turns
+    // into a noisy burst of reconnect WARNs every time the MCP server restarts.
+    List<McpClient> mcpClients = new ArrayList<>();
     try {
       ChatModel chatModel = createChatModel(request, apiKey, baseUrl, customHeaders);
 
-      List<McpClient> mcpClients = createMcpClients(request);
+      List<McpServerSpec> mcpServerSpecs = parseMcpServers(request.getMcpServers());
+      mcpClients = createMcpClients(request);
+
+      // Build the McpClient -> server-prefix map (e.g. {client0: "engine",
+      // client1: "krank"}). Used twice below: by the McpToolProvider's
+      // toolNameMapper to disambiguate tool names across servers (the LLM
+      // sees "engine__add_comment" vs "krank__add_comment" instead of two
+      // tools colliding on "add_comment"), and by buildToolProvenance so the
+      // audit log records server name + original tool name per call.
+      Map<McpClient, String> mcpClientPrefixes = new LinkedHashMap<>();
+      for (int i = 0; i < mcpClients.size() && i < mcpServerSpecs.size(); i++) {
+        mcpClientPrefixes.put(mcpClients.get(i),
+            resolveServerPrefix(mcpServerSpecs.get(i), i + 1));
+      }
+
+      // Now that local tools are resolved and MCP clients are built, publish
+      // the tool-name → provenance map to the listener installed by
+      // createChatModel. Stamped onto every event that lists tools or tool
+      // calls so MCP-sourced tools stay distinguishable from local @Tool
+      // Java implementations (EU AI Act Art. 26 data-flow disclosure).
+      AgentChatListener auditListener = ProcessStarterToolContext.getActiveListener();
+      if (auditListener != null) {
+        auditListener.setToolProvenance(
+            buildToolProvenance(tools, mcpClients, mcpServerSpecs, mcpClientPrefixes));
+      }
 
       String memoryId = resolveMemoryId(request);
 
@@ -160,8 +193,19 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         builder.tools(tools.toArray());
       }
       if (!mcpClients.isEmpty()) {
+        // Always prefix MCP tool names so cross-server name collisions can't
+        // throw IllegalConfigurationException at runtime — every MCP tool
+        // surfaces to the LLM as "<serverPrefix>__<originalToolName>".
+        // McpToolExecutor keeps the original name internally for routing the
+        // call back to the right McpClient, so execution is unaffected. Matches
+        // the convention used by Cursor / Cline / Claude Desktop / Continue.dev
+        // for the same problem.
         ToolProvider mcpToolProvider = McpToolProvider.builder()
             .mcpClients(mcpClients)
+            .toolNameMapper((client, spec) -> {
+              String prefix = mcpClientPrefixes.getOrDefault(client, "mcp");
+              return prefix + "__" + spec.name();
+            })
             .build();
         builder.toolProvider(mcpToolProvider);
       }
@@ -193,7 +237,38 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       Map<String, Object> aiMeta = buildOutputAiMeta();
       return new AgentResponseImpl(output, memoryId, aiMeta);
     } finally {
+      closeMcpClients(mcpClients);
       ProcessStarterToolContext.clear();
+    }
+  }
+
+  /**
+   * Releases each {@link McpClient} we built for this agent invocation —
+   * shuts down its health-check scheduler thread and closes the underlying
+   * HTTP transport. Failures are swallowed at DEBUG so one bad client cannot
+   * leak the others. Without this, every BPMN agent task left a background
+   * scheduler running for the JVM lifetime.
+   */
+  private static void closeMcpClients(List<McpClient> clients) {
+    if (clients == null || clients.isEmpty()) {
+      return;
+    }
+    for (McpClient client : clients) {
+      if (client == null) continue;
+      try {
+        client.close();
+      } catch (Exception e) {
+        LOG.debug("MCP client close failed (key={}): {}",
+            safeClientKey(client), e.toString());
+      }
+    }
+  }
+
+  private static String safeClientKey(McpClient client) {
+    try {
+      return client.key();
+    } catch (Exception e) {
+      return "<unknown>";
     }
   }
 
@@ -583,19 +658,132 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
   }
 
   /**
+   * Builds the tool-name → provenance descriptor map handed to
+   * {@link AgentChatListener#setToolProvenance(Map)} so the per-{@code runId}
+   * audit stream can disclose which MCP server (or local Java class) backed
+   * each tool the model could call. Closes the Art. 26 (deployer data-flow
+   * disclosure) gap surfaced as Gap 6 in CIB7-1361 round-2.
+   *
+   * <p>Map keys are the names the LLM actually sees on {@code tools[]} and
+   * {@code toolCalls[]}:
+   * <ul>
+   *   <li>Local {@code @Tool} instances → annotation name (or method name) as
+   *       registered with {@code AiServices.tools(...)}. Entry value:
+   *       {@code {kind: "local"}}.</li>
+   *   <li>MCP-sourced tools → {@code <serverPrefix>__<originalToolName>}
+   *       (the prefixed form produced by the
+   *       {@code McpToolProvider.toolNameMapper} wired in {@code execute}).
+   *       Entry value:
+   *       {@code {kind: "mcp", url, server, originalToolName}}, where
+   *       {@code server} is the deployer-supplied name or the URL slug, and
+   *       {@code originalToolName} is what the MCP server itself advertised.</li>
+   * </ul>
+   *
+   * <p>Cross-server name collisions are no longer possible at runtime — every
+   * MCP tool carries a per-server prefix, and local Java tools never carry
+   * one. A local tool that happens to share its plain name with an MCP tool's
+   * <em>original</em> name doesn't collide either, because the MCP tool's map
+   * key is the prefixed form. Failing {@code listTools()} on one MCP server
+   * is non-fatal: the other clients' tools are still attributed.
+   *
+   * @param localTools          {@code @Tool}-annotated instances handed to
+   *                            {@link AiServices#tools(Object...)}.
+   * @param mcpClients          MCP clients handed to {@link McpToolProvider}.
+   * @param mcpSpecs            parsed server specs (URL + name + headers),
+   *                            positionally aligned with {@code mcpClients}
+   *                            when both came from the same {@code mcpServers}
+   *                            request field. When sizes diverge (e.g. a test
+   *                            stub of {@link #createMcpClients}) the URL is
+   *                            recorded as {@code "unknown"} for the
+   *                            unmatched-tail clients.
+   * @param mcpClientPrefixes   the same per-client prefix map handed to
+   *                            {@link McpToolProvider.Builder#toolNameMapper};
+   *                            ensures the audit's keys match what the LLM
+   *                            actually saw. Missing entries fall back to
+   *                            {@code "mcp"} so a malformed configuration
+   *                            cannot lose attribution silently.
+   */
+  static Map<String, Map<String, Object>> buildToolProvenance(
+      List<Object> localTools,
+      List<McpClient> mcpClients,
+      List<McpServerSpec> mcpSpecs,
+      Map<McpClient, String> mcpClientPrefixes) {
+    Map<String, Map<String, Object>> provenance = new LinkedHashMap<>();
+
+    // 1) Local @Tool methods. Reflect over each instance's public methods.
+    for (Object tool : localTools) {
+      if (tool == null) continue;
+      for (Method method : tool.getClass().getMethods()) {
+        Tool annotation = method.getAnnotation(Tool.class);
+        if (annotation == null) continue;
+        String name = annotation.name();
+        if (name == null || name.isEmpty()) {
+          name = method.getName();
+        }
+        Map<String, Object> entry = new LinkedHashMap<>();
+        entry.put("kind", "local");
+        provenance.putIfAbsent(name, entry);
+      }
+    }
+
+    // 2) MCP-sourced tools — query each client for its tool list.
+    for (int i = 0; i < mcpClients.size(); i++) {
+      McpClient client = mcpClients.get(i);
+      String url = (i < mcpSpecs.size()) ? mcpSpecs.get(i).url : "unknown";
+      String prefix = mcpClientPrefixes != null
+          ? mcpClientPrefixes.getOrDefault(client, "mcp")
+          : "mcp";
+      List<ToolSpecification> specs;
+      try {
+        specs = client.listTools();
+      } catch (Exception e) {
+        // Non-fatal: matches McpToolProvider's failIfOneServerFails=false
+        // default. Tools from this server simply won't carry provenance.
+        LOG.warn("MCP server {} listTools() failed during provenance build — "
+            + "its tools will appear in the audit log without server attribution: {}",
+            url, e.toString());
+        continue;
+      }
+      if (specs == null) continue;
+      for (ToolSpecification spec : specs) {
+        String originalName = spec.name();
+        if (originalName == null || originalName.isEmpty()) continue;
+        String prefixedName = prefix + "__" + originalName;
+        Map<String, Object> entry = new LinkedHashMap<>();
+        entry.put("kind", "mcp");
+        entry.put("url", url);
+        entry.put("server", prefix);
+        entry.put("originalToolName", originalName);
+        provenance.put(prefixedName, entry);
+      }
+    }
+
+    return provenance;
+  }
+
+  /**
    * Factory method for a single MCP client — override in tests to capture
    * arguments and avoid opening a real transport connection.
    */
   protected McpClient buildMcpClient(String url, Map<String, String> headers) {
+    // Leave LangChain4j's logRequests/logResponses at their defaults (false).
+    // Turning them on emits every JSON-RPC frame at INFO via the MCP transport's
+    // internal logger, which floods the application log with health-check ping
+    // traffic. Operators can opt back in by setting the MCP transport logger
+    // level to DEBUG if they need it for connection diagnostics.
     StreamableHttpMcpTransport.Builder transportBuilder = new StreamableHttpMcpTransport.Builder()
-        .url(url)
-        .logRequests(true)
-        .logResponses(true);
+        .url(url);
     if (headers != null && !headers.isEmpty()) {
       transportBuilder.customHeaders(headers);
     }
+    // Disable LangChain4j's auto-health-check (default: 30s ping loop). The
+    // client lives for one synchronous agent.chat() call inside execute() and
+    // is closed in its finally block — a periodic background ping serves no
+    // purpose for that lifecycle and just turns server restarts into a burst
+    // of WARN-with-stack reconnect attempts.
     return new DefaultMcpClient.Builder()
         .transport(transportBuilder.build())
+        .autoHealthCheck(false)
         .build();
   }
 
@@ -850,19 +1038,50 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
   static final class McpServerSpec {
     final String url;
     final Map<String, String> headers;
+    /**
+     * Deployer-supplied prefix used to disambiguate tool names across MCP
+     * servers (e.g. {@code "engine"} → tool {@code add_comment} surfaces to the
+     * LLM as {@code engine__add_comment}). {@code null} when the element
+     * template entry omitted the {@code name} field — in that case
+     * {@link AgentConnectorImpl#resolveServerPrefix(McpServerSpec, int)}
+     * derives a stable slug from the URL host/port.
+     */
+    final String name;
 
     McpServerSpec(String url, Map<String, String> headers) {
+      this(url, headers, null);
+    }
+
+    McpServerSpec(String url, Map<String, String> headers, String name) {
       this.url = url;
       this.headers = headers;
+      this.name = name;
     }
   }
+
+  /**
+   * Allowed character class for a deployer-supplied MCP server name. Matches
+   * what OpenAI / Anthropic accept for tool names ({@code [a-zA-Z0-9_-]});
+   * length capped at 32 so the {@code <name>__<originalToolName>} composite
+   * still fits the providers' 64-char tool-name limit.
+   */
+  private static final java.util.regex.Pattern MCP_SERVER_NAME_PATTERN =
+      java.util.regex.Pattern.compile("[a-zA-Z0-9_-]{1,32}");
 
   private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
   /**
    * Parses the {@code mcpServers} JSON array into a list of {@link McpServerSpec}.
    * Returns an empty list when the input is null, blank, or an empty JSON array.
-   * Throws {@link AgentConnectorException} on malformed JSON or missing {@code url}.
+   * Throws {@link AgentConnectorException} on malformed JSON, missing {@code url},
+   * or an invalid {@code name} (when present).
+   *
+   * <p>Accepted entry shape:
+   * <pre>{@code
+   * {"url": "http://localhost:8081/mcp", "name": "engine", "headers": {…}}
+   * }</pre>
+   * {@code name} and {@code headers} are optional. When {@code name} is omitted
+   * the connector derives a slug from the URL host/port at agent-build time.
    */
   static List<McpServerSpec> parseMcpServers(String raw) {
     List<McpServerSpec> specs = new ArrayList<>();
@@ -874,7 +1093,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       entries = JSON_MAPPER.readValue(raw, new TypeReference<List<Map<String, Object>>>() {});
     } catch (Exception e) {
       throw new AgentConnectorException(
-          "Could not parse 'mcpServers': expected a JSON array of {url, headers?} objects", e);
+          "Could not parse 'mcpServers': expected a JSON array of {url, name?, headers?} objects", e);
     }
     for (int i = 0; i < entries.size(); i++) {
       Map<String, Object> entry = entries.get(i);
@@ -895,9 +1114,66 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         throw new AgentConnectorException(
             "mcpServers[" + i + "].headers: expected an object of string→string pairs");
       }
-      specs.add(new McpServerSpec((String) urlValue, headers));
+      String name = null;
+      Object nameValue = entry.get("name");
+      if (nameValue != null) {
+        if (!(nameValue instanceof String) || ((String) nameValue).isEmpty()) {
+          throw new AgentConnectorException(
+              "mcpServers[" + i + "]: 'name' must be a non-empty string when present");
+        }
+        String candidate = (String) nameValue;
+        if (!MCP_SERVER_NAME_PATTERN.matcher(candidate).matches()) {
+          throw new AgentConnectorException(
+              "mcpServers[" + i + "].name '" + candidate + "' is invalid; "
+              + "allowed: 1-32 chars of [a-zA-Z0-9_-]");
+        }
+        name = candidate;
+      }
+      specs.add(new McpServerSpec((String) urlValue, headers, name));
     }
     return specs;
+  }
+
+  /**
+   * Returns the prefix to stamp on every MCP tool name from this server so the
+   * LLM sees {@code <prefix>__<originalToolName>}. Resolution order:
+   *
+   * <ol>
+   *   <li>The deployer-supplied {@link McpServerSpec#name}, when present.
+   *       Already validated against {@link #MCP_SERVER_NAME_PATTERN} at parse
+   *       time so we can trust it here.</li>
+   *   <li>A slug derived from the URL's host + port: lowercased, runs of any
+   *       non-{@code [a-zA-Z0-9]} replaced with {@code -}, leading/trailing
+   *       {@code -} trimmed. Stable across restarts.</li>
+   *   <li>{@code mcp<index>} (1-based) as a last-resort fallback when the URL
+   *       is unparseable. Index passed in so collisions between two equally
+   *       unparseable URLs are still avoided.</li>
+   * </ol>
+   *
+   * <p>Result is capped at 32 characters and is guaranteed to match
+   * {@link #MCP_SERVER_NAME_PATTERN}.
+   */
+  static String resolveServerPrefix(McpServerSpec spec, int oneBasedIndex) {
+    if (spec.name != null && !spec.name.isEmpty()) {
+      return spec.name;
+    }
+    try {
+      java.net.URI uri = java.net.URI.create(spec.url);
+      String host = uri.getHost();
+      if (host != null && !host.isEmpty()) {
+        int port = uri.getPort();
+        String raw = (port > 0) ? host + "-" + port : host;
+        String slug = raw.toLowerCase(java.util.Locale.ROOT)
+            .replaceAll("[^a-z0-9]+", "-")
+            .replaceAll("^-+|-+$", "");
+        if (!slug.isEmpty()) {
+          return slug.length() > 32 ? slug.substring(0, 32) : slug;
+        }
+      }
+    } catch (IllegalArgumentException ignored) {
+      // Fall through to indexed fallback.
+    }
+    return "mcp" + oneBasedIndex;
   }
 
   /**

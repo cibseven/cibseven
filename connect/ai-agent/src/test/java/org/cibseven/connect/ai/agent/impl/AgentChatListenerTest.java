@@ -1090,6 +1090,106 @@ public class AgentChatListenerTest {
     assertThat(listener.events().get(2)).containsEntry("eventSeq", 2);
   }
 
+  // ── MCP / local tool provenance (Art. 26 data-flow disclosure) ───────────
+
+  @Test
+  public void shouldStampToolProvenanceOnRequestEventForListedTools() {
+    AgentChatListener listener = new AgentChatListener();
+
+    Map<String, Map<String, Object>> provenance = new HashMap<>();
+    provenance.put("startProcess", Map.of("kind", "local"));
+    provenance.put("search", Map.of("kind", "mcp", "url", "https://mcp.example.com/v1"));
+    provenance.put("unused", Map.of("kind", "mcp", "url", "https://other.example.com/v1"));
+    listener.setToolProvenance(provenance);
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi")))
+        .toolSpecifications(Arrays.asList(
+            ToolSpecification.builder().name("startProcess").build(),
+            ToolSpecification.builder().name("search").build()))
+        .build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> stamped =
+        (Map<String, Object>) listener.events().get(0).get("toolProvenance");
+    assertThat(stamped).hasSize(2)
+        .containsKeys("startProcess", "search")
+        .doesNotContainKey("unused");
+    assertThat(stamped.get("startProcess")).isEqualTo(Map.of("kind", "local"));
+    assertThat(stamped.get("search"))
+        .isEqualTo(Map.of("kind", "mcp", "url", "https://mcp.example.com/v1"));
+  }
+
+  @Test
+  public void shouldStampToolProvenanceOnResponseToolCalls() {
+    AgentChatListener listener = new AgentChatListener();
+    listener.setToolProvenance(Map.of(
+        "lookup", Map.of("kind", "mcp", "url", "https://mcp.example.com/v1")));
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    HashMap<Object, Object> attrs = new HashMap<>();
+    AiMessage aiWithToolCall = AiMessage.from(
+        ToolExecutionRequest.builder().id("c1").name("lookup").arguments("{}").build());
+    ChatResponse response = ChatResponse.builder().aiMessage(aiWithToolCall).build();
+    listener.onResponse(new ChatModelResponseContext(response, request, null, attrs));
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> stamped =
+        (Map<String, Object>) listener.events().get(0).get("toolProvenance");
+    assertThat(stamped).containsOnlyKeys("lookup");
+    assertThat(stamped.get("lookup"))
+        .isEqualTo(Map.of("kind", "mcp", "url", "https://mcp.example.com/v1"));
+  }
+
+  @Test
+  public void shouldOmitToolProvenanceWhenNoMapPublished() {
+    AgentChatListener listener = new AgentChatListener();
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi")))
+        .toolSpecifications(Collections.singletonList(
+            ToolSpecification.builder().name("startProcess").build()))
+        .build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    assertThat(listener.events().get(0)).doesNotContainKey("toolProvenance");
+  }
+
+  @Test
+  public void shouldClearToolProvenanceWhenSetToNull() {
+    AgentChatListener listener = new AgentChatListener();
+    listener.setToolProvenance(Map.of("foo", Map.of("kind", "local")));
+    listener.setToolProvenance(null);
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi")))
+        .toolSpecifications(Collections.singletonList(
+            ToolSpecification.builder().name("foo").build()))
+        .build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    assertThat(listener.events().get(0)).doesNotContainKey("toolProvenance");
+  }
+
+  @Test
+  public void shouldOmitToolProvenanceWhenNoListedToolMatchesPublishedMap() {
+    AgentChatListener listener = new AgentChatListener();
+    listener.setToolProvenance(Map.of("a", Map.of("kind", "local")));
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi")))
+        .toolSpecifications(Collections.singletonList(
+            ToolSpecification.builder().name("z").build()))
+        .build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    assertThat(listener.events().get(0))
+        .containsKey("tools")
+        .doesNotContainKey("toolProvenance");
+  }
+
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   private void pushExecution(ExecutionEntity execution) {

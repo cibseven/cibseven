@@ -282,6 +282,18 @@ class AgentChatListener implements ChatModelListener {
    */
   private final List<Map<String, Object>> pendingToolSideEffects = new ArrayList<>();
 
+  /**
+   * Per-tool-name provenance descriptor, published by the connector once the
+   * MCP clients have been queried for their tool lists. Used to stamp
+   * {@code toolProvenance} onto every event that lists tools so MCP-sourced
+   * tools (carrying the server URL they came from) stay distinguishable from
+   * local {@code @Tool} Java implementations — the Art. 26 data-flow
+   * disclosure that motivates CIB7-1399. {@code null} (the default) means
+   * no provenance metadata was published and events render exactly as they
+   * did before this feature landed.
+   */
+  private volatile Map<String, Map<String, Object>> toolProvenance;
+
   AgentChatListener() {
     this(null, null, null);
   }
@@ -383,6 +395,31 @@ class AgentChatListener implements ChatModelListener {
       return;
     }
     pendingToolSideEffects.add(new LinkedHashMap<>(sideEffect));
+  }
+
+  /**
+   * Publishes the tool-name → provenance descriptor map for this listener
+   * instance. Set once by the connector immediately after MCP clients have
+   * enumerated their tools — must happen before the first model turn. Each
+   * descriptor is a small {@code {kind, url}} map (or {@code {kind: "local"}}
+   * for local {@code @Tool} Java implementations). Subsequent events that
+   * list tools or tool calls will carry a {@code toolProvenance} sub-block
+   * containing only the entries for the tools actually referenced on that
+   * event. Pass {@code null} or an empty map to clear / disable the feature.
+   */
+  void setToolProvenance(Map<String, Map<String, Object>> provenance) {
+    if (provenance == null || provenance.isEmpty()) {
+      this.toolProvenance = null;
+      return;
+    }
+    // Defensive copy so the listener's view is stable even if the caller
+    // mutates the source map after publish.
+    Map<String, Map<String, Object>> snapshot = new LinkedHashMap<>(provenance.size());
+    for (Map.Entry<String, Map<String, Object>> e : provenance.entrySet()) {
+      if (e.getKey() == null || e.getValue() == null) continue;
+      snapshot.put(e.getKey(), new LinkedHashMap<>(e.getValue()));
+    }
+    this.toolProvenance = snapshot;
   }
 
   /**
@@ -521,6 +558,7 @@ class AgentChatListener implements ChatModelListener {
           .map(ToolSpecification::name)
           .collect(Collectors.toList());
       event.put("tools", tools);
+      addToolProvenance(event, tools);
       LOG.debug("Available tools: {}", tools);
     }
     appendEvent(event);
@@ -535,15 +573,20 @@ class AgentChatListener implements ChatModelListener {
 
     if (aiMsg.hasToolExecutionRequests()) {
       List<Map<String, Object>> toolCalls = new ArrayList<>();
+      List<String> calledToolNames = new ArrayList<>();
       for (ToolExecutionRequest req : aiMsg.toolExecutionRequests()) {
         Map<String, Object> call = new LinkedHashMap<>();
         call.put("id", req.id());
         call.put("name", req.name());
         call.put("arguments", req.arguments());
         toolCalls.add(call);
+        if (req.name() != null) {
+          calledToolNames.add(req.name());
+        }
         LOG.debug("TOOL CALL: {}({})", req.name(), req.arguments());
       }
       event.put("toolCalls", toolCalls);
+      addToolProvenance(event, calledToolNames);
     } else {
       event.put("answer", aiMsg.text());
       LOG.debug("FINAL ANSWER: {}", aiMsg.text());
@@ -599,7 +642,26 @@ class AgentChatListener implements ChatModelListener {
       event.put("message", error.getMessage());
       event.put("stack", shortStack(error));
     }
-    LOG.error("LLM ERROR: {}", error != null ? error.getMessage() : null, error);
+    // SLF4J line stays single-line: error message + the tool-name list the
+    // model was offered (most common failure mode in production is "too many
+    // tools", e.g. OpenAI's 128-tool cap — and seeing which 400 tools were
+    // exposed is the first diagnostic step). The throwable is intentionally
+    // NOT passed as the trailing argument: it would print the full provider
+    // stack on every failure, which floods the application log. The audit
+    // event keeps {@code errorClass}, {@code message}, and a 5-frame
+    // {@code stack} for compliance.
+    List<String> toolNames = Collections.emptyList();
+    ChatRequest req = ctx.chatRequest();
+    if (req != null && req.parameters() != null) {
+      List<ToolSpecification> specs = req.parameters().toolSpecifications();
+      if (specs != null) {
+        toolNames = specs.stream().map(ToolSpecification::name).collect(Collectors.toList());
+      }
+    }
+    LOG.error("LLM ERROR: {} (tools[{}]={})",
+        error != null ? error.getMessage() : null,
+        toolNames.size(),
+        toolNames);
     appendEvent(event);
   }
 
@@ -737,6 +799,30 @@ class AgentChatListener implements ChatModelListener {
    */
   String lastResponseTimestamp() {
     return lastResponseTimestamp;
+  }
+
+  /**
+   * Stamps a {@code toolProvenance} sub-block onto {@code event} containing
+   * only the entries for the tools listed in {@code toolNames}. Skips
+   * silently when no provenance map has been published (default state) or
+   * when no listed tool name matches a known entry — keeps the audit JSON
+   * byte-for-byte identical to the pre-CIB7-1399 shape for those events.
+   */
+  private void addToolProvenance(Map<String, Object> event, List<String> toolNames) {
+    Map<String, Map<String, Object>> source = this.toolProvenance;
+    if (source == null || toolNames == null || toolNames.isEmpty()) {
+      return;
+    }
+    Map<String, Object> subset = new LinkedHashMap<>();
+    for (String name : toolNames) {
+      Map<String, Object> entry = source.get(name);
+      if (entry != null && !subset.containsKey(name)) {
+        subset.put(name, entry);
+      }
+    }
+    if (!subset.isEmpty()) {
+      event.put("toolProvenance", subset);
+    }
   }
 
   private static void putDuration(Map<String, Object> event, Map<Object, Object> attributes) {
