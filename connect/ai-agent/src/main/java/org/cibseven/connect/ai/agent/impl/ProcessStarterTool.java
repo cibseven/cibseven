@@ -243,12 +243,19 @@ public class ProcessStarterTool {
      * JobExecutor), where otherwise all calls would share the parent
      * transaction's stale MyBatis cache.
      *
-     * <p>The {@link ProcessEngine} reference and caller authentication are
-     * read from {@link ProcessStarterToolContext} (populated by
-     * {@link AgentConnectorImpl} on the connector's calling thread, where the
-     * engine lookup is reliable). The authentication is applied on the new
-     * thread so the engine's authorization layer checks against the original
-     * user.
+     * <p>The {@link ProcessEngine} reference, caller authentication, and
+     * active {@link AgentChatListener} are read from
+     * {@link ProcessStarterToolContext} (populated by {@link AgentConnectorImpl}
+     * on the connector's calling thread, where the engine lookup is reliable).
+     * The authentication is applied on the new thread so the engine's
+     * authorization layer checks against the original user. The listener
+     * pointer is re-published onto the executor thread's {@link ThreadLocal}
+     * so {@link #publishAuditRecord} (and any other helper running inside
+     * {@code action}) can stitch tool side-effects onto the in-flight audit
+     * stream — without this bridge the side-effect record is silently dropped
+     * because the ThreadLocal on the connector thread is invisible from the
+     * executor thread. Both are cleared in {@code finally} so values do not
+     * leak across pool reuse.
      */
     private <T> T runAsCaller(Function<ProcessEngine, T> action) {
         ProcessEngine engine = ProcessStarterToolContext.getEngine();
@@ -259,6 +266,7 @@ public class ProcessStarterTool {
                     + "on the connector's calling thread.");
         }
         Authentication caller = ProcessStarterToolContext.getAuthentication();
+        AgentChatListener listener = ProcessStarterToolContext.getActiveListener();
 
         try {
             return CompletableFuture.supplyAsync(() -> {
@@ -266,10 +274,14 @@ public class ProcessStarterTool {
                 if (caller != null) {
                     identityService.setAuthentication(caller);
                 }
+                if (listener != null) {
+                    ProcessStarterToolContext.setActiveListener(listener);
+                }
                 try {
                     return action.apply(engine);
                 } finally {
                     identityService.clearAuthentication();
+                    ProcessStarterToolContext.setActiveListener(null);
                 }
             }, ENGINE_EXECUTOR).get();
         } catch (ExecutionException e) {

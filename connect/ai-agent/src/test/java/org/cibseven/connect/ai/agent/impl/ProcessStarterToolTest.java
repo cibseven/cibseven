@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.mockito.ArgumentCaptor;
+
 import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.ProcessEngine;
@@ -360,6 +362,50 @@ public class ProcessStarterToolTest {
 
     verify(identityService, never()).setAuthentication(any(Authentication.class));
     verify(identityService, times(1)).clearAuthentication();
+  }
+
+  // ── runProcessByKey: tool side-effect reaches listener across executor ───
+
+  /**
+   * Guards the {@link ProcessStarterToolContext#setActiveListener} bridge in
+   * {@code runAsCaller}: the listener pointer set on the connector's calling
+   * thread must be re-published onto the {@link ProcessStarterTool#ENGINE_EXECUTOR}
+   * worker thread before {@code publishAuditRecord} runs. Without the bridge,
+   * {@code ProcessStarterToolContext.getActiveListener()} returns {@code null}
+   * on the executor thread and the Art. 14 side-effect record is silently
+   * dropped — which this test would catch (the {@code verify(... times(1))}
+   * call fails).
+   */
+  @Test
+  public void shouldPublishToolSideEffectToActiveListenerAcrossExecutorThread() {
+    AgentChatListener listener = mock(AgentChatListener.class);
+    ProcessStarterToolContext.setActiveListener(listener);
+
+    ProcessInstance instance = mockInstance("pi-9", "def-9", true, false);
+    when(runtimeService.startProcessInstanceByKey(eq("k"), any(Map.class))).thenReturn(instance);
+
+    HistoricProcessInstanceQuery hpiQuery = mock(HistoricProcessInstanceQuery.class);
+    when(hpiQuery.processInstanceId("pi-9")).thenReturn(hpiQuery);
+    when(hpiQuery.singleResult()).thenReturn(null);
+    when(historyService.createHistoricProcessInstanceQuery()).thenReturn(hpiQuery);
+
+    HistoricVariableInstanceQuery hviQuery = mock(HistoricVariableInstanceQuery.class);
+    when(hviQuery.processInstanceId("pi-9")).thenReturn(hviQuery);
+    when(hviQuery.list()).thenReturn(List.of());
+    when(historyService.createHistoricVariableInstanceQuery()).thenReturn(hviQuery);
+
+    tool.runProcessByKey("k", null, "out_", 0, 0L);
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass((Class) Map.class);
+    verify(listener, times(1)).recordToolSideEffect(captor.capture());
+    Map<String, Object> record = captor.getValue();
+    assertThat(record).containsEntry("tool", "runProcessByKey");
+    assertThat(record).containsEntry("processDefinitionKey", "k");
+    assertThat(record).containsEntry("processInstanceId", "pi-9");
+    assertThat(record).containsEntry("processDefinitionId", "def-9");
+    assertThat(record).containsEntry("ended", true);
+    assertThat(record).containsEntry("attempts", 0);
   }
 
   // ── runProcessByKey: engine RuntimeException propagates ──────────────────
