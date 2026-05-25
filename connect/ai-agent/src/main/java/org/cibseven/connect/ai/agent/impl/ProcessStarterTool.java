@@ -72,15 +72,36 @@ import dev.langchain4j.agent.tool.Tool;
  * server when the request exceeds either ceiling so operators can spot
  * unusually long polls without flooding the audit stream.
  *
+ * <h3>Async-before / async-after on the agent task</h3>
+ * Even with the ceilings above, a tool call can park the connector for up to
+ * ~{@code 100 s}. If the agent service task is modelled <em>synchronously</em>
+ * (no {@code camunda:asyncBefore} / {@code camunda:asyncAfter}), all of that
+ * blocking polling runs inside the parent command transaction — and any
+ * variable the agent or its tools write (the per-activity chat-log audit
+ * variable, the {@code agentOutput_aiMeta} Art. 50(2) marker, the sub-process
+ * {@code processInstanceId} from this tool) is held inside that transaction.
+ * When the agent runs longer than the engine's command-transaction timeout
+ * the transaction rolls back, the activity goes into an incident, and the
+ * audit variables are not visible from cockpit even though the side-effects
+ * (sub-processes started via this tool, MCP server calls) have already
+ * committed independently.
+ *
+ * <p>To avoid that, the bundled {@code cibseven-ai-agent.json} element
+ * template forces {@code camunda:asyncBefore="true"} and
+ * {@code camunda:asyncAfter="true"} on the service task via {@code Hidden}
+ * properties — the flags are not modeler-overridable from the template UI.
+ * With async-before, the parent process state commits before the agent
+ * task starts and the JobExecutor picks the task up on a fresh transaction;
+ * with async-after, the agent's output variables commit before the next
+ * sequence flow runs, so they are observable as soon as the agent finishes
+ * a turn — independent of how long the rest of the process takes.
+ *
  * <h3>High-throughput deployments</h3>
- * Even with the ceilings above, a tool call can monopolise a
- * {@code JobExecutor} worker for up to ~{@code 100 s}. Deployments that need
- * to keep agent activities off the engine's command-transaction critical
- * path should model the BPMN such that the agent runs as an asynchronous
- * service task (e.g. an external-task topic served by a dedicated worker
- * pool) rather than a synchronous engine connector — at that point the
- * blocking polling inside this tool no longer competes with regular process
- * work for {@code JobExecutor} slots.
+ * On deployments with very small JobExecutor pools, even the async-bracketed
+ * agent task can compete with regular process work. Such deployments should
+ * model the agent as an external-task topic served by a dedicated worker
+ * pool — the polling inside this tool then no longer competes with regular
+ * process work for {@code JobExecutor} slots at all.
  */
 public class ProcessStarterTool {
 
