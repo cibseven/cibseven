@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.connect.ai.agent.impl.AgentConnectorImpl;
 import org.cibseven.connect.ai.agent.impl.AgentRequestImpl;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,6 +31,14 @@ public class AgentRequestTest {
   @Before
   public void setUp() {
     connector = new AgentConnectorImpl();
+    System.clearProperty(AgentConnectorConstants.DEFAULT_MODEL_PROPERTY);
+    AgentConnectorConstants.ENV_READER = System::getenv;
+  }
+
+  @After
+  public void tearDown() {
+    System.clearProperty(AgentConnectorConstants.DEFAULT_MODEL_PROPERTY);
+    AgentConnectorConstants.ENV_READER = System::getenv;
   }
 
   @Test
@@ -142,6 +151,39 @@ public class AgentRequestTest {
   public void shouldTreatExplicitNullPersistChatLogAsUnset() {
     AgentRequest request = connector.createRequest().persistChatLog(null);
     assertThat(request.getPersistChatLog()).isNull();
+  }
+
+  // ── Default-model resolution (CIB7-1415) ───────────────────────────────────
+
+  @Test
+  public void shouldUseSystemPropertyOverrideForDefaultModel() {
+    System.setProperty(AgentConnectorConstants.DEFAULT_MODEL_PROPERTY, "operator-pinned-model");
+    AgentRequest request = connector.createRequest();
+    assertThat(request.getModel()).isEqualTo("operator-pinned-model");
+  }
+
+  @Test
+  public void shouldFallBackToEnvVarWhenSystemPropertyUnset() {
+    AgentConnectorConstants.ENV_READER = name ->
+        AgentConnectorConstants.DEFAULT_MODEL_ENV_VAR.equals(name) ? "env-pinned-model" : null;
+    AgentRequest request = connector.createRequest();
+    assertThat(request.getModel()).isEqualTo("env-pinned-model");
+  }
+
+  @Test
+  public void shouldPreferSystemPropertyOverEnvVarForDefaultModel() {
+    System.setProperty(AgentConnectorConstants.DEFAULT_MODEL_PROPERTY, "sys-prop-wins");
+    AgentConnectorConstants.ENV_READER = name ->
+        AgentConnectorConstants.DEFAULT_MODEL_ENV_VAR.equals(name) ? "env-loses" : null;
+    AgentRequest request = connector.createRequest();
+    assertThat(request.getModel()).isEqualTo("sys-prop-wins");
+  }
+
+  @Test
+  public void shouldTreatBlankSystemPropertyAsUnset() {
+    System.setProperty(AgentConnectorConstants.DEFAULT_MODEL_PROPERTY, "   ");
+    AgentRequest request = connector.createRequest();
+    assertThat(request.getModel()).isEqualTo(AgentConnectorConstants.DEFAULT_MODEL);
   }
 
 }

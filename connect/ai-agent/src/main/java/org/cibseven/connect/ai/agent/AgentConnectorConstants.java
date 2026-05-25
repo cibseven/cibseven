@@ -21,8 +21,57 @@ package org.cibseven.connect.ai.agent;
  */
 public final class AgentConnectorConstants {
 
-  /** Default OpenAI-compatible model used when no {@code model} input parameter is provided. */
+  /**
+   * Hard-coded fallback model used when no {@code model} input parameter is set on
+   * the BPMN activity <em>and</em> the platform operator has not configured an
+   * override via {@link #DEFAULT_MODEL_PROPERTY} or {@link #DEFAULT_MODEL_ENV_VAR}.
+   *
+   * <p>Operators set their organisation-wide default through one of:
+   * <ul>
+   *   <li>JVM system property {@value #DEFAULT_MODEL_PROPERTY}
+   *       (e.g. {@code -Dcibseven.connect.ai-agent.defaultModel=<provider-model>}),</li>
+   *   <li>environment variable {@value #DEFAULT_MODEL_ENV_VAR},</li>
+   *   <li>or, in the run distro, the commented YAML stanza under
+   *       {@code cibseven.connect.ai-agent} in {@code default.yml}.</li>
+   * </ul>
+   *
+   * <p>Resolution order is implemented by {@link #resolveDefaultModel()}.
+   */
   public static final String DEFAULT_MODEL = "gpt-5.4-nano";
+
+  /**
+   * JVM system property that overrides {@link #DEFAULT_MODEL} for the deployment.
+   * Wins over {@link #DEFAULT_MODEL_ENV_VAR} when both are set.
+   */
+  public static final String DEFAULT_MODEL_PROPERTY = "cibseven.connect.ai-agent.defaultModel";
+
+  /** Environment-variable fallback for {@link #DEFAULT_MODEL_PROPERTY}. */
+  public static final String DEFAULT_MODEL_ENV_VAR = "CIBSEVEN_CONNECT_AI_AGENT_DEFAULT_MODEL";
+
+  /**
+   * Environment-variable lookup seam. Defaults to {@link System#getenv(String)};
+   * tests replace it to simulate env vars without spawning a new JVM. Always
+   * restore to {@code System::getenv} after the test.
+   */
+  static java.util.function.Function<String, String> ENV_READER = System::getenv;
+
+  /**
+   * Resolves the deployment-wide default model from
+   * {@link #DEFAULT_MODEL_PROPERTY} → {@link #DEFAULT_MODEL_ENV_VAR} →
+   * {@link #DEFAULT_MODEL}. Empty / blank values are treated as unset so an
+   * operator can re-enable the hard-coded fallback by clearing the override.
+   */
+  public static String resolveDefaultModel() {
+    String fromSys = System.getProperty(DEFAULT_MODEL_PROPERTY);
+    if (fromSys != null && !fromSys.trim().isEmpty()) {
+      return fromSys.trim();
+    }
+    String fromEnv = ENV_READER.apply(DEFAULT_MODEL_ENV_VAR);
+    if (fromEnv != null && !fromEnv.trim().isEmpty()) {
+      return fromEnv.trim();
+    }
+    return DEFAULT_MODEL;
+  }
 
   /** Default base URL for the OpenAI-compatible API endpoint. */
   public static final String DEFAULT_BASE_URL = "https://api.openai.com/v1";
