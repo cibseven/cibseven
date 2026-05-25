@@ -72,9 +72,6 @@ rem # Uncomment to run server in debug mode
 rem set "DEBUG_MODE=true"
 rem set "DEBUG_PORT=8787"
 
-rem # Uncomment this to run with a security manager enabled
-rem set "SECMGR=true"
-
 rem # Uncomment this out to control garbage collection logging
 rem set "GC_LOG=true"
 
