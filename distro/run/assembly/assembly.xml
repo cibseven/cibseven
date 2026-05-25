@@ -133,10 +133,28 @@
       <directory>../modules/oauth2/target/dependency/</directory>
       <outputDirectory>internal/oauth2/</outputDirectory>
     </fileSet>
+    <!-- ai-agent ships into userlib so it is always on the engine classpath
+         and registers via the cibseven-connect SPI without requiring an opt-in flag -->
+    <fileSet>
+      <directory>../modules/ai-agent/target/dependency/</directory>
+      <outputDirectory>configuration/userlib/</outputDirectory>
+    </fileSet>
     <!-- create empty resource folder -->
     <fileSet>
       <directory>resources/dummyResource</directory>
       <outputDirectory>configuration/resources/</outputDirectory>
+      <excludes>
+        <exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
+    <!-- user-contributed element templates: bundled connector templates ship
+         inside the connector JAR (loaded via classpath*:element-templates/*.json
+         in default.yml); this folder is where operators can drop their own
+         JSONs to be picked up by the modeler. It sits OUTSIDE configuration/resources/
+         so the engine auto-deploy scan does not try to deploy them. -->
+    <fileSet>
+      <directory>resources/dummyResource</directory>
+      <outputDirectory>configuration/element-templates/</outputDirectory>
       <excludes>
         <exclude>*/**</exclude>
       </excludes>

@@ -79,6 +79,17 @@ cibseven:
   webclient:
     modeler:
       enabled: true
+      templates:
+        paths:
+          # Bundled connector templates (e.g. ai-agent) ship inside their JAR under
+          # /element-templates/; classpath*: discovers every such file across all
+          # JARs on the engine classpath (userlib included).
+          - "classpath*:element-templates/*.json"
+          # Operator-supplied element templates: drop JSONs into
+          # configuration/element-templates/ (sibling of userlib/, deliberately
+          # outside configuration/resources/ so the engine auto-deploy scan
+          # does not pick them up as deployment resources).
+          - "file:configuration/element-templates/*.json"
     # Engine rest
     engineRest:
       url: http://localhost:8080
