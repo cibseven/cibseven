@@ -232,7 +232,7 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   @Override
   public String getModel() {
     String model = getRequestParameter(AgentConnector.PARAM_NAME_MODEL);
-    return (model != null) ? model : AgentConnectorConstants.DEFAULT_MODEL;
+    return (model != null) ? model : AgentConnectorConstants.resolveDefaultModel();
   }
 
   @Override

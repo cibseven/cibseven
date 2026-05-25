@@ -76,6 +76,19 @@ logging:
     root: INFO
 
 cibseven:
+  # AI Agent connector — operator-facing overrides.
+  #
+  # The connector reads JVM system properties (and environment-variable
+  # fallbacks), not YAML keys. To override the default LLM model used when
+  # the BPMN `model` input is omitted, set ONE of the following at startup:
+  #
+  #   JVM arg:  -Dcibseven.connect.ai-agent.defaultModel=<provider-model>
+  #   Env var:  CIBSEVEN_CONNECT_AI_AGENT_DEFAULT_MODEL=<provider-model>
+  #
+  # If neither is set, the connector falls back to the hard-coded default
+  # `gpt-5.4-nano`. See CIB7-1415 for the full list of override hooks
+  # (chat-log opt-out, content redaction, default model).
+
   webclient:
     modeler:
       enabled: true
