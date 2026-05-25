@@ -58,6 +58,29 @@ import dev.langchain4j.agent.tool.Tool;
  * {@link ProcessStarterToolContext}, populated by {@link AgentConnectorImpl}
  * from {@code IdentityService.getCurrentAuthentication()} at the start of the
  * connector invocation.
+ *
+ * <h3>Worst-case wait per call</h3>
+ * The LLM picks the {@code maxRetries} and {@code pollIntervalMillis}
+ * arguments, so without server-side clamping a single tool invocation could
+ * occupy a {@code JobExecutor} worker for an arbitrarily long time. To keep
+ * a single agent activity bounded, the values are hard-capped at
+ * {@value #MAX_RETRIES_CEILING} retries and {@value #MAX_POLL_INTERVAL_MILLIS_CEILING}
+ * ms per poll regardless of what the LLM passes (worst case ≈
+ * {@code MAX_RETRIES_CEILING × MAX_POLL_INTERVAL_MILLIS_CEILING} ms of
+ * {@code Thread.sleep} inside the connector — currently 100 s). The clamp is
+ * applied silently from the LLM's point of view; a DEBUG log is emitted on the
+ * server when the request exceeds either ceiling so operators can spot
+ * unusually long polls without flooding the audit stream.
+ *
+ * <h3>High-throughput deployments</h3>
+ * Even with the ceilings above, a tool call can monopolise a
+ * {@code JobExecutor} worker for up to ~{@code 100 s}. Deployments that need
+ * to keep agent activities off the engine's command-transaction critical
+ * path should model the BPMN such that the agent runs as an asynchronous
+ * service task (e.g. an external-task topic served by a dedicated worker
+ * pool) rather than a synchronous engine connector — at that point the
+ * blocking polling inside this tool no longer competes with regular process
+ * work for {@code JobExecutor} slots.
  */
 public class ProcessStarterTool {
 
@@ -68,6 +91,22 @@ public class ProcessStarterTool {
 
     /** Default delay between polls when the caller does not supply {@code pollIntervalMillis}. */
     static final long DEFAULT_POLL_INTERVAL_MILLIS = 2000L;
+
+    /**
+     * Hard upper bound for {@code maxRetries}. Values above the ceiling are
+     * clamped down so a single agent activity cannot occupy a
+     * {@code JobExecutor} worker for an arbitrary number of polls. See the
+     * class Javadoc for the worst-case bound.
+     */
+    static final int MAX_RETRIES_CEILING = 20;
+
+    /**
+     * Hard upper bound for {@code pollIntervalMillis}. Values above the
+     * ceiling are clamped down so a single poll cannot park the worker for
+     * an arbitrarily long {@code Thread.sleep}. See the class Javadoc for
+     * the worst-case bound.
+     */
+    static final long MAX_POLL_INTERVAL_MILLIS_CEILING = 5000L;
 
     /**
      * Dedicated executor for engine calls. A cached daemon-thread pool is used
@@ -95,18 +134,20 @@ public class ProcessStarterTool {
             + "'ended' (true once the process is no longer running), 'attempts' (number of polls "
             + "performed) and 'outputs' (process variables whose names start with the given "
             + "prefix). Use this tool when you need to start a process and react to its result; "
-            + "do not orchestrate your own polling loop on the LLM side.")
+            + "do not orchestrate your own polling loop on the LLM side. Server-side caps apply: "
+            + "maxRetries is clamped to 20 and pollIntervalMillis is clamped to 5000 ms regardless "
+            + "of the values you pass.")
     public Map<String, Object> runProcessByKey(
             @P("Process definition key (e.g. mcpProcess_hello)") String key,
             @P("Process variables to pass at start; may be empty") Map<String, Object> variables,
             @P("Prefix used to filter output variables (e.g. 'out_'); pass an empty string to return all variables") String outputPrefix,
             @P("Maximum number of polls to perform after starting the process before giving up. "
-                    + "Omit or pass null to use the default of 5 retries.") Integer maxRetries,
+                    + "Omit or pass null to use the default of 5 retries. Values above 20 are clamped to 20.") Integer maxRetries,
             @P("Milliseconds to wait between polls (e.g. 3000 for a 3-second interval). "
-                    + "Omit or pass null to use the default of 2000 ms.") Long pollIntervalMillis) {
+                    + "Omit or pass null to use the default of 2000 ms. Values above 5000 are clamped to 5000.") Long pollIntervalMillis) {
         String prefix = outputPrefix != null ? outputPrefix : "";
-        int retries = Math.max(0, maxRetries != null ? maxRetries : DEFAULT_MAX_RETRIES);
-        long interval = Math.max(0L, pollIntervalMillis != null ? pollIntervalMillis : DEFAULT_POLL_INTERVAL_MILLIS);
+        int retries = clampMaxRetries(maxRetries != null ? maxRetries : DEFAULT_MAX_RETRIES);
+        long interval = clampPollIntervalMillis(pollIntervalMillis != null ? pollIntervalMillis : DEFAULT_POLL_INTERVAL_MILLIS);
 
         LOG.debug("runProcessByKey: key='{}', retries={}, interval={}ms", key, retries, interval);
 
@@ -220,6 +261,33 @@ public class ProcessStarterTool {
             // Audit publishing must never break the tool itself.
             LOG.debug("Could not publish tool audit record: {}", e.toString());
         }
+    }
+
+    /**
+     * Clamps the requested retry budget into {@code [0, MAX_RETRIES_CEILING]}.
+     * Logs at DEBUG when the request is above the ceiling so operators can
+     * notice runaway LLM-supplied values without flooding the audit stream.
+     */
+    static int clampMaxRetries(int requested) {
+        if (requested > MAX_RETRIES_CEILING) {
+            LOG.debug("maxRetries={} exceeds ceiling, clamped to {}", requested, MAX_RETRIES_CEILING);
+            return MAX_RETRIES_CEILING;
+        }
+        return Math.max(0, requested);
+    }
+
+    /**
+     * Clamps the requested poll interval into {@code [0, MAX_POLL_INTERVAL_MILLIS_CEILING]}.
+     * Logs at DEBUG when the request is above the ceiling so operators can
+     * notice runaway LLM-supplied values without flooding the audit stream.
+     */
+    static long clampPollIntervalMillis(long requested) {
+        if (requested > MAX_POLL_INTERVAL_MILLIS_CEILING) {
+            LOG.debug("pollIntervalMillis={} exceeds ceiling, clamped to {}",
+                    requested, MAX_POLL_INTERVAL_MILLIS_CEILING);
+            return MAX_POLL_INTERVAL_MILLIS_CEILING;
+        }
+        return Math.max(0L, requested);
     }
 
     /**
