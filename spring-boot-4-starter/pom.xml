@@ -9,7 +9,7 @@
   </parent>
 
   <groupId>org.cibseven.bpm.springboot.project</groupId>
-  <artifactId>cibseven-bpm-spring-boot-4-starter-root</artifactId>
+  <artifactId>cibseven-bpm-spring-boot-starter-root-4</artifactId>
   <name>CIB seven - Spring Boot 4 Starter - Root Pom</name>
   <inceptionYear>2015</inceptionYear>
 
