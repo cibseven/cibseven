@@ -36,6 +36,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class HistoricActivityStatisticsPostQueryDto extends AbstractQueryDto<HistoricActivityStatisticsPostQuery> {
 
+  protected static final String SORT_ORDER_ACTIVITY_ID = "activityId";
+
   private String processInstanceId;
   private Set<String> processInstanceIds;
   private List<String> processInstanceIdNotIn;
@@ -532,16 +534,15 @@ public class HistoricActivityStatisticsPostQueryDto extends AbstractQueryDto<His
     }
   }
 
-// Sorting is not supported for this query
-
   @Override
   protected boolean isValidSortByValue(String value) {
-    return false;
+    return SORT_ORDER_ACTIVITY_ID.equals(value);
   }
 
-  @Override
-  protected void applySortBy(HistoricActivityStatisticsPostQuery query, String sortBy, Map<String, Object> parameters,
-      ProcessEngine engine) {
-        return;
+@Override
+  protected void applySortBy(HistoricActivityStatisticsPostQuery query, String sortBy, Map<String, Object> parameters, ProcessEngine engine) {
+    if (SORT_ORDER_ACTIVITY_ID.equals(sortBy)) {
+      query.orderByActivityId();
+    }
   }
 }

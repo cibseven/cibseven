@@ -1,3 +1,6 @@
+<#assign sortByValues = [
+  '"activityId"'
+]>
   <#assign listTypeDescription = "Must be a JSON array of `Strings`">
   <#assign variableDescription>A JSON array to only include process instances that have/had variables with certain values.
       The array consists of objects with the three properties `name`, `operator` and `value`. `name` (`String`) is the variable name,
