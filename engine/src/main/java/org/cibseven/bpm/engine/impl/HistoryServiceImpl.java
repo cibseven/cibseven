@@ -28,6 +28,7 @@ import org.cibseven.bpm.engine.history.CleanableHistoricDecisionInstanceReport;
 import org.cibseven.bpm.engine.history.CleanableHistoricProcessInstanceReport;
 import org.cibseven.bpm.engine.history.HistoricActivityInstanceQuery;
 import org.cibseven.bpm.engine.history.HistoricActivityStatisticsQuery;
+import org.cibseven.bpm.engine.history.HistoricActivityStatisticsPostQuery;
 import org.cibseven.bpm.engine.history.HistoricCaseActivityInstanceQuery;
 import org.cibseven.bpm.engine.history.HistoricCaseActivityStatisticsQuery;
 import org.cibseven.bpm.engine.history.HistoricCaseInstanceQuery;
@@ -96,6 +97,10 @@ public class HistoryServiceImpl extends ServiceImpl implements HistoryService {
 
   public HistoricActivityStatisticsQuery createHistoricActivityStatisticsQuery(String processDefinitionId) {
     return new HistoricActivityStatisticsQueryImpl(processDefinitionId, commandExecutor);
+  }
+
+  public HistoricActivityStatisticsPostQuery createHistoricActivityStatisticsPostQuery(String processDefinitionId) {
+    return new HistoricActivityStatisticsPostQueryImpl(processDefinitionId, commandExecutor);
   }
 
   public HistoricCaseActivityStatisticsQuery createHistoricCaseActivityStatisticsQuery(String caseDefinitionId) {

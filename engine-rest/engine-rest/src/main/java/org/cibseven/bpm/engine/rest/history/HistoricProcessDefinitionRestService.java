@@ -18,7 +18,9 @@ package org.cibseven.bpm.engine.rest.history;
 
 import java.util.List;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -30,6 +32,7 @@ import javax.ws.rs.core.UriInfo;
 import org.cibseven.bpm.engine.rest.dto.CountResultDto;
 import org.cibseven.bpm.engine.rest.dto.history.CleanableHistoricProcessInstanceReportResultDto;
 import org.cibseven.bpm.engine.rest.dto.history.HistoricActivityStatisticsDto;
+import org.cibseven.bpm.engine.rest.dto.history.HistoricActivityStatisticsPostQueryDto;
 
 /**
 *
@@ -46,6 +49,13 @@ public interface HistoricProcessDefinitionRestService {
   @Path("/{id}/statistics")
   @Produces(MediaType.APPLICATION_JSON)
   public List<HistoricActivityStatisticsDto> getHistoricActivityStatistics(@Context UriInfo uriInfo, @PathParam("id") String processDefinitionId);
+
+  @POST
+  @Path("/{id}/statistics")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<HistoricActivityStatisticsDto> queryHistoricActivityStatistics(@PathParam("id") String processDefinitionId,
+                                                                            HistoricActivityStatisticsPostQueryDto queryDto);
 
   @GET
   @Path("/cleanable-process-instance-report")

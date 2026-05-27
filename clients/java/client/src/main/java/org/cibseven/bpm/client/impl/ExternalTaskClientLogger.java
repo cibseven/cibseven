@@ -1,8 +1,8 @@
 /*
- * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH
+ * Copyright CIB software GmbH and/or licensed to CIB software GmbH
  * under one or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information regarding copyright
- * ownership. Camunda licenses this file to you under the Apache License,
+ * ownership. CIB software licenses this file to you under the Apache License,
  * Version 2.0; you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -250,6 +250,21 @@ public class ExternalTaskClientLogger extends BaseLogger {
   public ExternalTaskClientException passNullValueParameter(String parameterName) {
     return new ExternalTaskClientException(exceptionMessage(
         "030", "Null value is not allowed as '{}'", parameterName));
+  }
+
+  public ExternalTaskClientException oauth2TokenUriNullException() {
+    return new ExternalTaskClientException(exceptionMessage(
+      "032", "OAuth2 token URI cannot be null or empty"));
+  }
+
+  public ExternalTaskClientException oauth2ClientIdNullException() {
+    return new ExternalTaskClientException(exceptionMessage(
+      "033", "OAuth2 client ID cannot be null or empty"));
+  }
+
+  public ExternalTaskClientException oauth2TokenAcquisitionFailedException(Throwable cause) {
+    return new ExternalTaskClientException(exceptionMessage(
+      "034", "Failed to acquire OAuth2 access token from token endpoint"), cause);
   }
 
 }

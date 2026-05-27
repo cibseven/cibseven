@@ -97,6 +97,7 @@
         <module>modules/oauth2</module>
         <module>modules/example</module>
         <module>modules/webapps</module>
+        <module>modules/ai-agent</module>
         <module>core</module>
         <module>assembly</module>
         <module>qa</module>

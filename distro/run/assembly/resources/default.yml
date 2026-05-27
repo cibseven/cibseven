@@ -57,6 +57,8 @@ spring:
     show-sql: false
     hibernate:
       ddl-auto: none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
       id:
         new_generator_mappings: true
     properties:
@@ -76,9 +78,33 @@ logging:
     root: INFO
 
 cibseven:
+  # AI Agent connector — operator-facing overrides.
+  #
+  # The connector reads JVM system properties (and environment-variable
+  # fallbacks), not YAML keys. To override the default LLM model used when
+  # the BPMN `model` input is omitted, set ONE of the following at startup:
+  #
+  #   JVM arg:  -Dcibseven.connect.ai-agent.defaultModel=<provider-model>
+  #   Env var:  CIBSEVEN_CONNECT_AI_AGENT_DEFAULT_MODEL=<provider-model>
+  #
+  # If neither is set, the connector falls back to the hard-coded default
+  # `gpt-5.4-nano`. See CIB7-1415 for the full list of override hooks
+  # (chat-log opt-out, content redaction, default model).
+
   webclient:
     modeler:
       enabled: true
+      templates:
+        paths:
+          # Bundled connector templates (e.g. ai-agent) ship inside their JAR under
+          # /element-templates/; classpath*: discovers every such file across all
+          # JARs on the engine classpath (userlib included).
+          - "classpath*:element-templates/*.json"
+          # Operator-supplied element templates: drop JSONs into
+          # configuration/element-templates/ (sibling of userlib/, deliberately
+          # outside configuration/resources/ so the engine auto-deploy scan
+          # does not pick them up as deployment resources).
+          - "file:configuration/element-templates/*.json"
     # Engine rest
     engineRest:
       url: http://localhost:8080

@@ -64,6 +64,21 @@
       </exclusions>
     </dependency>
 
+    <!-- make sure this runs after the ai-agent module -->
+    <dependency>
+      <groupId>org.cibseven.bpm.run</groupId>
+      <artifactId>cibseven-bpm-run4-modules-ai-agent</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
+      <exclusions>
+        <!-- we don't need any transitive dependencies -->
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
     <dependency>
       <groupId>org.cibseven.bpm.run</groupId>
       <artifactId>cibseven-bpm-run4-modules-example-invoice</artifactId>
