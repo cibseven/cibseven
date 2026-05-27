@@ -16,25 +16,23 @@
  */
 package org.cibseven.bpm.identity.impl.scim;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Thread-safe cache for SCIM GET responses with TTL-based expiration and max size eviction.
  */
-public class ScimResponseCache {
+public class ScimSimpleCache<T> {
 
-  protected final ConcurrentHashMap<String, CacheEntry> cache = new ConcurrentHashMap<>();
+  protected final ConcurrentHashMap<String, CacheEntry<T>> cache = new ConcurrentHashMap<>();
   protected final int maxSize;
   protected final long expirationTimeoutMs;
 
-  protected static class CacheEntry {
-    final JsonNode response;
+  protected static class CacheEntry<T> {
+    final T value;
     final long createdAt;
 
-    CacheEntry(JsonNode response) {
-      this.response = response;
+    CacheEntry(T value) {
+      this.value = value;
       this.createdAt = System.currentTimeMillis();
     }
 
@@ -43,19 +41,19 @@ public class ScimResponseCache {
     }
   }
 
-  public ScimResponseCache(int maxSize, long expirationTimeoutMin) {
+  public ScimSimpleCache(int maxSize, long expirationTimeoutMin) {
     this.maxSize = maxSize;
     this.expirationTimeoutMs = expirationTimeoutMin * 60 * 1000;
   }
 
   /**
-   * Get a cached response by URL key. Returns null if not found or expired.
+   * Get a cached value by key. Returns null if not found or expired.
    */
-  public JsonNode get(String key) {
-    CacheEntry entry = cache.get(key);
+  public T get(String key) {
+    CacheEntry<T> entry = cache.get(key);
     if (entry != null) {
       if (!entry.isExpired(expirationTimeoutMs)) {
-        return entry.response;
+        return entry.value;
       }
       cache.remove(key);
     }
@@ -63,17 +61,17 @@ public class ScimResponseCache {
   }
 
   /**
-   * Cache a response for the given URL key.
+   * Put a value in cache.
    */
-  public void put(String key, JsonNode response) {
-    if (response == null) {
+  public void put(String key, T value) {
+    if (value == null) {
       return;
     }
     evictExpired();
     if (cache.size() >= maxSize) {
       evictOldest(cache.size() - maxSize + 1);
     }
-    cache.put(key, new CacheEntry(response));
+    cache.put(key, new CacheEntry<>(value));
   }
 
   /**

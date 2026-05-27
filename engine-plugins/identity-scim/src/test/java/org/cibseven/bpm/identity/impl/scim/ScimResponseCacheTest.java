@@ -32,7 +32,7 @@ public class ScimResponseCacheTest {
 
   @Test
   public void testPutAndGet() throws Exception {
-    ScimResponseCache cache = new ScimResponseCache(10, 5);
+    ScimSimpleCache<JsonNode> cache = new ScimSimpleCache<JsonNode>(10, 5);
     JsonNode node = mapper.readTree("{\"id\":\"123\"}");
     cache.put("http://example.com/Users?filter=test", node);
 
@@ -43,7 +43,7 @@ public class ScimResponseCacheTest {
 
   @Test
   public void testGetMissingKey() {
-    ScimResponseCache cache = new ScimResponseCache(10, 5);
+    ScimSimpleCache<JsonNode> cache = new ScimSimpleCache<JsonNode>(10, 5);
 
     JsonNode result = cache.get("http://example.com/Users?filter=test");
     assertThat(result).isNull();
@@ -51,7 +51,7 @@ public class ScimResponseCacheTest {
 
   @Test
   public void testNullValueNotCached() {
-    ScimResponseCache cache = new ScimResponseCache(10, 5);
+    ScimSimpleCache<JsonNode> cache = new ScimSimpleCache<JsonNode>(10, 5);
     cache.put("http://example.com/Users?filter=test", null);
 
     assertThat(cache.size()).isEqualTo(0);
@@ -59,7 +59,7 @@ public class ScimResponseCacheTest {
 
   @Test
   public void testMaxSizeEviction() throws Exception {
-    ScimResponseCache cache = new ScimResponseCache(3, 5);
+    ScimSimpleCache<JsonNode> cache = new ScimSimpleCache<JsonNode>(3, 5);
 
     cache.put("key1", mapper.readTree("{\"id\":\"1\"}"));
     cache.put("key2", mapper.readTree("{\"id\":\"2\"}"));
@@ -75,7 +75,7 @@ public class ScimResponseCacheTest {
 
   @Test
   public void testInvalidateAll() throws Exception {
-    ScimResponseCache cache = new ScimResponseCache(10, 5);
+    ScimSimpleCache<JsonNode> cache = new ScimSimpleCache<JsonNode>(10, 5);
 
     cache.put("key1", mapper.readTree("{\"id\":\"1\"}"));
     cache.put("key2", mapper.readTree("{\"id\":\"2\"}"));
@@ -87,7 +87,7 @@ public class ScimResponseCacheTest {
   @Test
   public void testExpirationEviction() throws Exception {
     // Cache with 0 minute expiration (immediate expiry)
-    ScimResponseCache cache = new ScimResponseCache(10, 0);
+    ScimSimpleCache<JsonNode> cache = new ScimSimpleCache<JsonNode>(10, 0);
 
     cache.put("key1", mapper.readTree("{\"id\":\"1\"}"));
 

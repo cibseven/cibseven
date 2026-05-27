@@ -38,6 +38,7 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.ParseException;
 import org.cibseven.bpm.engine.impl.identity.IdentityProviderException;
+import org.cibseven.bpm.identity.impl.scim.ScimClient.HttpMethod;
 import org.cibseven.bpm.identity.impl.scim.util.ScimPluginLogger;
 
 import javax.net.ssl.SSLContext;
@@ -63,17 +64,17 @@ public class ScimClient {
   protected CloseableHttpClient httpClient;
   protected ScimOAuth2TokenStore oauth2TokenStore;
   protected enum HttpMethod {GET, POST, PUT, PATCH, DEL};
-  protected ScimResponseCache responseCache;
+  protected ScimSimpleCache<JsonNode> responseCache;
 
   public ScimClient(ScimConfiguration configuration) {
     this(configuration, null, null);
   }
 
-  public ScimClient(ScimConfiguration configuration, ScimResponseCache responseCache) {
+  public ScimClient(ScimConfiguration configuration, ScimSimpleCache<JsonNode> responseCache) {
     this(configuration, responseCache, null);
   }
 
-  public ScimClient(ScimConfiguration configuration, ScimResponseCache responseCache, ScimOAuth2TokenStore oauth2TokenStore) {
+  public ScimClient(ScimConfiguration configuration, ScimSimpleCache<JsonNode> responseCache, ScimOAuth2TokenStore oauth2TokenStore) {
     this.configuration = configuration;
     this.objectMapper = new ObjectMapper();
     this.responseCache = responseCache;
@@ -414,6 +415,46 @@ public class ScimClient {
     } catch (IOException | ParseException e) {
       ScimPluginLogger.INSTANCE.httpClientException("OAuth2 token refresh", e);
       throw new IdentityProviderException("OAuth2 token refresh failed", e);
+    }
+  }
+  
+  @SuppressWarnings("deprecation")
+  protected boolean checkUserPasswordWithOidc(String userName, String password) {
+    String url = configuration.getUserAuthenticationUrl();
+    if (url == null || url.isEmpty()) {
+      throw new IdentityProviderException("User authentication URL not configured");
+    }
+
+    boolean verbose = configuration.isVerbose();
+    ScimPluginLogger.INSTANCE.userAuthenticationRequest(verbose, "OIDC", url, userName);
+
+    // Actually not a refresh process, but a request for a new access token (server-to-server auth)
+    HttpPost request = new HttpPost(url);
+    request.setHeader("Content-Type", "application/x-www-form-urlencoded");
+
+    StringBuilder body = new StringBuilder();
+    body.append("grant_type=password");
+    body.append("&client_id=").append(encodeUrlParameter(configuration.getOauth2ClientId()));
+    body.append("&client_secret=").append(encodeUrlParameter(configuration.getOauth2ClientSecret()));
+    body.append("&username=").append(userName);
+    body.append("&password=").append(encodeUrlParameter(password));
+
+    request.setEntity(new StringEntity(body.toString(), StandardCharsets.UTF_8));
+
+    try (CloseableHttpResponse response = httpClient.execute(request)) {
+      int statusCode = response.getCode();
+      String responseBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+      ScimPluginLogger.INSTANCE.userAuthenticationResponse(verbose, "OIDC", userName, statusCode);
+
+      if (statusCode == 200) {
+        return true;
+      } else {
+        ScimPluginLogger.INSTANCE.authenticationFailure("User authentication failed with status: " + statusCode);
+        return false;
+      }
+    } catch (IOException | ParseException e) {
+      ScimPluginLogger.INSTANCE.httpClientException("User authentication with OIDC failed", e);
+      throw new IdentityProviderException("User authentication failed", e);
     }
   }
 

@@ -36,9 +36,14 @@ import org.cibseven.bpm.engine.impl.QueryOrderingProperty;
 import org.cibseven.bpm.engine.impl.UserQueryProperty;
 import org.cibseven.bpm.engine.impl.identity.ReadOnlyIdentityProvider;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
+import org.cibseven.bpm.identity.impl.scim.ScimClient.HttpMethod;
 import org.cibseven.bpm.identity.impl.scim.util.ScimPluginLogger;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 import static org.cibseven.bpm.engine.authorization.Permissions.READ;
@@ -53,18 +58,22 @@ import static org.cibseven.bpm.engine.impl.context.Context.getProcessEngineConfi
 public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
 
   protected ScimConfiguration scimConfiguration;
+  protected ScimSimpleCache<String> userCache;
   protected ScimClient scimClient;
-
+  
   public ScimIdentityProviderReadOnly(ScimConfiguration scimConfiguration) {
-    this(scimConfiguration, null, null);
+    this(scimConfiguration, null, null, null);
   }
 
-  public ScimIdentityProviderReadOnly(ScimConfiguration scimConfiguration, ScimResponseCache responseCache) {
-    this(scimConfiguration, responseCache, null);
+  public ScimIdentityProviderReadOnly(ScimConfiguration scimConfiguration, ScimSimpleCache<JsonNode> responseCache, 
+      ScimSimpleCache<String> userCache) {
+    this(scimConfiguration, responseCache, userCache, null);
   }
 
-  public ScimIdentityProviderReadOnly(ScimConfiguration scimConfiguration, ScimResponseCache responseCache, ScimOAuth2TokenStore oauth2TokenStore) {
+  public ScimIdentityProviderReadOnly(ScimConfiguration scimConfiguration, ScimSimpleCache<JsonNode> responseCache, 
+      ScimSimpleCache<String> userCache, ScimOAuth2TokenStore oauth2TokenStore) {
     this.scimConfiguration = scimConfiguration;
+    this.userCache = userCache;
     this.scimClient = new ScimClient(scimConfiguration, responseCache, oauth2TokenStore);
   }
 
@@ -579,42 +588,55 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
     return null;
   }
 
-  // Password check (not supported for SCIM)
+  // Password check
 
   @Override
   public boolean checkPassword(String userId, String password) {
-    // TODO: need clarification !!!!!
-    // SCIM is a provisioning protocol, not an authentication protocol
-    // Authentication is optionally supported by a SCIM service extension
-    // with using POST on the search sub-endpoint: /Users/.search.
-    // For now, optionally use this SCIM extension.
+
+    ScimPluginLogger.INSTANCE.userAuthentication(scimConfiguration.isVerbose(), userId);
+
+    // check if it is already cached
+    try {
+      if (userCache != null) {
+        String cached = userCache.get(userId);
+        if (cached != null && cached.equals(getSHA256Base64(userId + password))) {
+          return true;
+        }
+      }
+    } catch(NoSuchAlgorithmException e) {
+      ScimPluginLogger.INSTANCE.userCacheUnavailable();
+    }
+
+    // authenticate an user 
     boolean result = false;
     try {
-      if (scimConfiguration.getScimAuthenticationEnabled() ) {
-        String url = scimConfiguration.getServerUrl() + scimConfiguration.getUsersEndpoint() + "/.search";
-        String userIdAttrib = scimConfiguration.getUserIdAttribute();
-        String filter = userIdAttrib + " eq \"" + escapeScimFilter(userId) + "\" and password eq \"" + escapeScimFilter(password) + "\"";
- 
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode root = mapper.createObjectNode();
-        ArrayNode schemas = mapper.createArrayNode().add("urn:ietf:params:scim:api:messages:2.0:SearchRequest");
-        root.set("schemas", schemas);
-        root.put("filter", filter);
-        
-        JsonNode response = scimClient.executePost(url, root);
-        result = (response != null && response.has("Resources") && response.get("Resources").size() == 1);
-      } else { // scim authentication is disabled: simply check that the user really exists
+      if (!scimConfiguration.getUserAuthenticationEnabled()) {
+        // user authentication is disabled: simply check that the user really exists
         ScimUserEntity scimUser = (ScimUserEntity) findUserById(userId);
         result = scimUser != null && scimUser.getScimId() != null;
+      } else if ("oidc".equalsIgnoreCase(scimConfiguration.getUserAuthenticationProtocol())) {
+        result = scimClient.checkUserPasswordWithOidc(userId, password);
+      } else {
+        throw new Exception("User authentication protocol is not set or not supported.");
       }
     } catch(Exception e) {
       ScimPluginLogger.INSTANCE.httpClientException("authentication request", e);
     }
+
+    // try to securely cache the successful authentication
+    try {
+      if (userCache != null && result == true) {
+        userCache.put(userId, getSHA256Base64(userId + password));
+      }
+    } catch(NoSuchAlgorithmException e) {
+      ScimPluginLogger.INSTANCE.userCacheUnavailable();
+    }
+
     return result;
   }
 
   // Utility methods  
-  
+
   protected boolean isAuthenticatedAndAuthorizedToRead(String userId) {
     return isAuthenticatedUser(userId) || isAuthorizedToRead(USER, userId);
   }
@@ -680,5 +702,11 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
     }
     // Escape special characters in SCIM filter values
     return value.replace("\\", "\\\\").replace("\"", "\\\"");
+  }
+
+  protected String getSHA256Base64(String input) throws NoSuchAlgorithmException {
+    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+    byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+    return Base64.getEncoder().encodeToString(hash);
   }
 }

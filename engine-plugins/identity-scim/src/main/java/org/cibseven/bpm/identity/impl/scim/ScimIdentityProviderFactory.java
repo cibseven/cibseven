@@ -20,14 +20,15 @@ import org.cibseven.bpm.engine.impl.identity.ReadOnlyIdentityProvider;
 import org.cibseven.bpm.engine.impl.identity.WritableIdentityProvider;
 import org.cibseven.bpm.engine.impl.interceptor.Session;
 import org.cibseven.bpm.engine.impl.interceptor.SessionFactory;
-
+import com.fasterxml.jackson.databind.JsonNode;
 /**
  * Factory for SCIM Identity Provider Sessions.
  */
 public class ScimIdentityProviderFactory implements SessionFactory {
 
   protected ScimConfiguration scimConfiguration;
-  protected ScimResponseCache responseCache;
+  protected ScimSimpleCache<JsonNode> responseCache;
+  protected ScimSimpleCache<String> userCache;
   protected ScimOAuth2TokenStore oauth2TokenStore;
 
   @Override
@@ -42,9 +43,9 @@ public class ScimIdentityProviderFactory implements SessionFactory {
   @Override
   public Session openSession() {
     if (scimConfiguration != null && scimConfiguration.getAllowModifications()) {
-      return new ScimIdentityProviderWritable(scimConfiguration, getResponseCache(), getOAuth2TokenStore());
+      return new ScimIdentityProviderWritable(scimConfiguration, getResponseCache(), getUserCache(), getOAuth2TokenStore());
     } else {
-      return new ScimIdentityProviderReadOnly(scimConfiguration, getResponseCache(), getOAuth2TokenStore());
+      return new ScimIdentityProviderReadOnly(scimConfiguration, getResponseCache(), getUserCache(), getOAuth2TokenStore());
     }
   }
 
@@ -56,14 +57,26 @@ public class ScimIdentityProviderFactory implements SessionFactory {
     this.scimConfiguration = scimConfiguration;
   }
 
-  protected ScimResponseCache getResponseCache() {
+  protected ScimSimpleCache<JsonNode> getResponseCache() {
     if (scimConfiguration != null && scimConfiguration.isCacheEnabled()) {
       if (responseCache == null) {
-        responseCache = new ScimResponseCache(
+        responseCache = new ScimSimpleCache<JsonNode>(
             scimConfiguration.getMaxCacheSize(),
             scimConfiguration.getCacheExpirationTimeoutMin());
       }
       return responseCache;
+    }
+    return null;
+  }
+
+  protected ScimSimpleCache<String> getUserCache() {
+    if (scimConfiguration != null && scimConfiguration.isCacheEnabled()) {
+      if (userCache == null) {
+        userCache = new ScimSimpleCache<String>(
+            scimConfiguration.getMaxCacheSize(),
+            scimConfiguration.getCacheExpirationTimeoutMin());
+      }
+      return userCache;
     }
     return null;
   }

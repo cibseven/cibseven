@@ -67,7 +67,7 @@ public class ScimPluginLogger extends BaseLogger {
   public void authenticationFailure(String message) {
     logError("009", "SCIM authentication failure: {}", message);
   }
- 
+
   public void httpClientRequest(boolean verbose, String method, String url, String body) {
     if (verbose) {
       logInfo("010", ">>>>>>> ScimClient {}: {} => body: {}", method, url, (body != null ? body : "empty"));
@@ -82,5 +82,34 @@ public class ScimPluginLogger extends BaseLogger {
     } else {
       logDebug("011", "<<<<<<< ScimClient {}: status code {}", method, code);
     }
+  }
+
+  public void userAuthentication(boolean verbose, String userName) {
+    if (verbose) {
+      logInfo("012", "SCIM authenticate user {}", userName);
+    } else {
+      logDebug("012", "SCIM authenticate user {}", userName);
+    }
+  }
+
+  public void userAuthenticationRequest(boolean verbose, String protocol, String url, String userName) {
+    if (verbose) {
+      logInfo("013", ">>>>>>> ScimClient {}: {} => user: {}", protocol, url, userName);
+    } else {
+      logDebug("013", ">>>>>>> ScimClient {}: {} => user: {}", protocol, url, userName);
+    }
+  }
+
+  public void userAuthenticationResponse(boolean verbose, String protocol, String userName, int code) {
+    if (verbose) {
+      logInfo("014", "<<<<<<< ScimClient {}: user {} status code {}", protocol, userName, code);
+    } else {
+      logDebug("014", "<<<<<<< ScimClient {}: user {} status code {}", protocol, userName, code);
+    }
+  }
+
+
+  public void userCacheUnavailable() {
+    logWarn("015", "SCIM can't cache authenticated user");
   }
 }

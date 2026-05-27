@@ -28,7 +28,7 @@ public class ScimConfiguration {
   protected String serverUrl;
   protected String scimVersion = "2.0";
   
-  // Authentication settings
+  // Authentication settings for the SCIM2 plugin (SCIM2 client)
   protected String authenticationType = "bearer"; // bearer, basic, oauth2
   protected String bearerToken;
   protected String username;
@@ -37,7 +37,11 @@ public class ScimConfiguration {
   protected String oauth2ClientId;
   protected String oauth2ClientSecret;
   protected String oauth2Scope;
-  protected boolean scimAuthenticationEnabled = false;
+
+  // Authentication settings for authenticating users
+  protected boolean userAuthenticationEnabled = true;
+  protected String userAuthenticationProtocol = "oidc";
+  protected String userAuthenticationUrl;
   
   // Endpoint configuration
   protected String usersEndpoint = "/Users";
@@ -171,13 +175,29 @@ public class ScimConfiguration {
   public void setOauth2Scope(String oauth2Scope) {
     this.oauth2Scope = oauth2Scope;
   }
- 
-  public boolean getScimAuthenticationEnabled() {
-    return scimAuthenticationEnabled;
+
+  public boolean getUserAuthenticationEnabled() {
+    return userAuthenticationEnabled;
   }
 
-  public void setScimAuthenticationEnabled(boolean scimAuthenticationEnabled) {
-   this.scimAuthenticationEnabled = scimAuthenticationEnabled;
+  public void setUserAuthenticationEnabled(boolean userAuthenticationEnabled) {
+   this.userAuthenticationEnabled = userAuthenticationEnabled;
+  }
+ 
+  public String getUserAuthenticationProtocol() {
+    return userAuthenticationProtocol;
+  }
+
+  public void setUserAuthenticationProtocol(String userAuthenticationProtocol) {
+   this.userAuthenticationProtocol = userAuthenticationProtocol;
+  }
+  
+  public String getUserAuthenticationUrl() {
+    return userAuthenticationUrl;
+  }
+
+  public void setUserAuthenticationUrl(String userAuthenticationUrl) {
+   this.userAuthenticationUrl = userAuthenticationUrl;
   }
 
   public String getUsersEndpoint() {
