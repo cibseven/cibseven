@@ -74,8 +74,10 @@ public class ProcessEngineAuthenticationFilter implements Filter {
     Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/setup/user/create$"),
     Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/identity/verify$"),
     Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/identity/password-policy$"),
-Pattern.compile("^/setup/status$"),
-Pattern.compile("^/setup/user/create$"),
+    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/configuration$"),
+    Pattern.compile("^/configuration$"),
+    Pattern.compile("^/setup/status$"),
+    Pattern.compile("^/setup/user/create$"),
     Pattern.compile("^/identity/verify$"),
     Pattern.compile("^/identity/password-policy$")
   };
