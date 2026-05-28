@@ -4,7 +4,18 @@
 
     <#assign requestMethod="POST"/>
     <#include "/lib/commons/history-process-definition-activity-statistics-params.ftl" >
-    <@lib.properties object=params last=true />
+    <@lib.properties params/>
+
+    "sorting": {
+      "type": "array",
+      "nullable": true,
+      "description": "Apply sorting of the result",
+      "items":
+
+        <#assign last = true >
+        <#include "/lib/commons/sort-props.ftl" >
+
+    }
 
 </@lib.dto>
 </#macro>

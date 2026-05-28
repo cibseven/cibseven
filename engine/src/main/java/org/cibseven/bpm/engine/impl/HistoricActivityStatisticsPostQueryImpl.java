@@ -941,4 +941,8 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
     return isOrQueryActive;
   }
 
+  public HistoricActivityStatisticsPostQuery orderByActivityId() {
+    return orderBy(HistoricActivityStatisticsQueryProperty.ACTIVITY_ID_);
+  }
+
 }

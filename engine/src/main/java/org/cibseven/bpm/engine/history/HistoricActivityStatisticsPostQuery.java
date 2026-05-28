@@ -256,4 +256,9 @@ public interface HistoricActivityStatisticsPostQuery extends Query<HistoricActiv
    */
   HistoricActivityStatisticsPostQuery matchVariableValuesIgnoreCase();
 
+  /**
+   * Order by Activity ID (needs to be followed by {@link #asc()} or {@link #desc()})
+   */
+  HistoricActivityStatisticsPostQuery orderByActivityId();
+
 }

@@ -66,12 +66,14 @@
 
   <select id ="selectHistoricActivityStatisticsFull" resultMap="historicActivityStatisticsResultMap" 
     parameterType="org.cibseven.bpm.engine.impl.HistoricActivityStatisticsPostQueryImpl">
+    <include refid="org.cibseven.bpm.engine.impl.persistence.entity.Commons.bindOrderBy"/>
       WITH filtered_pi AS (
         SELECT DISTINCT SELF.PROC_INST_ID_
         <include refid="org.cibseven.bpm.engine.impl.persistence.entity.HistoricProcessInstanceEntity.historicProcessInstancesByQueryCriteriaFiltering"/>
       )
       select RES.*
       <include refid="selectHistoricActivityStatisticsByInstanceQueryCriteriaSql"/>
+      ${orderBy}
   </select>
 
   <select id ="selectHistoricActivityStatisticsFullCount" resultType="long" 
