@@ -16,8 +16,10 @@
  */
 package org.cibseven.bpm.identity.impl.scim;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.apache.hc.client5.http.classic.methods.HttpDelete;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -301,7 +303,8 @@ public class ScimClient {
     }
     
     boolean verbose = configuration.isVerbose();
-    ScimPluginLogger.INSTANCE.httpClientRequest(verbose, method.toString(), url, body != null ? body.toString() : "");
+    boolean hideBody = (method == HttpMethod.POST && url.endsWith(".search"));
+    ScimPluginLogger.INSTANCE.httpClientRequest(verbose, method.toString(), url, body != null ? body.toString() : "", hideBody);
 
     try (CloseableHttpResponse response = httpClient.execute(request)) {
       int statusCode = response.getCode();
@@ -409,7 +412,7 @@ public class ScimClient {
         oauth2TokenStore.setToken(accessToken);
         oauth2TokenStore.setExpiryTime(expiryTime);
       } else {
-        ScimPluginLogger.INSTANCE.authenticationFailure("OAuth2 token request failed with status: " + statusCode);
+        ScimPluginLogger.INSTANCE.authenticationFailure("OAuth2 token request failed with status: " + statusCode + ", response: " + responseBody);
         throw new IdentityProviderException("OAuth2 token request failed");
       }
     } catch (IOException | ParseException e) {
@@ -449,7 +452,7 @@ public class ScimClient {
       if (statusCode == 200) {
         return true;
       } else {
-        ScimPluginLogger.INSTANCE.authenticationFailure("User authentication failed with status: " + statusCode);
+        ScimPluginLogger.INSTANCE.authenticationFailure("User authentication failed with status: " + statusCode + ", response: " + responseBody );
         return false;
       }
     } catch (IOException | ParseException e) {
@@ -458,6 +461,25 @@ public class ScimClient {
     }
   }
 
+  protected boolean checkUserWithSearchFilter(String userId, String filter) {
+    String url = configuration.getServerUrl() + configuration.getUsersEndpoint() + "/.search";
+ 
+    boolean verbose = configuration.isVerbose();
+    ScimPluginLogger.INSTANCE.userAuthenticationRequest(verbose, "SCIM", url, userId);
+
+    ObjectMapper mapper = new ObjectMapper();
+    ObjectNode root = mapper.createObjectNode();
+    ArrayNode schemas = mapper.createArrayNode().add("urn:ietf:params:scim:api:messages:2.0:SearchRequest");
+    root.set("schemas", schemas);
+    root.put("filter", filter);
+
+    JsonNode response = executeHttpRequest(HttpMethod.POST, url, root, false);
+    boolean result = (response != null && response.has("Resources") && response.get("Resources").size() == 1);
+    ScimPluginLogger.INSTANCE.userAuthenticationResponse(verbose, "SCIM", userId, result ? 200 : 401);
+    
+    return result;
+  }
+  
   protected String encodeUrlParameter(String param) {
     if (param == null) {
       return "";

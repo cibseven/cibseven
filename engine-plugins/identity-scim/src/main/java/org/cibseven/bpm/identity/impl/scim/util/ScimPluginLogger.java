@@ -68,7 +68,8 @@ public class ScimPluginLogger extends BaseLogger {
     logError("009", "SCIM authentication failure: {}", message);
   }
 
-  public void httpClientRequest(boolean verbose, String method, String url, String body) {
+  public void httpClientRequest(boolean verbose, String method, String url, String body, boolean hideBody) {
+    body = (body == null) ? "empty" : (hideBody == true) ? "***" : body;
     if (verbose) {
       logInfo("010", ">>>>>>> ScimClient {}: {} => body: {}", method, url, (body != null ? body : "empty"));
     } else {

@@ -482,7 +482,12 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
     if (query.getUserId() != null) {
       ScimUserEntity scimUser = (ScimUserEntity)findUserById(query.getUserId());
       String skimUserId = scimUser != null ? scimUser.getScimId() : "";
-      filters.add("members[value eq \"" + escapeScimFilter(skimUserId) + "\"]");
+      if (!skimUserId.isEmpty()) {
+        filters.add("members[value eq \"" + escapeScimFilter(skimUserId) + "\"]");
+      }
+      else { // should return empty list
+        filters.add("members[value eq \"0\"] and members[value eq \"1\"]");
+      }
     }
 
     return filters.isEmpty() ? null : String.join(" and ", filters);
@@ -614,6 +619,10 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
         // user authentication is disabled: simply check that the user really exists
         ScimUserEntity scimUser = (ScimUserEntity) findUserById(userId);
         result = scimUser != null && scimUser.getScimId() != null;
+      } else if ("scim".equalsIgnoreCase(scimConfiguration.getUserAuthenticationProtocol())) {
+        String userIdAttrib = scimConfiguration.getUserIdAttribute();
+        String filter = userIdAttrib + " eq \"" + escapeScimFilter(userId) + "\" and password eq \"" + escapeScimFilter(password) + "\"";
+        result = scimClient.checkUserWithSearchFilter(userId, filter);
       } else if ("oidc".equalsIgnoreCase(scimConfiguration.getUserAuthenticationProtocol())) {
         result = scimClient.checkUserPasswordWithOidc(userId, password);
       } else {
