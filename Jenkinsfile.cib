@@ -265,7 +265,8 @@ pipeline {
                         //script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
                         //script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat10,h2,engine-integration-jakarta" }}
                         script { 
-                            withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,engine-integration-jakarta" }
+                            withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,engine-integration-jakarta -fae" }
+                            archiveArtifacts artifacts: '**/standalone/log/server.log', allowEmptyArchive: true
                             sh "mkdir ./qa/integration-tests-engine-jakarta/target/integration-surefire; mv ./qa/integration-tests-engine-jakarta/target/surefire-reports qa/integration-tests-engine-jakarta/target/integration-surefire/"
                             zip zipFile: 'integration-surefire.zip', archive: true, overwrite: true, dir: 'qa/integration-tests-engine-jakarta/target/integration-surefire'
                             archiveArtifacts artifacts: 'integration-surefire.zip', fingerprint: true
