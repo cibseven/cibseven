@@ -121,6 +121,26 @@
     </dependencySet>
   </dependencySets>
 
+  <fileSets>
+    <!-- ai-agent connector overlay: the cibseven-tomcat-ai-agent module collects the
+         ai-agent connector + its LangChain4j/ONNX/pdfbox transitive jars into
+         target/dependency/. Dropping them into Tomcat's lib makes the connector
+         active by default (auto-loaded by the common classloader, registered via
+         the cibseven-connect SPI). It is shipped as a separable set so operators
+         who don't want AI can delete these jars and restore the non-invasive
+         behaviour described in CIB7-1299.
+
+         Only placed in server/apache-tomcat-*/lib — the actual runtime classpath
+         for both the standalone start-cibseven.sh (CATALINA_HOME=server/...) and
+         the docker image (which extracts only the server/ subtree). The root lib/
+         is a packaging artifact that nothing loads at runtime, so the heavy
+         (~200 MB) overlay is deliberately NOT duplicated there. -->
+    <fileSet>
+      <directory>../ai-agent/target/dependency/</directory>
+      <outputDirectory>server/apache-tomcat-${version.tomcat}/lib</outputDirectory>
+    </fileSet>
+  </fileSets>
+
   <files>
     <file>
       <source>src/README.txt</source>
@@ -176,6 +196,14 @@
     <file>
       <source>src/conf/Catalina/localhost/webapp.xml</source>
       <outputDirectory>server/apache-tomcat-${version.tomcat}/conf/Catalina/localhost/</outputDirectory>
+    </file>
+
+    <!-- empty directory operators drop their own element-template JSONs into;
+         referenced by the cibseven.webclient.modeler.templates.paths file: entry
+         in conf/Catalina/localhost/webapp.xml -->
+    <file>
+      <source>src/conf/element-templates/.gitkeep</source>
+      <outputDirectory>server/apache-tomcat-${version.tomcat}/conf/element-templates/</outputDirectory>
     </file>
       
     <file>
