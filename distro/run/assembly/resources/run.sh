@@ -15,6 +15,7 @@ OPTIONS_HELP="Options:
   --rest       - Enables the REST API
   --example    - Enables the example application
   --production - Applies the production.yaml configuration file
+  --ai         - Enables the AI Agent connector (on by default; off under --production unless set)
   --detached   - Starts CIB seven Run as a detached process
 "
 
@@ -23,6 +24,7 @@ optionalComponentChosen=false
 restChosen=false
 productionChosen=false
 detachProcess=false
+aiAgentChosen=false
 classPath=$PARENTDIR/configuration/userlib/,$PARENTDIR/configuration/keystore/
 configuration=$PARENTDIR/configuration/default.yml
 
@@ -94,6 +96,9 @@ if [ "$1" = "start" ] ; then
       --production ) configuration=$PARENTDIR/configuration/production.yml
                      productionChosen=true
                      ;;
+      # the AI agent flag is orthogonal to the optional components above
+      --ai | --ai-agent | --agent ) aiAgentChosen=true
+                     ;;
       # the background flag shouldn't influence the optional component flags
       --detached )   detachProcess=true
                      echo CIB seven Run will start in the background. Use the shutdown.sh script to stop it
@@ -120,6 +125,28 @@ if [ "$1" = "start" ] ; then
       classPath=$EXAMPLE_PATH,$classPath
     fi
     classPath=$WEBAPPS_PATH,$REST_PATH,$classPath
+  fi
+
+  # AI Agent connector: shipped separately in configuration/userlib-ai/ and only
+  # added to the classpath when enabled. Enabled by default in default/dev mode,
+  # disabled under --production unless re-enabled with --ai / --agent. The
+  # AI_AGENT_ENABLED environment variable (true/false) overrides the above and is
+  # the control surface used by the docker image.
+  aiAgentEnabled=true
+  if [ "$productionChosen" = "true" ]; then
+    aiAgentEnabled=false
+  fi
+  if [ "$aiAgentChosen" = "true" ]; then
+    aiAgentEnabled=true
+  fi
+  if [ "x$AI_AGENT_ENABLED" != "x" ]; then
+    aiAgentEnabled=$AI_AGENT_ENABLED
+  fi
+  if [ "$aiAgentEnabled" = "true" ]; then
+    classPath=$PARENTDIR/configuration/userlib-ai/,$classPath
+    echo AI Agent connector enabled
+  else
+    echo AI Agent connector disabled
   fi
 
   echo classpath: $classPath

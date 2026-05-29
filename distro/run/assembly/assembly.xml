@@ -133,11 +133,13 @@
       <directory>../modules/oauth2/target/dependency/</directory>
       <outputDirectory>internal/oauth2/</outputDirectory>
     </fileSet>
-    <!-- ai-agent ships into userlib so it is always on the engine classpath
-         and registers via the cibseven-connect SPI without requiring an opt-in flag -->
+    <!-- ai-agent ships into a dedicated userlib-ai/ folder (NOT the always-on
+         userlib/). run.sh adds it to the loader path only when the AI agent is
+         enabled: on by default in default/dev mode, off in production mode unless
+         the ai/agent flag or the AI_AGENT_ENABLED env var is set (CIB7-1447). -->
     <fileSet>
       <directory>../modules/ai-agent/target/dependency/</directory>
-      <outputDirectory>configuration/userlib/</outputDirectory>
+      <outputDirectory>configuration/userlib-ai/</outputDirectory>
     </fileSet>
     <!-- create empty resource folder -->
     <fileSet>

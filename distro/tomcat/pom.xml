@@ -33,6 +33,7 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <modules>
+        <module>ai-agent</module>
         <module>assembly</module>
         <module>distro</module>
         <module>webapp-jakarta</module>

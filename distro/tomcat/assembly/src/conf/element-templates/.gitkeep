@@ -1,0 +1,4 @@
+# Drop custom CIB seven modeler element-template JSON files into this directory.
+# They are discovered via cibseven.webclient.modeler.templates.paths
+# (file:${catalina.base}/conf/element-templates/*.json). This placeholder file
+# keeps the otherwise-empty directory under version control and in the distro.

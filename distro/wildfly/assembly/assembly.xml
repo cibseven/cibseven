@@ -70,6 +70,14 @@
       <directory>../modules/target/modules</directory>
       <outputDirectory>server/wildfly-${version.wildfly}/modules</outputDirectory>
     </fileSet>
+    <!-- ai-agent element-templates (extracted from the connector jar by the
+         dependency-plugin unpack in pom.xml): shipped to the standalone config
+         dir so the modeler discovers them via the file: path in
+         application-wildfly.yaml, independent of cross-module classpath*: scanning. -->
+    <fileSet>
+      <directory>target/ai-agent-templates/element-templates</directory>
+      <outputDirectory>server/wildfly-${version.wildfly}/standalone/configuration/element-templates</outputDirectory>
+    </fileSet>
   </fileSets>
   <files>
     <file>

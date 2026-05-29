@@ -66,6 +66,7 @@ SET optionalComponentChosen=false
 SET restChosen=false
 SET productionChosen=false
 SET detachProcess=false
+SET aiAgentChosen=false
 SET classPath=%PARENTDIR%configuration\userlib,%PARENTDIR%configuration\keystore
 SET configuration=%PARENTDIR%configuration\default.yml
 SET webclientProperties=%PARENTDIR%configuration\userlib\cibseven-webclient.properties
@@ -126,6 +127,10 @@ IF [%~1]==[--production] (
   SET configuration=%PARENTDIR%configuration\production.yml
 )
 
+IF [%~1]==[--ai] SET aiAgentChosen=true
+IF [%~1]==[--ai-agent] SET aiAgentChosen=true
+IF [%~1]==[--agent] SET aiAgentChosen=true
+
 IF [%~1]==[--detached] (
   SET detachProcess=true
 )
@@ -152,6 +157,20 @@ IF [%optionalComponentChosen%]==[false] (
   SET classPath=%WEBAPPS_PATH%,%REST_PATH%,!classPath!
 )
 setlocal disabledelayedexpansion
+
+REM AI Agent connector: shipped separately in configuration\userlib-ai and only
+REM added to the classpath when enabled (default mode on; --production off unless
+REM --ai / --agent or the AI_AGENT_ENABLED env var is set).
+SET aiAgentEnabled=true
+IF [%productionChosen%]==[true] SET aiAgentEnabled=false
+IF [%aiAgentChosen%]==[true] SET aiAgentEnabled=true
+IF NOT "x%AI_AGENT_ENABLED%"=="x" SET aiAgentEnabled=%AI_AGENT_ENABLED%
+IF [%aiAgentEnabled%]==[true] (
+  SET classPath=%PARENTDIR%configuration\userlib-ai,%classPath%
+  ECHO AI Agent connector enabled
+) ELSE (
+  ECHO AI Agent connector disabled
+)
 
 ECHO classpath: %classPath%
 
@@ -185,6 +204,7 @@ ECHO   --oauth2     - Enables the CIB seven Spring Security OAuth2 integration
 ECHO   --rest       - Enables the REST API
 ECHO   --example    - Enables the example application
 ECHO   --production - Applies the production.yaml configuration file
+ECHO   --ai         - Enables the AI Agent connector (on by default; off under --production unless set)
 ECHO   --detached   - Starts CIB seven Run as a detached process
 
 :End

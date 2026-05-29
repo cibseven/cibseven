@@ -50,6 +50,11 @@
     </dependency>
 
     <dependency>
+      <groupId>org.cibseven.bpm.identity</groupId>
+      <artifactId>cibseven-identity-scim</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.cibseven.bpm.springboot</groupId>
       <artifactId>cibseven-bpm-spring-boot-starter-rest</artifactId>
     </dependency>
