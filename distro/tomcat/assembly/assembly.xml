@@ -26,6 +26,8 @@
       <unpackOptions>
         <excludes>
           <exclude>**/conf/server.xml</exclude>
+          <!-- shipped customised below: adds lib-ai/ to common.loader -->
+          <exclude>**/conf/catalina.properties</exclude>
         </excludes>
       </unpackOptions>
       <unpack>true</unpack>
@@ -124,20 +126,21 @@
   <fileSets>
     <!-- ai-agent connector overlay: the cibseven-tomcat-ai-agent module collects the
          ai-agent connector + its LangChain4j/ONNX/pdfbox transitive jars into
-         target/dependency/. Dropping them into Tomcat's lib makes the connector
-         active by default (auto-loaded by the common classloader, registered via
-         the cibseven-connect SPI). It is shipped as a separable set so operators
-         who don't want AI can delete these jars and restore the non-invasive
-         behaviour described in CIB7-1299.
+         target/dependency/. They ship into a dedicated lib-ai/ folder (NOT the
+         always-loaded lib/) which the shipped conf/catalina.properties adds to the
+         common.loader — so the connector is on the same classloader as the engine
+         and registers via the cibseven-connect SPI, active by default.
 
-         Only placed in server/apache-tomcat-*/lib — the actual runtime classpath
-         for both the standalone start-cibseven.sh (CATALINA_HOME=server/...) and
-         the docker image (which extracts only the server/ subtree). The root lib/
-         is a packaging artifact that nothing loads at runtime, so the heavy
-         (~200 MB) overlay is deliberately NOT duplicated there. -->
+         Keeping it a separate folder makes it toggleable WITHOUT deleting jars:
+         the docker image strips the lib-ai tokens from common.loader when
+         AI_AGENT_ENABLED=false (see cibseven-tomcat.sh); standalone operators can
+         delete the lib-ai/ folder. This restores the non-invasive behaviour of
+         CIB7-1299. Only under server/apache-tomcat-* (the runtime classpath for
+         the standalone start script and the docker image, which extracts only the
+         server/ subtree); the root lib/ loads nothing, so it is not duplicated. -->
     <fileSet>
       <directory>../ai-agent/target/dependency/</directory>
-      <outputDirectory>server/apache-tomcat-${version.tomcat}/lib</outputDirectory>
+      <outputDirectory>server/apache-tomcat-${version.tomcat}/lib-ai</outputDirectory>
     </fileSet>
   </fileSets>
 
@@ -187,7 +190,16 @@
       <source>src/conf/server.xml</source>
       <outputDirectory>server/apache-tomcat-${version.tomcat}/conf/</outputDirectory>
     </file>
-    
+
+    <!-- customised catalina.properties: generated at build time = stock file from
+         the pinned Tomcat artifact + the lib-ai/ entry on common.loader (see the
+         dependency/antrun executions in pom.xml). Replaces the stock file excluded
+         from the tomcat unpack above; stays in sync with Tomcat upgrades. -->
+    <file>
+      <source>target/tomcat-conf/apache-tomcat-${version.tomcat}/conf/catalina.properties</source>
+      <outputDirectory>server/apache-tomcat-${version.tomcat}/conf/</outputDirectory>
+    </file>
+
     <file>
       <source>src/conf/bpm-platform.xml</source>
       <outputDirectory>server/apache-tomcat-${version.tomcat}/conf/</outputDirectory>

@@ -187,6 +187,62 @@
 
   <build>
     <plugins>
+      <!-- Build-time generation of a customised catalina.properties.
+           We do NOT vendor a copy of the file (which would drift on Tomcat
+           upgrades). Instead we extract the STOCK catalina.properties out of the
+           pinned Tomcat artifact and append a single token to common.loader so the
+           ai-agent overlay in lib-ai/ is on the common classloader. On a Tomcat
+           bump the stock file is re-extracted automatically; we own only the
+           one-line delta. The assembly excludes the stock file from the unpack and
+           ships the generated one (see assembly.xml). -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>extract-stock-catalina-properties</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.apache.tomcat</groupId>
+                  <artifactId>tomcat</artifactId>
+                  <version>${version.tomcat}</version>
+                  <type>tar.gz</type>
+                  <includes>**/conf/catalina.properties</includes>
+                  <outputDirectory>${project.build.directory}/tomcat-conf</outputDirectory>
+                  <overWrite>true</overWrite>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-lib-ai-to-common-loader</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <replaceregexp
+                    file="${project.build.directory}/tomcat-conf/apache-tomcat-${version.tomcat}/conf/catalina.properties"
+                    match="^(common.loader=.*)$"
+                    replace="\1,&quot;${catalina.base}/lib-ai&quot;,&quot;${catalina.base}/lib-ai/*.jar&quot;"
+                    byline="true" />
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
