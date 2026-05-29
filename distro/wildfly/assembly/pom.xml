@@ -126,6 +126,36 @@
 
   <build>
     <plugins>
+      <!-- Extract the ai-agent connector's element-templates from the connector jar
+           so the WildFly-deployed modeler can find them via the file: path in
+           application-wildfly.yaml. classpath*: discovery is unreliable across JBoss
+           module boundaries, so we ship the JSONs onto the filesystem instead. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>extract-ai-agent-element-templates</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.cibseven.connect</groupId>
+                  <artifactId>cibseven-connect-ai-agent</artifactId>
+                  <version>${project.version}</version>
+                  <type>jar</type>
+                  <includes>element-templates/*.json</includes>
+                  <outputDirectory>${project.build.directory}/ai-agent-templates</outputDirectory>
+                  <overWrite>true</overWrite>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
