@@ -66,6 +66,7 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <modules>
+        <module>ai-agent</module>
         <module>assembly</module>
         <module>modules</module>
         <module>subsystem</module>

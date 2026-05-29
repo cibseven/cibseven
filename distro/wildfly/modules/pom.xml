@@ -77,6 +77,24 @@
       <artifactId>cibseven-connect-soap-http-client</artifactId>
     </dependency>
 
+    <!-- reactor-ordering only: ensures the ai-agent collector (which gathers the
+         connector + its LangChain4j/ONNX/pdfbox transitive jars into
+         target/dependency) builds before this module copies them into the fat
+         ai-agent JBoss module. The *:* exclusion keeps those jars off this
+         module's own classpath. -->
+    <dependency>
+      <groupId>org.cibseven.bpm.wildfly</groupId>
+      <artifactId>cibseven-wildfly-ai-agent</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
     <!-- script engine dependencies -->
     <dependency>
       <groupId>org.apache.groovy</groupId>
@@ -198,6 +216,20 @@
                   we are using the individual connect modules on Wildfly -->
                 <delete dir="target/modules/org/cibseven/connect/cibseven-connect-connectors-all" />
 
+                <!-- ai-agent fat module (CIB7-1445): copy the connector + all its
+                     LangChain4j/ONNX/pdfbox/pgvector transitive jars (gathered by the
+                     cibseven-wildfly-ai-agent collector) into a single module dir.
+                     Done after the org/cibseven/connect delete+copy above so it is
+                     not wiped. The matching module.xml (with a generated
+                     resource-root list) is added by the src/main/modules copy + the
+                     resource-root generation below. -->
+                <mkdir dir="target/modules/org/cibseven/connect/cibseven-connect-ai-agent/main" />
+                <copy todir="target/modules/org/cibseven/connect/cibseven-connect-ai-agent/main" flatten="true">
+                  <fileset dir="../ai-agent/target/dependency">
+                    <include name="*.jar" />
+                  </fileset>
+                </copy>
+
                 <delete dir="target/modules/org/cibseven/commons" />
                 <copy todir="target/modules" flatten="false">
                   <fileset refid="maven.project.dependencies" />
@@ -275,6 +307,22 @@
                 <copy todir="target/modules" flatten="false">
                   <fileset dir="src/main/modules" />
                 </copy>
+
+                <!-- ai-agent fat module: generate one <resource-root> per collected
+                     jar and inject it into the @resource-roots@ token of the shipped
+                     module.xml template (so the list never drifts as the connector's
+                     dependency set changes). -->
+                <pathconvert property="ai.agent.resource.roots" pathsep="&#10;">
+                  <fileset dir="target/modules/org/cibseven/connect/cibseven-connect-ai-agent/main">
+                    <include name="*.jar" />
+                  </fileset>
+                  <chainedmapper>
+                    <flattenmapper />
+                    <globmapper from="*" to="    &lt;resource-root path=&quot;*&quot;/&gt;" />
+                  </chainedmapper>
+                </pathconvert>
+                <replace file="target/modules/org/cibseven/connect/cibseven-connect-ai-agent/main/module.xml"
+                         token="@resource-roots@" value="${ai.agent.resource.roots}" />
 
                 <replace dir="target/modules" token="@project.version@" value="${project.version}">
                   <include name="**/module.xml" />

@@ -46,7 +46,10 @@ rem # options that are always passed by run.bat.
 rem #
 
 rem # JVM memory allocation pool parameters - modify as appropriate.
-set "JAVA_OPTS=-Xms512m -Xmx768m -XX:MetaspaceSize=128M -XX:MaxMetaspaceSize=256m"
+rem # MaxMetaspaceSize raised to 1024m so the optional ai-agent connector
+rem # (LangChain4j/ONNX) does not hit OutOfMemoryError: Metaspace; it is a cap,
+rem # not a reservation, so this is harmless for non-AI deployments. (CIB7-1445)
+set "JAVA_OPTS=-Xms512m -Xmx768m -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=1024m"
 
 rem # Prefer IPv4
 set "JAVA_OPTS=%JAVA_OPTS% -Djava.net.preferIPv4Stack=true"

@@ -1,0 +1,37 @@
+<module xmlns="urn:jboss:module:1.0" name="org.cibseven.connect.cibseven-connect-ai-agent">
+  <!-- Fat module: bundles the ai-agent connector and ALL its LangChain4j / ONNX /
+       pdfbox / pgvector transitive jars. The resource-root list below is GENERATED
+       at build time from the collected jars by the wildfly modules build, so it
+       never drifts as the connector's dependency set changes. -->
+  <resources>
+@resource-roots@
+  </resources>
+
+  <dependencies>
+    <module name="java.base" />
+    <module name="java.sql" />
+    <module name="java.naming" />
+    <module name="java.management" />
+    <!-- langchain4j-http-client-jdk uses java.net.http.HttpClient -->
+    <module name="java.net.http" />
+    <!-- pdfbox uses java.awt / javax.imageio -->
+    <module name="java.desktop" />
+    <!-- onnxruntime / jna may touch sun.misc.Unsafe -->
+    <module name="jdk.unsupported" />
+
+    <module name="org.slf4j" />
+
+    <module name="org.cibseven.commons.cibseven-commons-logging" />
+    <module name="org.cibseven.commons.cibseven-commons-utils" />
+
+    <!-- the connector SPI it implements -->
+    <module name="org.cibseven.connect.cibseven-connect-core" />
+    <!-- engine variable API (provided scope in the connector) -->
+    <module name="org.cibseven.bpm.cibseven-engine" />
+
+    <!-- JSON (provided scope in the connector) -->
+    <module name="com.fasterxml.jackson.core.jackson-databind" slot="@version.jackson@" />
+    <module name="com.fasterxml.jackson.core.jackson-core" slot="@version.jackson@" />
+    <module name="com.fasterxml.jackson.core.jackson-annotations" slot="@version.jackson@" />
+  </dependencies>
+</module>
