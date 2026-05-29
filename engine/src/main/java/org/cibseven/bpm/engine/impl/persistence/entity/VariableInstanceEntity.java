@@ -162,9 +162,9 @@ public class VariableInstanceEntity implements VariableInstance, CoreVariableIns
         TaskEntity task = variableInstance.getTask();
         if (task == null || task.isDeleted()) {
           throw new ProcessEngineException(
-              "Task with id '" + taskId + "' is already deleted. "
+              "Task with id '" + taskId + "' doesn't exist or it is already completed. "
               + "Cannot create variable '" + variableInstance.getName()
-              + "' with a reference to a deleted task.");
+              + "' with a reference to a not existing task.");
         }
       }
     }

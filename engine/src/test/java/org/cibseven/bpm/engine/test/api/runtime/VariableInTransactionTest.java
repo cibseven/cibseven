@@ -107,7 +107,7 @@ public class VariableInTransactionTest extends PluggableProcessEngineTest {
             }
           })
       ).isInstanceOf(ProcessEngineException.class)
-       .hasMessageContaining("Task with id 'non-existing-task-id' does not exist");
+       .hasMessageContaining("Task with id 'non-existing-task-id' doesn't exist or it is already completed");
     } finally {
       // restore default
       processEngineConfiguration.setCheckVariableTaskId(false);
