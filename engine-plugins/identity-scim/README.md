@@ -68,7 +68,7 @@ This plugin provides integration with SCIM 2.0 (System for Cross-domain Identity
 - `usersEndpoint`: Users endpoint path (default: "/Users")
 - `groupsEndpoint`: Groups endpoint path (default: "/Groups")
 
-### Authentication Settings
+### SCIM Authentication Settings
 - `authenticationType`: Authentication type - "bearer", "basic", or "oauth2" (default: "bearer")
 - `bearerToken`: Bearer token for authentication
 - `username`: Username for basic authentication
@@ -77,6 +77,11 @@ This plugin provides integration with SCIM 2.0 (System for Cross-domain Identity
 - `oauth2ClientId`: OAuth2 client ID
 - `oauth2ClientSecret`: OAuth2 client secret
 - `oauth2Scope`: OAuth2 scope
+
+### User Authentication Settings
+- `userAuthenticationEnabled`: Enable user authentication via OIDC or via SCIM2 /Users/.search extension (default: false)
+- `userAuthenticationProtocol`: User authentication protocol "oids" or "scim"
+- `userAuthenticationUrl`: End point for OIDC authentication
 
 ### User Attribute Mapping
 - `userIdAttribute`: SCIM attribute for user ID (default: "userName")
@@ -128,7 +133,6 @@ If your SCIM server uses custom attribute names, you can map them accordingly:
 ## Limitations
 
 - In production, user and group management should be done through your SCIM server, allow modifications in test environment only
-- Password validation via `checkPassword()` is not supported as SCIM is a provisioning protocol, not an authentication protocol.
 - Multi-tenancy is not supported.
 
 ## Supported SCIM Providers
@@ -157,6 +161,18 @@ To see detailed SCIM queries and responses, enable debug logging for the SCIM pl
 
 ```xml
 <logger name="org.cibseven.bpm.identity.impl.scim" level="DEBUG" />
+```
+
+Also, detailed SCIM logging could be enabled with enabling "verbose" property:
+
+```xml
+<plugin>
+  <class>org.cibseven.bpm.identity.impl.scim.plugin.ScimIdentityProviderPlugin</class>
+  <properties>
+    ...
+    <property name="verbose">true</property>
+  </properties>
+</plugin>
 ```
 
 ### Common Issues

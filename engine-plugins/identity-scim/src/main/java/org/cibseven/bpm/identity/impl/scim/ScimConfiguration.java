@@ -39,7 +39,7 @@ public class ScimConfiguration {
   protected String oauth2Scope;
 
   // Authentication settings for authenticating users
-  protected boolean userAuthenticationEnabled = true;
+  protected boolean userAuthenticationEnabled = false;
   protected String userAuthenticationProtocol = "oidc";
   protected String userAuthenticationUrl;
   
