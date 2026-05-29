@@ -149,6 +149,23 @@
       </exclusions>
     </dependency>
 
+    <!-- make sure the assembly runs after the ai-agent overlay module, which
+         collects the ai-agent connector + its AI deps into target/dependency/.
+         We don't want any of those jars on the assembly's own classpath here —
+         the assembly only consumes the pre-collected folder via a fileSet. -->
+    <dependency>
+      <groupId>org.cibseven.bpm.tomcat</groupId>
+      <artifactId>cibseven-tomcat-ai-agent</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>license-book</artifactId>
