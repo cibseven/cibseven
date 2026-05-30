@@ -18,6 +18,27 @@
   <dependencyManagement>
     <dependencies>
 
+      <!-- CVE fix: the embedded Tomcat is otherwise taken from the imported Spring Boot 4
+           BOM (11.0.21 for SB 4.0.x), which is affected by CVE-2026-41293, -43512, -43515,
+           -41284, -43513, -42498, -43514. Pin it to the patched 11.0.x line
+           (${version.tomcat} from parent/pom.xml). Declared BEFORE the spring-boot-dependencies
+           import so this version wins over the BOM-managed one. -->
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-core</artifactId>
+        <version>${version.tomcat}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-el</artifactId>
+        <version>${version.tomcat}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-websocket</artifactId>
+        <version>${version.tomcat}</version>
+      </dependency>
+
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
