@@ -14,8 +14,8 @@
   <properties>
     <!-- LangChain4j requires Java 17+ -->
     <maven.compiler.release>17</maven.compiler.release>
-    <version.langchain4j>1.14.0</version.langchain4j>
-    <version.langchain4j-beta>1.14.0-beta24</version.langchain4j-beta>
+    <version.langchain4j>1.14.1</version.langchain4j>
+    <version.langchain4j-beta>1.14.1-beta24</version.langchain4j-beta>
   </properties>
 
   <dependencies>
