@@ -28,7 +28,9 @@ import org.cibseven.webapp.rest.BaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnResource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.webmvc.autoconfigure.WebMvcRegistrations;
 import org.springframework.context.annotation.Bean;
@@ -45,7 +47,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
   org.cibseven.webapp.SevenWebclientContext.class
 })
 @Configuration
-@ConditionalOnProperty(prefix = WebappProperty.PREFIX, name = "enabled", matchIfMissing = true)
 @ConditionalOnBean(CamundaBpmProperties.class)
 @ConditionalOnWebApplication
 @AutoConfigureAfter(CamundaBpmAutoConfiguration.class)
@@ -57,22 +58,31 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer, WebM
   @Autowired
   private CamundaBpmProperties properties;
 
-  @Bean
-  public CamundaBpmWebappInitializer camundaBpmWebappInitializer() {
-    return new CamundaBpmWebappInitializer(properties);
-  }
+  // This conditionally enabled/disabled LegacyWebappConfiguration should be completely removed 
+  // when the legacy webapps is completely removed and the webapps related tests are ported to the webclient
+  @Configuration
+  @ConditionalOnProperty(prefix = WebappProperty.PREFIX, name = "installed", havingValue = "true")
+  @ConditionalOnResource(resources = "classpath:/META-INF/resources/webjars/camunda/securityFilterRules.json")
+  @ConditionalOnClass(name = "org.cibseven.bpm.cockpit.impl.web.bootstrap.CockpitContainerBootstrap")
+  static class LegacyWebappConfiguration {
 
-  @Bean(name = "resourceLoaderDependingInitHook")
-  public InitHook<ResourceLoaderDependingFilter> resourceLoaderDependingInitHook() {
-    return filter -> {
-      filter.setResourceLoader(resourceLoader);
-      filter.setWebappProperty(properties.getWebapp());
-    };
-  }
+    @Bean
+    public CamundaBpmWebappInitializer camundaBpmWebappInitializer(CamundaBpmProperties properties) {
+      return new CamundaBpmWebappInitializer(properties);
+    }
 
-  @Bean
-  public LazyInitRegistration lazyInitRegistration() {
-    return new LazyInitRegistration();
+    @Bean(name = "resourceLoaderDependingInitHook")
+    public InitHook<ResourceLoaderDependingFilter> resourceLoaderDependingInitHook(ResourceLoader resourceLoader, CamundaBpmProperties properties) {
+      return filter -> {
+        filter.setResourceLoader(resourceLoader);
+        filter.setWebappProperty(properties.getWebapp());
+      };
+    }
+
+    @Bean
+    public LazyInitRegistration lazyInitRegistration() {
+      return new LazyInitRegistration();
+    }
   }
 
   @Bean

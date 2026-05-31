@@ -31,13 +31,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.cibseven.bpm.webapp</groupId>
-      <artifactId>cibseven-webapp-tomcat-jakarta</artifactId>
-      <version>${project.version}</version>
-      <type>war</type>
-    </dependency>
-
-    <dependency>
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-engine-rest-jakarta</artifactId>
       <version>${project.version}</version>
@@ -89,6 +82,20 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>legacy-webapps</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.cibseven.bpm.webapp</groupId>
+          <artifactId>cibseven-webapp-tomcat-jakarta</artifactId>
+          <version>${version.legacy-webapps}</version>
+          <type>war</type>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
   <description>
     Description of CIB seven - tomcat Distro

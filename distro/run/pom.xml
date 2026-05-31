@@ -127,6 +127,7 @@
     <profile>
       <id>integration-test-run</id>
       <modules>
+        <module>core</module>
         <module>qa</module>
       </modules>
     </profile>

@@ -36,7 +36,13 @@
         <module>ai-agent</module>
         <module>assembly</module>
         <module>distro</module>
-        <module>webapp-jakarta</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>legacy-webapps</id>
+      <modules>
+        <module>assembly</module>
+        <module>distro</module>
       </modules>
     </profile>
   </profiles>

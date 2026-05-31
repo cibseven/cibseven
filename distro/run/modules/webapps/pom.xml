@@ -44,6 +44,20 @@
     </plugins>
   </build>
 
+  <profiles>
+    <profile>
+      <id>legacy-webapps</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.cibseven.bpm.webapp</groupId>
+          <artifactId>cibseven-webapp-jakarta</artifactId>
+          <version>${version.legacy-webapps}</version>
+          <classifier>classes</classifier>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+
   <description>
     Description of CIB seven - Run - Module Webapps
   </description>
