@@ -56,6 +56,12 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
+              <!-- Pin the output to target/dependency. The third-party-bom tooling
+                   inherited from the parent configures maven-dependency-plugin with
+                   outputDirectory=target/generated-resources at plugin level, which
+                   would otherwise leak into this execution; the wildfly modules build
+                   reads the collected jars from ../ai-agent/target/dependency. -->
+              <outputDirectory>${project.build.directory}/dependency</outputDirectory>
               <includeScope>runtime</includeScope>
               <!-- slf4j + jackson are provided by their own WildFly modules (the
                    ai-agent module.xml depends on org.slf4j and the jackson slot);
