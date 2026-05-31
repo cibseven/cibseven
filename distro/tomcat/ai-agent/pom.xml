@@ -55,6 +55,11 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
+              <!-- Pin the output to target/dependency, matching the path the tomcat
+                   assembly reads (../ai-agent/target/dependency/). Explicit so the
+                   third-party-bom tooling's generated-resources outputDirectory can
+                   never leak into this execution. -->
+              <outputDirectory>${project.build.directory}/dependency</outputDirectory>
               <includeScope>runtime</includeScope>
             </configuration>
           </execution>
