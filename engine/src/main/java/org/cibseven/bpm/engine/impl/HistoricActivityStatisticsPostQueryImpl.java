@@ -446,7 +446,7 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractVariableQue
   @Override
   public HistoricActivityStatisticsPostQueryImpl withoutTenantId() {
     this.tenantIds = null;
-    this.isTenantIdSet = false;
+    this.isTenantIdSet = true;
     return this;
   }
 
