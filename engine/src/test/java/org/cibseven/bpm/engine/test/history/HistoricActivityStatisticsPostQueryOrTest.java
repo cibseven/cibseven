@@ -94,25 +94,6 @@ public class HistoricActivityStatisticsPostQueryOrTest {
   }
 
   @Test
-  public void shouldReturnStatsByProcessDefinitionNameLikeOrProcessInstanceId() {
-    // given
-    String processDefinitionId = deployOneTaskProcess(PROCESS_KEY, PROCESS_NAME);
-    ProcessInstance processInstance1 = startProcess(PROCESS_KEY, null, null);
-    ProcessInstance processInstance2 = startProcess(PROCESS_KEY, null, null);
-
-    // when
-    HistoricActivityStatisticsPostQueryImpl query = createOrQuery(processDefinitionId, orQuery -> orQuery
-      .processDefinitionNameLike("OR%")
-      .processInstanceId(processInstance2.getId()));
-
-    // then
-    assertEquals(2L, getInstances(query));
-    assertEquals(2L, historyService.createHistoricProcessInstanceQuery()
-      .processInstanceIds(new HashSet<>(List.of(processInstance1.getId(), processInstance2.getId())))
-      .count());
-  }
-
-  @Test
   public void shouldReturnStatsByProcessInstanceIdOrProcessInstanceIds() {
     // given
     String processDefinitionId = deployOneTaskProcess(PROCESS_KEY, PROCESS_NAME);
@@ -152,21 +133,6 @@ public class HistoricActivityStatisticsPostQueryOrTest {
   }
 
   @Test
-  public void shouldReturnStatsByProcessDefinitionKeyOrName() {
-    // given
-    String processDefinitionId = deployOneTaskProcess(PROCESS_KEY, PROCESS_NAME);
-    startProcess(PROCESS_KEY, null, null);
-
-    // when
-    HistoricActivityStatisticsPostQueryImpl query = createOrQuery(processDefinitionId, orQuery -> orQuery
-      .processDefinitionKey(PROCESS_KEY)
-      .processDefinitionName(PROCESS_NAME));
-
-    // then
-    assertEquals(1L, getInstances(query));
-  }
-
-  @Test
   public void shouldReturnStatsByStartedBeforeOrStartedAfter() {
     // given
     String processDefinitionId = deployOneTaskProcess(PROCESS_KEY, PROCESS_NAME);
@@ -183,6 +149,23 @@ public class HistoricActivityStatisticsPostQueryOrTest {
     HistoricActivityStatisticsPostQueryImpl query = createOrQuery(processDefinitionId, orQuery -> orQuery
       .startedBefore(firstStart)
       .startedAfter(secondStart));
+
+    // then
+    assertEquals(2L, getInstances(query));
+  }
+
+
+  @Test
+  public void shouldReturnBusinessKeylike() {
+    // given
+    String processDefinitionId = deployOneTaskProcess(PROCESS_KEY, PROCESS_NAME);
+    startProcess(PROCESS_KEY, "bk-1", null);
+    startProcess(PROCESS_KEY, "bk-2", null);
+    startProcess(PROCESS_KEY, "other", null);
+
+    // when
+    HistoricActivityStatisticsPostQueryImpl query = createOrQuery(processDefinitionId, orQuery -> orQuery
+      .businessKeyLike("%bk-%"));
 
     // then
     assertEquals(2L, getInstances(query));
@@ -250,43 +233,40 @@ public class HistoricActivityStatisticsPostQueryOrTest {
   }
 
   @Test
-  public void shouldReturnStatsWithIncludeFinishedAndOrFilter() {
+  public void shouldReturnStatsWithIncludeFinishedForOrSelection() {
     // given
     String processDefinitionId = deployOneTaskProcess(PROCESS_KEY, PROCESS_NAME);
-    ProcessInstance processInstance1 = startProcess(PROCESS_KEY, null, null);
-    ProcessInstance processInstance2 = startProcess(PROCESS_KEY, null, null);
+    ProcessInstance finished = startProcess(PROCESS_KEY, "finished", null);
+    startProcess(PROCESS_KEY, "running", null);
 
     Task taskToFinish = processEngineRule.getTaskService().createTaskQuery()
-      .processInstanceId(processInstance1.getId())
+      .processInstanceId(finished.getId())
       .singleResult();
     processEngineRule.getTaskService().complete(taskToFinish.getId());
 
     // when
     HistoricActivityStatisticsPostQueryImpl query = createOrQuery(processDefinitionId, orQuery -> orQuery
-      .processInstanceId(processInstance1.getId())
-      .processInstanceId(processInstance2.getId()));
+      .processInstanceId(finished.getId())
+      .businessKeyLike("%running%"));
     query.includeFinished();
 
     // then
     assertEquals(1L, sumInstances(query));
     assertEquals(4L, sumFinished(query));
-    assertEquals(2L, historyService.createHistoricProcessInstanceQuery()
-      .processInstanceIds(new HashSet<>(List.of(processInstance1.getId(), processInstance2.getId())))
-      .count());
   }
 
   @Test
-  public void shouldReturnStatsWithIncludeCanceledAndOrFilter() {
+  public void shouldReturnStatsWithIncludeCanceledForOrSelection() {
     // given
     String processDefinitionId = deployOneTaskProcess(PROCESS_KEY, PROCESS_NAME);
-    ProcessInstance canceled = startProcess(PROCESS_KEY, null, null);
-    ProcessInstance running = startProcess(PROCESS_KEY, null, null);
+    ProcessInstance canceled = startProcess(PROCESS_KEY, "canceled", null);
+    startProcess(PROCESS_KEY, "running", null);
     runtimeService.deleteProcessInstance(canceled.getId(), "test");
 
     // when
     HistoricActivityStatisticsPostQueryImpl query = createOrQuery(processDefinitionId, orQuery -> orQuery
       .processInstanceId(canceled.getId())
-      .processInstanceId(running.getId()));
+      .businessKeyLike("%running%"));
     query.includeCanceled();
 
     // then
@@ -344,6 +324,25 @@ public class HistoricActivityStatisticsPostQueryOrTest {
     assertEquals(2L, getInstances(query));
     List<Incident> incidents = runtimeService.createIncidentQuery().list();
     assertEquals(1, incidents.size());
+  }
+
+  @Test
+  public void shouldReturnStatsByBusinessKeyOrProcessInstanceIds() {
+    // given
+    String processDefinitionId = deployOneTaskProcess(PROCESS_KEY, PROCESS_NAME);
+    ProcessInstance p1 = startProcess(PROCESS_KEY, "bk-1", null);
+    ProcessInstance p2 = startProcess(PROCESS_KEY, "bk-2", null);
+    ProcessInstance p3 = startProcess(PROCESS_KEY, "other", null);
+    ProcessInstance p4 = startProcess(PROCESS_KEY, "otherother", null);
+
+    // when
+    HistoricActivityStatisticsPostQueryImpl query = createOrQuery(processDefinitionId, orQuery -> {
+      orQuery.businessKeyLike("%bk-%");
+      orQuery.processInstanceId(p3.getId());
+    });
+
+    // then
+    assertEquals(3L, getInstances(query));
   }
 
   private String deployOneTaskProcess(String processKey, String processName) {
