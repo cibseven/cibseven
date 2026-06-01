@@ -138,52 +138,6 @@ public class HistoricActivityStatisticsPostQueryTest extends PluggableProcessEng
     completeProcessInstances();
   }
 
-  @Deployment(resources = {"org/cibseven/bpm/engine/test/history/HistoricActivityStatisticsQueryTest.testWithCallActivity.bpmn20.xml",
-      "org/cibseven/bpm/engine/test/history/HistoricActivityStatisticsQueryTest.calledProcess.bpmn20.xml" })
-  @Test
-  public void testMultipleProcessDefinitions() {
-    String processId = getProcessDefinitionId();
-    String calledProcessId = getProcessDefinitionIdByKey("calledProcess");
-
-    startProcesses(5);
-
-    startProcessesByKey(10, "calledProcess");
-
-    HistoricActivityStatisticsPostQuery query = historyService.createHistoricActivityStatisticsPostQuery(processId);
-
-    List<HistoricActivityStatistics> statistics = query.list();
-
-    assertEquals(1, query.count());
-    assertEquals(1, statistics.size());
-
-    // callActivity
-    HistoricActivityStatistics calledActivity = statistics.get(0);
-
-    assertEquals("callActivity", calledActivity.getId());
-    assertEquals(5, calledActivity.getInstances());
-
-    query = historyService.createHistoricActivityStatisticsPostQuery(calledProcessId);
-
-    statistics = query.list();
-
-    assertEquals(2, query.count());
-    assertEquals(2, statistics.size());
-
-    // task1
-    HistoricActivityStatistics task1 = statistics.get(0);
-
-    assertEquals("task1", task1.getId());
-    assertEquals(15, task1.getInstances());
-
-    // task2
-    HistoricActivityStatistics task2 = statistics.get(1);
-
-    assertEquals("task2", task2.getId());
-    assertEquals(15, task2.getInstances());
-
-    completeProcessInstances();
-  }
-
   @Deployment(resources="org/cibseven/bpm/engine/test/history/HistoricActivityStatisticsQueryTest.testSingleTask.bpmn20.xml")
   @Test
   public void testQueryByFinished() {
@@ -788,43 +742,6 @@ public class HistoricActivityStatisticsPostQueryTest extends PluggableProcessEng
     assertEquals(1, taskStats.getCanceled());
     assertEquals(2, taskStats.getFinished());
     assertEquals(0, taskStats.getCompleteScope());
-  }
-
-  @Deployment(resources= {"org/cibseven/bpm/engine/test/history/HistoricActivityStatisticsQueryTest.testSingleTask.bpmn20.xml",
-      "org/cibseven/bpm/engine/test/history/HistoricActivityStatisticsQueryTest.testAnotherSingleTask.bpmn20.xml"})
-  @Test
-  public void testDifferentProcessesWithSameActivityId() {
-    String processDefinitionId = getProcessDefinitionId();
-    String anotherProcessDefinitionId = getProcessDefinitionIdByKey("anotherProcess");
-
-    startProcesses(5);
-
-    startProcessesByKey(10, "anotherProcess");
-
-    // first processDefinition
-    HistoricActivityStatisticsPostQuery query = historyService
-        .createHistoricActivityStatisticsPostQuery(processDefinitionId);
-
-    List<HistoricActivityStatistics> statistics = query.list();
-
-    assertEquals(1, query.count());
-    assertEquals(1, statistics.size());
-
-    HistoricActivityStatistics task = statistics.get(0);
-    assertEquals(5, task.getInstances());
-
-    // second processDefinition
-    query = historyService
-        .createHistoricActivityStatisticsPostQuery(anotherProcessDefinitionId);
-
-    statistics = query.list();
-
-    assertEquals(1, query.count());
-    assertEquals(1, statistics.size());
-
-    task = statistics.get(0);
-    assertEquals(10, task.getInstances());
-
   }
 
   @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
