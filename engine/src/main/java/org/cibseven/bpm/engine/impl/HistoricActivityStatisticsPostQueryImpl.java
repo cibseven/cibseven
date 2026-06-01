@@ -831,7 +831,7 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractVariableQue
   }
 
   public boolean isWithoutTenantId() {
-    return !isTenantIdSet && tenantIds == null;
+    return isTenantIdSet && tenantIds == null;
   }
 
   public boolean isTenantIdSet(){
