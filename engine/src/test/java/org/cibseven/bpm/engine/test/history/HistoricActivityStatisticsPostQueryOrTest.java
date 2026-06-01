@@ -156,7 +156,7 @@ public class HistoricActivityStatisticsPostQueryOrTest {
 
 
   @Test
-  public void shouldReturnBusinessKeylike() {
+  public void shouldReturnBusinessKeyLike() {
     // given
     String processDefinitionId = deployOneTaskProcess(PROCESS_KEY, PROCESS_NAME);
     startProcess(PROCESS_KEY, "bk-1", null);
