@@ -251,8 +251,15 @@ public class HistoricActivityStatisticsPostQueryOrTest {
     query.includeFinished();
 
     // then
+    HistoricActivityStatistics taskStatistics = query.list().stream()
+      .filter(statistic -> USER_TASK_ID.equals(statistic.getId()))
+      .findFirst()
+      .orElseThrow(() -> new AssertionError("Missing statistics for activity " + USER_TASK_ID));
+
     assertEquals(1L, sumInstances(query));
     assertEquals(4L, sumFinished(query));
+    assertEquals(1L, taskStatistics.getInstances());
+    assertEquals(1L, taskStatistics.getFinished());
   }
 
   @Test

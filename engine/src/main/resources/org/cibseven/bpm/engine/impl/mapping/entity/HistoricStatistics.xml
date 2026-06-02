@@ -133,6 +133,7 @@
           ${prefix}ACT_HI_ACTINST ACT
           INNER JOIN filtered_pi PI
           ON ACT.PROC_INST_ID_ = PI.PROC_INST_ID_
+          AND ACT.PROC_DEF_ID_ = #{processDefinitionId}
 
             <if test="!includeFinished">
               and (
@@ -170,6 +171,7 @@
               
               INNER JOIN filtered_pi PI
               ON INC.PROC_INST_ID_ = PI.PROC_INST_ID_
+              AND INC.PROC_DEF_ID_ = #{processDefinitionId}
               )
             GROUP BY INC.ACTIVITY_ID_
 
