@@ -790,7 +790,7 @@ public class HistoricActivityStatisticsPostQueryTest extends PluggableProcessEng
     assertEquals(0, taskStats.getCompleteScope());
   }
 
-    @Deployment(resources= {"org/cibseven/bpm/engine/test/history/HistoricActivityStatisticsQueryTest.testSingleTask.bpmn20.xml",
+  @Deployment(resources= {"org/cibseven/bpm/engine/test/history/HistoricActivityStatisticsQueryTest.testSingleTask.bpmn20.xml",
       "org/cibseven/bpm/engine/test/history/HistoricActivityStatisticsQueryTest.testAnotherSingleTask.bpmn20.xml"})
   @Test
   public void testDifferentProcessesWithSameActivityId() {
@@ -798,9 +798,9 @@ public class HistoricActivityStatisticsPostQueryTest extends PluggableProcessEng
     String anotherProcessDefinitionId = getProcessDefinitionIdByKey("anotherProcess");
 
     startProcesses(5);
+
     startProcessesByKey(10, "anotherProcess");
-    
-    
+
     // first processDefinition
     HistoricActivityStatisticsPostQuery query = historyService
         .createHistoricActivityStatisticsPostQuery(processDefinitionId);
@@ -812,7 +812,7 @@ public class HistoricActivityStatisticsPostQueryTest extends PluggableProcessEng
 
     HistoricActivityStatistics task = statistics.get(0);
     assertEquals(5, task.getInstances());
-    
+
     // second processDefinition
     query = historyService
         .createHistoricActivityStatisticsPostQuery(anotherProcessDefinitionId);
