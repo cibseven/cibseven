@@ -17,7 +17,6 @@
 package org.cibseven.bpm.engine.rest.impl.history;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
@@ -49,6 +48,7 @@ public class HistoryCleanupRestServiceImpl implements HistoryCleanupRestService 
     return JobDto.fromJob(job);
   }
 
+  @SuppressWarnings("deprecation")
   public JobDto findCleanupJob() {
     Job job = processEngine.getHistoryService().findHistoryCleanupJob();
     if (job == null) {

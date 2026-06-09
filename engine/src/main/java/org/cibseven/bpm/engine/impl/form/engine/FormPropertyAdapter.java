@@ -33,6 +33,7 @@ import org.cibseven.bpm.engine.variable.value.TypedValue;
  * @author Daniel Meyer
  *
  */
+@SuppressWarnings("deprecation")
 public class FormPropertyAdapter implements FormField {
 
   protected FormProperty formProperty;

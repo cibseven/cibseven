@@ -313,6 +313,7 @@ public class HistoricProcessInstanceTest {
     }
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   @Deployment(resources = { "org/cibseven/bpm/engine/test/history/oneTaskProcess.bpmn20.xml" })
   public void testHistoricProcessInstanceStartDate() {
@@ -334,6 +335,7 @@ public class HistoricProcessInstanceTest {
         historyService.createHistoricProcessInstanceQuery().startDateOn(DateUtils.addDays(date, 1)).count());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   @Deployment(resources = { "org/cibseven/bpm/engine/test/history/oneTaskProcess.bpmn20.xml" })
   public void testHistoricProcessInstanceFinishDateUnfinished() {
@@ -353,6 +355,7 @@ public class HistoricProcessInstanceTest {
         historyService.createHistoricProcessInstanceQuery().finishDateOn(DateUtils.addDays(date, 1)).count());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   @Deployment(resources = { "org/cibseven/bpm/engine/test/history/oneTaskProcess.bpmn20.xml" })
   public void testHistoricProcessInstanceFinishDateFinished() {
@@ -1099,6 +1102,7 @@ public class HistoricProcessInstanceTest {
 
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   @Deployment
   public void testEndTimeAndEndActivity() {

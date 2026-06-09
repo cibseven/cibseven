@@ -137,6 +137,7 @@ public class HumanTaskPlanItemHandlerTest extends CmmnElementHandlerTest {
     assertEquals("humanTask", activityType);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testHumanTaskDescriptionProperty() {
     // given
@@ -150,6 +151,7 @@ public class HumanTaskPlanItemHandlerTest extends CmmnElementHandlerTest {
     assertEquals(description, activity.getProperty(PROPERTY_ACTIVITY_DESCRIPTION));
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testPlanItemDescriptionProperty() {
     // given
@@ -483,6 +485,7 @@ public class HumanTaskPlanItemHandlerTest extends CmmnElementHandlerTest {
     assertEquals(aFormKey, formKeyExpression.getExpressionText());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testHumanTaskDescription() {
     // given
@@ -501,6 +504,7 @@ public class HumanTaskPlanItemHandlerTest extends CmmnElementHandlerTest {
     assertEquals(description, descriptionExpression.getExpressionText());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testPlanItemDescription() {
     // given

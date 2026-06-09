@@ -19,6 +19,7 @@ package org.cibseven.bpm.application.impl.deployment;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import org.cibseven.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
@@ -72,7 +73,7 @@ public class DeploymentRegistrationTest extends PluggableProcessEngineTest {
     ProcessDefinition version2 = repositoryService.createProcessDefinitionQuery().deploymentId(deployment2.getId()).singleResult();
 
     // accordingly the process definition cache should only contain the latest version now
-    Cache cache = processEngineConfiguration.getDeploymentCache().getProcessDefinitionCache();
+    Cache<String, ProcessDefinitionEntity> cache = processEngineConfiguration.getDeploymentCache().getProcessDefinitionCache();
     assertNotNull(cache.get(version2.getId()));
     assertNull(cache.get(version1.getId()));
 

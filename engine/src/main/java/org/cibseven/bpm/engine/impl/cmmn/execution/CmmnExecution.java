@@ -382,6 +382,7 @@ public abstract class CmmnExecution extends CoreExecution implements CmmnCaseIns
     for (CmmnSentryPart sentryPart : sentryParts) {
 
       // necessary for backward compatibility
+      @SuppressWarnings("deprecation")
       String sourceCaseExecutionId = sentryPart.getSourceCaseExecutionId();
       String sourceRef = sentryPart.getSource();
       if (child.getActivityId().equals(sourceRef) || child.getId().equals(sourceCaseExecutionId)) {

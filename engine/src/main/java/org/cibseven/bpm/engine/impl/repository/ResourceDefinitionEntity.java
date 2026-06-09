@@ -41,7 +41,7 @@ public interface ResourceDefinitionEntity<T extends ResourceDefinition> extends 
 
   void setTenantId(String tenantId);
 
-  ResourceDefinitionEntity getPreviousDefinition();
+  ResourceDefinitionEntity<T> getPreviousDefinition();
 
   void updateModifiableFieldsFromEntity(T updatingDefinition);
 

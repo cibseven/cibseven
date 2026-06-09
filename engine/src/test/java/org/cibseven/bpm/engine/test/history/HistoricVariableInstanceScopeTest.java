@@ -114,13 +114,13 @@ public class HistoricVariableInstanceScopeTest extends PluggableProcessEngineTes
     List<HistoricVariableInstance> result = query.list();
 
     HistoricVariableInstance firstVar = result.get(0);
-    assertEquals("testVar", firstVar.getVariableName());
+    assertEquals("testVar", firstVar.getName());
     assertEquals("testValue", firstVar.getValue());
     // the variable is in the process instance scope
     assertEquals(pi.getId(), firstVar.getActivityInstanceId());
 
     HistoricVariableInstance secondVar = result.get(1);
-    assertEquals("testVar", secondVar.getVariableName());
+    assertEquals("testVar", secondVar.getName());
     assertEquals("anotherTestValue", secondVar.getValue());
     // the variable is in the task scope
     assertEquals(taskExecution.getActivityInstanceId(), secondVar.getActivityInstanceId());

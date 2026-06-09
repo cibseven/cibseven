@@ -30,6 +30,7 @@ public class TelemetryRestServiceImpl extends AbstractRestProcessEngineAware imp
     super(engineName, objectMapper);
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public void configureTelemetry(TelemetryConfigurationDto dto) {
     boolean enableTelemetry = dto.isEnableTelemetry();
@@ -39,6 +40,7 @@ public class TelemetryRestServiceImpl extends AbstractRestProcessEngineAware imp
     managementService.toggleTelemetry(enableTelemetry);
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public TelemetryConfigurationDto getTelemetryConfiguration() {
     ManagementService managementService = getProcessEngine().getManagementService();

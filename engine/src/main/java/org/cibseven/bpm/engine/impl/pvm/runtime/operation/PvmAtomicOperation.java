@@ -26,6 +26,7 @@ import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
  * @author Sebastian Menski
  *
  */
+@SuppressWarnings("deprecation")
 public interface PvmAtomicOperation extends CoreAtomicOperation<PvmExecutionImpl>, AtomicOperation {
 
   PvmAtomicOperation PROCESS_START = new PvmAtomicOperationProcessStart();

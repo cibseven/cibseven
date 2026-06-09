@@ -63,6 +63,7 @@ public class TelemetryRestServiceTest extends AbstractRestServiceTest {
     when(processEngine.getManagementService()).thenReturn(managementServiceMock);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void shouldDisableTelemetry() {
     Map<String, Object> requestBody = new HashMap<>();
@@ -80,6 +81,7 @@ public class TelemetryRestServiceTest extends AbstractRestServiceTest {
     verify(managementServiceMock).toggleTelemetry(false);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void shouldFetchDisabledTelemetryConfiguration() {
     when(managementServiceMock.isTelemetryEnabled()).thenReturn(false);

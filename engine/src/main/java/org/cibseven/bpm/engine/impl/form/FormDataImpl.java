@@ -36,6 +36,7 @@ public abstract class FormDataImpl implements FormData, Serializable {
   protected String formKey;
   protected CamundaFormRef camundaFormRef;
   protected String deploymentId;
+  @SuppressWarnings("deprecation")
   protected List<FormProperty> formProperties = new ArrayList<>();
 
   protected List<FormField> formFields = new ArrayList<>();
@@ -66,11 +67,12 @@ public abstract class FormDataImpl implements FormData, Serializable {
     this.deploymentId = deploymentId;
   }
 
+  @SuppressWarnings("deprecation")
   public List<FormProperty> getFormProperties() {
     return formProperties;
   }
 
-  public void setFormProperties(List<FormProperty> formProperties) {
+  public void setFormProperties(@SuppressWarnings("deprecation") List<FormProperty> formProperties) {
     this.formProperties = formProperties;
   }
 

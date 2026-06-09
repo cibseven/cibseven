@@ -16,39 +16,32 @@
  */
 package org.cibseven.bpm.dmn.engine.feel.function;
 
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+
 import org.cibseven.bpm.dmn.engine.feel.helper.FeelRule;
 import org.cibseven.bpm.dmn.feel.impl.FeelException;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.RuleChain;
 
 public class ExternalFunctionTest {
 
   protected FeelRule feelRule = FeelRule.build();
-  protected ExpectedException thrown = ExpectedException.none();
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(feelRule).around(thrown);
 
   @Test
   public void shouldFailWhenUsingExternalFunction() {
-    // given
-
-    // then
-    thrown.expect(FeelException.class);
-    thrown.expectMessage("External functions are disabled");
-
-    // when
-    feelRule.evaluateExpression("{ \n" +
-      "  foo: function(x, y) external { \n" +
-      "    java: { \n" +
-      "        class: \"java.lang.Math\", \n" +
-      "        method signature: \"addExact(int, int)\" \n" +
-      "    } \n" +
-      "  },\n" +
-      "  bar: foo(5, 5)\n" +
-      "}.bar");
+    FeelException exception = assertThrows( FeelException.class, ()-> {
+      // when
+      feelRule.evaluateExpression("{ \n" +
+        "  foo: function(x, y) external { \n" +
+        "    java: { \n" +
+        "        class: \"java.lang.Math\", \n" +
+        "        method signature: \"addExact(int, int)\" \n" +
+        "    } \n" +
+        "  },\n" +
+        "  bar: foo(5, 5)\n" +
+        "}.bar");
+    });
+    assertTrue(exception.getMessage().contains("External functions are disabled"));
   }
 
 }
