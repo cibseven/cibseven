@@ -84,6 +84,8 @@ import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.impl.TaskQueryImpl;
 import org.cibseven.bpm.engine.impl.calendar.DateTimeUtil;
 import org.cibseven.bpm.engine.impl.form.CamundaFormRefImpl;
+import org.cibseven.bpm.engine.impl.form.FormFieldDto;
+import org.cibseven.bpm.engine.impl.form.FormFieldImpl;
 import org.cibseven.bpm.engine.impl.identity.Authentication;
 import org.cibseven.bpm.engine.impl.persistence.entity.MetricIntervalEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.ResourceEntity;
@@ -267,6 +269,9 @@ public abstract class MockProvider {
   public static final String EXAMPLE_DESERIALIZED_VARIABLE_INSTANCE_NAME = "aDeserializedVariableInstanceName";
 
   public static final StringValue EXAMPLE_PRIMITIVE_VARIABLE_VALUE = Variables.stringValue("aVariableInstanceValue");
+  public static final StringValue EXAMPLE_PRIMITIVE_VARIABLE_LOCAL_VALUE = Variables.stringValue("aVariableInstanceValue");
+  public static final String EXAMPLE_PRIMITIVE_VARIABLE_LOCAL_TYPE_NAME = "String";
+  public static final String EXAMPLE_PRIMITIVE_VARIABLE_LOCAL_VALUE_NAME = "aVariableInstanceValue";
   public static final String EXAMPLE_VARIABLE_INSTANCE_PROC_DEF_KEY = "aVariableInstanceProcDefKey";
   public static final String EXAMPLE_VARIABLE_INSTANCE_PROC_DEF_ID = "aVariableInstanceProcDefId";
   public static final String EXAMPLE_VARIABLE_INSTANCE_PROC_INST_ID = "aVariableInstanceProcInstId";
@@ -2780,6 +2785,14 @@ public abstract class MockProvider {
   public static VariableMap createMockFormVariables() {
     VariableMap mock = Variables.createVariables();
     mock.putValueTyped(EXAMPLE_VARIABLE_INSTANCE_NAME, EXAMPLE_PRIMITIVE_VARIABLE_VALUE);
+    return mock;
+  }
+
+  public static VariableMap createMockFormVariablesLocal() {
+    VariableMap mock = Variables.createVariables();
+    FormFieldImpl formFieldImpl = new FormFieldImpl();
+    formFieldImpl.setValue(EXAMPLE_PRIMITIVE_VARIABLE_LOCAL_VALUE);
+    mock.put(EXAMPLE_VARIABLE_INSTANCE_NAME, new FormFieldDto(formFieldImpl));
     return mock;
   }
 
