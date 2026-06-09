@@ -570,7 +570,7 @@ pipeline {
                                 javadoc:javadoc \
                                 javadoc:aggregate \
                                 -Pdistro,distro-wildfly,distro-webjar,javadocs \
-                                -pl !org.cibseven.bpm.wildfly:cibseven-wildfly,!org.cibseven.bpm.wildfly:cibseven-wildfly26 \
+                                -pl !org.cibseven.bpm.wildfly:cibseven-wildfly,!org.cibseven.bpm.wildfly:cibseven-wildfly28 \
                                 -DskipTests=true \
                                 -Dskip.frontend.build=true \
                                 -T4 -U
