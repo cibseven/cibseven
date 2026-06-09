@@ -192,16 +192,16 @@
     <tagDatabase tag="2.2.0"/>
   </changeSet>
 
-  <changeSet author="CIB" id="2.2-to-2.3">
-    <sqlFile path="upgrade/${db.name}_engine_2.2_to_2.3.sql"
+  <changeSet author="CIB" id="2.2-to-2.2.1">
+    <sqlFile path="upgrade/${db.name}_engine_2.2_to_2.2.1.sql"
              encoding="UTF-8"
              relativeToChangelogFile="true"
              splitStatements="true"
              stripComments="true"/>
   </changeSet>
 
-  <changeSet author="CIB" id="2.3.0-tag">
-    <tagDatabase tag="2.3.0"/>
+  <changeSet author="CIB" id="2.2.1-tag">
+    <tagDatabase tag="2.2.1"/>
   </changeSet>
 
 </databaseChangeLog>
