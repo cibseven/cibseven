@@ -1,0 +1,142 @@
+{
+  "$schema": "https://unpkg.com/@camunda/element-templates-json-schema/resources/schema.json",
+  "name": "CIB seven - SOAP Connector",
+  "id": "org.cibseven.connect.httpclient.soap",
+  "version": 1,
+  "description": "Call a SOAP web service from a Service Task via the CIB seven SOAP connector (connectorId: soap-http-connector).",
+  "icon": {
+    "contents": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwRTZFQjgiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSI0IiB3aWR0aD0iMTgiIGhlaWdodD0iMTYiIHJ4PSIyIi8+PHBhdGggZD0iTTcgOWwzIDMtMyAzIi8+PHBhdGggZD0iTTEzIDE1aDQiLz48L3N2Zz4="
+  },
+  "keywords": [
+    "soap",
+    "wsdl",
+    "xml",
+    "connector",
+    "webservice"
+  ],
+  "appliesTo": [
+    "bpmn:ServiceTask"
+  ],
+  "groups": [
+    {
+      "id": "request",
+      "label": "SOAP request"
+    },
+    {
+      "id": "config",
+      "label": "Request configuration"
+    },
+    {
+      "id": "output",
+      "label": "Response mapping"
+    }
+  ],
+  "scopes": [
+    {
+      "type": "camunda:Connector",
+      "properties": [
+        {
+          "type": "Hidden",
+          "value": "soap-http-connector",
+          "binding": {
+            "type": "property",
+            "name": "connectorId"
+          }
+        },
+        {
+          "type": "Hidden",
+          "value": "POST",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "method"
+          }
+        },
+        {
+          "label": "Endpoint URL",
+          "group": "request",
+          "description": "Absolute SOAP endpoint URL, e.g. https://service.example.com/OrderService. Expressions are allowed, e.g. ${endpoint}.",
+          "type": "String",
+          "feel": "optional",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "url"
+          },
+          "constraints": {
+            "notEmpty": true
+          }
+        },
+        {
+          "label": "SOAP envelope",
+          "group": "request",
+          "description": "The full SOAP envelope (XML) to send as the request body. A String or an expression, e.g. ${envelope}.",
+          "type": "Text",
+          "feel": "optional",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "payload"
+          },
+          "constraints": {
+            "notEmpty": true
+          }
+        },
+        {
+          "label": "Headers (map)",
+          "group": "request",
+          "description": "Expression resolving to a Map<String,String>. For SOAP 1.1 set Content-Type=text/xml and the SOAPAction header, e.g. ${ {\"Content-Type\":\"text/xml; charset=UTF-8\",\"SOAPAction\":\"urn:placeOrder\"} }. For SOAP 1.2 use Content-Type=application/soap+xml (SOAPAction is carried as an action parameter). SOAPAction has no separate input parameter \u2013 it is a header.",
+          "type": "Text",
+          "feel": "optional",
+          "optional": true,
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "headers"
+          }
+        },
+        {
+          "label": "Request config (map)",
+          "group": "config",
+          "description": "Optional expression resolving to a Map of request-config options, e.g. ${ {\"connection-timeout\":5000,\"response-timeout\":10000} }. Supported keys: authentication-enabled, circular-redirects-allowed, connection-timeout, connection-keep-alive, connection-request-timeout, content-compression-enabled, cookie-spec, expect-continue-enabled, hard-cancellation-enabled, max-redirects, proxy, proxy-preferred-auth-scheme, redirects-enabled, response-timeout, target-preferred-auth-schemes.",
+          "type": "Text",
+          "feel": "optional",
+          "optional": true,
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "request-config"
+          }
+        },
+        {
+          "label": "Status code -> variable",
+          "group": "output",
+          "description": "Process variable that receives the HTTP status code.",
+          "type": "String",
+          "value": "statusCode",
+          "binding": {
+            "type": "camunda:outputParameter",
+            "source": "${statusCode}"
+          }
+        },
+        {
+          "label": "Response body -> variable",
+          "group": "output",
+          "description": "Process variable that receives the SOAP response XML.",
+          "type": "String",
+          "value": "response",
+          "binding": {
+            "type": "camunda:outputParameter",
+            "source": "${response}"
+          }
+        },
+        {
+          "label": "Response headers -> variable",
+          "group": "output",
+          "description": "Optional. Process variable that receives the response headers map. Leave empty to skip.",
+          "type": "String",
+          "optional": true,
+          "binding": {
+            "type": "camunda:outputParameter",
+            "source": "${headers}"
+          }
+        }
+      ]
+    }
+  ]
+}
