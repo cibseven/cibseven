@@ -5,7 +5,7 @@
   "version": 1,
   "description": "Call a SOAP web service from a Service Task via the CIB seven SOAP connector (connectorId: soap-http-connector).",
   "icon": {
-    "contents": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwRTZFQjgiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSI0IiB3aWR0aD0iMTgiIGhlaWdodD0iMTYiIHJ4PSIyIi8+PHBhdGggZD0iTTcgOWwzIDMtMyAzIi8+PHBhdGggZD0iTTEzIDE1aDQiLz48L3N2Zz4="
+    "contents": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyLjg5MDEgM0wxNC44NTAxIDMuNEwxMS4xMTAxIDIxTDkuMTUwMDggMjAuNkwxMi44OTAxIDNaTTE5LjU5MDEgMTJMMTYuMDAwMSA4LjQxVjUuNThMMjIuNDIwMSAxMkwxNi4wMDAxIDE4LjQxVjE1LjU4TDE5LjU5MDEgMTJaTTEuNTgwMDggMTJMOC4wMDAwOCA1LjU4VjguNDFMNC40MTAwOCAxMkw4LjAwMDA4IDE1LjU4VjE4LjQxTDEuNTgwMDggMTJaIiBmaWxsPSIjNEQ2Mjc4Ii8+Cjwvc3ZnPgo="
   },
   "keywords": [
     "soap",
