@@ -3,7 +3,7 @@
   "name": "CIB seven - HTTP Connector",
   "id": "org.cibseven.connect.httpclient",
   "version": 1,
-  "description": "Make an HTTP(S) request from a Service Task via the CIB seven HTTP connector (connectorId: http-connector).",
+  "description": "Make an HTTP(S) request from a BPMN Service Task using the CIB seven HTTP connector.\n\nHOW TO USE (Camunda 7): apply to a bpmn:ServiceTask. The task's bpmn:extensionElements must contain a <camunda:connector> holding <camunda:connectorId>http-connector</camunda:connectorId> and a <camunda:inputOutput>.\n\nINPUTS (camunda:inputParameter, by name): 'url' = absolute target URL (string or ${expr}), required; 'method' = one of GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS, TRACE; 'payload' = request body for POST/PUT/PATCH (string or ${expr}); 'headers' = a Map<String,String> of request headers; 'request-config' = an optional Map of HTTP-client options (keys: connection-timeout, response-timeout, redirects-enabled, max-redirects, etc.).\n\nOUTPUTS (camunda:outputParameter; the source expression reads the connector response): name=<your var> source=${statusCode} (Integer), source=${response} (response body String), source=${headers} (response headers Map).\n\nMAPS: this engine uses EL 2.2 which CANNOT evaluate inline map literals - do NOT write ${ {...} }. Provide 'headers' and 'request-config' either as a <camunda:map> with <camunda:entry key=\"...\">value</camunda:entry> children inside the inputParameter, or as ${someVar} referencing a process variable that already holds a java.util.Map.\n\nCOMPLETE EXAMPLE (service task body): <camunda:connector><camunda:connectorId>http-connector</camunda:connectorId><camunda:inputOutput><camunda:inputParameter name=\"method\">GET</camunda:inputParameter><camunda:inputParameter name=\"url\">https://httpbin.org/get</camunda:inputParameter><camunda:inputParameter name=\"headers\"><camunda:map><camunda:entry key=\"Accept\">application/json</camunda:entry></camunda:map></camunda:inputParameter><camunda:outputParameter name=\"statusCode\">${statusCode}</camunda:outputParameter><camunda:outputParameter name=\"response\">${response}</camunda:outputParameter></camunda:inputOutput></camunda:connector>",
   "icon": {
     "contents": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE3LjkgMTcuMzlDMTcuNjQgMTYuNTkgMTYuODkgMTYgMTYgMTZIMTVWMTNDMTUgMTIuNzM0OCAxNC44OTQ2IDEyLjQ4MDQgMTQuNzA3MSAxMi4yOTI5QzE0LjUxOTYgMTIuMTA1NCAxNC4yNjUyIDEyIDE0IDEySDhWMTBIMTBDMTAuMjY1MiAxMCAxMC41MTk2IDkuODk0NjQgMTAuNzA3MSA5LjcwNzExQzEwLjg5NDYgOS41MTk1NyAxMSA5LjI2NTIyIDExIDlWN0gxM0MxMy41MzA0IDcgMTQuMDM5MSA2Ljc4OTI5IDE0LjQxNDIgNi40MTQyMUMxNC43ODkzIDYuMDM5MTQgMTUgNS41MzA0MyAxNSA1VjQuNTlDMTYuMTk2NSA1LjA3MjM2IDE3LjI1ODIgNS44Mzc0NyAxOC4wOTQ0IDYuODE5ODNDMTguOTMwNiA3LjgwMjIgMTkuNTE2MyA4Ljk3MjU1IDE5LjgwMTMgMTAuMjMwN0MyMC4wODY0IDExLjQ4ODkgMjAuMDYyMyAxMi43OTc0IDE5LjczMTIgMTQuMDQ0MkMxOS40MDAxIDE1LjI5MSAxOC43NzE3IDE2LjQzOTEgMTcuOSAxNy4zOVpNMTEgMTkuOTNDNy4wNSAxOS40NCA0IDE2LjA4IDQgMTJDNCAxMS4zOCA0LjA4IDEwLjc4IDQuMjEgMTAuMjFMOSAxNVYxNkM5IDE2LjUzMDQgOS4yMTA3MSAxNy4wMzkxIDkuNTg1NzkgMTcuNDE0MkM5Ljk2MDg2IDE3Ljc4OTMgMTAuNDY5NiAxOCAxMSAxOE0xMiAyQzEwLjY4NjggMiA5LjM4NjQyIDIuMjU4NjYgOC4xNzMxNyAyLjc2MTJDNi45NTk5MSAzLjI2Mzc1IDUuODU3NTIgNC4wMDAzNSA0LjkyODkzIDQuOTI4OTNDMy4wNTM1NyA2LjgwNDMgMiA5LjM0Nzg0IDIgMTJDMiAxNC42NTIyIDMuMDUzNTcgMTcuMTk1NyA0LjkyODkzIDE5LjA3MTFDNS44NTc1MiAxOS45OTk3IDYuOTU5OTEgMjAuNzM2MiA4LjE3MzE3IDIxLjIzODhDOS4zODY0MiAyMS43NDEzIDEwLjY4NjggMjIgMTIgMjJDMTQuNjUyMiAyMiAxNy4xOTU3IDIwLjk0NjQgMTkuMDcxMSAxOS4wNzExQzIwLjk0NjQgMTcuMTk1NyAyMiAxNC42NTIyIDIyIDEyQzIyIDEwLjY4NjggMjEuNzQxMyA5LjM4NjQyIDIxLjIzODggOC4xNzMxN0MyMC43MzYyIDYuOTU5OTEgMTkuOTk5NyA1Ljg1NzUyIDE5LjA3MTEgNC45Mjg5M0MxOC4xNDI1IDQuMDAwMzUgMTcuMDQwMSAzLjI2Mzc1IDE1LjgyNjggMi43NjEyQzE0LjYxMzYgMi4yNTg2NiAxMy4zMTMyIDIgMTIgMloiIGZpbGw9IiM0RDYyNzgiLz4KPC9zdmc+Cg=="
   },
@@ -31,6 +31,7 @@
       "label": "Response mapping"
     }
   ],
+  "properties": [],
   "scopes": [
     {
       "type": "camunda:Connector",
@@ -68,7 +69,6 @@
           "group": "request",
           "description": "Absolute target URL, e.g. https://api.example.com/v1/orders. Expressions are allowed, e.g. ${baseUrl}/orders.",
           "type": "String",
-          "feel": "optional",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "url"
@@ -80,9 +80,8 @@
         {
           "label": "Headers (map)",
           "group": "request",
-          "description": "Expression resolving to a Map<String,String>, e.g. ${ {\"Content-Type\":\"application/json\",\"Authorization\":\"Bearer \"+token} }. Leave empty if not needed.",
+          "description": "HTTP request headers as a Map<String,String>. The engine (EL 2.2) does NOT support inline map literals, so do not use ${ {...} }. Supply the map either as ${headersVar} referencing a process variable that holds a Map, or - when emitting BPMN directly - as a <camunda:map> with <camunda:entry key=\"Content-Type\">application/json</camunda:entry> children inside this inputParameter. Leave empty if not needed.",
           "type": "Text",
-          "feel": "optional",
           "optional": true,
           "binding": {
             "type": "camunda:inputParameter",
@@ -94,7 +93,6 @@
           "group": "request",
           "description": "Request body for POST/PUT/PATCH. A String or an expression, e.g. ${orderJson}.",
           "type": "Text",
-          "feel": "optional",
           "optional": true,
           "binding": {
             "type": "camunda:inputParameter",
@@ -104,9 +102,8 @@
         {
           "label": "Request config (map)",
           "group": "config",
-          "description": "Optional expression resolving to a Map of request-config options, e.g. ${ {\"connection-timeout\":5000,\"response-timeout\":10000,\"redirects-enabled\":true} }. Supported keys: authentication-enabled, circular-redirects-allowed, connection-timeout, connection-keep-alive, connection-request-timeout, content-compression-enabled, cookie-spec, expect-continue-enabled, hard-cancellation-enabled, max-redirects, proxy, proxy-preferred-auth-scheme, redirects-enabled, response-timeout, target-preferred-auth-schemes.",
+          "description": "Optional request-config options as a Map. Inline map literals (${ {...} }) are NOT supported by the engine; supply ${configVar} (a Map process variable) or a <camunda:map> of <camunda:entry> children in the BPMN. Supported keys: authentication-enabled, circular-redirects-allowed, connection-timeout, connection-keep-alive, connection-request-timeout, content-compression-enabled, cookie-spec, expect-continue-enabled, hard-cancellation-enabled, max-redirects, proxy, proxy-preferred-auth-scheme, redirects-enabled, response-timeout, target-preferred-auth-schemes.",
           "type": "Text",
-          "feel": "optional",
           "optional": true,
           "binding": {
             "type": "camunda:inputParameter",
@@ -138,9 +135,9 @@
         {
           "label": "Response headers -> variable",
           "group": "output",
-          "description": "Optional. Process variable that receives the response headers map. Leave empty to skip.",
+          "description": "Process variable that receives the response headers map.",
           "type": "String",
-          "optional": true,
+          "value": "responseHeaders",
           "binding": {
             "type": "camunda:outputParameter",
             "source": "${headers}"
