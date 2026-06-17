@@ -141,6 +141,20 @@
       <directory>../modules/ai-agent/target/dependency/</directory>
       <outputDirectory>configuration/userlib-ai/</outputDirectory>
     </fileSet>
+    <!-- http/soap connectors ship into the always-on userlib/ folder so the
+         connectors (and their classpath*:element-templates/*.json bundled in the
+         connector JARs) are available out of the box. Unlike the heavy ai-agent
+         they are lightweight, so they are not gated behind a separate folder.
+         The shared cibseven-connect-http-client jar produced by both modules is
+         the same artifact/version and dedupes by filename. -->
+    <fileSet>
+      <directory>../modules/http-client/target/dependency/</directory>
+      <outputDirectory>configuration/userlib/</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>../modules/soap-http-client/target/dependency/</directory>
+      <outputDirectory>configuration/userlib/</outputDirectory>
+    </fileSet>
     <!-- create empty resource folder -->
     <fileSet>
       <directory>resources/dummyResource</directory>
