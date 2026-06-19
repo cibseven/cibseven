@@ -313,6 +313,19 @@
                   <fileset dir="src/main/modules" />
                 </copy>
 
+                <!-- relocate jackson module.xml files from 'main' placeholder to version-named slot -->
+                <move todir="target/modules" flatten="false">
+                  <fileset dir="target/modules">
+                    <include name="com/fasterxml/jackson/**/main/module.xml" />
+                  </fileset>
+                  <regexpmapper from="^(com/fasterxml/jackson.*)/main/(module.xml)$$"
+                                to="\1/${version.jackson}/\2"
+                                handledirsep="yes" />
+                </move>
+                <delete dir="target/modules/com/fasterxml/jackson/core/jackson-annotations/main" />
+                <delete dir="target/modules/com/fasterxml/jackson/core/jackson-core/main" />
+                <delete dir="target/modules/com/fasterxml/jackson/core/jackson-databind/main" />
+
                 <!-- ai-agent fat module: generate one <resource-root> per collected
                      jar and inject it into the @resource-roots@ token of the shipped
                      module.xml template (so the list never drifts as the connector's
