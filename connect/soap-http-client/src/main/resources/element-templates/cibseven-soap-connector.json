@@ -1,0 +1,139 @@
+{
+  "$schema": "https://unpkg.com/@camunda/element-templates-json-schema/resources/schema.json",
+  "name": "CIB seven - SOAP Connector",
+  "id": "org.cibseven.connect.httpclient.soap",
+  "version": 1,
+  "description": "Call a SOAP web service from a BPMN Service Task using the CIB seven SOAP connector.\n\nHOW TO USE (Camunda 7): apply to a bpmn:ServiceTask. The task's bpmn:extensionElements must contain a <camunda:connector> holding <camunda:connectorId>soap-http-connector</camunda:connectorId> and a <camunda:inputOutput>. The HTTP method is always POST (the connector rejects anything else).\n\nINPUTS (camunda:inputParameter, by name): 'method' = POST (fixed); 'url' = absolute SOAP endpoint URL, required; 'payload' = the full SOAP envelope XML to send as the body, required (wrap in <![CDATA[ ... ]]> in BPMN); 'headers' = a Map<String,String>, REQUIRED because the connector sets no defaults - it must include Content-Type and, for SOAP 1.1, SOAPAction; 'request-config' = an optional Map of HTTP-client options.\n\nOUTPUTS (camunda:outputParameter; the source expression reads the connector response): name=<your var> source=${statusCode} (Integer), source=${response} (response XML String), source=${headers} (response headers Map).\n\nMAPS: this engine uses EL 2.2 which CANNOT evaluate inline map literals - do NOT write ${ {...} }. Provide 'headers' and 'request-config' either as a <camunda:map> with <camunda:entry key=\"...\">value</camunda:entry> children inside the inputParameter, or as ${someVar} referencing a process variable that already holds a java.util.Map. For SOAP 1.1 use Content-Type=text/xml; charset=utf-8 plus a SOAPAction header; for SOAP 1.2 use Content-Type=application/soap+xml.\n\nCOMPLETE EXAMPLE (service task body): <camunda:connector><camunda:connectorId>soap-http-connector</camunda:connectorId><camunda:inputOutput><camunda:inputParameter name=\"method\">POST</camunda:inputParameter><camunda:inputParameter name=\"url\">http://www.dneonline.com/calculator.asmx</camunda:inputParameter><camunda:inputParameter name=\"payload\"><![CDATA[<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap:Body><Add xmlns=\"http://tempuri.org/\"><intA>3</intA><intB>4</intB></Add></soap:Body></soap:Envelope>]]></camunda:inputParameter><camunda:inputParameter name=\"headers\"><camunda:map><camunda:entry key=\"Content-Type\">text/xml; charset=utf-8</camunda:entry><camunda:entry key=\"SOAPAction\">http://tempuri.org/Add</camunda:entry></camunda:map></camunda:inputParameter><camunda:outputParameter name=\"statusCode\">${statusCode}</camunda:outputParameter><camunda:outputParameter name=\"response\">${response}</camunda:outputParameter></camunda:inputOutput></camunda:connector>",
+  "icon": {
+    "contents": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyLjg5MDEgM0wxNC44NTAxIDMuNEwxMS4xMTAxIDIxTDkuMTUwMDggMjAuNkwxMi44OTAxIDNaTTE5LjU5MDEgMTJMMTYuMDAwMSA4LjQxVjUuNThMMjIuNDIwMSAxMkwxNi4wMDAxIDE4LjQxVjE1LjU4TDE5LjU5MDEgMTJaTTEuNTgwMDggMTJMOC4wMDAwOCA1LjU4VjguNDFMNC40MTAwOCAxMkw4LjAwMDA4IDE1LjU4VjE4LjQxTDEuNTgwMDggMTJaIiBmaWxsPSIjNEQ2Mjc4Ii8+Cjwvc3ZnPgo="
+  },
+  "keywords": [
+    "soap",
+    "wsdl",
+    "xml",
+    "connector",
+    "webservice"
+  ],
+  "appliesTo": [
+    "bpmn:ServiceTask"
+  ],
+  "groups": [
+    {
+      "id": "request",
+      "label": "SOAP request"
+    },
+    {
+      "id": "config",
+      "label": "Request configuration"
+    },
+    {
+      "id": "output",
+      "label": "Response mapping"
+    }
+  ],
+  "properties": [],
+  "scopes": [
+    {
+      "type": "camunda:Connector",
+      "properties": [
+        {
+          "type": "Hidden",
+          "value": "soap-http-connector",
+          "binding": {
+            "type": "property",
+            "name": "connectorId"
+          }
+        },
+        {
+          "type": "Hidden",
+          "value": "POST",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "method"
+          }
+        },
+        {
+          "label": "Endpoint URL",
+          "group": "request",
+          "description": "Absolute SOAP endpoint URL, e.g. https://service.example.com/OrderService. Expressions are allowed, e.g. ${endpoint}.",
+          "type": "String",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "url"
+          },
+          "constraints": {
+            "notEmpty": true
+          }
+        },
+        {
+          "label": "SOAP envelope",
+          "group": "request",
+          "description": "The full SOAP envelope (XML) to send as the request body. A String or an expression, e.g. ${envelope}.",
+          "type": "Text",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "payload"
+          },
+          "constraints": {
+            "notEmpty": true
+          }
+        },
+        {
+          "label": "Headers (map)",
+          "group": "request",
+          "description": "SOAP request headers as a Map<String,String>; required (the connector sets no defaults). The engine (EL 2.2) does NOT support inline map literals, so do not use ${ {...} }. Supply the map either as ${headersVar} referencing a Map process variable, or - when emitting BPMN directly - as a <camunda:map> with <camunda:entry> children. For SOAP 1.1 set Content-Type=text/xml; charset=utf-8 and the SOAPAction header; for SOAP 1.2 use Content-Type=application/soap+xml. SOAPAction is itself a header, not a separate input parameter.",
+          "type": "Text",
+          "optional": true,
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "headers"
+          }
+        },
+        {
+          "label": "Request config (map)",
+          "group": "config",
+          "description": "Optional request-config options as a Map. Inline map literals (${ {...} }) are NOT supported by the engine; supply ${configVar} (a Map process variable) or a <camunda:map> of <camunda:entry> children in the BPMN. Supported keys: authentication-enabled, circular-redirects-allowed, connection-timeout, connection-keep-alive, connection-request-timeout, content-compression-enabled, cookie-spec, expect-continue-enabled, hard-cancellation-enabled, max-redirects, proxy, proxy-preferred-auth-scheme, redirects-enabled, response-timeout, target-preferred-auth-schemes.",
+          "type": "Text",
+          "optional": true,
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "request-config"
+          }
+        },
+        {
+          "label": "Status code -> variable",
+          "group": "output",
+          "description": "Process variable that receives the HTTP status code.",
+          "type": "String",
+          "value": "statusCode",
+          "binding": {
+            "type": "camunda:outputParameter",
+            "source": "${statusCode}"
+          }
+        },
+        {
+          "label": "Response body -> variable",
+          "group": "output",
+          "description": "Process variable that receives the SOAP response XML.",
+          "type": "String",
+          "value": "response",
+          "binding": {
+            "type": "camunda:outputParameter",
+            "source": "${response}"
+          }
+        },
+        {
+          "label": "Response headers -> variable",
+          "group": "output",
+          "description": "Process variable that receives the response headers map.",
+          "type": "String",
+          "value": "responseHeaders",
+          "binding": {
+            "type": "camunda:outputParameter",
+            "source": "${headers}"
+          }
+        }
+      ]
+    }
+  ]
+}

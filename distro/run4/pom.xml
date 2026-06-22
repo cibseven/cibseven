@@ -98,6 +98,8 @@
         <module>modules/example</module>
         <module>modules/webapps</module>
         <module>modules/ai-agent</module>
+        <module>modules/http-client</module>
+        <module>modules/soap-http-client</module>
         <module>core</module>
         <module>assembly</module>
         <module>qa</module>
