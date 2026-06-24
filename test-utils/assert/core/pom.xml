@@ -9,7 +9,7 @@
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-bpm-assert-root</artifactId>
     <relativePath>../</relativePath>
-    <version>2.2.0-plus-SNAPSHOT</version>
+    <version>2.3.0-plus-SNAPSHOT</version>
   </parent>
   
   <dependencies>

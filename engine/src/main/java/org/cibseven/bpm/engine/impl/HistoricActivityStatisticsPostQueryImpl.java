@@ -30,6 +30,8 @@ import java.util.stream.Collectors;
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.history.HistoricActivityStatistics;
 import org.cibseven.bpm.engine.history.HistoricActivityStatisticsPostQuery;
+import org.cibseven.bpm.engine.history.HistoricProcessInstance;
+import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureEmpty;
 import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.Context;
@@ -43,7 +45,7 @@ import org.cibseven.bpm.engine.impl.variable.serializer.VariableSerializers;
  *
  * @author CIBSeven
  */
-public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<HistoricActivityStatisticsPostQuery, HistoricActivityStatistics> implements HistoricActivityStatisticsPostQuery {
+public class HistoricActivityStatisticsPostQueryImpl extends AbstractVariableQueryImpl<HistoricActivityStatisticsPostQuery, HistoricActivityStatistics> implements HistoricActivityStatisticsPostQuery {
 
   private static final long serialVersionUID = 1L;
 
@@ -129,7 +131,7 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
   protected Map<String, Set<QueryVariableValue>> queryVariableNameToValuesMap = new HashMap<>();
 
   // Or queries support
-  protected List<HistoricActivityStatisticsPostQueryImpl> queries;
+  protected List<HistoricActivityStatisticsPostQueryImpl> queries = new ArrayList<>(Collections.singletonList(this));
   protected boolean isOrQueryActive = false;
 
   protected Set<String> state = new HashSet<>();
@@ -144,15 +146,12 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
 
 
   public HistoricActivityStatisticsPostQueryImpl(String processDefinitionId) {
-    super(null);
     this.processDefinitionId = processDefinitionId;
-    this.queries = new ArrayList<>(Collections.singletonList(this));
   }
 
   public HistoricActivityStatisticsPostQueryImpl(String processDefinitionId, CommandExecutor commandExecutor) {
     super(commandExecutor);
     this.processDefinitionId = processDefinitionId;
-    this.queries = new ArrayList<>(Collections.singletonList(this));
   }
 
 
@@ -471,43 +470,6 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
     return this;
   }
 
-  // Activity State filters
-
-  @Override
-  public HistoricActivityStatisticsPostQueryImpl active() {
-    this.active = true;
-    addState("ACTIVE");
-    return this;
-  }
-
-  @Override
-  public HistoricActivityStatisticsPostQueryImpl suspended() {
-    this.suspended = true;
-    addState("SUSPENDED");
-    return this;
-  }
-
-  @Override
-  public HistoricActivityStatisticsPostQueryImpl completed() {
-    this.completed = true;
-    addState("COMPLETED");
-    return this;
-  }
-
-  @Override
-  public HistoricActivityStatisticsPostQueryImpl externallyTerminated() {
-    this.externallyTerminated = true;
-    addState("EXTERNALLY_TERMINATED");
-    return this;
-  }
-
-  @Override
-  public HistoricActivityStatisticsPostQueryImpl internallyTerminated() {
-    this.internallyTerminated = true;
-    addState("INTERNALLY_TERMINATED");
-    return this;
-  }
-  
   // Variable support
 
   @Override
@@ -606,7 +568,7 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
 
   public void addOrQuery(HistoricActivityStatisticsPostQueryImpl orQuery) {
     orQuery.isOrQueryActive = true;
-    orQuery.queries = this.queries;
+    orQuery.processDefinitionId = null;
     queries.add(orQuery);
   }
 
@@ -721,29 +683,12 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
     return null;
   }
 
-  public String getbusinessKey() {
-    return businessKey;
-  }
-
   public String getBusinessKey() {
     return businessKey;
   }
 
-  public String[] getbusinessKeyIn() {
-    return businessKeyIn;
-  }
-
   public String[] getBusinessKeyIn() {
     return businessKeyIn;
-  }
-
-  @Deprecated
-  public String[] getbusinessKeys() {
-    return businessKeyIn;
-  }
-
-  public String getbusinessKeyLike() {
-    return businessKeyLike;
   }
 
   public String getBusinessKeyLike() {
@@ -925,14 +870,6 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
     return internallyTerminated;
   }
 
-  public boolean isVariableNamesIgnoreCase() {
-    return variableNamesIgnoreCase;
-  }
-
-  public boolean isVariableValuesIgnoreCase() {
-    return variableValuesIgnoreCase;
-  }
-
   public List<HistoricActivityStatisticsPostQueryImpl> getQueries() {
     return queries;
   }
@@ -943,6 +880,51 @@ public class HistoricActivityStatisticsPostQueryImpl extends AbstractQuery<Histo
 
   public HistoricActivityStatisticsPostQuery orderByActivityId() {
     return orderBy(HistoricActivityStatisticsQueryProperty.ACTIVITY_ID_);
+  }
+
+  @Override
+  public HistoricActivityStatisticsPostQuery active() {
+    if(!isOrQueryActive) {
+      ensureEmpty(BadUserRequestException.class, "Already querying for historic process instance with another state", state);
+    }
+    state.add(HistoricProcessInstance.STATE_ACTIVE);
+    return this;
+  }
+
+  @Override
+  public HistoricActivityStatisticsPostQuery suspended() {
+    if(!isOrQueryActive) {
+      ensureEmpty(BadUserRequestException.class, "Already querying for historic process instance with another state", state);
+    }
+    state.add(HistoricProcessInstance.STATE_SUSPENDED);
+    return this;
+  }
+
+  @Override
+  public HistoricActivityStatisticsPostQuery completed() {
+    if(!isOrQueryActive) {
+      ensureEmpty(BadUserRequestException.class, "Already querying for historic process instance with another state", state);
+    }
+    state.add(HistoricProcessInstance.STATE_COMPLETED);
+    return this;
+  }
+
+  @Override
+  public HistoricActivityStatisticsPostQuery externallyTerminated() {
+    if(!isOrQueryActive) {
+      ensureEmpty(BadUserRequestException.class, "Already querying for historic process instance with another state", state);
+    }
+    state.add(HistoricProcessInstance.STATE_EXTERNALLY_TERMINATED);
+    return this;
+  }
+
+  @Override
+  public HistoricActivityStatisticsPostQuery internallyTerminated() {
+    if(!isOrQueryActive) {
+      ensureEmpty(BadUserRequestException.class, "Already querying for historic process instance with another state", state);
+    }
+    state.add(HistoricProcessInstance.STATE_INTERNALLY_TERMINATED);
+    return this;
   }
 
 }
