@@ -440,7 +440,7 @@ pipeline {
 
                     withMaven(options: []) {
                         sh """
-                            mvn -U \
+                            mvn -U -T4 \
                                 -DskipTests \
                                 -Pwebapps-integration ${deployment} \
                                 clean deploy
