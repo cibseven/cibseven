@@ -25,6 +25,12 @@
       <artifactId>cibseven-commons-logging</artifactId>
     </dependency>
 
+    <!-- Caffeine cache for per-entry expiry of optional LDAP lookup caching -->
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+    </dependency>
+
     <!-- LDAP Libraries to start test server -->
     <dependency>
       <groupId>org.apache.directory.server</groupId>

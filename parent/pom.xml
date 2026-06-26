@@ -49,6 +49,7 @@
     <version.httpcore5>5.3.4</version.httpcore5>
     <version.cronutils>9.2.1</version.cronutils>
     <version.jjwt>0.12.6</version.jjwt>
+    <version.caffeine>3.2.4</version.caffeine>
 
     <version.slf4j>1.7.26</version.slf4j>
     <version.logback>1.2.13</version.logback>
