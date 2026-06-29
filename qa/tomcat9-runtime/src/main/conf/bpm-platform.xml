@@ -67,6 +67,15 @@
           <property name="groupMemberAttribute">member</property>
           <property name="sortControlSupported">false</property>
 
+          <property name="cacheEnabled">false</property>
+          <property name="cacheUserQueriesTtlSeconds">30</property>
+          <property name="cacheUserQueriesMaxWeight">10000</property>
+          <property name="cacheGroupTtlSeconds">120</property>
+          <property name="cacheGroupMaxWeight">5000</property>
+          
+          <property name="cacheStatsLogEnabled">false</property>
+          <property name="cacheStatsLogInterval">1000</property>
+
         </properties>
       </plugin>
       -->
