@@ -68,6 +68,17 @@
           <property name="groupMemberAttribute">member</property>
           <property name="sortControlSupported">false</property>
 
+          <!-- Optional in-memory caching of LDAP lookups (disabled by default). -->
+          <!-- maxWeight bounds the number of cached users/groups, not the number of queries. -->
+          <property name="cacheEnabled">false</property>
+          <property name="cacheUserQueriesTtlSeconds">30</property>
+          <property name="cacheUserQueriesMaxWeight">10000</property>
+          <property name="cacheGroupTtlSeconds">120</property>
+          <property name="cacheGroupMaxWeight">5000</property>
+          <!-- Periodic INFO logging of cache hit/miss statistics; debug aid only. -->
+          <property name="cacheStatsLogEnabled">false</property>
+          <property name="cacheStatsLogInterval">1000</property>
+
         </properties>
       </plugin>
       -->

@@ -74,6 +74,22 @@ public class LdapConfiguration {
 
   protected boolean passwordCheckCatchAuthenticationException = true;
 
+  // Optional in-memory caching of LDAP lookups
+  protected boolean cacheEnabled = false;
+  // Caches are bounded by total weight: an entry weighs as many units as the list it holds has
+  // elements (min 1), so the limits below cap the number of cached users/groups, not the number of
+  // distinct queries.
+  // High-cardinality, rarely-repeated name/email/id searches: larger, shorter-lived.
+  protected long cacheUserQueriesTtlSeconds = 30;
+  protected long cacheUserQueriesMaxWeight = 20_000;
+  // Low-cardinality, frequently-repeated group lookups: smaller, longer-lived.
+  protected long cacheGroupTtlSeconds = 120;
+  protected long cacheGroupMaxWeight = 8_000;
+  // Periodic INFO logging of cache hit/miss statistics. Debug aid only; off by default.
+  protected boolean cacheStatsLogEnabled = false;
+  // How often (in cache lookups) to emit the stats summary when cacheStatsLogEnabled is true.
+  protected long cacheStatsLogInterval = 1_000;
+
   // getters / setters //////////////////////////////////////
 
   public String getInitialContextFactory() {
@@ -305,6 +321,62 @@ public class LdapConfiguration {
 
   public void setPasswordCheckCatchAuthenticationException(boolean passwordCheckCatchAuthenticationException) {
     this.passwordCheckCatchAuthenticationException = passwordCheckCatchAuthenticationException;
+  }
+
+  public boolean isCacheEnabled() {
+    return cacheEnabled;
+  }
+
+  public void setCacheEnabled(boolean cacheEnabled) {
+    this.cacheEnabled = cacheEnabled;
+  }
+
+  public long getCacheUserQueriesTtlSeconds() {
+    return cacheUserQueriesTtlSeconds;
+  }
+
+  public void setCacheUserQueriesTtlSeconds(long cacheUserQueriesTtlSeconds) {
+    this.cacheUserQueriesTtlSeconds = cacheUserQueriesTtlSeconds;
+  }
+
+  public long getCacheUserQueriesMaxWeight() {
+    return cacheUserQueriesMaxWeight;
+  }
+
+  public void setCacheUserQueriesMaxWeight(long cacheUserQueriesMaxWeight) {
+    this.cacheUserQueriesMaxWeight = cacheUserQueriesMaxWeight;
+  }
+
+  public long getCacheGroupTtlSeconds() {
+    return cacheGroupTtlSeconds;
+  }
+
+  public void setCacheGroupTtlSeconds(long cacheGroupTtlSeconds) {
+    this.cacheGroupTtlSeconds = cacheGroupTtlSeconds;
+  }
+
+  public long getCacheGroupMaxWeight() {
+    return cacheGroupMaxWeight;
+  }
+
+  public void setCacheGroupMaxWeight(long cacheGroupMaxWeight) {
+    this.cacheGroupMaxWeight = cacheGroupMaxWeight;
+  }
+
+  public boolean isCacheStatsLogEnabled() {
+    return cacheStatsLogEnabled;
+  }
+
+  public void setCacheStatsLogEnabled(boolean cacheStatsLogEnabled) {
+    this.cacheStatsLogEnabled = cacheStatsLogEnabled;
+  }
+
+  public long getCacheStatsLogInterval() {
+    return cacheStatsLogInterval;
+  }
+
+  public void setCacheStatsLogInterval(long cacheStatsLogInterval) {
+    this.cacheStatsLogInterval = cacheStatsLogInterval;
   }
 
 }

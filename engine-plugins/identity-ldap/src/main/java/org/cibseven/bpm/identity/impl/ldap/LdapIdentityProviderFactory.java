@@ -27,21 +27,38 @@ import org.cibseven.bpm.engine.impl.interceptor.SessionFactory;
 public class LdapIdentityProviderFactory implements SessionFactory {
 
   protected LdapConfiguration ldapConfiguration;
-  
+
+  /**
+   * Caches shared by all sessions this factory opens, scoped to this factory's LDAP provider.
+   * Non-static on purpose: a second engine with a different LDAP provider gets its own factory and
+   * therefore its own store. {@code null} unless caching is enabled.
+   */
+  protected LdapCacheStore cacheStore;
+
   public Class<?> getSessionType() {
     return ReadOnlyIdentityProvider.class;
   }
 
   public Session openSession() {
+    if (cacheStore != null) {
+      return new CachingLdapIdentityProviderSession(ldapConfiguration, cacheStore);
+    }
     return new LdapIdentityProviderSession(ldapConfiguration);
   }
-  
+
   public LdapConfiguration getLdapConfiguration() {
     return ldapConfiguration;
   }
-  
+
   public void setLdapConfiguration(LdapConfiguration ldapConfiguration) {
     this.ldapConfiguration = ldapConfiguration;
+    this.cacheStore = (ldapConfiguration != null && ldapConfiguration.isCacheEnabled())
+        ? new LdapCacheStore(ldapConfiguration)
+        : null;
+  }
+
+  public LdapCacheStore getCacheStore() {
+    return cacheStore;
   }
 
 }
