@@ -11,7 +11,7 @@
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-database-settings</artifactId>
     <relativePath>../database</relativePath>
-    <version>2.2.0-SNAPSHOT</version>
+    <version>2.3.0-SNAPSHOT</version>
   </parent>
 
   <properties>
@@ -46,6 +46,7 @@
 
     <tomcat.runtime.location>../tomcat-runtime/target/server/apache-tomcat-${version.tomcat}</tomcat.runtime.location>
     <tomcat9.runtime.location>../tomcat9-runtime/target/server/apache-tomcat-${version.tomcat9}</tomcat9.runtime.location>
+    <tomcat10.runtime.location>../tomcat10-runtime/target/server/apache-tomcat-${version.tomcat10}</tomcat10.runtime.location>
 
   </properties>
 
@@ -77,6 +78,7 @@
         <module>wildfly-runtime</module>
         <module>tomcat-runtime</module>
         <module>tomcat9-runtime</module>
+        <module>tomcat10-runtime</module>
         <module>integration-tests-webapps</module>
         <module>integration-tests-engine</module>
         <module>test-db-util</module>
@@ -128,6 +130,13 @@
       <id>tomcat</id>
       <modules>
         <module>tomcat-runtime</module>
+      </modules>
+    </profile>
+
+    <profile>
+      <id>tomcat10</id>
+      <modules>
+        <module>tomcat10-runtime</module>
       </modules>
     </profile>
 

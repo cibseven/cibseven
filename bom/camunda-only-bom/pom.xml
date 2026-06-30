@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-bom-root</artifactId>
-    <version>2.2.0-SNAPSHOT</version>
+    <version>2.3.0-SNAPSHOT</version>
     <relativePath>../</relativePath>
   </parent>
 
@@ -61,6 +61,11 @@
       <dependency>
         <groupId>org.cibseven.bpm.identity</groupId>
         <artifactId>cibseven-identity-ldap</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.cibseven.bpm.identity</groupId>
+        <artifactId>cibseven-identity-scim</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

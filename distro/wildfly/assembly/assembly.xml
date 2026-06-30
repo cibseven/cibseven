@@ -23,19 +23,17 @@
       <includes>
         <include>org.wildfly:wildfly-dist:tar.gz:${version.wildfly}</include>
       </includes>
-      <unpack>true</unpack>      
+      <unpack>true</unpack>
       <unpackOptions>
         <excludes>
-          <exclude>**/standalone/configuration/standalone.xml</exclude>        
+          <exclude>**/standalone/configuration/standalone.xml</exclude>
           <exclude>**/standalone/configuration/standalone-full.xml</exclude> 
           <exclude>**/bin/standalone.conf</exclude>
           <exclude>**/bin/standalone.conf.bat</exclude>
           <!-- exclude wildfly's shipped version of h2database -->
           <exclude>**/h2database/**</exclude>
-          <!-- exclude system jackson core modules: CWE-770 -->
-          <exclude>**/modules/system/layers/base/com/fasterxml/jackson/core/**</exclude>
-        </excludes>        
-      </unpackOptions>      
+        </excludes>
+      </unpackOptions>
     </dependencySet>
     <dependencySet>
       <outputDirectory>lib</outputDirectory>
@@ -71,6 +69,14 @@
     <fileSet>
       <directory>../modules/target/modules</directory>
       <outputDirectory>server/wildfly-${version.wildfly}/modules</outputDirectory>
+    </fileSet>
+    <!-- ai-agent element-templates (extracted from the connector jar by the
+         dependency-plugin unpack in pom.xml): shipped to the standalone config
+         dir so the modeler discovers them via the file: path in
+         application-wildfly.yaml, independent of cross-module classpath*: scanning. -->
+    <fileSet>
+      <directory>target/ai-agent-templates/element-templates</directory>
+      <outputDirectory>server/wildfly-${version.wildfly}/standalone/configuration/element-templates</outputDirectory>
     </fileSet>
   </fileSets>
   <files>

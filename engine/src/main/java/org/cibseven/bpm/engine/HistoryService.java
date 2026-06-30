@@ -29,6 +29,7 @@ import org.cibseven.bpm.engine.exception.NotValidException;
 import org.cibseven.bpm.engine.history.HistoricActivityInstance;
 import org.cibseven.bpm.engine.history.HistoricActivityInstanceQuery;
 import org.cibseven.bpm.engine.history.HistoricActivityStatisticsQuery;
+import org.cibseven.bpm.engine.history.HistoricActivityStatisticsPostQuery;
 import org.cibseven.bpm.engine.history.HistoricCaseActivityInstance;
 import org.cibseven.bpm.engine.history.HistoricCaseActivityInstanceQuery;
 import org.cibseven.bpm.engine.history.HistoricCaseActivityStatisticsQuery;
@@ -129,6 +130,11 @@ public interface HistoryService {
    * permission on {@link Resources#PROCESS_DEFINITION}
    */
   HistoricActivityStatisticsQuery createHistoricActivityStatisticsQuery(String processDefinitionId);
+
+  /**
+   * Extended historic activity statistics query with additional process instance filters.
+   */
+  HistoricActivityStatisticsPostQuery createHistoricActivityStatisticsPostQuery(String processDefinitionId);
 
   /**
    * Query for the number of historic case activity instances aggregated by case activities of a single case definition.

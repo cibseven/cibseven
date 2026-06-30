@@ -26,6 +26,8 @@
       <unpackOptions>
         <excludes>
           <exclude>**/conf/server.xml</exclude>
+          <!-- shipped customised below: adds lib-ai/ to common.loader -->
+          <exclude>**/conf/catalina.properties</exclude>
         </excludes>
       </unpackOptions>
       <unpack>true</unpack>
@@ -38,6 +40,7 @@
 
         <include>org.cibseven.bpm:cibseven-engine:jar</include>
         <include>org.cibseven.bpm.identity:cibseven-identity-ldap:jar</include>
+        <include>org.cibseven.bpm.identity:cibseven-identity-scim:jar</include>
 
         <include>org.mybatis:mybatis:jar:*</include>
         <include>com.fasterxml.uuid:java-uuid-generator:jar:*</include>
@@ -83,6 +86,7 @@
 
         <include>org.cibseven.bpm:cibseven-engine:jar</include>
         <include>org.cibseven.bpm.identity:cibseven-identity-ldap:jar</include>
+        <include>org.cibseven.bpm.identity:cibseven-identity-scim:jar</include>
 
         <include>org.mybatis:mybatis:jar:*</include>
         <include>com.fasterxml.uuid:java-uuid-generator:jar:*</include>
@@ -120,6 +124,27 @@
       </includes>
     </dependencySet>
   </dependencySets>
+
+  <fileSets>
+    <!-- ai-agent connector overlay: the cibseven-tomcat-ai-agent module collects the
+         ai-agent connector + its LangChain4j/ONNX/pdfbox transitive jars into
+         target/dependency/. They ship into a dedicated lib-ai/ folder (NOT the
+         always-loaded lib/) which the shipped conf/catalina.properties adds to the
+         common.loader — so the connector is on the same classloader as the engine
+         and registers via the cibseven-connect SPI, active by default.
+
+         Keeping it a separate folder makes it toggleable WITHOUT deleting jars:
+         the docker image strips the lib-ai tokens from common.loader when
+         AI_AGENT_ENABLED=false (see cibseven-tomcat.sh); standalone operators can
+         delete the lib-ai/ folder. This restores the non-invasive behaviour of
+         CIB7-1299. Only under server/apache-tomcat-* (the runtime classpath for
+         the standalone start script and the docker image, which extracts only the
+         server/ subtree); the root lib/ loads nothing, so it is not duplicated. -->
+    <fileSet>
+      <directory>../ai-agent/target/dependency/</directory>
+      <outputDirectory>server/apache-tomcat-${version.tomcat}/lib-ai</outputDirectory>
+    </fileSet>
+  </fileSets>
 
   <files>
     <file>
@@ -167,7 +192,16 @@
       <source>src/conf/server.xml</source>
       <outputDirectory>server/apache-tomcat-${version.tomcat}/conf/</outputDirectory>
     </file>
-    
+
+    <!-- customised catalina.properties: generated at build time = stock file from
+         the pinned Tomcat artifact + the lib-ai/ entry on common.loader (see the
+         dependency/antrun executions in pom.xml). Replaces the stock file excluded
+         from the tomcat unpack above; stays in sync with Tomcat upgrades. -->
+    <file>
+      <source>target/tomcat-conf/apache-tomcat-${version.tomcat}/conf/catalina.properties</source>
+      <outputDirectory>server/apache-tomcat-${version.tomcat}/conf/</outputDirectory>
+    </file>
+
     <file>
       <source>src/conf/bpm-platform.xml</source>
       <outputDirectory>server/apache-tomcat-${version.tomcat}/conf/</outputDirectory>
@@ -176,6 +210,14 @@
     <file>
       <source>src/conf/Catalina/localhost/webapp.xml</source>
       <outputDirectory>server/apache-tomcat-${version.tomcat}/conf/Catalina/localhost/</outputDirectory>
+    </file>
+
+    <!-- empty directory operators drop their own element-template JSONs into;
+         referenced by the cibseven.webclient.modeler.templates.paths file: entry
+         in conf/Catalina/localhost/webapp.xml -->
+    <file>
+      <source>src/conf/element-templates/.gitkeep</source>
+      <outputDirectory>server/apache-tomcat-${version.tomcat}/conf/element-templates/</outputDirectory>
     </file>
       
     <file>

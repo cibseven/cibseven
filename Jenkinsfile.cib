@@ -20,8 +20,8 @@ import groovy.transform.Field
         (Constants.MAVEN_JDK_17_CONTAINER): [
             resources: [
                 cpu: '4',
-                memory: '12Gi',
-                ephemeralStorage: '12Gi'
+                memory: '16Gi',
+                ephemeralStorage: '16Gi'
             ]
         ]
     ]
@@ -263,6 +263,7 @@ pipeline {
                     when { expression { params.QA_ENG_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat10,h2,engine-integration-jakarta" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,engine-integration-jakarta" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly-domain,h2,engine-integration-jakarta" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,engine-integration-jakarta" }}
@@ -274,6 +275,7 @@ pipeline {
                     steps {
                         // TODO: enable chrome and chromedriver on jenkins and remove the exclusion for org.cibseven.bpm.LoginIT
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat10,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,webapps-integration" }}
                     }
@@ -368,6 +370,9 @@ pipeline {
                         stage('engine-IT-tomcat-10-postgresql-142') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat,postgresql,engine-integration-jakarta" }}}
                         }
+                        stage('engine-IT-tomcat-11-postgresql-142') {
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat10,postgresql,engine-integration-jakarta" }}}
+                        }
                         stage('engine-IT-wildfly-postgresql-142') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,engine-integration-jakarta" }}}
                         }
@@ -379,6 +384,9 @@ pipeline {
                         }
                         stage('webapp-IT-tomcat-10-h2') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}}
+                        }
+                        stage('webapp-IT-tomcat-11-h2') {
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat10,h2,webapps-integration" }}}
                         }
                         stage('webapp-IT-wildfly-h2') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration -pl '!integration-tests-engine-jakarta'" }}}
@@ -604,7 +612,7 @@ pipeline {
                                 javadoc:javadoc \
                                 javadoc:aggregate \
                                 -Pdistro,distro-wildfly,distro-webjar,javadocs \
-                                -pl !org.cibseven.bpm.wildfly:cibseven-wildfly,!org.cibseven.bpm.wildfly:cibseven-wildfly26 \
+                                -pl !org.cibseven.bpm.wildfly:cibseven-wildfly,!org.cibseven.bpm.wildfly:cibseven-wildfly28 \
                                 -DskipTests=true \
                                 -Dskip.frontend.build=true \
                                 -T4 -U
