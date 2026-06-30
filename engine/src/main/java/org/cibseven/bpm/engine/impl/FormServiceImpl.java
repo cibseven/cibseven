@@ -104,19 +104,19 @@ public class FormServiceImpl extends ServiceImpl implements FormService {
   }
 
   public VariableMap getStartFormVariables(String processDefinitionId) {
-    return getStartFormVariables(processDefinitionId, null, true);
+    return getStartFormVariables(processDefinitionId, null, true, false);
   }
 
-  public VariableMap getStartFormVariables(String processDefinitionId, Collection<String> formVariables, boolean deserializeObjectValues) {
-    return commandExecutor.execute(new GetStartFormVariablesCmd(processDefinitionId, formVariables, deserializeObjectValues));
+  public VariableMap getStartFormVariables(String processDefinitionId, Collection<String> formVariables, boolean deserializeObjectValues, boolean localVariablesOnly) {
+    return commandExecutor.execute(new GetStartFormVariablesCmd(processDefinitionId, formVariables, deserializeObjectValues, localVariablesOnly));
   }
 
   public VariableMap getTaskFormVariables(String taskId) {
-    return getTaskFormVariables(taskId, null, true);
+    return getTaskFormVariables(taskId, null, true, false);
   }
 
-  public VariableMap getTaskFormVariables(String taskId, Collection<String> formVariables, boolean deserializeObjectValues) {
-    return commandExecutor.execute(new GetTaskFormVariablesCmd(taskId, formVariables, deserializeObjectValues));
+  public VariableMap getTaskFormVariables(String taskId, Collection<String> formVariables, boolean deserializeObjectValues, boolean localVariablesOnly) {
+    return commandExecutor.execute(new GetTaskFormVariablesCmd(taskId, formVariables, deserializeObjectValues, localVariablesOnly));
   }
 
   public InputStream getDeployedStartForm(String processDefinitionId) {

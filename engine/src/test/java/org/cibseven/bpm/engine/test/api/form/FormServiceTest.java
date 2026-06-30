@@ -875,18 +875,18 @@ public class FormServiceTest {
     assertEquals(2013, calendar.get(Calendar.YEAR));
 
     // get restricted set of variables:
-    variables = formService.getStartFormVariables(processDefinition.getId(), Arrays.asList("stringField"), true);
+    variables = formService.getStartFormVariables(processDefinition.getId(), Arrays.asList("stringField"), true, false);
     assertEquals(1, variables.size());
     assertEquals("someString", variables.get("stringField"));
     assertEquals("someString", variables.getValueTyped("stringField").getValue());
     assertEquals(ValueType.STRING, variables.getValueTyped("stringField").getType());
 
     // request non-existing variable
-    variables = formService.getStartFormVariables(processDefinition.getId(), Arrays.asList("non-existing!"), true);
+    variables = formService.getStartFormVariables(processDefinition.getId(), Arrays.asList("non-existing!"), true, false);
     assertEquals(0, variables.size());
 
     // null => all
-    variables = formService.getStartFormVariables(processDefinition.getId(), null, true);
+    variables = formService.getStartFormVariables(processDefinition.getId(), null, true, false);
     assertEquals(4, variables.size());
   }
 
@@ -954,25 +954,25 @@ public class FormServiceTest {
     assertEquals(ValueType.LONG, variables.getValueTyped("initialLongVariable").getType());
 
     // get restricted set of variables (form field):
-    variables = formService.getTaskFormVariables(task.getId(), Arrays.asList("someString"), true);
+    variables = formService.getTaskFormVariables(task.getId(), Arrays.asList("someString"), true, false);
     assertEquals(1, variables.size());
     assertEquals("initialValue", variables.get("someString"));
     assertEquals("initialValue", variables.getValueTyped("someString").getValue());
     assertEquals(ValueType.STRING, variables.getValueTyped("someString").getType());
 
     // get restricted set of variables (process variable):
-    variables = formService.getTaskFormVariables(task.getId(), Arrays.asList("initialBooleanVariable"), true);
+    variables = formService.getTaskFormVariables(task.getId(), Arrays.asList("initialBooleanVariable"), true, false);
     assertEquals(1, variables.size());
     assertEquals(true, variables.get("initialBooleanVariable"));
     assertEquals(true, variables.getValueTyped("initialBooleanVariable").getValue());
     assertEquals(ValueType.BOOLEAN, variables.getValueTyped("initialBooleanVariable").getType());
 
     // request non-existing variable
-    variables = formService.getTaskFormVariables(task.getId(), Arrays.asList("non-existing!"), true);
+    variables = formService.getTaskFormVariables(task.getId(), Arrays.asList("non-existing!"), true, false);
     assertEquals(0, variables.size());
 
     // null => all
-    variables = formService.getTaskFormVariables(task.getId(), null, true);
+    variables = formService.getTaskFormVariables(task.getId(), null, true, false);
     assertEquals(7, variables.size());
 
   }
@@ -1024,18 +1024,18 @@ public class FormServiceTest {
     assertEquals(ValueType.LONG, variables.getValueTyped("initialLongVariable").getType());
 
     // get restricted set of variables
-    variables = formService.getTaskFormVariables(task.getId(), Arrays.asList("someString"), true);
+    variables = formService.getTaskFormVariables(task.getId(), Arrays.asList("someString"), true, false);
     assertEquals(1, variables.size());
     assertEquals("initialValue", variables.get("someString"));
     assertEquals("initialValue", variables.getValueTyped("someString").getValue());
     assertEquals(ValueType.STRING, variables.getValueTyped("someString").getType());
 
     // request non-existing variable
-    variables = formService.getTaskFormVariables(task.getId(), Arrays.asList("non-existing!"), true);
+    variables = formService.getTaskFormVariables(task.getId(), Arrays.asList("non-existing!"), true, false);
     assertEquals(0, variables.size());
 
     // null => all
-    variables = formService.getTaskFormVariables(task.getId(), null, true);
+    variables = formService.getTaskFormVariables(task.getId(), null, true, false);
     assertEquals(4, variables.size());
 
     // Finally, delete task
