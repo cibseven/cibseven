@@ -54,9 +54,15 @@ pipeline {
         )
 
         booleanParam(
-            name: 'SAST',
+            name: 'SAST_DEPENDENCY_TRACK',
             defaultValue: true,
-            description: "  └─ 🛡️ Static Application Security Testing with Dependency-Track (🕒 10-11 minutes) and SonarQube. Runs only for 'main' branch. See output at https://dependencytrack.cib.de/projects?searchText=seven"
+            description: "  └─ 🛡️ Static Application Security Testing with Dependency-Track (🕒 10-11 minutes). Runs only for 'main' branch. See output at https://dependencytrack.cib.de/projects?searchText=seven"
+        )
+
+        booleanParam(
+            name: 'SAST_SONARQUBE',
+            defaultValue: false,
+            description: "  └─ 🛡️ Static Application Security Testing with SonarQube. See output at https://sonarqube.cib.de/dashboard?id=org.cibseven.bpm%3Acibseven-bpm"
         )
 
         booleanParam(
@@ -485,16 +491,11 @@ pipeline {
         }
 
         stage('SAST') {
-            when {
-                allOf {
-                    branch 'main'
-                    expression { params.SAST }
-                }
-            }
-
             stages {
-
                 stage('SonarQube') {
+                    when {
+                        expression { params.SAST_SONARQUBE }
+                    }
                     steps {
                         script {
                             withSonarQubeEnv(
@@ -528,6 +529,12 @@ pipeline {
                 }
 
                 stage('OWASP Dependency-Track') {
+                    when {
+                        allOf {
+                            branch 'main'
+                            expression { params.SAST_DEPENDENCY_TRACK }
+                        }
+                    }
                     steps {
                         script {
                             withMaven() {
