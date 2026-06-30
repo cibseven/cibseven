@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -231,10 +232,10 @@ public class ProcessDiagramRetrievalTest {
     
     File htmlFile = new File("src/test/resources/org/cibseven/bpm/engine/test/api/repository/diagram/" + imageFileName + ".html");
     if (OVERWRITE_EXPECTED_HTML_FILES) {
-      FileUtils.writeStringToFile(htmlFile, html);
+      FileUtils.writeStringToFile(htmlFile, html, Charset.defaultCharset());
       fail("The assertions of this test only work if ProcessDiagramRetrievalTest#OVERWRITE_EXPECTED_HTML_FILES is set to false.");
     }
-    assertEquals(FileUtils.readFileToString(htmlFile).replace("\r", ""), html); // remove carriage returns in case the files have been fetched via Git on Windows
+    assertEquals(FileUtils.readFileToString(htmlFile, Charset.defaultCharset()).replace("\r", ""), html); // remove carriage returns in case the files have been fetched via Git on Windows
   }
 
   private static String generateHtmlCode(String imageUrl, DiagramLayout processDiagramLayout, String highlightedActivityId) {

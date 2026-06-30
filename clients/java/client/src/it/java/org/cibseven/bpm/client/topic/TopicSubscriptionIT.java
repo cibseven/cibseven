@@ -29,7 +29,6 @@ import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.RuleChain;
 
 import java.util.HashMap;
@@ -39,6 +38,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.client.util.ProcessModels.*;
+import static org.junit.Assert.assertThrows;
 
 /**
  * @author Tassilo Weidner
@@ -55,10 +55,10 @@ public class TopicSubscriptionIT {
 
   protected ClientRule clientRule = new ClientRule();
   protected EngineRule engineRule = new EngineRule();
-  protected ExpectedException thrown = ExpectedException.none();
+
 
   @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule).around(thrown);
+  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule);
 
   protected ExternalTaskClient client;
 
@@ -472,56 +472,52 @@ public class TopicSubscriptionIT {
 
   @Test
   public void shouldThrowExceptionDueToClientLockDurationNotGreaterThanZero() {
-    // given
-    engineRule.startProcessInstance(processDefinition.getId());
+    assertThrows( ExternalTaskClientException.class, ()-> {
+      // given
+      engineRule.startProcessInstance(processDefinition.getId());
 
-    // then
-    thrown.expect(ExternalTaskClientException.class);
-
-    // when
-    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
-      .lockDuration(0)
-      .open();
+      // when
+      client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
+        .lockDuration(0)
+        .open();
+    });
   }
 
   @Test
   public void shouldThrowExceptionDueToTopicNameNull() {
-    // given
-    engineRule.startProcessInstance(processDefinition.getId());
+    assertThrows( ExternalTaskClientException.class, ()-> {
+      // given
+      engineRule.startProcessInstance(processDefinition.getId());
 
-    // then
-    thrown.expect(ExternalTaskClientException.class);
-
-    // when
-    client.subscribe(null)
-      .open();
+      // when
+      client.subscribe(null)
+        .open();
+    });
   }
 
   @Test
   public void shouldThrowExceptionDueToMissingHandler() {
-    // given
-    engineRule.startProcessInstance(processDefinition.getId());
+    assertThrows( ExternalTaskClientException.class, ()-> {
+      // given
+      engineRule.startProcessInstance(processDefinition.getId());
 
-    // then
-    thrown.expect(ExternalTaskClientException.class);
-
-    // when
-    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
-      .open();
+      // when
+      client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
+        .open();
+    });
   }
 
   @Test
   public void shouldThrowExceptionDueToHandlerNull() {
-    // given
-    engineRule.startProcessInstance(processDefinition.getId());
+    assertThrows( ExternalTaskClientException.class, ()-> {
+      // given
+      engineRule.startProcessInstance(processDefinition.getId());
 
-    // then
-    thrown.expect(ExternalTaskClientException.class);
-
-    // when
-    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
-      .handler(null)
-      .open();
+      // when
+      client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
+        .handler(null)
+        .open();
+    });
   }
 
   @Test
@@ -542,18 +538,17 @@ public class TopicSubscriptionIT {
 
   @Test
   public void shouldThrowExceptionDueToTopicNameAlreadySubscribed() {
-    // given
-    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
-      .handler(handler)
-      .open();
+    assertThrows( ExternalTaskClientException.class, ()-> {
+      // given
+      client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
+        .handler(handler)
+        .open();
 
-    // then
-    thrown.expect(ExternalTaskClientException.class);
-
-    // when
-    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
-      .handler(handler)
-      .open();
+      // when
+      client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
+        .handler(handler)
+        .open();
+    });
   }
 
   @Test

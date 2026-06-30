@@ -25,6 +25,7 @@ import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.assertTha
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
+import org.hamcrest.MatcherAssert;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertEquals;
@@ -2456,7 +2457,7 @@ public class ExternalTaskServiceTest extends PluggableProcessEngineTest {
       externalTaskService.unlock(null);
       fail("expected exception");
     } catch (ProcessEngineException e) {
-      Assert.assertThat(e.getMessage(), containsString("externalTaskId is null"));
+      MatcherAssert.assertThat(e.getMessage(), containsString("externalTaskId is null"));
     }
   }
 
@@ -2541,22 +2542,22 @@ public class ExternalTaskServiceTest extends PluggableProcessEngineTest {
         errorMessage = errorMessage + ":" + e.getMessage();
       }
     }
-    Assert.assertThat(exceptionStackTrace,is(notNullValue()));
+    MatcherAssert.assertThat(exceptionStackTrace,is(notNullValue()));
 //  make sure that stack trace is longer then errorMessage DB field length
-    Assert.assertThat(exceptionStackTrace.length(),is(greaterThan(4000)));
+    MatcherAssert.assertThat(exceptionStackTrace.length(),is(greaterThan(4000)));
     externalTaskService.handleFailure(task.getId(), WORKER_ID, errorMessage, exceptionStackTrace, 5, 3000L);
     ClockUtil.setCurrentTime(nowPlus(4000L));
     tasks = externalTaskService.fetchAndLock(5, WORKER_ID)
         .topic(TOPIC_NAME, LOCK_TIME)
         .execute();
-    Assert.assertThat(tasks.size(), is(1));
+    MatcherAssert.assertThat(tasks.size(), is(1));
 
     // verify that exception is accessible properly
     task = tasks.get(0);
-    Assert.assertThat(task.getErrorMessage(),is(errorMessage.substring(0,666)));
-    Assert.assertThat(task.getRetries(),is(5));
-    Assert.assertThat(externalTaskService.getExternalTaskErrorDetails(task.getId()),is(exceptionStackTrace));
-    Assert.assertThat(task.getErrorDetails(),is(exceptionStackTrace));
+    MatcherAssert.assertThat(task.getErrorMessage(),is(errorMessage.substring(0,666)));
+    MatcherAssert.assertThat(task.getRetries(),is(5));
+    MatcherAssert.assertThat(externalTaskService.getExternalTaskErrorDetails(task.getId()),is(exceptionStackTrace));
+    MatcherAssert.assertThat(task.getErrorDetails(),is(exceptionStackTrace));
   }
 
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/externaltask/oneExternalTaskProcess.bpmn20.xml")
@@ -3036,7 +3037,7 @@ public class ExternalTaskServiceTest extends PluggableProcessEngineTest {
       externalTaskService.setRetries((String)null, 5);
       fail("expected exception");
     } catch (NullValueException e) {
-      Assert.assertThat(e.getMessage(), containsString("externalTaskId is null"));
+      MatcherAssert.assertThat(e.getMessage(), containsString("externalTaskId is null"));
     }
   }
 
@@ -3077,7 +3078,7 @@ public class ExternalTaskServiceTest extends PluggableProcessEngineTest {
       externalTaskService.setPriority(null, 5);
       fail("expected exception");
     } catch (NullValueException e) {
-      Assert.assertThat(e.getMessage(), containsString("externalTaskId is null"));
+      MatcherAssert.assertThat(e.getMessage(), containsString("externalTaskId is null"));
     }
   }
 

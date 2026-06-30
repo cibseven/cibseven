@@ -31,6 +31,7 @@ import org.cibseven.bpm.engine.authorization.MissingAuthorization;
 import org.cibseven.bpm.engine.authorization.Permission;
 import org.cibseven.bpm.engine.authorization.Permissions;
 import org.cibseven.bpm.engine.authorization.Resource;
+import org.hamcrest.MatcherAssert;
 import org.junit.Assert;
 
 /**
@@ -84,7 +85,7 @@ public class AuthorizationScenarioInstance {
       List<MissingAuthorization> actualMissingAuthorizations = getActualMissingAuthorizations(e);
       List<MissingAuthorization> expectedMissingAuthorizations = MissingAuthorizationMatcher.asMissingAuthorizations(missingAuthorizations);
 
-      Assert.assertThat(actualMissingAuthorizations, containsInAnyOrder(MissingAuthorizationMatcher.asMatchers(expectedMissingAuthorizations)));
+      MatcherAssert.assertThat(actualMissingAuthorizations, containsInAnyOrder(MissingAuthorizationMatcher.asMatchers(expectedMissingAuthorizations)));
 
       for (Authorization missingAuthorization : missingAuthorizations) {
         Assert.assertTrue(assertionFailureMessage, message.contains(missingAuthorization.getUserId()));

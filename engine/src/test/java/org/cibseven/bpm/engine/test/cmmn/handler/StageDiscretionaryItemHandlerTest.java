@@ -93,6 +93,7 @@ public class StageDiscretionaryItemHandlerTest extends CmmnElementHandlerTest {
     assertEquals("stage", activityType);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testStageDescription() {
     // given
@@ -106,6 +107,7 @@ public class StageDiscretionaryItemHandlerTest extends CmmnElementHandlerTest {
     assertEquals(description, activity.getProperty(PROPERTY_ACTIVITY_DESCRIPTION));
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testDiscretionaryItemDescription() {
     // given

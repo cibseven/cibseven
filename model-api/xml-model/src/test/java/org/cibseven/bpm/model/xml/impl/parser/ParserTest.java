@@ -17,6 +17,8 @@
 package org.cibseven.bpm.model.xml.impl.parser;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
 
@@ -24,16 +26,11 @@ import org.cibseven.bpm.model.xml.ModelInstance;
 import org.cibseven.bpm.model.xml.ModelParseException;
 import org.cibseven.bpm.model.xml.testmodel.TestModelParser;
 import org.junit.Assume;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class ParserTest {
 
   private static final String ACCESS_EXTERNAL_SCHEMA_PROP = "javax.xml.accessExternalSchema";
-
-  @Rule
-  public ExpectedException exception = ExpectedException.none();
 
   @Test
   public void shouldThrowExceptionForTooManyAttributes() {
@@ -59,16 +56,15 @@ public class ParserTest {
     System.setProperty(ACCESS_EXTERNAL_SCHEMA_PROP, "");
 
     try {
-      TestModelParser modelParser = new TestModelParser();
-      String testXml = "org/cibseven/bpm/model/xml/impl/parser/ExternalSchemaAccess.xml";
-      InputStream testXmlAsStream = this.getClass().getClassLoader().getResourceAsStream(testXml);
-
-      // then
-      exception.expect(ModelParseException.class);
-      exception.expectMessage("SAXException while parsing input stream");
-
-      // when
-      modelParser.parseModelFromStream(testXmlAsStream);
+      ModelParseException exception = assertThrows( ModelParseException.class, ()-> {
+        // when
+          TestModelParser modelParser = new TestModelParser();
+          String testXml = "org/cibseven/bpm/model/xml/impl/parser/ExternalSchemaAccess.xml";
+          InputStream testXmlAsStream = this.getClass().getClassLoader().getResourceAsStream(testXml);
+          // when
+          modelParser.parseModelFromStream(testXmlAsStream);
+      });
+      assertTrue(exception.getMessage().contains("SAXException while parsing input stream"));
     } finally {
       System.clearProperty(ACCESS_EXTERNAL_SCHEMA_PROP);
     }

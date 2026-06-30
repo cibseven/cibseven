@@ -45,6 +45,8 @@ public class DeployBarTask extends Task {
   File file;
   List<FileSet> fileSets;
   
+  //TODO: remove LogUtil in the near future
+  @SuppressWarnings("deprecation")
   public void execute() throws BuildException {
     List<File> files = new ArrayList<File>();
     if (file!=null) {

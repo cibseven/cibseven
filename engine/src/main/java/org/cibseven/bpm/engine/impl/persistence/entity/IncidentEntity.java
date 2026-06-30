@@ -229,6 +229,7 @@ public class IncidentEntity implements Incident, DbEntity, HasDbRevision, HasDbR
     if(historyLevel.isHistoryEventProduced(eventType, this)) {
 
       HistoryEventProcessor.processHistoryEvents(new HistoryEventProcessor.HistoryEventCreator() {
+        @SuppressWarnings("deprecation")
         @Override
         public HistoryEvent createHistoryEvent(HistoryEventProducer producer) {
 

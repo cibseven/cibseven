@@ -60,6 +60,7 @@ public class HistoricVariableJsonSerializationTest {
     runtimeService = engineRule.getRuntimeService();
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   @Deployment(resources = ONE_TASK_PROCESS)
   public void testSelectHistoricVariableInstances() throws JSONException {
@@ -107,6 +108,7 @@ public class HistoricVariableJsonSerializationTest {
     }
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   @Deployment(resources = ONE_TASK_PROCESS)
   public void testSelectHistoricSerializedValuesUpdate() throws JSONException {

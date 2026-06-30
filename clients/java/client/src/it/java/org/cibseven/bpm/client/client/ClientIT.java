@@ -24,6 +24,7 @@ import static org.cibseven.bpm.client.util.ProcessModels.EXTERNAL_TASK_TOPIC_FOO
 import static org.cibseven.bpm.client.util.ProcessModels.TWO_PRIORITISED_EXTERNAL_TASKS_PROCESS;
 import static org.cibseven.bpm.client.util.PropertyUtil.DEFAULT_PROPERTIES_PATH;
 import static org.cibseven.bpm.client.util.PropertyUtil.loadProperties;
+import static org.junit.Assert.assertThrows;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -78,10 +79,9 @@ public class ClientIT {
 
   protected ClientRule clientRule = new ClientRule(() -> ExternalTaskClient.create().baseUrl(BASE_URL)); // without lock duration
   protected EngineRule engineRule = new EngineRule();
-  protected ExpectedException thrown = ExpectedException.none();
 
   @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule).around(thrown);
+  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule);
 
   protected ExternalTaskClient client;
 
@@ -155,16 +155,16 @@ public class ClientIT {
 
   @Test
   public void shouldSetDefaultSerializationFormat() {
-    ExternalTaskClient client = null;
 
+    AtomicReference<ExternalTaskClient> client = new AtomicReference<>();;
     try {
       // given
       engineRule.startProcessInstance(processDefinition.getId());
 
-      client = ExternalTaskClient.create()
+      client.set(ExternalTaskClient.create()
         .baseUrl(BASE_URL)
         .defaultSerializationFormat("application/x-java-serialized-object")
-        .build();
+        .build());
 
       final ObjectValue[] objectValue = { null };
       RecordingExternalTaskHandler recordingHandler = new RecordingExternalTaskHandler((t, s) -> {
@@ -173,7 +173,7 @@ public class ClientIT {
         s.complete(t, Collections.singletonMap("variable", objectValue[0]));
       });
 
-      client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
+      client.get().subscribe(EXTERNAL_TASK_TOPIC_FOO)
         .handler(recordingHandler)
         .open();
 
@@ -184,123 +184,116 @@ public class ClientIT {
       assertThat(objectValue[0].getSerializationDataFormat()).isEqualTo("application/x-java-serialized-object");
     }
     finally {
-      if (client != null) {
-        client.stop();
+      if (client.get() != null) {
+        client.get().stop();
       }
     }
   }
 
   @Test
   public void shouldThrowExceptionDueToBaseUrlIsEmpty() {
-    ExternalTaskClient client = null;
 
+    AtomicReference<ExternalTaskClient> client = new AtomicReference<>();;
     try {
-      // given
-      ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create();
-      
-      // then
-      thrown.expect(ExternalTaskClientException.class);
-      
-      // when
-      client = externalTaskClientBuilder.build();
+      assertThrows( ExternalTaskClientException.class, ()-> {
+        // given
+        ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create();
+        // when
+        client.set(externalTaskClientBuilder.build());
+      });
     }
     finally {
-      if (client != null) {
-        client.stop();
+      if (client.get() != null) {
+        client.get().stop();
       }
     }
   }
 
   @Test
   public void shouldThrowExceptionDueToBaseUrlIsNull() {
-    ExternalTaskClient client = null;
 
+    AtomicReference<ExternalTaskClient> client = new AtomicReference<>();
     try {
-      // given
-      ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create();
-      
-      // then
-      thrown.expect(ExternalTaskClientException.class);
-      
-      // when
-      client = externalTaskClientBuilder
-          .baseUrl(null)
-          .build();
+      assertThrows( ExternalTaskClientException.class, ()-> {
+        // given
+        ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create();
+        // when
+        client.set(externalTaskClientBuilder
+            .baseUrl(null)
+            .build());
+      });
     }
     finally {
-      if (client != null) {
-        client.stop();
+      if (client.get() != null) {
+        client.get().stop();
       }
     }
   }
 
   @Test
   public void shouldThrowExceptionDueToBaseUrlResolverIsNull() {
-    ExternalTaskClient client = null;
 
+    AtomicReference<ExternalTaskClient> client = new AtomicReference<>();
     try {
-      // given
-      ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create();
+      assertThrows( ExternalTaskClientException.class, ()-> {
+        // given
+        ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create();
 
-      // then
-      thrown.expect(ExternalTaskClientException.class);
-
-      // when
-      client = externalTaskClientBuilder
-          .urlResolver(null)
-          .build();
+        // when
+        client.set(externalTaskClientBuilder
+            .urlResolver(null)
+            .build());
+      });
     }
     finally {
-      if (client != null) {
-        client.stop();
+      if (client.get() != null) {
+        client.get().stop();
       }
     }
   }
 
   @Test
   public void shouldThrowExceptionDueToBaseUrlAndBaseUrlResolverIsNull() {
-    ExternalTaskClient client = null;
 
+    AtomicReference<ExternalTaskClient> client = new AtomicReference<>();
     try {
-      // given
-      ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create();
+      assertThrows( ExternalTaskClientException.class, ()-> {
+        // given
+        ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create();
 
-      // then
-      thrown.expect(ExternalTaskClientException.class);
-
-      // when
-      client = externalTaskClientBuilder
-          .baseUrl(null)
-          .urlResolver(null)
-          .build();
+        // when
+        client.set(externalTaskClientBuilder
+            .baseUrl(null)
+            .urlResolver(null)
+            .build());
+      });
     }
     finally {
-      if (client != null) {
-        client.stop();
+      if (client.get() != null) {
+        client.get().stop();
       }
     }
   }
 
   @Test
   public void shouldThrowExceptionDueToMaxTasksNotGreaterThanZero() {
-    ExternalTaskClient client = null;
 
+    AtomicReference<ExternalTaskClient> client = new AtomicReference<>();
     try {
-      // given
-      ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create()
-          .baseUrl("http://camunda.com/engine-rest");
-      
-      // then
-      thrown.expect(ExternalTaskClientException.class);
-      
-      // when
-      client = externalTaskClientBuilder
-          .maxTasks(0)
-          .build();
+      assertThrows( ExternalTaskClientException.class, ()-> {
+        // given
+        ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create()
+            .baseUrl("http://camunda.com/engine-rest");
+
+        // when
+        client.set(externalTaskClientBuilder
+            .maxTasks(0)
+            .build());
+      });
     }
     finally {
-      if (client != null) {
-        client.stop();
+      if (client.get() != null) {
+        client.get().stop();
       }
     }
   }
@@ -334,23 +327,22 @@ public class ClientIT {
 
   @Test
   public void shouldThrowExceptionDueToAsyncResponseTimeoutNotGreaterThanZero() {
-    ExternalTaskClient client = null;
 
+    AtomicReference<ExternalTaskClient> client = new AtomicReference<>();
     try {
-      // given
-      ExternalTaskClientBuilder clientBuilder = ExternalTaskClient.create()
-          .baseUrl("http://camunda.com/engine-rest")
-          .asyncResponseTimeout(0);
-      
-      // then
-      thrown.expect(ExternalTaskClientException.class);
-      
-      // when
-      client = clientBuilder.build();
+      assertThrows( ExternalTaskClientException.class, ()-> {
+        // given
+        ExternalTaskClientBuilder clientBuilder = ExternalTaskClient.create()
+            .baseUrl("http://camunda.com/engine-rest")
+            .asyncResponseTimeout(0);
+
+        // when
+        client.set(clientBuilder.build());
+      });
     }
     finally {
-      if (client != null) {
-        client.stop();
+      if (client.get() != null) {
+        client.get().stop();
       }
     }
   }
@@ -408,46 +400,42 @@ public class ClientIT {
 
   @Test
   public void shouldThrowExceptionDueToClientLockDurationNotGreaterThanZero() {
-    ExternalTaskClient client = null;
-
+    AtomicReference<ExternalTaskClient> client = new AtomicReference<>();
     try {
-      // given
-      ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create()
-          .baseUrl("http://camunda.com/engine-rest")
-          .lockDuration(0);
-      
-      // then
-      thrown.expect(ExternalTaskClientException.class);
-      
-      // when
-      client = externalTaskClientBuilder.build();
+      assertThrows( ExternalTaskClientException.class, ()-> {
+        // given
+        ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create()
+            .baseUrl("http://camunda.com/engine-rest")
+            .lockDuration(0);
+
+        // when
+        client.set(externalTaskClientBuilder.build());
+      });
     }
     finally {
-      if (client != null) {
-        client.stop();
+      if (client.get() != null) {
+        client.get().stop();
       }
     }
   }
 
   @Test
   public void shouldThrowExceptionDueToInterceptorIsNull() {
-    ExternalTaskClient client = null;
-
+    AtomicReference<ExternalTaskClient> client = new AtomicReference<>();
     try {
-      // given
-      ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create()
-        .baseUrl("http://camunda.com/engine-rest")
-        .addInterceptor(null);
+      assertThrows( ExternalTaskClientException.class, ()-> {
+        // given
+        ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create()
+          .baseUrl("http://camunda.com/engine-rest")
+          .addInterceptor(null);
 
-      // then
-      thrown.expect(ExternalTaskClientException.class);
-
-      // when
-      client = externalTaskClientBuilder.build();
+        // when
+        client.set(externalTaskClientBuilder.build());
+      });
     }
     finally {
-      if (client != null) {
-        client.stop();
+      if (client.get() != null) {
+        client.get().stop();
       }
     }
   }

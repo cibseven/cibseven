@@ -457,7 +457,7 @@ public class CompensateEventTest extends PluggableProcessEngineTest {
 
     if (processEngineConfiguration.getHistoryLevel().getId() >= ProcessEngineConfigurationImpl.HISTORYLEVEL_AUDIT) {
       assertEquals(1, historicVariableInstanceQuery.count());
-      assertEquals("undoBookHotel", historicVariableInstanceQuery.list().get(0).getVariableName());
+      assertEquals("undoBookHotel", historicVariableInstanceQuery.list().get(0).getName());
       assertEquals(5, historicVariableInstanceQuery.list().get(0).getValue());
 
       assertEquals(0, historyService.createHistoricVariableInstanceQuery().processInstanceId(processInstance.getId()).variableName("undoBookFlight").count());
@@ -476,7 +476,7 @@ public class CompensateEventTest extends PluggableProcessEngineTest {
 
     if (processEngineConfiguration.getHistoryLevel().getId() >= ProcessEngineConfigurationImpl.HISTORYLEVEL_AUDIT) {
       assertEquals(1, historicVariableInstanceQuery.count());
-      assertEquals("undoBookHotel", historicVariableInstanceQuery.list().get(0).getVariableName());
+      assertEquals("undoBookHotel", historicVariableInstanceQuery.list().get(0).getName());
       assertEquals(5, historicVariableInstanceQuery.list().get(0).getValue());
 
       assertEquals(0, historyService.createHistoricVariableInstanceQuery().processInstanceId(processInstance.getId()).variableName("undoBookFlight").count());
@@ -493,7 +493,7 @@ public class CompensateEventTest extends PluggableProcessEngineTest {
 
     if (processEngineConfiguration.getHistoryLevel().getId() >= ProcessEngineConfigurationImpl.HISTORYLEVEL_AUDIT) {
       assertEquals(1, historicVariableInstanceQuery.count());
-      assertEquals("undoBookSecondHotel", historicVariableInstanceQuery.list().get(0).getVariableName());
+      assertEquals("undoBookSecondHotel", historicVariableInstanceQuery.list().get(0).getName());
       assertEquals(5, historicVariableInstanceQuery.list().get(0).getValue());
 
       assertEquals(0, historyService.createHistoricVariableInstanceQuery().processInstanceId(processInstance.getId()).variableName("undoBookFlight").count());
@@ -517,7 +517,7 @@ public class CompensateEventTest extends PluggableProcessEngineTest {
 
     if (processEngineConfiguration.getHistoryLevel().getId() >= ProcessEngineConfigurationImpl.HISTORYLEVEL_AUDIT) {
       assertEquals(1, historicVariableInstanceQuery.count());
-      assertEquals("undoBookSecondHotel", historicVariableInstanceQuery.list().get(0).getVariableName());
+      assertEquals("undoBookSecondHotel", historicVariableInstanceQuery.list().get(0).getName());
       assertEquals(5, historicVariableInstanceQuery.list().get(0).getValue());
 
       historicVariableInstanceQuery = historyService.createHistoricVariableInstanceQuery().variableName("undoBookFlight");

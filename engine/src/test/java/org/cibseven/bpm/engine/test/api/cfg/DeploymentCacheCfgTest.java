@@ -288,6 +288,7 @@ public class DeploymentCacheCfgTest {
     repositoryService.deleteDeployment(deployment.getId(), true);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void shouldNotAddIdentityLinksAfterRecache() {
     // given cache size + 1 deployed process

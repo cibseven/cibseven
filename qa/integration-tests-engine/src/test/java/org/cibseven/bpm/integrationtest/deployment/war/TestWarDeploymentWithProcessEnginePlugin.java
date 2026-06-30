@@ -42,6 +42,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(Arquillian.class)
 public class TestWarDeploymentWithProcessEnginePlugin extends AbstractFoxPlatformIntegrationTest {
 
+  @SuppressWarnings("deprecation")
   @Deployment
   public static WebArchive processArchive() {
     return initWebArchiveDeployment("test.war", "singleEngineWithProcessEnginePlugin.xml")

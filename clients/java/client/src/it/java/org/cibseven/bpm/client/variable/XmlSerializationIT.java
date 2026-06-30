@@ -23,6 +23,7 @@ import static org.cibseven.bpm.client.util.ProcessModels.EXTERNAL_TASK_TOPIC_FOO
 import static org.cibseven.bpm.client.util.ProcessModels.TWO_EXTERNAL_TASK_PROCESS;
 import static org.cibseven.bpm.engine.variable.Variables.SerializationDataFormats.XML;
 import static org.cibseven.bpm.engine.variable.type.ValueType.OBJECT;
+import static org.junit.Assert.assertThrows;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -46,7 +47,6 @@ import org.cibseven.spin.xml.SpinXmlElement;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.RuleChain;
 
 public class XmlSerializationIT {
@@ -82,10 +82,9 @@ public class XmlSerializationIT {
 
   protected ClientRule clientRule = new ClientRule();
   protected EngineRule engineRule = new EngineRule();
-  protected ExpectedException thrown = ExpectedException.none();
 
   @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule).around(thrown);
+  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule);
 
   protected ExternalTaskClient client;
 
@@ -264,50 +263,48 @@ public class XmlSerializationIT {
 
   @Test
   public void shouldFailWhileDeserialization() {
-    // given
-    ObjectValue objectValue = Variables.serializedObjectValue(VARIABLE_VALUE_XML_SERIALIZED)
-      .objectTypeName(FailingDeserializationBean.class.getName())
-      .serializationDataFormat(XML_DATAFORMAT_NAME)
-      .create();
+    assertThrows( ValueMapperException.class, ()-> {
+      // given
+      ObjectValue objectValue = Variables.serializedObjectValue(VARIABLE_VALUE_XML_SERIALIZED)
+        .objectTypeName(FailingDeserializationBean.class.getName())
+        .serializationDataFormat(XML_DATAFORMAT_NAME)
+        .create();
 
-    engineRule.startProcessInstance(processDefinition.getId(), VARIABLE_NAME_XML, objectValue);
+      engineRule.startProcessInstance(processDefinition.getId(), VARIABLE_NAME_XML, objectValue);
 
-    // then
-    thrown.expect(ValueMapperException.class);
+      // when
+      client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
+        .handler(handler)
+        .open();
 
-    // when
-    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
-      .handler(handler)
-      .open();
+      clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
 
-    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
-
-    ExternalTask task = handler.getHandledTasks().get(0);
-    task.getVariable(VARIABLE_NAME_XML);
+      ExternalTask task = handler.getHandledTasks().get(0);
+      task.getVariable(VARIABLE_NAME_XML);
+    });
   }
 
   @Test
   public void shouldFailWhileDeserializationTypedValue() {
-    // given
-    ObjectValue objectValue = Variables.serializedObjectValue(VARIABLE_VALUE_XML_SERIALIZED)
-      .objectTypeName(FailingDeserializationBean.class.getName())
-      .serializationDataFormat(XML_DATAFORMAT_NAME)
-      .create();
+    assertThrows( ValueMapperException.class, ()-> {
+      // given
+      ObjectValue objectValue = Variables.serializedObjectValue(VARIABLE_VALUE_XML_SERIALIZED)
+        .objectTypeName(FailingDeserializationBean.class.getName())
+        .serializationDataFormat(XML_DATAFORMAT_NAME)
+        .create();
 
-    engineRule.startProcessInstance(processDefinition.getId(), VARIABLE_NAME_XML, objectValue);
+      engineRule.startProcessInstance(processDefinition.getId(), VARIABLE_NAME_XML, objectValue);
 
-    // then
-    thrown.expect(ValueMapperException.class);
+      // when
+      client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
+        .handler(handler)
+        .open();
 
-    // when
-    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
-      .handler(handler)
-      .open();
+      clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
 
-    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
-
-    ExternalTask task = handler.getHandledTasks().get(0);
-    task.getVariableTyped(VARIABLE_NAME_XML);
+      ExternalTask task = handler.getHandledTasks().get(0);
+      task.getVariableTyped(VARIABLE_NAME_XML);
+    });
   }
 
   @Test
@@ -373,54 +370,52 @@ public class XmlSerializationIT {
 
   @Test
   public void shouldFailWhileDeserializationDueToMismatchingTypeName() {
-    // given
-    ObjectValue serializedValue = Variables.serializedObjectValue(VARIABLE_VALUE_XML_SERIALIZED)
-      .serializationDataFormat(XML_DATAFORMAT_NAME)
-      .objectTypeName("Insensible type name")  // < not a valid type name
-      .create();
+    assertThrows( ValueMapperException.class, ()-> {
+      // given
+      ObjectValue serializedValue = Variables.serializedObjectValue(VARIABLE_VALUE_XML_SERIALIZED)
+        .serializationDataFormat(XML_DATAFORMAT_NAME)
+        .objectTypeName("Insensible type name")  // < not a valid type name
+        .create();
 
-    engineRule.startProcessInstance(processDefinition.getId(), VARIABLE_NAME_XML, serializedValue);
+      engineRule.startProcessInstance(processDefinition.getId(), VARIABLE_NAME_XML, serializedValue);
 
-    // then
-    thrown.expect(ValueMapperException.class);
+      // when
+      client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
+        .handler(handler)
+        .open();
 
-    // when
-    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
-      .handler(handler)
-      .open();
+      clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
 
-    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
-
-    ExternalTask task = handler.getHandledTasks().get(0);
-    task.getVariable(VARIABLE_NAME_XML);
+      ExternalTask task = handler.getHandledTasks().get(0);
+      task.getVariable(VARIABLE_NAME_XML);
+    });
   }
 
   @Test
   public void shouldFailWhileDeserializationDueToWrongTypeName() {
-    // given
+    assertThrows( ValueMapperException.class, ()-> {
+      // given
 
-    // not reachable class
-    class Foo {}
+      // not reachable class
+      class Foo {}
 
-    ObjectValue serializedValue = Variables.serializedObjectValue(VARIABLE_VALUE_XML_SERIALIZED)
-      .serializationDataFormat(XML_DATAFORMAT_NAME)
-      .objectTypeName(Foo.class.getName())  // < not the right type name
-      .create();
+      ObjectValue serializedValue = Variables.serializedObjectValue(VARIABLE_VALUE_XML_SERIALIZED)
+        .serializationDataFormat(XML_DATAFORMAT_NAME)
+        .objectTypeName(Foo.class.getName())  // < not the right type name
+        .create();
 
-    engineRule.startProcessInstance(processDefinition.getId(), VARIABLE_NAME_XML, serializedValue);
+      engineRule.startProcessInstance(processDefinition.getId(), VARIABLE_NAME_XML, serializedValue);
 
-    // then
-    thrown.expect(ValueMapperException.class);
+      // when
+      client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
+        .handler(handler)
+        .open();
 
-    // when
-    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
-      .handler(handler)
-      .open();
+      clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
 
-    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
-
-    ExternalTask task = handler.getHandledTasks().get(0);
-    task.getVariable(VARIABLE_NAME_XML);
+      ExternalTask task = handler.getHandledTasks().get(0);
+      task.getVariable(VARIABLE_NAME_XML);
+    });
   }
 
   @Test

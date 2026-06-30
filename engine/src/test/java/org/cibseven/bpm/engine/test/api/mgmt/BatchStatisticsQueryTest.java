@@ -49,6 +49,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
+import org.hamcrest.MatcherAssert;
 
 public class BatchStatisticsQueryTest {
 
@@ -169,7 +170,7 @@ public class BatchStatisticsQueryTest {
       Assert.fail("exception expected");
     }
     catch (NullValueException e) {
-      Assert.assertThat(e.getMessage(), CoreMatchers.containsString("Batch id is null"));
+      MatcherAssert.assertThat(e.getMessage(), CoreMatchers.containsString("Batch id is null"));
     }
   }
 
@@ -212,7 +213,7 @@ public class BatchStatisticsQueryTest {
       Assert.fail("exception expected");
     }
     catch (NullValueException e) {
-      Assert.assertThat(e.getMessage(), CoreMatchers.containsString("Type is null"));
+      MatcherAssert.assertThat(e.getMessage(), CoreMatchers.containsString("Type is null"));
     }
   }
 
@@ -304,7 +305,7 @@ public class BatchStatisticsQueryTest {
       Assert.fail("exception expected");
     }
     catch (NotValidException e) {
-      Assert.assertThat(e.getMessage(), CoreMatchers.containsString("Invalid query: "
+      MatcherAssert.assertThat(e.getMessage(), CoreMatchers.containsString("Invalid query: "
         + "call asc() or desc() after using orderByXX()"));
     }
   }
@@ -318,7 +319,7 @@ public class BatchStatisticsQueryTest {
       Assert.fail("exception expected");
     }
     catch (NotValidException e) {
-      Assert.assertThat(e.getMessage(), CoreMatchers.containsString("You should call any of the orderBy methods "
+      MatcherAssert.assertThat(e.getMessage(), CoreMatchers.containsString("You should call any of the orderBy methods "
         + "first before specifying a direction"));
     }
   }

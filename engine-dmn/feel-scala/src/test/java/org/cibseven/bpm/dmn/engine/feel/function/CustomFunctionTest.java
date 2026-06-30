@@ -18,6 +18,8 @@ package org.cibseven.bpm.dmn.engine.feel.function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -35,16 +37,14 @@ import org.cibseven.bpm.dmn.feel.impl.scala.function.builder.CustomFunctionBuild
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.RuleChain;
 
 public class CustomFunctionTest {
 
   protected FeelRule feelRule = FeelRule.buildWithFunctionProvider();
-  protected ExpectedException thrown = ExpectedException.none();
-
+  
   @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(feelRule).around(thrown);
+  public RuleChain ruleChain = RuleChain.outerRule(feelRule);
 
   protected FunctionProvider functionProvider;
 
@@ -55,18 +55,18 @@ public class CustomFunctionTest {
 
   @Test
   public void shouldThrowExceptionBothFunctionAndReturnValueSet() {
-    // given
-    CustomFunctionBuilder myFunctionBuilder = CustomFunction.create()
-      .setParams("x")
-      .setFunction(args -> "")
-      .setReturnValue("foo");
 
-    // then
-    thrown.expect(FeelException.class);
-    thrown.expectMessage("Only set one return value or a function.");
+    FeelException exception = assertThrows( FeelException.class, ()-> {
+      // given
+      CustomFunctionBuilder myFunctionBuilder = CustomFunction.create()
+        .setParams("x")
+        .setFunction(args -> "")
+        .setReturnValue("foo");
 
-    // when
-    myFunctionBuilder.build();
+      // when
+      myFunctionBuilder.build();
+    });
+    assertTrue(exception.getMessage().contains("Only set one return value or a function."));
   }
 
   @Test
