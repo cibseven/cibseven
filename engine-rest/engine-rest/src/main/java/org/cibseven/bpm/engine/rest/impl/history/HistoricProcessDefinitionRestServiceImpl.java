@@ -16,7 +16,6 @@
  */
 package org.cibseven.bpm.engine.rest.impl.history;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import jakarta.ws.rs.core.UriInfo;
@@ -25,13 +24,16 @@ import org.cibseven.bpm.engine.history.CleanableHistoricProcessInstanceReport;
 import org.cibseven.bpm.engine.history.CleanableHistoricProcessInstanceReportResult;
 import org.cibseven.bpm.engine.history.HistoricActivityStatistics;
 import org.cibseven.bpm.engine.history.HistoricActivityStatisticsQuery;
+import org.cibseven.bpm.engine.history.HistoricActivityStatisticsPostQuery;
 import org.cibseven.bpm.engine.rest.dto.CountResultDto;
 import org.cibseven.bpm.engine.rest.dto.history.CleanableHistoricProcessInstanceReportDto;
 import org.cibseven.bpm.engine.rest.dto.history.CleanableHistoricProcessInstanceReportResultDto;
 import org.cibseven.bpm.engine.rest.dto.history.HistoricActivityStatisticsDto;
+import org.cibseven.bpm.engine.rest.dto.history.HistoricActivityStatisticsPostQueryDto;
 import org.cibseven.bpm.engine.rest.history.HistoricProcessDefinitionRestService;
 import org.cibseven.bpm.engine.rest.impl.AbstractRestProcessEngineAware;
 import org.cibseven.bpm.engine.rest.util.QueryUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class HistoricProcessDefinitionRestServiceImpl extends AbstractRestProcessEngineAware implements HistoricProcessDefinitionRestService {
 
@@ -57,6 +59,21 @@ public class HistoricProcessDefinitionRestServiceImpl extends AbstractRestProces
   }
 
   @Override
+  public List<HistoricActivityStatisticsDto> queryHistoricActivityStatistics(String processDefinitionId, HistoricActivityStatisticsPostQueryDto queryDto) {
+    queryDto.setObjectMapper(getObjectMapper());
+    queryDto.setProcessDefinitionId(processDefinitionId);
+    HistoricActivityStatisticsPostQuery query = queryDto.toQuery(getProcessEngine());
+
+    List<HistoricActivityStatistics> matchingStatistics = query.list();
+
+    List<HistoricActivityStatisticsDto> result = new ArrayList<>();
+    for (HistoricActivityStatistics statistic : matchingStatistics) {
+      result.add(HistoricActivityStatisticsDto.fromHistoricActivityStatistics(statistic));
+    }
+    return result;
+  }
+
+  @Override
   public List<CleanableHistoricProcessInstanceReportResultDto> getCleanableHistoricProcessInstanceReport(UriInfo uriInfo, Integer firstResult, Integer maxResults) {
     CleanableHistoricProcessInstanceReportDto queryDto = new CleanableHistoricProcessInstanceReportDto(objectMapper, uriInfo.getQueryParameters());
     CleanableHistoricProcessInstanceReport query = queryDto.toQuery(getProcessEngine());
@@ -78,5 +95,4 @@ public class HistoricProcessDefinitionRestServiceImpl extends AbstractRestProces
 
     return result;
   }
-
 }

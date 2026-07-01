@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.cibseven.bpm.wildfly</groupId>
     <artifactId>cibseven-wildfly</artifactId>
-    <version>2.2.0-SNAPSHOT</version>
+    <version>2.3.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cibseven-wildfly-modules</artifactId>
@@ -12,18 +12,13 @@
   <name>CIB seven - Wildfly Modules</name>
 
   <properties>
-    <org.jboss.shrinkwrap.resolver.version>1.0.0-beta-5</org.jboss.shrinkwrap.resolver.version>
+    <org.jboss.shrinkwrap.resolver.version>2.2.7</org.jboss.shrinkwrap.resolver.version>
     <!-- generate a bom of compile time dependencies for the license book.
     Note: Every compile time dependency will end up in the license book. Please
     declare only dependencies that are actually needed -->
     <skip-third-party-bom>false</skip-third-party-bom>
     <!-- json-smart and accessors-smart are runtime dependencies of json-path -->
     <third-party-bom-scopes>compile|runtime</third-party-bom-scopes>
-    
-    <!-- versions to fix CVE-2025-66566-->
-    <version.lz4-java>1.10.1</version.lz4-java>
-    <version.kafka-clients>3.9.1</version.kafka-clients>
-    <version.netty>4.1.130.Final</version.netty>
   </properties>
   
   <dependencies>
@@ -50,6 +45,11 @@
     <dependency>
       <groupId>org.cibseven.bpm.identity</groupId>
       <artifactId>cibseven-identity-ldap</artifactId>
+    </dependency>
+	
+    <dependency>
+      <groupId>org.cibseven.bpm.identity</groupId>
+      <artifactId>cibseven-identity-scim</artifactId>
     </dependency>
 
     <dependency>
@@ -80,6 +80,24 @@
     <dependency>
       <groupId>org.cibseven.connect</groupId>
       <artifactId>cibseven-connect-soap-http-client</artifactId>
+    </dependency>
+
+    <!-- reactor-ordering only: ensures the ai-agent collector (which gathers the
+         connector + its LangChain4j/ONNX/pdfbox transitive jars into
+         target/dependency) builds before this module copies them into the fat
+         ai-agent JBoss module. The *:* exclusion keeps those jars off this
+         module's own classpath. -->
+    <dependency>
+      <groupId>org.cibseven.bpm.wildfly</groupId>
+      <artifactId>cibseven-wildfly-ai-agent</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- script engine dependencies -->
@@ -136,110 +154,7 @@
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
     </dependency>
-    
-    <!-- Kafka client -->
-    <dependency>
-      <groupId>org.apache.kafka</groupId>
-      <artifactId>kafka-clients</artifactId>
-      <version>${version.kafka-clients}</version>
-    </dependency>
 
-    <!-- LZ4 (at.yawk) -->
-    <dependency>
-      <groupId>at.yawk.lz4</groupId>
-      <artifactId>lz4-java</artifactId>
-      <version>${version.lz4-java}</version>
-    </dependency>
-
-    <!-- Netty deps (exclusions to adapt it to wildfly modules)-->
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-all</artifactId>
-      <version>${version.netty}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-haproxy</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-memcache</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-mqtt</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-redis</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-smtp</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-stomp</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-xml</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-handler-ssl-ocsp</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-resolver-dns-classes-macos</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-resolver-dns-native-macos</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-transport-rxtx</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-transport-sctp</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-transport-udt</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-transport-native-unix-common</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-transport-native-unix-common</artifactId>
-      <version>${version.netty}</version>
-      <classifier>linux-x86_64</classifier>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-transport-native-unix-common</artifactId>
-      <version>${version.netty}</version>
-      <classifier>linux-aarch_64</classifier>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-transport-native-unix-common</artifactId>
-      <version>${version.netty}</version>
-      <classifier>osx-x86_64</classifier>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-transport-native-unix-common</artifactId>
-      <version>${version.netty}</version>
-      <classifier>osx-aarch_64</classifier>
-    </dependency>
   </dependencies>
 
   <build>
@@ -306,6 +221,20 @@
                   we are using the individual connect modules on Wildfly -->
                 <delete dir="target/modules/org/cibseven/connect/cibseven-connect-connectors-all" />
 
+                <!-- ai-agent fat module (CIB7-1445): copy the connector + all its
+                     LangChain4j/ONNX/pdfbox/pgvector transitive jars (gathered by the
+                     cibseven-wildfly-ai-agent collector) into a single module dir.
+                     Done after the org/cibseven/connect delete+copy above so it is
+                     not wiped. The matching module.xml (with a generated
+                     resource-root list) is added by the src/main/modules copy + the
+                     resource-root generation below. -->
+                <mkdir dir="target/modules/org/cibseven/connect/cibseven-connect-ai-agent/main" />
+                <copy todir="target/modules/org/cibseven/connect/cibseven-connect-ai-agent/main" flatten="true">
+                  <fileset dir="../ai-agent/target/dependency">
+                    <include name="*.jar" />
+                  </fileset>
+                </copy>
+
                 <delete dir="target/modules/org/cibseven/commons" />
                 <copy todir="target/modules" flatten="false">
                   <fileset refid="maven.project.dependencies" />
@@ -368,99 +297,6 @@
                 </copy>
                 <delete dir="target/modules/org/apache/httpcomponents/core5/httpcore5-h2" />
 
-                <!-- copy Kafka dependencies to module slot -->
-                <delete dir="target/modules/org/apache/kafka/kafka-clients" />
-                <copy todir="target/modules" flatten="false">
-                    <fileset refid="maven.project.dependencies" />
-                    <mapper>
-                        <chainedmapper>
-                            <regexpmapper from="^(.*)/([^/]+)/([^/]*)$$" to="\1/main/\3" handledirsep="yes" />
-                            <regexpmapper 
-                                from="^(org.apache.kafka.*)/((kafka-clients-)[0-9\.]*).*.jar$$" 
-                                to="org/apache/kafka/client/main/\3${version.kafka-clients}.jar" 
-                                handledirsep="yes" />
-                        </chainedmapper>
-                    </mapper>
-                </copy>
-
-                <!-- remove org.lz4 dependency in favor of at.yawk.lz4 -->
-                <delete dir="target/modules/org/lz4" />
-
-                <!-- move netty-transport-classes-epoll to netty-transport-native-epoll -->
-                <copy todir="target/modules" flatten="false">
-                  <fileset dir="target/modules">
-                    <include name="io/netty/netty-transport-classes-epoll/main/*.jar"/>
-                  </fileset>
-                  <chainedmapper>
-                    <regexpmapper 
-                      from="^io/netty/netty-transport-classes-epoll/main/(.*)$$" 
-                      to="io/netty/netty-transport-native-epoll/main/\1" 
-                      handledirsep="yes" />
-                  </chainedmapper>
-                </copy>
-                <delete dir="target/modules/io/netty/netty-transport-classes-epoll" />
-                <!-- unpack native .so files from netty-transport-native-epoll jars -->
-                <unzip dest="target/modules/io/netty/netty-transport-native-epoll/main/lib">
-                  <fileset dir="target/modules/io/netty/netty-transport-native-epoll/main">
-                    <include name="netty-transport-native-epoll-${version.netty}-linux-aarch_64.jar"/>
-                    <include name="netty-transport-native-epoll-${version.netty}-linux-x86_64.jar"/>
-                  </fileset>
-                  <patternset>
-                    <include name="META-INF/native/**/*.so"/>
-                  </patternset>
-                </unzip>
-                <!-- remove all jars except netty-transport-classes-epoll -->
-                <delete>
-                  <fileset dir="target/modules/io/netty/netty-transport-native-epoll/main">
-                    <include name="*.jar"/>
-                    <exclude name="netty-transport-classes-epoll-${version.netty}.jar"/>
-                  </fileset>
-                </delete>
-
-                <!-- move netty-transport-classes-kqueue to netty-transport-native-kqueue -->
-                <copy todir="target/modules" flatten="false">
-                  <fileset dir="target/modules">
-                    <include name="io/netty/netty-transport-classes-kqueue/main/*.jar"/>
-                  </fileset>
-                  <chainedmapper>
-                    <regexpmapper 
-                      from="^io/netty/netty-transport-classes-kqueue/main/(.*)$$" 
-                      to="io/netty/netty-transport-native-kqueue/main/\1" 
-                      handledirsep="yes" />
-                  </chainedmapper>
-                </copy>
-                <delete dir="target/modules/io/netty/netty-transport-classes-kqueue" />
-                <!-- unpack native .so files from netty-transport-native-kqueue jars -->
-                <unzip dest="target/modules/io/netty/netty-transport-native-kqueue/main/lib">
-                  <fileset dir="target/modules/io/netty/netty-transport-native-kqueue/main">
-                    <include name="netty-transport-native-kqueue-${version.netty}-osx-aarch_64.jar"/>
-                    <include name="netty-transport-native-kqueue-${version.netty}-osx-x86_64.jar"/>
-                  </fileset>
-                  <patternset>
-                    <include name="META-INF/native/**/*.jnilib"/>
-                  </patternset>
-                </unzip>
-                <!-- remove all jars except netty-transport-classes-epoll -->
-                <delete>
-                  <fileset dir="target/modules/io/netty/netty-transport-native-kqueue/main">
-                    <include name="*.jar"/>
-                    <exclude name="netty-transport-classes-kqueue-${version.netty}.jar"/>
-                  </fileset>
-                </delete>
-
-                <!-- move netty-transport-native-unix-common specific artifacts to netty-transport-native-unix-common -->
-                <copy todir="target/modules/io/netty/netty-transport-native-unix-common/main" flatten="true">
-                  <fileset dir="target/modules/io/netty">
-                    <include name="netty-transport-native-unix-common-*/main/*.jar"/>
-                  </fileset>
-                </copy>
-                <!-- delete the classifier-specific parent directories but keep the main one -->
-                <delete includeemptydirs="true">
-                  <fileset dir="target/modules/io/netty" includes="netty-transport-native-unix-common-*/**"/>
-                </delete>
-
-                <delete dir="target/modules/io/netty/netty-all" />
-
                 <!-- copy groovy dependencies to single dir -->
                 <delete dir="target/modules/org/apache/groovy" />
                 <copy todir="target/modules" flatten="false">
@@ -476,6 +312,22 @@
                 <copy todir="target/modules" flatten="false">
                   <fileset dir="src/main/modules" />
                 </copy>
+
+                <!-- ai-agent fat module: generate one <resource-root> per collected
+                     jar and inject it into the @resource-roots@ token of the shipped
+                     module.xml template (so the list never drifts as the connector's
+                     dependency set changes). -->
+                <pathconvert property="ai.agent.resource.roots" pathsep="&#10;">
+                  <fileset dir="target/modules/org/cibseven/connect/cibseven-connect-ai-agent/main">
+                    <include name="*.jar" />
+                  </fileset>
+                  <chainedmapper>
+                    <flattenmapper />
+                    <globmapper from="*" to="    &lt;resource-root path=&quot;*&quot;/&gt;" />
+                  </chainedmapper>
+                </pathconvert>
+                <replace file="target/modules/org/cibseven/connect/cibseven-connect-ai-agent/main/module.xml"
+                         token="@resource-roots@" value="${ai.agent.resource.roots}" />
 
                 <replace dir="target/modules" token="@project.version@" value="${project.version}">
                   <include name="**/module.xml" />
@@ -514,18 +366,6 @@
                 </replace>
 
                 <replace dir="target/modules" token="@version.jackson@" value="${version.jackson}">
-                  <include name="**/module.xml" />
-                </replace>
-                
-                <replace dir="target/modules" token="@version.lz4-java@" value="${version.lz4-java}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.kafka-clients@" value="${version.kafka-clients}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.netty@" value="${version.netty}">
                   <include name="**/module.xml" />
                 </replace>
 

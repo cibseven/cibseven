@@ -1,53 +1,59 @@
 /*
- * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH
+ * Copyright CIB software GmbH and/or licensed to CIB software GmbH
  * under one or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information regarding copyright
- * ownership. Camunda licenses this file to you under the Apache License,
+ * ownership. CIB software licenses this file to you under the Apache License,
  * Version 2.0; you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 package org.cibseven.bpm.engine.rest.history;
 
-import static io.restassured.RestAssured.given;
-import static io.restassured.path.json.JsonPath.from;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import org.cibseven.bpm.engine.history.HistoricActivityStatistics;
+import org.cibseven.bpm.engine.history.HistoricActivityStatisticsPostQuery;
+import org.cibseven.bpm.engine.history.HistoricActivityStatisticsQuery;
+import org.cibseven.bpm.engine.impl.HistoricActivityStatisticsPostQueryImpl;
+import org.cibseven.bpm.engine.impl.HistoricActivityStatisticsQueryImpl;
+import org.cibseven.bpm.engine.rest.AbstractRestServiceTest;
+import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
+import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import static org.cibseven.bpm.engine.rest.util.DateTimeUtils.DATE_FORMAT_WITH_TIMEZONE;
+import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.eq;
+import org.mockito.ArgumentCaptor;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import org.mockito.InOrder;
+import org.mockito.Mockito;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.Date;
-import java.util.List;
-
 import jakarta.ws.rs.core.Response.Status;
 
-import org.cibseven.bpm.engine.history.HistoricActivityStatistics;
-import org.cibseven.bpm.engine.history.HistoricActivityStatisticsQuery;
-import org.cibseven.bpm.engine.impl.HistoricActivityStatisticsQueryImpl;
-import org.cibseven.bpm.engine.rest.AbstractRestServiceTest;
-import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
-import org.cibseven.bpm.engine.rest.helper.MockProvider;
-import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
-import org.mockito.InOrder;
-import org.mockito.Mockito;
 
+import static io.restassured.RestAssured.given;
 import io.restassured.http.ContentType;
+import static io.restassured.path.json.JsonPath.from;
 import io.restassured.response.Response;
 
 /**
@@ -64,6 +70,7 @@ public class HistoricActivityStatisticsRestServiceQueryTest extends AbstractRest
   protected static final String HISTORIC_ACTIVITY_STATISTICS_URL = HISTORY_URL + "/process-definition/{id}/statistics";
 
   private HistoricActivityStatisticsQuery historicActivityStatisticsQuery;
+  private HistoricActivityStatisticsPostQuery historicActivityStatisticsPostQuery;
 
   @BeforeEach
   public void setUpRuntimeData() {
@@ -76,6 +83,10 @@ public class HistoricActivityStatisticsRestServiceQueryTest extends AbstractRest
     historicActivityStatisticsQuery = mock(HistoricActivityStatisticsQueryImpl.class);
     when(processEngine.getHistoryService().createHistoricActivityStatisticsQuery(eq(MockProvider.EXAMPLE_PROCESS_DEFINITION_ID))).thenReturn(historicActivityStatisticsQuery);
     when(historicActivityStatisticsQuery.unlimitedList()).thenReturn(mocks);
+
+    historicActivityStatisticsPostQuery= mock(HistoricActivityStatisticsPostQueryImpl.class);
+    when(processEngine.getHistoryService().createHistoricActivityStatisticsPostQuery(eq(MockProvider.EXAMPLE_PROCESS_DEFINITION_ID))).thenReturn(historicActivityStatisticsPostQuery);
+    doReturn(mocks).when(historicActivityStatisticsPostQuery).list();
   }
 
   @Test
@@ -86,6 +97,289 @@ public class HistoricActivityStatisticsRestServiceQueryTest extends AbstractRest
       .body("$.size()", is(2))
       .body("id", hasItems(MockProvider.EXAMPLE_ACTIVITY_ID, MockProvider.ANOTHER_EXAMPLE_ACTIVITY_ID))
     .when().get(HISTORIC_ACTIVITY_STATISTICS_URL);
+  }
+
+  @Test
+  public void testHistoricActivityStatisticsRetrievalAsPost() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+      .body("$.size()", is(2))
+      .body("id", hasItems(MockProvider.EXAMPLE_ACTIVITY_ID, MockProvider.ANOTHER_EXAMPLE_ACTIVITY_ID))
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    verify(historicActivityStatisticsPostQuery).list();
+    verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
+  }
+
+  @Test
+  public void testHistoricActivityStatisticsRetrievalAsPostWithTestProcessIdAndEmptyBody() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+      .body("$.size()", is(2))
+      .body("id", hasItems(MockProvider.EXAMPLE_ACTIVITY_ID, MockProvider.ANOTHER_EXAMPLE_ACTIVITY_ID))
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    verify(processEngine.getHistoryService()).createHistoricActivityStatisticsPostQuery(eq(MockProvider.EXAMPLE_PROCESS_DEFINITION_ID));
+    verify(historicActivityStatisticsPostQuery).list();
+    verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
+  }
+
+  @Test
+  public void testHistoricActivityStatisticsRetrievalAsPostWithTestProcessIdReturnsExpectedValues() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+  }
+
+  @Test
+  public void testHistoricActivityStatisticsRetrievalAsPostPassesProcessInstanceIds() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    InOrder inOrder = Mockito.inOrder(historicActivityStatisticsPostQuery);
+    inOrder.verify(historicActivityStatisticsPostQuery).list();
+    inOrder.verifyNoMoreInteractions();
+  }
+
+  @Test
+  public void testHistoricActivityStatisticsRetrievalAsPostPassesDateAndIncludeFlags() {
+    final Date testDate = new Date(0);
+
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{"
+          + "\"startedAfter\":\"" + DATE_FORMAT_WITH_TIMEZONE.format(testDate) + "\","
+          + "\"includeCanceled\":true,"
+          + "\"includeFinished\":true,"
+          + "\"includeCompleteScope\":true,"
+          + "\"includeIncidents\":true"
+          + "}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    InOrder inOrder = Mockito.inOrder(historicActivityStatisticsPostQuery);
+    inOrder.verify(historicActivityStatisticsPostQuery).includeCanceled();
+    inOrder.verify(historicActivityStatisticsPostQuery).includeFinished();
+    inOrder.verify(historicActivityStatisticsPostQuery).includeCompleteScope();
+    inOrder.verify(historicActivityStatisticsPostQuery).includeIncidents();
+    inOrder.verify(historicActivityStatisticsPostQuery).startedAfter(testDate);
+    inOrder.verify(historicActivityStatisticsPostQuery).list();
+    inOrder.verifyNoMoreInteractions();
+  }
+
+  @Test
+  public void testPostProcessDefinitionAndBusinessKeyFilters() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{"
+          + "\"processDefinitionKey\":\"procKey\","
+          + "\"processDefinitionKeyIn\":[\"k1\",\"k2\"],"
+          + "\"processDefinitionName\":\"procName\","
+          + "\"processDefinitionNameLike\":\"proc%\","
+          + "\"processDefinitionKeyNotIn\":[\"x1\",\"x2\"],"
+          + "\"processInstanceBusinessKey\":\"bk\","
+          + "\"processInstanceBusinessKeyIn\":[\"bk1\",\"bk2\"],"
+          + "\"processInstanceBusinessKeyLike\":\"order%\""
+          + "}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    
+    verify(historicActivityStatisticsPostQuery).processDefinitionKey("procKey");
+    verify(historicActivityStatisticsPostQuery).processDefinitionKeyIn(new String[] {"k1", "k2"});
+    verify(historicActivityStatisticsPostQuery).processDefinitionName("procName");
+    verify(historicActivityStatisticsPostQuery).processDefinitionNameLike("proc%");
+    verify(historicActivityStatisticsPostQuery).processDefinitionKeyNotIn(java.util.Arrays.asList("x1", "x2"));
+    verify(historicActivityStatisticsPostQuery).businessKey("bk");
+    verify(historicActivityStatisticsPostQuery).businessKeyIn(new String[] {"bk1", "bk2"});
+    verify(historicActivityStatisticsPostQuery).businessKeyLike("order%");
+    verify(historicActivityStatisticsPostQuery).list();
+    verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
+  }
+
+  @Test
+  public void testPostProcessInstanceAndHierarchyFilters() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{"
+          + "\"processInstanceId\":\"p1\","
+          + "\"processInstanceIds\":[\"p2\",\"p3\"],"
+          + "\"processInstanceIdNotIn\":[\"p4\",\"p5\"],"
+          + "\"rootProcessInstanceId\":\"rp1\","
+          + "\"startedBy\":\"demo\","
+          + "\"superProcessInstanceId\":\"sp1\","
+          + "\"subProcessInstanceId\":\"subp1\","
+          + "\"superCaseInstanceId\":\"sc1\","
+          + "\"subCaseInstanceId\":\"subc1\","
+          + "\"caseInstanceId\":\"c1\""
+          + "}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    verify(historicActivityStatisticsPostQuery).processInstanceId("p1");
+
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<Set<String>> processInstanceIdsCaptor = ArgumentCaptor.forClass(Set.class);
+    verify(historicActivityStatisticsPostQuery).processInstanceIds(processInstanceIdsCaptor.capture());
+    Assert.assertTrue(processInstanceIdsCaptor.getValue().contains("p2"));
+    Assert.assertTrue(processInstanceIdsCaptor.getValue().contains("p3"));
+    Assert.assertEquals(2, processInstanceIdsCaptor.getValue().size());
+
+    verify(historicActivityStatisticsPostQuery).processInstanceIdNotIn(new String[] {"p4", "p5"});
+    verify(historicActivityStatisticsPostQuery).rootProcessInstanceId("rp1");
+    verify(historicActivityStatisticsPostQuery).startedBy("demo");
+    verify(historicActivityStatisticsPostQuery).superProcessInstanceId("sp1");
+    verify(historicActivityStatisticsPostQuery).subProcessInstanceId("subp1");
+    verify(historicActivityStatisticsPostQuery).superCaseInstanceId("sc1");
+    verify(historicActivityStatisticsPostQuery).subCaseInstanceId("subc1");
+    verify(historicActivityStatisticsPostQuery).caseInstanceId("c1");
+    verify(historicActivityStatisticsPostQuery).list();
+    verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
+  }
+
+  @Test
+  public void testPostRootProcessInstancesFilter() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{"
+          + "\"rootProcessInstances\":true"
+          + "}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    verify(historicActivityStatisticsPostQuery).rootProcessInstances();
+    verify(historicActivityStatisticsPostQuery).list();
+    verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
+  }
+
+  @Test
+  public void testPostIncidentAndStateFilters() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{"
+          + "\"finished\":true,"
+          + "\"unfinished\":true,"
+          + "\"withJobsRetrying\":true,"
+          + "\"withIncidents\":true,"
+          + "\"withRootIncidents\":true,"
+          + "\"incidentIdIn\":[\"inc1\",\"inc2\"],"
+          + "\"incidentStatus\":\"open\","
+          + "\"incidentType\":\"failedJob\","
+          + "\"incidentMessage\":\"message\","
+          + "\"incidentMessageLike\":\"msg%\""
+          + "}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    
+    verify(historicActivityStatisticsPostQuery).finished();
+    verify(historicActivityStatisticsPostQuery).unfinished();
+    verify(historicActivityStatisticsPostQuery).withJobsRetrying();
+    verify(historicActivityStatisticsPostQuery).withIncidents();
+    verify(historicActivityStatisticsPostQuery).withRootIncidents();
+    verify(historicActivityStatisticsPostQuery).incidentIdIn(new String[] {"inc1", "inc2"});
+    verify(historicActivityStatisticsPostQuery).incidentStatus("open");
+    verify(historicActivityStatisticsPostQuery).incidentType("failedJob");
+    verify(historicActivityStatisticsPostQuery).incidentMessage("message");
+    verify(historicActivityStatisticsPostQuery).incidentMessageLike("msg%");
+    verify(historicActivityStatisticsPostQuery).list();
+    verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
+  }
+
+  @Test
+  public void testPostTenantExecutedActivityAndStateFilters() {
+    final Date executedAfter = new Date(1000L);
+    final Date executedBefore = new Date(2000L);
+    final Date executedJobAfter = new Date(3000L);
+    final Date executedJobBefore = new Date(4000L);
+
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{"
+          + "\"tenantIdIn\":[\"t1\",\"t2\"],"
+          + "\"withoutTenantId\":true,"
+          + "\"executedActivityAfter\":\"" + DATE_FORMAT_WITH_TIMEZONE.format(executedAfter) + "\","
+          + "\"executedActivityBefore\":\"" + DATE_FORMAT_WITH_TIMEZONE.format(executedBefore) + "\","
+          + "\"executedActivityIdIn\":[\"ea1\",\"ea2\"],"
+          + "\"activeActivityIdIn\":[\"aa1\",\"aa2\"],"
+          + "\"activityIdIn\":[\"a1\",\"a2\"],"
+          + "\"executedJobAfter\":\"" + DATE_FORMAT_WITH_TIMEZONE.format(executedJobAfter) + "\","
+          + "\"executedJobBefore\":\"" + DATE_FORMAT_WITH_TIMEZONE.format(executedJobBefore) + "\","
+          + "\"active\":true,"
+          + "\"suspended\":true,"
+          + "\"completed\":true,"
+          + "\"externallyTerminated\":true,"
+          + "\"internallyTerminated\":true"
+          + "}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    verify(historicActivityStatisticsPostQuery).tenantIdIn(new String[] {"t1", "t2"});
+    verify(historicActivityStatisticsPostQuery).withoutTenantId();
+    verify(historicActivityStatisticsPostQuery).executedActivityAfter(executedAfter);
+    verify(historicActivityStatisticsPostQuery).executedActivityBefore(executedBefore);
+    verify(historicActivityStatisticsPostQuery).executedActivityIdIn(new String[] {"ea1", "ea2"});
+    verify(historicActivityStatisticsPostQuery).activeActivityIdIn(new String[] {"aa1", "aa2"});
+    verify(historicActivityStatisticsPostQuery).activityIdIn(new String[] {"a1", "a2"});
+    verify(historicActivityStatisticsPostQuery).executedJobAfter(executedJobAfter);
+    verify(historicActivityStatisticsPostQuery).executedJobBefore(executedJobBefore);
+    verify(historicActivityStatisticsPostQuery).active();
+    verify(historicActivityStatisticsPostQuery).suspended();
+    verify(historicActivityStatisticsPostQuery).completed();
+    verify(historicActivityStatisticsPostQuery).externallyTerminated();
+    verify(historicActivityStatisticsPostQuery).internallyTerminated();
+    verify(historicActivityStatisticsPostQuery).list();
+    verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
+  }
+
+  @Test
+  public void testPostVariableComparatorsGreaterThanOrEqualLessThanAndLessThanOrEqual() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{\"variables\":["
+          + "{\"name\":\"n1\",\"operator\":\"gteq\",\"value\":10},"
+          + "{\"name\":\"n2\",\"operator\":\"lt\",\"value\":20},"
+          + "{\"name\":\"n3\",\"operator\":\"lteq\",\"value\":30}"
+          + "]}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    verify(historicActivityStatisticsPostQuery).variableValueGreaterThanOrEqual(eq("n1"), any());
+    verify(historicActivityStatisticsPostQuery).variableValueLessThan(eq("n2"), any());
+    verify(historicActivityStatisticsPostQuery).variableValueLessThanOrEqual(eq("n3"), any());
+    verify(historicActivityStatisticsPostQuery).list();
+    verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
   }
 
   @Test
@@ -439,6 +733,147 @@ public class HistoricActivityStatisticsRestServiceQueryTest extends AbstractRest
     inOrder.verify(historicActivityStatisticsQuery).desc();
     inOrder.verify(historicActivityStatisticsQuery).unlimitedList();
     inOrder.verifyNoMoreInteractions();
+  }
+
+  @Test
+  public void testPostVariableValueEquals() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{\"variables\":[{\"name\":\"myVar\",\"operator\":\"eq\",\"value\":\"hello\"}]}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    verify(historicActivityStatisticsPostQuery).variableValueEquals("myVar", "hello");
+    verify(historicActivityStatisticsPostQuery).list();
+    verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
+  }
+
+  @Test
+  public void testPostVariableValueNotEquals() {
+    final Date testDate = new Date(1356998400000L); // 2013-01-01T00:00:00.000+0200
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{\"variables\":[{\"name\":\"status\",\"operator\":\"neq\",\"value\":\"active\"}],\"finishedAfter\":\"" + DATE_FORMAT_WITH_TIMEZONE.format(testDate) + "\"}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    verify(historicActivityStatisticsPostQuery).finishedAfter(any(Date.class));
+    verify(historicActivityStatisticsPostQuery).variableValueNotEquals("status", "active");
+    verify(historicActivityStatisticsPostQuery).list();
+    verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
+  }
+
+  @Test
+  public void testPostOrQueryVariables() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{\"orQueries\":[{\"variables\":[{\"name\":\"myVar\",\"operator\":\"eq\",\"value\":\"hello\"}]}]}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    verify((HistoricActivityStatisticsPostQueryImpl) historicActivityStatisticsPostQuery).addOrQuery(any(HistoricActivityStatisticsPostQueryImpl.class));
+    verify(historicActivityStatisticsPostQuery).list();
+    verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
+  }
+
+  @Test
+  public void testPostVariableValueGreaterThan() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{\"variables\":[{\"name\":\"count\",\"operator\":\"gt\",\"value\":5}]}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    verify(historicActivityStatisticsPostQuery).variableValueGreaterThan(eq("count"), org.mockito.ArgumentMatchers.any());
+    verify(historicActivityStatisticsPostQuery).list();
+    verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
+  }
+
+  @Test
+  public void testPostVariableValueLike() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{\"variables\":[{\"name\":\"name\",\"operator\":\"like\",\"value\":\"John%\"}]}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    verify(historicActivityStatisticsPostQuery).variableValueLike("name", "John%");
+    verify(historicActivityStatisticsPostQuery).list();
+    verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
+  }
+
+  @Test
+  public void testPostMultipleVariables() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{\"variables\":["
+          + "{\"name\":\"varA\",\"operator\":\"eq\",\"value\":\"foo\"},"
+          + "{\"name\":\"varB\",\"operator\":\"neq\",\"value\":\"bar\"}"
+          + "]}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    verify(historicActivityStatisticsPostQuery).variableValueEquals("varA", "foo");
+    verify(historicActivityStatisticsPostQuery).variableValueNotEquals("varB", "bar");
+    verify(historicActivityStatisticsPostQuery).list();
+    verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
+  }
+
+  @Test
+  public void testPostVariableNamesIgnoreCase() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{\"variableNamesIgnoreCase\":true,"
+          + "\"variables\":[{\"name\":\"myVar\",\"operator\":\"eq\",\"value\":\"val\"}]}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    verify(historicActivityStatisticsPostQuery).matchVariableNamesIgnoreCase();
+    verify(historicActivityStatisticsPostQuery).variableValueEquals("myVar", "val");
+    verify(historicActivityStatisticsPostQuery).list();
+    verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
+  }
+
+  @Test
+  public void testPostVariableValuesIgnoreCase() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{\"variableValuesIgnoreCase\":true,"
+          + "\"variables\":[{\"name\":\"myVar\",\"operator\":\"eq\",\"value\":\"val\"}]}")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
+
+    verify(historicActivityStatisticsPostQuery).matchVariableValuesIgnoreCase();
+    verify(historicActivityStatisticsPostQuery).variableValueEquals("myVar", "val");
+    verify(historicActivityStatisticsPostQuery).list();
+    verifyNoMoreInteractions(historicActivityStatisticsPostQuery);
+  }
+
+  @Test
+  public void testPostInvalidVariableOperator() {
+    given()
+      .contentType(POST_JSON_CONTENT_TYPE)
+      .pathParam("id", MockProvider.EXAMPLE_PROCESS_DEFINITION_ID)
+      .body("{\"variables\":[{\"name\":\"myVar\",\"operator\":\"invalid\",\"value\":\"val\"}]}")
+    .then().expect()
+      .statusCode(Status.BAD_REQUEST.getStatusCode())
+    .when().post(HISTORY_URL + "/process-definition/{id}/statistics");
   }
 
 }

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- The contents of this file will be loaded for the webapps application -->
+<Context>
+    <ResourceLink name="jdbc/ProcessEngine"
+              global="jdbc/ProcessEngine"
+              type="javax.sql.DataSource" />
+  
+    <Parameter
+        name="cibseven.webclient.modeler.enabled"
+        value="true"
+        override="false" />
+
+    <!-- Element-template discovery for the modeler. Comma-separated -> bound to a
+         List<String>. classpath*: picks up bundled connector templates (e.g. the
+         ai-agent overlay JAR's /element-templates/*.json); the file: entry lets
+         operators drop their own JSONs into <tomcat>/conf/element-templates/
+         (${catalina.base} = ./ standalone, /camunda in docker). -->
+    <Parameter
+        name="cibseven.webclient.modeler.templates.paths"
+        value="classpath*:element-templates/*.json,file:${catalina.base}/conf/element-templates/*.json"
+        override="false" />
+
+    <Parameter
+        name="spring.datasource.jndi-name"
+        value="java:comp/env/jdbc/ProcessEngine"
+        override="true" />
+
+</Context>
+
+

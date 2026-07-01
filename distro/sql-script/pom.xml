@@ -5,7 +5,7 @@
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-database-settings</artifactId>
     <relativePath>../../database</relativePath>
-    <version>2.2.0-SNAPSHOT</version>
+    <version>2.3.0-SNAPSHOT</version>
   </parent>
 
   <groupId>org.cibseven.bpm.distro</groupId>
@@ -60,6 +60,12 @@
       <groupId>org.liquibase</groupId>
       <artifactId>liquibase-core</artifactId>
       <version>${version.liquibase}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-test-utils-testcontainers</artifactId>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
 
@@ -123,7 +129,7 @@
               <goal>parse-version</goal>
             </goals>
             <configuration>
-              <propertyPrefix>camunda.current</propertyPrefix>
+              <propertyPrefix>cibseven.current</propertyPrefix>
             </configuration>
           </execution>
           <execution>
@@ -132,8 +138,8 @@
               <goal>parse-version</goal>
             </goals>
             <configuration>
-              <propertyPrefix>camunda.old</propertyPrefix>
-              <versionString>${camunda.version.old}</versionString>
+              <propertyPrefix>cibseven.old</propertyPrefix>
+              <versionString>${cibseven.version.old}</versionString>
             </configuration>
           </execution>
         </executions>
@@ -184,31 +190,31 @@
                 <mkdir dir="target/sql/create" />
 
                 <concat destfile="target/sql/create/db2_engine_${project.version}.sql" fixlastline="yes">
-                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/create" files="activiti.db2.create.engine.sql activiti.db2.create.case.engine.sql activiti.db2.create.decision.engine.sql activiti.db2.create.history.sql activiti.db2.create.case.history.sql activiti.db2.create.decision.history.sql" />
+                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/create" files="activiti.db2.create.engine.sql activiti.db2.create.case.engine.sql activiti.db2.create.decision.engine.sql activiti.db2.create.history.sql activiti.db2.create.case.history.sql activiti.db2.create.decision.history.sql activiti.db2.create.modeler.sql" />
                 </concat>
 
                 <concat destfile="target/sql/create/h2_engine_${project.version}.sql" fixlastline="yes">
-                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/create" files="activiti.h2.create.engine.sql activiti.h2.create.case.engine.sql activiti.h2.create.decision.engine.sql activiti.h2.create.history.sql activiti.h2.create.case.history.sql activiti.h2.create.decision.history.sql" />
+                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/create" files="activiti.h2.create.engine.sql activiti.h2.create.case.engine.sql activiti.h2.create.decision.engine.sql activiti.h2.create.history.sql activiti.h2.create.case.history.sql activiti.h2.create.decision.history.sql activiti.h2.create.modeler.sql" />
                 </concat>
 
                 <concat destfile="target/sql/create/mssql_engine_${project.version}.sql" fixlastline="yes">
-                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/create" files="activiti.mssql.create.engine.sql activiti.mssql.create.case.engine.sql activiti.mssql.create.decision.engine.sql activiti.mssql.create.history.sql activiti.mssql.create.case.history.sql activiti.mssql.create.decision.history.sql" />
+                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/create" files="activiti.mssql.create.engine.sql activiti.mssql.create.case.engine.sql activiti.mssql.create.decision.engine.sql activiti.mssql.create.history.sql activiti.mssql.create.case.history.sql activiti.mssql.create.decision.history.sql activiti.mssql.create.modeler.sql" />
                 </concat>
 
                 <concat destfile="target/sql/create/mysql_engine_${project.version}.sql" fixlastline="yes">
-                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/create" files="activiti.mysql.create.engine.sql activiti.mysql.create.case.engine.sql activiti.mysql.create.decision.engine.sql activiti.mysql.create.history.sql activiti.mysql.create.case.history.sql activiti.mysql.create.decision.history.sql" />
+                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/create" files="activiti.mysql.create.engine.sql activiti.mysql.create.case.engine.sql activiti.mysql.create.decision.engine.sql activiti.mysql.create.history.sql activiti.mysql.create.case.history.sql activiti.mysql.create.decision.history.sql activiti.mysql.create.modeler.sql" />
                 </concat>
 
                 <concat destfile="target/sql/create/mariadb_engine_${project.version}.sql" fixlastline="yes">
-                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/create" files="activiti.mariadb.create.engine.sql activiti.mariadb.create.case.engine.sql activiti.mariadb.create.decision.engine.sql activiti.mariadb.create.history.sql activiti.mariadb.create.case.history.sql activiti.mariadb.create.decision.history.sql" />
+                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/create" files="activiti.mariadb.create.engine.sql activiti.mariadb.create.case.engine.sql activiti.mariadb.create.decision.engine.sql activiti.mariadb.create.history.sql activiti.mariadb.create.case.history.sql activiti.mariadb.create.decision.history.sql activiti.mariadb.create.modeler.sql" />
                 </concat>
 
                 <concat destfile="target/sql/create/oracle_engine_${project.version}.sql" fixlastline="yes">
-                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/create" files="activiti.oracle.create.engine.sql activiti.oracle.create.case.engine.sql activiti.oracle.create.decision.engine.sql activiti.oracle.create.history.sql activiti.oracle.create.case.history.sql activiti.oracle.create.decision.history.sql" />
+                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/create" files="activiti.oracle.create.engine.sql activiti.oracle.create.case.engine.sql activiti.oracle.create.decision.engine.sql activiti.oracle.create.history.sql activiti.oracle.create.case.history.sql activiti.oracle.create.decision.history.sql activiti.oracle.create.modeler.sql" />
                 </concat>
 
                 <concat destfile="target/sql/create/postgres_engine_${project.version}.sql" fixlastline="yes">
-                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/create" files="activiti.postgres.create.engine.sql activiti.postgres.create.case.engine.sql activiti.postgres.create.decision.engine.sql activiti.postgres.create.history.sql activiti.postgres.create.case.history.sql activiti.postgres.create.decision.history.sql" />
+                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/create" files="activiti.postgres.create.engine.sql activiti.postgres.create.case.engine.sql activiti.postgres.create.decision.engine.sql activiti.postgres.create.history.sql activiti.postgres.create.case.history.sql activiti.postgres.create.decision.history.sql activiti.postgres.create.modeler.sql" />
                 </concat>
 
                 <!-- add identity create files -->
@@ -226,31 +232,31 @@
                 <mkdir dir="target/sql/drop" />
 
                 <concat destfile="target/sql/drop/db2_engine_${project.version}.sql" fixlastline="yes">
-                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/drop" files="activiti.db2.drop.decision.engine.sql activiti.db2.drop.case.engine.sql activiti.db2.drop.engine.sql activiti.db2.drop.decision.history.sql activiti.db2.drop.case.history.sql activiti.db2.drop.history.sql" />
+                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/drop" files="activiti.db2.drop.modeler.sql activiti.db2.drop.decision.engine.sql activiti.db2.drop.case.engine.sql activiti.db2.drop.engine.sql activiti.db2.drop.decision.history.sql activiti.db2.drop.case.history.sql activiti.db2.drop.history.sql" />
                 </concat>
 
                 <concat destfile="target/sql/drop/h2_engine_${project.version}.sql" fixlastline="yes">
-                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/drop" files="activiti.h2.drop.decision.engine.sql activiti.h2.drop.case.engine.sql activiti.h2.drop.engine.sql activiti.h2.drop.decision.history.sql activiti.h2.drop.case.history.sql activiti.h2.drop.history.sql" />
+                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/drop" files="activiti.h2.drop.modeler.sql activiti.h2.drop.decision.engine.sql activiti.h2.drop.case.engine.sql activiti.h2.drop.engine.sql activiti.h2.drop.decision.history.sql activiti.h2.drop.case.history.sql activiti.h2.drop.history.sql" />
                 </concat>
 
                 <concat destfile="target/sql/drop/mssql_engine_${project.version}.sql" fixlastline="yes">
-                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/drop" files="activiti.mssql.drop.decision.engine.sql activiti.mssql.drop.case.engine.sql activiti.mssql.drop.engine.sql activiti.mssql.drop.decision.history.sql activiti.mssql.drop.case.history.sql activiti.mssql.drop.history.sql" />
+                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/drop" files="activiti.mssql.drop.modeler.sql activiti.mssql.drop.decision.engine.sql activiti.mssql.drop.case.engine.sql activiti.mssql.drop.engine.sql activiti.mssql.drop.decision.history.sql activiti.mssql.drop.case.history.sql activiti.mssql.drop.history.sql" />
                 </concat>
 
                 <concat destfile="target/sql/drop/mysql_engine_${project.version}.sql" fixlastline="yes">
-                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/drop" files="activiti.mysql.drop.decision.engine.sql activiti.mysql.drop.case.engine.sql activiti.mysql.drop.engine.sql activiti.mysql.drop.decision.history.sql activiti.mysql.drop.case.history.sql activiti.mysql.drop.history.sql" />
+                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/drop" files="activiti.mysql.drop.modeler.sql activiti.mysql.drop.decision.engine.sql activiti.mysql.drop.case.engine.sql activiti.mysql.drop.engine.sql activiti.mysql.drop.decision.history.sql activiti.mysql.drop.case.history.sql activiti.mysql.drop.history.sql" />
                 </concat>
 
                 <concat destfile="target/sql/drop/mariadb_engine_${project.version}.sql" fixlastline="yes">
-                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/drop" files="activiti.mariadb.drop.decision.engine.sql activiti.mariadb.drop.case.engine.sql activiti.mariadb.drop.engine.sql activiti.mariadb.drop.decision.history.sql activiti.mariadb.drop.case.history.sql activiti.mariadb.drop.history.sql" />
+                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/drop" files="activiti.mariadb.drop.modeler.sql activiti.mariadb.drop.decision.engine.sql activiti.mariadb.drop.case.engine.sql activiti.mariadb.drop.engine.sql activiti.mariadb.drop.decision.history.sql activiti.mariadb.drop.case.history.sql activiti.mariadb.drop.history.sql" />
                 </concat>
 
                 <concat destfile="target/sql/drop/oracle_engine_${project.version}.sql" fixlastline="yes">
-                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/drop" files="activiti.oracle.drop.decision.engine.sql activiti.oracle.drop.case.engine.sql activiti.oracle.drop.engine.sql activiti.oracle.drop.decision.history.sql activiti.oracle.drop.case.history.sql activiti.oracle.drop.history.sql" />
+                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/drop" files="activiti.oracle.drop.modeler.sql activiti.oracle.drop.decision.engine.sql activiti.oracle.drop.case.engine.sql activiti.oracle.drop.engine.sql activiti.oracle.drop.decision.history.sql activiti.oracle.drop.case.history.sql activiti.oracle.drop.history.sql" />
                 </concat>
 
                 <concat destfile="target/sql/drop/postgres_engine_${project.version}.sql" fixlastline="yes">
-                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/drop" files="activiti.postgres.drop.decision.engine.sql activiti.postgres.drop.case.engine.sql activiti.postgres.drop.engine.sql activiti.postgres.drop.decision.history.sql activiti.postgres.drop.case.history.sql activiti.postgres.drop.history.sql" />
+                  <filelist dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/drop" files="activiti.postgres.drop.modeler.sql activiti.postgres.drop.decision.engine.sql activiti.postgres.drop.case.engine.sql activiti.postgres.drop.engine.sql activiti.postgres.drop.decision.history.sql activiti.postgres.drop.case.history.sql activiti.postgres.drop.history.sql" />
                 </concat>
 
                 <!-- add identity drop files -->
@@ -292,66 +298,66 @@
               <target>
                 <!-- create concatenated patch scripts for easier testing -->
                 <!-- db2 patches -->
-                <concat destfile="target/upgrade-test/sql/upgrade/db2_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="db2_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/db2_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="db2_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch*.sql" />
                 </concat>
 
-                <concat destfile="target/upgrade-test/sql/upgrade/db2_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="db2_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/db2_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="db2_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch*.sql" />
                 </concat>
 
                 <!-- h2 patches -->
-                <concat destfile="target/upgrade-test/sql/upgrade/h2_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="h2_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/h2_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="h2_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch*.sql" />
                 </concat>
 
-                <concat destfile="target/upgrade-test/sql/upgrade/h2_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="h2_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/h2_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="h2_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch*.sql" />
                 </concat>
 
                 <!-- mssql patches -->
-                <concat destfile="target/upgrade-test/sql/upgrade/mssql_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mssql_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/mssql_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mssql_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch*.sql" />
                 </concat>
 
-                <concat destfile="target/upgrade-test/sql/upgrade/mssql_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mssql_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/mssql_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mssql_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch*.sql" />
                 </concat>
 
                 <!-- mysql patches -->
-                <concat destfile="target/upgrade-test/sql/upgrade/mysql_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mysql_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/mysql_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mysql_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch*.sql" />
                 </concat>
 
-                <concat destfile="target/upgrade-test/sql/upgrade/mysql_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mysql_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/mysql_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mysql_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch*.sql" />
                 </concat>
 
                 <!-- mariadb patches -->
-                <concat destfile="target/upgrade-test/sql/upgrade/mariadb_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mariadb_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/mariadb_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mariadb_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch*.sql" />
                 </concat>
 
-                <concat destfile="target/upgrade-test/sql/upgrade/mariadb_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mariadb_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/mariadb_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="mariadb_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch*.sql" />
                 </concat>
 
                 <!-- oracle patches -->
-                <concat destfile="target/upgrade-test/sql/upgrade/oracle_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="oracle_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/oracle_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="oracle_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch*.sql" />
                 </concat>
 
-                <concat destfile="target/upgrade-test/sql/upgrade/oracle_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="oracle_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/oracle_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="oracle_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch*.sql" />
                 </concat>
 
                 <!-- postgres patches -->
-                <concat destfile="target/upgrade-test/sql/upgrade/postgres_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="postgres_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/postgres_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="postgres_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch*.sql" />
                 </concat>
 
-                <concat destfile="target/upgrade-test/sql/upgrade/postgres_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch.sql" fixlastline="yes">
-                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="postgres_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch*.sql" />
+                <concat destfile="target/upgrade-test/sql/upgrade/postgres_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch.sql" fixlastline="yes">
+                  <fileset dir="target/cibseven-engine-${project.version}/org/cibseven/bpm/engine/db/upgrade" includes="postgres_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch*.sql" />
                 </concat>
 
                 <copy todir="target/upgrade-test/sql/upgrade">
@@ -444,7 +450,7 @@
                     <artifactItem>
                       <groupId>org.cibseven.bpm.distro</groupId>
                       <artifactId>cibseven-sql-scripts</artifactId>
-                      <version>${camunda.version.old}</version>
+                      <version>${cibseven.version.old}</version>
                       <outputDirectory>${project.build.directory}/test-classes/scripts-old</outputDirectory>
                       <overWrite>true</overWrite>
                     </artifactItem>
@@ -469,8 +475,8 @@
                     <!-- create the SQL scripts so that the files exist even if they do not exist in the distribution.
                     (this can be the case if there are no db upgrades (yet) for a particular release ) -->
 
-                    <touch file="${project.build.directory}/test-classes/local-upgrade-test/sql/upgrade/${database.type}_engine_${camunda.old.majorVersion}.${camunda.old.minorVersion}_patch.sql" />
-                    <touch file="${project.build.directory}/test-classes/local-upgrade-test/sql/upgrade/${database.type}_engine_${camunda.current.majorVersion}.${camunda.current.minorVersion}_patch.sql" />
+                    <touch file="${project.build.directory}/test-classes/local-upgrade-test/sql/upgrade/${database.type}_engine_${cibseven.old.majorVersion}.${cibseven.old.minorVersion}_patch.sql" />
+                    <touch file="${project.build.directory}/test-classes/local-upgrade-test/sql/upgrade/${database.type}_engine_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}_patch.sql" />
 
                   </target>
                 </configuration>

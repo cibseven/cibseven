@@ -207,6 +207,7 @@ public class TaskQueryDto extends AbstractQueryDto<TaskQuery> {
 
   protected Boolean variableNamesIgnoreCase;
   protected Boolean variableValuesIgnoreCase;
+  protected Boolean likePatternIgnoreCase;
 
   private List<VariableQueryParameterDto> taskVariables;
   private List<VariableQueryParameterDto> processVariables;
@@ -726,6 +727,11 @@ public class TaskQueryDto extends AbstractQueryDto<TaskQuery> {
     this.variableValuesIgnoreCase = variableValuesCaseInsensitive;
   }
 
+  @CamundaQueryParam(value = "likePatternIgnoreCase", converter = BooleanConverter.class)
+  public void setLikePatternIgnoreCase(Boolean likePatternIgnoreCase) {
+    this.likePatternIgnoreCase = likePatternIgnoreCase;
+  }
+
   @CamundaQueryParam(value = "withCommentAttachmentInfo", converter = BooleanConverter.class)
   public void setWithCommentAttachmentInfo(Boolean withCommentAttachmentInfo) {
     this.withCommentAttachmentInfo = withCommentAttachmentInfo;
@@ -1119,6 +1125,10 @@ public class TaskQueryDto extends AbstractQueryDto<TaskQuery> {
     return variableValuesIgnoreCase;
   }
 
+  public Boolean isLikePatternIgnoreCase() {
+    return likePatternIgnoreCase;
+  }
+
   public Boolean getWithCommentAttachmentInfo() { return withCommentAttachmentInfo;}
 
   public Boolean getWithTaskVariablesInReturn() {
@@ -1417,6 +1427,9 @@ public class TaskQueryDto extends AbstractQueryDto<TaskQuery> {
     if(variableNamesIgnoreCase != null && variableNamesIgnoreCase) {
       query.matchVariableNamesIgnoreCase();
     }
+    if(likePatternIgnoreCase != null && likePatternIgnoreCase) {
+      query.likePatternIgnoreCase();
+    }
 
     if (taskVariables != null) {
       for (VariableQueryParameterDto variableQueryParam : taskVariables) {
@@ -1678,6 +1691,7 @@ public class TaskQueryDto extends AbstractQueryDto<TaskQuery> {
 
     dto.variableNamesIgnoreCase = taskQuery.isVariableNamesIgnoreCase();
     dto.variableValuesIgnoreCase = taskQuery.isVariableValuesIgnoreCase();
+    dto.likePatternIgnoreCase = taskQuery.isLikePatternIgnoreCase();
 
     if (taskQuery.isFollowUpNullAccepted()) {
       dto.followUpBeforeOrNotExistent = taskQuery.getFollowUpBefore();

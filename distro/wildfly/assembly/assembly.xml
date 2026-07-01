@@ -32,12 +32,6 @@
           <exclude>**/bin/standalone.conf.bat</exclude>
           <!-- exclude wildfly's shipped version of h2database -->
           <exclude>**/h2database/**</exclude>
-          
-          <!-- Excluding due to CVE-2025-66566: Wildfly39Beta approach -->
-          <exclude>**/modules/system/layers/base/org/lz4/**</exclude>
-          <exclude>**/modules/system/layers/base/org/apache/kafka/**</exclude>
-          <!-- Excluding due to CVE-2025-58057 CVE-2025-67735 CVE-2025-58056  -->
-          <exclude>**/modules/system/layers/base/io/netty/**</exclude>
         </excludes>
       </unpackOptions>
     </dependencySet>
@@ -75,6 +69,14 @@
     <fileSet>
       <directory>../modules/target/modules</directory>
       <outputDirectory>server/wildfly-${version.wildfly}/modules</outputDirectory>
+    </fileSet>
+    <!-- ai-agent element-templates (extracted from the connector jar by the
+         dependency-plugin unpack in pom.xml): shipped to the standalone config
+         dir so the modeler discovers them via the file: path in
+         application-wildfly.yaml, independent of cross-module classpath*: scanning. -->
+    <fileSet>
+      <directory>target/ai-agent-templates/element-templates</directory>
+      <outputDirectory>server/wildfly-${version.wildfly}/standalone/configuration/element-templates</outputDirectory>
     </fileSet>
   </fileSets>
   <files>

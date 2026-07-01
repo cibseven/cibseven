@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
+
+  <id>assembly</id>
+
+  <formats>
+    <format>tar.gz</format>
+  </formats>
+
+  <includeBaseDirectory>false</includeBaseDirectory>
+
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>internal/</outputDirectory>
+      <includes>
+        <include>org.cibseven.bpm.run:cibseven-bpm-run4-core</include>
+      </includes>
+      <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
+    </dependencySet>
+    <dependencySet>
+      <outputDirectory>internal/oauth2/</outputDirectory>
+      <includes>
+        <include>org.cibseven.bpm.run:cibseven-bpm-run4-modules-oauth2</include>
+      </includes>
+      <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
+    </dependencySet>
+    <dependencySet>
+      <outputDirectory>internal/example/</outputDirectory>
+      <includes>
+        <include>org.cibseven.bpm.run:cibseven-bpm-run4-modules-example-invoice</include>
+      </includes>
+      <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
+    </dependencySet>
+    <dependencySet>
+      <outputDirectory />
+      <includes>
+        <include>org.cibseven.bpm:license-book:zip</include>
+      </includes>
+      <unpack>true</unpack>
+    </dependencySet>
+    <dependencySet>
+      <outputDirectory>configuration/userlib/</outputDirectory>
+      <includes>
+        <include>com.h2database:h2</include>
+        <include>org.apache.groovy:groovy:jar:*</include>
+        <include>org.apache.groovy:groovy-jsr223:jar:*</include>
+        <include>org.apache.groovy:groovy-json:jar:*</include>
+        <include>org.apache.groovy:groovy-xml:jar:*</include>
+        <include>org.apache.groovy:groovy-templates:jar:*</include>
+        <include>org.apache.groovy:groovy-dateutil:jar:*</include>
+        <include>org.apache.groovy:groovy-datetime:jar:*</include>
+      </includes>
+    </dependencySet>
+  </dependencySets>
+
+  <files>
+    <file>
+      <source>resources/default.yml</source>
+      <outputDirectory>configuration/</outputDirectory>
+    </file>
+    <file>
+      <source>resources/production.yml</source>
+      <outputDirectory>configuration/</outputDirectory>
+    </file>
+    <file>
+      <source>resources/keystore.p12</source>
+      <outputDirectory>configuration/keystore/</outputDirectory>
+    </file>
+    <file>
+      <source>resources/run.sh</source>
+      <filtered>true</filtered>
+      <outputDirectory>internal/</outputDirectory>
+      <fileMode>0755</fileMode>
+    </file>
+    <file>
+      <source>resources/start.sh</source>
+      <filtered>true</filtered>
+      <outputDirectory />
+      <fileMode>0755</fileMode>
+    </file>
+    <file>
+      <source>resources/shutdown.sh</source>
+      <filtered>true</filtered>
+      <outputDirectory />
+      <fileMode>0755</fileMode>
+    </file>
+    <file>
+      <source>resources/run.bat</source>
+      <filtered>true</filtered>
+      <outputDirectory>internal/</outputDirectory>
+      <fileMode>0644</fileMode>
+    </file>
+    <file>
+      <source>resources/start.bat</source>
+      <filtered>true</filtered>
+      <outputDirectory />
+      <fileMode>0644</fileMode>
+    </file>
+    <file>
+      <source>resources/shutdown.bat</source>
+      <filtered>true</filtered>
+      <outputDirectory />
+      <fileMode>0644</fileMode>
+    </file>
+    <file>
+      <source>../../license/LICENSE</source>
+      <filtered>true</filtered>
+      <lineEnding>crlf</lineEnding>
+      <outputDirectory></outputDirectory>
+    </file>
+    <file>
+      <source>../../license/NOTICE</source>
+      <filtered>true</filtered>
+      <lineEnding>crlf</lineEnding>
+      <outputDirectory></outputDirectory>
+    </file>
+    <file>
+      <source>resources/README.txt</source>
+      <filtered>true</filtered>
+      <lineEnding>crlf</lineEnding>
+      <outputDirectory />
+    </file>
+  </files>
+
+  <fileSets>
+    <fileSet>
+      <directory>../modules/rest/target/dependency/</directory>
+      <outputDirectory>internal/rest/</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>../modules/oauth2/target/dependency/</directory>
+      <outputDirectory>internal/oauth2/</outputDirectory>
+    </fileSet>
+    <!-- ai-agent ships into a dedicated userlib-ai/ folder (NOT the always-on
+         userlib/). run.sh adds it to the loader path only when the AI agent is
+         enabled: on by default in default/dev mode, off in production mode unless
+         the ai/agent flag or the AI_AGENT_ENABLED env var is set (CIB7-1447). -->
+    <fileSet>
+      <directory>../modules/ai-agent/target/dependency/</directory>
+      <outputDirectory>configuration/userlib-ai/</outputDirectory>
+    </fileSet>
+    <!-- http/soap connectors ship into the always-on userlib/ folder so the
+         connectors (and their classpath*:element-templates/*.json bundled in the
+         connector JARs) are available out of the box. Unlike the heavy ai-agent
+         they are lightweight, so they are not gated behind a separate folder.
+         The shared cibseven-connect-http-client jar produced by both modules is
+         the same artifact/version and dedupes by filename. -->
+    <fileSet>
+      <directory>../modules/http-client/target/dependency/</directory>
+      <outputDirectory>configuration/userlib/</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>../modules/soap-http-client/target/dependency/</directory>
+      <outputDirectory>configuration/userlib/</outputDirectory>
+    </fileSet>
+    <!-- create empty resource folder -->
+    <fileSet>
+      <directory>resources/dummyResource</directory>
+      <outputDirectory>configuration/resources/</outputDirectory>
+      <excludes>
+        <exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
+    <!-- user-contributed element templates: bundled connector templates ship
+         inside the connector JAR (loaded via classpath*:element-templates/*.json
+         in default.yml); this folder is where operators can drop their own
+         JSONs to be picked up by the modeler. It sits OUTSIDE configuration/resources/
+         so the engine auto-deploy scan does not try to deploy them. -->
+    <fileSet>
+      <directory>resources/dummyResource</directory>
+      <outputDirectory>configuration/element-templates/</outputDirectory>
+      <excludes>
+        <exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
+  </fileSets>
+
+</assembly>

@@ -5,7 +5,7 @@
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-parent</artifactId>
     <relativePath>../parent</relativePath>
-    <version>2.2.0-SNAPSHOT</version>
+    <version>2.3.0-SNAPSHOT</version>
   </parent>
 
   <groupId>org.cibseven.connect</groupId>
@@ -30,6 +30,7 @@
     <module>core</module>
     <module>http-client</module>
     <module>soap-http-client</module>
+    <module>ai-agent</module>
     <module>connectors-all</module>
   </modules>
 

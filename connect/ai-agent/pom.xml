@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <parent>
+    <artifactId>cibseven-connect-root</artifactId>
+    <groupId>org.cibseven.connect</groupId>
+    <version>2.3.0-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>cibseven-connect-ai-agent</artifactId>
+  <name>CIB seven - connect - AI agent (LangChain4j)</name>
+
+  <properties>
+    <!-- LangChain4j requires Java 17+ -->
+    <maven.compiler.release>17</maven.compiler.release>
+    <version.langchain4j>1.16.3</version.langchain4j>
+    <version.langchain4j-beta>1.16.3-beta26</version.langchain4j-beta>
+  </properties>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>org.cibseven.connect</groupId>
+      <artifactId>cibseven-connect-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j</artifactId>
+      <version>${version.langchain4j}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j-open-ai</artifactId>
+      <version>${version.langchain4j}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j-agentic-mcp</artifactId>
+      <version>${version.langchain4j-beta}</version>
+    </dependency>
+
+    <!-- RAG: local embedding model (no external service required) -->
+    <dependency>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j-embeddings-all-minilm-l6-v2</artifactId>
+      <version>${version.langchain4j-beta}</version>
+    </dependency>
+
+    <!-- RAG: pgvector embedding store -->
+    <dependency>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j-pgvector</artifactId>
+      <version>${version.langchain4j-beta}</version>
+    </dependency>
+
+    <!-- Knowledge ingestion: PDF document parser -->
+    <dependency>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j-document-parser-apache-pdfbox</artifactId>
+      <version>${version.langchain4j-beta}</version>
+    </dependency>
+
+    <!-- Engine variable API — provided: available at runtime inside the engine, not bundled -->
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- JSON serialisation for the chat log persistence — provided by the engine runtime (Spin/REST).
+         Version pinned to the cibseven-parent property so it stays in lockstep with the engine. -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${version.jackson}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Test dependencies -->
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <mainClass>org.cibseven.connect.ai.agent.KnowledgeIngestor</mainClass>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>bundle-manifest</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <description>
+    AI agent connector for CIB seven BPMN engine that integrates LangChain4j.
+    Allows BPMN process designers to invoke LLM-backed agents (OpenAI, Azure OpenAI,
+    Ollama, and any OpenAI-compatible endpoint) directly from service tasks
+    using the standard camunda:connector input/output parameter mapping.
+  </description>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
+
+</project>
