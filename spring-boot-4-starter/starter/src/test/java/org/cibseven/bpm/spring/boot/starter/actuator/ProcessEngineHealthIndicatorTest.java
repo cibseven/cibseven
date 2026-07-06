@@ -22,13 +22,15 @@ import static org.mockito.Mockito.when;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+
+@ExtendWith(MockitoExtension.class)
 public class ProcessEngineHealthIndicatorTest {
 
   private static final String PROCESS_ENGINE_NAME = "process engine name";
