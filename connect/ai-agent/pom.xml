@@ -72,8 +72,17 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- JSON serialisation for the chat log persistence — provided by the engine runtime (Spin/REST).
+    <!-- JSON serialisation for the chat log persistence (AgentChatListener / AgentConnectorImpl
+         use ObjectMapper, JsonProcessingException and TypeReference directly, so jackson-core and
+         jackson-databind are first-order dependencies of this module — see dependency:analyze).
+         provided: the engine host supplies Jackson at runtime (Spin/REST), so we don't bundle it.
          Version pinned to the cibseven-parent property so it stays in lockstep with the engine. -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${version.jackson}</version>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
