@@ -142,6 +142,11 @@ public class VariableInstanceQueryImpl extends AbstractVariableQueryImpl<Variabl
 
   // ordering ////////////////////////////////////////////////////
 
+  public VariableInstanceQuery orderByVariableId() {
+    orderBy(VariableInstanceQueryProperty.VARIABLE_ID);
+    return this;
+  }
+
   public VariableInstanceQuery orderByVariableName() {
     orderBy(VariableInstanceQueryProperty.VARIABLE_NAME);
     return this;

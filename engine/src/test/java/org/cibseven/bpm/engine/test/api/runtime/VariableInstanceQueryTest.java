@@ -1933,6 +1933,158 @@ public class VariableInstanceQueryTest extends PluggableProcessEngineTest {
 
   @Test
   @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
+  public void testQueryOrderByVariableId_Asc() {
+    // given
+    Map<String, Object> variables = new HashMap<>();
+    variables.put("stringVar", "test");
+    variables.put("myVar", "test123");
+    runtimeService.startProcessInstanceByKey(PROC_DEF_KEY, variables);
+
+    // when
+    List<VariableInstance> result = runtimeService.createVariableInstanceQuery()
+        .orderByVariableId().asc().list();
+
+    // then
+    assertEquals(2, result.size());
+
+    List<String> expectedIds = new ArrayList<>();
+    for (VariableInstance variableInstance : result) {
+      expectedIds.add(variableInstance.getId());
+    }
+    Collections.sort(expectedIds);
+
+    assertEquals(expectedIds.get(0), result.get(0).getId());
+    assertEquals(expectedIds.get(1), result.get(1).getId());
+  }
+
+  @Test
+  @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
+  public void testQueryOrderByVariableId_Desc() {
+    // given
+    Map<String, Object> variables = new HashMap<>();
+    variables.put("stringVar", "test");
+    variables.put("myVar", "test123");
+    runtimeService.startProcessInstanceByKey(PROC_DEF_KEY, variables);
+
+    // when
+    List<VariableInstance> result = runtimeService.createVariableInstanceQuery()
+        .orderByVariableId().desc().list();
+
+    // then
+    assertEquals(2, result.size());
+
+    List<String> expectedIds = new ArrayList<>();
+    for (VariableInstance variableInstance : result) {
+      expectedIds.add(variableInstance.getId());
+    }
+    Collections.sort(expectedIds, Collections.reverseOrder());
+
+    assertEquals(expectedIds.get(0), result.get(0).getId());
+    assertEquals(expectedIds.get(1), result.get(1).getId());
+  }
+
+  @Test
+  @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
+  public void testQueryOrderByVariableIdStablePagination() {
+    // given a number of variable instances
+    Map<String, Object> variables = new HashMap<>();
+    for (int i = 0; i < 10; i++) {
+      variables.put("var" + i, "value" + i);
+    }
+    runtimeService.startProcessInstanceByKey(PROC_DEF_KEY, variables);
+
+    long count = runtimeService.createVariableInstanceQuery().count();
+    assertEquals(10, count);
+
+    // when paginating over the result ordered by the (unique) variable id
+    Set<String> collectedIds = new HashSet<>();
+    int pageSize = 3;
+    for (int firstResult = 0; firstResult < count; firstResult += pageSize) {
+      List<VariableInstance> page = runtimeService.createVariableInstanceQuery()
+          .orderByVariableId().asc()
+          .listPage(firstResult, pageSize);
+
+      for (VariableInstance variableInstance : page) {
+        // then no row is returned twice across pages
+        assertTrue("variable instance " + variableInstance.getId() + " was returned on more than one page",
+            collectedIds.add(variableInstance.getId()));
+      }
+    }
+
+    // then every row is returned exactly once (no missing rows)
+    assertEquals(10, collectedIds.size());
+  }
+
+  @Test
+  @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
+  public void testStreamMatchesList() {
+    // given
+    Map<String, Object> variables = new HashMap<>();
+    variables.put("stringVar", "test");
+    variables.put("myVar", "test123");
+    runtimeService.startProcessInstanceByKey(PROC_DEF_KEY, variables);
+
+    // when
+    List<String> streamedIds = new ArrayList<>();
+    runtimeService.createVariableInstanceQuery()
+        .orderByVariableId().asc()
+        .stream()
+        .forEach(variableInstance -> streamedIds.add(variableInstance.getId()));
+
+    List<String> listedIds = new ArrayList<>();
+    for (VariableInstance variableInstance : runtimeService.createVariableInstanceQuery()
+        .orderByVariableId().asc().list()) {
+      listedIds.add(variableInstance.getId());
+    }
+
+    // then the lazily streamed result is identical to list()
+    assertEquals(listedIds, streamedIds);
+  }
+
+  @Test
+  @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
+  public void testStreamPaginatesAcrossPages() {
+    // given more variable instances than the internal stream page size (100)
+    int variableCount = 250;
+    Map<String, Object> variables = new HashMap<>();
+    for (int i = 0; i < variableCount; i++) {
+      variables.put("var" + i, "value" + i);
+    }
+    runtimeService.startProcessInstanceByKey(PROC_DEF_KEY, variables);
+
+    assertEquals(variableCount, runtimeService.createVariableInstanceQuery().count());
+
+    // when consuming the whole result set as a stream (ordered by the unique id)
+    Set<String> streamedIds = new HashSet<>();
+    runtimeService.createVariableInstanceQuery()
+        .orderByVariableId().asc()
+        .stream()
+        .forEach(variableInstance ->
+            // then no row is streamed twice across the internally fetched pages
+            assertTrue("variable instance " + variableInstance.getId() + " was streamed more than once",
+                streamedIds.add(variableInstance.getId())));
+
+    // then every row is streamed exactly once (no missing rows)
+    assertEquals(variableCount, streamedIds.size());
+  }
+
+  @Test
+  @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
+  public void testStreamOnEmptyResult() {
+    // given no variable instances
+
+    // when
+    long streamedCount = runtimeService.createVariableInstanceQuery()
+        .orderByVariableId().asc()
+        .stream()
+        .count();
+
+    // then
+    assertEquals(0, streamedCount);
+  }
+
+  @Test
+  @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
   public void testQueryOrderByType_Asc() {
     // given
     Map<String, Object> variables = new HashMap<>();
