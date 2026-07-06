@@ -16,8 +16,9 @@
  */
 package org.cibseven.bpm.engine.rest.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -26,9 +27,9 @@ import java.util.Map;
 
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.security.auth.impl.jwt.Configuration;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,7 +46,7 @@ public class LicenseRestServiceSignatureTest {
 
   private String originalSecret;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     service = new LicenseRestServiceImpl(null, new ObjectMapper());
 
@@ -58,7 +59,7 @@ public class LicenseRestServiceSignatureTest {
     originalSecret = Configuration.getInstance().getSecret();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     setConfigurationSecret(originalSecret);
   }
@@ -90,27 +91,23 @@ public class LicenseRestServiceSignatureTest {
     assertEquals("2026-12-31", encryptedMap.get("expires"));
   }
 
-  @Test(expected = InvalidRequestException.class)
+  @Test
   public void testEncryptWithMissingSecretThrows() throws Throwable {
     setConfigurationSecret(null);
-    try {
+    assertThrows(InvalidRequestException.class, () -> {
       encryptSignature.invoke(service, LICENSE_KEY);
-    } catch (InvocationTargetException e) {
-      throw e.getCause();
-    }
+    });
   }
 
-  @Test(expected = InvalidRequestException.class)
+  @Test
   public void testDecryptWithCorruptedJweThrows() throws Throwable {
     String corrupted = "{\"customer\":\"Test Corp\",\"signature\":\"not-a-valid-jwe-token\"}";
-    try {
+    assertThrows(InvalidRequestException.class, () -> {
       decryptSignature.invoke(service, corrupted);
-    } catch (InvocationTargetException e) {
-      throw e.getCause();
-    }
+    });
   }
 
-  @Test(expected = InvalidRequestException.class)
+  @Test
   public void testDecryptWithWrongKeyThrows() throws Throwable {
     // Encrypt with original secret
     String encrypted = (String) encryptSignature.invoke(service, LICENSE_KEY);
@@ -118,11 +115,9 @@ public class LicenseRestServiceSignatureTest {
     // Change secret to simulate key rotation
     setConfigurationSecret("a-completely-different-secret-key-that-is-long-enough-for-testing-purposes");
 
-    try {
+    assertThrows(InvalidRequestException.class, () -> {
       decryptSignature.invoke(service, encrypted);
-    } catch (InvocationTargetException e) {
-      throw e.getCause();
-    }
+    });
   }
 
   private void setConfigurationSecret(String secret) throws Exception {

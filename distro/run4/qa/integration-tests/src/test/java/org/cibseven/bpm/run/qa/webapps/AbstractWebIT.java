@@ -21,7 +21,7 @@ import kong.unirest.ObjectMapper;
 import kong.unirest.Unirest;
 import org.cibseven.bpm.TestProperties;
 
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.BeforeClass;
 import org.openqa.selenium.chrome.ChromeDriverService;
 
@@ -70,7 +70,7 @@ public abstract class AbstractWebIT {
     });
   }
 
-  @Before
+  @BeforeEach
   public void before() throws Exception {
     testProperties = new TestProperties(48080);
   }

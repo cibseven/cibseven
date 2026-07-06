@@ -17,9 +17,9 @@
 package org.cibseven.bpm.run.qa.webapps;
 
 import org.cibseven.bpm.util.SeleniumScreenshotRule;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.AfterClass;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.openqa.selenium.WebDriver;
@@ -98,7 +98,7 @@ public class AbstractWebappUiIT extends AbstractWebIT {
 
   }
 
-  @Before
+  @BeforeEach
   public void createClient() throws Exception {
     preventRaceConditions();
     createClient(getWebappCtxPath());

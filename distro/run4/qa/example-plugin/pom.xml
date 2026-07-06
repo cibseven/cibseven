@@ -16,7 +16,7 @@
 
     <dependency>
       <groupId>org.cibseven.bpm.webapp</groupId>
-      <artifactId>cibseven-webapp-jakarta</artifactId>
+      <artifactId>cibseven-webapp</artifactId>
       <classifier>classes</classifier>
     </dependency>
 

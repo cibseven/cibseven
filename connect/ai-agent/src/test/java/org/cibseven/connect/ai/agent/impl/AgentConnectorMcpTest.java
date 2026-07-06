@@ -29,8 +29,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.cibseven.connect.ai.agent.AgentRequest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
@@ -63,7 +63,7 @@ public class AgentConnectorMcpTest {
 
   private CapturingConnector connector;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     connector = new CapturingConnector();
   }

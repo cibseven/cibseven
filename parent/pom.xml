@@ -52,15 +52,18 @@
     <version.jjwt>0.12.6</version.jjwt>
     <version.caffeine>3.2.4</version.caffeine>
 
+    <version.mockito>5.17.0</version.mockito>
     <version.slf4j>1.7.26</version.slf4j>
+    <version.log4j2>2.25.4</version.log4j2>
     <version.logback>1.2.13</version.logback>
     <version.junit5>5.12.2</version.junit5>
     <version.assertj>3.27.7</version.assertj>
-    <version.wiremock>3.13.2</version.wiremock>
+    <version.wiremock>3.0.1</version.wiremock>
 
-    <wiremock.version>3.9.2</wiremock.version>
     <version.surefire>3.2.5</version.surefire>
     <version.unirest-java>2.3.10</version.unirest-java>
+    <version.testcontainers>2.0.4</version.testcontainers>
+
 
     <version.commonj>1.1.0</version.commonj>
     <version.bouncycastle>1.47</version.bouncycastle>
@@ -86,8 +89,8 @@
     <version.jakarta-ee-spec>10.0.0</version.jakarta-ee-spec>
 
     <version.eirslett.frontend.maven.plugin>1.12.1</version.eirslett.frontend.maven.plugin>
-    <version.nodejs>24.13.1</version.nodejs>
-    <version.npm>11.8.0</version.npm>
+    <version.nodejs>22.16.0</version.nodejs>
+    <version.npm>10.9.2</version.npm>
 
     <!-- OSGi bundles properties -->
     <cibseven.artifact />

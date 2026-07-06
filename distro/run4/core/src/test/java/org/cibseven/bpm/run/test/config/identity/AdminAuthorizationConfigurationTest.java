@@ -22,7 +22,7 @@ import org.cibseven.bpm.engine.impl.plugin.AdministratorAuthorizationPlugin;
 import org.cibseven.bpm.run.CamundaBpmRun;
 import org.cibseven.bpm.run.property.CamundaBpmRunAdministratorAuthorizationProperties;
 import org.cibseven.bpm.run.property.CamundaBpmRunProperties;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

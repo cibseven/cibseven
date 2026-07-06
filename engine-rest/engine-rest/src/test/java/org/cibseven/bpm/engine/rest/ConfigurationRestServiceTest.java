@@ -20,18 +20,18 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.mockito.Mockito.when;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.rest.impl.ConfigurationRestService;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class ConfigurationRestServiceTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String CONFIGURATION_URL = TEST_RESOURCE_ROOT_PATH + ConfigurationRestService.PATH;
@@ -39,7 +39,7 @@ public class ConfigurationRestServiceTest extends AbstractRestServiceTest {
 
   private ProcessEngineConfiguration mockEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void setUpMocks() {
     mockEngineConfiguration = processEngine.getProcessEngineConfiguration();
 

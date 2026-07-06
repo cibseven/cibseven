@@ -25,8 +25,8 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.run.CamundaBpmRun;
 import org.cibseven.bpm.spring.boot.starter.spin.SpringBootSpinProcessEnginePlugin;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -52,7 +52,7 @@ public class ProcessEnginePluginsConfigurationOverrideTest {
 
   protected List<ProcessEnginePlugin> plugins;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     this.plugins = processEngineConfiguration.getProcessEnginePlugins();
 }

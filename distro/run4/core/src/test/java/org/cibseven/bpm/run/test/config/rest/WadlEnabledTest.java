@@ -18,7 +18,7 @@ package org.cibseven.bpm.run.test.config.rest;
 
 import org.cibseven.bpm.run.property.CamundaBpmRunRestProperties;
 import org.cibseven.bpm.run.test.AbstractRestTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;

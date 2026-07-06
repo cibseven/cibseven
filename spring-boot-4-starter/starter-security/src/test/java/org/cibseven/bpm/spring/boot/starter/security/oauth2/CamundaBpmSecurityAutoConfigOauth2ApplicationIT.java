@@ -23,9 +23,9 @@ import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.AuthorizeTokenF
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.OAuth2AuthenticationProvider;
 import org.cibseven.bpm.webapp.impl.security.auth.ContainerBasedAuthenticationFilter;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -73,7 +73,7 @@ public class CamundaBpmSecurityAutoConfigOauth2ApplicationIT extends AbstractSpr
 
   private OAuth2AuthenticationProvider spiedAuthenticationProvider;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     super.setup();
     spyAuthenticationProvider();

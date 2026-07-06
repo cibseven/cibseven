@@ -18,7 +18,7 @@ package org.cibseven.bpm.run.qa;
 
 import io.restassured.response.Response;
 import org.cibseven.bpm.run.qa.util.SpringBootManagedContainer;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.AfterParam;

@@ -45,9 +45,9 @@ import org.cibseven.bpm.engine.history.HistoricVariableInstanceQuery;
 import org.cibseven.bpm.engine.impl.identity.Authentication;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import dev.langchain4j.agent.tool.Tool;
 
@@ -72,7 +72,7 @@ public class ProcessStarterToolTest {
   private IdentityService identityService;
   private ProcessStarterTool tool;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     engine = mock(ProcessEngine.class);
     runtimeService = mock(RuntimeService.class);
@@ -87,7 +87,7 @@ public class ProcessStarterToolTest {
     ProcessStarterToolContext.setAuthentication(null);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ProcessStarterToolContext.clear();
   }

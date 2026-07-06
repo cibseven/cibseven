@@ -25,9 +25,9 @@ import org.cibseven.connect.ai.agent.AgentConnector;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.cibseven.connect.ai.agent.AgentRequest;
 import org.cibseven.connect.ai.agent.AgentResponse;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -65,7 +65,7 @@ public class AgentChatMemoryTest {
   private EchoConnector connector;
   private ChatMemoryStore originalStore;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     connector = new EchoConnector();
     // Isolate each test from any shared state between runs.
@@ -73,7 +73,7 @@ public class AgentChatMemoryTest {
     AgentChatMemoryStore.setStore(new InMemoryChatMemoryStore());
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     AgentChatMemoryStore.setStore(originalStore);
   }

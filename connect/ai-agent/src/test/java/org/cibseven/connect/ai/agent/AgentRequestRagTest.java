@@ -19,14 +19,14 @@ package org.cibseven.connect.ai.agent;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.connect.ai.agent.impl.AgentConnectorImpl;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class AgentRequestRagTest {
 
   private AgentConnectorImpl connector;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     connector = new AgentConnectorImpl();
   }

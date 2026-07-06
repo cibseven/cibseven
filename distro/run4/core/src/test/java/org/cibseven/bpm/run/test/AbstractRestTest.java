@@ -20,7 +20,7 @@ import java.util.Collections;
 
 import org.cibseven.bpm.run.CamundaBpmRun;
 import org.cibseven.bpm.run.test.util.LoggingInterceptor;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -45,7 +45,7 @@ public abstract class AbstractRestTest {
   @LocalServerPort
   protected int localPort;
 
-  @Before
+  @BeforeEach
   public void enableRequestResponseLogging() {
     testRestTemplate.getRestTemplate().setInterceptors(Collections.singletonList(new LoggingInterceptor()));
   }

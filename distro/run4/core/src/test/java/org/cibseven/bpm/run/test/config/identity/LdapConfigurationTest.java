@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.cibseven.bpm.identity.impl.ldap.plugin.LdapIdentityProviderPlugin;
 import org.cibseven.bpm.run.CamundaBpmRun;
 import org.cibseven.bpm.run.property.CamundaBpmRunLdapProperties;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

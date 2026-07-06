@@ -18,7 +18,7 @@ package org.cibseven.bpm.client.spring.boot.starter.it;
 
 import org.cibseven.bpm.client.ExternalTaskClient;
 import org.cibseven.bpm.client.spring.SpringTopicSubscription;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Answers;
 import org.springframework.beans.factory.annotation.Autowired;

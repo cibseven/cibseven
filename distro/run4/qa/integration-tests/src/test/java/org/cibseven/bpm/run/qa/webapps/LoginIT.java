@@ -18,7 +18,7 @@ package org.cibseven.bpm.run.qa.webapps;
 
 import org.cibseven.bpm.run.qa.util.SpringBootManagedContainer;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;

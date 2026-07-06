@@ -16,7 +16,8 @@
  */
 package org.cibseven.bpm.spring.boot.starter.actuator;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,13 +27,14 @@ import java.util.List;
 import org.cibseven.bpm.engine.impl.ProcessEngineImpl;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
 import org.cibseven.bpm.spring.boot.starter.actuator.JobExecutorHealthIndicator.Details;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
+
 
 @RunWith(MockitoJUnitRunner.class)
 public class JobExecutorHealthIndicatorTest {
@@ -54,7 +56,7 @@ public class JobExecutorHealthIndicatorTest {
   @Mock
   private JobExecutor jobExecutor;
 
-  @Before
+  @BeforeEach
   public void init() {
     when(jobExecutor.getLockOwner()).thenReturn(LOCK_OWNER);
     when(jobExecutor.getLockTimeInMillis()).thenReturn(LOCK_TIME_IN_MILLIS);
@@ -64,9 +66,11 @@ public class JobExecutorHealthIndicatorTest {
     when(jobExecutor.getProcessEngines()).thenReturn(PROCESS_ENGINES);
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void nullTest() {
-    new JobExecutorHealthIndicator(null);
+    assertThrows(NullPointerException.class, () -> {
+      new JobExecutorHealthIndicator(null);
+    });
   }
 
   @Test

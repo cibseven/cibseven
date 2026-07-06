@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.junit.Assume.assumeNotNull;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.util.Date;
 import java.util.List;
@@ -1242,8 +1242,8 @@ public class ProcessApplicationDeploymentTest {
     ProcessDefinition latestProcessDefinition = deployment2.getDeployedProcessDefinitions().get(0);
 
     // assume
-    assumeNotNull(managementService.getProcessApplicationForDeployment(deployment1.getId()));
-    assumeNotNull(managementService.getProcessApplicationForDeployment(deployment2.getId()));
+    assumeTrue(managementService.getProcessApplicationForDeployment(deployment1.getId()) != null);
+    assumeTrue(managementService.getProcessApplicationForDeployment(deployment2.getId()) != null);
 
     // delete latest process definition
     repositoryService.deleteProcessDefinition(latestProcessDefinition.getId());

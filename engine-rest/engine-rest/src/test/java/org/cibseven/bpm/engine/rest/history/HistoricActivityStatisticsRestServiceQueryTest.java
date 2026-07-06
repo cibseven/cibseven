@@ -20,6 +20,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.cibseven.bpm.engine.history.HistoricActivityStatistics;
 import org.cibseven.bpm.engine.history.HistoricActivityStatisticsPostQuery;
 import org.cibseven.bpm.engine.history.HistoricActivityStatisticsQuery;
@@ -244,9 +246,9 @@ public class HistoricActivityStatisticsRestServiceQueryTest extends AbstractRest
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Set<String>> processInstanceIdsCaptor = ArgumentCaptor.forClass(Set.class);
     verify(historicActivityStatisticsPostQuery).processInstanceIds(processInstanceIdsCaptor.capture());
-    Assert.assertTrue(processInstanceIdsCaptor.getValue().contains("p2"));
-    Assert.assertTrue(processInstanceIdsCaptor.getValue().contains("p3"));
-    Assert.assertEquals(2, processInstanceIdsCaptor.getValue().size());
+    assertTrue(processInstanceIdsCaptor.getValue().contains("p2"));
+    assertTrue(processInstanceIdsCaptor.getValue().contains("p3"));
+    assertEquals(2, processInstanceIdsCaptor.getValue().size());
 
     verify(historicActivityStatisticsPostQuery).processInstanceIdNotIn(new String[] {"p4", "p5"});
     verify(historicActivityStatisticsPostQuery).rootProcessInstanceId("rp1");

@@ -51,7 +51,7 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * This class provides utils to verify the sorting of queries of engine entities.
@@ -916,7 +916,7 @@ public class TestOrderingUtil {
 
     // and one where the values with null properties are at the end of the list
     boolean trailingNullOrdering = orderingConsistent(actualElements, expectedOrdering, false);
-    TestCase.assertTrue("Ordering not consistent with comparator", trailingNullOrdering);
+    Assertions.assertTrue(trailingNullOrdering, "Ordering not consistent with comparator");
   }
 
   public static <T> boolean orderingConsistent(List<T> actualElements, NullTolerantComparator<T> expectedOrdering, boolean nullPrecedes) {
@@ -935,7 +935,7 @@ public class TestOrderingUtil {
 
   public static <T> void verifySortingAndCount(Query<?, T> query, int expectedCount, NullTolerantComparator<T> expectedOrdering) {
     List<T> elements = query.list();
-    TestCase.assertEquals(expectedCount, elements.size());
+    Assertions.assertEquals(expectedCount, elements.size());
 
     verifySorting(elements, expectedOrdering);
   }

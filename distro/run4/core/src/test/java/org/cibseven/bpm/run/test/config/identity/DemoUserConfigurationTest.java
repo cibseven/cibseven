@@ -27,8 +27,8 @@ import org.cibseven.bpm.engine.identity.UserQuery;
 import org.cibseven.bpm.identity.impl.ldap.plugin.LdapIdentityProviderPlugin;
 import org.cibseven.bpm.run.CamundaBpmRun;
 import org.cibseven.bpm.run.property.CamundaBpmRunLdapProperties;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -52,7 +52,7 @@ public class DemoUserConfigurationTest {
   @Autowired(required = false)
   LdapIdentityProviderPlugin ldapPlugin;
 
-  @Before
+  @BeforeEach
   public void init() {
     identityService = engine.getIdentityService();
   }

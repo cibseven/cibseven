@@ -73,11 +73,6 @@ public class ApplicationContextElResolver extends ELResolver {
   }
 
   @Override
-  public Iterator<FeatureDescriptor> getFeatureDescriptors(ELContext context, Object arg) {
-    return null;
-  }
-
-  @Override
   public Class< ? > getType(ELContext context, Object arg1, Object arg2) {
     return Object.class;
   }

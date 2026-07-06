@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.history;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -41,10 +41,10 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_AUDIT)
 public class HistoricActivityStatisticsPostQueryOrTest {
@@ -53,7 +53,7 @@ public class HistoricActivityStatisticsPostQueryOrTest {
   private static final String PROCESS_NAME = "OR Process";
   private static final String USER_TASK_ID = "testQuerySuspensionStateTask";
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
 
   protected HistoryService historyService;
@@ -62,14 +62,14 @@ public class HistoricActivityStatisticsPostQueryOrTest {
 
   protected List<String> deploymentIds = new ArrayList<>();
 
-  @Before
+  @BeforeEach
   public void init() {
     historyService = processEngineRule.getHistoryService();
     runtimeService = processEngineRule.getRuntimeService();
     repositoryService = processEngineRule.getRepositoryService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ClockUtil.reset();
     for (String deploymentId : deploymentIds) {
