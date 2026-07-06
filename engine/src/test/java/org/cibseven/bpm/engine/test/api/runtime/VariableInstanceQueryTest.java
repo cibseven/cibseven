@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -2066,6 +2067,70 @@ public class VariableInstanceQueryTest extends PluggableProcessEngineTest {
 
     // then every row is streamed exactly once (no missing rows)
     assertEquals(variableCount, streamedIds.size());
+  }
+
+  @Test
+  @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
+  public void testStreamIsRobustAgainstConcurrentModifications() {
+    // given more variable instances than the internal stream page size (100)
+    int variableCount = 250;
+    Map<String, Object> variables = new HashMap<>();
+    for (int i = 0; i < variableCount; i++) {
+      variables.put("var" + i, "value" + i);
+    }
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(PROC_DEF_KEY, variables);
+
+    // a snapshot of every variable instance that exists before streaming starts
+    List<VariableInstance> before = runtimeService.createVariableInstanceQuery()
+        .orderByVariableId().asc().list();
+    assertEquals(variableCount, before.size());
+
+    // when starting to consume the stream, but stopping after exactly the first internal
+    // page (100 rows) to simulate concurrent writes happening while the stream is still open
+    Iterator<VariableInstance> iterator = runtimeService.createVariableInstanceQuery().stream().iterator();
+
+    Set<String> streamedIds = new HashSet<>();
+    int firstBatchSize = 100;
+    for (int i = 0; i < firstBatchSize; i++) {
+      assertTrue(iterator.hasNext());
+      streamedIds.add(iterator.next().getId());
+    }
+    assertEquals(firstBatchSize, streamedIds.size());
+
+    // delete a variable instance that has definitely not been streamed yet
+    String notYetStreamedVariableName = null;
+    for (VariableInstance variableInstance : before) {
+      if (!streamedIds.contains(variableInstance.getId())) {
+        notYetStreamedVariableName = variableInstance.getName();
+        break;
+      }
+    }
+    assertNotNull(notYetStreamedVariableName);
+    runtimeService.removeVariable(processInstance.getId(), notYetStreamedVariableName);
+
+    // and insert new variable instances, simulating writes happening concurrently
+    // to the stream being consumed
+    for (int i = 0; i < 50; i++) {
+      runtimeService.setVariable(processInstance.getId(), "concurrentVar" + i, "value");
+    }
+
+    // then continuing to consume the rest of the stream does not return any row twice,
+    // even though the table was modified while the stream was open
+    while (iterator.hasNext()) {
+      VariableInstance variableInstance = iterator.next();
+      assertTrue("variable instance " + variableInstance.getId() + " was streamed more than once",
+          streamedIds.add(variableInstance.getId()));
+    }
+
+    // and every variable instance that existed before streaming started - except the one
+    // deleted concurrently - was streamed exactly once, unaffected by the concurrent
+    // insertions/deletions. Offset-based pagination cannot provide this guarantee.
+    for (VariableInstance variableInstance : before) {
+      if (!variableInstance.getName().equals(notYetStreamedVariableName)) {
+        assertTrue("variable instance " + variableInstance.getId() + " (" + variableInstance.getName() + ") was not streamed",
+            streamedIds.contains(variableInstance.getId()));
+      }
+    }
   }
 
   @Test

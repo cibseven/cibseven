@@ -20,6 +20,7 @@ import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.cibseven.bpm.engine.impl.cmd.CommandLogger;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
@@ -38,6 +39,15 @@ public class VariableInstanceQueryImpl extends AbstractVariableQueryImpl<Variabl
   private final static CommandLogger LOG = ProcessEngineLogger.CMD_LOGGER;
 
   private static final long serialVersionUID = 1L;
+
+  /**
+   * Only used internally by {@link #stream()} for keyset (seek) pagination: when set, only
+   * variable instances with an id greater than this value are selected. Not exposed as a public
+   * query filter since the id is a random UUID and "greater than" has no meaningful semantics for
+   * a caller - it only serves as an internal cursor to fetch "the next batch after what has
+   * already been streamed", independent of the actual result-set position.
+   */
+  protected String variableIdGreaterThan;
 
   protected String variableId;
   protected String variableName;
@@ -165,6 +175,30 @@ public class VariableInstanceQueryImpl extends AbstractVariableQueryImpl<Variabl
   public VariableInstanceQuery orderByTenantId() {
     orderBy(VariableInstanceQueryProperty.TENANT_ID);
     return this;
+  }
+
+  // streaming ////////////////////////////////////////////////////
+
+  /**
+   * Overrides the default {@link org.cibseven.bpm.engine.query.Query#stream()} with the keyset
+   * (seek) pagination provided by {@link #streamByKeyset(Function, Consumer, Runnable)}, instead
+   * of the default's OFFSET-based pagination - see that method for the full rationale.
+   *
+   * <p>Note that variable instance ids are time-based UUIDs whose string form is not
+   * chronologically ordered, and OFFSET-based pagination is vulnerable to concurrent writes
+   * regardless of ordering, so this is not a theoretical concern: concurrent writes are common
+   * while a long-running stream over variable instances is consumed.
+   */
+  @Override
+  public Stream<VariableInstance> stream() {
+    return streamByKeyset(
+        VariableInstance::getId,
+        idGreaterThan -> this.variableIdGreaterThan = idGreaterThan,
+        () -> { orderByVariableId(); asc(); });
+  }
+
+  public String getVariableIdGreaterThan() {
+    return variableIdGreaterThan;
   }
 
   @Override
