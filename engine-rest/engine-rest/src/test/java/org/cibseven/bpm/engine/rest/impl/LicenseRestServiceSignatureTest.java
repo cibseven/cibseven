@@ -95,7 +95,11 @@ public class LicenseRestServiceSignatureTest {
   public void testEncryptWithMissingSecretThrows() throws Throwable {
     setConfigurationSecret(null);
     assertThrows(InvalidRequestException.class, () -> {
-      encryptSignature.invoke(service, LICENSE_KEY);
+      try {
+        encryptSignature.invoke(service, LICENSE_KEY);
+      } catch (InvocationTargetException e) {
+        throw e.getCause();
+      }
     });
   }
 
@@ -103,7 +107,11 @@ public class LicenseRestServiceSignatureTest {
   public void testDecryptWithCorruptedJweThrows() throws Throwable {
     String corrupted = "{\"customer\":\"Test Corp\",\"signature\":\"not-a-valid-jwe-token\"}";
     assertThrows(InvalidRequestException.class, () -> {
-      decryptSignature.invoke(service, corrupted);
+      try {
+        decryptSignature.invoke(service, corrupted);
+      } catch (InvocationTargetException e) {
+        throw e.getCause();
+      }
     });
   }
 
@@ -116,7 +124,11 @@ public class LicenseRestServiceSignatureTest {
     setConfigurationSecret("a-completely-different-secret-key-that-is-long-enough-for-testing-purposes");
 
     assertThrows(InvalidRequestException.class, () -> {
-      decryptSignature.invoke(service, encrypted);
+      try {
+        decryptSignature.invoke(service, encrypted);
+      } catch (InvocationTargetException e) {
+        throw e.getCause();
+      }
     });
   }
 

@@ -574,7 +574,7 @@ public class FileSerializationIT {
     // then
 
     // when
-    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
+    assertThatExceptionOfType(ValueMapperException.class).isThrownBy(() -> {
 	    Map<String, Object> variables = new HashMap<>();
 	    DeferredFileValue deferredFileValue = fooTask.getVariableTyped(VARIABLE_NAME_FILE);
 	    variables.put("deferredFile", deferredFileValue);
