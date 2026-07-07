@@ -46,6 +46,7 @@ import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class JsonSerializationIT {
 
@@ -69,7 +70,10 @@ public class JsonSerializationIT {
       .serializationDataFormat(JSON_DATAFORMAT_NAME)
       .create();
 
+  @RegisterExtension
   protected ClientExtension clientRule = new ClientExtension();
+
+  @RegisterExtension
   protected EngineRule engineRule = new EngineRule();
 
   protected ExternalTaskClient client;
@@ -226,7 +230,6 @@ public class JsonSerializationIT {
 
     engineRule.startProcessInstance(processDefinition.getId(), VARIABLE_NAME_JSON, objectValue);
 
-    // then
     // when
     client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
       .handler(handler)
@@ -235,6 +238,8 @@ public class JsonSerializationIT {
     clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
 
     ExternalTask task = handler.getHandledTasks().get(0);
+
+    // then
     task.getVariable(VARIABLE_NAME_JSON);
   }
 
@@ -248,18 +253,17 @@ public class JsonSerializationIT {
 
     engineRule.startProcessInstance(processDefinition.getId(), VARIABLE_NAME_JSON, objectValue);
 
+    // when
+    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
+      .handler(handler)
+      .open();
+
+    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
+
+    ExternalTask task = handler.getHandledTasks().get(0);
+
     // then
-    assertThatExceptionOfType(ValueMapperException.class).isThrownBy(() -> {
-	    // when
-	    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
-	      .handler(handler)
-	      .open();
-	
-	    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
-	
-	    ExternalTask task = handler.getHandledTasks().get(0);
-	    task.getVariableTyped(VARIABLE_NAME_JSON);
-    });
+    assertThatExceptionOfType(ValueMapperException.class).isThrownBy(() -> task.getVariableTyped(VARIABLE_NAME_JSON));
   }
 
   @Test
@@ -329,18 +333,17 @@ public class JsonSerializationIT {
 
     engineRule.startProcessInstance(processDefinition.getId(), VARIABLE_NAME_JSON, serializedValue);
 
+    // when
+    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
+      .handler(handler)
+      .open();
+
+    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
+
+    ExternalTask task = handler.getHandledTasks().get(0);
+
     // then
-    assertThatExceptionOfType(ValueMapperException.class).isThrownBy(() -> {
-	    // when
-	    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
-	      .handler(handler)
-	      .open();
-	
-	    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
-	
-	    ExternalTask task = handler.getHandledTasks().get(0);
-	    task.getVariable(VARIABLE_NAME_JSON);
-    });
+    assertThatExceptionOfType(ValueMapperException.class).isThrownBy(() -> task.getVariable(VARIABLE_NAME_JSON));
   }
 
   @Test
@@ -353,19 +356,17 @@ public class JsonSerializationIT {
 
     engineRule.startProcessInstance(processDefinition.getId(), VARIABLE_NAME_JSON, serializedValue);
 
+    // when
+    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
+      .handler(handler)
+      .open();
+
+    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
+
+    ExternalTask task = handler.getHandledTasks().get(0);
+
     // then
-    assertThatExceptionOfType(ValueMapperException.class).isThrownBy(() -> {
-	
-	    // when
-	    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
-	      .handler(handler)
-	      .open();
-	
-	    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
-	
-	    ExternalTask task = handler.getHandledTasks().get(0);
-	    task.getVariable(VARIABLE_NAME_JSON);
-	    });
+    assertThatExceptionOfType(ValueMapperException.class).isThrownBy(() -> task.getVariable(VARIABLE_NAME_JSON));
   }
 
   @Test

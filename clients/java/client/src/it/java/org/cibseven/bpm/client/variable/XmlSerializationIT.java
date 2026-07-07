@@ -269,19 +269,17 @@ public class XmlSerializationIT {
 
     engineRule.startProcessInstance(processDefinition.getId(), VARIABLE_NAME_XML, objectValue);
 
+    // when
+    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
+      .handler(handler)
+      .open();
+
+    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
+
+    ExternalTask task = handler.getHandledTasks().get(0);
+
     // then
-    assertThatExceptionOfType(ValueMapperException.class).isThrownBy(() -> {
-	
-	    // when
-	    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
-	      .handler(handler)
-	      .open();
-	
-	    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
-	
-	    ExternalTask task = handler.getHandledTasks().get(0);
-	    task.getVariable(VARIABLE_NAME_XML);
-	    });
+    assertThatExceptionOfType(ValueMapperException.class).isThrownBy(() -> task.getVariable(VARIABLE_NAME_XML));
   }
 
   @Test
@@ -294,19 +292,17 @@ public class XmlSerializationIT {
 
     engineRule.startProcessInstance(processDefinition.getId(), VARIABLE_NAME_XML, objectValue);
 
+    // when
+    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
+      .handler(handler)
+      .open();
+
+    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
+
+    ExternalTask task = handler.getHandledTasks().get(0);
+
     // then
-    assertThatExceptionOfType(ValueMapperException.class).isThrownBy(() -> {
-	
-	    // when
-	    client.subscribe(EXTERNAL_TASK_TOPIC_FOO)
-	      .handler(handler)
-	      .open();
-	
-	    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
-	
-	    ExternalTask task = handler.getHandledTasks().get(0);
-	    task.getVariableTyped(VARIABLE_NAME_XML);
-	});
+    assertThatExceptionOfType(ValueMapperException.class).isThrownBy(() -> task.getVariableTyped(VARIABLE_NAME_XML));
   }
 
   @Test
