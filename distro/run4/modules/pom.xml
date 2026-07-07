@@ -84,7 +84,7 @@
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-engine-rest-core-jakarta</artifactId>
+        <artifactId>cibseven-engine-rest-core</artifactId>
         <scope>provided</scope>
       </dependency>
     </dependencies>
