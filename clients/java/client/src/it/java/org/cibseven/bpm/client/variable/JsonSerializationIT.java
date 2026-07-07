@@ -240,7 +240,7 @@ public class JsonSerializationIT {
     ExternalTask task = handler.getHandledTasks().get(0);
 
     // then
-    task.getVariable(VARIABLE_NAME_JSON);
+    assertThatExceptionOfType(ValueMapperException.class).isThrownBy(() -> task.getVariable(VARIABLE_NAME_JSON));
   }
 
   @Test

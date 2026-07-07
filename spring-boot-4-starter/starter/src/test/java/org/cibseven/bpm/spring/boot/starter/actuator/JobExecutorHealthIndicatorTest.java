@@ -18,6 +18,7 @@ package org.cibseven.bpm.spring.boot.starter.actuator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -30,7 +31,6 @@ import org.cibseven.bpm.spring.boot.starter.actuator.JobExecutorHealthIndicator.
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,12 +59,12 @@ public class JobExecutorHealthIndicatorTest {
 
   @BeforeEach
   public void init() {
-    when(jobExecutor.getLockOwner()).thenReturn(LOCK_OWNER);
-    when(jobExecutor.getLockTimeInMillis()).thenReturn(LOCK_TIME_IN_MILLIS);
-    when(jobExecutor.getMaxJobsPerAcquisition()).thenReturn(MAX_JOBS_PER_ACQUISITION);
-    when(jobExecutor.getName()).thenReturn(JOB_EXECUTOR_NAME);
-    when(jobExecutor.getWaitTimeInMillis()).thenReturn(WAIT_TIME_IN_MILLIS);
-    when(jobExecutor.getProcessEngines()).thenReturn(PROCESS_ENGINES);
+    lenient().when(jobExecutor.getLockOwner()).thenReturn(LOCK_OWNER);
+    lenient().when(jobExecutor.getLockTimeInMillis()).thenReturn(LOCK_TIME_IN_MILLIS);
+    lenient().when(jobExecutor.getMaxJobsPerAcquisition()).thenReturn(MAX_JOBS_PER_ACQUISITION);
+    lenient().when(jobExecutor.getName()).thenReturn(JOB_EXECUTOR_NAME);
+    lenient().when(jobExecutor.getWaitTimeInMillis()).thenReturn(WAIT_TIME_IN_MILLIS);
+    lenient().when(jobExecutor.getProcessEngines()).thenReturn(PROCESS_ENGINES);
   }
 
   @Test

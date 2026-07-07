@@ -18,19 +18,16 @@ package org.cibseven.bpm.spring.boot.starter.webapp.apppath;
 
 import org.cibseven.bpm.spring.boot.starter.webapp.WebappTestApp;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.util.HttpClientRule;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(
     classes = { WebappTestApp.class },
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -41,7 +38,7 @@ public class EmptyAppPathIT {
 
   protected static final String MY_APP_PATH = "";
 
-  @Rule
+  @RegisterExtension
   public HttpClientRule httpClientRule = new HttpClientRule();
 
   @LocalServerPort

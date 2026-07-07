@@ -50,6 +50,12 @@
                   <exclude>org.cibseven.commons:*</exclude>
                   <exclude>org.cibseven.connect:cibseven-connect-core</exclude>
                   <exclude>org.slf4j:*</exclude>
+                  <!-- JUnit is a test-only dependency and must never be shaded into the
+                       production uber-jar; leaking it causes JUnit version clashes downstream -->
+                  <exclude>org.junit.jupiter:*</exclude>
+                  <exclude>org.junit.platform:*</exclude>
+                  <exclude>org.opentest4j:*</exclude>
+                  <exclude>org.apiguardian:*</exclude>
                 </excludes>
               </artifactSet>
               <relocations>

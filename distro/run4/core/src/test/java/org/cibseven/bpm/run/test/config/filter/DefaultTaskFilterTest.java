@@ -25,16 +25,13 @@ import org.cibseven.bpm.engine.rest.dto.task.TaskQueryDto;
 import org.cibseven.bpm.run.CamundaBpmRun;
 import org.cibseven.bpm.run.test.AbstractRestTest;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = { CamundaBpmRun.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(profiles = { "test-default-task-filter" }, inheritProfiles = true)
 public class DefaultTaskFilterTest extends AbstractRestTest{
