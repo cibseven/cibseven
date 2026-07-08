@@ -16,8 +16,11 @@
  */
 package org.cibseven.bpm.dmn.engine.feel;
 
+import static org.junit.Assert.assertThrows;
+
 import java.util.Date;
 import org.cibseven.bpm.dmn.engine.DmnEngineConfiguration;
+import org.cibseven.bpm.dmn.engine.DmnEngineException;
 import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
 import org.cibseven.bpm.dmn.engine.test.DecisionResource;
 import org.cibseven.bpm.dmn.feel.impl.FeelException;
@@ -45,14 +48,13 @@ public class JuelFeelBehaviorTest extends FeelBehavior {
   @Test
   @DecisionResource(resource = "context_function.dmn")
   public void shouldFailOnInternalContextFunctions() {
-    // given
-    getVariables().putValue("myDate", new Date());
+    assertThrows( FeelException.class, ()-> {
+      // given
+      getVariables().putValue("myDate", new Date());
 
-    // then
-    thrown.expect(FeelException.class);
-
-    // when
-    evaluateDecision().getSingleEntry();
+      // when
+      evaluateDecision().getSingleEntry();
+    });
   }
 
 }

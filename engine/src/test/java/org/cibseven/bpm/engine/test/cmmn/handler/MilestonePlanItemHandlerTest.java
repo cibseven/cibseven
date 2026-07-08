@@ -116,6 +116,7 @@ public class MilestonePlanItemHandlerTest extends CmmnElementHandlerTest {
     assertEquals("milestone", activityType);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testMilestoneDescription() {
     // given
@@ -129,6 +130,7 @@ public class MilestonePlanItemHandlerTest extends CmmnElementHandlerTest {
     assertEquals(description, activity.getProperty(PROPERTY_ACTIVITY_DESCRIPTION));
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testPlanItemDescription() {
     // given

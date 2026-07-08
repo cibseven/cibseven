@@ -16,17 +16,13 @@
  */
 package org.cibseven.commons.utils.cache;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static org.junit.Assert.assertThrows;
 
+import org.junit.Before;
+import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConcurrentLruCacheTest {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   private ConcurrentLruCache<String, String> cache;
 
@@ -100,23 +96,26 @@ public class ConcurrentLruCacheTest {
 
   @Test
   public void failToInsertInvalidKey() {
-    thrown.expect(NullPointerException.class);
+    assertThrows( NullPointerException.class, ()-> {
+      cache.put(null, "1");
+    });
 
-    cache.put(null, "1");
   }
 
   @Test
   public void failToInsertInvalidValue() {
-    thrown.expect(NullPointerException.class);
+    assertThrows( NullPointerException.class, ()-> {
+      cache.put("a", null);
+    });
 
-    cache.put("a", null);
   }
 
   @Test
   public void failToCreateCacheWithInvalidCapacity() {
-    thrown.expect(IllegalArgumentException.class);
+    assertThrows( IllegalArgumentException.class, ()-> {
+      new ConcurrentLruCache<String, String>(-1);
+    });
 
-    new ConcurrentLruCache<String, String>(-1);
   }
 
   @Test

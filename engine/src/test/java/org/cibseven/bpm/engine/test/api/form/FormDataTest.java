@@ -80,6 +80,7 @@ public class FormDataTest extends PluggableProcessEngineTest {
 
   }
 
+  @SuppressWarnings("deprecation")
   @Deployment
   @Test
   public void testGetFormFieldBuiltInTypes() {

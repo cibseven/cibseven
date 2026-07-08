@@ -140,6 +140,7 @@ public class IdentityServiceTest {
     identityService.deleteUser(user.getId());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testUserAccount() {
     User user = identityService.newUser("testuser");
@@ -190,6 +191,7 @@ public class IdentityServiceTest {
 
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testUserAccountDetails() {
     User user = identityService.newUser("testuser");

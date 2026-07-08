@@ -82,6 +82,7 @@ public class AbstractBpmnParseListener implements BpmnParseListener {
   public void parseCallActivity(Element callActivityElement, ScopeImpl scope, ActivityImpl activity) {
   }
 
+  @Deprecated
   public void parseProperty(Element propertyElement, VariableDeclaration variableDeclaration, ActivityImpl activity) {
   }
 

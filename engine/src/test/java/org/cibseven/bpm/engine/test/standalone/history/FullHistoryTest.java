@@ -112,6 +112,7 @@ public class FullHistoryTest {
     caseService = engineRule.getCaseService();
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   @Deployment
   public void testVariableUpdates() {
@@ -264,6 +265,7 @@ public class FullHistoryTest {
     assertEquals(123456789L, historicVariable.getValue());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   @Deployment(resources="org/cibseven/bpm/engine/test/standalone/history/FullHistoryTest.testVariableUpdates.bpmn20.xml")
   public void testHistoricVariableInstanceQuery() {
@@ -305,6 +307,7 @@ public class FullHistoryTest {
 
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   @Deployment
   public void testHistoricVariableUpdatesAllTypes() throws Exception {
@@ -448,6 +451,7 @@ public class FullHistoryTest {
     assertEquals(processInstance.getId(), historicVariable.getProcessInstanceId());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   @Deployment
   public void testHistoricFormProperties() throws Exception {
@@ -593,6 +597,7 @@ public class FullHistoryTest {
             .excludeTaskDetails().taskId(task.getId()).count());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   @Deployment(
     resources={"org/cibseven/bpm/engine/test/history/oneTaskProcess.bpmn20.xml"})
@@ -657,6 +662,7 @@ public class FullHistoryTest {
     assertEquals(2, historyService.createHistoricDetailQuery().variableUpdates().orderByVariableType().desc().list().size());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   @Deployment(
     resources={"org/cibseven/bpm/engine/test/history/oneTaskProcess.bpmn20.xml"})
@@ -686,6 +692,7 @@ public class FullHistoryTest {
     assertEquals(2, historyService.createHistoricDetailQuery().formProperties().orderByFormPropertyId().desc().list().size());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   @Deployment
   public void testHistoricDetailQueryMixed() throws Exception {
@@ -917,6 +924,7 @@ public class FullHistoryTest {
   /**
    * Test created to validate ACT-621 fix.
    */
+  @SuppressWarnings("deprecation")
   @Test
   @Deployment
   public void testHistoricFormPropertiesOnReEnteringActivity() {
@@ -1345,6 +1353,7 @@ public class FullHistoryTest {
     assertNotEquals(pi.getId(), historicDetail.getActivityInstanceId());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testHistoricDetailQueryById() {
 

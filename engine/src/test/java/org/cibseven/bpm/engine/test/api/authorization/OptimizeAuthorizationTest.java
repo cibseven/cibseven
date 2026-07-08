@@ -51,6 +51,7 @@ public class OptimizeAuthorizationTest {
     authorizationService = engineRule.getAuthorizationService();
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testOptimizePermissionExists() {
     // given

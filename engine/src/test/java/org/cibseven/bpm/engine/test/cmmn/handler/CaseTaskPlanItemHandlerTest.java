@@ -119,6 +119,7 @@ public class CaseTaskPlanItemHandlerTest extends CmmnElementHandlerTest {
     assertEquals(planItemName, activity.getName());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testCaseTaskDescription() {
     // given
@@ -132,6 +133,7 @@ public class CaseTaskPlanItemHandlerTest extends CmmnElementHandlerTest {
     assertEquals(description, activity.getProperty(PROPERTY_ACTIVITY_DESCRIPTION));
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testPlanItemDescription() {
     // given

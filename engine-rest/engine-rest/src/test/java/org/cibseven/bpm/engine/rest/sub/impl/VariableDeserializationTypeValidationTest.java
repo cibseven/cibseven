@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.engine.rest.sub.impl;
 
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.times;
 
 import java.util.List;
@@ -26,9 +28,7 @@ import org.cibseven.bpm.engine.runtime.DeserializationTypeValidator;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
 import com.fasterxml.jackson.databind.JavaType;
@@ -37,8 +37,6 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 
 public class VariableDeserializationTypeValidationTest {
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   protected AbstractVariablesResource variablesResourceSpy;
   protected DeserializationTypeValidator validator;
@@ -158,86 +156,78 @@ public class VariableDeserializationTypeValidationTest {
 
   @Test
   public void shouldFailForSimpleClass() {
-    // given
-    JavaType type = TypeFactory.defaultInstance().constructType(String.class);
-    setValidatorMockResult(false);
+    IllegalArgumentException exception = assertThrows( IllegalArgumentException.class, ()-> {
+      // given
+      JavaType type = TypeFactory.defaultInstance().constructType(String.class);
+      setValidatorMockResult(false);
+      // when
+      variablesResourceSpy.validateType(type);
+    });
+    assertTrue(exception.getMessage().contains("[java.lang.String]"));
 
-    // then
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("[java.lang.String]");
-
-    // when
-    variablesResourceSpy.validateType(type);
   }
 
   @Test
   public void shouldFailForComplexClass() {
-    // given
-    JavaType type = TypeFactory.defaultInstance().constructType(Complex.class);
-    setValidatorMockResult(false);
-
-    // then
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("[org.cibseven.bpm.engine.rest.sub.impl.VariableDeserializationTypeValidationTest$Complex]");
-
-    // when
-    variablesResourceSpy.validateType(type);
+    IllegalArgumentException exception = assertThrows( IllegalArgumentException.class, ()-> {
+      // given
+      JavaType type = TypeFactory.defaultInstance().constructType(Complex.class);
+      setValidatorMockResult(false);
+      // when
+      variablesResourceSpy.validateType(type);
+    });
+    assertTrue(exception.getMessage().contains("[org.cibseven.bpm.engine.rest.sub.impl.VariableDeserializationTypeValidationTest$Complex]"));
+  
   }
 
   @Test
   public void shouldFailForArrayClass() {
-    // given
-    JavaType type = TypeFactory.defaultInstance().constructType(Integer[].class);
-    setValidatorMockResult(false);
-
-    // then
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("[java.lang.Integer]");
-
-    // when
-    variablesResourceSpy.validateType(type);
+    IllegalArgumentException exception = assertThrows( IllegalArgumentException.class, ()-> {
+      // given
+      JavaType type = TypeFactory.defaultInstance().constructType(Integer[].class);
+      setValidatorMockResult(false);
+      // when
+      variablesResourceSpy.validateType(type);
+    });
+    assertTrue(exception.getMessage().contains("[java.lang.Integer]"));
   }
 
   @Test
   public void shouldFailForCollectionClass() {
-    // given
-    JavaType type = TypeFactory.defaultInstance().constructFromCanonical("java.util.ArrayList<java.lang.String>");
-    setValidatorMockResult(false);
-
-    // then
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("[java.util.ArrayList, java.lang.String]");
-
-    // when
-    variablesResourceSpy.validateType(type);
+    IllegalArgumentException exception = assertThrows( IllegalArgumentException.class, ()-> {
+      // given
+      JavaType type = TypeFactory.defaultInstance().constructFromCanonical("java.util.ArrayList<java.lang.String>");
+      setValidatorMockResult(false);
+      // when
+      variablesResourceSpy.validateType(type);
+    });
+    assertTrue(exception.getMessage().contains("[java.util.ArrayList, java.lang.String]"));
   }
 
   @Test
   public void shouldFailForMapClass() {
-    // given
-    JavaType type = TypeFactory.defaultInstance().constructFromCanonical("java.util.HashMap<java.lang.String, java.lang.Integer>");
-    setValidatorMockResult(false);
-
-    // then
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("[java.util.HashMap, java.lang.String, java.lang.Integer]");
-
-    // when
-    variablesResourceSpy.validateType(type);
+    IllegalArgumentException exception = assertThrows( IllegalArgumentException.class, ()-> {
+      // given
+      JavaType type = TypeFactory.defaultInstance().constructFromCanonical("java.util.HashMap<java.lang.String, java.lang.Integer>");
+      setValidatorMockResult(false);
+  
+      // when
+      variablesResourceSpy.validateType(type);
+    });
+    assertTrue(exception.getMessage().contains("[java.util.HashMap, java.lang.String, java.lang.Integer]"));
   }
 
   @Test
   public void shouldFailOnceForMapClass() {
-    // given
-    JavaType type = TypeFactory.defaultInstance().constructFromCanonical("java.util.HashMap<java.lang.String, java.lang.String>");
-    setValidatorMockResult(false);
-
-    // then
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("[java.util.HashMap, java.lang.String]");
-
-    // when
-    variablesResourceSpy.validateType(type);
+    IllegalArgumentException exception = assertThrows( IllegalArgumentException.class, ()-> {
+      // given
+      JavaType type = TypeFactory.defaultInstance().constructFromCanonical("java.util.HashMap<java.lang.String, java.lang.String>");
+      setValidatorMockResult(false);
+  
+      // when
+      variablesResourceSpy.validateType(type);
+    });
+    assertTrue(exception.getMessage().contains("[java.util.HashMap, java.lang.String]"));
   }
 
   public static class Complex {

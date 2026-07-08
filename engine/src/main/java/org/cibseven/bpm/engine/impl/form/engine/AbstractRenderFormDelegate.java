@@ -121,6 +121,7 @@ public abstract class AbstractRenderFormDelegate {
   protected static final String TYPE_FIELD_MESSAGE = "Only a %s value is allowed";
   protected static final String INVALID_DATE_FIELD_MESSAGE = "Invalid date format: the date should have the pattern '" + DATE_FORMAT + "'";
 
+  @SuppressWarnings("deprecation")
   protected String renderFormData(FormData formData) {
 
     if(formData == null
@@ -292,6 +293,7 @@ public abstract class AbstractRenderFormDelegate {
     inputField.attribute(TYPE_ATTRIBUTE, inputType);
 
     // add default value
+    @SuppressWarnings("deprecation")
     Object defaultValue = formField.getDefaultValue();
     if(defaultValue != null) {
       inputField.attribute(VALUE_ATTRIBUTE, defaultValue.toString());

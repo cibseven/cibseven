@@ -73,6 +73,7 @@ public class CasePlanModelHandlerTest extends CmmnElementHandlerTest {
     assertEquals("casePlanModel", activityType);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testCasePlanModelDescription() {
     // given

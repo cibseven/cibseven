@@ -287,16 +287,19 @@ public class DeploymentQueryTest extends PluggableProcessEngineTest {
       .size());
 
     assertEquals(2, repositoryService.createDeploymentQuery()
-      .orderByDeploymenTime()
-      .asc()
-      .list()
-      .size());
-
-    assertEquals(2, repositoryService.createDeploymentQuery()
       .orderByDeploymentTime()
       .asc()
       .list()
       .size());
   }
 
+  @SuppressWarnings("deprecation")
+  @Test
+  public void testDeprecatedQuerySorting() {
+    assertEquals(2, repositoryService.createDeploymentQuery()
+        .orderByDeploymenTime()
+        .asc()
+        .list()
+        .size());
+  }
 }
