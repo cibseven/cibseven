@@ -91,7 +91,7 @@ public class DatabaseHistoryPropertyTest {
   private void assertHistoryLevel() {
     Map<String, String> properties = processEngineImpl.getManagementService().getProperties();
     String historyLevel = properties.get("historyLevel");
-    Assertions.assertNotNull("historyLevel is null -> not set in database", historyLevel);
+    Assertions.assertNotNull(historyLevel, "historyLevel is null -> not set in database");
     Assertions.assertEquals(ProcessEngineConfigurationImpl.HISTORYLEVEL_FULL, Integer.parseInt(historyLevel));
   }
 
