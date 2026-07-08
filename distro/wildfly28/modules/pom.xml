@@ -65,6 +65,10 @@
     <dependency>
       <groupId>org.cibseven.spin</groupId>
       <artifactId>cibseven-spin-dataformat-xml-dom</artifactId>
+      <!-- CIB7-1613 / WildFly (Jakarta EE): use the jakarta-transformed variant
+           (javax.xml.bind -> jakarta.xml.bind); the raw javax jar fails where the
+           jakarta.xml.bind.api module only provides the jakarta namespace. -->
+      <classifier>jakarta</classifier>
     </dependency>
 
     <dependency>
