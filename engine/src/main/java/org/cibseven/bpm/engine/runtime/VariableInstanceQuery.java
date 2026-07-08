@@ -17,6 +17,7 @@
 package org.cibseven.bpm.engine.runtime;
 
 import java.io.Serializable;
+import java.util.stream.Stream;
 
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.query.Query;
@@ -223,15 +224,6 @@ public interface VariableInstanceQuery extends Query<VariableInstanceQuery, Vari
    */
   VariableInstanceQuery tenantIdIn(String... tenantIds);
 
-  /**
-   * Order by the id of the variable instance (needs to be followed by {@link #asc()} or {@link #desc()}).
-   *
-   * <p>Since the variable instance id is unique, ordering by it yields a stable total order.
-   * This is the recommended ordering when paginating over the result (e.g. via
-   * {@link #listPage(int, int)}): non-unique orderings such as {@link #orderByVariableName()}
-   * do not guarantee a stable order between page requests, so rows may be duplicated or
-   * skipped across pages. Ordering by the (unique) variable instance id avoids this.
-   */
   VariableInstanceQuery orderByVariableId();
 
   /**
@@ -254,5 +246,7 @@ public interface VariableInstanceQuery extends Query<VariableInstanceQuery, Vari
    * Note that the ordering of variable instances without tenant id is database-specific.
    */
   VariableInstanceQuery orderByTenantId();
+
+  Stream<VariableInstance> streamStable();
 
 }

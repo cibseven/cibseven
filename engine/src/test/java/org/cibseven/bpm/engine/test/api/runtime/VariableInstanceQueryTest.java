@@ -1987,7 +1987,7 @@ public class VariableInstanceQueryTest extends PluggableProcessEngineTest {
   @Test
   @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
   public void testQueryOrderByVariableIdStablePagination() {
-    // given a number of variable instances
+    // given
     Map<String, Object> variables = new HashMap<>();
     for (int i = 0; i < 10; i++) {
       variables.put("var" + i, "value" + i);
@@ -1997,7 +1997,7 @@ public class VariableInstanceQueryTest extends PluggableProcessEngineTest {
     long count = runtimeService.createVariableInstanceQuery().count();
     assertEquals(10, count);
 
-    // when paginating over the result ordered by the (unique) variable id
+    // when
     Set<String> collectedIds = new HashSet<>();
     int pageSize = 3;
     for (int firstResult = 0; firstResult < count; firstResult += pageSize) {
@@ -2006,13 +2006,12 @@ public class VariableInstanceQueryTest extends PluggableProcessEngineTest {
           .listPage(firstResult, pageSize);
 
       for (VariableInstance variableInstance : page) {
-        // then no row is returned twice across pages
         assertTrue("variable instance " + variableInstance.getId() + " was returned on more than one page",
             collectedIds.add(variableInstance.getId()));
       }
     }
 
-    // then every row is returned exactly once (no missing rows)
+    // then
     assertEquals(10, collectedIds.size());
   }
 
@@ -2038,14 +2037,14 @@ public class VariableInstanceQueryTest extends PluggableProcessEngineTest {
       listedIds.add(variableInstance.getId());
     }
 
-    // then the lazily streamed result is identical to list()
+    // then
     assertEquals(listedIds, streamedIds);
   }
 
   @Test
   @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
   public void testStreamPaginatesAcrossPages() {
-    // given more variable instances than the internal stream page size (100)
+    // given
     int variableCount = 250;
     Map<String, Object> variables = new HashMap<>();
     for (int i = 0; i < variableCount; i++) {
@@ -2055,24 +2054,23 @@ public class VariableInstanceQueryTest extends PluggableProcessEngineTest {
 
     assertEquals(variableCount, runtimeService.createVariableInstanceQuery().count());
 
-    // when consuming the whole result set as a stream (ordered by the unique id)
+    // when
     Set<String> streamedIds = new HashSet<>();
     runtimeService.createVariableInstanceQuery()
         .orderByVariableId().asc()
         .stream()
         .forEach(variableInstance ->
-            // then no row is streamed twice across the internally fetched pages
             assertTrue("variable instance " + variableInstance.getId() + " was streamed more than once",
                 streamedIds.add(variableInstance.getId())));
 
-    // then every row is streamed exactly once (no missing rows)
+    // then
     assertEquals(variableCount, streamedIds.size());
   }
 
   @Test
   @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
   public void testStreamIsRobustAgainstConcurrentModifications() {
-    // given more variable instances than the internal stream page size (100)
+    // given
     int variableCount = 250;
     Map<String, Object> variables = new HashMap<>();
     for (int i = 0; i < variableCount; i++) {
@@ -2080,14 +2078,12 @@ public class VariableInstanceQueryTest extends PluggableProcessEngineTest {
     }
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(PROC_DEF_KEY, variables);
 
-    // a snapshot of every variable instance that exists before streaming starts
     List<VariableInstance> before = runtimeService.createVariableInstanceQuery()
         .orderByVariableId().asc().list();
     assertEquals(variableCount, before.size());
 
-    // when starting to consume the stream, but stopping after exactly the first internal
-    // page (100 rows) to simulate concurrent writes happening while the stream is still open
-    Iterator<VariableInstance> iterator = runtimeService.createVariableInstanceQuery().stream().iterator();
+    // when
+    Iterator<VariableInstance> iterator = runtimeService.createVariableInstanceQuery().streamStable().iterator();
 
     Set<String> streamedIds = new HashSet<>();
     int firstBatchSize = 100;
@@ -2097,7 +2093,6 @@ public class VariableInstanceQueryTest extends PluggableProcessEngineTest {
     }
     assertEquals(firstBatchSize, streamedIds.size());
 
-    // delete a variable instance that has definitely not been streamed yet
     String notYetStreamedVariableName = null;
     for (VariableInstance variableInstance : before) {
       if (!streamedIds.contains(variableInstance.getId())) {
@@ -2108,23 +2103,17 @@ public class VariableInstanceQueryTest extends PluggableProcessEngineTest {
     assertNotNull(notYetStreamedVariableName);
     runtimeService.removeVariable(processInstance.getId(), notYetStreamedVariableName);
 
-    // and insert new variable instances, simulating writes happening concurrently
-    // to the stream being consumed
     for (int i = 0; i < 50; i++) {
       runtimeService.setVariable(processInstance.getId(), "concurrentVar" + i, "value");
     }
 
-    // then continuing to consume the rest of the stream does not return any row twice,
-    // even though the table was modified while the stream was open
+    // then
     while (iterator.hasNext()) {
       VariableInstance variableInstance = iterator.next();
       assertTrue("variable instance " + variableInstance.getId() + " was streamed more than once",
           streamedIds.add(variableInstance.getId()));
     }
 
-    // and every variable instance that existed before streaming started - except the one
-    // deleted concurrently - was streamed exactly once, unaffected by the concurrent
-    // insertions/deletions. Offset-based pagination cannot provide this guarantee.
     for (VariableInstance variableInstance : before) {
       if (!variableInstance.getName().equals(notYetStreamedVariableName)) {
         assertTrue("variable instance " + variableInstance.getId() + " (" + variableInstance.getName() + ") was not streamed",
@@ -2136,8 +2125,6 @@ public class VariableInstanceQueryTest extends PluggableProcessEngineTest {
   @Test
   @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
   public void testStreamOnEmptyResult() {
-    // given no variable instances
-
     // when
     long streamedCount = runtimeService.createVariableInstanceQuery()
         .orderByVariableId().asc()

@@ -158,39 +158,6 @@ public abstract class AbstractQuery<T extends Query<?,?>, U> extends ListQueryPa
     return (List<U>) executeResult(resultType);
   }
 
-  /**
-   * Shared building block for query types that want a {@link Query#stream()} backed by keyset
-   * (seek) pagination instead of the {@link Query#stream() default} OFFSET-based one.
-   *
-   * <p>OFFSET-based pagination (as used by {@link #listPage(int, int)} and the default
-   * {@link Query#stream()}) fetches each subsequent page by numeric position ("skip N rows").
-   * If rows are inserted or deleted anywhere in the underlying table between two page fetches,
-   * every row's position shifts, which can cause rows to be returned twice or not at all -
-   * regardless of which column the query is ordered by, since positions shift independently of
-   * sort values.
-   *
-   * <p>Keyset pagination avoids this: each subsequent page is fetched by filtering on
-   * "id greater than the last id already streamed" instead of a numeric offset. As long as the
-   * id is unique and immutable, this filter is unaffected by concurrent inserts or deletes
-   * elsewhere in the table - no row can be returned twice, and no row already present when the
-   * stream started iterating past it can be skipped. On top of correctness, this also performs
-   * better than deep OFFSET pagination, since it can use an index seek on the (typically
-   * primary-key-backed) id column instead of the database having to skip over positions.
-   *
-   * <p>This requires the stream to fully own the ordering: {@code applyUniqueOrdering} must
-   * clear any previously configured ordering and replace it with an ascending order on the same
-   * property {@code idExtractor}/{@code cursorSetter} operate on - keyset pagination is only
-   * correct for a single, unique sort key.
-   *
-   * @param idExtractor reads the unique, orderable id from a result row
-   * @param cursorSetter applies the "id greater than" cursor to this query (backed by a
-   *                     query-specific field wired into a "greater than" SQL filter); called
-   *                     with {@code null} once at the start to reset any state left over from a
-   *                     previous invocation
-   * @param applyUniqueOrdering clears the current ordering and orders the query ascending by the
-   *                            same property used by {@code idExtractor}/{@code cursorSetter}
-   * @return a lazily evaluated stream of results
-   */
   protected Stream<U> streamByKeyset(Function<U, String> idExtractor, Consumer<String> cursorSetter,
       Runnable applyUniqueOrdering) {
     return streamByKeyset(100, idExtractor, cursorSetter, applyUniqueOrdering);

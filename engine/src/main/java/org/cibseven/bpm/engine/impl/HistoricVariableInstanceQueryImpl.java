@@ -21,6 +21,7 @@ import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.cibseven.bpm.engine.history.HistoricVariableInstance;
 import org.cibseven.bpm.engine.history.HistoricVariableInstanceQuery;
@@ -313,6 +314,13 @@ public class HistoricVariableInstanceQueryImpl extends AbstractQuery<HistoricVar
   public HistoricVariableInstanceQuery orderByCreationTime() {
     orderBy(HistoricVariableInstanceQueryProperty.CREATE_TIME);
     return this;
+  }
+
+  public Stream<HistoricVariableInstance> streamStable() {
+    return streamByKeyset(
+        HistoricVariableInstance::getId,
+        this::idAfter,
+        () -> { orderByVariableId(); asc(); });
   }
 
   // getters and setters //////////////////////////////////////////////////////

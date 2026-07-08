@@ -343,7 +343,7 @@
               RES.ID_ = #{variableId}
             </if>
 
-            <!-- variableIdGreaterThan: internal keyset-pagination cursor used by Query#stream() -->
+            <!-- variableIdGreaterThan -->
             <if test="variableIdGreaterThan != null">
               and RES.ID_ &gt; #{variableIdGreaterThan}
             </if>

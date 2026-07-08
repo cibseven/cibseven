@@ -17,11 +17,15 @@
 package org.cibseven.bpm.engine.test.api.queries;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.RuntimeService;
@@ -79,6 +83,56 @@ public class QueryByIdAfterTest {
     List<HistoricVariableInstance> secondHalf = historicVariableInstanceQuery.idAfter(middleId).list();
     assertEquals(10, secondHalf.size());
     assertTrue(secondHalf.stream().allMatch(variable -> isIdGreaterThan(variable.getId(), middleId)));
+  }
+
+  @Test
+  @Deployment(resources = { "org/cibseven/bpm/engine/test/history/HistoricVariableInstanceTest.testSimple.bpmn20.xml" })
+  public void shouldStreamStableBeRobustAgainstConcurrentModifications() {
+    // given
+    int variableCount = 250;
+    startProcessInstancesByKey("myProc", variableCount / 2);
+
+    List<HistoricVariableInstance> before = historyService.createHistoricVariableInstanceQuery()
+        .orderByVariableId().asc().list();
+    assertEquals(variableCount, before.size());
+
+    // when
+    Iterator<HistoricVariableInstance> iterator = historyService.createHistoricVariableInstanceQuery()
+        .streamStable().iterator();
+
+    Set<String> streamedIds = new HashSet<>();
+    int firstBatchSize = 100;
+    for (int i = 0; i < firstBatchSize; i++) {
+      assertTrue(iterator.hasNext());
+      streamedIds.add(iterator.next().getId());
+    }
+    assertEquals(firstBatchSize, streamedIds.size());
+
+    String notYetStreamedId = null;
+    for (HistoricVariableInstance historicVariableInstance : before) {
+      if (!streamedIds.contains(historicVariableInstance.getId())) {
+        notYetStreamedId = historicVariableInstance.getId();
+        break;
+      }
+    }
+    assertNotNull(notYetStreamedId);
+    historyService.deleteHistoricVariableInstance(notYetStreamedId);
+
+    startProcessInstancesByKey("myProc", 25);
+
+    // then
+    while (iterator.hasNext()) {
+      HistoricVariableInstance historicVariableInstance = iterator.next();
+      assertTrue("historic variable instance " + historicVariableInstance.getId() + " was streamed more than once",
+          streamedIds.add(historicVariableInstance.getId()));
+    }
+
+    for (HistoricVariableInstance historicVariableInstance : before) {
+      if (!historicVariableInstance.getId().equals(notYetStreamedId)) {
+        assertTrue("historic variable instance " + historicVariableInstance.getId() + " was not streamed",
+            streamedIds.contains(historicVariableInstance.getId()));
+      }
+    }
   }
 
   private void startProcessInstancesByKey(String key, int numberOfInstances) {
