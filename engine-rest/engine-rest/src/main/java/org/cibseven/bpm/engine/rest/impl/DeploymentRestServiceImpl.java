@@ -197,4 +197,25 @@ public class DeploymentRestServiceImpl extends AbstractRestProcessEngineAware im
   public Set<String> getRegisteredDeployments(final UriInfo uriInfo) {
     return getProcessEngine().getManagementService().getRegisteredDeployments();
   }
+
+  @Override
+  public BatchDto deleteAsync(DeleteDeploymentsDto dto) {
+    RuntimeService runtimeService = getProcessEngine().getRuntimeService();
+
+    ProcessInstanceQuery processInstanceQuery = null;
+
+    if (dto.getProcessInstanceQuery() != null) {
+      processInstanceQuery = dto.getProcessInstanceQuery().toQuery(getProcessEngine());
+    }
+
+    try {
+     Batch batch = getProcessEngine().getRepositoryService()
+    .deleteDeploymentsAsync(dto.getDeploymentIds(), dto.isCascade(),
+        dto.isSkipCustomListeners(), dto.isSkipIoMappings());
+        
+      return BatchDto.fromBatch(batch);
+    } catch (BadUserRequestException e) {
+      throw new InvalidRequestException(Status.BAD_REQUEST, e.getMessage());
+    }
+  }
 }

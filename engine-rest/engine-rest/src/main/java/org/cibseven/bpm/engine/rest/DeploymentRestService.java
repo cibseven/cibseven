@@ -58,4 +58,11 @@ public interface DeploymentRestService {
   @Produces(MediaType.APPLICATION_JSON)
   Set<String> getRegisteredDeployments(@Context UriInfo uriInfo);
 
+  @POST
+@Path("/delete")
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
+BatchDto deleteAsync(DeleteDeploymentsDto dto);
+
+
 }

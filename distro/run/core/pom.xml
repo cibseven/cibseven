@@ -95,10 +95,13 @@
     </dependency>
 
     <!-- Testing -->
+    <!-- DEV-ONLY (CIB7-1597 debug): scope auf 'runtime' geaendert, damit H2 beim
+         Start von CamundaBpmRun aus der IDE auf dem Classpath ist.
+         Vor dem Commit wieder auf <scope>test</scope> zuruecksetzen! -->
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <scope>test</scope>
+      <scope>runtime</scope>
     </dependency>
 
     <dependency>
