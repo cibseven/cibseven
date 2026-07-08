@@ -14,6 +14,17 @@
   <dependencyManagement>
     <dependencies>
 
+      <!-- Spring Framework 7 requires the JUnit 6 stack; import the matching junit-bom first so the
+           whole org.junit stack (jupiter + platform) is aligned and overrides the 5.12.2 pulled
+           in transitively by cibseven-core-internal-dependencies -->
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${version.junit.spring7}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-core-internal-dependencies</artifactId>
@@ -88,17 +99,14 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>${version.junit5}</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
-      <version>${version.junit5}</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>${version.junit5}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -174,6 +182,15 @@
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-bpm-archunit</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Jakarta EL 6 implementation (Expressly) needed for JUEL script execution in tests;
+         aligned with jakarta.el-api 6.0.1 from Jakarta EE 11 -->
+    <dependency>
+      <groupId>org.glassfish.expressly</groupId>
+      <artifactId>expressly</artifactId>
+      <version>6.0.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
