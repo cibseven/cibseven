@@ -94,7 +94,7 @@
                 <properties>
                   <cargo.servlet.port>${jboss.http.port}</cargo.servlet.port>
                   <cargo.jboss.ajp.port>${jboss.ajp.port}</cargo.jboss.ajp.port>
-                  <cargo.jvmargs>-Djava.net.preferIPv4Stack=true</cargo.jvmargs>
+                  <cargo.jvmargs>-Djava.net.preferIPv4Stack=true --add-opens java.base/java.util=ALL-UNNAMED</cargo.jvmargs>
                 </properties>
               </configuration>
               <deployables>
@@ -211,7 +211,7 @@
                 <properties>
                   <cargo.servlet.port>${jboss.http.port}</cargo.servlet.port>
                   <cargo.jboss.ajp.port>${jboss.ajp.port}</cargo.jboss.ajp.port>
-                  <cargo.jvmargs>-Djava.net.preferIPv4Stack=true</cargo.jvmargs>
+                  <cargo.jvmargs>-Djava.net.preferIPv4Stack=true --add-opens java.base/java.util=ALL-UNNAMED</cargo.jvmargs>
                 </properties>
               </configuration>
               <deployables>
