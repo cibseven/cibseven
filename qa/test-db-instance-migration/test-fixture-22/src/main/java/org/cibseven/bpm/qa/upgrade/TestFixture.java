@@ -22,7 +22,7 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 
 public class TestFixture {
 
-  public static final String ENGINE_VERSION = "2.1.0";
+  public static final String ENGINE_VERSION = "2.2.0";
 
   public TestFixture(ProcessEngine processEngine) {
   }

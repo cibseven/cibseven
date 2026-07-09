@@ -398,7 +398,13 @@
         <artifactId>cron-utils</artifactId>
         <version>${version.cronutils}</version>
       </dependency>
-      
+
+      <dependency>
+        <groupId>com.github.ben-manes.caffeine</groupId>
+        <artifactId>caffeine</artifactId>
+        <version>${version.caffeine}</version>
+      </dependency>
+
       <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>testcontainers-db2</artifactId>
