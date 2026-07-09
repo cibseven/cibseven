@@ -224,6 +224,9 @@ public interface VariableInstanceQuery extends Query<VariableInstanceQuery, Vari
    */
   VariableInstanceQuery tenantIdIn(String... tenantIds);
 
+    /**
+   * Order by the id of the variable instance (needs to be followed by {@link #asc()} or {@link #desc()}).
+   */
   VariableInstanceQuery orderByVariableId();
 
   /**

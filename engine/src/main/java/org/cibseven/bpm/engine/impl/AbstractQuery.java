@@ -158,6 +158,21 @@ public abstract class AbstractQuery<T extends Query<?,?>, U> extends ListQueryPa
     return (List<U>) executeResult(resultType);
   }
 
+/**
+* Streams results using keyset (seek) pagination: each page is fetched by
+* "id greater than the last streamed id" rather than by numeric offset.
+*
+* <p>Unlike offset pagination, concurrent inserts/deletes do not shift the
+* cursor, so no row is returned twice and no row present when iteration
+* passed its id is skipped. Requires {@code id} to be unique, immutable, and
+* consistent with the applied ascending ordering. Rows inserted ahead of the
+* cursor may still appear; rows inserted behind it will not.
+*
+* @param idExtractor         reads the unique, orderable id from a result row
+* @param cursorSetter        applies the "id greater than" cursor; called with
+*                            {@code null} to reset prior state
+* @param applyUniqueOrdering clears current ordering and orders ascending by id
+*/
   protected Stream<U> streamByKeyset(Function<U, String> idExtractor, Consumer<String> cursorSetter,
       Runnable applyUniqueOrdering) {
     return streamByKeyset(100, idExtractor, cursorSetter, applyUniqueOrdering);

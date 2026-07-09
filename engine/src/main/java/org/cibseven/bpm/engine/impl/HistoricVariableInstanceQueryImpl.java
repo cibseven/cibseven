@@ -316,7 +316,10 @@ public class HistoricVariableInstanceQueryImpl extends AbstractQuery<HistoricVar
     return this;
   }
 
+  
+  @Override
   public Stream<HistoricVariableInstance> streamStable() {
+    // keyset pagination by variable id: no duplicates, no missing entries under concurrent changes
     return streamByKeyset(
         HistoricVariableInstance::getId,
         this::idAfter,

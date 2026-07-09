@@ -138,6 +138,10 @@ public interface HistoricVariableInstanceQuery extends Query<HistoricVariableIns
    */
   HistoricVariableInstanceQuery createdAfter(Date date);
 
+  /**
+   * Streams all matching results using stable keyset (seek) pagination ordered by variable id,
+   * so the stream contains no duplicates and skips no entries under concurrent inserts/deletes.
+   */
   Stream<HistoricVariableInstance> streamStable();
 
 }
