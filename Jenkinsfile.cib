@@ -196,6 +196,14 @@ pipeline {
                     }
                 }
             }
+            post {
+                unsuccessful {
+                    // TEMP diagnostic (junit5 branch): the external-task-client cargo/Tomcat
+                    // startup times out on CI only; dump the container log before the pod dies.
+                    sh "find clients/java/client/target -name 'catalina.out' -exec tail -n 500 {} + || true"
+                    sh "find clients/java/client/target/cargo-config-tomcat/logs -type f -exec tail -n 200 {} + || true"
+                }
+            }
         }
 
         stage('MISC tests') {
