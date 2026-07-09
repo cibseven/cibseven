@@ -54,8 +54,10 @@ public class CamundaBpmRunDeploymentConfiguration extends DefaultDeploymentConfi
   }
 
   protected String getNormalizedDeploymentDir() {
+    if (StringUtils.isEmpty(deploymentDir)) {
+      return deploymentDir;
+    }
     String result = deploymentDir;
-
     if(result != null && File.separator.equals("\\")) {
       result = result.replace("\\", "/");
     }

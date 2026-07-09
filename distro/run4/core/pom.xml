@@ -112,15 +112,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-    
-    <!-- Required to Run JUnit4 tests -->
-    <dependency>
-      <groupId>org.junit.vintage</groupId>
-      <artifactId>junit-vintage-engine</artifactId>
-            <version>${version.junit5}</version>
-      <scope>test</scope>
-    </dependency>
-
     <!-- TestRestTemplate moved to spring-boot-resttestclient in Spring Boot 4,
          which requires spring-boot-restclient for RestTemplateBuilder -->
     <dependency>
