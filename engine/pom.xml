@@ -533,6 +533,16 @@
               <exclude>javax.activation:*</exclude>
               <exclude>org.mybatis:mybatis:*</exclude>
               <exclude>joda-time:*</exclude>
+
+              <!-- Do not bundle the JUnit stack. junit-jupiter-api is 'provided' only so the
+                   shipped test-support classes (ProcessEngineRule etc.) compile; with
+                   keepDependenciesWithProvidedScope=true it would otherwise be shaded in,
+                   dragging an old junit-platform-commons into the engine jar and colliding
+                   with JUnit Platform 6 on downstream test classpaths (NoSuchMethodError). -->
+              <exclude>org.junit.jupiter:*</exclude>
+              <exclude>org.junit.platform:*</exclude>
+              <exclude>org.apiguardian:*</exclude>
+              <exclude>org.opentest4j:*</exclude>
             </excludes>
           </artifactSet>
           <relocations>
