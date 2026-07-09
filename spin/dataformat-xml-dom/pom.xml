@@ -247,37 +247,6 @@
           </execution>
         </executions>
       </plugin>
-      <!-- CIB7-1613 / WildFly 40: produce a jakarta-transformed variant of this jar
-           (javax.xml.bind -> jakarta.xml.bind) so the raw-javax WildFly module jar can
-           be replaced by the jakarta one on Jakarta EE 11 servers. Only jakartaDefaults
-           are needed here (covers javax.xml.bind); the engine-jar based renames from the
-           parent pluginManagement are overridden because spin does not depend on the engine. -->
-      <plugin>
-        <groupId>org.eclipse.transformer</groupId>
-        <artifactId>transformer-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>transform-jakarta-jar</id>
-            <phase>package</phase>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-            <configuration>
-              <artifact>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>${project.artifactId}</artifactId>
-                <version>${project.version}</version>
-                <type>jar</type>
-              </artifact>
-              <rules combine.self="override">
-                <jakartaDefaults>true</jakartaDefaults>
-              </rules>
-              <classifier>jakarta</classifier>
-              <attach>true</attach>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
   <description>
