@@ -27,10 +27,8 @@ import java.util.List;
 import org.cibseven.bpm.engine.impl.ProcessEngineImpl;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
 import org.cibseven.bpm.spring.boot.starter.actuator.JobExecutorHealthIndicator.Details;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,8 +55,7 @@ public class JobExecutorHealthIndicatorTest {
   @Mock
   private JobExecutor jobExecutor;
 
-  @BeforeEach
-  public void init() {
+  private void stubJobExecutor() {
     when(jobExecutor.getLockOwner()).thenReturn(LOCK_OWNER);
     when(jobExecutor.getLockTimeInMillis()).thenReturn(LOCK_TIME_IN_MILLIS);
     when(jobExecutor.getMaxJobsPerAcquisition()).thenReturn(MAX_JOBS_PER_ACQUISITION);
@@ -76,6 +73,7 @@ public class JobExecutorHealthIndicatorTest {
 
   @Test
   public void upTest() {
+    stubJobExecutor();
     when(jobExecutor.isActive()).thenReturn(true);
     JobExecutorHealthIndicator indicator = new JobExecutorHealthIndicator(jobExecutor);
     Health health = indicator.health();
@@ -85,6 +83,7 @@ public class JobExecutorHealthIndicatorTest {
 
   @Test
   public void downTest() {
+    stubJobExecutor();
     when(jobExecutor.isActive()).thenReturn(false);
     JobExecutorHealthIndicator indicator = new JobExecutorHealthIndicator(jobExecutor);
     Health health = indicator.health();

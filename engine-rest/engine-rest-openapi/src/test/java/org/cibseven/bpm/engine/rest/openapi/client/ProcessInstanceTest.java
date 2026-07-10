@@ -28,22 +28,31 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openapitools.client.ApiClient;
 import org.openapitools.client.ApiException;
 import org.openapitools.client.api.ProcessInstanceApi;
 import org.openapitools.client.model.CountResultDto;
 import org.openapitools.client.model.ProcessInstanceQueryDto;
 import org.openapitools.client.model.SuspensionStateDto;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
-@WireMockTest(httpPort=8080)
+@WireMockTest
 public class ProcessInstanceTest {
 
   private static final String ENGINE_REST_PROCESS_INSTANCE = "/engine-rest/process-instance";
 
-  final ProcessInstanceApi api = new ProcessInstanceApi();
+  ProcessInstanceApi api;
+
+  @BeforeEach
+  public void setUp(WireMockRuntimeInfo wmRuntimeInfo) {
+    ApiClient apiClient = new ApiClient();
+    apiClient.setBasePath(wmRuntimeInfo.getHttpBaseUrl() + "/engine-rest");
+    api = new ProcessInstanceApi(apiClient);
+  }
 
 
   @Test

@@ -13,6 +13,13 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+          <groupId>org.junit</groupId>
+          <artifactId>junit-bom</artifactId>
+          <version>6.0.3</version>
+          <type>pom</type>
+          <scope>import</scope>
+      </dependency>
 
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
@@ -37,7 +44,6 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
-
     </dependencies>
   </dependencyManagement>
 
@@ -45,6 +51,20 @@
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-engine</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-params</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-engine</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -85,20 +105,25 @@
       <artifactId>spring-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- Jakarta EL implementation (reference impl) required at runtime by the JUEL script engine.
+         Only the jakarta.el-api is provided by the Jakarta EE BOM; the impl (com.sun.el.ExpressionFactoryImpl) is missing. -->
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>jakarta.el</artifactId>
+      <version>4.0.2</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>${version.junit5}</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
-      <version>${version.junit5}</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>${version.junit5}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

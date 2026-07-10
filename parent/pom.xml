@@ -60,7 +60,7 @@
     <version.assertj>3.27.7</version.assertj>
     <version.wiremock>3.0.1</version.wiremock>
 
-    <version.surefire>3.2.5</version.surefire>
+    <version.surefire>3.5.2</version.surefire>
     <version.unirest-java>2.3.10</version.unirest-java>
     <version.testcontainers>2.0.4</version.testcontainers>
 

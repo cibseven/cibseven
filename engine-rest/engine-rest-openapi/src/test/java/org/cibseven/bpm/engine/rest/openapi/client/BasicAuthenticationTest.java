@@ -32,9 +32,10 @@ import org.openapitools.client.ApiException;
 import org.openapitools.client.api.ProcessInstanceApi;
 import org.openapitools.client.model.ProcessInstanceDto;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
-@WireMockTest(httpPort=8080)
+@WireMockTest
 public class BasicAuthenticationTest {
 
   private static final String ENGINE_REST_PROCESS_INSTANCE = "/engine-rest/process-instance";
@@ -46,9 +47,10 @@ public class BasicAuthenticationTest {
 
 
   @BeforeEach
-  public void clientWithValidCredentials() {
+  public void clientWithValidCredentials(WireMockRuntimeInfo wmRuntimeInfo) {
     ApiClient apiClient = new ApiClient();
 
+    apiClient.setBasePath(wmRuntimeInfo.getHttpBaseUrl() + "/engine-rest");
     apiClient.setUsername(USERNAME);
     apiClient.setPassword(PASSWORD);
 
