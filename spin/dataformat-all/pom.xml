@@ -31,19 +31,17 @@
     </dependency>
 
     <!-- dataformat-xml-dom is compiled against the jakarta.xml.bind namespace
-         (jakarta.xml.bind-api 4.x). Override the versions managed in the spin
-         root pom (2.3.x = old javax.xml.bind namespace) so the shaded jar
-         actually contains the jakarta.xml.bind classes the code references. -->
+         (jakarta.xml.bind-api 4.x, scope provided there), so the shaded jar
+         must bundle the jakarta API and a matching JAXB runtime. Versions are
+         managed in the spin root pom (jakarta-namespace stack). -->
     <dependency>
       <groupId>jakarta.xml.bind</groupId>
       <artifactId>jakarta.xml.bind-api</artifactId>
-      <version>${version.jakarta.xml.bind-api}</version>
     </dependency>
 
     <dependency>
       <groupId>com.sun.xml.bind</groupId>
       <artifactId>jaxb-impl</artifactId>
-      <version>${version.xml.jaxb-impl4}</version>
     </dependency>
 
   </dependencies>

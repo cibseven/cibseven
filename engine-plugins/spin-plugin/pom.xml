@@ -130,8 +130,8 @@
 
     <!-- dataformat-xml-dom is compiled against jakarta.xml.bind (scope provided
          there), so the API and a matching jakarta-namespace JAXB runtime must be
-         supplied on the test classpath; the jaxb-impl 2.3.x managed in the
-         engine-plugins parent still contains the old javax.xml.bind packages. -->
+         supplied on the test classpath. jaxb-impl is managed in the
+         engine-plugins parent (jakarta-namespace 4.x). -->
     <dependency>
       <groupId>jakarta.xml.bind</groupId>
       <artifactId>jakarta.xml.bind-api</artifactId>
@@ -141,7 +141,6 @@
     <dependency>
       <groupId>com.sun.xml.bind</groupId>
       <artifactId>jaxb-impl</artifactId>
-      <version>${version.xml.jaxb-impl4}</version>
       <scope>test</scope>
     </dependency>
     
