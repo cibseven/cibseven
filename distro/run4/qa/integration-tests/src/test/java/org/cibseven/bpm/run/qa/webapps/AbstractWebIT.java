@@ -22,7 +22,7 @@ import kong.unirest.Unirest;
 import org.cibseven.bpm.TestProperties;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import org.openqa.selenium.chrome.ChromeDriverService;
 
 import java.util.logging.Logger;
@@ -47,7 +47,7 @@ public abstract class AbstractWebIT {
 
   public String httpPort;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpClass() {
     Unirest.config().reset().enableCookieManagement(false).setObjectMapper(new ObjectMapper() {
       final com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();

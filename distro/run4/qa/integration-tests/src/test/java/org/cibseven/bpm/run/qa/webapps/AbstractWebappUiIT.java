@@ -17,11 +17,10 @@
 package org.cibseven.bpm.run.qa.webapps;
 
 import org.cibseven.bpm.util.SeleniumScreenshotRule;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.BeforeClass;
-import org.junit.Rule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeDriverService;
@@ -42,10 +41,10 @@ public class AbstractWebappUiIT extends AbstractWebIT {
 
   protected static WebDriver driver;
 
-  @Rule
+  @RegisterExtension
   public SeleniumScreenshotRule screenshotRule = new SeleniumScreenshotRule(driver);
 
-  @BeforeClass
+  @BeforeAll
   public static void createDriver() {
     String chromeDriverExecutable = "target/chromedriver/chromedriver";
     if (System.getProperty( "os.name" ).toLowerCase(Locale.US).indexOf("windows") > -1) {
@@ -105,7 +104,7 @@ public class AbstractWebappUiIT extends AbstractWebIT {
     appUrl = testProperties.getApplicationPath("/" + getWebappCtxPath());
   }
 
-  @AfterClass
+  @AfterAll
   public static void quitDriver() {
     driver.quit();
   }
