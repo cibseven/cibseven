@@ -33,7 +33,13 @@
       </exclusions>
     </dependency>
 
-    <!-- junit:junit is scoped 'test' by the Spring Boot BOM, but main sources use JUnit 4 APIs -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <!-- needed at compile time: ProcessEngineRule extends JUnit 4 TestWatcher -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
