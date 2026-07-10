@@ -429,6 +429,10 @@ pipeline {
                     allOf {
                         branch 'main'
                         expression { mavenProjectInformation.version.endsWith("-SNAPSHOT") == true }
+                        anyOf {
+                            expression { params.BUILD_FEATURE_BRANCH == true }
+                            expression { params.VERIFY == true }
+                        }
                     }
                     // force deploy
                     allOf {
