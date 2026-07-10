@@ -16,13 +16,13 @@
  */
 package org.cibseven.bpm.springboot.project.qa.spin;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.RuntimeService;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,9 +32,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @SpringBootTest(classes = { SpinApplication.class },
                 webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class SpinApplicationTestIT {
-
-  @RegisterExtension
-  public ExpectedException thrown = ExpectedException.none();
 
   @Autowired
   RuntimeService runtimeService;
@@ -54,10 +51,10 @@ public class SpinApplicationTestIT {
 
   @Test
   public void shouldFailWithSpinException() {
-    // given
-    thrown.expectMessage("SPIN/JACKSON-JSON-01006 Cannot deserialize");
 
     // when
-    runtimeService.startProcessInstanceByKey("spinJava8ServiceProcess");
-  }
+    assertThatCode(() -> {
+      runtimeService.startProcessInstanceByKey("spinJava8ServiceProcess");
+      }).hasMessageContaining("SPIN/JACKSON-JSON-01006 Cannot deserialize");
+   }
 }

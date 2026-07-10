@@ -17,15 +17,9 @@
 package org.cibseven.bpm.run.qa.webapps;
 
 import org.cibseven.bpm.run.qa.util.SpringBootManagedContainer;
-import org.junit.Rule;
-import org.junit.jupiter.api.Test;
-import org.junit.rules.TestName;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.AfterParam;
-import org.junit.runners.Parameterized.BeforeParam;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
@@ -35,7 +29,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.stream.Stream;
 
 import static org.openqa.selenium.support.ui.ExpectedConditions.textToBePresentInElementLocated;
 import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated;
@@ -44,32 +38,23 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElem
  * NOTE:
  * copied from
  * <a href="https://github.com/cibseven/cibseven/blob/main/qa/integration-tests-webapps/integration-tests/src/main/java/org/cibseven/bpm/LoginIT.java">platform</a>
- * then added <code>@BeforeParam</code> and <code>@AfterParam</code> methods for container setup
- * and <code>@Parameters</code> for different setups, might be removed with https://jira.camunda.com/browse/CAM-11379
+ * then added container setup and different setups via {@link ParameterizedTest},
+ * might be removed with https://jira.camunda.com/browse/CAM-11379
  */
-@RunWith(Parameterized.class)
 public class LoginIT extends AbstractWebappUiIT {
 
-  @Parameter
-  public String[] commands;
-
-  @Parameters
-  public static Collection<Object[]> commands() {
-    return Arrays.asList(new Object[][] {
-      { new String[0] },
-      { new String[]{"--rest", "--webapps"} },
-      { new String[]{"--webapps"} }
-    });
+  static Stream<Arguments> commands() {
+    return Stream.of(
+      Arguments.of((Object) new String[0]),
+      Arguments.of((Object) new String[]{"--rest", "--webapps"}),
+      Arguments.of((Object) new String[]{"--webapps"})
+    );
   }
-
-  @Rule
-  public TestName name = new TestName();
 
   protected static SpringBootManagedContainer container;
 
   protected WebDriverWait wait;
 
-  @BeforeParam
   public static void runStartScript(String[] commands) {
     container = new SpringBootManagedContainer(commands);
     try {
@@ -79,7 +64,6 @@ public class LoginIT extends AbstractWebappUiIT {
     }
   }
 
-  @AfterParam
   public static void stopApp() {
     try {
       if (container != null) {
@@ -115,12 +99,18 @@ public class LoginIT extends AbstractWebappUiIT {
     Arrays.stream(keys.split("")).forEach(c -> element.sendKeys(c));
   }
 
-  @Test
-  public void shouldLoginToCockpit() throws URISyntaxException {
+  @ParameterizedTest
+  @MethodSource("commands")
+  public void shouldLoginToCockpit(String[] commands) throws URISyntaxException {
     try {
-      loginToCockpit();
-    } catch (WebDriverException e) {
-      loginToCockpit();
+      runStartScript(commands);
+      try {
+        loginToCockpit();
+      } catch (WebDriverException e) {
+        loginToCockpit();
+      }
+    } finally {
+      stopApp();
     }
   }
 
@@ -135,12 +125,18 @@ public class LoginIT extends AbstractWebappUiIT {
         + appName + "/default/#/dashboard")));
   }
 
-  @Test
-  public void shouldLoginToTasklist() {
+  @ParameterizedTest
+  @MethodSource("commands")
+  public void shouldLoginToTasklist(String[] commands) {
     try {
-      loginToTasklist();
-    } catch (WebDriverException e) {
-      loginToTasklist();
+      runStartScript(commands);
+      try {
+        loginToTasklist();
+      } catch (WebDriverException e) {
+        loginToTasklist();
+      }
+    } finally {
+      stopApp();
     }
   }
 
@@ -155,12 +151,18 @@ public class LoginIT extends AbstractWebappUiIT {
         + appName + "/default/#/?searchQuery="));
   }
 
-  @Test
-  public void shouldLoginToAdmin() throws URISyntaxException {
+  @ParameterizedTest
+  @MethodSource("commands")
+  public void shouldLoginToAdmin(String[] commands) throws URISyntaxException {
     try {
-      loginToAdmin();
-    } catch (WebDriverException e) {
-      loginToAdmin();
+      runStartScript(commands);
+      try {
+        loginToAdmin();
+      } catch (WebDriverException e) {
+        loginToAdmin();
+      }
+    } finally {
+      stopApp();
     }
   }
 
@@ -175,12 +177,18 @@ public class LoginIT extends AbstractWebappUiIT {
         + "app/" + appName + "/default/#/")));
   }
 
-  @Test
-  public void shouldLoginToWelcome() throws URISyntaxException {
+  @ParameterizedTest
+  @MethodSource("commands")
+  public void shouldLoginToWelcome(String[] commands) throws URISyntaxException {
     try {
-      loginToWelcome();
-    } catch (WebDriverException e) {
-      loginToWelcome();
+      runStartScript(commands);
+      try {
+        loginToWelcome();
+      } catch (WebDriverException e) {
+        loginToWelcome();
+      }
+    } finally {
+      stopApp();
     }
   }
 
