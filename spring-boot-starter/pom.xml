@@ -23,6 +23,17 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <!-- Must be imported BEFORE spring-boot-dependencies: aligns the whole
+          JUnit stack (jupiter AND platform) to version.junit5. Spring Boot 3.x
+          manages JUnit 5.x with platform 1.x, which crashes the surefire fork
+          when the jupiter artifacts are individually overridden to JUnit 6. -->
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${version.junit5}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+      <dependency>
         <!-- Import dependency management from Spring Boot -->
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
