@@ -29,7 +29,7 @@ import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate.ThrowBpmnErrorDelegateException;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Disabled;
@@ -108,7 +108,7 @@ public class ParallelMultiInstanceScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
           .activity("afterBoundaryTask")
@@ -150,10 +150,10 @@ public class ParallelMultiInstanceScenarioTest {
     rule.getTaskService().complete(miSubprocessTask.getId());
 
     // then
-    Assert.assertEquals(2, rule.taskQuery().count());
+    Assertions.assertEquals(2, rule.taskQuery().count());
 
     Task escalatedTask = rule.taskQuery().taskDefinitionKey("escalatedTask").singleResult();
-    Assert.assertNotNull(escalatedTask);
+    Assertions.assertNotNull(escalatedTask);
 
     // and
     rule.getTaskService().complete(escalatedTask.getId());
@@ -175,10 +175,10 @@ public class ParallelMultiInstanceScenarioTest {
     // then
     try {
       rule.getTaskService().complete(miSubprocessTask.getId());
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      Assertions.fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      Assertions.assertEquals("unhandledException", e.getMessage());
     }
   }
 

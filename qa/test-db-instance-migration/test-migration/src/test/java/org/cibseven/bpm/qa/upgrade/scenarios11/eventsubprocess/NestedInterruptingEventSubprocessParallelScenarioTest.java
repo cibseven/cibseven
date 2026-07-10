@@ -22,7 +22,7 @@ import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.cibseven.bpm.qa.upgrade.util.CompleteTaskThread;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 
@@ -58,7 +58,7 @@ public class NestedInterruptingEventSubprocessParallelScenarioTest {
     completeTaskThread2.proceedAndWaitTillDone();
 
     // then
-    Assert.assertNull(completeTaskThread1.getException());
-    Assert.assertNotNull(completeTaskThread2.getException());
+    Assertions.assertNull(completeTaskThread1.getException());
+    Assertions.assertNotNull(completeTaskThread2.getException());
   }
 }

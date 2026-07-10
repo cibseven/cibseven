@@ -29,7 +29,7 @@ import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate.ThrowBpmnErrorDelegateException;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Disabled;
@@ -86,10 +86,10 @@ public class TwoLevelNestedNonInterruptingEventSubprocessScenarioTest {
     rule.messageCorrelation("InnerEventSubProcessMessage").correlate();
 
     // then
-    Assert.assertEquals(3, rule.taskQuery().count());
+    Assertions.assertEquals(3, rule.taskQuery().count());
 
     Task innerEventSubprocessTask = rule.taskQuery().taskDefinitionKey("innerEventSubProcessTask").singleResult();
-    Assert.assertNotNull(innerEventSubprocessTask);
+    Assertions.assertNotNull(innerEventSubprocessTask);
 
     // and
     rule.getTaskService().complete(innerTask.getId());
@@ -111,7 +111,7 @@ public class TwoLevelNestedNonInterruptingEventSubprocessScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
           .activity("outerTask")
@@ -147,8 +147,8 @@ public class TwoLevelNestedNonInterruptingEventSubprocessScenarioTest {
 
     // then
     Task escalatedTask = rule.taskQuery().singleResult();
-    Assert.assertEquals("escalatedTask", escalatedTask.getTaskDefinitionKey());
-    Assert.assertNotNull(escalatedTask);
+    Assertions.assertEquals("escalatedTask", escalatedTask.getTaskDefinitionKey());
+    Assertions.assertNotNull(escalatedTask);
 
     rule.getTaskService().complete(escalatedTask.getId());
     rule.assertScenarioEnded();
@@ -169,10 +169,10 @@ public class TwoLevelNestedNonInterruptingEventSubprocessScenarioTest {
     // then
     try {
       rule.getTaskService().complete(innerEventSubprocessTask.getId());
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      Assertions.fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      Assertions.assertEquals("unhandledException", e.getMessage());
     }
   }
 
@@ -221,10 +221,10 @@ public class TwoLevelNestedNonInterruptingEventSubprocessScenarioTest {
     rule.messageCorrelation("InnerEventSubProcessMessage").correlate();
 
     // then
-    Assert.assertEquals(4, rule.taskQuery().count());
+    Assertions.assertEquals(4, rule.taskQuery().count());
 
     List<Task> innerEventSubprocessTasks = rule.taskQuery().taskDefinitionKey("innerEventSubProcessTask").list();
-    Assert.assertEquals(2, innerEventSubprocessTasks.size());
+    Assertions.assertEquals(2, innerEventSubprocessTasks.size());
 
     // and
     rule.getTaskService().complete(innerTask.getId());
@@ -247,7 +247,7 @@ public class TwoLevelNestedNonInterruptingEventSubprocessScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
           .activity("outerTask")
@@ -284,8 +284,8 @@ public class TwoLevelNestedNonInterruptingEventSubprocessScenarioTest {
 
     // then
     Task escalatedTask = rule.taskQuery().singleResult();
-    Assert.assertEquals("escalatedTask", escalatedTask.getTaskDefinitionKey());
-    Assert.assertNotNull(escalatedTask);
+    Assertions.assertEquals("escalatedTask", escalatedTask.getTaskDefinitionKey());
+    Assertions.assertNotNull(escalatedTask);
 
     rule.getTaskService().complete(escalatedTask.getId());
     rule.assertScenarioEnded();
@@ -305,10 +305,10 @@ public class TwoLevelNestedNonInterruptingEventSubprocessScenarioTest {
     // then
     try {
       rule.getTaskService().complete(innerEventSubprocessTask.getId());
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      Assertions.fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      Assertions.assertEquals("unhandledException", e.getMessage());
     }
   }
 }

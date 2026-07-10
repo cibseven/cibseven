@@ -24,7 +24,7 @@ import java.util.Stack;
 import org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParse;
 import org.cibseven.bpm.engine.runtime.ActivityInstance;
 import org.cibseven.bpm.engine.runtime.TransitionInstance;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * @author Daniel Meyer
@@ -47,7 +47,7 @@ public class ActivityInstanceAssert {
     protected void assertTreeMatch(ExpectedActivityInstance expected, ActivityInstance actual) {
       boolean treesMatch = isTreeMatched(expected, actual);
       if (!treesMatch) {
-        Assert.fail("Could not match expected tree \n" + expected +" \n\n with actual tree \n\n "+actual);
+        Assertions.fail("Could not match expected tree \n" + expected +" \n\n with actual tree \n\n "+actual);
       }
 
     }

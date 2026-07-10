@@ -30,7 +30,7 @@ import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate.ThrowBpmnErrorDelegateException;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Disabled;
@@ -80,7 +80,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
         .activity("afterBoundaryTask")
@@ -118,7 +118,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
     // and the tasks are completed
     List<Task> afterBoundaryTasks = rule.taskQuery().list();
-    Assert.assertEquals(3, afterBoundaryTasks.size());
+    Assertions.assertEquals(3, afterBoundaryTasks.size());
 
     for (Task afterBoundaryTask : afterBoundaryTasks) {
       rule.getTaskService().complete(afterBoundaryTask.getId());
@@ -144,10 +144,10 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
     // then
     // there is only one task since the task after the message boundary event has been cancelled due to bug CAM-3727 in 7.2.0
-	Assert.assertEquals(1, rule.taskQuery().count());
+	Assertions.assertEquals(1, rule.taskQuery().count());
 
     Task afterErrorTask = rule.taskQuery().taskDefinitionKey("escalatedTask").singleResult();
-    Assert.assertNotNull(afterErrorTask);
+    Assertions.assertNotNull(afterErrorTask);
 
     // and
     rule.getTaskService().complete(afterErrorTask.getId());
@@ -167,10 +167,10 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
     // then
     try {
       rule.messageCorrelation("ReceiveTaskMessage").correlate();
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      Assertions.fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      Assertions.assertEquals("unhandledException", e.getMessage());
     }
   }
 
@@ -212,7 +212,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
         .activity("afterBoundaryTask")
@@ -245,7 +245,7 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
     // and the tasks are completed
     List<Task> afterBoundaryTasks = rule.taskQuery().list();
-    Assert.assertEquals(3, afterBoundaryTasks.size());
+    Assertions.assertEquals(3, afterBoundaryTasks.size());
 
     for (Task afterBoundaryTask : afterBoundaryTasks) {
       rule.getTaskService().complete(afterBoundaryTask.getId());
@@ -271,10 +271,10 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
 
     // then
     // there is only one task since the task after the message boundary event has been cancelled due to bug CAM-3727 in 7.2.0
-    Assert.assertEquals(1, rule.taskQuery().count());
+    Assertions.assertEquals(1, rule.taskQuery().count());
 
     Task afterErrorTask = rule.taskQuery().taskDefinitionKey("escalatedTask").singleResult();
-    Assert.assertNotNull(afterErrorTask);
+    Assertions.assertNotNull(afterErrorTask);
 
     // and
     rule.getTaskService().complete(afterErrorTask.getId());
@@ -294,10 +294,10 @@ public class NestedNonInterruptingBoundaryEventOnOuterSubprocessScenarioTest {
     // then
     try {
       rule.messageCorrelation("ReceiveTaskMessage").correlate();
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      Assertions.fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      Assertions.assertEquals("unhandledException", e.getMessage());
     }
   }
 

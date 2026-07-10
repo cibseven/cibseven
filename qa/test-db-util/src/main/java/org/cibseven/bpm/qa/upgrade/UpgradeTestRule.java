@@ -17,8 +17,27 @@
 package org.cibseven.bpm.qa.upgrade;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.lang.reflect.Method;
+
+import org.cibseven.bpm.engine.AuthorizationService;
+import org.cibseven.bpm.engine.CaseService;
+import org.cibseven.bpm.engine.DecisionService;
+import org.cibseven.bpm.engine.ExternalTaskService;
+import org.cibseven.bpm.engine.FilterService;
+import org.cibseven.bpm.engine.FormService;
+import org.cibseven.bpm.engine.HistoryService;
+import org.cibseven.bpm.engine.IdentityService;
+import org.cibseven.bpm.engine.ManagementService;
+import org.cibseven.bpm.engine.ProcessEngine;
+import org.cibseven.bpm.engine.RepositoryService;
+import org.cibseven.bpm.engine.RuntimeService;
+import org.cibseven.bpm.engine.TaskService;
 import org.cibseven.bpm.engine.history.HistoricIncidentQuery;
 import org.cibseven.bpm.engine.history.HistoricProcessInstance;
+import org.cibseven.bpm.engine.impl.ProcessEngineImpl;
+import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import org.cibseven.bpm.engine.impl.test.TestHelper;
 import org.cibseven.bpm.engine.management.JobDefinitionQuery;
 import org.cibseven.bpm.engine.runtime.CaseExecutionQuery;
 import org.cibseven.bpm.engine.runtime.CaseInstance;
@@ -30,31 +49,77 @@ import org.cibseven.bpm.engine.runtime.MessageCorrelationBuilder;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.task.TaskQuery;
-import org.cibseven.bpm.engine.test.ProcessEngineRule;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
- * @author Thorben Lindhauer
+ * JUnit 5 extension for the upgrade/rolling-update test suites.
  *
+ * <p>Deliberately does NOT extend the engine's {@code ProcessEngineRule}: this
+ * module is compiled against the oldest supported engine (1.1.0, see the BOM
+ * import in the pom), whose rule is still JUnit-4-based. Instead the engine is
+ * bootstrapped here via {@link TestHelper} using only APIs that exist in every
+ * engine version, so the compiled class runs against old and current engines
+ * alike while the JUnit 5 wiring comes from this module's own dependency.</p>
+ *
+ * @author Thorben Lindhauer
  */
-public class UpgradeTestRule extends ProcessEngineRule {
+public class UpgradeTestRule implements BeforeEachCallback {
+
+  protected String configurationResource;
+
+  protected ProcessEngine processEngine;
+  protected ProcessEngineConfigurationImpl processEngineConfiguration;
+  protected RepositoryService repositoryService;
+  protected RuntimeService runtimeService;
+  protected TaskService taskService;
+  protected HistoryService historyService;
+  protected IdentityService identityService;
+  protected ManagementService managementService;
+  protected FormService formService;
+  protected FilterService filterService;
+  protected AuthorizationService authorizationService;
+  protected CaseService caseService;
+  protected ExternalTaskService externalTaskService;
+  protected DecisionService decisionService;
 
   protected String scenarioTestedByClass = null;
   protected String scenarioName;
   protected String tag;
 
   public UpgradeTestRule() {
-    super("camunda.cfg.xml");
+    this("camunda.cfg.xml");
   }
 
   public UpgradeTestRule(String configurationResource) {
-    super(configurationResource);
+    this.configurationResource = configurationResource;
+  }
+
+  protected void initializeProcessEngine() {
+    if (processEngine == null) {
+      processEngine = TestHelper.getProcessEngine(configurationResource);
+      processEngineConfiguration = ((ProcessEngineImpl) processEngine).getProcessEngineConfiguration();
+      repositoryService = processEngine.getRepositoryService();
+      runtimeService = processEngine.getRuntimeService();
+      taskService = processEngine.getTaskService();
+      historyService = processEngine.getHistoryService();
+      identityService = processEngine.getIdentityService();
+      managementService = processEngine.getManagementService();
+      formService = processEngine.getFormService();
+      filterService = processEngine.getFilterService();
+      authorizationService = processEngine.getAuthorizationService();
+      caseService = processEngine.getCaseService();
+      externalTaskService = processEngine.getExternalTaskService();
+      decisionService = processEngine.getDecisionService();
+    }
   }
 
   @Override
   public void beforeEach(ExtensionContext context) throws Exception {
-    super.beforeEach(context);
-    Class<?> testClass = context.getTestClass().orElseThrow(new IllegalStateException("testClass not set"));
+    Class<?> testClass = context.getTestClass()
+        .orElseThrow(() -> new IllegalStateException("testClass not set"));
+    Method testMethod = context.getTestMethod().orElse(null);
+
     if (scenarioTestedByClass == null) {
       ScenarioUnderTest testScenarioClassAnnotation = testClass.getAnnotation(ScenarioUnderTest.class);
       if (testScenarioClassAnnotation != null) {
@@ -62,7 +127,7 @@ public class UpgradeTestRule extends ProcessEngineRule {
       }
     }
 
-    ScenarioUnderTest testScenarioAnnotation = description.getAnnotation(ScenarioUnderTest.class);
+    ScenarioUnderTest testScenarioAnnotation = testMethod != null ? testMethod.getAnnotation(ScenarioUnderTest.class) : null;
     if (testScenarioAnnotation != null) {
       if (scenarioTestedByClass != null) {
         scenarioName = scenarioTestedByClass + "." + testScenarioAnnotation.value();
@@ -72,7 +137,7 @@ public class UpgradeTestRule extends ProcessEngineRule {
     }
 
     // method annotation overrides class annotation
-    Origin originAnnotation = description.getAnnotation(Origin.class);
+    Origin originAnnotation = testMethod != null ? testMethod.getAnnotation(Origin.class) : null;
     if (originAnnotation == null) {
       originAnnotation = testClass.getAnnotation(Origin.class);
     }
@@ -82,10 +147,68 @@ public class UpgradeTestRule extends ProcessEngineRule {
     }
 
     if (scenarioName == null) {
-      throw new RuntimeException("Could not determine scenario under test for test " + description.getDisplayName());
+      throw new RuntimeException("Could not determine scenario under test for test " + context.getDisplayName());
     }
 
-    super.starting(description);
+    initializeProcessEngine();
+  }
+
+  // getters used by the upgrade/rolling-update test suites ////////
+
+  public ProcessEngine getProcessEngine() {
+    return processEngine;
+  }
+
+  public ProcessEngineConfigurationImpl getProcessEngineConfiguration() {
+    return processEngineConfiguration;
+  }
+
+  public RepositoryService getRepositoryService() {
+    return repositoryService;
+  }
+
+  public RuntimeService getRuntimeService() {
+    return runtimeService;
+  }
+
+  public TaskService getTaskService() {
+    return taskService;
+  }
+
+  public HistoryService getHistoryService() {
+    return historyService;
+  }
+
+  public IdentityService getIdentityService() {
+    return identityService;
+  }
+
+  public ManagementService getManagementService() {
+    return managementService;
+  }
+
+  public FormService getFormService() {
+    return formService;
+  }
+
+  public FilterService getFilterService() {
+    return filterService;
+  }
+
+  public AuthorizationService getAuthorizationService() {
+    return authorizationService;
+  }
+
+  public CaseService getCaseService() {
+    return caseService;
+  }
+
+  public ExternalTaskService getExternalTaskService() {
+    return externalTaskService;
+  }
+
+  public DecisionService getDecisionService() {
+    return decisionService;
   }
 
   public TaskQuery taskQuery() {
@@ -153,8 +276,8 @@ public class UpgradeTestRule extends ProcessEngineRule {
   }
 
   public void assertScenarioEnded() {
-    Assert.assertTrue("Process instance for scenario " + getBuisnessKey() + " should have ended",
-            processInstanceQuery().singleResult() == null);
+    assertTrue(processInstanceQuery().singleResult() == null,
+            "Process instance for scenario " + getBuisnessKey() + " should have ended");
   }
 
   // case //////////////////////////////////////////////////

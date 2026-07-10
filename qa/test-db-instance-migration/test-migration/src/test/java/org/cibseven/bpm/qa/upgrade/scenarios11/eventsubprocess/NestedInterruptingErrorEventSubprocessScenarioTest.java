@@ -27,7 +27,7 @@ import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate.ThrowBpmnErrorDelegateException;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Disabled;
@@ -55,7 +55,7 @@ public class NestedInterruptingErrorEventSubprocessScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
           .beginScope("subProcess")
@@ -91,8 +91,8 @@ public class NestedInterruptingErrorEventSubprocessScenarioTest {
 
     // then
     Task outerEventSubProcessTask = rule.taskQuery().singleResult();
-    Assert.assertNotNull(outerEventSubProcessTask);
-    Assert.assertEquals("outerEventSubProcessTask", outerEventSubProcessTask.getTaskDefinitionKey());
+    Assertions.assertNotNull(outerEventSubProcessTask);
+    Assertions.assertEquals("outerEventSubProcessTask", outerEventSubProcessTask.getTaskDefinitionKey());
 
     // and
     rule.getTaskService().complete(outerEventSubProcessTask.getId());
@@ -113,7 +113,7 @@ public class NestedInterruptingErrorEventSubprocessScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
         // eventSubProcess was previously no scope so it misses here
@@ -137,10 +137,10 @@ public class NestedInterruptingErrorEventSubprocessScenarioTest {
     // then
     try {
       rule.getTaskService().complete(innerEventSubProcessTask.getId());
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      Assertions.fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      Assertions.assertEquals("unhandledException", e.getMessage());
     }
   }
 }

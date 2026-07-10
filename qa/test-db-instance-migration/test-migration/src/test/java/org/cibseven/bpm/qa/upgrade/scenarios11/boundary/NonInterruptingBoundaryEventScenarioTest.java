@@ -28,7 +28,7 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 
@@ -77,7 +77,7 @@ public class NonInterruptingBoundaryEventScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
           .activity("afterBoundaryTask")
@@ -113,7 +113,7 @@ public class NonInterruptingBoundaryEventScenarioTest {
 
     // and the tasks are completed
     List<Task> afterBoundaryTasks = rule.taskQuery().list();
-    Assert.assertEquals(3, afterBoundaryTasks.size());
+    Assertions.assertEquals(3, afterBoundaryTasks.size());
 
     for (Task afterBoundaryTask : afterBoundaryTasks) {
       rule.getTaskService().complete(afterBoundaryTask.getId());
@@ -163,7 +163,7 @@ public class NonInterruptingBoundaryEventScenarioTest {
     rule.messageCorrelation("BoundaryEventMessage").correlate();
     List<Task> afterBoundaryTasks = rule.taskQuery().taskDefinitionKey("afterBoundaryTask").list();
 
-    Assert.assertEquals(2, afterBoundaryTasks.size());
+    Assertions.assertEquals(2, afterBoundaryTasks.size());
 
     Task newAfterBoundaryTask = afterBoundaryTasks.get(0);
     if (newAfterBoundaryTask.getId().equals(existingAfterBoundaryTask.getId())) {
@@ -188,7 +188,7 @@ public class NonInterruptingBoundaryEventScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
           .activity("afterBoundaryTask")
@@ -219,7 +219,7 @@ public class NonInterruptingBoundaryEventScenarioTest {
 
     // and the tasks are completed
     List<Task> afterBoundaryTasks = rule.taskQuery().list();
-    Assert.assertEquals(3, afterBoundaryTasks.size());
+    Assertions.assertEquals(3, afterBoundaryTasks.size());
 
     for (Task afterBoundaryTask : afterBoundaryTasks) {
       rule.getTaskService().complete(afterBoundaryTask.getId());

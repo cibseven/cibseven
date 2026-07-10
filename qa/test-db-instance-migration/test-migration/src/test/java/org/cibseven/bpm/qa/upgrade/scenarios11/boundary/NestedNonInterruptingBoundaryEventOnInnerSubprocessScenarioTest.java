@@ -30,7 +30,7 @@ import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate.ThrowBpmnErrorDelegateException;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 
@@ -79,7 +79,7 @@ public class NestedNonInterruptingBoundaryEventOnInnerSubprocessScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
         .beginScope("outerSubProcess")
@@ -117,7 +117,7 @@ public class NestedNonInterruptingBoundaryEventOnInnerSubprocessScenarioTest {
 
     // and the tasks are completed
     List<Task> afterBoundaryTasks = rule.taskQuery().list();
-    Assert.assertEquals(3, afterBoundaryTasks.size());
+    Assertions.assertEquals(3, afterBoundaryTasks.size());
 
     for (Task afterBoundaryTask : afterBoundaryTasks) {
       rule.getTaskService().complete(afterBoundaryTask.getId());
@@ -141,8 +141,8 @@ public class NestedNonInterruptingBoundaryEventOnInnerSubprocessScenarioTest {
 
     // then
     Task afterErrorTask = rule.taskQuery().singleResult();
-    Assert.assertNotNull(afterErrorTask);
-    Assert.assertEquals("escalatedTask", afterErrorTask.getTaskDefinitionKey());
+    Assertions.assertNotNull(afterErrorTask);
+    Assertions.assertEquals("escalatedTask", afterErrorTask.getTaskDefinitionKey());
 
     // and
     rule.getTaskService().complete(afterErrorTask.getId());
@@ -162,10 +162,10 @@ public class NestedNonInterruptingBoundaryEventOnInnerSubprocessScenarioTest {
     // then
     try {
       rule.messageCorrelation("ReceiveTaskMessage").correlate();
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      Assertions.fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      Assertions.assertEquals("unhandledException", e.getMessage());
     }
   }
 
@@ -209,7 +209,7 @@ public class NestedNonInterruptingBoundaryEventOnInnerSubprocessScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
         .beginScope("outerSubProcess")
@@ -242,7 +242,7 @@ public class NestedNonInterruptingBoundaryEventOnInnerSubprocessScenarioTest {
 
     // and the tasks are completed
     List<Task> afterBoundaryTasks = rule.taskQuery().list();
-    Assert.assertEquals(3, afterBoundaryTasks.size());
+    Assertions.assertEquals(3, afterBoundaryTasks.size());
 
     for (Task afterBoundaryTask : afterBoundaryTasks) {
       rule.getTaskService().complete(afterBoundaryTask.getId());
@@ -266,8 +266,8 @@ public class NestedNonInterruptingBoundaryEventOnInnerSubprocessScenarioTest {
 
     // then
     Task afterErrorTask = rule.taskQuery().singleResult();
-    Assert.assertNotNull(afterErrorTask);
-    Assert.assertEquals("escalatedTask", afterErrorTask.getTaskDefinitionKey());
+    Assertions.assertNotNull(afterErrorTask);
+    Assertions.assertEquals("escalatedTask", afterErrorTask.getTaskDefinitionKey());
 
     // and
     rule.getTaskService().complete(afterErrorTask.getId());
@@ -287,10 +287,10 @@ public class NestedNonInterruptingBoundaryEventOnInnerSubprocessScenarioTest {
     // then
     try {
       rule.messageCorrelation("ReceiveTaskMessage").correlate();
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      Assertions.fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      Assertions.assertEquals("unhandledException", e.getMessage());
     }
   }
 
