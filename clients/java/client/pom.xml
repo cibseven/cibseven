@@ -23,6 +23,7 @@
 
     <cargo.timeout>240000</cargo.timeout>
     <cargo.deploy.timeout>60000</cargo.deploy.timeout>
+
   </properties>
 
   <dependencyManagement>
@@ -41,20 +42,54 @@
         <scope>import</scope>
         <type>pom</type>
       </dependency>
+      <dependency>
+          <groupId>org.junit</groupId>
+          <artifactId>junit-bom</artifactId>
+          <version>${version.junit5}</version>
+          <type>pom</type>
+          <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
-
   <dependencies>
 
     <!-- mandatory dependencies -->
     <dependency>
       <groupId>org.cibseven.commons</groupId>
       <artifactId>cibseven-commons-logging</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-params</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-engine</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
       <groupId>org.cibseven.commons</groupId>
       <artifactId>cibseven-commons-typed-values</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-params</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-engine</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -87,25 +122,24 @@
       <optional>true</optional>
     </dependency>
 
-
-    <!-- test dependencies -->
-    <!-- JUnit 5 Jupiter API for unit testing -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>${version.junit5}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
-      <version>${version.junit5}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-launcher</artifactId>
       <scope>test</scope>
     </dependency>
 

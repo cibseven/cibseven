@@ -27,19 +27,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openapitools.client.ApiClient;
 import org.openapitools.client.ApiException;
 import org.openapitools.client.api.DeploymentApi;
 import org.openapitools.client.model.DeploymentWithDefinitionsDto;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
-@WireMockTest(httpPort=8080)
+@WireMockTest
 public class DeploymentTest {
 
   private static final String ENGINE_REST_DEPLOYMENT = "/engine-rest/deployment";
 
-  final DeploymentApi api = new DeploymentApi();
+  DeploymentApi api;
+
+  @BeforeEach
+  public void setUp(WireMockRuntimeInfo wmRuntimeInfo) {
+    ApiClient apiClient = new ApiClient();
+    apiClient.setBasePath(wmRuntimeInfo.getHttpBaseUrl() + "/engine-rest");
+    api = new DeploymentApi(apiClient);
+  }
 
   @Test
   public void shouldCreateDeployment() throws ApiException {
@@ -54,7 +64,7 @@ public class DeploymentTest {
                 "    \"links\": [" +
                 "        {" +
                 "            \"method\": \"GET\"," +
-                "            \"href\": \"http://localhost:8080/rest-test/deployment/aDeploymentId\"," +
+                "            \"href\": \"http://localhost/rest-test/deployment/aDeploymentId\"," +
                 "            \"rel\": \"self\"" +
                 "        }" +
                 "    ]," +

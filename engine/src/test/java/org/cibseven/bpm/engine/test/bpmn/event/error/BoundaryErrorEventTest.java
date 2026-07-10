@@ -401,7 +401,7 @@ public class BoundaryErrorEventTest extends PluggableProcessEngineTest {
   @Test
   public void testCatchErrorThrownBySignallableActivityBehaviour() {
     String procId = runtimeService.startProcessInstanceByKey("catchErrorThrownBySignallableActivityBehaviour").getId();
-    assertNotNull("Didn't get a process id from runtime service", procId);
+    assertNotNull(procId, "Didn't get a process id from runtime service");
     ActivityInstance processActivityInstance = runtimeService.getActivityInstance(procId);
     ActivityInstance serviceTask = processActivityInstance.getChildActivityInstances()[0];
     assertEquals("serviceTask", serviceTask.getActivityId(), "Expected the service task to be active after starting the process");

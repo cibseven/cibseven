@@ -13,6 +13,13 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+          <groupId>org.junit</groupId>
+          <artifactId>junit-bom</artifactId>
+          <version>6.0.3</version>
+          <type>pom</type>
+          <scope>import</scope>
+      </dependency>
 
       <!-- Spring Framework 7 requires the JUnit 6 stack; import the matching junit-bom first so the
            whole org.junit stack (jupiter + platform) is aligned and overrides the 5.12.2 pulled
@@ -48,7 +55,6 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
-
     </dependencies>
   </dependencyManagement>
 
@@ -56,6 +62,20 @@
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-engine</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-params</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-engine</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -94,6 +114,14 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- Jakarta EL implementation (reference impl) required at runtime by the JUEL script engine.
+         Only the jakarta.el-api is provided by the Jakarta EE BOM; the impl (com.sun.el.ExpressionFactoryImpl) is missing. -->
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>jakarta.el</artifactId>
+      <version>4.0.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
