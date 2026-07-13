@@ -55,7 +55,7 @@ pipeline {
 
         booleanParam(
             name: 'SAST_DEPENDENCY_TRACK',
-            defaultValue: true,
+            defaultValue: false,
             description: "  └─ 🛡️ Static Application Security Testing with Dependency-Track (🕒 10-11 minutes). Runs only for 'main' branch."
         )
 
