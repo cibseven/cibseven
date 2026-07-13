@@ -26,6 +26,7 @@ import java.util.Set;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
+
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.impl.calendar.DateTimeUtil;
 import org.cibseven.bpm.engine.repository.Deployment;
@@ -34,7 +35,9 @@ import org.cibseven.bpm.engine.repository.DeploymentQuery;
 import org.cibseven.bpm.engine.repository.DeploymentWithDefinitions;
 import org.cibseven.bpm.engine.rest.DeploymentRestService;
 import org.cibseven.bpm.engine.rest.dto.CountResultDto;
+import org.cibseven.bpm.engine.rest.dto.batch.BatchDto;
 import org.cibseven.bpm.engine.rest.dto.repository.DeploymentDto;
+import org.cibseven.bpm.engine.rest.dto.runtime.batch.DeleteDeploymentsDto;
 import org.cibseven.bpm.engine.rest.dto.repository.DeploymentQueryDto;
 import org.cibseven.bpm.engine.rest.dto.repository.DeploymentWithDefinitionsDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
@@ -200,22 +203,7 @@ public class DeploymentRestServiceImpl extends AbstractRestProcessEngineAware im
 
   @Override
   public BatchDto deleteAsync(DeleteDeploymentsDto dto) {
-    RuntimeService runtimeService = getProcessEngine().getRuntimeService();
-
-    ProcessInstanceQuery processInstanceQuery = null;
-
-    if (dto.getProcessInstanceQuery() != null) {
-      processInstanceQuery = dto.getProcessInstanceQuery().toQuery(getProcessEngine());
-    }
-
-    try {
-     Batch batch = getProcessEngine().getRepositoryService()
-    .deleteDeploymentsAsync(dto.getDeploymentIds(), dto.isCascade(),
-        dto.isSkipCustomListeners(), dto.isSkipIoMappings());
-        
-      return BatchDto.fromBatch(batch);
-    } catch (BadUserRequestException e) {
-      throw new InvalidRequestException(Status.BAD_REQUEST, e.getMessage());
-    }
+    // TODO CIB7-1597: wire to RepositoryService#deleteDeploymentsAsync once implemented engine-side
+    return new BatchDto();
   }
 }
