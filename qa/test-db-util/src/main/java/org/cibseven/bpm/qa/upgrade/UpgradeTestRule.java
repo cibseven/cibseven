@@ -16,7 +16,6 @@
  */
 package org.cibseven.bpm.qa.upgrade;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.cibseven.bpm.engine.history.HistoricIncidentQuery;
 import org.cibseven.bpm.engine.history.HistoricProcessInstance;
 import org.cibseven.bpm.engine.management.JobDefinitionQuery;
@@ -31,7 +30,8 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.task.TaskQuery;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.Assert;
+import org.junit.runner.Description;
 
 /**
  * @author Thorben Lindhauer
@@ -52,9 +52,8 @@ public class UpgradeTestRule extends ProcessEngineRule {
   }
 
   @Override
-  public void beforeEach(ExtensionContext context) throws Exception {
-    super.beforeEach(context);
-    Class<?> testClass = context.getTestClass().orElseThrow(new IllegalStateException("testClass not set"));
+  public void starting(Description description) {
+    Class<?> testClass = description.getTestClass();
     if (scenarioTestedByClass == null) {
       ScenarioUnderTest testScenarioClassAnnotation = testClass.getAnnotation(ScenarioUnderTest.class);
       if (testScenarioClassAnnotation != null) {
