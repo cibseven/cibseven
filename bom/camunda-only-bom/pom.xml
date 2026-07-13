@@ -30,11 +30,6 @@
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-engine-cdi</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-engine-spring</artifactId>
         <version>${project.version}</version>
       </dependency>
