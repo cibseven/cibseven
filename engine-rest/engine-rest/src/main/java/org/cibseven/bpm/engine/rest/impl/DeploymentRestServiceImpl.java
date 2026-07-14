@@ -27,7 +27,9 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.ProcessEngine;
+import org.cibseven.bpm.engine.batch.Batch;
 import org.cibseven.bpm.engine.impl.calendar.DateTimeUtil;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.repository.DeploymentBuilder;
@@ -203,7 +205,17 @@ public class DeploymentRestServiceImpl extends AbstractRestProcessEngineAware im
 
   @Override
   public BatchDto deleteAsync(DeleteDeploymentsDto dto) {
-    // TODO CIB7-1597: wire to RepositoryService#deleteDeploymentsAsync once implemented engine-side
-    return new BatchDto();
+    DeploymentQuery deploymentQuery = null;
+    if (dto.getDeploymentQuery() != null) {
+      deploymentQuery = dto.getDeploymentQuery().toQuery(getProcessEngine());
+    }
+    try {
+      Batch batch = getProcessEngine().getRepositoryService().deleteDeploymentsAsync(
+              dto.getDeploymentIds(), deploymentQuery,
+              dto.isCascade(), dto.isSkipCustomListeners(), dto.isSkipIoMappings());
+      return BatchDto.fromBatch(batch);
+    } catch (BadUserRequestException e) {
+      throw new InvalidRequestException(Status.BAD_REQUEST, e.getMessage());
+    }
   }
 }
