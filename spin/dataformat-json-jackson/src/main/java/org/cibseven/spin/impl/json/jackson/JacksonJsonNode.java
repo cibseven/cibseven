@@ -36,13 +36,13 @@ import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.json.SpinJsonPathQuery;
 import org.cibseven.spin.spi.DataFormatMapper;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.InvalidPathException;
 import com.jayway.jsonpath.JsonPath;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeType;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Wrapper for a Jackson Json Tree Node.
@@ -129,7 +129,7 @@ public class JacksonJsonNode extends SpinJsonNode {
     JsonNode node = dataFormat.createJsonNode(searchObject);
     int res = lookupArray(node, 1);
     if(res == -1){
-      throw LOG.unableToFindProperty(node.asText());
+      throw LOG.unableToFindProperty(node.asString(""));
     }
     return res;
   }
@@ -139,7 +139,7 @@ public class JacksonJsonNode extends SpinJsonNode {
     JsonNode node = dataFormat.createJsonNode(searchObject);
     int res = lookupArray(node, -1);
     if(res == -1){
-      throw LOG.unableToFindProperty(node.asText());
+      throw LOG.unableToFindProperty(node.asString(""));
     }
     return res;
   }
@@ -420,7 +420,7 @@ public class JacksonJsonNode extends SpinJsonNode {
 
   public SpinList<SpinJsonNode> elements() {
     if(jsonNode.isArray()) {
-      Iterator<JsonNode> iterator = jsonNode.elements();
+      Iterator<JsonNode> iterator = jsonNode.iterator();
       SpinList<SpinJsonNode> list = new SpinListImpl<SpinJsonNode>();
       while(iterator.hasNext()) {
         SpinJsonNode node = dataFormat.createWrapperInstance(iterator.next());
@@ -434,14 +434,8 @@ public class JacksonJsonNode extends SpinJsonNode {
   }
 
   public List<String> fieldNames() {
-    if(jsonNode.isContainerNode()) {
-      Iterator<String> iterator = jsonNode.fieldNames();
-      List<String> list = new ArrayList<String>();
-      while(iterator.hasNext()) {
-        list.add(iterator.next());
-      }
-
-      return list;
+    if(jsonNode.isContainer()) {
+      return List.copyOf(jsonNode.propertyNames());
     } else {
       throw LOG.unableToParseValue("Array/Object", jsonNode.getNodeType());
     }
