@@ -31,9 +31,9 @@
     <version.graal.js>21.3.19.1</version.graal.js>
     <version.icu.icu4j>71.1</version.icu.icu4j>
     <!-- json-smart and accessors-smart are runtime dependencies of json-path -->
-    <version.json-path>2.9.0</version.json-path>
-    <version.json-smart>2.5.2</version.json-smart>
-    <version.accessors-smart>2.5.2</version.accessors-smart>
+    <version.json-path>3.0.0</version.json-path>
+    <version.json-smart>2.6.0</version.json-smart>
+    <version.accessors-smart>2.6.0</version.accessors-smart>
     <version.gson>2.8.9</version.gson>
     <version.commons-lang3>3.20.0</version.commons-lang3>
     <version.openjpa>2.4.3</version.openjpa>
@@ -144,6 +144,14 @@
         <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-bom</artifactId>
         <version>${project.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>tools.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson3}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
