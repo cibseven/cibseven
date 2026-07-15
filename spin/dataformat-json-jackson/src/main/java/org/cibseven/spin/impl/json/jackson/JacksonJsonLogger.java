@@ -23,11 +23,9 @@ import org.cibseven.spin.json.SpinJsonException;
 import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.json.SpinJsonPathException;
 import org.cibseven.spin.json.SpinJsonPropertyException;
-
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
-import com.jayway.jsonpath.PathNotFoundException;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.JsonNodeType;
 
 /**
  * @author Thorben Lindhauer

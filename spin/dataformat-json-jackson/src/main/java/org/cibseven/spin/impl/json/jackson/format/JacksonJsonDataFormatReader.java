@@ -20,13 +20,13 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.databind.node.MissingNode;
 import org.cibseven.spin.impl.json.jackson.JacksonJsonLogger;
 import org.cibseven.spin.spi.TextBasedDataFormatReader;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.MissingNode;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Thorben Lindhauer
@@ -52,7 +52,7 @@ public class JacksonJsonDataFormatReader extends TextBasedDataFormatReader {
       }
       return jsonNode;
     }
-    catch (JsonProcessingException e) {
+    catch (JacksonException e) {
       throw JSON_LOGGER.unableToParseInput(e);
     }
     catch (IOException e) {

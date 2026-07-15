@@ -33,10 +33,8 @@ import org.cibseven.spin.json.SpinJsonException;
 import org.cibseven.spin.json.mapping.Order;
 import org.cibseven.spin.json.mapping.RegularCustomer;
 import org.junit.Test;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.type.TypeFactory;
 
 public class JsonTreeMapJsonToJavaTest {
 
@@ -63,9 +61,9 @@ public class JsonTreeMapJsonToJavaTest {
   }
 
   @Test
-  public void shouldMapListByCanonicalString() throws JsonProcessingException {
+  public void shouldMapListByCanonicalString() {
     JavaType desiredType =
-        TypeFactory.defaultInstance().constructCollectionType(ArrayList.class, Order.class);
+        TypeFactory.createDefaultInstance().constructCollectionType(ArrayList.class, Order.class);
 
     List<Order> orders = JSON(EXAMPLE_JSON_COLLECTION).mapTo(desiredType.toCanonical());
 

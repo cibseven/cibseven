@@ -1,6 +1,6 @@
-import com.fasterxml.jackson.databind.type.TypeFactory as TypeFactory
+import tools.jackson.databind.type.TypeFactory as TypeFactory
 
-desiredType = TypeFactory.defaultInstance().constructCollectionType(collectionType, mapToType)
+desiredType = TypeFactory.createDefaultInstance().constructCollectionType(collectionType, mapToType)
 
 result = S(input, "application/json").mapTo(desiredType.toCanonical())
 

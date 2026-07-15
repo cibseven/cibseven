@@ -24,9 +24,9 @@ import org.cibseven.spin.impl.json.jackson.format.JacksonJsonDataFormat;
 import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.json.SpinJsonPathQuery;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
+import tools.jackson.databind.JsonNode;
 
 /**
  * @author Stefan Hentschel
