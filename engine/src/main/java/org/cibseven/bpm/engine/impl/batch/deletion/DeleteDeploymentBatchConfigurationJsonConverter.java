@@ -16,7 +16,11 @@
  */
 package org.cibseven.bpm.engine.impl.batch.deletion;
 
+import java.util.List;
+
 import org.cibseven.bpm.engine.impl.batch.AbstractBatchConfigurationObjectConverter;
+import org.cibseven.bpm.engine.impl.batch.DeploymentMappingJsonConverter;
+import org.cibseven.bpm.engine.impl.batch.DeploymentMappings;
 import org.cibseven.bpm.engine.impl.util.JsonUtil;
 
 import com.google.gson.JsonObject;
@@ -27,6 +31,7 @@ public class DeleteDeploymentBatchConfigurationJsonConverter
   public static final DeleteDeploymentBatchConfigurationJsonConverter INSTANCE = new DeleteDeploymentBatchConfigurationJsonConverter();
 
   public static final String DEPLOYMENT_IDS = "deploymentIds";
+  public static final String DEPLOYMENT_ID_MAPPINGS = "deploymentIdMappings";
   public static final String SKIP_CUSTOM_LISTENERS = "skipCustomListeners";
   public static final String CASCADE = "cascade";
   public static final String SKIP_IO_MAPPINGS = "skipIoMappings";
@@ -35,6 +40,7 @@ public class DeleteDeploymentBatchConfigurationJsonConverter
   public JsonObject writeConfiguration(DeleteDeploymentBatchConfiguration configuration) {
     JsonObject json = JsonUtil.createObject();
     JsonUtil.addListField(json, DEPLOYMENT_IDS, configuration.getIds());
+    JsonUtil.addListField(json, DEPLOYMENT_ID_MAPPINGS, DeploymentMappingJsonConverter.INSTANCE, configuration.getIdMappings());
     JsonUtil.addField(json, CASCADE, configuration.isCascade());
     JsonUtil.addField(json, SKIP_CUSTOM_LISTENERS, configuration.isSkipCustomListeners());
     JsonUtil.addField(json, SKIP_IO_MAPPINGS, configuration.isSkipIoMappings());
@@ -46,6 +52,7 @@ public class DeleteDeploymentBatchConfigurationJsonConverter
   public DeleteDeploymentBatchConfiguration readConfiguration(JsonObject json) {
     DeleteDeploymentBatchConfiguration configuration = new DeleteDeploymentBatchConfiguration(
         readDeploymentIds(json),
+        readIdMappings(json),
         JsonUtil.getBoolean(json, CASCADE),
         JsonUtil.getBoolean(json, SKIP_CUSTOM_LISTENERS),
         JsonUtil.getBoolean(json, SKIP_IO_MAPPINGS));
@@ -53,8 +60,12 @@ public class DeleteDeploymentBatchConfigurationJsonConverter
     return configuration;
   }
 
-  protected java.util.List<String> readDeploymentIds(JsonObject jsonObject) {
+  protected List<String> readDeploymentIds(JsonObject jsonObject) {
     return JsonUtil.asStringList(JsonUtil.getArray(jsonObject, DEPLOYMENT_IDS));
+  }
+
+  protected DeploymentMappings readIdMappings(JsonObject json) {
+    return JsonUtil.asList(JsonUtil.getArray(json, DEPLOYMENT_ID_MAPPINGS), DeploymentMappingJsonConverter.INSTANCE, DeploymentMappings::new);
   }
 
 }

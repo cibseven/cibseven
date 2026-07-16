@@ -48,34 +48,21 @@ import org.junit.Test;
 
 import io.restassured.http.ContentType;
 
-// TESTDOC: -------------------------------------------------------------------------------------
-// TESTDOC: REST-Schicht-Test fuer den Endpoint  POST /deployment/delete  (Ticket CIB7-1597).
-// TESTDOC: Im Gegensatz zum Engine-Test laeuft hier KEINE echte Engine: der RepositoryService wird
-// TESTDOC: gemockt. Getestet wird ausschliesslich die REST-Schicht, also:
-// TESTDOC:   - dass der JSON-Request-Body korrekt auf DeleteDeploymentsDto gemappt wird,
-// TESTDOC:   - dass die Werte korrekt an RepositoryService.deleteDeploymentsAsync(...) durchgereicht werden,
-// TESTDOC:   - dass HTTP-Statuscodes stimmen (200 / 400).
-// TESTDOC: -------------------------------------------------------------------------------------
+/**
+ * Tests the REST layer of {@code POST /deployment/delete} (CIB7-1597) against a mocked
+ * {@link RepositoryService}: body mapping, parameter pass-through, and status codes.
+ */
 public class DeploymentRestServiceAsyncDeleteTest extends AbstractRestServiceTest {
 
-  // TESTDOC: Startet den eingebetteten REST-Container (JAX-RS) einmalig fuer alle Tests dieser Klasse.
   @ClassRule
   public static TestContainerRule rule = new TestContainerRule();
 
-  // TESTDOC: Basis-URL des Deployment-Resources und die konkrete URL des Batch-Delete-Endpoints.
   protected static final String RESOURCE_URL = TEST_RESOURCE_ROOT_PATH + "/deployment";
   protected static final String DELETE_ASYNC_URL = RESOURCE_URL + "/delete";
 
   protected RepositoryService mockRepositoryService;
 
-  // TESTDOC: setUpMocks(): laeuft vor jedem Test. WICHTIG - der Name darf NICHT setUp() sein, sonst
-  // TESTDOC: wuerde er die setUp()-Methode von AbstractRestServiceTest ueberschreiben, die das
-  // TESTDOC: statische processEngine-Mock initialisiert (sonst NullPointerException).
-  // TESTDOC: Hier wird das RepositoryService-Mock erzeugt, in die Engine eingehaengt und so gestubbt,
-  // TESTDOC: dass createDeploymentQuery() und deleteDeploymentsAsync(...) brauchbare Rueckgaben liefern.
-  // TESTDOC: Hinweis: createMockBatch() / mock() werden bewusst VORHER in lokale Variablen gezogen -
-  // TESTDOC: hierin wird selbst Mockito-Stubbing ausgefuehrt; direkt in .thenReturn(...) aufgerufen
-  // TESTDOC: fuehrte es zu einem verschachtelten Stubbing ("UnfinishedStubbing").
+  // must not be named setUp() to keep AbstractRestServiceTest#setUp() (engine mock init) running
   @Before
   public void setUpMocks() {
     mockRepositoryService = mock(RepositoryService.class);
@@ -89,8 +76,6 @@ public class DeploymentRestServiceAsyncDeleteTest extends AbstractRestServiceTes
         .thenReturn(mockBatch);
   }
 
-  // TESTDOC: TEST: Standardfall mit expliziter Id-Liste. Erwartung: HTTP 200, Antwort enthaelt die
-  // TESTDOC: Batch-Id des Mocks, und der Service wird mit genau diesen Ids und allen Flags=false aufgerufen.
   @Test
   public void shouldDeleteAsyncWithIds() {
     List<String> ids = Arrays.asList("deploymentId1", "deploymentId2");
@@ -108,7 +93,6 @@ public class DeploymentRestServiceAsyncDeleteTest extends AbstractRestServiceTes
     verify(mockRepositoryService, times(1)).deleteDeploymentsAsync(ids, null, false, false, false);
   }
 
-  // TESTDOC: TEST: Flag "cascade" im Body wird korrekt als 3. Parameter (cascade=true) durchgereicht.
   @Test
   public void shouldDeleteAsyncWithCascade() {
     List<String> ids = Collections.singletonList("deploymentId1");
@@ -126,7 +110,6 @@ public class DeploymentRestServiceAsyncDeleteTest extends AbstractRestServiceTes
     verify(mockRepositoryService, times(1)).deleteDeploymentsAsync(ids, null, true, false, false);
   }
 
-  // TESTDOC: TEST: Flag "skipCustomListeners" wird korrekt als 4. Parameter (=true) durchgereicht.
   @Test
   public void shouldDeleteAsyncWithSkipCustomListeners() {
     List<String> ids = Collections.singletonList("deploymentId1");
@@ -144,7 +127,6 @@ public class DeploymentRestServiceAsyncDeleteTest extends AbstractRestServiceTes
     verify(mockRepositoryService, times(1)).deleteDeploymentsAsync(ids, null, false, true, false);
   }
 
-  // TESTDOC: TEST: Flag "skipIoMappings" wird korrekt als 5. Parameter (=true) durchgereicht.
   @Test
   public void shouldDeleteAsyncWithSkipIoMappings() {
     List<String> ids = Collections.singletonList("deploymentId1");
@@ -162,9 +144,6 @@ public class DeploymentRestServiceAsyncDeleteTest extends AbstractRestServiceTes
     verify(mockRepositoryService, times(1)).deleteDeploymentsAsync(ids, null, false, false, true);
   }
 
-  // TESTDOC: TEST: Auswahl per Query statt per Ids. Der Body enthaelt ein (leeres) deploymentQuery-Objekt.
-  // TESTDOC: Die REST-Schicht wandelt dieses DTO in eine DeploymentQuery um; erwartet wird daher ein
-  // TESTDOC: Aufruf mit Ids=null und einer NICHT-null DeploymentQuery.
   @Test
   public void shouldDeleteAsyncWithQuery() {
     Map<String, Object> body = new HashMap<>();
@@ -176,13 +155,11 @@ public class DeploymentRestServiceAsyncDeleteTest extends AbstractRestServiceTes
         .statusCode(Status.OK.getStatusCode())
         .when().post(DELETE_ASYNC_URL);
 
-    // query is resolved to a (non-null) DeploymentQuery, ids are absent
+    // the query dto is resolved to a (non-null) DeploymentQuery, ids are absent
     verify(mockRepositoryService, times(1))
         .deleteDeploymentsAsync(eq(null), any(DeploymentQuery.class), eq(false), eq(false), eq(false));
   }
 
-  // TESTDOC: TEST (Fehlerfall): Wirft der Service eine BadUserRequestException (z. B. leere Auswahl),
-  // TESTDOC: muss die REST-Schicht dies in HTTP 400 (Bad Request) uebersetzen.
   @Test
   public void shouldReturnBadRequestOnEmptySelection() {
     doThrow(new BadUserRequestException("deploymentIds is empty"))

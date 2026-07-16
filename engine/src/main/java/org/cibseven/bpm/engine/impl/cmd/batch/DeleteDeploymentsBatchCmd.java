@@ -22,6 +22,8 @@ import org.cibseven.bpm.engine.batch.Batch;
 import org.cibseven.bpm.engine.history.UserOperationLogEntry;
 import org.cibseven.bpm.engine.impl.DeploymentQueryImpl;
 import org.cibseven.bpm.engine.impl.batch.BatchConfiguration;
+import org.cibseven.bpm.engine.impl.batch.DeploymentMapping;
+import org.cibseven.bpm.engine.impl.batch.DeploymentMappings;
 import org.cibseven.bpm.engine.impl.batch.builder.BatchBuilder;
 import org.cibseven.bpm.engine.impl.batch.deletion.DeleteDeploymentBatchConfiguration;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
@@ -100,6 +102,10 @@ public class DeleteDeploymentsBatchCmd implements Command<Batch> {
   }
 
   public BatchConfiguration getConfiguration(List<String> ids) {
-    return new DeleteDeploymentBatchConfiguration(ids, cascade, skipCustomListeners, skipIoMappings);
+    // each id maps to its own deployment, so batch execution jobs are only acquired
+    // by nodes that have the respective deployment registered (deployment-aware job executor)
+    DeploymentMappings mappings = new DeploymentMappings();
+    ids.forEach(id -> mappings.add(new DeploymentMapping(id, 1)));
+    return new DeleteDeploymentBatchConfiguration(ids, mappings, cascade, skipCustomListeners, skipIoMappings);
   }
 }

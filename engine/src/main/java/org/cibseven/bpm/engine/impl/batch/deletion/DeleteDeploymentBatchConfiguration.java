@@ -18,6 +18,7 @@ package org.cibseven.bpm.engine.impl.batch.deletion;
 
 import java.util.List;
 import org.cibseven.bpm.engine.impl.batch.BatchConfiguration;
+import org.cibseven.bpm.engine.impl.batch.DeploymentMappings;
 
 public class DeleteDeploymentBatchConfiguration extends BatchConfiguration {
 
@@ -27,7 +28,12 @@ public class DeleteDeploymentBatchConfiguration extends BatchConfiguration {
 
   public DeleteDeploymentBatchConfiguration(List<String> ids, boolean cascade,
       boolean skipCustomListeners, boolean skipIoMappings) {
-    super(ids);
+    this(ids, null, cascade, skipCustomListeners, skipIoMappings);
+  }
+
+  public DeleteDeploymentBatchConfiguration(List<String> ids, DeploymentMappings mappings,
+      boolean cascade, boolean skipCustomListeners, boolean skipIoMappings) {
+    super(ids, mappings);
     this.cascade = cascade;
     this.skipCustomListeners = skipCustomListeners;
     this.skipIoMappings = skipIoMappings;

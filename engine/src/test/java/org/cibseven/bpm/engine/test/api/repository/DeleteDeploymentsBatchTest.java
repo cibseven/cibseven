@@ -49,23 +49,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 
-// TESTDOC: -------------------------------------------------------------------------------------
-// TESTDOC: Engine-Integrationstest (End-to-End) fuer die asynchrone Batch-Loeschung von Deployments
-// TESTDOC: (Ticket CIB7-1597). Getestet wird die komplette Kette:
-// TESTDOC:   RepositoryService.deleteDeploymentsAsync(...)  -> DeleteDeploymentsBatchCmd
-// TESTDOC:     -> BatchBuilder (legt Batch + Seed-Job an)   -> DeleteDeploymentsJobHandler
-// TESTDOC:       -> DeleteDeploymentCmd (loescht je Deployment)
-// TESTDOC: Anders als der REST-Test (der die Engine mockt) laeuft hier eine echte Engine mit
-// TESTDOC: H2-DB; die Batch-Jobs werden real ueber den ManagementService ausgefuehrt.
-// TESTDOC: -------------------------------------------------------------------------------------
+/**
+ * Tests the asynchronous deletion of deployments via batch (CIB7-1597):
+ * {@code RepositoryService#deleteDeploymentsAsync} -> {@code DeleteDeploymentsBatchCmd}
+ * -> {@code DeleteDeploymentsJobHandler} -> {@code DeleteDeploymentCmd} per deployment.
+ */
 public class DeleteDeploymentsBatchTest {
 
-  // TESTDOC: Echte (In-Memory-)Prozess-Engine fuer den Test. ProvidedProcessEngineRule stellt die
-  // TESTDOC: gemeinsam genutzte Test-Engine bereit; ProcessEngineTestRule liefert Test-Hilfsmethoden.
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  // TESTDOC: RuleChain stellt die Reihenfolge sicher: erst engineRule (Engine starten), dann testRule.
   @Rule
   public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
@@ -75,13 +68,9 @@ public class DeleteDeploymentsBatchTest {
   protected HistoryService historyService;
   protected IdentityService identityService;
 
-  // TESTDOC: Merkt sich die Default-Konfiguration bzw. alle im Test angelegten Deployment-Ids,
-  // TESTDOC: damit tearDown() sauber aufraeumen kann.
   protected int defaultInvocationsPerBatchJob;
   protected final List<String> createdDeploymentIds = new ArrayList<>();
 
-  // TESTDOC: setUp(): laeuft vor JEDER Testmethode. Holt die benoetigten Engine-Services und
-  // TESTDOC: sichert den Ausgangswert von invocationsPerBatchJob (den ein Test veraendert).
   @Before
   public void setUp() {
     repositoryService = engineRule.getRepositoryService();
@@ -92,12 +81,6 @@ public class DeleteDeploymentsBatchTest {
     defaultInvocationsPerBatchJob = engineRule.getProcessEngineConfiguration().getInvocationsPerBatchJob();
   }
 
-  // TESTDOC: tearDown(): laeuft nach JEDER Testmethode. KEIN Test, sondern reines Aufraeumen, damit
-  // TESTDOC: sich Zustand nicht in andere Tests der gemeinsam genutzten Engine "verleckt":
-  // TESTDOC:   - evtl. gesetzten angemeldeten Benutzer zuruecksetzen
-  // TESTDOC:   - invocationsPerBatchJob auf den Originalwert zuruecksetzen
-  // TESTDOC:   - alle (laufenden) Batches + deren HistoricBatch-Eintraege entfernen
-  // TESTDOC:   - alle noch existierenden, im Test angelegten Deployments entfernen
   @After
   public void tearDown() {
     identityService.clearAuthentication();
@@ -119,10 +102,7 @@ public class DeleteDeploymentsBatchTest {
 
   // ---------------------------------------------------------------- helpers
 
-  // TESTDOC: deploy(): Hilfsmethode (kein Test). Legt ein Deployment mit genau einem ausfuehrbaren
-  // TESTDOC: Prozess (Start -> UserTask -> Ende) an und merkt sich dessen Id fuer die Aufraeum-Phase.
-  // TESTDOC: Der UserTask sorgt dafuer, dass gestartete Instanzen "haengen bleiben" (fuer den Cascade-Test).
-  // TESTDOC: 'source' erlaubt es, Deployments spaeter per Query gezielt zu selektieren.
+  /** Deploys a one-task process; the user task keeps started instances alive for cascade tests. */
   protected String deploy(String processKey, String source) {
     BpmnModelInstance model = Bpmn.createExecutableProcess(processKey)
         .startEvent()
@@ -140,27 +120,13 @@ public class DeleteDeploymentsBatchTest {
     return deployment.getId();
   }
 
-  // TESTDOC: deploymentExists(): prueft, ob ein Deployment mit der gegebenen Id noch in der DB liegt.
   protected boolean deploymentExists(String deploymentId) {
     return repositoryService.createDeploymentQuery().deploymentId(deploymentId).count() > 0;
   }
 
-  // TESTDOC: executeBatch(): fuehrt einen Batch vollstaendig aus (simuliert den Job-Executor):
-  // TESTDOC:   1) alle Seed-Jobs ausfuehren -> diese erzeugen die eigentlichen Ausfuehrungs-Jobs
-  // TESTDOC:   2) Ausfuehrungs-Jobs (batchJobDefinitionId) ausfuehren, dabei die Liste nach jeder Runde
-  // TESTDOC:      neu abfragen und wiederholen, bis keine mehr uebrig sind. Das ist robust, falls ein
-  // TESTDOC:      Job weitere Jobs erzeugen/veraendern wuerde, verkraftet mehrere Jobs pro Runde (bei
-  // TESTDOC:      invocationsPerBatchJob=1 entsteht ein Job je Deployment) und entspricht dem Vorgehen
-  // TESTDOC:      des engine-eigenen BatchHelper.completeExecutionJobs(). Ein einmaliges list() waere
-  // TESTDOC:      hier fragil; ein singleResult() wuerde bei >1 Job sogar eine Exception werfen.
   protected void executeBatch(Batch batch) {
-    // run all seed jobs -> creates the execution jobs
-    Job seedJob = getSeedJob(batch);
-    while (seedJob != null) {
-      managementService.executeJob(seedJob.getId());
-      seedJob = getSeedJob(batch);
-    }
-    // run execution jobs, re-querying until none remain -> perform the actual deletions
+    executeSeedJobs(batch);
+    // re-query after each round in case jobs create follow-up jobs
     List<Job> executionJobs;
     while (!(executionJobs = managementService.createJobQuery()
         .jobDefinitionId(batch.getBatchJobDefinitionId()).list()).isEmpty()) {
@@ -170,16 +136,21 @@ public class DeleteDeploymentsBatchTest {
     }
   }
 
-  // TESTDOC: getSeedJob(): liefert den (aktuell offenen) Seed-Job des Batches oder null.
+  /** Runs all seed jobs, creating the execution jobs; each seed run handles one deployment mapping. */
+  protected void executeSeedJobs(Batch batch) {
+    Job seedJob = getSeedJob(batch);
+    while (seedJob != null) {
+      managementService.executeJob(seedJob.getId());
+      seedJob = getSeedJob(batch);
+    }
+  }
+
   protected Job getSeedJob(Batch batch) {
     return managementService.createJobQuery().jobDefinitionId(batch.getSeedJobDefinitionId()).singleResult();
   }
 
   // ---------------------------------------------------------------- creation
 
-  // TESTDOC: TEST: Batch-Erstellung setzt den korrekten Batch-Typ und die richtige Anzahl Jobs.
-  // TESTDOC: Erwartung: Typ == "deployment-deletion"; bei 2 Deployments und Default
-  // TESTDOC: invocationsPerBatchJob (=1) entstehen genau 2 Jobs. Es wird NICHT ausgefuehrt.
   @Test
   public void shouldCreateBatchWithCorrectType() {
     String d1 = deploy("process1", "src");
@@ -192,8 +163,6 @@ public class DeleteDeploymentsBatchTest {
     assertThat(batch.getTotalJobs()).isEqualTo(2);
   }
 
-  // TESTDOC: TEST: Zu einem erstellten Batch existiert ein passender HistoricBatch-Eintrag
-  // TESTDOC: (Grundlage fuer das Monitoring der Batch-Operation im Cockpit).
   @Test
   public void shouldCreateHistoricBatch() {
     String d1 = deploy("process1", "src");
@@ -205,10 +174,8 @@ public class DeleteDeploymentsBatchTest {
     assertThat(historicBatch.getType()).isEqualTo(Batch.TYPE_DEPLOYMENT_DELETION);
   }
 
-  // TESTDOC: TEST: Die Konfiguration invocationsPerBatchJob steuert die Job-Aufteilung.
-  // TESTDOC: Mit invocationsPerBatchJob=2 und 3 Deployments erwarten wir ceil(3/2)=2 Ausfuehrungs-Jobs.
   @Test
-  public void shouldRespectInvocationsPerBatchJob() {
+  public void shouldCreateOneExecutionJobPerDeployment() {
     engineRule.getProcessEngineConfiguration().setInvocationsPerBatchJob(2);
     String d1 = deploy("process1", "src");
     String d2 = deploy("process2", "src");
@@ -216,14 +183,37 @@ public class DeleteDeploymentsBatchTest {
 
     Batch batch = repositoryService.deleteDeploymentsAsync(Arrays.asList(d1, d2, d3), null, false, false, false);
 
-    // ceil(3 / 2) = 2 execution jobs
+    // estimate at creation time: ceil(3 / 2) = 2
     assertThat(batch.getTotalJobs()).isEqualTo(2);
+
+    executeSeedJobs(batch);
+
+    // the per-deployment id mappings put every deployment into its own execution job,
+    // so invocationsPerBatchJob cannot group deployments here
+    List<Job> executionJobs = managementService.createJobQuery()
+        .jobDefinitionId(batch.getBatchJobDefinitionId()).list();
+    assertThat(executionJobs).hasSize(3);
+  }
+
+  @Test
+  public void shouldSetDeploymentIdOnExecutionJobs() {
+    String d1 = deploy("process1", "src");
+    String d2 = deploy("process2", "src");
+
+    Batch batch = repositoryService.deleteDeploymentsAsync(Arrays.asList(d1, d2), null, false, false, false);
+    executeSeedJobs(batch);
+
+    // a deployment-aware job executor must only acquire these jobs on nodes
+    // that have the respective deployment registered
+    List<Job> executionJobs = managementService.createJobQuery()
+        .jobDefinitionId(batch.getBatchJobDefinitionId()).list();
+    assertThat(executionJobs)
+        .extracting(Job::getDeploymentId)
+        .containsExactlyInAnyOrder(d1, d2);
   }
 
   // ---------------------------------------------------------------- deletion
 
-  // TESTDOC: TEST (Happy Path per Ids): explizit uebergebene Deployment-Ids werden nach vollstaendiger
-  // TESTDOC: Batch-Ausfuehrung tatsaechlich aus der DB geloescht.
   @Test
   public void shouldDeleteDeploymentsByIds() {
     String d1 = deploy("process1", "src");
@@ -236,8 +226,6 @@ public class DeleteDeploymentsBatchTest {
     assertThat(deploymentExists(d2)).isFalse();
   }
 
-  // TESTDOC: TEST (Happy Path per Query): Statt Ids wird eine DeploymentQuery uebergeben (hier: nach
-  // TESTDOC: 'source'). Alle von der Query getroffenen Deployments werden geloescht.
   @Test
   public void shouldDeleteDeploymentsByQuery() {
     String source = "query-only-source";
@@ -252,9 +240,6 @@ public class DeleteDeploymentsBatchTest {
     assertThat(deploymentExists(d2)).isFalse();
   }
 
-  // TESTDOC: TEST (Ids + Query kombiniert, mit Dedup): d1 wird SOWOHL explizit als Id ALS AUCH ueber die
-  // TESTDOC: Query geliefert. Erwartung: d1 wird nur EINMAL verarbeitet -> totalJobs == 2 (nicht 3),
-  // TESTDOC: und am Ende sind beide Deployments geloescht.
   @Test
   public void shouldMergeIdsAndQueryAndDeduplicate() {
     String source = "merge-source";
@@ -274,7 +259,6 @@ public class DeleteDeploymentsBatchTest {
     assertThat(deploymentExists(d2)).isFalse();
   }
 
-  // TESTDOC: TEST (Dedup innerhalb der Id-Liste): dieselbe Id doppelt uebergeben -> nur 1 Job.
   @Test
   public void shouldDeduplicateDuplicateExplicitIds() {
     String d1 = deploy("process1", "src");
@@ -287,12 +271,6 @@ public class DeleteDeploymentsBatchTest {
     assertThat(deploymentExists(d1)).isFalse();
   }
 
-  // TESTDOC: TEST (cascade=true): Ein Deployment mit einer laufenden Prozessinstanz wird geloescht.
-  // TESTDOC: Ohne cascade wuerde die Loeschung an der laufenden Instanz scheitern; mit cascade=true
-  // TESTDOC: werden Instanz UND Deployment entfernt. Erwartung: das Deployment ist weg und es gibt
-  // TESTDOC: keine laufende Instanz MEHR ZU DIESEM Prozess (per processDefinitionKey eingeschraenkt,
-  // TESTDOC: damit wirklich unsere Instanz geprueft wird und nicht nur "irgendeine" - robust gegen
-  // TESTDOC: evtl. Instanzen anderer Tests auf der gemeinsam genutzten Engine).
   @Test
   public void shouldCascadeDeleteRunningInstances() {
     String d1 = deploy("process1", "src");
@@ -307,14 +285,7 @@ public class DeleteDeploymentsBatchTest {
     assertThat(runtimeService.createProcessInstanceQuery().processDefinitionKey("process1").count()).isZero();
   }
 
-  // TESTDOC: TEST (cascade=true, HISTORY-Semantik): Ergaenzt den vorigen Test um die Pruefung der
-  // TESTDOC: HISTORISCHEN Daten. Wichtige Camunda-Frage: Runtime geloescht - History behalten oder
-  // TESTDOC: auch loeschen? Am Code bestaetigt (DeploymentManager-Kommentar: "cascade true deletes the
-  // TESTDOC: history and process instances"; DeleteProcessDefinitionsByIdsCmd mit cascadeToHistory=true):
-  // TESTDOC: bei cascade=true wird die History MIT geloescht, also NICHT behalten.
-  // TESTDOC: Vorher: HistoricProcessInstance (==1) und HistoricActivityInstance (>0) sind vorhanden.
-  // TESTDOC: Nachher: beide sind 0. HistoricActivityInstanceQuery kennt kein processDefinitionKey,
-  // TESTDOC: daher wird vor dem Loeschen die processDefinitionId abgegriffen. Braucht History-Level FULL.
+  /** With cascade=true the history of the deleted instances is removed as well, not kept. */
   @Test
   @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
   public void shouldCascadeAlsoDeleteHistory() {
@@ -333,7 +304,6 @@ public class DeleteDeploymentsBatchTest {
         Collections.singletonList(d1), null, true, false, false);
     executeBatch(batch);
 
-    // cascade=true also removes the history (it is not kept)
     assertThat(historyService.createHistoricProcessInstanceQuery()
         .processDefinitionKey("process1").count()).isZero();
     assertThat(historyService.createHistoricActivityInstanceQuery()
@@ -342,7 +312,6 @@ public class DeleteDeploymentsBatchTest {
 
   // ---------------------------------------------------------------- edge cases
 
-  // TESTDOC: TEST (Edge Case): weder Ids noch Query angegeben -> BadUserRequestException (kein leerer Batch).
   @Test
   public void shouldThrowWhenNeitherIdsNorQueryProvided() {
     assertThatThrownBy(() -> repositoryService.deleteDeploymentsAsync(null, null, false, false, false))
@@ -350,7 +319,6 @@ public class DeleteDeploymentsBatchTest {
         .hasMessageContaining("deploymentIds");
   }
 
-  // TESTDOC: TEST (Edge Case): leere Id-Liste und keine Query -> BadUserRequestException.
   @Test
   public void shouldThrowWhenEmptyIdListProvided() {
     assertThatThrownBy(
@@ -358,8 +326,6 @@ public class DeleteDeploymentsBatchTest {
         .isInstanceOf(BadUserRequestException.class);
   }
 
-  // TESTDOC: TEST (Edge Case): Query liefert keine Treffer -> BadUserRequestException
-  // TESTDOC: (es gibt nichts zu loeschen, also wird kein Batch erzeugt).
   @Test
   public void shouldThrowWhenQueryMatchesNothing() {
     assertThatThrownBy(() -> repositoryService.deleteDeploymentsAsync(
@@ -369,12 +335,6 @@ public class DeleteDeploymentsBatchTest {
 
   // ---------------------------------------------------------------- operation log
 
-  // TESTDOC: TEST (Audit-Log): Die Batch-Erstellung schreibt einen User-Operation-Log-Eintrag der
-  // TESTDOC: Kategorie DEPLOYMENT (nicht Prozessinstanz!) mit Operation "Delete".
-  // TESTDOC: Geprueft: Property "nrOfDeployments" == Anzahl der Deployments (hier "2"),
-  // TESTDOC: Kategorie == Operator, und Property "async" == "true".
-  // TESTDOC: Voraussetzung: History-Level FULL (@RequiredHistoryLevel) + angemeldeter Benutzer,
-  // TESTDOC: sonst wird kein Operation-Log geschrieben.
   @Test
   @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
   public void shouldWriteDeploymentOperationLog() {
