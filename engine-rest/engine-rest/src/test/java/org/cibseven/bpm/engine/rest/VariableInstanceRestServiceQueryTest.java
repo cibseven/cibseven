@@ -200,6 +200,16 @@ public class VariableInstanceRestServiceQueryTest extends AbstractRestServiceTes
   @Test
   public void testSortingParameters() {
     InOrder inOrder = Mockito.inOrder(mockedQuery);
+    executeAndVerifySorting("variableId", "asc", Status.OK);
+    inOrder.verify(mockedQuery).orderByVariableId();
+    inOrder.verify(mockedQuery).asc();
+
+    inOrder = Mockito.inOrder(mockedQuery);
+    executeAndVerifySorting("variableId", "desc", Status.OK);
+    inOrder.verify(mockedQuery).orderByVariableId();
+    inOrder.verify(mockedQuery).desc();
+
+    inOrder = Mockito.inOrder(mockedQuery);
     executeAndVerifySorting("variableName", "asc", Status.OK);
     inOrder.verify(mockedQuery).orderByVariableName();
     inOrder.verify(mockedQuery).asc();

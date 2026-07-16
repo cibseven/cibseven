@@ -54,9 +54,15 @@ pipeline {
         )
 
         booleanParam(
-            name: 'SAST',
-            defaultValue: true,
-            description: "  └─ 🛡️ Static Application Security Testing with Dependency-Track (🕒 10-11 minutes). Runs only for 'main' branch. See output at https://dependencytrack.cib.de/projects?searchText=seven"
+            name: 'SAST_DEPENDENCY_TRACK',
+            defaultValue: false,
+            description: "  └─ 🛡️ Static Application Security Testing with Dependency-Track (🕒 10-11 minutes). Runs only for 'main' branch."
+        )
+
+        booleanParam(
+            name: 'SAST_SONARQUBE',
+            defaultValue: false,
+            description: "  └─ 🛡️ Static Application Security Testing with SonarQube (🕒 13-15 minutes). See output at https://sonarqube.cib.de/dashboard?id=org.cibseven.bpm%3Acibseven-bpm"
         )
 
         booleanParam(
@@ -84,6 +90,8 @@ pipeline {
         booleanParam(name: 'QA_ROLL_UPD', defaultValue: false, description: "  └─ Rolling Update")
         booleanParam(name: 'QA_INST_MIGR', defaultValue: false, description: "  └─ Instance Migration\n\n")
 
+        booleanParam(name: 'ATTACH_QA_PERF_REPORTS', defaultValue: false, description: "  └─ Attach QA perfromance reports to Artifacts\n\n")
+
         booleanParam(name: 'DEPLOY_TO_ARTIFACTS', defaultValue: false, description: "  └─ 📦 Deploy to artifacts")
         booleanParam(name: 'DEPLOY_TO_MAVEN_CENTRAL', defaultValue: false, description: "  └─ 📤 Deploy to Maven Central\n\n")
 
@@ -94,7 +102,7 @@ pipeline {
     environment {
         MAVEN_LOCAL_REPO = getLocalJobRepo(env.JOB_NAME, params.USE_PRIVATE_REPO)
         // set bigger timeout to get rid of the maven issue with file locks: https://github.com/apache/maven/issues/9049
-        MAVEN_LOCAL_REPO_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
+        MAVEN_LOCAL_REPO_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO} -Daether.syncContext.named.time=120"
         // set maven options only if params.USE_PRIVATE_REPO is true, otherwise use shared repo as usual
         MAVEN_OPTS = "${params.USE_PRIVATE_REPO == true ? env.MAVEN_LOCAL_REPO_OPTS : ""}"
     }
@@ -297,21 +305,27 @@ pipeline {
                     steps {
                         script {
                             withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }
-                            sh "mkdir ./qa/performance-tests-engine/target/perf_benchmark; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_benchmark/"
-                            zip zipFile: 'perf_benchmark.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_benchmark'
-                            archiveArtifacts artifacts: 'perf_benchmark.zip', fingerprint: true
+                            if (params.ATTACH_QA_PERF_REPORTS == true) {
+                                sh "mkdir ./qa/performance-tests-engine/target/perf_benchmark; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_benchmark/"
+                                zip zipFile: 'perf_benchmark.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_benchmark'
+                                archiveArtifacts artifacts: 'perf_benchmark.zip', fingerprint: true
+                            }
                         }
                         script {
                             withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Psql-statementlog,h2" }
-                            sh "mkdir ./qa/performance-tests-engine/target/perf_sql_statementlog; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_sql_statementlog/"
-                            zip zipFile: 'perf_sql_statementlog.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_sql_statementlog'
-                            archiveArtifacts artifacts: 'perf_sql_statementlog.zip', fingerprint: true
+                            if (params.ATTACH_QA_PERF_REPORTS == true) {
+                                sh "mkdir ./qa/performance-tests-engine/target/perf_sql_statementlog; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_sql_statementlog/"
+                                zip zipFile: 'perf_sql_statementlog.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_sql_statementlog'
+                                archiveArtifacts artifacts: 'perf_sql_statementlog.zip', fingerprint: true
+	                        }
                         }
                         script {
                             withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pactivity-count,h2 -DwatchActivities=start,timer,end -Dtest=AsyncStartAndTimerPerformanceTest" }
-                            sh "mkdir ./qa/performance-tests-engine/target/perf_activity_count; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_activity_count/"
-                            zip zipFile: 'perf_activity_count.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_activity_count'
-                            archiveArtifacts artifacts: 'perf_activity_count.zip', fingerprint: true
+                            if (params.ATTACH_QA_PERF_REPORTS == true) {
+                                sh "mkdir ./qa/performance-tests-engine/target/perf_activity_count; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_activity_count/"
+                                zip zipFile: 'perf_activity_count.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_activity_count'
+                                archiveArtifacts artifacts: 'perf_activity_count.zip', fingerprint: true
+                            }
                         }
                     }
                 }
@@ -411,7 +425,6 @@ pipeline {
             steps {
                 script {
                     junit allowEmptyResults: true, testResults: ConstantsInternal.MAVEN_TEST_RESULTS
-                    archiveArtifacts artifacts: ConstantsInternal.MAVEN_TEST_RESULTS, allowEmptyArchive: true, fingerprint: true
                 }
             }
         }
@@ -423,6 +436,10 @@ pipeline {
                     allOf {
                         branch 'main'
                         expression { mavenProjectInformation.version.endsWith("-SNAPSHOT") == true }
+                        anyOf {
+                            expression { params.BUILD_FEATURE_BRANCH == true }
+                            expression { params.VERIFY == true }
+                        }
                     }
                     // force deploy
                     allOf {
@@ -484,45 +501,88 @@ pipeline {
             }
         }
 
-        stage('OWASP Dependency-Track') {
-            when {
-                allOf {
-                    branch 'main'
-                    expression { params.SAST == true }
-                }
-            }
-            steps {
-                script {
-                    withMaven() {
-                        sh """
-                            mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
-                                -Dlicense.skipDownloadLicenses=true \
-                                -Dmaven.test.skip \
-                                -DskipTests
-                        """
+        stage('SAST') {
+            stages {
+                stage('SonarQube') {
+                    when {
+                        expression { params.SAST_SONARQUBE }
                     }
+                    steps {
+                        script {
+                            withSonarQubeEnv(
+                                credentialsId: Constants.SONARQUBE_CREDENTIALS_ID,
+                                installationName: 'SonarQube'
+                            ) {
+                                withMaven() {
+                                    sh """
+                                        mvn -f ${pipelineParams.pom} \
+                                            package sonar:sonar \
+                                            -V -U -T4 \
+                                            -Pwebapps-integration \
+                                            -Dmaven.test.skip=true \
+                                            -Dlicense.skipDownloadLicenses=true \
+                                            -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json \
+                                            -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html
+                                    """
+                                }
+                            }
 
-                    withCredentials([string(credentialsId: Constants.DEPENDENCY_TRACK_CREDENTIALS_ID, variable: 'API_KEY')]) {
-                        dependencyTrackPublisher(
-                            autoCreateProjects: true,
-                            artifact: 'target/bom.xml',
-                            projectName: mavenProjectInformation.artifactId,
-                            projectVersion: mavenProjectInformation.version,
-                            projectProperties: [
-                                description: mavenProjectInformation.description,
-                                group: mavenProjectInformation.groupId,
-                                tags: ['maven'],
-                                isLatest: true
-                            ],
-                            synchronous: pipelineParams.dependencyTrackSynchronous,
-                            failOnViolationFail: false,
-                            dependencyTrackApiKey: API_KEY
-                        )
+                            timeout(time: 5, unit: 'MINUTES') {
+                                def qg = waitForQualityGate()
+
+                                if (qg.status != 'OK') {
+                                    echo "WARNING: Pipeline unstable due to quality gate failure: ${qg.status}"
+                                    currentBuild.result = 'UNSTABLE'
+                                }
+                            }
+                        }
+                    }
+                }
+
+                stage('OWASP Dependency-Track') {
+                    when {
+                        allOf {
+                            branch 'main'
+                            expression { params.SAST_DEPENDENCY_TRACK }
+                        }
+                    }
+                    steps {
+                        script {
+                            withMaven() {
+                                sh """
+                                    mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
+                                        -Dlicense.skipDownloadLicenses=true \
+                                        -Dmaven.test.skip=true
+                                """
+                            }
+
+                            withCredentials([
+                                string(
+                                    credentialsId: Constants.DEPENDENCY_TRACK_CREDENTIALS_ID,
+                                    variable: 'API_KEY'
+                                )
+                            ]) {
+                                dependencyTrackPublisher(
+                                    autoCreateProjects: true,
+                                    artifact: 'target/bom.xml',
+                                    projectName: mavenProjectInformation.artifactId,
+                                    projectVersion: mavenProjectInformation.version,
+                                    projectProperties: [
+                                        description: mavenProjectInformation.description,
+                                        group      : mavenProjectInformation.groupId,
+                                        tags       : ['maven'],
+                                        isLatest   : true
+                                    ],
+                                    synchronous: pipelineParams.dependencyTrackSynchronous,
+                                    failOnViolationFail: false,
+                                    dependencyTrackApiKey: API_KEY
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
-
 
         stage('Documentation, OpenAPI') {
             when {
@@ -668,6 +728,9 @@ def isSNAPSHOTVersion() {
 // - "1.2.3-SNAPSHOT"
 def getDocsVersion() {
     List version = mavenProjectInformation.version.tokenize('.')
+    if (isPatchVersion()) {
+        return "${version[0]}.${version[1]}-ee"
+    }
     return "${version[0]}.${version[1]}"
 }
 
