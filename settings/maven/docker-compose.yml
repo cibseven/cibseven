@@ -1,0 +1,90 @@
+services:
+
+  postgresql:
+    image: postgres:18
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: process-engine
+      POSTGRES_USER: camunda
+      POSTGRES_PASSWORD: camunda
+    volumes:
+      - postgresql-data:/var/lib/postgresql
+
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: process-engine
+      MYSQL_USER: camunda
+      MYSQL_PASSWORD: camunda
+      MYSQL_ROOT_PASSWORD: camunda
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  mariadb:
+    image: mariadb:11.8
+    ports:
+      - "3307:3306"
+    environment:
+      MARIADB_DATABASE: process-engine
+      MARIADB_USER: camunda
+      MARIADB_PASSWORD: camunda
+      MARIADB_ROOT_PASSWORD: camunda
+    volumes:
+      - mariadb-data:/var/lib/mysql
+
+  oracle:
+    image: gvenzl/oracle-free:23-slim-faststart
+    ports:
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD: camunda
+      APP_USER: camunda
+      APP_USER_PASSWORD: camunda
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Camunda-BPM123"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+      - ./init-mssql.sql:/init-mssql.sql:ro
+    entrypoint:
+      - bash
+      - -c
+      - |
+        /opt/mssql/bin/sqlservr &
+        SQLPID=$$!
+        for i in $$(seq 1 30); do
+          sleep 2
+          /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Camunda-BPM123" -C -Q "SELECT 1" > /dev/null 2>&1 && break
+        done
+        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Camunda-BPM123" -C -i /init-mssql.sql
+        wait $$SQLPID
+
+  db2:
+    image: icr.io/db2_community/db2:11.5.9.0
+    privileged: true
+    ports:
+      - "50000:50000"
+    environment:
+      LICENSE: accept
+      DB2INST1_PASSWORD: camunda
+      DBNAME: engine
+    volumes:
+      - db2-data:/database
+
+volumes:
+  postgresql-data:
+  mysql-data:
+  mariadb-data:
+  oracle-data:
+  sqlserver-data:
+  db2-data:

@@ -25,6 +25,32 @@ import org.jboss.shrinkwrap.resolver.api.maven.strategy.RejectDependenciesStrate
 
 public abstract class AbstractDeploymentHelper {
 
+  /**
+   * On CI (Jenkins), the local Maven repository is redirected via -Dmaven.repo.local in MAVEN_OPTS.
+   * Surefire forks a new JVM that inherits MAVEN_OPTS as an environment variable but does NOT
+   * parse it into JVM system properties. ShrinkWrap's offline resolver checks the system property,
+   * so it falls back to ~/.m2/repository and can't find SNAPSHOT artifacts.
+   */
+  static {
+    String mavenOpts = System.getenv("MAVEN_OPTS");
+    if (mavenOpts != null) {
+      String prefix = "-Dmaven.repo.local=";
+      int idx = mavenOpts.indexOf(prefix);
+      if (idx >= 0) {
+        String rest = mavenOpts.substring(idx + prefix.length());
+        int end = rest.indexOf(' ');
+        String repoPath = (end >= 0) ? rest.substring(0, end) : rest;
+        // reject paths containing whitespace, quotes, or backslashes
+        if (repoPath.matches(".*[\\s'\"\\\\].*")) {
+          throw new RuntimeException("maven.repo.local path contains unsupported characters: " + repoPath);
+        }
+        if (!repoPath.isEmpty()) {
+          System.setProperty("maven.repo.local", repoPath);
+        }
+      }
+    }
+  }
+
   protected static JavaArchive CACHED_CLIENT_ASSET;
   protected static JavaArchive CACHED_ENGINE_CDI_ASSET;
   protected static JavaArchive[] CACHED_WELD_ASSETS;

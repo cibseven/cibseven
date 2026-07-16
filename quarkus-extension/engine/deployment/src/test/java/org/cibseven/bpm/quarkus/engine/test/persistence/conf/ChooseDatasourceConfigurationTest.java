@@ -35,7 +35,7 @@ public class ChooseDatasourceConfigurationTest {
   @RegisterExtension
   static QuarkusUnitTest unitTest = new ProcessEngineAwareExtension()
       .withConfigurationResource("org/cibseven/bpm/quarkus/engine/test/persistence/conf/multiple-datasources-application.properties")
-      .overrideConfigKey("quarkus.camunda.datasource", "secondary")
+      .overrideConfigKey("quarkus.cibseven.datasource", "secondary")
       .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class));
 
   @Inject

@@ -639,6 +639,13 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
    */
   protected boolean standaloneTasksEnabled = true;
 
+  /**
+   * When set to true, the engine will validate that the TASK_ID_ referenced
+   * by a variable exists in ACT_RU_TASK before inserting the variable into ACT_RU_VARIABLE.
+   * This prevents orphaned task variable references.
+   */
+  protected boolean checkVariableTaskId = false;
+
   protected boolean enableGracefulDegradationOnContextSwitchFailure = true;
 
   protected BusinessCalendarManager businessCalendarManager;
@@ -699,6 +706,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   protected boolean isDbIdentityUsed = true;
   protected boolean isDbHistoryUsed = true;
+  protected boolean modelerEnabled = true;
 
   protected DelegateInterceptor delegateInterceptor;
 
@@ -1072,6 +1080,12 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
    * This has been patched up to fetch the correct counter value.
    */
   protected boolean legacyJobRetryBehaviorEnabled = false;
+  
+  /**
+   * This property extends https://jira.camunda.com/browse/CAM-5364 performance fix 
+   * Defines min number of groups when a pre-scan of the act_ru_auth table is enabled
+   */
+  protected int authGroupFilterThreshold = 0;
 
   /**
    * @return {@code true} if the exception code feature is disabled and vice-versa.
@@ -2061,6 +2075,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     dbSqlSessionFactory.setDbHistoryUsed(isDbHistoryUsed);
     dbSqlSessionFactory.setCmmnEnabled(cmmnEnabled);
     dbSqlSessionFactory.setDmnEnabled(dmnEnabled);
+    dbSqlSessionFactory.setModelerEnabled(modelerEnabled);
     dbSqlSessionFactory.setDatabaseTablePrefix(databaseTablePrefix);
 
     //hack for the case when schema is defined via databaseTablePrefix parameter and not via databaseSchema parameter
@@ -3780,6 +3795,14 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     this.isDbHistoryUsed = isDbHistoryUsed;
   }
 
+  public boolean isModelerEnabled() {
+    return modelerEnabled;
+  }
+
+  public void setModelerEnabled(boolean modelerEnabled) {
+    this.modelerEnabled = modelerEnabled;
+  }
+
   public List<ResolverFactory> getResolverFactories() {
     return resolverFactories;
   }
@@ -4307,6 +4330,15 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public ProcessEngineConfigurationImpl setStandaloneTasksEnabled(boolean standaloneTasksEnabled) {
     this.standaloneTasksEnabled = standaloneTasksEnabled;
+    return this;
+  }
+
+  public boolean isCheckVariableTaskId() {
+    return checkVariableTaskId;
+  }
+
+  public ProcessEngineConfigurationImpl setCheckVariableTaskId(boolean checkVariableTaskId) {
+    this.checkVariableTaskId = checkVariableTaskId;
     return this;
   }
 
@@ -5384,6 +5416,15 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   
   public ProcessEngineConfiguration setLegacyJobRetryBehaviorEnabled(boolean legacyJobRetryBehaviorEnabled) {
     this.legacyJobRetryBehaviorEnabled = legacyJobRetryBehaviorEnabled;
+    return this;
+  }
+  
+  public int getAuthGroupFilterThreshold() {
+    return authGroupFilterThreshold;
+  }
+  
+  public ProcessEngineConfiguration setAuthGroupFilterThreshold(int authGroupFilterThreshold) {
+    this.authGroupFilterThreshold = authGroupFilterThreshold;
     return this;
   }
 }

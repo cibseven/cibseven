@@ -38,6 +38,7 @@ import org.cibseven.bpm.engine.rest.IdentityRestService;
 import org.cibseven.bpm.engine.rest.IncidentRestService;
 import org.cibseven.bpm.engine.rest.JobDefinitionRestService;
 import org.cibseven.bpm.engine.rest.JobRestService;
+import org.cibseven.bpm.engine.rest.LicenseRestService;
 import org.cibseven.bpm.engine.rest.MessageRestService;
 import org.cibseven.bpm.engine.rest.MetricsRestService;
 import org.cibseven.bpm.engine.rest.MigrationRestService;
@@ -215,6 +216,11 @@ public class DefaultProcessEngineRestServiceImpl extends AbstractProcessEngineRe
     return super.getVersionRestService(null);
   }
 
+  @Path(ConfigurationRestService.PATH)
+  public ConfigurationRestService getConfigurationRestService() {
+    return super.getConfigurationRestService(null);
+  }
+
   @Path(SchemaLogRestService.PATH)
   public SchemaLogRestService getSchemaLogRestService() {
     return super.getSchemaLogRestService(null);
@@ -233,6 +239,11 @@ public class DefaultProcessEngineRestServiceImpl extends AbstractProcessEngineRe
   @Path(SetupRestService.PATH)
   public SetupRestService getSetupRestService() {
     return super.getSetupRestService(null);
+  }
+
+  @Path(LicenseRestService.PATH)
+  public LicenseRestService getLicenseRestService() {
+    return super.getLicenseRestService(null);
   }
 
   @Override

@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-database-settings</artifactId>
-    <version>2.2.0-SNAPSHOT</version>
+    <version>2.3.0-SNAPSHOT</version>
     <relativePath>../../database</relativePath>
   </parent>
 
@@ -97,8 +97,17 @@
         <module>modules/oauth2</module>
         <module>modules/example</module>
         <module>modules/webapps</module>
+        <module>modules/ai-agent</module>
+        <module>modules/http-client</module>
+        <module>modules/soap-http-client</module>
         <module>core</module>
         <module>assembly</module>
+        <module>qa</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>integration-test-run</id>
+      <modules>
         <module>qa</module>
       </modules>
     </profile>

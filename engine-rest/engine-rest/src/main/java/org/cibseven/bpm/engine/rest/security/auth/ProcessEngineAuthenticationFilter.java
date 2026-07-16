@@ -70,10 +70,16 @@ public class ProcessEngineAuthenticationFilter implements Filter {
   // regexes for urls that may be accessed unauthorized
   protected static final Pattern[] WHITE_LISTED_URL_PATTERNS = new Pattern[] {
     Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/?"),
+    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/setup/status$"),
+    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/setup/user/create$"),
     Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/identity/verify$"),
-    Pattern.compile("^\\/setup\\/status$"),
-    Pattern.compile("^\\/setup\\/user\\/create$"),
-    Pattern.compile("^/identity/verify$")
+    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/identity/password-policy$"),
+    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/configuration$"),
+    Pattern.compile("^/configuration$"),
+    Pattern.compile("^/setup/status$"),
+    Pattern.compile("^/setup/user/create$"),
+    Pattern.compile("^/identity/verify$"),
+    Pattern.compile("^/identity/password-policy$")
   };
 
   protected static final Pattern ENGINE_REQUEST_URL_PATTERN = Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/(.*?)(/|$)");
@@ -155,7 +161,11 @@ public class ProcessEngineAuthenticationFilter implements Filter {
         String authenticatedUser = authenticationResult.getAuthenticatedUser();
         List<String> groups = authenticationResult.getGroups();
         List<String> tenants = authenticationResult.getTenants();
-        setAuthenticatedUser(engine, authenticatedUser, groups, tenants);
+
+        if (authenticatedUser != null) {
+          setAuthenticatedUser(engine, authenticatedUser, groups, tenants);
+        }
+
         chain.doFilter(request, response);
       } finally {
         clearAuthentication(engine);

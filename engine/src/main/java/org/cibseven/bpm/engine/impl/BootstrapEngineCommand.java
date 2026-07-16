@@ -159,8 +159,10 @@ public class BootstrapEngineCommand implements ProcessEngineBootstrapCommand {
     String licenseKey = managementService.getLicenseKey();
     if (licenseKey != null) {
       LicenseKeyDataImpl licenseKeyData = LicenseKeyDataImpl.fromRawString(licenseKey);
-      managementService.setLicenseKeyForDiagnostics(licenseKeyData);
-      telemetryData.getProduct().getInternals().setLicenseKey(licenseKeyData);
+      if (licenseKeyData != null) {
+        managementService.setLicenseKeyForDiagnostics(licenseKeyData);
+        telemetryData.getProduct().getInternals().setLicenseKey(licenseKeyData);
+	  }
     }
   }
 

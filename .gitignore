@@ -25,3 +25,5 @@ camunda-h2-dbs
 
 *.DS_Store
 .vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json

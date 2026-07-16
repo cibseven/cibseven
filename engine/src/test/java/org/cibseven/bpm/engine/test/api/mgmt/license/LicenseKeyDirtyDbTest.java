@@ -48,7 +48,7 @@ public class LicenseKeyDirtyDbTest {
     processEngine = engineRule.getProcessEngine();
     processEngineConfiguration = (ProcessEngineConfigurationImpl) processEngine.getProcessEngineConfiguration();
     managementService = processEngine.getManagementService();
-    managementService.setLicenseKey("license");
+    managementService.setLicenseKey("{\"customer\":\"testCompany\"}");
   }
 
   @AfterClass

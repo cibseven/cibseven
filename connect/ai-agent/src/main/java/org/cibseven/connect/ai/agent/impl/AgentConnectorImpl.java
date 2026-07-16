@@ -1,0 +1,1209 @@
+/*
+ * Copyright CIB software GmbH and/or licensed to CIB software GmbH
+ * under one or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information regarding copyright
+ * ownership. CIB software licenses this file to you under the Apache License,
+ * Version 2.0; you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+package org.cibseven.connect.ai.agent.impl;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.cibseven.bpm.BpmPlatform;
+import org.cibseven.bpm.engine.ProcessEngine;
+import org.cibseven.bpm.engine.history.HistoricProcessInstance;
+import org.cibseven.bpm.engine.identity.Group;
+import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
+import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.identity.Authentication;
+import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+
+import dev.langchain4j.agent.tool.Tool;
+import dev.langchain4j.agent.tool.ToolSpecification;
+import dev.langchain4j.data.document.Metadata;
+import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.rag.content.Content;
+import dev.langchain4j.rag.content.ContentMetadata;
+import dev.langchain4j.mcp.McpToolProvider;
+import dev.langchain4j.mcp.client.DefaultMcpClient;
+import dev.langchain4j.mcp.client.McpClient;
+import dev.langchain4j.mcp.client.transport.http.StreamableHttpMcpTransport;
+import dev.langchain4j.memory.chat.ChatMemoryProvider;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
+import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
+import dev.langchain4j.model.openai.OpenAiResponsesChatModel;
+import dev.langchain4j.rag.content.retriever.ContentRetriever;
+import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
+import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.MemoryId;
+import dev.langchain4j.service.Result;
+import dev.langchain4j.service.UserMessage;
+import dev.langchain4j.service.tool.ToolExecution;
+import dev.langchain4j.service.tool.ToolProvider;
+import dev.langchain4j.store.embedding.EmbeddingStore;
+import dev.langchain4j.store.embedding.pgvector.PgVectorEmbeddingStore;
+
+import org.cibseven.connect.ai.agent.AgentConnector;
+import org.cibseven.connect.ai.agent.AgentConnectorConstants;
+import org.cibseven.connect.ai.agent.AgentRequest;
+import org.cibseven.connect.ai.agent.AgentResponse;
+import org.cibseven.connect.impl.AbstractConnector;
+
+/**
+ * Core implementation of the LangChain4j agent connector.
+ *
+ * <h3>Execution flow per invocation:</h3>
+ * <ol>
+ *   <li>Instantiate any tool objects listed in {@code toolClasses} (fail fast before network I/O).</li>
+ *   <li>Resolve the OpenAI-compatible API key from the request parameter or
+ *       the {@code OPENAI_API_KEY} environment variable.</li>
+ *   <li>Resolve the base URL from the request parameter, the {@code OPENAI_BASE_URL}
+ *       environment variable, or {@link AgentConnectorConstants#DEFAULT_BASE_URL}.</li>
+ *   <li>Build an {@link OpenAiChatModel} from the request parameters.</li>
+ *   <li>Create a stateless {@link AiServices} proxy and invoke it with the user message.</li>
+ *   <li>Return an {@link AgentResponse} containing the output text and a correlation UUID.</li>
+ * </ol>
+ */
+public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentResponse>
+    implements AgentConnector {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AgentConnectorImpl.class);
+
+  /**
+   * Internal AI service interface used for stateless invocations.
+   *
+   * <p>{@link AiServices} rejects {@link MemoryId} parameters unless a
+   * {@link ChatMemoryProvider} is registered, so two flavors of the interface
+   * are needed: this one without memory and {@link LangChainMemoryAgent} with.
+   */
+  interface LangChainAgent {
+    Result<String> chat(@UserMessage String message);
+  }
+
+  /**
+   * Internal AI service interface used when chat memory is active. The
+   * {@link MemoryId} value is what {@link ChatMemoryProvider} uses to look up
+   * (or create) the {@code MessageWindowChatMemory} bound to this conversation.
+   */
+  interface LangChainMemoryAgent {
+    Result<String> chat(@MemoryId Object memoryId, @UserMessage String message);
+  }
+
+  public AgentConnectorImpl() {
+    super(AgentConnector.ID);
+  }
+
+  @Override
+  public AgentRequest createRequest() {
+    return new AgentRequestImpl(this);
+  }
+
+  @Override
+  public AgentResponse execute(AgentRequest request) {
+    List<Object> tools = resolveToolInstances(request);
+    String apiKey = resolveApiKey(request);
+    String baseUrl = resolveBaseUrl(request);
+    Map<String, String> customHeaders = parseCustomHeaders(request.getCustomHeaders());
+
+    // Forward the engine reference and the caller's engine authentication to
+    // any @Tool that needs them (e.g. ProcessStarterTool). The engine is
+    // captured here, on the connector's calling thread, because the same
+    // BpmPlatform lookup may return null on a LangChain4j worker thread.
+    // Authentication is forwarded so engine-level authorization checks run
+    // against the user that triggered the AI agent — not the worker thread.
+    //
+    // Must be set BEFORE createChatModel(): AgentChatListener reads the
+    // authentication in its constructor to capture userId / groupIds on every
+    // audit event (Art. 12 record-keeping).
+    ProcessEngine callerEngine = captureProcessEngine();
+    Authentication callerAuth = captureCallerAuthentication(callerEngine);
+    ProcessStarterToolContext.setEngine(callerEngine);
+    ProcessStarterToolContext.setAuthentication(callerAuth);
+    // MCP clients live for the duration of this single agent invocation. Declared
+    // out here (not inside the try) so the finally block can close them — without
+    // close() each DefaultMcpClient leaks its health-check scheduler thread and
+    // the HTTP transport for the JVM lifetime, which over many BPMN runs turns
+    // into a noisy burst of reconnect WARNs every time the MCP server restarts.
+    List<McpClient> mcpClients = new ArrayList<>();
+    try {
+      ChatModel chatModel = createChatModel(request, apiKey, baseUrl, customHeaders);
+
+      List<McpServerSpec> mcpServerSpecs = parseMcpServers(request.getMcpServers());
+      mcpClients = createMcpClients(request);
+
+      // Build the McpClient -> server-prefix map (e.g. {client0: "engine",
+      // client1: "krank"}). Used twice below: by the McpToolProvider's
+      // toolNameMapper to disambiguate tool names across servers (the LLM
+      // sees "engine__add_comment" vs "krank__add_comment" instead of two
+      // tools colliding on "add_comment"), and by buildToolProvenance so the
+      // audit log records server name + original tool name per call.
+      Map<McpClient, String> mcpClientPrefixes = new LinkedHashMap<>();
+      for (int i = 0; i < mcpClients.size() && i < mcpServerSpecs.size(); i++) {
+        mcpClientPrefixes.put(mcpClients.get(i),
+            resolveServerPrefix(mcpServerSpecs.get(i), i + 1));
+      }
+
+      // Now that local tools are resolved and MCP clients are built, publish
+      // the tool-name → provenance map to the listener installed by
+      // createChatModel. Stamped onto every event that lists tools or tool
+      // calls so MCP-sourced tools stay distinguishable from local @Tool
+      // Java implementations (EU AI Act Art. 26 data-flow disclosure).
+      AgentChatListener auditListener = ProcessStarterToolContext.getActiveListener();
+      if (auditListener != null) {
+        auditListener.setToolProvenance(
+            buildToolProvenance(tools, mcpClients, mcpServerSpecs, mcpClientPrefixes));
+      }
+
+      String memoryId = resolveMemoryId(request);
+
+      Class<?> agentClass = (memoryId != null) ? LangChainMemoryAgent.class : LangChainAgent.class;
+      AiServices<?> builder = AiServices.builder(agentClass)
+          .chatModel(chatModel)
+          .systemMessageProvider(chatMemoryId -> buildSystemPrompt(request));
+      if (!tools.isEmpty()) {
+        builder.tools(tools.toArray());
+      }
+      if (!mcpClients.isEmpty()) {
+        // Always prefix MCP tool names so cross-server name collisions can't
+        // throw IllegalConfigurationException at runtime — every MCP tool
+        // surfaces to the LLM as "<serverPrefix>__<originalToolName>".
+        // McpToolExecutor keeps the original name internally for routing the
+        // call back to the right McpClient, so execution is unaffected. Matches
+        // the convention used by Cursor / Cline / Claude Desktop / Continue.dev
+        // for the same problem.
+        ToolProvider mcpToolProvider = McpToolProvider.builder()
+            .mcpClients(mcpClients)
+            .toolNameMapper((client, spec) -> {
+              String prefix = mcpClientPrefixes.getOrDefault(client, "mcp");
+              return prefix + "__" + spec.name();
+            })
+            .build();
+        builder.toolProvider(mcpToolProvider);
+      }
+      if (memoryId != null) {
+        builder.chatMemoryProvider(createChatMemoryProvider(request));
+      }
+      ContentRetriever contentRetriever = createContentRetriever(request);
+      LOG.debug("contentRetriever: " + contentRetriever);
+      if (contentRetriever != null) {
+        builder.contentRetriever(contentRetriever);
+      }
+
+      Result<String> result;
+      if (memoryId != null) {
+        LangChainMemoryAgent agent = (LangChainMemoryAgent) builder.build();
+        result = agent.chat(memoryId, request.getMessage());
+      } else {
+        LangChainAgent agent = (LangChainAgent) builder.build();
+        result = agent.chat(request.getMessage());
+      }
+      String output = result.content();
+
+      for (ToolExecution exec : result.toolExecutions()) {
+        LOG.debug("Tool: {}, Args: {}, Result: {}",
+            exec.request().name(), exec.request().arguments(), exec.result());
+      }
+      LOG.debug("Total tokens: {}", result.tokenUsage());
+
+      Map<String, Object> aiMeta = buildOutputAiMeta();
+      return new AgentResponseImpl(output, memoryId, aiMeta);
+    } finally {
+      closeMcpClients(mcpClients);
+      ProcessStarterToolContext.clear();
+    }
+  }
+
+  /**
+   * Releases each {@link McpClient} we built for this agent invocation —
+   * shuts down its health-check scheduler thread and closes the underlying
+   * HTTP transport. Failures are swallowed at DEBUG so one bad client cannot
+   * leak the others. Without this, every BPMN agent task left a background
+   * scheduler running for the JVM lifetime.
+   */
+  private static void closeMcpClients(List<McpClient> clients) {
+    if (clients == null || clients.isEmpty()) {
+      return;
+    }
+    for (McpClient client : clients) {
+      if (client == null) continue;
+      try {
+        client.close();
+      } catch (Exception e) {
+        LOG.debug("MCP client close failed (key={}): {}",
+            safeClientKey(client), e.toString());
+      }
+    }
+  }
+
+  private static String safeClientKey(McpClient client) {
+    try {
+      return client.key();
+    } catch (Exception e) {
+      return "<unknown>";
+    }
+  }
+
+  /**
+   * Assembles the EU AI Act Art. 50(2) machine-readable AI-output marker from
+   * the {@link AgentChatListener} that observed the agent's final turn. Returns
+   * {@code null} when no listener is reachable (defensive — the listener is
+   * always installed by {@link #createChatModel}, so this only happens in
+   * heavily-stubbed test paths). Falls back gracefully when the listener saw
+   * the request but no response (e.g. a model error on the first turn): the
+   * marker still carries {@code aiGenerated}, {@code runId}, and
+   * {@code generatedAt}.
+   *
+   * <p>{@code generatedAt} reuses the timestamp the listener recorded on the
+   * final {@code response} audit event so it lines up byte-for-byte with that
+   * event — taking {@link Instant#now()} here would drift to a later wall
+   * clock because tool unwinding and AiServices proxy teardown happen between
+   * the response and this call.
+   */
+  private Map<String, Object> buildOutputAiMeta() {
+    AgentChatListener listener = ProcessStarterToolContext.getActiveListener();
+    if (listener == null) {
+      return null;
+    }
+    Map<String, Object> meta = new LinkedHashMap<>();
+    meta.put("aiGenerated", true);
+    meta.put("runId", listener.runId());
+    meta.putAll(listener.lastResponseIdentity());
+    String generatedAt = listener.lastResponseTimestamp();
+    meta.put("generatedAt", generatedAt != null ? generatedAt : Instant.now().toString());
+    return meta;
+  }
+
+  /**
+   * Resolves the {@link ProcessEngine} that invoked this connector.
+   *
+   * <p>Prefers the engine driving the current command — read from the
+   * engine's per-thread {@link Context} stack — so a connector wired to a
+   * non-default engine still gets the correct one. Falls back to
+   * {@link BpmPlatform#getDefaultProcessEngine()} when no command context is
+   * active (e.g. the connector is exercised from a non-engine thread or unit
+   * test). Returns {@code null} when neither is reachable. Failures are
+   * swallowed and logged at debug level.
+   */
+  private ProcessEngine captureProcessEngine() {
+    try {
+      ProcessEngineConfigurationImpl config = Context.getProcessEngineConfiguration();
+      if (config != null) {
+        ProcessEngine engine = config.getProcessEngine();
+        if (engine != null) {
+          LOG.debug("Resolved invoking engine '{}' from command context", engine.getName());
+          return engine;
+        }
+      }
+    } catch (Exception e) {
+      LOG.debug("Could not resolve engine from command context: {}", e.toString());
+    }
+    try {
+      ProcessEngine engine = BpmPlatform.getDefaultProcessEngine();
+      if (engine == null) {
+        LOG.debug("BpmPlatform.getDefaultProcessEngine() returned null on connector thread");
+      }
+      return engine;
+    } catch (Exception e) {
+      LOG.debug("No process engine reachable from connector thread: {}", e.toString());
+      return null;
+    }
+  }
+
+  /**
+   * Resolves the {@link Authentication} to forward to tool calls.
+   *
+   * <p>Tries two sources, in order:
+   * <ol>
+   *   <li>The current per-thread engine authentication, populated by an
+   *       interactive caller (e.g. REST request handler) — present when the
+   *       service task runs synchronously inside the starter's command.</li>
+   *   <li>The starter of the executing process instance — used when the
+   *       service task is async and the connector runs on a JobExecutor
+   *       thread, which carries no inherited authentication. Resolved via
+   *       {@code historicProcessInstance.getStartUserId()} for the BPMN
+   *       execution currently on the thread, plus the starter's group
+   *       memberships so authorization checks against group permissions
+   *       still pass.</li>
+   * </ol>
+   * Returns {@code null} when {@code engine} is null or neither source
+   * yields a user.
+   */
+  private Authentication captureCallerAuthentication(ProcessEngine engine) {
+    if (engine == null) {
+      return null;
+    }
+    try {
+      Authentication current = engine.getIdentityService().getCurrentAuthentication();
+      if (current != null) {
+        return current;
+      }
+    } catch (Exception e) {
+      LOG.debug("Could not read current authentication from IdentityService: {}", e.toString());
+    }
+    return deriveAuthenticationFromProcessInstance(engine);
+  }
+
+  /**
+   * Builds an {@link Authentication} from the start user of the BPMN process
+   * instance currently on the thread. Used as a fallback when no interactive
+   * authentication is available (typical for async service tasks executed by
+   * the JobExecutor). The returned {@code Authentication} carries the
+   * starter's userId, their group ids, and the process instance's tenantId
+   * (if any). Returns {@code null} when the executing BPMN context, the
+   * historic process instance record, or the start user cannot be resolved.
+   */
+  private Authentication deriveAuthenticationFromProcessInstance(ProcessEngine engine) {
+    String processInstanceId = null;
+    try {
+      BpmnExecutionContext executionContext = Context.getBpmnExecutionContext();
+      if (executionContext != null) {
+        ExecutionEntity execution = executionContext.getExecution();
+        if (execution != null) {
+          processInstanceId = execution.getProcessInstanceId();
+        }
+      }
+    } catch (Exception e) {
+      LOG.debug("Could not read BPMN execution context: {}", e.toString());
+    }
+    if (processInstanceId == null) {
+      LOG.debug("No BPMN execution context on thread; cannot derive authentication from process instance");
+      return null;
+    }
+    try {
+      HistoricProcessInstance hpi = engine.getHistoryService()
+          .createHistoricProcessInstanceQuery()
+          .processInstanceId(processInstanceId)
+          .singleResult();
+      if (hpi == null) {
+        LOG.debug("No historic process instance found for id '{}'", processInstanceId);
+        return null;
+      }
+      String startUserId = hpi.getStartUserId();
+      if (startUserId == null || startUserId.isEmpty()) {
+        LOG.debug("Process instance '{}' has no startUserId; leaving authentication null", processInstanceId);
+        return null;
+      }
+      List<String> groupIds = new ArrayList<>();
+      try {
+        for (Group g : engine.getIdentityService().createGroupQuery().groupMember(startUserId).list()) {
+          groupIds.add(g.getId());
+        }
+      } catch (Exception e) {
+        LOG.debug("Could not look up groups for user '{}': {}", startUserId, e.toString());
+      }
+      List<String> tenantIds = (hpi.getTenantId() != null) ? List.of(hpi.getTenantId()) : null;
+      LOG.debug("Derived authentication from process instance '{}': user='{}', groups={}, tenants={}",
+          processInstanceId, startUserId, groupIds, tenantIds);
+      return new Authentication(startUserId, groupIds, tenantIds);
+    } catch (Exception e) {
+      LOG.debug("Could not derive authentication from process instance '{}': {}",
+          processInstanceId, e.toString());
+      return null;
+    }
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  private String resolveBaseUrl(AgentRequest request) {
+    String url = request.getBaseUrl();
+    if (url != null && !url.isEmpty()) {
+      return url;
+    }
+    url = System.getenv(AgentConnectorConstants.ENV_BASE_URL);
+    if (url != null && !url.isEmpty()) {
+      return url;
+    }
+    return AgentConnectorConstants.DEFAULT_BASE_URL;
+  }
+
+  /**
+   * Resolves the chat-memory id for this invocation, or {@code null} when
+   * memory is disabled. When {@code useChatMemory} is active and no
+   * {@code memoryId} is supplied, a fresh UUID is generated so the caller can
+   * persist it (via the {@code memoryId} output parameter) and reuse it on
+   * subsequent invocations.
+   */
+  private String resolveMemoryId(AgentRequest request) {
+    if (!request.isUseChatMemory()) {
+      return null;
+    }
+    String id = request.getMemoryId();
+    if (id != null && !id.isEmpty()) {
+      return id;
+    }
+    String generated = UUID.randomUUID().toString();
+    LOG.debug("Generated new chat memory id: {}", generated);
+    return generated;
+  }
+
+  /**
+   * Factory method — builds the {@link ChatMemoryProvider} used when chat
+   * memory is active. Each provider call returns a {@link MessageWindowChatMemory}
+   * bound to the shared {@link AgentChatMemoryStore}, so memory survives between
+   * connector invocations within the same JVM.
+   */
+  protected ChatMemoryProvider createChatMemoryProvider(AgentRequest request) {
+    int maxMessages = request.getChatMemoryMaxMessages();
+    return memoryId -> MessageWindowChatMemory.builder()
+        .id(memoryId)
+        .maxMessages(maxMessages)
+        .chatMemoryStore(AgentChatMemoryStore.getStore())
+        .build();
+  }
+
+  private String resolveApiKey(AgentRequest request) {
+    String apiKey = request.getApiKey();
+    if (apiKey != null && !apiKey.isEmpty()) {
+      return apiKey;
+    }
+    apiKey = System.getenv("OPENAI_API_KEY");
+    if (apiKey != null && !apiKey.isEmpty()) {
+      return apiKey;
+    }
+    LOG.warn("No API key provided: set the OPENAI_API_KEY environment variable "
+        + "or supply the 'apiKey' request parameter (ignore if the target endpoint does not require one)");
+    return null;
+  }
+
+  private List<Object> resolveToolInstances(AgentRequest request) {
+    List<Object> toolInstances = new ArrayList<>();
+    String toolClasses = request.getToolClasses();
+    if (toolClasses == null || toolClasses.isEmpty()) {
+      return toolInstances;
+    }
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    for (String className : toolClasses.split(",")) {
+      className = className.trim();
+      if (className.isEmpty()) {
+        continue;
+      }
+      try {
+        Class<?> toolClass = Class.forName(className, true, classLoader);
+        toolInstances.add(toolClass.getDeclaredConstructor().newInstance());
+      } catch (ClassNotFoundException e) {
+        throw new AgentConnectorException(
+            "Could not load tool class '" + className + "'", e);
+      } catch (ReflectiveOperationException e) {
+        throw new AgentConnectorException(
+            "Could not instantiate tool class '" + className
+            + "': ensure it has a public no-arg constructor", e);
+      }
+    }
+    return toolInstances;
+  }
+
+  /**
+   * Classpath resource used as the system prompt when the caller does not
+   * supply {@code instruction}. See {@link AgentConnector#PARAM_NAME_INSTRUCTION}.
+   */
+  static final String DEFAULT_INSTRUCTION_RESOURCE =
+      "/org/cibseven/connect/ai/agent/default-instruction.txt";
+
+  /** Lazily loaded cache for {@link #DEFAULT_INSTRUCTION_RESOURCE}. */
+  private static volatile String defaultInstructionCache;
+
+  private String buildSystemPrompt(AgentRequest request) {
+    String description = request.getAgentDescription();
+    String callerInstruction = request.getInstruction();
+    String mode = request.getInstructionMode();
+    boolean hasCallerInstruction = callerInstruction != null && !callerInstruction.isEmpty();
+    LOG.debug("buildSystemPrompt: callerInstructionPresent={}, instructionMode={}, descriptionPresent={}",
+        hasCallerInstruction, mode, description != null && !description.isEmpty());
+
+    String instruction = combineWithDefault(callerInstruction, mode);
+
+    boolean hasDescription = description != null && !description.isEmpty();
+    boolean hasInstruction = instruction != null && !instruction.isEmpty();
+    LOG.debug("buildSystemPrompt: resolved instruction length={}, description length={}",
+        hasInstruction ? instruction.length() : 0,
+        hasDescription ? description.length() : 0);
+    if (hasDescription && hasInstruction) {
+      return description + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR + instruction;
+    }
+    return hasInstruction ? instruction : description;
+  }
+
+  /**
+   * Combines the caller-supplied {@code instruction} with the bundled default
+   * prompt according to {@code mode}. When the caller did not supply an
+   * instruction, the bundled default is returned regardless of the mode.
+   *
+   * @throws AgentConnectorException when {@code mode} is set to an unknown value
+   */
+  private String combineWithDefault(String callerInstruction, String mode) {
+    boolean hasCallerInstruction = callerInstruction != null && !callerInstruction.isEmpty();
+    if (!hasCallerInstruction) {
+      return loadDefaultInstruction();
+    }
+    switch (mode) {
+      case AgentConnectorConstants.INSTRUCTION_MODE_REPLACE:
+        return callerInstruction;
+      case AgentConnectorConstants.INSTRUCTION_MODE_APPEND: {
+        String defaultPrompt = loadDefaultInstruction();
+        return (defaultPrompt == null || defaultPrompt.isEmpty())
+            ? callerInstruction
+            : defaultPrompt + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR + callerInstruction;
+      }
+      case AgentConnectorConstants.INSTRUCTION_MODE_PREPEND: {
+        String defaultPrompt = loadDefaultInstruction();
+        return (defaultPrompt == null || defaultPrompt.isEmpty())
+            ? callerInstruction
+            : callerInstruction + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR + defaultPrompt;
+      }
+      default:
+        throw new AgentConnectorException("Unknown instructionMode '" + mode
+            + "'. Allowed values: "
+            + AgentConnectorConstants.INSTRUCTION_MODE_REPLACE + ", "
+            + AgentConnectorConstants.INSTRUCTION_MODE_APPEND + ", "
+            + AgentConnectorConstants.INSTRUCTION_MODE_PREPEND + ".");
+    }
+  }
+
+  /**
+   * Loads the bundled default system prompt from the classpath and caches it
+   * for subsequent invocations.
+   *
+   * <p>Returns {@code null} when the resource is missing or unreadable —
+   * the connector still runs without a system prompt in that case; the
+   * failure is logged at ERROR level.
+   */
+  static String loadDefaultInstruction() {
+    String cached = defaultInstructionCache;
+    if (cached != null) {
+      LOG.debug("loadDefaultInstruction: cache hit ({} chars)", cached.length());
+      return cached;
+    }
+
+    ClassLoader ownCl = AgentConnectorImpl.class.getClassLoader();
+    ClassLoader ctxCl = Thread.currentThread().getContextClassLoader();
+    LOG.debug("loadDefaultInstruction: cache miss, resource='{}', "
+        + "AgentConnectorImpl classLoader={}, contextClassLoader={}",
+        DEFAULT_INSTRUCTION_RESOURCE, ownCl, ctxCl);
+
+    java.net.URL url = AgentConnectorImpl.class.getResource(DEFAULT_INSTRUCTION_RESOURCE);
+    LOG.debug("loadDefaultInstruction: AgentConnectorImpl.class.getResource -> {}", url);
+
+    InputStream in = AgentConnectorImpl.class.getResourceAsStream(DEFAULT_INSTRUCTION_RESOURCE);
+    if (in == null && ctxCl != null) {
+      LOG.debug("loadDefaultInstruction: own classloader miss, retrying via contextClassLoader");
+      // contextClassLoader.getResource expects no leading slash
+      String name = DEFAULT_INSTRUCTION_RESOURCE.startsWith("/")
+          ? DEFAULT_INSTRUCTION_RESOURCE.substring(1)
+          : DEFAULT_INSTRUCTION_RESOURCE;
+      java.net.URL ctxUrl = ctxCl.getResource(name);
+      LOG.debug("loadDefaultInstruction: contextClassLoader.getResource('{}') -> {}", name, ctxUrl);
+      in = ctxCl.getResourceAsStream(name);
+    }
+
+    if (in == null) {
+      LOG.error("Default agent instruction resource not found on classpath: {} "
+          + "(own classloader={}, contextClassLoader={})",
+          DEFAULT_INSTRUCTION_RESOURCE, ownCl, ctxCl);
+      return null;
+    }
+
+    try (InputStream stream = in) {
+      cached = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+      defaultInstructionCache = cached;
+      LOG.debug("loadDefaultInstruction: loaded {} chars from {}",
+          cached.length(), DEFAULT_INSTRUCTION_RESOURCE);
+      return cached;
+    } catch (IOException e) {
+      LOG.error("Failed to read {} from classpath", DEFAULT_INSTRUCTION_RESOURCE, e);
+      return null;
+    }
+  }
+
+  /**
+   * Factory method — override in tests to inject stubbed MCP clients.
+   *
+   * <p>Builds one client per entry of the {@code mcpServers} JSON array.
+   * Returns an empty list when {@code mcpServers} is not configured.
+   */
+  protected List<McpClient> createMcpClients(AgentRequest request) {
+    List<McpClient> clients = new ArrayList<>();
+    for (McpServerSpec spec : parseMcpServers(request.getMcpServers())) {
+      clients.add(buildMcpClient(spec.url, spec.headers));
+    }
+    return clients;
+  }
+
+  /**
+   * Builds the tool-name → provenance descriptor map handed to
+   * {@link AgentChatListener#setToolProvenance(Map)} so the per-{@code runId}
+   * audit stream can disclose which MCP server (or local Java class) backed
+   * each tool the model could call. Closes the Art. 26 (deployer data-flow
+   * disclosure) gap surfaced as Gap 6 in CIB7-1361 round-2.
+   *
+   * <p>Map keys are the names the LLM actually sees on {@code tools[]} and
+   * {@code toolCalls[]}:
+   * <ul>
+   *   <li>Local {@code @Tool} instances → annotation name (or method name) as
+   *       registered with {@code AiServices.tools(...)}. Entry value:
+   *       {@code {kind: "local"}}.</li>
+   *   <li>MCP-sourced tools → {@code <serverPrefix>__<originalToolName>}
+   *       (the prefixed form produced by the
+   *       {@code McpToolProvider.toolNameMapper} wired in {@code execute}).
+   *       Entry value:
+   *       {@code {kind: "mcp", url, server, originalToolName}}, where
+   *       {@code server} is the deployer-supplied name or the URL slug, and
+   *       {@code originalToolName} is what the MCP server itself advertised.</li>
+   * </ul>
+   *
+   * <p>Cross-server name collisions are no longer possible at runtime — every
+   * MCP tool carries a per-server prefix, and local Java tools never carry
+   * one. A local tool that happens to share its plain name with an MCP tool's
+   * <em>original</em> name doesn't collide either, because the MCP tool's map
+   * key is the prefixed form. Failing {@code listTools()} on one MCP server
+   * is non-fatal: the other clients' tools are still attributed.
+   *
+   * @param localTools          {@code @Tool}-annotated instances handed to
+   *                            {@link AiServices#tools(Object...)}.
+   * @param mcpClients          MCP clients handed to {@link McpToolProvider}.
+   * @param mcpSpecs            parsed server specs (URL + name + headers),
+   *                            positionally aligned with {@code mcpClients}
+   *                            when both came from the same {@code mcpServers}
+   *                            request field. When sizes diverge (e.g. a test
+   *                            stub of {@link #createMcpClients}) the URL is
+   *                            recorded as {@code "unknown"} for the
+   *                            unmatched-tail clients.
+   * @param mcpClientPrefixes   the same per-client prefix map handed to
+   *                            {@link McpToolProvider.Builder#toolNameMapper};
+   *                            ensures the audit's keys match what the LLM
+   *                            actually saw. Missing entries fall back to
+   *                            {@code "mcp"} so a malformed configuration
+   *                            cannot lose attribution silently.
+   */
+  static Map<String, Map<String, Object>> buildToolProvenance(
+      List<Object> localTools,
+      List<McpClient> mcpClients,
+      List<McpServerSpec> mcpSpecs,
+      Map<McpClient, String> mcpClientPrefixes) {
+    Map<String, Map<String, Object>> provenance = new LinkedHashMap<>();
+
+    // 1) Local @Tool methods. Reflect over each instance's public methods.
+    for (Object tool : localTools) {
+      if (tool == null) continue;
+      for (Method method : tool.getClass().getMethods()) {
+        Tool annotation = method.getAnnotation(Tool.class);
+        if (annotation == null) continue;
+        String name = annotation.name();
+        if (name == null || name.isEmpty()) {
+          name = method.getName();
+        }
+        Map<String, Object> entry = new LinkedHashMap<>();
+        entry.put("kind", "local");
+        provenance.putIfAbsent(name, entry);
+      }
+    }
+
+    // 2) MCP-sourced tools — query each client for its tool list.
+    for (int i = 0; i < mcpClients.size(); i++) {
+      McpClient client = mcpClients.get(i);
+      String url = (i < mcpSpecs.size()) ? mcpSpecs.get(i).url : "unknown";
+      String prefix = mcpClientPrefixes != null
+          ? mcpClientPrefixes.getOrDefault(client, "mcp")
+          : "mcp";
+      List<ToolSpecification> specs;
+      try {
+        specs = client.listTools();
+      } catch (Exception e) {
+        // Non-fatal: matches McpToolProvider's failIfOneServerFails=false
+        // default. Tools from this server simply won't carry provenance.
+        LOG.warn("MCP server {} listTools() failed during provenance build — "
+            + "its tools will appear in the audit log without server attribution: {}",
+            url, e.toString());
+        continue;
+      }
+      if (specs == null) continue;
+      for (ToolSpecification spec : specs) {
+        String originalName = spec.name();
+        if (originalName == null || originalName.isEmpty()) continue;
+        String prefixedName = prefix + "__" + originalName;
+        Map<String, Object> entry = new LinkedHashMap<>();
+        entry.put("kind", "mcp");
+        entry.put("url", url);
+        entry.put("server", prefix);
+        entry.put("originalToolName", originalName);
+        provenance.put(prefixedName, entry);
+      }
+    }
+
+    return provenance;
+  }
+
+  /**
+   * Factory method for a single MCP client — override in tests to capture
+   * arguments and avoid opening a real transport connection.
+   */
+  protected McpClient buildMcpClient(String url, Map<String, String> headers) {
+    // Leave LangChain4j's logRequests/logResponses at their defaults (false).
+    // Turning them on emits every JSON-RPC frame at INFO via the MCP transport's
+    // internal logger, which floods the application log with health-check ping
+    // traffic. Operators can opt back in by setting the MCP transport logger
+    // level to DEBUG if they need it for connection diagnostics.
+    StreamableHttpMcpTransport.Builder transportBuilder = new StreamableHttpMcpTransport.Builder()
+        .url(url);
+    if (headers != null && !headers.isEmpty()) {
+      transportBuilder.customHeaders(headers);
+    }
+    // Disable LangChain4j's auto-health-check (default: 30s ping loop). The
+    // client lives for one synchronous agent.chat() call inside execute() and
+    // is closed in its finally block — a periodic background ping serves no
+    // purpose for that lifecycle and just turns server restarts into a burst
+    // of WARN-with-stack reconnect attempts.
+    return new DefaultMcpClient.Builder()
+        .transport(transportBuilder.build())
+        .autoHealthCheck(false)
+        .build();
+  }
+
+  /**
+   * Factory method — builds and returns a {@link ContentRetriever} backed by pgvector
+   * when {@code pgHost} is present in the request, or {@code null} to skip RAG entirely.
+   * Override in tests to inject a stubbed retriever.
+   *
+   * <p>The returned {@link ContentRetriever} wraps the underlying
+   * {@link EmbeddingStoreContentRetriever} to (a) keep the existing SLF4J
+   * logging and (b) emit a {@code type: "retrieval"} event into the
+   * {@link AgentChatListener} active on the calling thread (via
+   * {@link ProcessStarterToolContext#getActiveListener()}). The retrieval
+   * event carries the query, embedding-model identity, the pgvector store
+   * coordinates (host/port/database/table/dimension — never the password),
+   * the retrieval parameters ({@code maxResults}, {@code minScore}), and
+   * per-chunk {@code {score, content, length, metadata}} entries. Query and
+   * chunk text are run through {@link AgentChatListener#maybeRedact(String)}
+   * so they honour the same {@code redactContent} opt-in that chat events
+   * already respect. On failure the event carries {@code errorClass},
+   * {@code message}, and a short stack identical in shape to {@code onError}
+   * — see EU AI Act Art. 10 (data governance) / Art. 12 (record-keeping) /
+   * Art. 26 (deployer monitoring).
+   */
+  protected ContentRetriever createContentRetriever(AgentRequest request) {
+    String pgHost = request.getPgHost();
+    if (pgHost == null || pgHost.isEmpty()) {
+      LOG.debug("RAG not activated: pgHost not set");
+      return null;
+    }
+    final String pgPort = request.getPgPort();
+    final String pgDatabase = request.getPgDatabase();
+    final String table = request.getPgTable();
+    final int dimension = request.getEmbeddingDimension();
+    final int maxResults = request.getMaxRagResults();
+    final double minScore = request.getMinRagScore();
+    LOG.debug("RAG activated: host={}:{}, db={}, table={}, dimension={}, maxResults={}, minScore={}",
+        pgHost, pgPort, pgDatabase, table, dimension, maxResults, minScore);
+    final String embeddingModelName = request.getEmbeddingModelName();
+    final boolean localEmbedding = (embeddingModelName == null || embeddingModelName.isEmpty());
+    final Map<String, Object> embeddingDesc = new LinkedHashMap<>();
+    embeddingDesc.put("provider", localEmbedding ? "local" : "openai");
+    embeddingDesc.put("model", localEmbedding ? "AllMiniLmL6V2EmbeddingModel" : embeddingModelName);
+
+    final Map<String, Object> storeDesc = new LinkedHashMap<>();
+    storeDesc.put("kind", "pgvector");
+    storeDesc.put("host", pgHost);
+    storeDesc.put("port", pgPort);
+    storeDesc.put("database", pgDatabase);
+    storeDesc.put("table", table);
+    storeDesc.put("dimension", dimension);
+
+    final Map<String, Object> parameters = new LinkedHashMap<>();
+    parameters.put("maxResults", maxResults);
+    parameters.put("minScore", minScore);
+
+    EmbeddingModel embeddingModel = createEmbeddingModel(request);
+    EmbeddingStore<TextSegment> embeddingStore = createRagEmbeddingStore(request);
+    ContentRetriever delegate = EmbeddingStoreContentRetriever.builder()
+        .embeddingStore(embeddingStore)
+        .embeddingModel(embeddingModel)
+        .maxResults(maxResults)
+        .minScore(minScore)
+        .build();
+    return query -> {
+      long startNanos = System.nanoTime();
+      Map<String, Object> retrievalEvent = new LinkedHashMap<>();
+      retrievalEvent.put("query", AgentChatListener.maybeRedact(query.text()));
+      retrievalEvent.put("embeddingModel", embeddingDesc);
+      retrievalEvent.put("store", storeDesc);
+      retrievalEvent.put("parameters", parameters);
+      try {
+        List<Content> results = delegate.retrieve(query);
+        long durationMs = (System.nanoTime() - startNanos) / 1_000_000L;
+        retrievalEvent.put("resultCount", results.size());
+        retrievalEvent.put("results", describeRetrievalResults(results));
+        retrievalEvent.put("durationMs", durationMs);
+        if (results.isEmpty()) {
+          LOG.warn("RAG retrieved 0 results for query: \"{}\" (minScore={}, table={}). "
+              + "Consider lowering minRagScore or check that content was ingested.",
+              query.text(), minScore, table);
+        } else {
+          LOG.debug("RAG retrieved {} result(s) for query: \"{}\"", results.size(), query.text());
+          for (int i = 0; i < results.size(); i++) {
+            String preview = results.get(i).textSegment().text().replace('\n', ' ');
+            if (preview.length() > 120) preview = preview.substring(0, 120) + "…";
+            LOG.debug("  RAG context[{}]: {}", i, preview);
+          }
+        }
+        emitRetrievalEvent(retrievalEvent);
+        return results;
+      } catch (RuntimeException e) {
+        long durationMs = (System.nanoTime() - startNanos) / 1_000_000L;
+        retrievalEvent.put("durationMs", durationMs);
+        retrievalEvent.put("errorClass", e.getClass().getName());
+        retrievalEvent.put("message", e.getMessage());
+        retrievalEvent.put("stack", AgentChatListener.shortStack(e));
+        LOG.error("RAG retrieval failed for query: \"{}\" (table={}): {}",
+            query.text(), table, e.toString());
+        emitRetrievalEvent(retrievalEvent);
+        throw e;
+      }
+    };
+  }
+
+  /**
+   * Builds the per-chunk audit payload for a list of retrieved contents.
+   * Each entry carries the similarity score (when present), the chunk text
+   * (redacted under the existing {@code redactContent} opt-in), its length
+   * for after-the-fact size analysis, and any non-empty {@code TextSegment}
+   * metadata (typically source-doc identifiers, page numbers, etc. — not PII,
+   * so emitted unredacted).
+   */
+  private static List<Map<String, Object>> describeRetrievalResults(List<Content> results) {
+    List<Map<String, Object>> described = new ArrayList<>(results.size());
+    for (Content content : results) {
+      Map<String, Object> entry = new LinkedHashMap<>();
+      Map<ContentMetadata, Object> contentMeta = content.metadata();
+      if (contentMeta != null) {
+        Object score = contentMeta.get(ContentMetadata.SCORE);
+        if (score != null) {
+          entry.put("score", score);
+        }
+        Object embeddingId = contentMeta.get(ContentMetadata.EMBEDDING_ID);
+        if (embeddingId != null) {
+          entry.put("embeddingId", embeddingId);
+        }
+      }
+      TextSegment segment = content.textSegment();
+      if (segment != null) {
+        String text = segment.text();
+        if (text != null) {
+          entry.put("content", AgentChatListener.maybeRedact(text));
+          entry.put("length", text.length());
+        }
+        Metadata metadata = segment.metadata();
+        if (metadata != null) {
+          Map<String, Object> metaMap = metadata.toMap();
+          if (metaMap != null && !metaMap.isEmpty()) {
+            entry.put("metadata", metaMap);
+          }
+        }
+      }
+      described.add(entry);
+    }
+    return described;
+  }
+
+  private static void emitRetrievalEvent(Map<String, Object> payload) {
+    AgentChatListener listener = ProcessStarterToolContext.getActiveListener();
+    if (listener != null) {
+      listener.recordRetrievalEvent(payload);
+    }
+  }
+
+  /**
+   * Factory method — builds the pgvector embedding store used as the RAG
+   * backend. Override in tests to inject a stubbed store and avoid opening a
+   * real database connection.
+   */
+  protected EmbeddingStore<TextSegment> createRagEmbeddingStore(AgentRequest request) {
+    return PgVectorEmbeddingStore.builder()
+        .host(request.getPgHost())
+        .port(Integer.parseInt(request.getPgPort()))
+        .database(request.getPgDatabase())
+        .user(request.getPgUser())
+        .password(request.getPgPassword())
+        .table(request.getPgTable())
+        .dimension(request.getEmbeddingDimension())
+        .createTable(false)
+        .useIndex(true)
+        .indexListSize(100)
+        .build();
+  }
+
+  /**
+   * Factory method — override in tests to inject a stubbed embedding model.
+   * Uses {@code OpenAiEmbeddingModel} when {@code embeddingModelName} is set on the request,
+   * otherwise falls back to the local {@code AllMiniLmL6V2EmbeddingModel}.
+   */
+  protected EmbeddingModel createEmbeddingModel(AgentRequest request) {
+    String modelName = request.getEmbeddingModelName();
+    if (modelName != null && !modelName.isEmpty()) {
+      String apiKey = request.getApiKey();
+      if (apiKey == null || apiKey.isEmpty()) {
+        apiKey = System.getenv("OPENAI_API_KEY");
+      }
+      return OpenAiEmbeddingModel.builder()
+          .apiKey(apiKey)
+          .modelName(modelName)
+          .build();
+    }
+    return new AllMiniLmL6V2EmbeddingModel();
+  }
+
+  /**
+   * Factory method — override in tests to inject a stubbed chat model.
+   *
+   * <p>Selects the OpenAI Responses API ({@link OpenAiResponsesChatModel}) when
+   * {@code reasoningSummary} is set on the request — that field is only available
+   * on the Responses API. Otherwise builds the standard {@link OpenAiChatModel}.
+   * {@code reasoningEffort}, when present, is forwarded to whichever builder is used.
+   */
+  protected ChatModel createChatModel(AgentRequest request, String apiKey, String baseUrl,
+      Map<String, String> customHeaders) {
+    String modelName = request.getModel();
+    String reasoningEffort = request.getReasoningEffort();
+    String reasoningSummary = request.getReasoningSummary();
+    AgentChatListener listener =
+        new AgentChatListener(modelName, baseUrl, request.getPersistChatLog());
+    // Make the listener reachable to @Tool classes so they can publish
+    // side-effect audit records onto the in-flight model turn.
+    ProcessStarterToolContext.setActiveListener(listener);
+
+    if (reasoningSummary != null && !reasoningSummary.isEmpty()) {
+      if (customHeaders != null && !customHeaders.isEmpty()) {
+        LOG.warn("'customHeaders' is ignored when 'reasoningSummary' is set: "
+            + "the OpenAI Responses API builder does not yet expose customHeaders.");
+      }
+      OpenAiResponsesChatModel.Builder rb = OpenAiResponsesChatModel.builder()
+          .apiKey(apiKey)
+          .baseUrl(baseUrl)
+          .modelName(modelName)
+          .listeners(List.of(listener))
+          .reasoningSummary(reasoningSummary);
+      if (reasoningEffort != null && !reasoningEffort.isEmpty()) {
+        rb.reasoningEffort(reasoningEffort);
+      }
+      return rb.build();
+    }
+
+    OpenAiChatModel.OpenAiChatModelBuilder builder = OpenAiChatModel.builder()
+        .apiKey(apiKey)
+        .modelName(modelName)
+        .baseUrl(baseUrl)
+        .listeners(List.of(listener));
+        // 2026.03.18, Oleg: logXXX is not working here, somehow
+        /*
+        .logRequests(true)   // logs every request sent to the LLM
+        .logResponses(true)  // logs every response from the LLM
+        */
+    if (customHeaders != null && !customHeaders.isEmpty()) {
+      builder.customHeaders(customHeaders);
+    }
+    if (reasoningEffort != null && !reasoningEffort.isEmpty()) {
+      builder.reasoningEffort(reasoningEffort);
+    }
+    return builder.build();
+  }
+
+  /** Internal value object describing one MCP server entry. */
+  static final class McpServerSpec {
+    final String url;
+    final Map<String, String> headers;
+    /**
+     * Deployer-supplied prefix used to disambiguate tool names across MCP
+     * servers (e.g. {@code "engine"} → tool {@code add_comment} surfaces to the
+     * LLM as {@code engine__add_comment}). {@code null} when the element
+     * template entry omitted the {@code name} field — in that case
+     * {@link AgentConnectorImpl#resolveServerPrefix(McpServerSpec, int)}
+     * derives a stable slug from the URL host/port.
+     */
+    final String name;
+
+    McpServerSpec(String url, Map<String, String> headers) {
+      this(url, headers, null);
+    }
+
+    McpServerSpec(String url, Map<String, String> headers, String name) {
+      this.url = url;
+      this.headers = headers;
+      this.name = name;
+    }
+  }
+
+  /**
+   * Allowed character class for a deployer-supplied MCP server name. Matches
+   * what OpenAI / Anthropic accept for tool names ({@code [a-zA-Z0-9_-]});
+   * length capped at 32 so the {@code <name>__<originalToolName>} composite
+   * still fits the providers' 64-char tool-name limit.
+   */
+  private static final java.util.regex.Pattern MCP_SERVER_NAME_PATTERN =
+      java.util.regex.Pattern.compile("[a-zA-Z0-9_-]{1,32}");
+
+  private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+
+  /**
+   * Parses the {@code mcpServers} JSON array into a list of {@link McpServerSpec}.
+   * Returns an empty list when the input is null, blank, or an empty JSON array.
+   * Throws {@link AgentConnectorException} on malformed JSON, missing {@code url},
+   * or an invalid {@code name} (when present).
+   *
+   * <p>Accepted entry shape:
+   * <pre>{@code
+   * {"url": "http://localhost:8081/mcp", "name": "engine", "headers": {…}}
+   * }</pre>
+   * {@code name} and {@code headers} are optional. When {@code name} is omitted
+   * the connector derives a slug from the URL host/port at agent-build time.
+   */
+  static List<McpServerSpec> parseMcpServers(String raw) {
+    List<McpServerSpec> specs = new ArrayList<>();
+    if (raw == null || raw.isEmpty() || raw.trim().isEmpty()) {
+      return specs;
+    }
+    List<Map<String, Object>> entries;
+    try {
+      entries = JSON_MAPPER.readValue(raw, new TypeReference<List<Map<String, Object>>>() {});
+    } catch (Exception e) {
+      throw new AgentConnectorException(
+          "Could not parse 'mcpServers': expected a JSON array of {url, name?, headers?} objects", e);
+    }
+    for (int i = 0; i < entries.size(); i++) {
+      Map<String, Object> entry = entries.get(i);
+      Object urlValue = entry.get("url");
+      if (!(urlValue instanceof String) || ((String) urlValue).isEmpty()) {
+        throw new AgentConnectorException(
+            "mcpServers[" + i + "]: missing or empty 'url' field");
+      }
+      Map<String, String> headers = new LinkedHashMap<>();
+      Object headersValue = entry.get("headers");
+      if (headersValue instanceof Map) {
+        for (Map.Entry<?, ?> h : ((Map<?, ?>) headersValue).entrySet()) {
+          if (h.getKey() != null && h.getValue() != null) {
+            headers.put(h.getKey().toString(), h.getValue().toString());
+          }
+        }
+      } else if (headersValue != null) {
+        throw new AgentConnectorException(
+            "mcpServers[" + i + "].headers: expected an object of string→string pairs");
+      }
+      String name = null;
+      Object nameValue = entry.get("name");
+      if (nameValue != null) {
+        if (!(nameValue instanceof String) || ((String) nameValue).isEmpty()) {
+          throw new AgentConnectorException(
+              "mcpServers[" + i + "]: 'name' must be a non-empty string when present");
+        }
+        String candidate = (String) nameValue;
+        if (!MCP_SERVER_NAME_PATTERN.matcher(candidate).matches()) {
+          throw new AgentConnectorException(
+              "mcpServers[" + i + "].name '" + candidate + "' is invalid; "
+              + "allowed: 1-32 chars of [a-zA-Z0-9_-]");
+        }
+        name = candidate;
+      }
+      specs.add(new McpServerSpec((String) urlValue, headers, name));
+    }
+    return specs;
+  }
+
+  /**
+   * Returns the prefix to stamp on every MCP tool name from this server so the
+   * LLM sees {@code <prefix>__<originalToolName>}. Resolution order:
+   *
+   * <ol>
+   *   <li>The deployer-supplied {@link McpServerSpec#name}, when present.
+   *       Already validated against {@link #MCP_SERVER_NAME_PATTERN} at parse
+   *       time so we can trust it here.</li>
+   *   <li>A slug derived from the URL's host + port: lowercased, runs of any
+   *       non-{@code [a-zA-Z0-9]} replaced with {@code -}, leading/trailing
+   *       {@code -} trimmed. Stable across restarts.</li>
+   *   <li>{@code mcp<index>} (1-based) as a last-resort fallback when the URL
+   *       is unparseable. Index passed in so collisions between two equally
+   *       unparseable URLs are still avoided.</li>
+   * </ol>
+   *
+   * <p>Result is capped at 32 characters and is guaranteed to match
+   * {@link #MCP_SERVER_NAME_PATTERN}.
+   */
+  static String resolveServerPrefix(McpServerSpec spec, int oneBasedIndex) {
+    if (spec.name != null && !spec.name.isEmpty()) {
+      return spec.name;
+    }
+    try {
+      java.net.URI uri = java.net.URI.create(spec.url);
+      String host = uri.getHost();
+      if (host != null && !host.isEmpty()) {
+        int port = uri.getPort();
+        String raw = (port > 0) ? host + "-" + port : host;
+        String slug = raw.toLowerCase(java.util.Locale.ROOT)
+            .replaceAll("[^a-z0-9]+", "-")
+            .replaceAll("^-+|-+$", "");
+        if (!slug.isEmpty()) {
+          return slug.length() > 32 ? slug.substring(0, 32) : slug;
+        }
+      }
+    } catch (IllegalArgumentException ignored) {
+      // Fall through to indexed fallback.
+    }
+    return "mcp" + oneBasedIndex;
+  }
+
+  /**
+   * Parses a JSON object of {@code String} → {@code String} pairs into an ordered map.
+   * Returns an empty (mutable) map when the input is null or blank. Entries with a
+   * blank key or a {@code null} value are silently skipped; non-string values are
+   * coerced via {@link Object#toString()}.
+   * Throws {@link AgentConnectorException} when the input is not a valid JSON object.
+   */
+  static Map<String, String> parseCustomHeaders(String raw) {
+    Map<String, String> headers = new LinkedHashMap<>();
+    if (raw == null || raw.trim().isEmpty()) {
+      return headers;
+    }
+    Map<String, Object> entries;
+    try {
+      entries = JSON_MAPPER.readValue(raw, new TypeReference<Map<String, Object>>() {});
+    } catch (Exception e) {
+      throw new AgentConnectorException(
+          "Could not parse 'customHeaders': expected a JSON object of string→string pairs", e);
+    }
+    for (Map.Entry<String, Object> entry : entries.entrySet()) {
+      String key = entry.getKey().trim();
+      Object value = entry.getValue();
+      if (key.isEmpty() || value == null) {
+        continue;
+      }
+      headers.put(key, value.toString());
+    }
+    return headers;
+  }
+
+}

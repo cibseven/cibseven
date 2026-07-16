@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.cibseven.bpm.wildfly</groupId>
     <artifactId>cibseven-wildfly28</artifactId>
-    <version>2.2.0-SNAPSHOT</version>
+    <version>2.3.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cibseven-wildfly28-modules</artifactId>
@@ -12,7 +12,7 @@
   <name>CIB seven - Wildfly 28 Modules</name>
 
   <properties>
-    <org.jboss.shrinkwrap.resolver.version>1.0.0-beta-5</org.jboss.shrinkwrap.resolver.version>
+    <org.jboss.shrinkwrap.resolver.version>2.2.7</org.jboss.shrinkwrap.resolver.version>
     <!-- generate a bom of compile time dependencies for the license book.
     Note: Every compile time dependency will end up in the license book. Please
     declare only dependencies that are actually needed -->
@@ -45,6 +45,11 @@
     <dependency>
       <groupId>org.cibseven.bpm.identity</groupId>
       <artifactId>cibseven-identity-ldap</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.cibseven.bpm.identity</groupId>
+      <artifactId>cibseven-identity-scim</artifactId>
     </dependency>
 
     <dependency>
@@ -261,6 +266,20 @@
                     </chainedmapper>
                   </mapper>
                 </copy>
+
+                <!-- httpcore5-h2 along with httpcore5 -->
+                <copy todir="target/modules" flatten="false">
+                  <fileset dir="target/modules">
+                    <include name="org/apache/httpcomponents/core5/httpcore5-h2/main/*.jar"/>
+                  </fileset>
+                  <chainedmapper>
+                    <regexpmapper 
+                      from="^org/apache/httpcomponents/core5/httpcore5-h2/main/(.*)$$" 
+                      to="org/apache/httpcomponents/core5/httpcore5/main/\1" 
+                      handledirsep="yes" />
+                  </chainedmapper>
+                </copy>
+                <delete dir="target/modules/org/apache/httpcomponents/core5/httpcore5-h2" />
 
                 <!-- copy groovy dependencies to single dir -->
                 <delete dir="target/modules/org/apache/groovy" />

@@ -37,7 +37,8 @@ import org.junit.Test;
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class LicenseUserOperationLogTest {
 
-  private final static String LICENSE_KEY = "testLicenseKey";
+  private final static String LICENSE_KEY = "{\"customer\":\"testCompany\"}";
+  private final static String LICENSE_KEY_OLD = "{\"customer\":\"old testCompany\"}";
   private static final String USER_ID = "testUserId";
 
   @Rule
@@ -78,7 +79,7 @@ public class LicenseUserOperationLogTest {
   @Test
   public void shouldUpdateOperationLogWhenUpdateLicense() {
     // given
-    managementService.setLicenseKey("oldLicense");
+    managementService.setLicenseKey(LICENSE_KEY_OLD);
     identityService.setAuthenticatedUserId(USER_ID);
 
     // when
@@ -92,7 +93,7 @@ public class LicenseUserOperationLogTest {
   @Test
   public void shouldUpdateOperationLogWhenUpdateLegacyLicense() {
     // given legacy license
-    managementService.setProperty(LicenseCmd.LICENSE_KEY_PROPERTY_NAME, "oldLicense");
+    managementService.setProperty(LicenseCmd.LICENSE_KEY_PROPERTY_NAME, LICENSE_KEY_OLD);
     identityService.setAuthenticatedUserId(USER_ID);
     // when
     managementService.setLicenseKey(LICENSE_KEY);

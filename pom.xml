@@ -4,14 +4,14 @@
   <parent>
     <groupId>org.cibseven</groupId>
 	  <artifactId>release-parent</artifactId>
-	  <version>1.1.0</version>
+	  <version>1.4.0</version>
     <!-- do not remove empty tag - http://jira.codehaus.org/browse/MNG-4687 -->
     <relativePath />
   </parent>
 
   <groupId>org.cibseven.bpm</groupId>
   <artifactId>cibseven-root</artifactId>
-  <version>2.2.0-SNAPSHOT</version>
+  <version>2.3.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>CIB seven - Root Pom</name>
   <inceptionYear>2024</inceptionYear>
@@ -61,6 +61,7 @@
           any modules that have a dependency to the webapps. See also the referenced POMs,
           they usually define which modules are covered by the distro profile -->
         <module>spring-boot-starter</module>
+        <module>spring-boot-4-starter</module>
 
         <module>quarkus-extension</module>
 
@@ -102,6 +103,7 @@
         <module>distro/tomcat</module>
         <module>distro/sql-script</module>
         <module>distro/run</module>
+        <module>distro/run4</module>
 
         <module>clients/java</module>
 
@@ -181,7 +183,6 @@
         <module>javaee/ejb-client-jakarta</module>
         <module>distro/license-book</module>
         <module>distro/wildfly</module>
-        <module>distro/wildfly26</module>
         <module>distro/wildfly28</module>
       </modules>
     </profile>
@@ -203,6 +204,7 @@
       </activation>
       <modules>
         <module>distro/run</module>
+        <module>distro/run4</module>
       </modules>
     </profile>
 
@@ -236,6 +238,7 @@
       <id>sonatype-oss-release</id>
       <modules>
         <module>spring-boot-starter</module>
+        <module>spring-boot-4-starter</module>
         <module>quarkus-extension</module>
         <module>model-api</module>
 
@@ -286,7 +289,7 @@
     </profile>
 
   </profiles>
-  
+
   <repositories>
     <repository>
       <id>mvn-group</id>
@@ -296,7 +299,7 @@
       <url>https://artifacts.cibseven.org/repository/mvn-group</url>
     </repository>
   </repositories>
-  
+
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>

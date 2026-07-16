@@ -40,6 +40,7 @@ import org.cibseven.bpm.engine.rest.IdentityRestService;
 import org.cibseven.bpm.engine.rest.IncidentRestService;
 import org.cibseven.bpm.engine.rest.JobDefinitionRestService;
 import org.cibseven.bpm.engine.rest.JobRestService;
+import org.cibseven.bpm.engine.rest.LicenseRestService;
 import org.cibseven.bpm.engine.rest.MessageRestService;
 import org.cibseven.bpm.engine.rest.MetricsRestService;
 import org.cibseven.bpm.engine.rest.MigrationRestService;
@@ -294,6 +295,13 @@ public abstract class AbstractProcessEngineRestServiceImpl {
     return subResource;
   }
 
+  public ConfigurationRestService getConfigurationRestService(String engineName) {
+    String rootResourcePath = getRelativeEngineUri(engineName).toASCIIString();
+    ConfigurationRestService subResource = new ConfigurationRestService(engineName, getObjectMapper());
+    subResource.setRelativeRootResourceUri(rootResourcePath);
+    return subResource;
+  }
+
   public SchemaLogRestService getSchemaLogRestService(String engineName) {
     String rootResourcePath = getRelativeEngineUri(engineName).toASCIIString();
     SchemaLogRestServiceImpl subResource = new SchemaLogRestServiceImpl(engineName, getObjectMapper());
@@ -322,6 +330,12 @@ public abstract class AbstractProcessEngineRestServiceImpl {
     return subResource;
   }
 
+  public LicenseRestService getLicenseRestService(String engineName) {
+    String rootResourcePath = getRelativeEngineUri(engineName).toASCIIString();
+    LicenseRestServiceImpl subResource = new LicenseRestServiceImpl(engineName, getObjectMapper());
+    subResource.setRelativeRootResourceUri(rootResourcePath);
+    return subResource;
+  }
   protected abstract URI getRelativeEngineUri(String engineName);
 
   protected ObjectMapper getObjectMapper() {

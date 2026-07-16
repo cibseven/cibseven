@@ -13,10 +13,12 @@ import org.cibseven.bpm.spring.boot.starter.rest.CamundaBpmRestInitializer;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.OAuth2AuthenticationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
@@ -58,6 +60,7 @@ public class CamundaSpringSecurityOAuth2EngineAutoConfiguration {
   }
   
   @Bean
+  @ConditionalOnMissingBean(name = "engineRestAuthenticationFilter")
   public FilterRegistrationBean<?> engineRestAuthenticationFilter(JerseyApplicationPath applicationPath) {
     FilterRegistrationBean<Filter> filterRegistration = new FilterRegistrationBean<>();
     filterRegistration.setName("Container Based Authentication Filter for engine-rest");
@@ -73,6 +76,7 @@ public class CamundaSpringSecurityOAuth2EngineAutoConfiguration {
 
   @Bean
   @ConditionalOnProperty(name = "identity-provider.group-name-attribute", prefix = OAuth2Properties.PREFIX)
+  @ConditionalOnMissingBean(name = "oauth2JwtAuthenticationConverter")
   protected JwtAuthenticationConverter oauth2JwtAuthenticationConverter() {
       JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
       converter.setJwtGrantedAuthoritiesConverter((Converter<Jwt, Collection<GrantedAuthority>>) jwt -> {
@@ -111,9 +115,10 @@ public class CamundaSpringSecurityOAuth2EngineAutoConfiguration {
 
   @Bean
   @Order(1) 
+  @ConditionalOnMissingBean(name = "engineRestSecurityFilterChain")
   public SecurityFilterChain engineRestSecurityFilterChain(HttpSecurity http, 
           JerseyApplicationPath applicationPath,
-          @Nullable JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
+          @Nullable @Qualifier("oauth2JwtAuthenticationConverter") JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
 
     logger.info("Enabling Camunda Spring Security oauth2 integration for engine-rest");
     String engineRestPath = applicationPath.getPath();

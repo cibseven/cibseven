@@ -8,7 +8,7 @@
   <parent>
     <groupId>org.cibseven.bpm.qa</groupId>
     <artifactId>cibseven-qa</artifactId>
-    <version>2.2.0-SNAPSHOT</version>
+    <version>2.3.0-SNAPSHOT</version>
   </parent>
 
   <properties>
@@ -701,6 +701,142 @@
                 <exclude>**/CdiBeanCallActivityResolutionTest.java</exclude>
 
                 <!-- TODO and weld-servlet-shaded is resolved with integration-tests-engine-jakarta -->
+
+              </excludes>
+              <redirectTestOutputToFile>${redirect.test.output}</redirectTestOutputToFile>
+              <forkCount>1</forkCount>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>tomcat10</id>
+      <dependencyManagement>
+        <dependencies>
+          <dependency>
+            <groupId>org.cibseven.bpm</groupId>
+            <artifactId>cibseven-core-internal-dependencies</artifactId>
+            <version>${project.version}</version>
+            <scope>import</scope>
+            <type>pom</type>
+          </dependency>
+        </dependencies>
+      </dependencyManagement>
+
+      <dependencies>
+        <dependency>
+          <!-- make sure this comes after runtime in the reactor build -->
+          <groupId>org.cibseven.bpm.qa</groupId>
+          <artifactId>cibseven-qa-tomcat10-runtime</artifactId>
+          <version>${project.version}</version>
+          <scope>provided</scope>
+          <type>pom</type>
+        </dependency>
+
+        <dependency>
+          <groupId>org.jboss.weld.servlet</groupId>
+          <artifactId>weld-servlet-shaded</artifactId>
+          <scope>test</scope>
+        </dependency>
+
+        <!-- This dependency can be updated when arquillian releases the managed tomcat 10 artifact -->
+        <dependency>
+          <groupId>org.jboss.arquillian.container</groupId>
+          <artifactId>arquillian-tomcat-managed-8</artifactId>
+          <version>1.1.0.Final</version>
+          <scope>test</scope>
+        </dependency>
+
+        <!-- switch to use Jakarta Servlet 5.0 protocol -->
+        <dependency>
+          <groupId>org.jboss.arquillian.protocol</groupId>
+          <artifactId>arquillian-protocol-servlet-jakarta</artifactId>
+        </dependency>
+
+        <dependency>
+          <groupId>org.jboss.arquillian.junit</groupId>
+          <artifactId>arquillian-junit-container</artifactId>
+          <scope>test</scope>
+        </dependency>
+
+      </dependencies>
+
+      <build>
+        <testResources>
+          <testResource>
+            <directory>src/test/resources-tomcat10</directory>
+            <filtering>true</filtering>
+          </testResource>
+          <testResource>
+            <directory>${project.build.directory}/generated-test-resources/resources-tomcat</directory>
+            <filtering>true</filtering>
+            <excludes>
+              <exclude>**/arquillian.xml</exclude>
+            </excludes>
+          </testResource>
+        </testResources>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>add-test-source</id>
+                <phase>generate-test-sources</phase>
+                <goals>
+                  <goal>add-test-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>${project.build.directory}/generated-test-sources/java-tomcat</source>
+                  </sources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <configuration>
+              <delimiters>
+                <delimiter>${*}</delimiter>
+              </delimiters>
+              <useDefaultDelimiters>false</useDefaultDelimiters>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <!-- no EE stuff on tomcat :) -->
+                <exclude>**/ear/**</exclude>
+                <exclude>**/ejb/**</exclude>
+                <exclude>**/jar/**</exclude>
+                <exclude>**/transactions/**</exclude>
+                <exclude>**/jpa/**</exclude>
+                <!-- No EJB RequestContext available -->
+                <exclude>**/JobExecutorRequestContextTest.java</exclude>
+                <!-- Not supported by arquillian tomcat container -->
+                <exclude>**/TestWarDeploymentWithBrokenBpmnXml.java</exclude>
+                <exclude>**/TestDeploymentWithDroolsTaskFails.java</exclude>
+                <exclude>**/TestProcessEnginesXmlFails.java</exclude>
+
+                <exclude>**/TestWarDeploymentWithProcessEnginePlugin.java</exclude>
+
+                <exclude>**/*_JBOSS.java</exclude>
+                <exclude>**/EjbPALifecycleCallbacksTest.java</exclude>
+
+                <exclude>**/PythonPaClassImportTest.java</exclude>
+
+                <exclude>**/MigrationContextSwitchBeansTest.java</exclude>
+
+                <exclude>**/ManagedJobExecutorTest.java</exclude>
+
+                <exclude>**/CallActivityContextSwitchTest.java</exclude>
+                <exclude>**/CdiBeanCallActivityResolutionTest.java</exclude>
 
               </excludes>
               <redirectTestOutputToFile>${redirect.test.output}</redirectTestOutputToFile>
