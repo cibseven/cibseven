@@ -19,9 +19,12 @@ faces-config.NavData
 *.sublime-workspace
 *.h2.db
 *.lock.db
+*.mv.db
 **/overlays
 **/node_modules
 camunda-h2-dbs
+camunda-h2-default
+distro/run/resources
 
 *.DS_Store
 .vscode/settings.json

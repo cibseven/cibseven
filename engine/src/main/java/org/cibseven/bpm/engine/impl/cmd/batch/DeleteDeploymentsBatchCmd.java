@@ -19,6 +19,7 @@ package org.cibseven.bpm.engine.impl.cmd.batch;
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.authorization.BatchPermissions;
 import org.cibseven.bpm.engine.batch.Batch;
+import org.cibseven.bpm.engine.exception.NotFoundException;
 import org.cibseven.bpm.engine.history.UserOperationLogEntry;
 import org.cibseven.bpm.engine.impl.DeploymentQueryImpl;
 import org.cibseven.bpm.engine.impl.batch.BatchConfiguration;
@@ -28,6 +29,7 @@ import org.cibseven.bpm.engine.impl.batch.builder.BatchBuilder;
 import org.cibseven.bpm.engine.impl.batch.deletion.DeleteDeploymentBatchConfiguration;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
+import org.cibseven.bpm.engine.impl.persistence.entity.DeploymentEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.PropertyChange;
 import org.cibseven.bpm.engine.impl.util.CollectionUtil;
 import org.cibseven.bpm.engine.repository.DeploymentQuery;
@@ -38,6 +40,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotEmpty;
+import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 
 public class DeleteDeploymentsBatchCmd implements Command<Batch> {
 
@@ -69,20 +72,33 @@ public class DeleteDeploymentsBatchCmd implements Command<Batch> {
         .type(Batch.TYPE_DEPLOYMENT_DELETION)
         .config(getConfiguration(ids))
         .permission(BatchPermissions.CREATE_BATCH_DELETE_DEPLOYMENTS)
+        .permissionHandler(ctx -> checkDeleteDeploymentPermissions(ctx, ids))
         .operationLogHandler(this::writeUserOperationLog)
         .build();
+  }
+
+  protected void checkDeleteDeploymentPermissions(CommandContext commandContext, List<String> ids) {
+    for (String deploymentId : ids) {
+      commandContext.getProcessEngineConfiguration()
+          .getCommandCheckers()
+          .forEach(checker -> checker.checkDeleteDeployment(deploymentId));
+    }
   }
 
   protected List<String> collectDeploymentIds(CommandContext commandContext) {
     Set<String> ids = new LinkedHashSet<>();
 
     if (!CollectionUtil.isEmpty(deploymentIds)) {
-      ids.addAll(deploymentIds);
+      for (String deploymentId : deploymentIds) {
+        DeploymentEntity deployment = commandContext.getDeploymentManager().findDeploymentById(deploymentId);
+        ensureNotNull(NotFoundException.class, "deployment " + deploymentId + " does not exist", "deployment", deployment);
+        ids.add(deploymentId);
+      }
     }
 
     DeploymentQueryImpl query = (DeploymentQueryImpl) this.deploymentQuery;
     if (query != null) {
-      commandContext.runWithoutAuthorization(() -> query.evaluateExpressionsAndExecuteList(commandContext, null))
+      query.evaluateExpressionsAndExecuteList(commandContext, null)
           .forEach(deployment -> ids.add(deployment.getId()));
     }
 

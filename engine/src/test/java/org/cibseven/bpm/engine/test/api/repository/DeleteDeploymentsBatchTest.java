@@ -333,6 +333,24 @@ public class DeleteDeploymentsBatchTest {
         .isInstanceOf(BadUserRequestException.class);
   }
 
+  @Test
+  public void shouldFailForNonExistingDeploymentId() {
+    String d1 = deploy("process1", "src");
+    String d2 = deploy("process2", "src");
+
+    // the invalid id sits between two valid ones on purpose: its position must not matter
+    assertThatThrownBy(() -> repositoryService.deleteDeploymentsAsync(
+        Arrays.asList(d1, "does-not-exist", d2), null, false, false, false))
+        .isInstanceOf(BadUserRequestException.class)
+        .hasMessageContaining("does-not-exist");
+
+    // the whole batch is rejected: no batch is created, and no deployment gets deleted -
+    // not even the ones that would have been valid on their own
+    assertThat(managementService.createBatchQuery().count()).isZero();
+    assertThat(deploymentExists(d1)).isTrue();
+    assertThat(deploymentExists(d2)).isTrue();
+  }
+
   // ---------------------------------------------------------------- operation log
 
   @Test
