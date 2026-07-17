@@ -131,6 +131,86 @@ public class MultiTenancyDeleteDeploymentsBatchTenantCheckTest {
     assertThat(repositoryService.createDeploymentQuery().count()).isEqualTo(2L);
   }
 
+  @Test
+  public void shouldFailForForeignDeploymentRegardlessOfListPosition() {
+    Deployment foreignDeployment = testRule.deployForTenant(TENANT_TWO, MODEL);
+    Deployment authorizedDeployment = testRule.deployForTenant(TENANT_ONE, MODEL);
+
+    identityService.setAuthentication("user", null, Arrays.asList(TENANT_ONE));
+
+    // foreign deployment listed first: the tenant check must not depend on the position in the list
+    assertThatThrownBy(() -> repositoryService.deleteDeploymentsAsync(
+        Arrays.asList(foreignDeployment.getId(), authorizedDeployment.getId()), null, false, false, false))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("Cannot delete the deployment");
+
+    identityService.clearAuthentication();
+    assertThat(repositoryService.createDeploymentQuery().count()).isEqualTo(2L);
+  }
+
+  @Test
+  public void shouldSucceedWithTenantScopedQuery() {
+    testRule.deployForTenant(TENANT_ONE, MODEL);
+    testRule.deployForTenant(TENANT_TWO, MODEL);
+
+    identityService.setAuthentication("user", null, Arrays.asList(TENANT_ONE));
+
+    // the query is tenant-scoped, so it only ever selects the authenticated tenant's deployment;
+    // the foreign one is filtered out during collection and never reaches the tenant check
+    batch = repositoryService.deleteDeploymentsAsync(
+        null, repositoryService.createDeploymentQuery(), false, false, false);
+
+    assertThat(batch).isNotNull();
+    assertThat(batch.getTotalJobs()).isEqualTo(1);
+  }
+
+  @Test
+  public void shouldFailForForeignExplicitIdCombinedWithQuery() {
+    Deployment foreignDeployment = testRule.deployForTenant(TENANT_TWO, MODEL);
+    testRule.deployForTenant(TENANT_ONE, MODEL);
+
+    identityService.setAuthentication("user", null, Arrays.asList(TENANT_ONE));
+
+    // a tenant-scoped query would never surface the foreign deployment, but passing it as an
+    // explicit id must still be caught by the per-deployment tenant check
+    assertThatThrownBy(() -> repositoryService.deleteDeploymentsAsync(
+        Collections.singletonList(foreignDeployment.getId()),
+        repositoryService.createDeploymentQuery(), false, false, false))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("Cannot delete the deployment");
+
+    identityService.clearAuthentication();
+    assertThat(repositoryService.createDeploymentQuery().count()).isEqualTo(2L);
+  }
+
+  @Test
+  public void shouldSucceedForDeploymentsOfMultipleAuthenticatedTenants() {
+    Deployment deploymentOne = testRule.deployForTenant(TENANT_ONE, MODEL);
+    Deployment deploymentTwo = testRule.deployForTenant(TENANT_TWO, MODEL);
+
+    // the tenant checker accepts a list of authenticated tenants
+    identityService.setAuthentication("user", null, Arrays.asList(TENANT_ONE, TENANT_TWO));
+
+    batch = repositoryService.deleteDeploymentsAsync(
+        Arrays.asList(deploymentOne.getId(), deploymentTwo.getId()), null, false, false, false);
+
+    assertThat(batch).isNotNull();
+    assertThat(batch.getTotalJobs()).isEqualTo(2);
+  }
+
+  @Test
+  public void shouldFailWhenAuthenticatedForDifferentTenant() {
+    Deployment deployment = testRule.deployForTenant(TENANT_ONE, MODEL);
+
+    // authenticated for tenant2, but the deployment belongs to tenant1
+    identityService.setAuthentication("user", null, Arrays.asList(TENANT_TWO));
+
+    assertThatThrownBy(() -> repositoryService.deleteDeploymentsAsync(
+        Collections.singletonList(deployment.getId()), null, false, false, false))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("Cannot delete the deployment");
+  }
+
   @After
   public void tearDown() {
     identityService.clearAuthentication();
