@@ -52,8 +52,8 @@ import org.junit.runners.Parameterized;
  * {@code DeleteDeploymentsBatchCmd} checks two independent things while building the batch,
  * both fail-fast and both reject the whole batch (no partial creation):
  * layer 1 - {@code CREATE_BATCH_DELETE_DEPLOYMENTS} (or the generic {@code CREATE} on BATCH) to create the batch at all;
- * layer 2 - {@code DELETE} on every single collected deployment id, checked in collection order,
- * throwing on the first one that is missing it.
+ * layer 2 - {@code DELETE} on every single collected deployment id; the whole batch is rejected
+ * as soon as any one deployment is missing it.
  *
  * <p>Every scenario grants {@code READ} on both deployments as a baseline: deployment queries are
  * READ-filtered ({@code AuthorizationManager#configureDeploymentQuery}), so without it a query-based
@@ -94,9 +94,7 @@ public class DeleteDeploymentsBatchAuthorizationTest {
                 grant(Resources.BATCH, "*", "userId", Permissions.CREATE),
                 grant(Resources.BATCH, "*", "userId", BatchPermissions.CREATE_BATCH_DELETE_DEPLOYMENTS)
             ),
-        // batch-level right present, but missing DELETE on one of the two deployments;
-        // deployment2 is fully granted so the gap on deployment1 is unambiguous regardless
-        // of the order deployments are collected/checked in (id list vs. query result order)
+        // batch-level right present, but DELETE missing on deployment1 (deployment2 fully granted)
         scenario()
             .withAuthorizations(
                 grant(Resources.BATCH, "*", "userId", BatchPermissions.CREATE_BATCH_DELETE_DEPLOYMENTS),
@@ -105,6 +103,17 @@ public class DeleteDeploymentsBatchAuthorizationTest {
             )
             .failsDueToRequired(
                 grant(Resources.DEPLOYMENT, "deployment1", "userId", Permissions.DELETE)
+            ),
+        // symmetric to the previous scenario: DELETE missing on deployment2 (deployment1 fully granted).
+        // together the two prove that EVERY collected deployment is checked, not just one of them
+        scenario()
+            .withAuthorizations(
+                grant(Resources.BATCH, "*", "userId", BatchPermissions.CREATE_BATCH_DELETE_DEPLOYMENTS),
+                grant(Resources.DEPLOYMENT, "deployment1", "userId", Permissions.READ, Permissions.DELETE),
+                grant(Resources.DEPLOYMENT, "deployment2", "userId", Permissions.READ)
+            )
+            .failsDueToRequired(
+                grant(Resources.DEPLOYMENT, "deployment2", "userId", Permissions.DELETE)
             ),
         // both rights present via the specific batch permission -> succeeds
         scenario()
@@ -173,6 +182,27 @@ public class DeleteDeploymentsBatchAuthorizationTest {
     // when
     batch = repositoryService.deleteDeploymentsAsync(
         Arrays.asList(deployment1.getId(), deployment2.getId()), null, false, false, false);
+
+    // then
+    if (authRule.assertScenario(scenario)) {
+      assertThat(batch.getCreateUserId()).isEqualTo("userId");
+    }
+  }
+
+  @Test
+  public void testDeploymentIdsListReversed() {
+    // same as testDeploymentIdsList but with the ids in reverse order [d2, d1]:
+    // the per-deployment DELETE check must not depend on the position in the list
+    authRule
+        .init(scenario)
+        .withUser("userId")
+        .bindResource("deployment1", deployment1.getId())
+        .bindResource("deployment2", deployment2.getId())
+        .start();
+
+    // when
+    batch = repositoryService.deleteDeploymentsAsync(
+        Arrays.asList(deployment2.getId(), deployment1.getId()), null, false, false, false);
 
     // then
     if (authRule.assertScenario(scenario)) {
