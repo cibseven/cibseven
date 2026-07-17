@@ -383,7 +383,7 @@ public class TaskResourceImpl implements TaskResource {
       formVariables = stringListConverter.convertQueryParameterToType(variableNames);
     }
 
-    VariableMap startFormVariables = formService.getTaskFormVariables(taskId, formVariables, deserializeValues, false);
+    VariableMap startFormVariables = formService.getTaskFormVariables(taskId, formVariables, deserializeValues);
 
     return VariableValueDto.fromMap(startFormVariables);
   }
@@ -396,7 +396,7 @@ public class TaskResourceImpl implements TaskResource {
 	      StringListConverter stringListConverter = new StringListConverter();
 	      formVariables = stringListConverter.convertQueryParameterToType(variableNames);
 	    }
-	    VariableMap startFormVariables = formService.getTaskFormVariables(taskId, formVariables, deserializeValues, true);
+	    VariableMap startFormVariables = formService.getTaskFormLocalVariables(taskId, formVariables, deserializeValues);
 	    Map<String, FormFieldDto> resultMap = new HashMap<>();
 	    for (String variableName : startFormVariables.keySet()) {
 	      Object formFieldRestImpl = startFormVariables.get(variableName);

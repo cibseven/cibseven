@@ -270,7 +270,7 @@ public class TaskRestServiceInteractionTest extends
     when(formServiceMock.getTaskFormKey(any(), any())).thenReturn(MockProvider.EXAMPLE_FORM_KEY);
 
     VariableMap variablesMock = MockProvider.createMockFormVariables();
-    when(formServiceMock.getTaskFormVariables(eq(EXAMPLE_TASK_ID), Mockito.any(), anyBoolean(), anyBoolean()))//.thenReturn(variablesMock);
+    when(formServiceMock.getTaskFormVariables(eq(EXAMPLE_TASK_ID), Mockito.any(), anyBoolean()))//.thenReturn(variablesMock);
     .thenAnswer(
         invocation -> {
           Object argument = invocation.getArguments()[3];
@@ -1276,7 +1276,7 @@ public class TaskRestServiceInteractionTest extends
       .when().get(FORM_VARIABLES_URL)
       .body();
 
-    verify(formServiceMock, times(1)).getTaskFormVariables(EXAMPLE_TASK_ID, null, true, false);
+    verify(formServiceMock, times(1)).getTaskFormVariables(EXAMPLE_TASK_ID, null, true);
   }
 
   @Test
@@ -1294,7 +1294,7 @@ public class TaskRestServiceInteractionTest extends
       .when().get(FORM_VARIABLES_LOCAL_URL)
       .body();
 
-    verify(formServiceMock, times(1)).getTaskFormVariables(EXAMPLE_TASK_ID, null, true, true);
+    verify(formServiceMock, times(1)).getTaskFormLocalVariables(EXAMPLE_TASK_ID, null, true);
   }
 
   @Test
@@ -1307,7 +1307,7 @@ public class TaskRestServiceInteractionTest extends
         .statusCode(Status.OK.getStatusCode()).contentType(ContentType.JSON)
       .when().get(FORM_VARIABLES_URL);
 
-    verify(formServiceMock, times(1)).getTaskFormVariables(EXAMPLE_TASK_ID, Arrays.asList("a", "b", "c"), true, false);
+    verify(formServiceMock, times(1)).getTaskFormVariables(EXAMPLE_TASK_ID, Arrays.asList("a", "b", "c"), true);
   }
 
   @Test
@@ -1326,7 +1326,7 @@ public class TaskRestServiceInteractionTest extends
       .when().get(FORM_VARIABLES_URL)
       .body();
 
-    verify(formServiceMock, times(1)).getTaskFormVariables(EXAMPLE_TASK_ID, null, false, false);
+    verify(formServiceMock, times(1)).getTaskFormVariables(EXAMPLE_TASK_ID, null, false);
   }
 
   @Test
@@ -1340,13 +1340,13 @@ public class TaskRestServiceInteractionTest extends
         .statusCode(Status.OK.getStatusCode()).contentType(ContentType.JSON)
       .when().get(FORM_VARIABLES_URL);
 
-    verify(formServiceMock, times(1)).getTaskFormVariables(EXAMPLE_TASK_ID, Arrays.asList("a", "b", "c"), false, false);
+    verify(formServiceMock, times(1)).getTaskFormVariables(EXAMPLE_TASK_ID, Arrays.asList("a", "b", "c"), false);
   }
 
   @Test
   public void testGetTaskFormVariablesThrowsAuthorizationException() {
     String message = "expected exception";
-    doThrow(new AuthorizationException(message)).when(formServiceMock).getTaskFormVariables(anyString(), Mockito.any(), anyBoolean(), anyBoolean());
+    doThrow(new AuthorizationException(message)).when(formServiceMock).getTaskFormVariables(anyString(), Mockito.any(), anyBoolean());
 
     given()
       .pathParam("id", MockProvider.EXAMPLE_TASK_ID)

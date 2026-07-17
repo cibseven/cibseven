@@ -214,14 +214,27 @@ public interface FormService {
    * @param processDefinitionId the id of the process definition for which the start form should be retrieved.
    * @param formVariables a Collection of the names of the variables to retrieve. Allows restricting the set of retrieved variables.
    * @param deserializeObjectValues if false object values are not deserialized
-   * @param localVariablesOnly if true only variables used in the form are returned
    * @return a map of VariableInstances.
    *
    * @throws AuthorizationException
    *          If the user has no {@link Permissions#READ} permission on {@link Resources#PROCESS_DEFINITION}.
    */
-  VariableMap getStartFormVariables(String processDefinitionId, Collection<String> formVariables, boolean deserializeObjectValues, boolean localVariablesOnly);
+  VariableMap getStartFormVariables(String processDefinitionId, Collection<String> formVariables, boolean deserializeObjectValues);
 
+  /**
+   * Retrieves a list of requested variables for rendering a start from. The method takes into account
+   * FormData specified for the start event. This allows defining default values for form fields.
+   * Only variables used in the form are returned
+   *
+   * @param processDefinitionId the id of the process definition for which the start form should be retrieved.
+   * @param formVariables a Collection of the names of the variables to retrieve. Allows restricting the set of retrieved variables.
+   * @param deserializeObjectValues if false object values are not deserialized
+   * @return a map of VariableInstances.
+   *
+   * @throws AuthorizationException
+   *          If the user has no {@link Permissions#READ} permission on {@link Resources#PROCESS_DEFINITION}.
+   */
+  VariableMap getStartFormLocalVariables(String processDefinitionId, Collection<String> formVariables, boolean deserializeObjectValues);
   /**
    * <p>Retrieves a list of all variables for rendering a task form. In addition to the task variables and process variables,
    * the method takes into account FormData specified for the task. This allows defining default values for form fields.</p>
@@ -266,7 +279,6 @@ public interface FormService {
    * @param taskId the id of the task for which the variables should be retrieved.
    * @param formVariables a Collection of the names of the variables to retrieve. Allows restricting the set of retrieved variables.
    * @param deserializeObjectValues if false object values are not deserialized
-   * @param localVariablesOnly if true only variables used in the form are returned
    * @return a map of VariableInstances.
    *
    * @throws AuthorizationException
@@ -281,8 +293,16 @@ public interface FormService {
    *          no {@link ProcessDefinitionPermissions#READ_TASK_VARIABLE} permission on {@link Resources#PROCESS_DEFINITION}
    *          when {@link ProcessEngineConfiguration#enforceSpecificVariablePermission this} config is enabled</li></p>
    */
-  VariableMap getTaskFormVariables(String taskId, Collection<String> formVariables, boolean deserializeObjectValues, boolean localVariablesOnly);
-
+  VariableMap getTaskFormVariables(String taskId, Collection<String> formVariables, boolean deserializeObjectValues);
+  /**
+   * Same as {@link #getTaskFormVariables(String, Collection, boolean)} but only returns local variables of the task
+   * but only variables used in the form are returned
+   * @param taskId
+   * @param formVariables
+   * @param deserializeObjectValues
+   * @return
+   */
+  VariableMap getTaskFormLocalVariables(String taskId, Collection<String> formVariables, boolean deserializeObjectValues);
   /**
    * Retrieves a user defined reference to a start form.
    *
