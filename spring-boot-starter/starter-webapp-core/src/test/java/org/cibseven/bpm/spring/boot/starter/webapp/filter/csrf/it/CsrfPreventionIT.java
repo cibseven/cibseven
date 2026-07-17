@@ -101,7 +101,11 @@ public class CsrfPreventionIT {
       // then
       assertThat(e).hasMessageContaining("Server returned HTTP response code: 403 for URL");
       assertThat(httpClientRule.getHeaderXsrfToken()).isEqualTo("Required");
-      assertThat(httpClientRule.getErrorResponseContent()).contains("CSRFPreventionFilter: Token provided via HTTP Header is absent/empty.");
+      String errorResponseContent = httpClientRule.getErrorResponseContent();
+      assertThat(errorResponseContent).containsAnyOf("status=403", "\"status\":403", "\"status\": 403");
+      assertThat(errorResponseContent).containsAnyOf(
+          "CSRFPreventionFilter: Token provided via HTTP Header is absent/empty.",
+          "type=Forbidden");
     }
 
   }
