@@ -730,6 +730,11 @@ def isSNAPSHOTVersion() {
 // - "1.2.3-SNAPSHOT"
 def getDocsVersion() {
     List version = mavenProjectInformation.version.tokenize('.')
+    // "2.3.0-SNAPSHOT" → "2.2-ee" (minor - 1, with -ee)
+    // "2.4.0-SNAPSHOT" → "2.3-ee" (minor - 1, with -ee)
+    if (isSNAPSHOTVersion() && !isPatchVersion()) {
+        return "${version[0]}.${version[1].toInteger() - 1}-ee"
+    }
     if (isPatchVersion()) {
         return "${version[0]}.${version[1]}-ee"
     }
