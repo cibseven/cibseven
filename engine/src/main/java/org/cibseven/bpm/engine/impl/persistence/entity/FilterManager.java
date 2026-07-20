@@ -28,7 +28,7 @@ import java.util.List;
 
 import org.cibseven.bpm.engine.filter.Filter;
 import org.cibseven.bpm.engine.impl.AbstractQuery;
-import org.cibseven.bpm.engine.impl.QueryValidators.ExpressionWhitelistValidator;
+import org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator;
 import org.cibseven.bpm.engine.impl.QueryValidators.StoredQueryValidator;
 import org.cibseven.bpm.engine.impl.filter.FilterQueryImpl;
 import org.cibseven.bpm.engine.impl.persistence.AbstractManager;

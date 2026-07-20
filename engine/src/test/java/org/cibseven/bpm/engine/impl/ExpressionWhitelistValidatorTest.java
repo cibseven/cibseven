@@ -19,15 +19,19 @@ package org.cibseven.bpm.engine.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.Collections;
+
 import org.cibseven.bpm.engine.BadUserRequestException;
-import org.cibseven.bpm.engine.impl.QueryValidators.ExpressionWhitelistValidator;
+import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.engine.impl.context.Context;
+import org.junit.After;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link QueryValidators.ExpressionWhitelistValidator}, which restricts
+ * Unit tests for {@link ExpressionWhitelistValidator}, which restricts
  * which JUEL expressions may be used as Task Filter criteria (CIB7-1597).
  */
-public class QueryValidatorsTest {
+public class ExpressionWhitelistValidatorTest {
 
   protected final ExpressionWhitelistValidator<AbstractQuery<?, ?>> validator = ExpressionWhitelistValidator.get();
 
@@ -131,5 +135,38 @@ public class QueryValidatorsTest {
 
     validator.validate(query);
     // no exception
+  }
+
+  // --- configurable additional whitelist entries (additionalAllowedFilterExpressions) ----
+
+  @After
+  public void removeProcessEngineConfiguration() {
+    // only the configured-whitelist tests below push a configuration onto the context stack
+    if (Context.getProcessEngineConfiguration() != null) {
+      Context.removeProcessEngineConfiguration();
+    }
+  }
+
+  @Test
+  public void shouldRejectExpressionNotInConfiguredWhitelistWhenNoConfigurationIsActive() {
+    // no Context.setProcessEngineConfiguration(...) call: simulates isAllowed() being invoked
+    // outside of any command/engine context, e.g. in a plain unit test
+    assertThat(validator.isAllowed("${businessCalendar()}")).isFalse();
+  }
+
+  @Test
+  public void shouldAllowExpressionAddedToConfiguredWhitelist() {
+    Context.setProcessEngineConfiguration(new StandaloneInMemProcessEngineConfiguration()
+        .setAdditionalAllowedFilterExpressions(Collections.singleton("${businessCalendar()}")));
+
+    assertThat(validator.isAllowed("${businessCalendar()}")).isTrue();
+  }
+
+  @Test
+  public void shouldRejectExpressionNotPresentInConfiguredWhitelist() {
+    Context.setProcessEngineConfiguration(new StandaloneInMemProcessEngineConfiguration()
+        .setAdditionalAllowedFilterExpressions(Collections.singleton("${businessCalendar()}")));
+
+    assertThat(validator.isAllowed("${someOtherBean.exec()}")).isFalse();
   }
 }

@@ -1,0 +1,85 @@
+/*
+ * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH
+ * under one or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information regarding copyright
+ * ownership. Camunda licenses this file to you under the Apache License,
+ * Version 2.0; you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.cibseven.bpm.engine.impl;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.cibseven.bpm.engine.BadUserRequestException;
+import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import org.cibseven.bpm.engine.impl.context.Context;
+
+public class ExpressionWhitelistValidator<T extends AbstractQuery<?, ?>> implements Validator<T> {
+
+  // bare, zero-argument, side-effect-free functions: safe to evaluate with no restrictions
+  // on where they appear (covers the "My Tasks" / "My Group Tasks" / date-comparison use cases)
+  protected static final Set<String> ALLOWED_FUNCTION_EXPRESSIONS = Collections.unmodifiableSet(
+      new HashSet<>(Arrays.asList(
+          "${currentUser()}",
+          "${currentUserGroups()}",
+          "${now()}")));
+
+  // dateTime() only exposes a bounded, safe set of Joda-Time methods, but we whitelist this
+  // one exact expression rather than allowing arbitrary method chaining after dateTime(),
+  // to keep the attack surface as small as possible.
+  protected static final String ALLOWED_DATE_TIME_EXPRESSION = "${dateTime().withMillis(0)}";
+
+  @SuppressWarnings("rawtypes")
+  public static final ExpressionWhitelistValidator INSTANCE = new ExpressionWhitelistValidator();
+
+  private ExpressionWhitelistValidator() {
+  }
+
+  @Override
+  public void validate(T query) {
+    for (String expression : query.getExpressions().values()) {
+      if (!isAllowed(expression)) {
+        throw new BadUserRequestException("Expression '" + expression + "' is not allowed in task filter criteria."
+            + " Only currentUser(), currentUserGroups(), now(), dateTime().withMillis(0) and plain literal values may be used.");
+      }
+    }
+  }
+
+  protected boolean isAllowed(String expression) {
+    if (expression == null) {
+      return false;
+    }
+
+    // plain literal text (no EL delimiters at all) is never evaluated by JUEL,
+    // so it cannot invoke any function, method or bean and is always safe
+    if (!expression.contains("${") && !expression.contains("#{")) {
+      return true;
+    }
+
+    String normalized = expression.replaceAll("\\s+", "");
+    if (ALLOWED_FUNCTION_EXPRESSIONS.contains(normalized) || ALLOWED_DATE_TIME_EXPRESSION.equals(normalized)) {
+      return true;
+    }
+
+    // no command/engine context in some unit-test scenarios (and by extension no configuration
+    // to consult) is not an error here - it just means no additional expressions are allowed
+    ProcessEngineConfigurationImpl configuration = Context.getProcessEngineConfiguration();
+    return configuration != null && configuration.getAdditionalAllowedFilterExpressions().contains(normalized);
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <T extends AbstractQuery<?, ?>> ExpressionWhitelistValidator<T> get() {
+    return (ExpressionWhitelistValidator<T>) INSTANCE;
+  }
+}

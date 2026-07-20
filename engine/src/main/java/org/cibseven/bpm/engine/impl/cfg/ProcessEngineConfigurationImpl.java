@@ -859,6 +859,15 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected boolean enableExpressionsInStoredQueries = true;
 
   /**
+   * Task filter expressions are restricted to a fixed, safe whitelist (see
+   * {@link org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator}). Entries added here are
+   * evaluated with full JUEL power just like the built-in whitelist entries, so only add
+   * expressions that cannot be abused to invoke arbitrary beans/methods (e.g. no method calls
+   * with attacker-influenced arguments).
+   */
+  protected Set<String> additionalAllowedFilterExpressions = Collections.emptySet();
+
+  /**
    * If false, disables XML eXternal Entity (XXE) Processing. This provides protection against XXE Processing attacks.
    */
   protected boolean enableXxeProcessing = false;
@@ -4624,6 +4633,15 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public void setEnableExpressionsInStoredQueries(boolean enableExpressionsInStoredQueries) {
     this.enableExpressionsInStoredQueries = enableExpressionsInStoredQueries;
+  }
+
+  public Set<String> getAdditionalAllowedFilterExpressions() {
+    return additionalAllowedFilterExpressions;
+  }
+
+  public ProcessEngineConfigurationImpl setAdditionalAllowedFilterExpressions(Set<String> additionalAllowedFilterExpressions) {
+    this.additionalAllowedFilterExpressions = additionalAllowedFilterExpressions;
+    return this;
   }
 
   public boolean isEnableXxeProcessing() {
