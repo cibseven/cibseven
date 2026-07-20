@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -31,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.EntityTypes;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.filter.Filter;
@@ -415,6 +417,11 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
     }
   }
 
+  // CIB7-1597: this test used to prove that a filter could be *saved* with an expression
+  // resolving an arbitrary, caller-supplied bean/mock name (${ aBusinessKey }). That is
+  // exactly the expression-injection vector ExpressionWhitelistValidator closes, so the
+  // test now asserts that saveFilter() rejects it with a BadUserRequestException, instead
+  // of asserting that the filter is saved and executes successfully.
   @Test
   public void testTaskQueryByBusinessKeyExpression() {
     // given
@@ -423,22 +430,22 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
 
     createDeploymentWithBusinessKey(aBusinessKey);
 
-    // when
     TaskQueryImpl extendedQuery = (TaskQueryImpl)taskService.createTaskQuery()
       .processInstanceBusinessKeyExpression("${ " + Mocks.getMocks().keySet().toArray()[0] + " }");
 
     Filter filter = filterService.newTaskFilter("aFilterName");
     filter.setQuery(extendedQuery);
-    filterService.saveFilter(filter);
 
-    TaskQueryImpl filterQuery = filterService.getFilter(filter.getId()).getQuery();
-
-    // then
-    assertEquals(extendedQuery.getExpressions().get("processInstanceBusinessKey"),
-      filterQuery.getExpressions().get("processInstanceBusinessKey"));
-    assertEquals(1, filterService.list(filter.getId()).size());
+    // when/then
+    BadUserRequestException e = assertThrows(BadUserRequestException.class,
+        () -> filterService.saveFilter(filter));
+    assertTrue(e.getMessage().contains("task filter"));
   }
 
+  // CIB7-1597: this test used to prove that a stored filter could be *executed* with an
+  // ad hoc extending query resolving an arbitrary bean/mock name (${ aBusinessKey }). The
+  // merged query inherits the stored filter's validators, so ExpressionWhitelistValidator
+  // rejects it here too. The test now asserts that list() throws instead of returning results.
   @Test
   public void testTaskQueryByBusinessKeyExpressionInAdhocQuery() {
     // given
@@ -449,7 +456,6 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
 
     createDeploymentWithBusinessKey(aBusinessKey);
 
-    // when
     Filter filter = filterService.newTaskFilter("aFilterName");
     filter.setQuery(taskService.createTaskQuery());
     filterService.saveFilter(filter);
@@ -457,12 +463,14 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
     TaskQueryImpl extendingQuery = (TaskQueryImpl)taskService.createTaskQuery()
       .processInstanceBusinessKeyExpression("${ " + Mocks.getMocks().keySet().toArray()[0] + " }");
 
-    // then
-    assertEquals(extendingQuery.getExpressions().get("processInstanceBusinessKey"),
-      "${ " + Mocks.getMocks().keySet().toArray()[0] + " }");
-    assertEquals(1, filterService.list(filter.getId(), extendingQuery).size());
+    // when/then
+    BadUserRequestException e = assertThrows(BadUserRequestException.class,
+        () -> filterService.list(filter.getId(), extendingQuery));
+    assertTrue(e.getMessage().contains("task filter"));
   }
 
+  // CIB7-1597: same reasoning as testTaskQueryByBusinessKeyExpression above, for the
+  // "Like" expression variant - saving now fails instead of succeeding.
   @Test
   public void testTaskQueryByBusinessKeyLikeExpression() {
     // given
@@ -471,22 +479,20 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
 
     createDeploymentWithBusinessKey(aBusinessKey);
 
-    // when
     TaskQueryImpl extendedQuery = (TaskQueryImpl)taskService.createTaskQuery()
       .processInstanceBusinessKeyLikeExpression("${ " + Mocks.getMocks().keySet().toArray()[0] + " }");
 
     Filter filter = filterService.newTaskFilter("aFilterName");
     filter.setQuery(extendedQuery);
-    filterService.saveFilter(filter);
 
-    TaskQueryImpl filterQuery = filterService.getFilter(filter.getId()).getQuery();
-
-    // then
-    assertEquals(extendedQuery.getExpressions().get("processInstanceBusinessKeyLike"),
-      filterQuery.getExpressions().get("processInstanceBusinessKeyLike"));
-    assertEquals(1, filterService.list(filter.getId()).size());
+    // when/then
+    BadUserRequestException e = assertThrows(BadUserRequestException.class,
+        () -> filterService.saveFilter(filter));
+    assertTrue(e.getMessage().contains("task filter"));
   }
 
+  // CIB7-1597: same reasoning as testTaskQueryByBusinessKeyExpressionInAdhocQuery above,
+  // for the "Like" expression variant - list() now throws instead of returning results.
   @Test
   public void testTaskQueryByBusinessKeyLikeExpressionInAdhocQuery() {
     // given
@@ -497,7 +503,6 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
 
     createDeploymentWithBusinessKey(aBusinessKey);
 
-    // when
     Filter filter = filterService.newTaskFilter("aFilterName");
     filter.setQuery(taskService.createTaskQuery());
     filterService.saveFilter(filter);
@@ -505,10 +510,10 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
     TaskQueryImpl extendingQuery = (TaskQueryImpl)taskService.createTaskQuery()
       .processInstanceBusinessKeyLikeExpression("${ " + Mocks.getMocks().keySet().toArray()[0] + " }");
 
-    // then
-    assertEquals(extendingQuery.getExpressions().get("processInstanceBusinessKeyLike"),
-      "${ " + Mocks.getMocks().keySet().toArray()[0] + " }");
-    assertEquals(1, filterService.list(filter.getId(), extendingQuery).size());
+    // when/then
+    BadUserRequestException e = assertThrows(BadUserRequestException.class,
+        () -> filterService.list(filter.getId(), extendingQuery));
+    assertTrue(e.getMessage().contains("task filter"));
   }
 
   protected void createDeploymentWithBusinessKey(String aBusinessKey) {

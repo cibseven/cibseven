@@ -31,6 +31,7 @@ import org.cibseven.bpm.engine.exception.NotValidException;
 import org.cibseven.bpm.engine.filter.Filter;
 import org.cibseven.bpm.engine.impl.AbstractQuery;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
+import org.cibseven.bpm.engine.impl.QueryValidators.ExpressionWhitelistValidator;
 import org.cibseven.bpm.engine.impl.QueryValidators.StoredQueryValidator;
 import org.cibseven.bpm.engine.impl.db.DbEntity;
 import org.cibseven.bpm.engine.impl.db.DbEntityLifecycleAware;
@@ -215,6 +216,7 @@ public class FilterEntity implements Filter, Serializable, DbEntity, HasDbRevisi
   public void postLoad() {
     if (query != null) {
       query.addValidator(StoredQueryValidator.get());
+      query.addValidator(ExpressionWhitelistValidator.get());
     }
 
   }

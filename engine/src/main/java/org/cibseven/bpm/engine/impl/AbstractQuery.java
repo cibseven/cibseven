@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -73,7 +74,10 @@ public abstract class AbstractQuery<T extends Query<?,?>, U> extends ListQueryPa
 
   protected Map<String, String> expressions = new HashMap<>();
 
-  protected Set<Validator<AbstractQuery<?, ?>>> validators = new HashSet<>();
+  // LinkedHashSet: validators must run in insertion order (e.g. StoredQueryValidator's
+  // feature-toggle check before ExpressionWhitelistValidator's content check), otherwise
+  // the exception message a caller sees depends on undefined HashSet iteration order.
+  protected Set<Validator<AbstractQuery<?, ?>>> validators = new LinkedHashSet<>();
 
   protected boolean maxResultsLimitEnabled;
 
