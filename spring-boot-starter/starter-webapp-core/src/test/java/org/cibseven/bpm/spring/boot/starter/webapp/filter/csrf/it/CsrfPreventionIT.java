@@ -102,7 +102,8 @@ public class CsrfPreventionIT {
       assertThat(e).hasMessageContaining("Server returned HTTP response code: 403 for URL");
       assertThat(httpClientRule.getHeaderXsrfToken()).isEqualTo("Required");
       String errorResponseContent = httpClientRule.getErrorResponseContent();
-      assertThat(errorResponseContent).containsAnyOf("status=403", "\"status\":403", "\"status\": 403");
+
+      // Use containsAnyOf(), since test with SB-3.5 returns "Token ... absent/empty", and test with SB-4 returns "type=Forbidden"
       assertThat(errorResponseContent).containsAnyOf(
           "CSRFPreventionFilter: Token provided via HTTP Header is absent/empty.",
           "type=Forbidden");

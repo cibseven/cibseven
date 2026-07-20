@@ -292,12 +292,14 @@ pipeline {
                     when { expression { params.QA_RUN_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script { withMaven { sh "mvn -f distro/run/pom.xml clean install -Pintegration-test-run" }}
+                        script { withMaven { sh "mvn -f distro/run4/pom.xml clean install -Pintegration-test-run" }}
                     }
                 }
                 stage('Spring Boot Integration') {
                     when { expression { params.QA_SPRING_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script { withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }}
+                        script { withMaven { sh "mvn -f spring-boot-4-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }}
                     }
                 }
                 stage('Performance') {
@@ -531,8 +533,10 @@ pipeline {
                                 def qg = waitForQualityGate()
 
                                 if (qg.status != 'OK') {
-                                    echo "WARNING: Pipeline unstable due to quality gate failure: ${qg.status}"
-                                    currentBuild.result = 'UNSTABLE'
+                                    echo "WARNING: Quality gate failure: ${qg.status}. Marking stage as unstable without affecting overall build result."
+                                    catchError(buildResult: null, stageResult: 'UNSTABLE') {
+                                        error "Quality gate failure: ${qg.status}"
+                                    }
                                 }
                             }
                         }
