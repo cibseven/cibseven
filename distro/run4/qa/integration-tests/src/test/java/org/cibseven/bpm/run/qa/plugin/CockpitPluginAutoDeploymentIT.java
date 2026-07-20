@@ -73,7 +73,7 @@ public class CockpitPluginAutoDeploymentIT {
   @Test
   public void shouldAutoDeployCockpitPlugin() throws IOException {
     // given
-    deployPlugin("cibseven-bpm-run-example-plugin.jar");
+    deployPlugin("cibseven-bpm-run4-example-plugin.jar");
     runStartScript();
 
     // when

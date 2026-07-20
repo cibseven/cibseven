@@ -69,11 +69,13 @@
         <module>starter-client/spring-boot</module>
         <module>starter-webapp-core</module>
         <module>starter-webapp</module>
+        <module>starter-qa</module>
       </modules>
     </profile>
     <profile>
       <id>integration-test-spring-boot-starter</id>
       <modules>
+        <module>starter-qa</module>
         <module>starter</module>
         <module>starter-rest</module>
         <module>starter-security</module>

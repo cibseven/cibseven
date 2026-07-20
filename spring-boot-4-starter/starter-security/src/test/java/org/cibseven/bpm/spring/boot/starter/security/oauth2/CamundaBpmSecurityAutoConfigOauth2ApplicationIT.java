@@ -42,6 +42,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
@@ -98,7 +100,11 @@ public class CamundaBpmSecurityAutoConfigOauth2ApplicationIT extends AbstractSpr
         // then oauth2 redirection occurs
         .andExpect(MockMvcResultMatchers.status().isFound())
         .andExpect(MockMvcResultMatchers.header().exists("Location"))
-        .andExpect(MockMvcResultMatchers.header().string("Location", baseUrl + "/oauth2/authorization/" + PROVIDER));
+        .andExpect(MockMvcResultMatchers.header().string("Location",
+          anyOf(
+            is(baseUrl + "/oauth2/authorization/" + PROVIDER),
+            is("/oauth2/authorization/" + PROVIDER)
+          )));
   }
 
   @Test
@@ -130,7 +136,11 @@ public class CamundaBpmSecurityAutoConfigOauth2ApplicationIT extends AbstractSpr
         // then authorization fails and redirection occurs
         .andExpect(MockMvcResultMatchers.status().isFound())
         .andExpect(MockMvcResultMatchers.header().exists("Location"))
-        .andExpect(MockMvcResultMatchers.header().string("Location", baseUrl + "/oauth2/authorization/" + PROVIDER));
+        .andExpect(MockMvcResultMatchers.header().string("Location",
+          anyOf(
+            is(baseUrl + "/oauth2/authorization/" + PROVIDER),
+            is("/oauth2/authorization/" + PROVIDER)
+          )));
 
     String expectedWarn = "Authorize failed for '" + UNAUTHORIZED_USER + "'";
     assertThat(loggingRule.getFilteredLog(expectedWarn)).hasSize(1);
