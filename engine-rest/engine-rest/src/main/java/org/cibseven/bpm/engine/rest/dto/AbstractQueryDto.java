@@ -31,6 +31,7 @@ import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * Defines common query operations, such as sorting options and validation.
@@ -40,6 +41,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Thorben Lindhauer
  *
  */
+// Newer Jackson tries to instantiate this abstract type directly when a polymorphic
+// type id (e.g. FilterDto's external "resourceType") cannot be resolved, causing an
+// InvalidDefinitionException. Binding a concrete default implementation here guarantees
+// a safe fallback across Jackson versions.
+@JsonDeserialize(as = org.cibseven.bpm.engine.rest.dto.task.TaskQueryDto.class)
 public abstract class AbstractQueryDto<T extends Query<?, ?>>  extends AbstractSearchQueryDto {
 
   public static final String SORT_ORDER_ASC_VALUE = "asc";

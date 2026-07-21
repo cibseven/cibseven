@@ -80,6 +80,9 @@
               </execution>
             </executions>
             <configuration>
+              <!-- verbose cargo logging so the log/output files below are actually written with useful detail
+              <logLevel>high</logLevel>
+	      <log>${project.build.directory}/wildfly-cargo.log</log>-->
               <!-- Container configuration -->
               <container>
                 <type>installed</type>
@@ -87,14 +90,45 @@
                 <append>false</append>
                 <home>${jboss.runtime}</home>
                 <timeout>${cargo.timeout}</timeout>
+                <!-- capture WildFly server console output and cargo lifecycle logs for diagnostics
+                <output>${project.build.directory}/wildfly-server.log</output>
+		<log>${project.build.directory}/wildfly-cargo.log</log> -->
               </container>
               <configuration>
-                <type>standalone</type>
-                <home>${project.build.directory}/config-wildfly</home>
+                <!-- IMPORTANT: use an *existing* configuration instead of letting Cargo generate a
+                     'standalone' one.
+
+                     Cargo 1.10.20 builds a standalone configuration by running an offline JBoss CLI
+                     that boots an embedded WildFly server. That CLI runs with a HARDCODED,
+                     non-configurable 60s JvmLauncher timeout (DefaultJvmLauncher.timeout = 60000,
+                     and AbstractWildFlyInstalledLocalContainer.executeScriptFiles() never calls
+                     setTimeout()). With WildFly 40 the embedded boot alone takes ~20-25s, so on
+                     slower machines the CLI exceeds 60s and the container start fails - regardless
+                     of the container <timeout> or any property.
+
+                     The cibseven-qa-wildfly-runtime already ships a fully configured standalone.xml
+                     (CIB seven engine, datasource, job executor, http=${jboss.http.port} /
+                     ajp=${jboss.ajp.port}). By pointing Cargo at that existing server directory we
+                     skip the offline CLI entirely; Cargo only deploys the WARs and starts the
+                     server normally, which is governed by the container <timeout> (${cargo.timeout}). -->
+                <type>existing</type>
+                <home>${jboss.runtime}/standalone</home>
                 <properties>
+                  <!-- Cargo starts the server JVM directly via jboss-modules.jar, bypassing
+                       WildFly's standalone.bat/standalone.sh launch scripts. Those scripts normally
+                       set DEFAULT_MODULAR_JVM_OPTIONS (a set of add-opens/add-exports options
+                       required on JDK 17+). Without them, WildFly 40's Infinispan protostream
+                       marshaller fails with "module java.base does not open java.util to unnamed
+                       module" (EnumMapMarshaller), breaking the 'web' and 'sfsb' cache-containers.
+                       We therefore replicate the full DEFAULT_MODULAR_JVM_OPTIONS set here. -->
+                  <cargo.jvmargs>-Djava.net.preferIPv4Stack=true --add-exports=java.desktop/sun.awt=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.ldap=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.url.ldap=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.url.ldaps=ALL-UNNAMED --add-exports=jdk.naming.dns/com.sun.jndi.dns=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.management/javax.management=ALL-UNNAMED --add-opens=java.naming/javax.naming=ALL-UNNAMED</cargo.jvmargs>
+                  <!-- The runtime's standalone.xml binds the management interface on port 39990
+                       (not Cargo's default 9990). Cargo's WildFly CombinedContainerMonitor polls
+                       the management-http port to detect that the server is up; if it polls the
+                       wrong port it never detects the running container and fails after the full
+                       container <timeout> even though the server started fine. Point it at 39990. -->
+                  <cargo.jboss.management-http.port>39990</cargo.jboss.management-http.port>
                   <cargo.servlet.port>${jboss.http.port}</cargo.servlet.port>
-                  <cargo.jboss.ajp.port>${jboss.ajp.port}</cargo.jboss.ajp.port>
-                  <cargo.jvmargs>-Djava.net.preferIPv4Stack=true --add-opens java.base/java.util=ALL-UNNAMED</cargo.jvmargs>
                 </properties>
               </configuration>
               <deployables>
@@ -197,6 +231,9 @@
               </execution>
             </executions>
             <configuration>
+              <!-- verbose cargo logging so the log/output files below are actually written with useful detail -->
+              <logLevel>high</logLevel>
+              <log>${project.build.directory}/wildfly-cargo.log</log>
               <!-- Container configuration -->
               <container>
                 <type>installed</type>
@@ -204,14 +241,26 @@
                 <append>false</append>
                 <home>${jboss.runtime}</home>
                 <timeout>${cargo.timeout}</timeout>
+                <!-- capture WildFly server console output and cargo lifecycle logs for diagnostics -->
+                <output>${project.build.directory}/wildfly-server.log</output>
+                <log>${project.build.directory}/wildfly-cargo.log</log>
               </container>
               <configuration>
-                <type>standalone</type>
-                <home>${project.build.directory}/config-wildfly</home>
+                <!-- See the 'wildfly' profile above for the detailed rationale. In short: Cargo's
+                     offline JBoss CLI has a hardcoded, non-configurable 60s timeout that WildFly 40
+                     can exceed on slow machines. The runtime already ships a fully configured
+                     standalone.xml, so we reuse it via an 'existing' configuration and skip the CLI. -->
+                <type>existing</type>
+                <home>${jboss.runtime}/standalone</home>
                 <properties>
+                  <!-- See the 'wildfly' profile above: Cargo bypasses WildFly's launch scripts, so
+                       we must supply DEFAULT_MODULAR_JVM_OPTIONS ourselves or the Infinispan
+                       protostream marshaller fails on JDK 17+. -->
+                  <cargo.jvmargs>-Djava.net.preferIPv4Stack=true --add-exports=java.desktop/sun.awt=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.ldap=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.url.ldap=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.url.ldaps=ALL-UNNAMED --add-exports=jdk.naming.dns/com.sun.jndi.dns=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.management/javax.management=ALL-UNNAMED --add-opens=java.naming/javax.naming=ALL-UNNAMED</cargo.jvmargs>
+                  <!-- Management interface runs on 39990 (see the 'wildfly' profile above) so the
+                       Cargo container monitor can detect the running server. -->
+                  <cargo.jboss.management-http.port>39990</cargo.jboss.management-http.port>
                   <cargo.servlet.port>${jboss.http.port}</cargo.servlet.port>
-                  <cargo.jboss.ajp.port>${jboss.ajp.port}</cargo.jboss.ajp.port>
-                  <cargo.jvmargs>-Djava.net.preferIPv4Stack=true --add-opens java.base/java.util=ALL-UNNAMED</cargo.jvmargs>
                 </properties>
               </configuration>
               <deployables>

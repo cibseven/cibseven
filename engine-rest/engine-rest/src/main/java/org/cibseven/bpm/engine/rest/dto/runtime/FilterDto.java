@@ -80,7 +80,10 @@ public class FilterDto {
   }
 
   @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY,
-      property = "resourceType", defaultImpl=TaskQueryDto.class)
+      property = "resourceType", defaultImpl = TaskQueryDto.class,
+      // newer Jackson otherwise tries to instantiate the abstract AbstractQueryDto when the
+      // external "resourceType" type id is missing/unresolved; tolerate it and use defaultImpl
+      requireTypeIdForSubtypes = com.fasterxml.jackson.annotation.OptBoolean.FALSE)
     @JsonSubTypes(value = {
     @JsonSubTypes.Type(value = TaskQueryDto.class, name = EntityTypes.TASK)})
   public void setQuery(AbstractQueryDto<?> query) {
