@@ -29,17 +29,20 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.stream.Collectors;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 import org.apache.ibatis.builder.xml.XMLConfigBuilder;
@@ -79,6 +82,7 @@ import org.cibseven.bpm.engine.authorization.Permissions;
 import org.cibseven.bpm.engine.impl.AuthorizationServiceImpl;
 import org.cibseven.bpm.engine.impl.DecisionServiceImpl;
 import org.cibseven.bpm.engine.impl.DefaultArtifactFactory;
+import org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator;
 import org.cibseven.bpm.engine.impl.ExternalTaskServiceImpl;
 import org.cibseven.bpm.engine.impl.FilterServiceImpl;
 import org.cibseven.bpm.engine.impl.FormServiceImpl;
@@ -859,13 +863,12 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected boolean enableExpressionsInStoredQueries = true;
 
   /**
-   * Task filter expressions are restricted to a fixed, safe whitelist (see
-   * {@link org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator}). Entries added here are
-   * evaluated with full JUEL power just like the built-in whitelist entries, so only add
-   * expressions that cannot be abused to invoke arbitrary beans/methods (e.g. no method calls
-   * with attacker-influenced arguments).
+   * Whitelist for task filter expressions (see {@link org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator}).
+   * Replaces the whole whitelist when set, does not extend the defaults. Configured via
+   * {@link #setAllowedFilterExpressions(String)}, a single String rather than a
+   * {@code Set<String>}, so it can be set the same way on every distro.
    */
-  protected Set<String> additionalAllowedFilterExpressions = Collections.emptySet();
+  protected Set<String> allowedFilterExpressions = new HashSet<>(ExpressionWhitelistValidator.DEFAULT_ALLOWED_EXPRESSIONS);
 
   /**
    * If false, disables XML eXternal Entity (XXE) Processing. This provides protection against XXE Processing attacks.
@@ -4635,12 +4638,18 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     this.enableExpressionsInStoredQueries = enableExpressionsInStoredQueries;
   }
 
-  public Set<String> getAdditionalAllowedFilterExpressions() {
-    return additionalAllowedFilterExpressions;
+  public Set<String> getAllowedFilterExpressions() {
+    return allowedFilterExpressions;
   }
 
-  public ProcessEngineConfigurationImpl setAdditionalAllowedFilterExpressions(Set<String> additionalAllowedFilterExpressions) {
-    this.additionalAllowedFilterExpressions = additionalAllowedFilterExpressions;
+  /**
+   * @param allowedFilterExpressions semicolon-separated JUEL expressions, e.g. {@code "${currentUser()};${businessCalendar()}"}
+   */
+  public ProcessEngineConfigurationImpl setAllowedFilterExpressions(String allowedFilterExpressions) {
+    this.allowedFilterExpressions = Arrays.stream(allowedFilterExpressions.split(";"))
+        .map(String::trim)
+        .filter(expression -> !expression.isEmpty())
+        .collect(Collectors.toSet());
     return this;
   }
 

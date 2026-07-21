@@ -27,18 +27,14 @@ import org.cibseven.bpm.engine.impl.context.Context;
 
 public class ExpressionWhitelistValidator<T extends AbstractQuery<?, ?>> implements Validator<T> {
 
-  // bare, zero-argument, side-effect-free functions: safe to evaluate with no restrictions
-  // on where they appear (covers the "My Tasks" / "My Group Tasks" / date-comparison use cases)
-  protected static final Set<String> ALLOWED_FUNCTION_EXPRESSIONS = Collections.unmodifiableSet(
+  // default value of ProcessEngineConfigurationImpl#allowedFilterExpressions; used as a
+  // fallback when no process engine configuration is available (e.g. isolated unit tests)
+  public static final Set<String> DEFAULT_ALLOWED_EXPRESSIONS = Collections.unmodifiableSet(
       new HashSet<>(Arrays.asList(
           "${currentUser()}",
           "${currentUserGroups()}",
-          "${now()}")));
-
-  // dateTime() only exposes a bounded, safe set of Joda-Time methods, but we whitelist this
-  // one exact expression rather than allowing arbitrary method chaining after dateTime(),
-  // to keep the attack surface as small as possible.
-  protected static final String ALLOWED_DATE_TIME_EXPRESSION = "${dateTime().withMillis(0)}";
+          "${now()}",
+          "${dateTime().withMillis(0)}")));
 
   @SuppressWarnings("rawtypes")
   public static final ExpressionWhitelistValidator INSTANCE = new ExpressionWhitelistValidator();
@@ -51,7 +47,7 @@ public class ExpressionWhitelistValidator<T extends AbstractQuery<?, ?>> impleme
     for (String expression : query.getExpressions().values()) {
       if (!isAllowed(expression)) {
         throw new BadUserRequestException("Expression '" + expression + "' is not allowed in task filter criteria."
-            + " Only currentUser(), currentUserGroups(), now(), dateTime().withMillis(0) and plain literal values may be used.");
+            + " Only " + getAllowedExpressions() + " and plain literal values may be used.");
       }
     }
   }
@@ -61,21 +57,18 @@ public class ExpressionWhitelistValidator<T extends AbstractQuery<?, ?>> impleme
       return false;
     }
 
-    // plain literal text (no EL delimiters at all) is never evaluated by JUEL,
-    // so it cannot invoke any function, method or bean and is always safe
+    // plain literal text (no EL delimiters) is never evaluated by JUEL, so it is always safe
     if (!expression.contains("${") && !expression.contains("#{")) {
       return true;
     }
 
     String normalized = expression.replaceAll("\\s+", "");
-    if (ALLOWED_FUNCTION_EXPRESSIONS.contains(normalized) || ALLOWED_DATE_TIME_EXPRESSION.equals(normalized)) {
-      return true;
-    }
+    return getAllowedExpressions().contains(normalized);
+  }
 
-    // no command/engine context in some unit-test scenarios (and by extension no configuration
-    // to consult) is not an error here - it just means no additional expressions are allowed
+  protected Set<String> getAllowedExpressions() {
     ProcessEngineConfigurationImpl configuration = Context.getProcessEngineConfiguration();
-    return configuration != null && configuration.getAdditionalAllowedFilterExpressions().contains(normalized);
+    return configuration != null ? configuration.getAllowedFilterExpressions() : DEFAULT_ALLOWED_EXPRESSIONS;
   }
 
   @SuppressWarnings("unchecked")

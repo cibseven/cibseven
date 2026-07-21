@@ -417,11 +417,6 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
     }
   }
 
-  // CIB7-1597: this test used to prove that a filter could be *saved* with an expression
-  // resolving an arbitrary, caller-supplied bean/mock name (${ aBusinessKey }). That is
-  // exactly the expression-injection vector ExpressionWhitelistValidator closes, so the
-  // test now asserts that saveFilter() rejects it with a BadUserRequestException, instead
-  // of asserting that the filter is saved and executes successfully.
   @Test
   public void testTaskQueryByBusinessKeyExpression() {
     // given
@@ -442,10 +437,6 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
     assertTrue(e.getMessage().contains("task filter"));
   }
 
-  // CIB7-1597: this test used to prove that a stored filter could be *executed* with an
-  // ad hoc extending query resolving an arbitrary bean/mock name (${ aBusinessKey }). The
-  // merged query inherits the stored filter's validators, so ExpressionWhitelistValidator
-  // rejects it here too. The test now asserts that list() throws instead of returning results.
   @Test
   public void testTaskQueryByBusinessKeyExpressionInAdhocQuery() {
     // given
@@ -469,8 +460,6 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
     assertTrue(e.getMessage().contains("task filter"));
   }
 
-  // CIB7-1597: same reasoning as testTaskQueryByBusinessKeyExpression above, for the
-  // "Like" expression variant - saving now fails instead of succeeding.
   @Test
   public void testTaskQueryByBusinessKeyLikeExpression() {
     // given
@@ -491,8 +480,6 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
     assertTrue(e.getMessage().contains("task filter"));
   }
 
-  // CIB7-1597: same reasoning as testTaskQueryByBusinessKeyExpressionInAdhocQuery above,
-  // for the "Like" expression variant - list() now throws instead of returning results.
   @Test
   public void testTaskQueryByBusinessKeyLikeExpressionInAdhocQuery() {
     // given
