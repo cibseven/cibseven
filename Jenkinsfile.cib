@@ -33,6 +33,7 @@ pipeline {
         kubernetes {
             yaml BuildPodCreator.cibStandardPod(nodepool: Constants.NODEPOOL_STABLE)
                     .withContainerFromName(pipelineParams.mvnContainerName, pipelineParams.buildPodConfig[pipelineParams.mvnContainerName])
+                    .withContainerFromName(Constants.MAVEN_JDK_17_CONTAINER, [resources: [cpu: '2', memory: '16Gi', ephemeralStorage: '16Gi']])
                     .asYaml()
             defaultContainer pipelineParams.mvnContainerName
         }
