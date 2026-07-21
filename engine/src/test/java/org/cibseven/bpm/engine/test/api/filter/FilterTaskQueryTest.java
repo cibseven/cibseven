@@ -503,6 +503,30 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
     assertTrue(e.getMessage().contains("task filter"));
   }
 
+  @Test
+  public void testTaskQueryByBusinessKeyExpressionInOrQuery() {
+    // given
+    String aBusinessKey = "business key";
+    Mocks.register("aBusinessKey", aBusinessKey);
+
+    createDeploymentWithBusinessKey(aBusinessKey);
+
+    TaskQueryImpl query = (TaskQueryImpl) taskService.createTaskQuery()
+      .or()
+        .taskName("aTaskName")
+        .processInstanceBusinessKeyExpression("${ " + Mocks.getMocks().keySet().toArray()[0] + " }")
+      .endOr();
+
+    Filter filter = filterService.newTaskFilter("aFilterName");
+    filter.setQuery(query);
+    filterService.saveFilter(filter);
+
+    // when/then
+    BadUserRequestException e = assertThrows(BadUserRequestException.class,
+        () -> filterService.list(filter.getId()));
+    assertTrue(e.getMessage().contains("task filter"));
+  }
+
   protected void createDeploymentWithBusinessKey(String aBusinessKey) {
     BpmnModelInstance modelInstance = Bpmn.createExecutableProcess("aProcessDefinition")
         .camundaHistoryTimeToLive(180)
