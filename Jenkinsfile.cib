@@ -12,12 +12,12 @@ import groovy.transform.Field
 @Field String mavenLocalRepoRedirected = null
 @Field Map pipelineParams = [
     pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
-    mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
+    mvnContainerName: Constants.MAVEN_JDK_25_CONTAINER,
     uiParamPresets: [:],
     testMode: false,
     dependencyTrackSynchronous: true,
     buildPodConfig: [
-        (Constants.MAVEN_JDK_17_CONTAINER): [
+        (Constants.MAVEN_JDK_25_CONTAINER): [
             resources: [
                 cpu: '4',
                 memory: '16Gi',
@@ -168,9 +168,11 @@ pipeline {
                 }
             }
             steps {
-                script {
-                    withMaven(options: []) {
-                        sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
+                container(Constants.MAVEN_JDK_17_CONTAINER) {
+                    script {
+                        withMaven(options: []) {
+                            sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
+                        }
                     }
                 }
             }
