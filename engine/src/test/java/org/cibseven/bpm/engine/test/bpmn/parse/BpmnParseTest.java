@@ -1235,28 +1235,46 @@ public class BpmnParseTest {
   public void testFeatureSecureProcessingRejectsDefinitionDueToAttributeLimit() {
     // IBM JDKs do not check on attribute number limits, skip the test there
     Assume.assumeThat(System.getProperty("java.vm.vendor"), not(containsString("IBM")));
+    String oldAttributeLimit = System.getProperty("jdk.xml.elementAttributeLimit");
     try {
+      // enforce a deterministic limit for this test, independent of global JVM settings
+      System.setProperty("jdk.xml.elementAttributeLimit", "10000");
       String resource = TestHelper.getBpmnProcessDefinitionResource(getClass(), "testParseProcessDefinitionFSP");
       repositoryService.createDeployment().name(resource).addClasspathResource(resource).deploy();
       fail("Exception expected: Attribute Number Limit should have been exceeded while parsing the model!");
     } catch (ProcessEngineException e) {
       testRule.assertTextPresent("JAXP00010002", e.getMessage());
+    } finally {
+      if (oldAttributeLimit == null) {
+        System.clearProperty("jdk.xml.elementAttributeLimit");
+      } else {
+        System.setProperty("jdk.xml.elementAttributeLimit", oldAttributeLimit);
+      }
     }
   }
 
   @Test
   public void testFeatureSecureProcessingAcceptsDefinitionWhenAttributeLimitOverridden() {
-    // given
-    System.setProperty("jdk.xml.elementAttributeLimit", "0");
+    String oldAttributeLimit = System.getProperty("jdk.xml.elementAttributeLimit");
+    try {
+      // given
+      System.setProperty("jdk.xml.elementAttributeLimit", "0");
 
-    String resource = TestHelper.getBpmnProcessDefinitionResource(getClass(), "testParseProcessDefinitionFSP");
-    DeploymentBuilder deploymentBuilder = repositoryService.createDeployment().name(resource).addClasspathResource(resource);
+      String resource = TestHelper.getBpmnProcessDefinitionResource(getClass(), "testParseProcessDefinitionFSP");
+      DeploymentBuilder deploymentBuilder = repositoryService.createDeployment().name(resource).addClasspathResource(resource);
 
-    // when
-    testRule.deploy(deploymentBuilder);
+      // when
+      testRule.deploy(deploymentBuilder);
 
-    // then
-    assertEquals(1, repositoryService.createProcessDefinitionQuery().count());
+      // then
+      assertEquals(1, repositoryService.createProcessDefinitionQuery().count());
+    } finally {
+      if (oldAttributeLimit == null) {
+        System.clearProperty("jdk.xml.elementAttributeLimit");
+      } else {
+        System.setProperty("jdk.xml.elementAttributeLimit", oldAttributeLimit);
+      }
+    }
   }
 
   @Test

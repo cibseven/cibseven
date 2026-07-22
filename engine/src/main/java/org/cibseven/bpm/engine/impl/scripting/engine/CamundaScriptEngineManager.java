@@ -48,6 +48,8 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
   private static final String JS_LOAD_OPTION = "js.load";
   private static final String JS_PRINT_OPTION = "js.print";
   private static final String JS_GLOBAL_ARGUMENTS_OPTION = "js.global-arguments";
+  private static final String JS_NASHORN_COMPAT_OPTION = "js.nashorn-compat";
+  private static final String JS_ECMASCRIPT_VERSION_OPTION = "js.ecmascript-version";
   
   protected final Map<String, Runnable> engineNameToInitLogicMappings = Map.of(
       GRAAL_JS_SCRIPT_ENGINE_NAME, this::disableGraalVMInterpreterOnlyModeWarnings
@@ -168,6 +170,7 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
       // Use reflection to load GraalVM classes
       Class<?> contextClass = Class.forName("org.graalvm.polyglot.Context");
       Class<?> hostAccessClass = Class.forName("org.graalvm.polyglot.HostAccess");
+      Class<?> ioAccessClass = Class.forName("org.graalvm.polyglot.io.IOAccess");
       Class<?> graalJSEngineClass = Class.forName("com.oracle.truffle.js.scriptengine.GraalJSScriptEngine");
       Class<?> engineClass = Class.forName("org.graalvm.polyglot.Engine");
 
@@ -203,11 +206,14 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
       }
       if (config.isEnableScriptEngineLoadExternalResources()) {
         // make sure Graal JS can load external scripts
-        var allowIO = builderClass.getMethod("allowIO", boolean.class);
-        builder = allowIO.invoke(builder, true);
+        var ioAccessAll = ioAccessClass.getField("ALL").get(null);
+        var allowIO = builderClass.getMethod("allowIO", ioAccessClass);
+        builder = allowIO.invoke(builder, ioAccessAll);
       }
       if (config.isEnableScriptEngineNashornCompatibility()) {
         // enable Nashorn compatibility mode
+        builder = optionMethod.invoke(builder, JS_NASHORN_COMPAT_OPTION, "true");
+        builder = optionMethod.invoke(builder, JS_ECMASCRIPT_VERSION_OPTION, "2022");
         var allowAllAccess = builderClass.getMethod("allowAllAccess", boolean.class);
         builder = allowAllAccess.invoke(builder, true);
       }

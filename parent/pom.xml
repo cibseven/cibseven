@@ -128,6 +128,7 @@
     <plugin.version.maven-bundle>5.1.9</plugin.version.maven-bundle> <!-- compatible with JDK 17 -->
     <!-- Define the maximum number of JVM processes that Surefire will spawn concurrently to execute the tests. 1C equals to number of available CPU cores in system. -->
     <surefire.forkCount>1</surefire.forkCount>
+    <test.jvm.args.jdk25 />
   </properties>
 
   <dependencyManagement>
@@ -198,7 +199,7 @@
               -XX:HeapDumpPath=${project.build.directory}/heap_dump.hprof
               --add-opens=java.base/java.util=ALL-UNNAMED
               --add-opens=java.base/java.lang=ALL-UNNAMED
-              -Dnet.bytebuddy.experimental=true</argLine>
+              -Dnet.bytebuddy.experimental=true ${test.jvm.args.jdk25}</argLine>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
             <forkCount>${surefire.forkCount}</forkCount>
           </configuration>
@@ -208,7 +209,7 @@
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>2.16</version>
           <configuration>
-            <argLine>-Xmx968m -Dnet.bytebuddy.experimental=true</argLine>
+            <argLine>-Xmx968m -Dnet.bytebuddy.experimental=true ${test.jvm.args.jdk25}</argLine>
             <runOrder>hourly</runOrder>
           </configuration>
           <executions>
@@ -379,6 +380,16 @@
   </build>
 
   <profiles>
+    <profile>
+      <id>jdk25-test-jvm-args</id>
+      <activation>
+        <jdk>[25,)</jdk>
+      </activation>
+      <properties>
+        <test.jvm.args.jdk25>--enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow</test.jvm.args.jdk25>
+      </properties>
+    </profile>
+
     <profile>
       <id>license-header-check</id>
       <build>
