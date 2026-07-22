@@ -94,7 +94,7 @@
           <failIfNoTests>false</failIfNoTests>
           <trimStackTrace>false</trimStackTrace>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
-          <argLine>-Xshare:off</argLine>    
+          <argLine>-Xshare:off -Dnet.bytebuddy.experimental=true</argLine>
         </configuration>
       </plugin>
   

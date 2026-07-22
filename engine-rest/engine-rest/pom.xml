@@ -315,7 +315,7 @@
           <systemPropertyVariables>
             <restEasyVersion>${version.resteasy}</restEasyVersion>
           </systemPropertyVariables>
-          <argLine>-Xmx2g</argLine>
+          <argLine>-Xmx2g -Dnet.bytebuddy.experimental=true</argLine>
         </configuration>
       </plugin>
 
@@ -412,7 +412,7 @@
                 </goals>
                 <configuration>
                   <!-- Ensures that endpoints work with other encodings than UTF-8 (cf. CAM-6983) -->
-                  <argLine>-Dfile.encoding=ISO-8859-1</argLine>
+                  <argLine>-Dfile.encoding=ISO-8859-1 -Dnet.bytebuddy.experimental=true</argLine>
                   <includes>
                     <include>**/ProcessDefinitionRestServiceInteractionTest.java</include>
                     <include>**/TaskRestServiceInteractionTest.java</include>
@@ -510,7 +510,7 @@
                 </goals>
                 <configuration>
                   <!-- Ensures that endpoints work with other encodings than UTF-8 (cf. CAM-6983) -->
-                  <argLine>-Dfile.encoding=ISO-8859-1</argLine>
+                  <argLine>-Dfile.encoding=ISO-8859-1 -Dnet.bytebuddy.experimental=true</argLine>
                   <includes>
                     <include>**/ProcessDefinitionRestServiceInteractionTest.java</include>
                     <include>**/TaskRestServiceInteractionTest.java</include>
@@ -613,7 +613,7 @@
                 </goals>
                 <configuration>
                   <!-- Ensures that endpoints work with other encodings than UTF-8 (cf. CAM-6983) -->
-                  <argLine>-Dfile.encoding=ISO-8859-1</argLine>
+                  <argLine>-Dfile.encoding=ISO-8859-1 -Dnet.bytebuddy.experimental=true</argLine>
                   <includes>
                     <include>**/ProcessDefinitionRestServiceInteractionTest.java</include>
                     <include>**/TaskRestServiceInteractionTest.java</include>

@@ -102,7 +102,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <argLine>-XX:PermSize=128m</argLine>
+              <argLine>-XX:PermSize=128m -Dnet.bytebuddy.experimental=true</argLine>
               <excludes>
                 <exclude>**/javascript/**</exclude>
               </excludes>
@@ -123,7 +123,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <argLine>-XX:PermSize=128m</argLine>
+              <argLine>-XX:PermSize=128m -Dnet.bytebuddy.experimental=true</argLine>
               <excludes>
                 <exclude>**/DataFormatLoadingTest.java</exclude>
               </excludes>
@@ -164,7 +164,7 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <argLine>
-                -XX:MetaspaceSize=128m
+                -XX:MetaspaceSize=128m -Dnet.bytebuddy.experimental=true
               </argLine>
               <excludes combine.children="append">
                 <exclude>**/*NashornTest.java</exclude>

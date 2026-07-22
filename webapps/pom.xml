@@ -228,7 +228,7 @@
             <systemPropertyVariables>
               <myWorkingDir>${project.build.directory}</myWorkingDir>
             </systemPropertyVariables>
-            <argLine>-XX:MaxMetaspaceSize=128m</argLine>
+            <argLine>-XX:MaxMetaspaceSize=128m -Dnet.bytebuddy.experimental=true</argLine>
           </configuration>
         </plugin>
 

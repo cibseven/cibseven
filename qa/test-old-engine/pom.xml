@@ -429,7 +429,8 @@
               <argLine>-Xmx2g -Duser.language=en -Duser.region=US -XX:+HeapDumpOnOutOfMemoryError
                 -XX:HeapDumpPath=${project.build.directory}/heap_dump.hprof
                 --add-opens=java.base/java.util=ALL-UNNAMED
-                --add-opens=java.base/java.lang=ALL-UNNAMED</argLine>
+                --add-opens=java.base/java.lang=ALL-UNNAMED
+                -Dnet.bytebuddy.experimental=true</argLine>
 				
               <forkCount>1</forkCount>	
             </configuration>
