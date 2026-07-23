@@ -1,8 +1,8 @@
 /*
- * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH
+ * Copyright CIB software GmbH and/or licensed to CIB software GmbH
  * under one or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information regarding copyright
- * ownership. Camunda licenses this file to you under the Apache License,
+ * ownership. CIB software licenses this file to you under the Apache License,
  * Version 2.0; you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -44,12 +44,20 @@ public class ExpressionWhitelistValidator<T extends AbstractQuery<?, ?>> impleme
 
   @Override
   public void validate(T query) {
+    if (!isEnabled()) {
+      return;
+    }
     for (String expression : query.getExpressions().values()) {
       if (!isAllowed(expression)) {
         throw new BadUserRequestException("Expression '" + expression + "' is not allowed in task filter criteria."
             + " Only " + getAllowedExpressions() + " and plain literal values may be used.");
       }
     }
+  }
+
+  protected boolean isEnabled() {
+    ProcessEngineConfigurationImpl configuration = Context.getProcessEngineConfiguration();
+    return configuration == null || configuration.isEnableFilterExpressionWhitelist();
   }
 
   protected boolean isAllowed(String expression) {
