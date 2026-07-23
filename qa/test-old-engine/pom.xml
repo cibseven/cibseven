@@ -441,6 +441,33 @@
       </build>
     </profile>
 
+    <!-- Exclude GraalVM 25 incompatible tests when running old engine 2.2.0 with GraalVM 25.
+         !!! REMOVE THIS FIX after updating cibseven.old.engine.version !!! -->
+    <profile>
+      <id>exclude-graal25-incompatible-old-engine-tests</id>
+      <activation>
+        <property>
+          <name>cibseven.old.engine.version</name>
+          <value>2.2.0</value>
+        </property>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <artifactId>maven-surefire-plugin</artifactId>
+              <configuration>
+                <excludes combine.children="append">
+                  <exclude>**/ScriptTaskGraalJsTest.java</exclude>
+                  <exclude>**/ScriptTaskTest.java</exclude>
+                </excludes>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+
     <profile>
      <id>exclude-post-jdk15-tests</id>
       <activation>
