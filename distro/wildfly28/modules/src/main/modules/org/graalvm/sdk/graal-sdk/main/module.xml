@@ -1,10 +1,11 @@
 <module xmlns="urn:jboss:module:1.0" name="org.graalvm.sdk.graal-sdk">
-  <resources>
-    <resource-root path="graal-sdk-@version.graal.js@.jar" />
-  </resources>
 
   <dependencies>
     <module name="java.base" />
     <module name="java.logging" />
+    <module name="org.graalvm.polyglot.polyglot" services="export" export="true" />
+    <module name="org.graalvm.sdk.collections" services="export" export="true" />
+    <module name="org.graalvm.sdk.nativeimage" services="export" export="true" />
+    <module name="org.graalvm.sdk.word" services="export" export="true" />
   </dependencies>
 </module>

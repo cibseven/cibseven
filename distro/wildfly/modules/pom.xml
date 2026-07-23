@@ -156,6 +156,15 @@
       <artifactId>h2</artifactId>
     </dependency>
 
+    <!-- Graal 25 no longer ships com.ibm.icu:icu4j transitively;
+         the JBoss module descriptor still references icu4j-@version.icu.icu4j@.jar,
+         so we must declare it explicitly to keep the artifact on the classpath. -->
+    <dependency>
+      <groupId>com.ibm.icu</groupId>
+      <artifactId>icu4j</artifactId>
+      <version>${version.icu.icu4j}</version>
+    </dependency>
+
   </dependencies>
 
   <build>

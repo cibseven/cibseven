@@ -119,6 +119,16 @@
       <groupId>org.graalvm.js</groupId>
       <artifactId>js-scriptengine</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>polyglot</artifactId>
+      <version>${version.graal.js}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.graalvm.sdk</groupId>
+      <artifactId>collections</artifactId>
+      <version>${version.graal.js}</version>
+    </dependency>
 
     <dependency>
       <!-- this dependency is to make sure that we are executed after camunda-modules 
