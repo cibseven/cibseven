@@ -12,7 +12,7 @@ import groovy.transform.Field
 @Field String mavenLocalRepoRedirected = null
 @Field Map pipelineParams = [
     pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
-    mvnContainerName: Constants.MAVEN_JDK_25_CONTAINER,
+    mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
     uiParamPresets: [:],
     testMode: false,
     dependencyTrackSynchronous: true,
@@ -33,7 +33,7 @@ pipeline {
         kubernetes {
             yaml BuildPodCreator.cibStandardPod(nodepool: Constants.NODEPOOL_STABLE)
                     .withContainerFromName(pipelineParams.mvnContainerName, pipelineParams.buildPodConfig[pipelineParams.mvnContainerName])
-                    .withContainerFromName(Constants.MAVEN_JDK_17_CONTAINER, [resources: [cpu: '2', memory: '16Gi', ephemeralStorage: '16Gi']])
+                    //.withContainerFromName(Constants.MAVEN_JDK_17_CONTAINER, [resources: [cpu: '2', memory: '16Gi', ephemeralStorage: '16Gi']])
                     .asYaml()
             defaultContainer pipelineParams.mvnContainerName
         }
