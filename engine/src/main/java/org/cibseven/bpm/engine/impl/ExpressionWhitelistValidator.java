@@ -34,7 +34,10 @@ public class ExpressionWhitelistValidator<T extends AbstractQuery<?, ?>> impleme
           "${currentUser()}",
           "${currentUserGroups()}",
           "${now()}",
-          "${dateTime().withMillis(0)}")));
+          "${dateTime().withMillis(0)}",
+          "${dateTime().withTimeAtStartOfDay()}",
+          "${dateTime().withTimeAtStartOfDay().plusDays(1).minusSeconds(1)}",
+          "${dateTime().plusDays(2)}")));
 
   @SuppressWarnings("rawtypes")
   public static final ExpressionWhitelistValidator INSTANCE = new ExpressionWhitelistValidator();

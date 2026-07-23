@@ -66,6 +66,15 @@ public class ExpressionWhitelistValidatorTest {
     assertThat(validator.isAllowed("${dateTime().withMillis(0)}")).isTrue();
   }
 
+  @Test
+  public void shouldAllowStandardTasklistFilterExpressions() {
+    // "Tasks due today" (Due After / Due Before) and the "within a timespan" example
+    // from the out-of-the-box Tasklist filter templates
+    assertThat(validator.isAllowed("${dateTime().withTimeAtStartOfDay()}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().withTimeAtStartOfDay().plusDays(1).minusSeconds(1)}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().plusDays(2)}")).isTrue();
+  }
+
   // --- allowed: plain literal text (never evaluated by JUEL) ------------------------------
 
   @Test
@@ -174,5 +183,27 @@ public class ExpressionWhitelistValidatorTest {
     assertThat(validator.isAllowed("${businessCalendar()}")).isTrue();
     assertThat(validator.isAllowed("${anotherFunction()}")).isTrue();
     assertThat(validator.isAllowed("${notListed()}")).isFalse();
+  }
+
+  // --- enableFilterExpressionWhitelist toggle ----------------------------------------------
+
+  @Test
+  public void shouldNotThrowOnDisallowedExpressionWhenWhitelistDisabled() {
+    Context.setProcessEngineConfiguration(new StandaloneInMemProcessEngineConfiguration()
+        .setEnableFilterExpressionWhitelist(false));
+    TaskQueryImpl query = queryWithExpression("taskAssignee", "${someBean.deleteAll()}");
+
+    validator.validate(query);
+    // no exception
+  }
+
+  @Test
+  public void shouldThrowOnDisallowedExpressionWhenWhitelistReenabled() {
+    Context.setProcessEngineConfiguration(new StandaloneInMemProcessEngineConfiguration()
+        .setEnableFilterExpressionWhitelist(true));
+    TaskQueryImpl query = queryWithExpression("taskAssignee", "${someBean.deleteAll()}");
+
+    assertThatThrownBy(() -> validator.validate(query))
+        .isInstanceOf(BadUserRequestException.class);
   }
 }
