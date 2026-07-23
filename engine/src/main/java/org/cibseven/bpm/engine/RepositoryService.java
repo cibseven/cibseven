@@ -22,10 +22,12 @@ import java.util.Date;
 import java.util.List;
 
 import org.cibseven.bpm.application.ProcessApplicationReference;
+import org.cibseven.bpm.engine.authorization.BatchPermissions;
 import org.cibseven.bpm.engine.authorization.Permissions;
 import org.cibseven.bpm.engine.authorization.ProcessDefinitionPermissions;
 import org.cibseven.bpm.engine.authorization.ProcessInstancePermissions;
 import org.cibseven.bpm.engine.authorization.Resources;
+import org.cibseven.bpm.engine.batch.Batch;
 import org.cibseven.bpm.engine.delegate.ExecutionListener;
 import org.cibseven.bpm.engine.exception.NotAllowedException;
 import org.cibseven.bpm.engine.exception.NotFoundException;
@@ -820,4 +822,22 @@ public interface RepositoryService {
    *          If the user has no {@link Permissions#READ} permission on {@link Resources#PROCESS_DEFINITION}.
    */
   Collection<CalledProcessDefinition> getStaticCalledProcessDefinitions(String processDefinitionId);
+
+  /**
+   * Deletes the given deployments asynchronously via a {@link Batch}.
+   *
+   * At least one of {@code deploymentIds} or {@code deploymentQuery} must be provided; the resulting
+   * deployment ids are merged.
+   *
+   * @param deploymentIds the ids of the deployments to delete (may be {@code null})
+   * @param deploymentQuery selects additional deployments to delete (may be {@code null})
+   * @param cascade whether to cascade the deletion to process instances, history and jobs
+   * @param skipCustomListeners whether to skip custom execution listeners on cascading deletion
+   * @param skipIoMappings whether to skip input/output mappings on cascading deletion
+   * @return the created {@link Batch}
+   * @throws BadUserRequestException if no deployment ids could be resolved
+   * @throws AuthorizationException if the user has no {@link BatchPermissions#CREATE_BATCH_DELETE_DEPLOYMENTS} permission on {@link Resources#BATCH}
+   */
+  Batch deleteDeploymentsAsync(List<String> deploymentIds, DeploymentQuery deploymentQuery,
+                               boolean cascade, boolean skipCustomListeners, boolean skipIoMappings);
 }

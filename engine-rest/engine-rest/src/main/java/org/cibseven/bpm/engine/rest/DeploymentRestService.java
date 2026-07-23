@@ -17,7 +17,9 @@
 package org.cibseven.bpm.engine.rest;
 
 import org.cibseven.bpm.engine.rest.dto.CountResultDto;
+import org.cibseven.bpm.engine.rest.dto.batch.BatchDto;
 import org.cibseven.bpm.engine.rest.dto.repository.DeploymentDto;
+import org.cibseven.bpm.engine.rest.dto.runtime.batch.DeleteDeploymentsDto;
 import org.cibseven.bpm.engine.rest.mapper.MultipartFormData;
 import org.cibseven.bpm.engine.rest.sub.repository.DeploymentResource;
 
@@ -57,5 +59,11 @@ public interface DeploymentRestService {
   @Path("/registered")
   @Produces(MediaType.APPLICATION_JSON)
   Set<String> getRegisteredDeployments(@Context UriInfo uriInfo);
+
+  @POST
+  @Path("/delete")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  BatchDto deleteAsync(DeleteDeploymentsDto dto);
 
 }
