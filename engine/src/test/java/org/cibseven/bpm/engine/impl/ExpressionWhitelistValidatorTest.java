@@ -189,8 +189,9 @@ public class ExpressionWhitelistValidatorTest {
 
   @Test
   public void shouldNotThrowOnDisallowedExpressionWhenWhitelistDisabled() {
-    Context.setProcessEngineConfiguration(new StandaloneInMemProcessEngineConfiguration()
-        .setEnableFilterExpressionWhitelist(false));
+    StandaloneInMemProcessEngineConfiguration configuration = new StandaloneInMemProcessEngineConfiguration();
+    configuration.setEnableFilterExpressionWhitelist(false);
+    Context.setProcessEngineConfiguration(configuration);
     TaskQueryImpl query = queryWithExpression("taskAssignee", "${someBean.deleteAll()}");
 
     validator.validate(query);
@@ -199,8 +200,9 @@ public class ExpressionWhitelistValidatorTest {
 
   @Test
   public void shouldThrowOnDisallowedExpressionWhenWhitelistReenabled() {
-    Context.setProcessEngineConfiguration(new StandaloneInMemProcessEngineConfiguration()
-        .setEnableFilterExpressionWhitelist(true));
+    StandaloneInMemProcessEngineConfiguration configuration = new StandaloneInMemProcessEngineConfiguration();
+    configuration.setEnableFilterExpressionWhitelist(true);
+    Context.setProcessEngineConfiguration(configuration);
     TaskQueryImpl query = queryWithExpression("taskAssignee", "${someBean.deleteAll()}");
 
     assertThatThrownBy(() -> validator.validate(query))

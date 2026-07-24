@@ -871,6 +871,12 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected Set<String> allowedFilterExpressions = new HashSet<>(ExpressionWhitelistValidator.DEFAULT_ALLOWED_EXPRESSIONS);
 
   /**
+   * If false, disables the {@link org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator} entirely,
+   * so any expression is allowed in task filter criteria. Enabled by default.
+   */
+  protected boolean enableFilterExpressionWhitelist = true;
+
+  /**
    * If false, disables XML eXternal Entity (XXE) Processing. This provides protection against XXE Processing attacks.
    */
   protected boolean enableXxeProcessing = false;
@@ -4651,6 +4657,14 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
         .filter(expression -> !expression.isEmpty())
         .collect(Collectors.toSet());
     return this;
+  }
+
+  public boolean isEnableFilterExpressionWhitelist() {
+    return enableFilterExpressionWhitelist;
+  }
+
+  public void setEnableFilterExpressionWhitelist(boolean enableFilterExpressionWhitelist) {
+    this.enableFilterExpressionWhitelist = enableFilterExpressionWhitelist;
   }
 
   public boolean isEnableXxeProcessing() {
