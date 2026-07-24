@@ -15,10 +15,8 @@
     <cibseven.old.engine.version>2.2.0</cibseven.old.engine.version>
 
     <!-- Temporary workaround for old engine 2.2.0 with new updated GraalVM 25.
-         Remove these exclusions after raising cibseven.old.engine.version above 2.2.0. -->
-    <TEMPORARY_OLD_ENGINE_TEST_EXCLUDE_GRAAL_JS>**/ScriptTaskGraalJsTest.java</TEMPORARY_OLD_ENGINE_TEST_EXCLUDE_GRAAL_JS>
-    <TEMPORARY_OLD_ENGINE_TEST_EXCLUDE_SCRIPT_TASK>**/ScriptTaskTest.java</TEMPORARY_OLD_ENGINE_TEST_EXCLUDE_SCRIPT_TASK>
-
+         Remove this exclusion property here and in the test block below after raising cibseven.old.engine.version above 2.2.0. -->
+    <TEMPORARY_OLD_ENGINE_TEST_EXCLUDE_2_2_0>**/ScriptTaskGraalJsTest.java,**/ScriptTaskTest.java,**/BpmnParseTest.java</TEMPORARY_OLD_ENGINE_TEST_EXCLUDE_2_2_0>
   </properties>
 
   <build>
@@ -429,8 +427,8 @@
 
                 <!-- The test is not relevant in `old-engine` setup and lacks necessary resource files -->
                 <exclude>**DatabaseNamingConsistencyTest.java</exclude>
-                <exclude>${TEMPORARY_OLD_ENGINE_TEST_EXCLUDE_GRAAL_JS}</exclude>
-                <exclude>${TEMPORARY_OLD_ENGINE_TEST_EXCLUDE_SCRIPT_TASK}</exclude>
+                <exclude>${TEMPORARY_OLD_ENGINE_TEST_EXCLUDE}</exclude>
+                <exclude>${TEMPORARY_OLD_ENGINE_TEST_EXCLUDE_2_2_0}</exclude>
               </excludes>
               <testFailureIgnore>false</testFailureIgnore>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
