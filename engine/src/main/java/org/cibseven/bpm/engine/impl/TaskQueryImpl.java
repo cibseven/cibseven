@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1850,6 +1851,19 @@ public class TaskQueryImpl extends AbstractQuery<TaskQuery, Task> implements Tas
     this.queries.add(orQuery);
   }
 
+  // propagate to every or() branch too, each has its own validators set
+  @Override
+  public void addValidator(Validator<AbstractQuery<?, ?>> validator) {
+    if (queries == null) {
+      // queries field initializer hasn't run yet (called from super constructor)
+      super.addValidator(validator);
+      return;
+    }
+    for (TaskQueryImpl query : queries) {
+      query.validators.add(validator);
+    }
+  }
+
   public void setOrQueryActive() {
     isOrQueryActive = true;
   }
@@ -2455,6 +2469,8 @@ public class TaskQueryImpl extends AbstractQuery<TaskQuery, Task> implements Tas
     TaskQueryImpl orQuery = new TaskQueryImpl();
     orQuery.isOrQueryActive = true;
     orQuery.queries = queries;
+    // inherit the root's validators so this branch is validated too
+    orQuery.validators = new LinkedHashSet<>(this.validators);
     queries.add(orQuery);
     return orQuery;
   }
