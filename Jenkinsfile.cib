@@ -33,6 +33,7 @@ pipeline {
         kubernetes {
             yaml BuildPodCreator.cibStandardPod(nodepool: Constants.NODEPOOL_STABLE)
                     .withContainerFromName(pipelineParams.mvnContainerName, pipelineParams.buildPodConfig[pipelineParams.mvnContainerName])
+                    .withMavenJdk21Container()
                     .asYaml()
             defaultContainer pipelineParams.mvnContainerName
         }
@@ -508,7 +509,7 @@ pipeline {
                         expression { params.SAST_SONARQUBE }
                     }
                     steps {
-                        script {
+                        container(Constants.MAVEN_JDK_21_CONTAINER) {
                             withSonarQubeEnv(
                                 credentialsId: Constants.SONARQUBE_CREDENTIALS_ID,
                                 installationName: 'SonarQube'
