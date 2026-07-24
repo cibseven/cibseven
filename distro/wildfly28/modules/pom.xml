@@ -115,18 +115,11 @@
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js</artifactId>
-      <version>${version.graal.js}</version>
       <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js-scriptengine</artifactId>
-      <version>${version.graal.js}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.graalvm.js</groupId>
-      <artifactId>js-language</artifactId>
-      <version>${version.graal.js}</version>
     </dependency>
 
     <!-- template engine dependencies -->
