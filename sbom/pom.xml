@@ -4,9 +4,9 @@
 
   <parent>
     <groupId>org.cibseven.bpm</groupId>
-    <artifactId>cibseven-parent</artifactId>
-    <relativePath>../parent</relativePath>
+    <artifactId>cibseven-root</artifactId>
     <version>2.3.0-SNAPSHOT</version>
+    <relativePath>../</relativePath>
   </parent>
 
   <artifactId>cibseven-sbom</artifactId>
@@ -14,18 +14,23 @@
   <name>CIB seven - SBOM</name>
   <description>Holds the aggregate CycloneDX Software Bill of Materials generated for the CIB seven build</description>
 
-  <properties>
-    <!-- Not deployed by default. The CI deploy stages explicitly opt in with -Dmaven.deploy.skip=false
-         after generating the SBOM files into this module's target directory. -->
-    <maven.deploy.skip>true</maven.deploy.skip>
-  </properties>
-
   <profiles>
     <profile>
-      <!-- Activated explicitly by the CI deploy stages once the SBOM files have been generated
-           into target/, so that ordinary builds of this module don't fail looking for files
-           that were never produced. -->
+      <!-- Activated via -Dsbom.create=true, the same property that turns on cibseven-parent's
+           create-sbom profile, so both fire together from a single mvn invocation. This module
+           inherits from the root pom directly (not cibseven-parent), so it never picks up that
+           profile itself - no risk of colliding with the aggregate files attached below.
+           The aggregate SBOM is generated (as a separate CLI goal, before "clean deploy") into
+           sbom-generated/, a directory outside every module's own target/ - this module's own
+           "clean" phase runs as part of the same combined build and would otherwise wipe files
+           placed under its own target/ before package/deploy get to attach and push them. -->
       <id>attach-sbom</id>
+      <activation>
+        <property>
+          <name>sbom.create</name>
+          <value>true</value>
+        </property>
+      </activation>
       <build>
         <plugins>
           <plugin>
@@ -41,12 +46,12 @@
                 <configuration>
                   <artifacts>
                     <artifact>
-                      <file>${project.basedir}/target/cibseven-sbom.json</file>
+                      <file>${project.basedir}/../sbom-generated/cibseven-sbom.json</file>
                       <type>json</type>
                       <classifier>cyclonedx</classifier>
                     </artifact>
                     <artifact>
-                      <file>${project.basedir}/target/cibseven-sbom.xml</file>
+                      <file>${project.basedir}/../sbom-generated/cibseven-sbom.xml</file>
                       <type>xml</type>
                       <classifier>cyclonedx</classifier>
                     </artifact>

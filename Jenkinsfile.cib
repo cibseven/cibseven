@@ -459,32 +459,21 @@ pipeline {
                         }
                     }
 
+                    // Call cyclonedx directly from mvn command to avoid creation of a new profile in the root pom.xml   
+                    // sbomFlag - activates "create-sbom" profile in parent/pom.xml to create bom files for each module,
+                    // sbomGenerate - additional command line parameters to generate aggregate sbom for the whole project
+                    String sbomFlag = params.DEPLOY_WITHOUT_SBOM ? "" : "-Dsbom.create=true"
+                    String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
+                        "org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom -DoutputDirectory=sbom-generated -DoutputName=cibseven-sbom"
+
                     withMaven(options: []) {
                         sh """
                             mvn -T4 -U \
                                 -DskipTests \
                                 -Pwebapps-integration ${deployment} \
+                                ${sbomFlag} ${sbomGenerate} \
                                 clean deploy
                         """
-
-                        // Generate and deploy the aggregate CycloneDX SBOM for the whole project, wrapped in
-                        // catchError so a failure here only marks the stage unstable instead of failing the
-                        // build - the real deployment above already succeeded and must not be undone by this.
-                        if (!params.DEPLOY_WITHOUT_SBOM) {
-                            catchError(buildResult: null, stageResult: 'UNSTABLE') {
-                                sh """
-                                    mvn -T4 org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
-                                        -DoutputDirectory=sbom/target -DoutputName=cibseven-sbom
-                                """
-
-                                sh """
-                                    mvn -pl sbom \
-                                        -Pattach-sbom ${deployment} \
-                                        -Dmaven.deploy.skip=false \
-                                        deploy
-                                """
-                            }
-                        }
                     }
                 }
             }
@@ -500,6 +489,12 @@ pipeline {
             }
             steps {
                 script {
+                    // See "Deploy to artifacts.cibseven.org" above for what -Dsbom.create=true and the
+                    // prepended makeAggregateBom goal do.
+                    String sbomFlag = params.DEPLOY_WITHOUT_SBOM ? "" : "-Dsbom.create=true"
+                    String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
+                        "org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom -DoutputDirectory=sbom-generated -DoutputName=cibseven-sbom"
+
                     withMaven(options: []) {
                         withCredentials([file(credentialsId: 'credential-cibseven-gpg-private-key', variable: 'GPG_KEY_FILE'), string(credentialsId: 'credential-cibseven-gpg-passphrase', variable: 'GPG_KEY_PASS')]) {
                             sh "gpg --batch --import ${GPG_KEY_FILE}"
@@ -510,30 +505,12 @@ pipeline {
                                 mvn -T4 -U \
                                     -Dgpg.keyname="${GPG_KEYNAME}" \
                                     -Dgpg.passphrase="${GPG_KEY_PASS}" \
+                                    ${sbomFlag} ${sbomGenerate} \
                                     clean deploy \
                                     -Psonatype-oss-release \
                                     -Dskip.cibseven.release="${!params.DEPLOY_TO_ARTIFACTS}" \
                                     -DskipTests
                             """
-                        }
-
-                        // Generate and deploy the aggregate CycloneDX SBOM for the whole project, wrapped in
-                        // catchError so a failure here only marks the stage unstable instead of failing the
-                        // build - the real deployment above already succeeded and must not be undone by this.
-                        if (!params.DEPLOY_WITHOUT_SBOM) {
-                            catchError(buildResult: null, stageResult: 'UNSTABLE') {
-                                sh """
-                                    mvn -T4 org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
-                                        -DoutputDirectory=sbom/target -DoutputName=cibseven-sbom
-                                """
-
-                                sh """
-                                    mvn -pl sbom \
-                                        -Pattach-sbom \
-                                        -Dmaven.deploy.skip=false \
-                                        deploy
-                                """
-                            }
                         }
                     }
                 }
