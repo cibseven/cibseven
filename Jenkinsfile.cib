@@ -517,7 +517,7 @@ pipeline {
                                 withMaven() {
                                     sh """
                                         mvn -f ${pipelineParams.pom} \
-                                            package org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar \
+                                            compile org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar \
                                             -V -U -T4 \
                                             -Pwebapps-integration \
                                             -Dmaven.test.skip=true \
