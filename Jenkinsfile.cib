@@ -459,19 +459,22 @@ pipeline {
                         }
                     }
 
-                    // Call cyclonedx directly from mvn command to avoid creation of a new profile in the root pom.xml   
-                    // sbomFlag - activates "create-sbom" profile in parent/pom.xml to create bom files for each module,
-                    // sbomGenerate - additional command line parameters to generate aggregate sbom for the whole project
-                    String sbomFlag = params.DEPLOY_WITHOUT_SBOM ? "" : "-Dsbom.create=true"
+                    // Call cyclonedx directly from the mvn command to avoid adding a new profile to the root pom.xml.
+                    // makeAggregateBom builds the whole-project aggregate at the execution root, and - by its own
+                    // default (outputReactorProjects=true) - a per-module BOM for every other project too, attached
+                    // and deployed automatically as part of that project's own package/deploy (sbom/pom.xml opts
+                    // itself out via cyclonedx.skip, since it attaches the aggregate under the same classifier).
+                    // -Dsbom.create=true activates sbom/pom.xml's own attach-sbom profile, which attaches the
+                    // aggregate files generated below to the sbom module for deployment.
                     String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
-                        "org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom -DoutputDirectory=sbom-generated -DoutputName=cibseven-sbom"
+                        "-Dsbom.create=true org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom -DoutputDirectory=sbom-generated -DoutputName=cibseven-sbom"
 
                     withMaven(options: []) {
                         sh """
                             mvn -T4 -U \
                                 -DskipTests \
                                 -Pwebapps-integration ${deployment} \
-                                ${sbomFlag} ${sbomGenerate} \
+                                ${sbomGenerate} \
                                 clean deploy
                         """
                     }
@@ -489,11 +492,9 @@ pipeline {
             }
             steps {
                 script {
-                    // See "Deploy to artifacts.cibseven.org" above for what -Dsbom.create=true and the
-                    // prepended makeAggregateBom goal do.
-                    String sbomFlag = params.DEPLOY_WITHOUT_SBOM ? "" : "-Dsbom.create=true"
+                    // See "Deploy to artifacts.cibseven.org" above for what the prepended makeAggregateBom goal does.
                     String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
-                        "org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom -DoutputDirectory=sbom-generated -DoutputName=cibseven-sbom"
+                        "-Dsbom.create=true org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom -DoutputDirectory=sbom-generated -DoutputName=cibseven-sbom"
 
                     withMaven(options: []) {
                         withCredentials([file(credentialsId: 'credential-cibseven-gpg-private-key', variable: 'GPG_KEY_FILE'), string(credentialsId: 'credential-cibseven-gpg-passphrase', variable: 'GPG_KEY_PASS')]) {
@@ -505,7 +506,7 @@ pipeline {
                                 mvn -T4 -U \
                                     -Dgpg.keyname="${GPG_KEYNAME}" \
                                     -Dgpg.passphrase="${GPG_KEY_PASS}" \
-                                    ${sbomFlag} ${sbomGenerate} \
+                                    ${sbomGenerate} \
                                     clean deploy \
                                     -Psonatype-oss-release \
                                     -Dskip.cibseven.release="${!params.DEPLOY_TO_ARTIFACTS}" \

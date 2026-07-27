@@ -14,16 +14,19 @@
   <name>CIB seven - SBOM</name>
   <description>Holds the aggregate CycloneDX Software Bill of Materials generated for the CIB seven build</description>
 
+  <properties>
+    <!-- This module is excluded since it attaches the whole-project aggregate itself -->
+    <cyclonedx.skip>true</cyclonedx.skip>
+  </properties>
+
   <profiles>
     <profile>
-      <!-- Activated via -Dsbom.create=true, the same property that turns on cibseven-parent's
-           create-sbom profile, so both fire together from a single mvn invocation. This module
-           inherits from the root pom directly (not cibseven-parent), so it never picks up that
-           profile itself - no risk of colliding with the aggregate files attached below.
-           The aggregate SBOM is generated (as a separate CLI goal, before "clean deploy") into
-           sbom-generated/, a directory outside every module's own target/ - this module's own
-           "clean" phase runs as part of the same combined build and would otherwise wipe files
-           placed under its own target/ before package/deploy get to attach and push them. -->
+      <!-- Activated via -Dsbom.create=true (see Jenkinsfile.cib), set alongside the CLI call that
+           generates the aggregate SBOM before "clean deploy" runs.
+           The aggregate SBOM is generated into sbom-generated/, a directory outside every module's
+           own target/ - this module's own "clean" phase runs as part of the same combined build
+           and would otherwise wipe files placed under its own target/ before package/deploy get
+           to attach and push them. -->
       <id>attach-sbom</id>
       <activation>
         <property>

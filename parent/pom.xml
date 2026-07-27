@@ -394,36 +394,6 @@
         </plugins>
       </build>
     </profile>
-
-    <profile>
-      <!-- Activated via -Dsbom.create=true. Declared here (cibseven-parent), not in the root pom,
-           so it can't interact with the root pom's activeByDefault profiles (distro and others) -
-           activating a profile deactivates other activeByDefault profiles only within the same POM. -->
-      <id>create-sbom</id>
-      <activation>
-        <property>
-          <name>sbom.create</name>
-          <value>true</value>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.cyclonedx</groupId>
-            <artifactId>cyclonedx-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>create-sbom</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>makeBom</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
   </profiles>
 
   <licenses>
