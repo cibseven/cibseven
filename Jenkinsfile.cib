@@ -515,11 +515,16 @@ pipeline {
                                 installationName: 'SonarQube'
                             ) {
                                 withMaven() {
+                                    // -pl '!:docs' \
+                                    //  drop the docs module (packaging=pom, no Java sources, nothing for Sonar to analyze) from this reactor run,
+                                    //  avoiding the MDEP-98 unpack failure entirely rather than switching to a slower package phase.
+                                    //  No other module depends on docs, so excluding it is safe.
                                     sh """
                                         mvn -f ${pipelineParams.pom} \
                                             compile org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar \
                                             -V -U -T4 \
                                             -Pwebapps-integration \
+                                            -pl '!:docs' \
                                             -Dmaven.test.skip=true \
                                             -Dlicense.skipDownloadLicenses=true \
                                             -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json \
