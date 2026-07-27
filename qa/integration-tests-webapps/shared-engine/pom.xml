@@ -26,6 +26,20 @@
       <properties>
         <jboss.runtime>${basedir}/../${wildfly.runtime.location}</jboss.runtime>
         <http.port>${jboss.http.port}</http.port>
+        <!-- Extra JVM args appended to the WildFly server JVM (the process where the
+             engine-rest code actually runs). Empty by default. To debug the SERVER,
+             override on the command line, e.g.:
+               -Dwildfly.debug.jvmargs="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+             Then attach your IDE remote debugger to port 5005.
+
+             Prefer suspend=n: let WildFly boot fully, attach the debugger, then trigger
+             your breakpoint via the test request. Do NOT use suspend=y for normal
+             debugging - the time spent waiting for the debugger (and paused on
+             breakpoints during boot) counts against WildFly's internal 300s
+             service-container stability timeout (WFLYCTL0348), which rolls back all
+             deployments. If you really need suspend=y, also raise that timeout by adding
+             -Djboss.as.management.blocking.timeout=1800 to this property. -->
+        <wildfly.debug.jvmargs></wildfly.debug.jvmargs>
       </properties>
       <dependencies>
         <dependency>
@@ -80,9 +94,9 @@
               </execution>
             </executions>
             <configuration>
-              <!-- verbose cargo logging so the log/output files below are actually written with useful detail
+              <!-- verbose cargo logging so the log/output files below are actually written with useful detail -->
               <logLevel>high</logLevel>
-	      <log>${project.build.directory}/wildfly-cargo.log</log>-->
+              <log>${project.build.directory}/wildfly-cargo.log</log>
               <!-- Container configuration -->
               <container>
                 <type>installed</type>
@@ -90,9 +104,9 @@
                 <append>false</append>
                 <home>${jboss.runtime}</home>
                 <timeout>${cargo.timeout}</timeout>
-                <!-- capture WildFly server console output and cargo lifecycle logs for diagnostics
+                <!-- capture WildFly server console output and cargo lifecycle logs for diagnostics -->
                 <output>${project.build.directory}/wildfly-server.log</output>
-		<log>${project.build.directory}/wildfly-cargo.log</log> -->
+                <log>${project.build.directory}/wildfly-cargo.log</log>
               </container>
               <configuration>
                 <!-- IMPORTANT: use an *existing* configuration instead of letting Cargo generate a
@@ -121,7 +135,7 @@
                        marshaller fails with "module java.base does not open java.util to unnamed
                        module" (EnumMapMarshaller), breaking the 'web' and 'sfsb' cache-containers.
                        We therefore replicate the full DEFAULT_MODULAR_JVM_OPTIONS set here. -->
-                  <cargo.jvmargs>-Djava.net.preferIPv4Stack=true --add-exports=java.desktop/sun.awt=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.ldap=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.url.ldap=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.url.ldaps=ALL-UNNAMED --add-exports=jdk.naming.dns/com.sun.jndi.dns=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.management/javax.management=ALL-UNNAMED --add-opens=java.naming/javax.naming=ALL-UNNAMED</cargo.jvmargs>
+                  <cargo.jvmargs>${wildfly.debug.jvmargs} -Djava.net.preferIPv4Stack=true --add-exports=java.desktop/sun.awt=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.ldap=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.url.ldap=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.url.ldaps=ALL-UNNAMED --add-exports=jdk.naming.dns/com.sun.jndi.dns=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.management/javax.management=ALL-UNNAMED --add-opens=java.naming/javax.naming=ALL-UNNAMED</cargo.jvmargs>
                   <!-- The runtime's standalone.xml binds the management interface on port 39990
                        (not Cargo's default 9990). Cargo's WildFly CombinedContainerMonitor polls
                        the management-http port to detect that the server is up; if it polls the

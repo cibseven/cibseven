@@ -40,6 +40,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public abstract class AbstractSearchQueryDto {
 
+  @JsonIgnore
   protected ObjectMapper objectMapper;
 
   // required for populating via jackson

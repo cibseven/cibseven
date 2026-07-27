@@ -5,6 +5,18 @@
 
   <display-name>Camunda Platform rest api</display-name>
 
+  <!-- Ensure RESTEasy uses the Jackson provider registered by DefaultApplication
+       (com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider) instead of the
+       WildFly default JSON-B (Yasson) provider. JSON-B ignores JAX-RS
+       ContextResolver<ObjectMapper> (our JacksonConfigurator) and Jackson
+       annotations such as @JsonIgnore / @JsonTypeInfo, which breaks date
+       formatting, polymorphic @class serialization, and causes 500 errors when
+       serializing DTOs that hold an ObjectMapper field (AbstractSearchQueryDto). -->
+  <context-param>
+    <param-name>resteasy.preferJacksonOverJsonB</param-name>
+    <param-value>true</param-value>
+  </context-param>
+
   <!-- Fetch And Lock Handler (long polling): -->
 
   <!-- Unique Worker Request (default value: false)

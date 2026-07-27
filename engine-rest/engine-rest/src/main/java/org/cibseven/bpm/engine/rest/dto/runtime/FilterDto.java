@@ -29,8 +29,6 @@ import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 public class FilterDto {
 
@@ -38,7 +36,13 @@ public class FilterDto {
   protected String resourceType;
   protected String name;
   protected String owner;
-  protected AbstractQueryDto<?> query;
+  // A filter's query is always a task query: fromFilter() only ever builds a TaskQueryDto,
+  // and FilterResourceImpl#getQueryDtoForQuery rejects any non-TASK resource type. Declaring
+  // the concrete TaskQueryDto (rather than the abstract AbstractQueryDto) lets Jackson
+  // instantiate the query on deserialization; the abstract type has no usable creator and
+  // @JsonDeserialize(as = ...) is not honored for it by the Jackson version shipped with
+  // WildFly 40 (2.21.x via RESTEasy), which previously caused an HTTP 500 on POST /filter/create.
+  protected TaskQueryDto query;
   protected Map<String, Object> properties;
 
   protected Long itemCount;
@@ -79,14 +83,9 @@ public class FilterDto {
     return query;
   }
 
-  @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY,
-      property = "resourceType", defaultImpl = TaskQueryDto.class,
-      // newer Jackson otherwise tries to instantiate the abstract AbstractQueryDto when the
-      // external "resourceType" type id is missing/unresolved; tolerate it and use defaultImpl
-      requireTypeIdForSubtypes = com.fasterxml.jackson.annotation.OptBoolean.FALSE)
-    @JsonSubTypes(value = {
-    @JsonSubTypes.Type(value = TaskQueryDto.class, name = EntityTypes.TASK)})
-  public void setQuery(AbstractQueryDto<?> query) {
+  // A filter's query is always a Task query: FilterDto.fromFilter only creates a
+  // TaskQueryDto and FilterResourceImpl rejects every non-Task resource type.
+  public void setQuery(TaskQueryDto query) {
     this.query = query;
   }
 

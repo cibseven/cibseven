@@ -533,6 +533,17 @@
               <exclude>javax.activation:*</exclude>
               <exclude>org.mybatis:mybatis:*</exclude>
               <exclude>joda-time:*</exclude>
+
+              <!-- Do not shade JUnit into the engine jar. junit-jupiter-api is a
+                   provided dependency and would otherwise be included (together with
+                   its transitive junit-platform-commons) due to
+                   keepDependenciesWithProvidedScope=true, shadowing the JUnit version
+                   on the test classpath of downstream modules. -->
+              <exclude>org.junit.jupiter:*</exclude>
+              <exclude>org.junit.platform:*</exclude>
+              <exclude>org.junit:*</exclude>
+              <exclude>org.opentest4j:*</exclude>
+              <exclude>org.apiguardian:*</exclude>
             </excludes>
           </artifactSet>
           <relocations>
