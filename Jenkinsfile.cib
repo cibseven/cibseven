@@ -521,7 +521,7 @@ pipeline {
                                     //  No other module depends on docs, so excluding it is safe.
                                     sh """
                                         mvn -f ${pipelineParams.pom} \
-                                            compile org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar \
+                                            package org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar \
                                             -V -U -T4 \
                                             -Pwebapps-integration \
                                             -pl '!:docs' \
