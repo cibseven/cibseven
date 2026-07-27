@@ -373,6 +373,11 @@
             <wait>750</wait>
           </configuration>
         </plugin>
+        <plugin>
+          <groupId>org.cyclonedx</groupId>
+          <artifactId>cyclonedx-maven-plugin</artifactId>
+          <configuration combine.self="override"/>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>

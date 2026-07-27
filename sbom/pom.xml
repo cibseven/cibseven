@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.cibseven.bpm</groupId>
+    <artifactId>cibseven-parent</artifactId>
+    <relativePath>../parent</relativePath>
+    <version>2.3.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>cibseven-sbom</artifactId>
+  <packaging>pom</packaging>
+  <name>CIB seven - SBOM</name>
+  <description>Holds the aggregate CycloneDX Software Bill of Materials generated for the CIB seven build</description>
+
+  <properties>
+    <!-- Not deployed by default. The CI deploy stages explicitly opt in with -Dmaven.deploy.skip=false
+         after generating the SBOM files into this module's target directory. -->
+    <maven.deploy.skip>true</maven.deploy.skip>
+  </properties>
+
+  <profiles>
+    <profile>
+      <!-- Activated explicitly by the CI deploy stages once the SBOM files have been generated
+           into target/, so that ordinary builds of this module don't fail looking for files
+           that were never produced. -->
+      <id>attach-sbom</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-sbom-files</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>attach-artifact</goal>
+                </goals>
+                <configuration>
+                  <artifacts>
+                    <artifact>
+                      <file>${project.basedir}/target/cibseven-sbom.json</file>
+                      <type>json</type>
+                      <classifier>cyclonedx</classifier>
+                    </artifact>
+                    <artifact>
+                      <file>${project.basedir}/target/cibseven-sbom.xml</file>
+                      <type>xml</type>
+                      <classifier>cyclonedx</classifier>
+                    </artifact>
+                  </artifacts>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
+
+</project>

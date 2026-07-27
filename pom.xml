@@ -111,6 +111,7 @@
         <module>database</module>
         <module>parent</module>
         <module>bom</module>
+        <module>sbom</module>
       </modules>
     </profile>
 
