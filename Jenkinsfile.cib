@@ -12,12 +12,12 @@ import groovy.transform.Field
 @Field String mavenLocalRepoRedirected = null
 @Field Map pipelineParams = [
     pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
-    mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
+    mvnContainerName: Constants.MAVEN_JDK_21_CONTAINER,
     uiParamPresets: [:],
     testMode: false,
     dependencyTrackSynchronous: true,
     buildPodConfig: [
-        (Constants.MAVEN_JDK_17_CONTAINER): [
+        (Constants.MAVEN_JDK_21_CONTAINER): [
             resources: [
                 cpu: '4',
                 memory: '16Gi',
@@ -33,7 +33,6 @@ pipeline {
         kubernetes {
             yaml BuildPodCreator.cibStandardPod(nodepool: Constants.NODEPOOL_STABLE)
                     .withContainerFromName(pipelineParams.mvnContainerName, pipelineParams.buildPodConfig[pipelineParams.mvnContainerName])
-                    .withMavenJdk21Container()
                     .asYaml()
             defaultContainer pipelineParams.mvnContainerName
         }
@@ -511,33 +510,31 @@ pipeline {
                     }
                     steps {
                         script {
-                            container(Constants.MAVEN_JDK_21_CONTAINER) {
-                                withSonarQubeEnv(
-                                    credentialsId: Constants.SONARQUBE_CREDENTIALS_ID,
-                                    installationName: 'SonarQube'
-                                ) {
-                                    withMaven() {
-                                        sh """
-                                            mvn -f ${pipelineParams.pom} \
-                                                package org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar \
-                                                -V -U -T4 \
-                                                -Pwebapps-integration \
-                                                -Dmaven.test.skip=true \
-                                                -Dlicense.skipDownloadLicenses=true \
-                                                -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json \
-                                                -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html
-                                        """
-                                    }
+                            withSonarQubeEnv(
+                                credentialsId: Constants.SONARQUBE_CREDENTIALS_ID,
+                                installationName: 'SonarQube'
+                            ) {
+                                withMaven() {
+                                    sh """
+                                        mvn -f ${pipelineParams.pom} \
+                                            package org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar \
+                                            -V -U -T4 \
+                                            -Pwebapps-integration \
+                                            -Dmaven.test.skip=true \
+                                            -Dlicense.skipDownloadLicenses=true \
+                                            -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json \
+                                            -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html
+                                    """
                                 }
+                            }
 
-                                timeout(time: 5, unit: 'MINUTES') {
-                                    def qg = waitForQualityGate()
+                            timeout(time: 5, unit: 'MINUTES') {
+                                def qg = waitForQualityGate()
 
-                                    if (qg.status != 'OK') {
-                                        echo "WARNING: Quality gate failure: ${qg.status}. Marking stage as unstable without affecting overall build result."
-                                        catchError(buildResult: null, stageResult: 'UNSTABLE') {
-                                            error "Quality gate failure: ${qg.status}"
-                                        }
+                                if (qg.status != 'OK') {
+                                    echo "WARNING: Quality gate failure: ${qg.status}. Marking stage as unstable without affecting overall build result."
+                                    catchError(buildResult: null, stageResult: 'UNSTABLE') {
+                                        error "Quality gate failure: ${qg.status}"
                                     }
                                 }
                             }
