@@ -165,6 +165,7 @@ pipeline {
             when {
                 anyOf {
                     expression { params.BUILD_FEATURE_BRANCH == true }
+                    expression { params.SAST_SONARQUBE == true }
                     expression { params.VERIFY == true }
                 }
             }
