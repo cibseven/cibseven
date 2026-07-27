@@ -473,7 +473,7 @@ pipeline {
                         if (!params.EXCLUDE_SBOM_DEPLOYMENT) {
                             catchError(buildResult: null, stageResult: 'UNSTABLE') {
                                 sh """
-                                    mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
+                                    mvn -T4 org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
                                         -DoutputDirectory=sbom/target -DoutputName=cibseven-sbom
                                 """
 
@@ -523,7 +523,7 @@ pipeline {
                         if (!params.EXCLUDE_SBOM_DEPLOYMENT) {
                             catchError(buildResult: null, stageResult: 'UNSTABLE') {
                                 sh """
-                                    mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
+                                    mvn -T4 org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
                                         -DoutputDirectory=sbom/target -DoutputName=cibseven-sbom
                                 """
 
