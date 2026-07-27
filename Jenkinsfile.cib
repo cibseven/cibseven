@@ -509,32 +509,34 @@ pipeline {
                         expression { params.SAST_SONARQUBE }
                     }
                     steps {
-                        container(Constants.MAVEN_JDK_21_CONTAINER) {
-                            withSonarQubeEnv(
-                                credentialsId: Constants.SONARQUBE_CREDENTIALS_ID,
-                                installationName: 'SonarQube'
-                            ) {
-                                withMaven() {
-                                    sh """
-                                        mvn -f ${pipelineParams.pom} \
-                                            package sonar:sonar \
-                                            -V -U -T4 \
-                                            -Pwebapps-integration \
-                                            -Dmaven.test.skip=true \
-                                            -Dlicense.skipDownloadLicenses=true \
-                                            -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json \
-                                            -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html
-                                    """
+                        script {
+                            container(Constants.MAVEN_JDK_21_CONTAINER) {
+                                withSonarQubeEnv(
+                                    credentialsId: Constants.SONARQUBE_CREDENTIALS_ID,
+                                    installationName: 'SonarQube'
+                                ) {
+                                    withMaven() {
+                                        sh """
+                                            mvn -f ${pipelineParams.pom} \
+                                                package sonar:sonar \
+                                                -V -U -T4 \
+                                                -Pwebapps-integration \
+                                                -Dmaven.test.skip=true \
+                                                -Dlicense.skipDownloadLicenses=true \
+                                                -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json \
+                                                -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html
+                                        """
+                                    }
                                 }
-                            }
 
-                            timeout(time: 5, unit: 'MINUTES') {
-                                def qg = waitForQualityGate()
+                                timeout(time: 5, unit: 'MINUTES') {
+                                    def qg = waitForQualityGate()
 
-                                if (qg.status != 'OK') {
-                                    echo "WARNING: Quality gate failure: ${qg.status}. Marking stage as unstable without affecting overall build result."
-                                    catchError(buildResult: null, stageResult: 'UNSTABLE') {
-                                        error "Quality gate failure: ${qg.status}"
+                                    if (qg.status != 'OK') {
+                                        echo "WARNING: Quality gate failure: ${qg.status}. Marking stage as unstable without affecting overall build result."
+                                        catchError(buildResult: null, stageResult: 'UNSTABLE') {
+                                            error "Quality gate failure: ${qg.status}"
+                                        }
                                     }
                                 }
                             }
