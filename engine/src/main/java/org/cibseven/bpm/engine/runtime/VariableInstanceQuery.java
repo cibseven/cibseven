@@ -17,6 +17,7 @@
 package org.cibseven.bpm.engine.runtime;
 
 import java.io.Serializable;
+import java.util.stream.Stream;
 
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.query.Query;
@@ -223,6 +224,11 @@ public interface VariableInstanceQuery extends Query<VariableInstanceQuery, Vari
    */
   VariableInstanceQuery tenantIdIn(String... tenantIds);
 
+    /**
+   * Order by the id of the variable instance (needs to be followed by {@link #asc()} or {@link #desc()}).
+   */
+  VariableInstanceQuery orderByVariableId();
+
   /**
    * Order by variable name (needs to be followed by {@link #asc()} or {@link #desc()}).
    */
@@ -243,5 +249,7 @@ public interface VariableInstanceQuery extends Query<VariableInstanceQuery, Vari
    * Note that the ordering of variable instances without tenant id is database-specific.
    */
   VariableInstanceQuery orderByTenantId();
+
+  Stream<VariableInstance> streamStable();
 
 }

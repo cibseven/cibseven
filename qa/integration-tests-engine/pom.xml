@@ -483,6 +483,7 @@
                   <resources>
                     <resource>
                       <directory>src/test/resources-wildfly26</directory>
+                      <filtering>true</filtering>
                     </resource>
                   </resources>
                 </configuration>

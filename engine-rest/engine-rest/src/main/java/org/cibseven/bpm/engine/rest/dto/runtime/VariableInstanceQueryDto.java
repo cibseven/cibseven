@@ -41,6 +41,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class VariableInstanceQueryDto extends AbstractQueryDto<VariableInstanceQuery> {
 
+  private static final String SORT_BY_VARIABLE_ID_VALUE = "variableId";
   private static final String SORT_BY_VARIABLE_NAME_VALUE = "variableName";
   private static final String SORT_BY_VARIABLE_TYPE_VALUE = "variableType";
   private static final String SORT_BY_ACTIVITY_INSTANCE_ID_VALUE = "activityInstanceId";
@@ -49,6 +50,7 @@ public class VariableInstanceQueryDto extends AbstractQueryDto<VariableInstanceQ
   private static final List<String> VALID_SORT_BY_VALUES;
   static {
     VALID_SORT_BY_VALUES = new ArrayList<String>();
+    VALID_SORT_BY_VALUES.add(SORT_BY_VARIABLE_ID_VALUE);
     VALID_SORT_BY_VALUES.add(SORT_BY_VARIABLE_NAME_VALUE);
     VALID_SORT_BY_VALUES.add(SORT_BY_VARIABLE_TYPE_VALUE);
     VALID_SORT_BY_VALUES.add(SORT_BY_ACTIVITY_INSTANCE_ID_VALUE);
@@ -238,7 +240,9 @@ public class VariableInstanceQueryDto extends AbstractQueryDto<VariableInstanceQ
 
   @Override
   protected void applySortBy(VariableInstanceQuery query, String sortBy, Map<String, Object> parameters, ProcessEngine engine) {
-    if (sortBy.equals(SORT_BY_VARIABLE_NAME_VALUE)) {
+    if (sortBy.equals(SORT_BY_VARIABLE_ID_VALUE)) {
+      query.orderByVariableId();
+    } else if (sortBy.equals(SORT_BY_VARIABLE_NAME_VALUE)) {
       query.orderByVariableName();
     } else if (sortBy.equals(SORT_BY_VARIABLE_TYPE_VALUE)) {
       query.orderByVariableType();

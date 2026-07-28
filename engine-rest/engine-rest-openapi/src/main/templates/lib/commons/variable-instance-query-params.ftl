@@ -1,6 +1,7 @@
 <#-- Generated From File: camunda-docs-manual/public/reference/rest/variable-instance/get-query/index.html -->
 
 <#assign sortByValues = [
+  '"variableId"',
   '"variableName"',
   '"variableType"',
   '"activityInstanceId"',

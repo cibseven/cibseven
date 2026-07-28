@@ -25,9 +25,17 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.exception.NotValidException;
@@ -148,6 +156,71 @@ public abstract class AbstractQuery<T extends Query<?,?>, U> extends ListQueryPa
     this.maxResults = maxResults;
     this.resultType = ResultType.LIST_PAGE;
     return (List<U>) executeResult(resultType);
+  }
+
+/**
+* Streams results using keyset (seek) pagination: each page is fetched by
+* "id greater than the last streamed id" rather than by numeric offset.
+*
+* <p>Unlike offset pagination, concurrent inserts/deletes do not shift the
+* cursor, so no row is returned twice and no row present when iteration
+* passed its id is skipped. Requires {@code id} to be unique, immutable, and
+* consistent with the applied ascending ordering. Rows inserted ahead of the
+* cursor may still appear; rows inserted behind it will not.
+*
+* @param idExtractor         reads the unique, orderable id from a result row
+* @param cursorSetter        applies the "id greater than" cursor; called with
+*                            {@code null} to reset prior state
+* @param applyUniqueOrdering clears current ordering and orders ascending by id
+*/
+  protected Stream<U> streamByKeyset(Function<U, String> idExtractor, Consumer<String> cursorSetter,
+      Runnable applyUniqueOrdering) {
+    return streamByKeyset(100, idExtractor, cursorSetter, applyUniqueOrdering);
+  }
+
+  protected Stream<U> streamByKeyset(int pageSize, Function<U, String> idExtractor, Consumer<String> cursorSetter,
+      Runnable applyUniqueOrdering) {
+    cursorSetter.accept(null);
+    setOrderingProperties(new ArrayList<QueryOrderingProperty>());
+    applyUniqueOrdering.run();
+
+    Iterator<U> iterator = new Iterator<U>() {
+
+      protected List<U> page = null;
+      protected int indexInPage = 0;
+      protected boolean lastPageReached = false;
+
+      @Override
+      public boolean hasNext() {
+        if (page != null && indexInPage < page.size()) {
+          return true;
+        }
+        if (lastPageReached) {
+          return false;
+        }
+        page = listPage(0, pageSize);
+        indexInPage = 0;
+        if (!page.isEmpty()) {
+          cursorSetter.accept(idExtractor.apply(page.get(page.size() - 1)));
+        }
+        if (page.size() < pageSize) {
+          lastPageReached = true;
+        }
+        return indexInPage < page.size();
+      }
+
+      @Override
+      public U next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        return page.get(indexInPage++);
+      }
+    };
+
+    Spliterator<U> spliterator =
+        Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED | Spliterator.NONNULL);
+    return StreamSupport.stream(spliterator, false);
   }
 
   public Object executeResult(ResultType resultType) {
