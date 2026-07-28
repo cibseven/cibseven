@@ -698,7 +698,7 @@ def getLocalJobRepo(String jobName, boolean usePrivate) {
 }
 
 def getMavenRepository() {
-    withMaven(options: [mavenOpts(env.MAVEN_LOCAL_REPO_OPTS)]) {
+    withMaven(options: []) {
         def mavenRepo = sh(script: 'mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout', returnStdout: true).trim()
         return mavenRepo
     }
