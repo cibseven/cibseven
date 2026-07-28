@@ -173,7 +173,20 @@
       <artifactId>spring-boot-http-client</artifactId>
       <scope>test</scope>
     </dependency>
-  </dependencies>
+<!-- JUnit Platform Suite API (behebt die Compiler-Fehler) -->
+    <dependency>
+        <groupId>org.junit.platform</groupId>
+        <artifactId>junit-platform-suite-api</artifactId>
+        <scope>test</scope>
+    </dependency>
+
+    <!-- JUnit Platform Suite Engine (wird zur Ausführung der Suiten benötigt) -->
+    <dependency>
+        <groupId>org.junit.platform</groupId>
+        <artifactId>junit-platform-suite-engine</artifactId>
+        <scope>test</scope>
+    </dependency>
+      </dependencies>
 
   <build>
     <resources>
