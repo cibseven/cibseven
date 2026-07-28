@@ -471,7 +471,7 @@ pipeline {
 
                     withMaven(options: []) {
                         sh """
-                            mvn -T4 -U \
+                            mvn -T1 -U \
                                 -DskipTests \
                                 -Pwebapps-integration ${deployment} \
                                 ${sbomGenerate} \
