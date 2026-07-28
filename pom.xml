@@ -123,7 +123,6 @@
         <module>database</module>
         <module>parent</module>
         <module>bom</module>
-        <module>sbom</module>
       </modules>
     </profile>
 
@@ -286,7 +285,6 @@
         <module>database</module>
         <module>parent</module>
         <module>bom</module>
-        <module>sbom</module>
       </modules>
     </profile>
 
