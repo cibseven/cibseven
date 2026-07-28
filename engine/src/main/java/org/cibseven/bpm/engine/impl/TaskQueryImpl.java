@@ -1848,6 +1848,8 @@ public class TaskQueryImpl extends AbstractQuery<TaskQuery, Task> implements Tas
 
   public void addOrQuery(TaskQueryImpl orQuery) {
     orQuery.isOrQueryActive = true;
+    // inherit the root's validators so this branch is validated too (see or())
+    orQuery.validators = new LinkedHashSet<>(this.validators);
     this.queries.add(orQuery);
   }
 

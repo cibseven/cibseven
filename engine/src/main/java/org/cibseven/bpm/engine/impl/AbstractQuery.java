@@ -92,9 +92,7 @@ public abstract class AbstractQuery<T extends Query<?,?>, U> extends ListQueryPa
     // are treated as adhoc queries (i.e. queries not created in the context
     // of a command)
     addValidator(AdhocQueryValidator.<AbstractQuery<?, ?>>get());
-    // expressions in adhoc queries (e.g. REST /task, /task/count, or direct TaskQuery
-    // API use) go through the same whitelist as stored filter criteria, since both
-    // are reachable without any task/process authorization once expressions are enabled
+    // adhoc queries go through the same expression whitelist as stored filter criteria
     addValidator(ExpressionWhitelistValidator.<AbstractQuery<?, ?>>get());
   }
 

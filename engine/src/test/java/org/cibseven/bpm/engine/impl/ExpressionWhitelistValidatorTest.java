@@ -237,4 +237,39 @@ public class ExpressionWhitelistValidatorTest {
     adhocQuery.validate();
     // no exception
   }
+
+  // --- or() branches (e.g. REST orQueries[] deserialization via addOrQuery) inherit the
+  // same validators as the root query, so they cannot be used to sneak an expression past
+  // the whitelist ------------------------------------------------------------------------
+
+  @Test
+  public void shouldRejectDisallowedExpressionInOrQueryBranch() {
+    StandaloneInMemProcessEngineConfiguration configuration = new StandaloneInMemProcessEngineConfiguration();
+    configuration.setEnableExpressionsInAdhocQueries(true);
+    Context.setProcessEngineConfiguration(configuration);
+
+    TaskQueryImpl rootQuery = new TaskQueryImpl(null);
+    TaskQueryImpl orBranch = new TaskQueryImpl();
+    orBranch.taskAssigneeExpression("${someBean.deleteAll()}");
+    rootQuery.addOrQuery(orBranch);
+
+    assertThatThrownBy(orBranch::validate)
+        .isInstanceOf(BadUserRequestException.class)
+        .hasMessageContaining("task query criteria");
+  }
+
+  @Test
+  public void shouldAllowWhitelistedExpressionInOrQueryBranch() {
+    StandaloneInMemProcessEngineConfiguration configuration = new StandaloneInMemProcessEngineConfiguration();
+    configuration.setEnableExpressionsInAdhocQueries(true);
+    Context.setProcessEngineConfiguration(configuration);
+
+    TaskQueryImpl rootQuery = new TaskQueryImpl(null);
+    TaskQueryImpl orBranch = new TaskQueryImpl();
+    orBranch.taskAssigneeExpression("${currentUser()}");
+    rootQuery.addOrQuery(orBranch);
+
+    orBranch.validate();
+    // no exception
+  }
 }
