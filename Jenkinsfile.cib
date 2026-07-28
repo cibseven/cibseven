@@ -12,12 +12,12 @@ import groovy.transform.Field
 @Field String mavenLocalRepoRedirected = null
 @Field Map pipelineParams = [
     pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
-    mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
+    mvnContainerName: Constants.MAVEN_JDK_21_CONTAINER,
     uiParamPresets: [:],
     testMode: false,
     dependencyTrackSynchronous: true,
     buildPodConfig: [
-        (Constants.MAVEN_JDK_17_CONTAINER): [
+        (Constants.MAVEN_JDK_21_CONTAINER): [
             resources: [
                 cpu: '4',
                 memory: '16Gi',
@@ -164,6 +164,7 @@ pipeline {
             when {
                 anyOf {
                     expression { params.BUILD_FEATURE_BRANCH == true }
+                    expression { params.SAST_SONARQUBE == true }
                     expression { params.VERIFY == true }
                 }
             }
@@ -516,11 +517,16 @@ pipeline {
                                 installationName: 'SonarQube'
                             ) {
                                 withMaven() {
+                                    // -pl '!:docs' \
+                                    //  drop the docs module (packaging=pom, no Java sources, nothing for Sonar to analyze) from this reactor run,
+                                    //  avoiding the MDEP-98 unpack failure entirely rather than switching to a slower package phase.
+                                    //  No other module depends on docs, so excluding it is safe.
                                     sh """
                                         mvn -f ${pipelineParams.pom} \
-                                            package sonar:sonar \
+                                            package org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar \
                                             -V -U -T4 \
                                             -Pwebapps-integration \
+                                            -pl '!:docs' \
                                             -Dmaven.test.skip=true \
                                             -Dlicense.skipDownloadLicenses=true \
                                             -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json \
