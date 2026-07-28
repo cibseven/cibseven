@@ -464,7 +464,7 @@ pipeline {
                     // Do not use cyclonedx options, like -DoutputDirectory, in the CLI, update config in the pom instead:
 					// the CLI options can conflict with other plugins.
                     String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
-                        "-Dsbom.create=true org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
+                        "-Dsbom.create=true org.cyclonedx:cyclonedx-maven-plugin:makeBom org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
 
                     withMaven(options: []) {
                         sh """
@@ -491,7 +491,7 @@ pipeline {
                     // See "Deploy to artifacts.cibseven.org" above for what the makeAggregateBom goal does and
                     // why it's placed between "clean" and "deploy".
                     String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
-                        "-Dsbom.create=true org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
+                        "-Dsbom.create=true org.cyclonedx:cyclonedx-maven-plugin:makeBom org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
 
                     withMaven(options: []) {
                         withCredentials([file(credentialsId: 'credential-cibseven-gpg-private-key', variable: 'GPG_KEY_FILE'), string(credentialsId: 'credential-cibseven-gpg-passphrase', variable: 'GPG_KEY_PASS')]) {
