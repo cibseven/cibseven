@@ -35,6 +35,19 @@
   </properties>
 
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <!-- need to set outputDirectory/outputName in pom, because they conflict with other plugins when set as -D<opt> for mvn command -->
+          <groupId>org.cyclonedx</groupId>
+          <artifactId>cyclonedx-maven-plugin</artifactId>
+          <configuration>
+            <outputDirectory>sbom-generated</outputDirectory>
+            <outputName>cibseven-sbom</outputName>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
