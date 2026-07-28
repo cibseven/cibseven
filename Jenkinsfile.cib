@@ -461,10 +461,11 @@ pipeline {
 
                     // Call cyclonedx directly from the mvn command to avoid adding a new profile to the root pom.xml.
                     // Placed after "clean" to keep the generated files in the target, allowing to deploy them in one step.
-                    // Do not use cyclonedx options, like -DoutputDirectory, in the CLI, update config in the pom instead:
-					// the CLI options can conflict with other plugins.
+                    // Do not add cyclonedx options, like -DoutputDirectory/-DoutputName, as global -D CLI flags:
+                    // they can silently override parameters of unrelated plugins: if specific cyclonedx options are needed, 
+                    // then add (or update) a pluginManagement entry for cyclonedx-maven-plugin in the root pom.xml instead.
                     String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
-                        "-Dsbom.create=true org.cyclonedx:cyclonedx-maven-plugin:makeBom org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
+                        "org.cyclonedx:cyclonedx-maven-plugin:makeBom org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
 
                     withMaven(options: []) {
                         sh """
@@ -488,10 +489,9 @@ pipeline {
             }
             steps {
                 script {
-                    // See "Deploy to artifacts.cibseven.org" above for what the makeAggregateBom goal does and
-                    // why it's placed between "clean" and "deploy".
+                    // See "Deploy to artifacts.cibseven.org" above for details about the sbom generation.
                     String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
-                        "-Dsbom.create=true org.cyclonedx:cyclonedx-maven-plugin:makeBom org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
+                        "org.cyclonedx:cyclonedx-maven-plugin:makeBom org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
 
                     withMaven(options: []) {
                         withCredentials([file(credentialsId: 'credential-cibseven-gpg-private-key', variable: 'GPG_KEY_FILE'), string(credentialsId: 'credential-cibseven-gpg-passphrase', variable: 'GPG_KEY_PASS')]) {

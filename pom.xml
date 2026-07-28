@@ -35,18 +35,6 @@
   </properties>
 
   <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <!-- need to set outputName in pom, because it conflicts with other plugins when set with -D for mvn command in the Jenkinsfile. -->
-          <groupId>org.cyclonedx</groupId>
-          <artifactId>cyclonedx-maven-plugin</artifactId>
-          <configuration>
-            <outputName>sbom-cdx</outputName>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
