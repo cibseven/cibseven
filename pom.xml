@@ -38,12 +38,11 @@
     <pluginManagement>
       <plugins>
         <plugin>
-          <!-- need to set outputDirectory/outputName in pom, because they conflict with other plugins when set as -D<opt> for mvn command -->
+          <!-- need to set outputName in pom, because it conflicts with other plugins when set with -D for mvn command in the Jenkinsfile. -->
           <groupId>org.cyclonedx</groupId>
           <artifactId>cyclonedx-maven-plugin</artifactId>
           <configuration>
-            <outputDirectory>sbom-generated</outputDirectory>
-            <outputName>cibseven-sbom</outputName>
+            <outputName>sbom-cdx</outputName>
           </configuration>
         </plugin>
       </plugins>

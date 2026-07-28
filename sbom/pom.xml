@@ -21,12 +21,7 @@
 
   <profiles>
     <profile>
-      <!-- Activated via -Dsbom.create=true (see Jenkinsfile.cib), set alongside the CLI call that
-           generates the aggregate SBOM before "clean deploy" runs.
-           The aggregate SBOM is generated into sbom-generated/, a directory outside every module's
-           own target/ - this module's own "clean" phase runs as part of the same combined build
-           and would otherwise wipe files placed under its own target/ before package/deploy get
-           to attach and push them. -->
+      <!-- Activated via -Dsbom.create=true (see Jenkinsfile.cib): need to attach the generated aggregate SBOM -->
       <id>attach-sbom</id>
       <activation>
         <property>
@@ -49,12 +44,12 @@
                 <configuration>
                   <artifacts>
                     <artifact>
-                      <file>${project.basedir}/../sbom-generated/cibseven-sbom.json</file>
+                      <file>${project.basedir}/../target/sbom-cdx.json</file>
                       <type>json</type>
                       <classifier>cyclonedx</classifier>
                     </artifact>
                     <artifact>
-                      <file>${project.basedir}/../sbom-generated/cibseven-sbom.xml</file>
+                      <file>${project.basedir}/../target/sbom-cdx.xml</file>
                       <type>xml</type>
                       <classifier>cyclonedx</classifier>
                     </artifact>
