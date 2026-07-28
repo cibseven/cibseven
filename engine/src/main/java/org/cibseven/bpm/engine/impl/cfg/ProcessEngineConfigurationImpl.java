@@ -863,7 +863,8 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected boolean enableExpressionsInStoredQueries = true;
 
   /**
-   * Whitelist for task filter expressions (see {@link org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator}).
+   * Whitelist for task query expressions (see {@link org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator}),
+   * applied to both stored filter criteria and adhoc task queries (e.g. REST /task, /task/count).
    * Replaces the whole whitelist when set, does not extend the defaults. Configured via
    * {@link #setAllowedFilterExpressions(String)}, a single String rather than a
    * {@code Set<String>}, so it can be set the same way on every distro.
@@ -872,7 +873,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   /**
    * If false, disables the {@link org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator} entirely,
-   * so any expression is allowed in task filter criteria. Enabled by default.
+   * so any expression is allowed in task filter criteria and adhoc task queries. Enabled by default.
    */
   protected boolean enableFilterExpressionWhitelist = true;
 

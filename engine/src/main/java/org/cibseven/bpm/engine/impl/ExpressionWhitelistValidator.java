@@ -52,7 +52,7 @@ public class ExpressionWhitelistValidator<T extends AbstractQuery<?, ?>> impleme
     }
     for (String expression : query.getExpressions().values()) {
       if (!isAllowed(expression)) {
-        throw new BadUserRequestException("Expression '" + expression + "' is not allowed in task filter criteria."
+        throw new BadUserRequestException("Expression '" + expression + "' is not allowed in task query criteria."
             + " Only " + getAllowedExpressions() + " and plain literal values may be used.");
       }
     }

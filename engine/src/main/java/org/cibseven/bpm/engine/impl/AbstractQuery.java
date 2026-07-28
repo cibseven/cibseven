@@ -40,6 +40,7 @@ import java.util.stream.StreamSupport;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.exception.NotValidException;
+import org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator;
 import org.cibseven.bpm.engine.impl.QueryValidators.AdhocQueryValidator;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.db.ListQueryParameterObject;
@@ -91,6 +92,10 @@ public abstract class AbstractQuery<T extends Query<?,?>, U> extends ListQueryPa
     // are treated as adhoc queries (i.e. queries not created in the context
     // of a command)
     addValidator(AdhocQueryValidator.<AbstractQuery<?, ?>>get());
+    // expressions in adhoc queries (e.g. REST /task, /task/count, or direct TaskQuery
+    // API use) go through the same whitelist as stored filter criteria, since both
+    // are reachable without any task/process authorization once expressions are enabled
+    addValidator(ExpressionWhitelistValidator.<AbstractQuery<?, ?>>get());
   }
 
   public AbstractQuery<T, U> setCommandExecutor(CommandExecutor commandExecutor) {

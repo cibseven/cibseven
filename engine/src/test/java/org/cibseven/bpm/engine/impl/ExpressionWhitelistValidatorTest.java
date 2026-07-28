@@ -126,7 +126,7 @@ public class ExpressionWhitelistValidatorTest {
 
     assertThatThrownBy(() -> validator.validate(query))
         .isInstanceOf(BadUserRequestException.class)
-        .hasMessageContaining("task filter");
+        .hasMessageContaining("task query criteria");
   }
 
   @Test
@@ -207,5 +207,34 @@ public class ExpressionWhitelistValidatorTest {
 
     assertThatThrownBy(() -> validator.validate(query))
         .isInstanceOf(BadUserRequestException.class);
+  }
+
+  // --- adhoc queries go through the same whitelist as stored filters -----------------------
+
+  @Test
+  public void shouldRejectDisallowedExpressionOnAdhocQuery() {
+    StandaloneInMemProcessEngineConfiguration configuration = new StandaloneInMemProcessEngineConfiguration();
+    configuration.setEnableExpressionsInAdhocQueries(true);
+    Context.setProcessEngineConfiguration(configuration);
+
+    TaskQueryImpl adhocQuery = new TaskQueryImpl(null);
+    adhocQuery.taskAssigneeExpression("${someBean.deleteAll()}");
+
+    assertThatThrownBy(adhocQuery::validate)
+        .isInstanceOf(BadUserRequestException.class)
+        .hasMessageContaining("task query criteria");
+  }
+
+  @Test
+  public void shouldAllowWhitelistedExpressionOnAdhocQuery() {
+    StandaloneInMemProcessEngineConfiguration configuration = new StandaloneInMemProcessEngineConfiguration();
+    configuration.setEnableExpressionsInAdhocQueries(true);
+    Context.setProcessEngineConfiguration(configuration);
+
+    TaskQueryImpl adhocQuery = new TaskQueryImpl(null);
+    adhocQuery.taskAssigneeExpression("${currentUser()}");
+
+    adhocQuery.validate();
+    // no exception
   }
 }
