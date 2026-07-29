@@ -25,8 +25,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 
-import src.test.java.org.cibseven.bpm.spring.boot.starter.rest.ExtendWith;
-import src.test.java.org.cibseven.bpm.spring.boot.starter.rest.SpringExtension;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
