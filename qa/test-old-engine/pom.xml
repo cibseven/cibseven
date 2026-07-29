@@ -96,6 +96,12 @@
       <dependencyManagement>
         <dependencies>
           <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${version.assertj}</version>
+            <scope>test</scope>
+          </dependency>
+          <dependency>
             <groupId>org.cibseven.bpm</groupId>
             <artifactId>cibseven-bom</artifactId>
             <!-- Cannot use variables due to bug in Maven Release Plugin -->
@@ -121,6 +127,13 @@
       </dependencyManagement>
 
       <dependencies>
+        <dependency>
+          <groupId>org.assertj</groupId>
+          <artifactId>assertj-core</artifactId>
+          <version>${version.assertj}</version>
+          <scope>test</scope>
+        </dependency>
+
        <dependency>
           <groupId>com.fasterxml.uuid</groupId>
           <artifactId>java-uuid-generator</artifactId>
@@ -213,13 +226,6 @@
           <groupId>org.apache.commons</groupId>
           <artifactId>commons-lang3</artifactId>
           <version>3.18.0</version>
-          <scope>test</scope>
-        </dependency>
-
-        <dependency>
-          <groupId>org.assertj</groupId>
-          <artifactId>assertj-core</artifactId>
-          <version>${version.assertj}</version>
           <scope>test</scope>
         </dependency>
 

@@ -139,23 +139,6 @@
       <artifactId>jakarta.enterprise.cdi-api</artifactId>
     </dependency>
 
-<!--    <dependency>
-      <groupId>org.jboss.spec</groupId>
-      <artifactId>jboss-javaee-web-6.0</artifactId>
-      <type>pom</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.jboss.spec.javax.xml.bind</groupId>
-          <artifactId>jboss-jaxb-api_2.2_spec</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.jboss.spec.javax.servlet.jsp</groupId>
-          <artifactId>jboss-jsp-api_2.2_spec</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>-->
-
     <dependency>
       <groupId>jakarta.transaction</groupId>
       <artifactId>jakarta.transaction-api</artifactId>
@@ -380,6 +363,12 @@
       <scope>test</scope>
     </dependency>
     
+    <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest</artifactId>
+        <version>${version.hamcrest}</version>
+        <scope>test</scope>
+    </dependency>
   </dependencies>
 
 
