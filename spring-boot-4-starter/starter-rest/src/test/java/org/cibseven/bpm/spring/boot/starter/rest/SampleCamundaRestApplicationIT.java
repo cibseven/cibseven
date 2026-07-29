@@ -33,6 +33,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -48,6 +49,7 @@ import my.own.custom.spring.boot.project.SampleCamundaRestApplication;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = SampleCamundaRestApplication.class, webEnvironment = RANDOM_PORT)
+@AutoConfigureTestRestTemplate
 public class SampleCamundaRestApplicationIT {
 
   @Autowired

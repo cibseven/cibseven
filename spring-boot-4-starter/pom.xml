@@ -30,6 +30,14 @@
         <scope>import</scope>
         <type>pom</type>
       </dependency>
+      <!-- Override the Jackson version managed by Spring Boot 4 -->
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
       <dependency>
         <!-- Use Spring Framework to 7.x  -->
         <groupId>org.springframework</groupId>
@@ -69,11 +77,13 @@
         <module>starter-client/spring-boot</module>
         <module>starter-webapp-core</module>
         <module>starter-webapp</module>
+        <module>starter-qa</module>
       </modules>
     </profile>
     <profile>
       <id>integration-test-spring-boot-starter</id>
       <modules>
+        <module>starter-qa</module>
         <module>starter</module>
         <module>starter-rest</module>
         <module>starter-security</module>

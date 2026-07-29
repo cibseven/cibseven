@@ -21,6 +21,8 @@
     <version.jersey-apache-client>1.15</version.jersey-apache-client>
     <version.httpcomponents>5.3.1</version.httpcomponents>
     <version.junit>4.13.1</version.junit>
+    <!-- Keep Groovy on 4.x for RestAssured QA tests; Groovy 5 from Spring Boot 4 causes NPEs in RestAssured request execution. -->
+    <version.rest-assured.groovy>4.0.32</version.rest-assured.groovy>
   </properties>
 
   <dependencyManagement>
@@ -53,6 +55,29 @@
         <groupId>io.rest-assured</groupId>
         <artifactId>rest-assured</artifactId>
         <version>5.5.7</version>
+        <scope>test</scope>
+      </dependency>
+
+      <!-- Keep Groovy on 4.x for RestAssured QA tests; Groovy 5 from Spring Boot 4 causes NPEs in RestAssured request execution. -->
+      <dependency>
+        <groupId>org.apache.groovy</groupId>
+        <artifactId>groovy</artifactId>
+        <version>${version.rest-assured.groovy}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.groovy</groupId>
+        <artifactId>groovy-json</artifactId>
+        <version>${version.rest-assured.groovy}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.groovy</groupId>
+        <artifactId>groovy-xml</artifactId>
+        <version>${version.rest-assured.groovy}</version>
+        <scope>test</scope>
       </dependency>
 
     </dependencies>

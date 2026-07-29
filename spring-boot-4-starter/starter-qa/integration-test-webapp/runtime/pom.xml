@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.cibseven.bpm.springboot.project</groupId>
+    <artifactId>qa-webapp-4</artifactId>
+    <version>2.3.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>qa-webapp-ce-runtime-4</artifactId>
+  <name>CIB seven - Spring Boot 4 Starter - QA - Webapps Runtime</name>
+
+  <properties>
+    <version.jersey-json>1.15</version.jersey-json>
+    <version.h2>1.4.199</version.h2>
+    <version.jaxb-api>2.3.1</version.jaxb-api>
+    <version.jersey-apache-client>1.15</version.jersey-apache-client>
+    <version.junit>4.12</version.junit>
+
+    <http.port>58080</http.port>
+    <http.ctx-path.webapp>camunda/</http.ctx-path.webapp>
+    <http.ctx-path.rest>engine-rest/</http.ctx-path.rest>
+  </properties>
+
+  <profiles>
+    <profile>
+      <id>integration-test-spring-boot-starter</id>
+
+      <dependencies>
+
+        <!-- Web Applications -->
+        <dependency>
+          <groupId>org.cibseven.bpm.springboot</groupId>
+          <artifactId>cibseven-bpm-spring-boot-starter-webapp-4</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+
+        <!-- REST API -->
+        <dependency>
+          <groupId>org.cibseven.bpm.springboot</groupId>
+          <artifactId>cibseven-bpm-spring-boot-starter-rest-4</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+          <groupId>org.cibseven.bpm.qa</groupId>
+          <artifactId>cibseven-qa-integration-tests-webapps</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>org.cibseven.bpm.springboot.project</groupId>
+          <artifactId>qa-webapp-invoice-example-4</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+          <groupId>com.h2database</groupId>
+          <artifactId>h2</artifactId>
+        </dependency>
+
+        <dependency>
+          <groupId>org.glassfish.jaxb</groupId>
+          <artifactId>jaxb-runtime</artifactId>
+        </dependency>
+
+        <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+          <scope>test</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest</artifactId>
+          <scope>test</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>org.apache.httpcomponents.client5</groupId>
+          <artifactId>httpclient5</artifactId>
+          <!-- <scope>test</scope> -->
+        </dependency>
+
+        <dependency>
+          <groupId>org.seleniumhq.selenium</groupId>
+          <artifactId>selenium-java</artifactId>
+          <version>${version.selenium}</version>
+        </dependency>
+
+        <dependency>
+          <groupId>org.graalvm.js</groupId>
+          <artifactId>js</artifactId>
+          <version>${version.graal.js}</version>
+        </dependency>
+
+        <dependency>
+          <groupId>org.graalvm.js</groupId>
+          <artifactId>js-scriptengine</artifactId>
+          <version>${version.graal.js}</version>
+        </dependency>
+
+        <dependency>
+          <groupId>javax.xml.bind</groupId>
+          <artifactId>jaxb-api</artifactId>
+          <version>${version.jaxb-api}</version>
+          <scope>test</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>com.konghq</groupId>
+          <artifactId>unirest-java</artifactId>
+          <version>${version.unirest-java}</version>
+          <classifier>standalone</classifier>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <version>${version.spring-boot}</version>
+            <configuration>
+              <mainClass>org.cibseven.bpm.qa.Application</mainClass>
+            </configuration>
+            <executions>
+              <execution>
+                <id>pre-integration-test</id>
+                <goals>
+                  <goal>start</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>post-integration-test</id>
+                <goals>
+                  <goal>stop</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>${version.surefire}</version>
+            <configuration>
+              <dependenciesToScan>
+                <dependency>org.cibseven.bpm.qa:cibseven-qa-integration-tests-webapps</dependency>
+              </dependenciesToScan>
+              <skipTests>false</skipTests>
+            </configuration>
+            <executions>
+              <execution>
+                <id>default-test</id>
+                <configuration>
+                  <skip>true</skip>
+                </configuration>
+              </execution>
+              <execution>
+                <id>integration-tests</id>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+                <configuration>
+                  <includes>
+                    <include>**/*IT.*</include>
+                  </includes>
+
+                  <excludes>
+                    <exclude>**/ErrorPageIT.*</exclude>
+                    <exclude>**/LoginIT.*</exclude>
+                  </excludes>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>com.googlecode.maven-download-plugin</groupId>
+            <artifactId>download-maven-plugin</artifactId>
+            <version>1.13.0</version>
+            <executions>
+              <execution>
+                <phase>process-resources</phase>
+                <goals>
+                  <goal>wget</goal>
+                </goals>
+                <configuration>
+                  <url>https://storage.googleapis.com/chrome-for-testing-public/${version.chromedriver}/${os.type}/chromedriver-${os.type}.zip</url>
+                  <outputFileName>chromedriver.zip</outputFileName>
+                  <unpack>true</unpack>
+                  <outputDirectory>${project.build.directory}</outputDirectory>
+                  <!-- Include and exclude specific files during unpack -->
+                  <includes>**/*</includes>
+                  <excludes>**/*.chromedriver</excludes>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>move-folder</id>
+                <phase>process-resources</phase>
+                <configuration>
+                  <target unless="maven.test.skip">
+                    <move file="${project.build.directory}/chromedriver-${os.type}"
+                        tofile="${project.build.directory}/chromedriver"/>
+                  </target>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+
+        <testResources>
+          <testResource>
+            <directory>src/test/resources</directory>
+            <filtering>true</filtering>
+          </testResource>
+        </testResources>
+      </build>
+    </profile>
+  </profiles>
+
+  <description>
+    Description of CIB seven - Spring Boot 4 Starter - QA - Webapps Runtime
+  </description>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
+
+</project>

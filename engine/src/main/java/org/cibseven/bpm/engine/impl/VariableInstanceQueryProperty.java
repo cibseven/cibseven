@@ -23,6 +23,7 @@ import org.cibseven.bpm.engine.query.QueryProperty;
  */
 public interface VariableInstanceQueryProperty {
 
+  public static final QueryProperty VARIABLE_ID = new QueryPropertyImpl("ID_");
   public static final QueryProperty VARIABLE_NAME = new QueryPropertyImpl("NAME_");
   public static final QueryProperty VARIABLE_TYPE = new QueryPropertyImpl("TYPE_");
   public static final QueryProperty ACTIVITY_INSTANCE_ID = new QueryPropertyImpl("ACT_INST_ID_");
