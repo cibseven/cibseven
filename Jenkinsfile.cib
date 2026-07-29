@@ -169,6 +169,8 @@ pipeline {
             steps {
                 script {
                     withMaven {
+						//TODO: remove before merge
+						sh 'mvn org.apache.maven.plugins:maven-dependency-plugin:3.6.0:purge-local-repository -DmanualInclude="org.cibseven.bpm:cibseven-engine-rest-core-jakarta" -DactTransitively=false -DreResolve=false'
                         sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
                     }
                 }
