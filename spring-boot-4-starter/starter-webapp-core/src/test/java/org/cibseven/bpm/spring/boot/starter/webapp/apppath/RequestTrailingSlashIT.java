@@ -31,8 +31,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import src.test.java.org.cibseven.bpm.spring.boot.starter.webapp.apppath.containerbasedauth.ExtendWith;
-import src.test.java.org.cibseven.bpm.spring.boot.starter.webapp.apppath.containerbasedauth.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
