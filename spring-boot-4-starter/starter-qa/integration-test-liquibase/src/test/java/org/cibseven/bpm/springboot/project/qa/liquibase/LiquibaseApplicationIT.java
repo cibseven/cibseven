@@ -18,15 +18,19 @@ package org.cibseven.bpm.springboot.project.qa.liquibase;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.RuntimeService;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
+import src.test.java.org.cibseven.bpm.client.spring.boot.starter.it.ExtendWith;
+import src.test.java.org.cibseven.bpm.client.spring.boot.starter.it.SpringExtension;
+
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = { Application.class },
                 webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class LiquibaseApplicationIT {

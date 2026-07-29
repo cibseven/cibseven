@@ -24,8 +24,8 @@ import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.OAuth2Authentic
 import org.cibseven.bpm.webapp.impl.security.auth.ContainerBasedAuthenticationFilter;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -70,7 +70,7 @@ public class CamundaBpmSecurityAutoConfigOauth2ApplicationIT extends AbstractSpr
   @MockitoBean
   private OAuth2AuthorizedClientService authorizedClientService;
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().watch(AuthorizeTokenFilter.class.getCanonicalName());
 
   private OAuth2AuthenticationProvider spiedAuthenticationProvider;

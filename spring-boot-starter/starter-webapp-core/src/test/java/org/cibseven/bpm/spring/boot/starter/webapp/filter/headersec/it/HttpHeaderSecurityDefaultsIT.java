@@ -36,7 +36,7 @@ import static org.cibseven.bpm.webapp.impl.security.filter.headersec.provider.im
 public class HttpHeaderSecurityDefaultsIT {
 
   @RegisterExtension
-  public HttpClientRule httpClientRule;
+  public HttpClientRule httpClientRule = new HttpClientRule();
 
   @LocalServerPort
   public int port;

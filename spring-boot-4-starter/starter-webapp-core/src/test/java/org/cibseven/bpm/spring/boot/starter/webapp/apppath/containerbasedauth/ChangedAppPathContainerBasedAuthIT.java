@@ -17,18 +17,21 @@
 package org.cibseven.bpm.spring.boot.starter.webapp.apppath.containerbasedauth;
 
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
+
+import src.test.java.org.cibseven.bpm.spring.boot.starter.rest.ExtendWith;
+import src.test.java.org.cibseven.bpm.spring.boot.starter.rest.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(
     classes = { ContainerBasedAuthTestApp.class },
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

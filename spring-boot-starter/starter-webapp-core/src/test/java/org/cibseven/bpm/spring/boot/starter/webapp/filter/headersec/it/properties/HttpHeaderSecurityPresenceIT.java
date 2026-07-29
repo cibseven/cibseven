@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class HttpHeaderSecurityPresenceIT {
 
   @RegisterExtension
-  public HttpClientRule httpClientRule;
+  public HttpClientRule httpClientRule = new HttpClientRule();
 
   @LocalServerPort
   public int port;
