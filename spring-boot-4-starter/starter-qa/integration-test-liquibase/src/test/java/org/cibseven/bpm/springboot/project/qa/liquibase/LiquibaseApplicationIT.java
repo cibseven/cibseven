@@ -27,9 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import src.test.java.org.cibseven.bpm.client.spring.boot.starter.it.ExtendWith;
-import src.test.java.org.cibseven.bpm.client.spring.boot.starter.it.SpringExtension;
-
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = { Application.class },
                 webEnvironment = SpringBootTest.WebEnvironment.NONE)
