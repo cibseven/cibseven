@@ -8,9 +8,9 @@ on:
   # (workflow_dispatch/schedule only work once this file is merged to main).
   # Disabled (commented out) to stop firing on every push; uncomment to
   # re-enable testing on this branch, and remove entirely before merging to main.
-  # push:
-  #   branches:
-  #     - cibseven-CIB-1326
+  push:
+    branches:
+      - cibseven-CIB-1326
 
 jobs:
   renovate:
