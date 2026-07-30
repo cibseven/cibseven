@@ -4650,12 +4650,16 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   }
 
   /**
-   * @param allowedFilterExpressions semicolon-separated JUEL expressions, e.g. {@code "${currentUser()};${businessCalendar()}"}
+   * @param allowedFilterExpressions semicolon-separated JUEL expressions, e.g. {@code "${currentUser()};${businessCalendar()}"}.
+   *        Entries are stored normalized (see {@link ExpressionWhitelistValidator#normalize(String)}), so numeric
+   *        arguments act as a wildcard: {@code ${dateTime().plusDays()}}, {@code ${dateTime().plusDays(2)}} and
+   *        {@code ${dateTime().plusDays(5)}} are equivalent and each permits any day count.
    */
   public ProcessEngineConfigurationImpl setAllowedFilterExpressions(String allowedFilterExpressions) {
     this.allowedFilterExpressions = Arrays.stream(allowedFilterExpressions.split(";"))
         .map(String::trim)
         .filter(expression -> !expression.isEmpty())
+        .map(ExpressionWhitelistValidator::normalize)
         .collect(Collectors.toSet());
     return this;
   }

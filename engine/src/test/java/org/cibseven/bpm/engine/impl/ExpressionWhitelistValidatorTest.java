@@ -75,6 +75,61 @@ public class ExpressionWhitelistValidatorTest {
     assertThat(validator.isAllowed("${dateTime().plusDays(2)}")).isTrue();
   }
 
+  // --- numeric arguments act as a wildcard (see ExpressionWhitelistValidator#normalize) ----
+
+  @Test
+  public void shouldAllowAnyNumericArgumentOnWhitelistedMethod() {
+    assertThat(validator.isAllowed("${dateTime().plusDays(5)}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().plusDays(30)}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().withMillis(999)}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().withTimeAtStartOfDay().plusDays(7).minusSeconds(60)}")).isTrue();
+  }
+
+  @Test
+  public void shouldAllowEmptyArgumentListAsWildcardNotation() {
+    assertThat(validator.isAllowed("${dateTime().plusDays()}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().withTimeAtStartOfDay().plusDays().minusSeconds()}")).isTrue();
+  }
+
+  @Test
+  public void shouldAllowNumericArgumentCombinedWithWhitespace() {
+    assertThat(validator.isAllowed("${ dateTime().plusDays( 5 ) }")).isTrue();
+  }
+
+  @Test
+  public void shouldStillRejectDifferentMethodOrChainDespiteNumericWildcard() {
+    // only the numeric value is wildcarded - names and structure must still match
+    assertThat(validator.isAllowed("${dateTime().plusYears(2)}")).isFalse();
+    assertThat(validator.isAllowed("${dateTime().plusDays(2).getClass()}")).isFalse();
+    assertThat(validator.isAllowed("${someBean.getById(2)}")).isFalse();
+  }
+
+  @Test
+  public void shouldStillRejectStringArgumentSinceOnlyNumbersAreWildcarded() {
+    assertThat(validator.isAllowed("${dateTime().withZone('Europe/Berlin')}")).isFalse();
+  }
+
+  @Test
+  public void shouldMatchConfiguredEntryRegardlessOfItsNumericArgument() {
+    Context.setProcessEngineConfiguration(new StandaloneInMemProcessEngineConfiguration()
+        .setAllowedFilterExpressions("${dateTime().plusHours(3)}"));
+
+    assertThat(validator.isAllowed("${dateTime().plusHours(7)}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().plusHours()}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().plusMinutes(7)}")).isFalse();
+  }
+
+  @Test
+  public void shouldNotRewriteTheExpressionThatIsEvaluated() {
+    // normalization happens on a throwaway copy: the query keeps the original argument value,
+    // so JUEL still evaluates plusDays(5) and not plusDays()
+    TaskQueryImpl query = queryWithExpression("dueAfter", "${dateTime().plusDays(5)}");
+
+    validator.validate(query);
+
+    assertThat(query.getExpressions()).containsEntry("dueAfter", "${dateTime().plusDays(5)}");
+  }
+
   // --- allowed: plain literal text (never evaluated by JUEL) ------------------------------
 
   @Test

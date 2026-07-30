@@ -28,16 +28,18 @@ import org.cibseven.bpm.engine.impl.context.Context;
 public class ExpressionWhitelistValidator<T extends AbstractQuery<?, ?>> implements Validator<T> {
 
   // default value of ProcessEngineConfigurationImpl#allowedFilterExpressions; used as a
-  // fallback when no process engine configuration is available (e.g. isolated unit tests)
+  // fallback when no process engine configuration is available (e.g. isolated unit tests).
+  // Kept in normalized form (see #normalize): numeric arguments are stripped, so empty
+  // parentheses stand for any numeric argument.
   public static final Set<String> DEFAULT_ALLOWED_EXPRESSIONS = Collections.unmodifiableSet(
       new HashSet<>(Arrays.asList(
           "${currentUser()}",
           "${currentUserGroups()}",
           "${now()}",
-          "${dateTime().withMillis(0)}",
+          "${dateTime().withMillis()}",
           "${dateTime().withTimeAtStartOfDay()}",
-          "${dateTime().withTimeAtStartOfDay().plusDays(1).minusSeconds(1)}",
-          "${dateTime().plusDays(2)}")));
+          "${dateTime().withTimeAtStartOfDay().plusDays().minusSeconds()}",
+          "${dateTime().plusDays()}")));
 
   @SuppressWarnings("rawtypes")
   public static final ExpressionWhitelistValidator INSTANCE = new ExpressionWhitelistValidator();
@@ -73,8 +75,19 @@ public class ExpressionWhitelistValidator<T extends AbstractQuery<?, ?>> impleme
       return true;
     }
 
-    String normalized = expression.replaceAll("\\s+", "");
-    return getAllowedExpressions().contains(normalized);
+    return getAllowedExpressions().contains(normalize(expression));
+  }
+
+  /**
+   * Strips whitespace and numeric argument lists, so {@code ${dateTime().plusDays()}},
+   * {@code (2)} and {@code (5)} are equivalent and permit any day count. Method names, bean
+   * names, string arguments and the chaining structure still have to match exactly.
+   * Whitelists are stored normalized.
+   */
+  public static String normalize(String expression) {
+    return expression
+        .replaceAll("\\s+", "")
+        .replaceAll("\\(\\d+(?:\\.\\d+)?(?:,\\d+(?:\\.\\d+)?)*\\)", "()");
   }
 
   protected Set<String> getAllowedExpressions() {
