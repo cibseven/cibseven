@@ -15,7 +15,7 @@ jobs:
   renovate:
     runs-on: ubuntu-latest
     steps:
-      - uses: renovatebot/github-action@v40
+      - uses: renovatebot/github-action@v46.2.0
         with:
           configurationFile: .github/renovate.json5
           token: '${{ secrets.RENOVATE_TOKEN }}'
