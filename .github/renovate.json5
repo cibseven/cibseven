@@ -30,7 +30,6 @@
   "packageRules": [
     {
       "matchPackageNames": [
-        "*",
         "!/^org.springframework/",
         "!/^org.apache.tomcat/",
         "!/^commons-fileupload/",
