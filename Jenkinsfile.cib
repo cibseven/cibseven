@@ -94,7 +94,7 @@ pipeline {
 
         booleanParam(name: 'DEPLOY_TO_ARTIFACTS', defaultValue: false, description: "  └─ 📦 Deploy to artifacts")
         booleanParam(name: 'DEPLOY_TO_MAVEN_CENTRAL', defaultValue: false, description: "  └─ 📤 Deploy to Maven Central")
-        booleanParam(name: 'DEPLOY_WITHOUT_SBOM', defaultValue: true, description: "  └─ Exclude SBOM generation and deployment step\n\n")
+        booleanParam(name: 'DEPLOY_WITHOUT_SBOM', defaultValue: false, description: "  └─ Exclude SBOM generation and deployment step\n\n")
 
         booleanParam(name: 'OPEN_API', defaultValue: false, description: "  └─ 📚 Deploy OpenAPI docs")
         booleanParam(name: 'JAVA_DOCS', defaultValue: false, description: "  └─ 📖 Deploy JavaDocs")
