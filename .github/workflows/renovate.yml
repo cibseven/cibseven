@@ -6,10 +6,11 @@ on:
   workflow_dispatch: {}
   # TEMPORARY: push trigger so this can run directly from this feature branch
   # (workflow_dispatch/schedule only work once this file is merged to main).
-  # Remove this before merging to main.
-  push:
-    branches:
-      - cibseven-CIB-1326
+  # Disabled (commented out) to stop firing on every push; uncomment to
+  # re-enable testing on this branch, and remove entirely before merging to main.
+  # push:
+  #   branches:
+  #     - cibseven-CIB-1326
 
 jobs:
   renovate:
