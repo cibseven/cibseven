@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: '0 3 * * *'
   workflow_dispatch: {}
+  # TEMPORARY: push trigger so this can run directly from this feature branch
+  # (workflow_dispatch/schedule only work once this file is merged to main).
+  # Remove this before merging to main.
+  push:
+    branches:
+      - cibseven-CIB-1326
 
 jobs:
   renovate:
