@@ -1,19 +1,16 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base"
+    "config:recommended"
   ],
   "branchName": "{{{baseBranch}}}-{{{branchTopic}}}",
   "addLabels": [
     "dependencies"
   ],
   "prConcurrentLimit": 10,
+  // TEMPORARY: testing directly on this branch; revert to ["main"] before merging
   "baseBranchPatterns": [
-    "/!^master$/",
-    "7.24",
-    "7.23",
-    "7.22",
-    "7.21"
+    "cibseven-CIB-1326"
   ],
   "ignorePaths": [
     "**/qa/**"
@@ -76,6 +73,15 @@
       ],
       "automerge": false,
       "dependencyDashboardApproval": true
+    },
+    {
+      "matchPackageNames": [
+        "org.cibseven:release-parent"
+      ],
+      "matchDepTypes": [
+        "parent"
+      ],
+      "enabled": true
     }
   ]
 }
