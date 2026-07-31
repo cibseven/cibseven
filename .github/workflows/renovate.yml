@@ -4,13 +4,6 @@ on:
   schedule:
     - cron: '0 3 * * *'
   workflow_dispatch: {}
-  # TEMPORARY: push trigger so this can run directly from this feature branch
-  # (workflow_dispatch/schedule only work once this file is merged to main).
-  # Disabled (commented out) to stop firing on every push; uncomment to
-  # re-enable testing on this branch, and remove entirely before merging to main.
-  push:
-    branches:
-      - cibseven-CIB-1326
 
 jobs:
   renovate:
@@ -23,6 +16,3 @@ jobs:
           token: '${{ secrets.RENOVATE_TOKEN }}'
         env:
           RENOVATE_REPOSITORIES: '["cibseven/cibseven"]'
-          LOG_LEVEL: debug
-          # TEMPORARY: avoid real branch/PR writes while we're just diagnosing config resolution.
-          RENOVATE_DRY_RUN: full
