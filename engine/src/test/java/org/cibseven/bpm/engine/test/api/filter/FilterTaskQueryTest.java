@@ -130,6 +130,7 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
   @After
   public void tearDown() {
     processEngineConfiguration.setEnableExpressionsInAdhocQueries(false);
+    processEngineConfiguration.setEnableFilterExpressionWhitelist(false);
 
     Mocks.reset();
 
@@ -420,6 +421,8 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
   @Test
   public void testTaskQueryByBusinessKeyExpression() {
     // given
+    processEngineConfiguration.setEnableFilterExpressionWhitelist(true);
+
     String aBusinessKey = "business key";
     Mocks.register("aBusinessKey", aBusinessKey);
 
@@ -434,13 +437,14 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
     // when/then
     BadUserRequestException e = assertThrows(BadUserRequestException.class,
         () -> filterService.saveFilter(filter));
-    assertTrue(e.getMessage().contains("task filter"));
+    assertTrue(e.getMessage().contains("task query criteria"));
   }
 
   @Test
   public void testTaskQueryByBusinessKeyExpressionInAdhocQuery() {
     // given
     processEngineConfiguration.setEnableExpressionsInAdhocQueries(true);
+    processEngineConfiguration.setEnableFilterExpressionWhitelist(true);
 
     String aBusinessKey = "business key";
     Mocks.register("aBusinessKey", aBusinessKey);
@@ -457,12 +461,14 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
     // when/then
     BadUserRequestException e = assertThrows(BadUserRequestException.class,
         () -> filterService.list(filter.getId(), extendingQuery));
-    assertTrue(e.getMessage().contains("task filter"));
+    assertTrue(e.getMessage().contains("task query criteria"));
   }
 
   @Test
   public void testTaskQueryByBusinessKeyLikeExpression() {
     // given
+    processEngineConfiguration.setEnableFilterExpressionWhitelist(true);
+
     String aBusinessKey = "business key";
     Mocks.register("aBusinessKeyLike", "%" + aBusinessKey.substring(5));
 
@@ -477,13 +483,14 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
     // when/then
     BadUserRequestException e = assertThrows(BadUserRequestException.class,
         () -> filterService.saveFilter(filter));
-    assertTrue(e.getMessage().contains("task filter"));
+    assertTrue(e.getMessage().contains("task query criteria"));
   }
 
   @Test
   public void testTaskQueryByBusinessKeyLikeExpressionInAdhocQuery() {
     // given
     processEngineConfiguration.setEnableExpressionsInAdhocQueries(true);
+    processEngineConfiguration.setEnableFilterExpressionWhitelist(true);
 
     String aBusinessKey = "business key";
     Mocks.register("aBusinessKeyLike", "%" + aBusinessKey.substring(5));
@@ -500,12 +507,14 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
     // when/then
     BadUserRequestException e = assertThrows(BadUserRequestException.class,
         () -> filterService.list(filter.getId(), extendingQuery));
-    assertTrue(e.getMessage().contains("task filter"));
+    assertTrue(e.getMessage().contains("task query criteria"));
   }
 
   @Test
   public void testTaskQueryByBusinessKeyExpressionInOrQuery() {
     // given
+    processEngineConfiguration.setEnableFilterExpressionWhitelist(true);
+
     String aBusinessKey = "business key";
     Mocks.register("aBusinessKey", aBusinessKey);
 
@@ -524,7 +533,7 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
     // when/then
     BadUserRequestException e = assertThrows(BadUserRequestException.class,
         () -> filterService.list(filter.getId()));
-    assertTrue(e.getMessage().contains("task filter"));
+    assertTrue(e.getMessage().contains("task query criteria"));
   }
 
   protected void createDeploymentWithBusinessKey(String aBusinessKey) {
