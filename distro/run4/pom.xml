@@ -18,6 +18,30 @@
   <dependencyManagement>
     <dependencies>
 
+      <!-- CVE-2026-59889 (@JsonView bypass on @JsonUnwrapped during deserialization)
+           affects both Jackson lines. Spring Boot 4.0.7 manages the vulnerable
+           jackson-databind 2.21.4 and 3.1.4, and this pom imports its BOM directly,
+           so the pins in spring-boot-4-starter do not reach the distro. Import both
+           Jackson BOMs ahead of spring-boot-dependencies - within one
+           dependencyManagement block the first import wins.
+           Jackson 3 arrives via spring-boot-starter-web -> spring-boot-jackson and is
+           not managed anywhere else in the build, hence the literal version. -->
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+
+      <dependency>
+        <groupId>tools.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>3.1.5</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
