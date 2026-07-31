@@ -1,8 +1,10 @@
 name: Renovate
 
 on:
-  schedule:
-    - cron: '0 3 * * *'
+  # TEMPORARY: scheduled runs disabled for now - manual trigger only while the rollout is being
+  # verified. Uncomment the schedule block below to resume automatic daily runs.
+  # schedule:
+  #   - cron: '0 3 * * *'
   workflow_dispatch: {}
 
 jobs:

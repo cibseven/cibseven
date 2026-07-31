@@ -1,7 +1,11 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    // TEMPORARY: the raw "dependencyDashboard": false option turned out to be unreliable (a
+    // Dependency Dashboard issue still got created once). This preset is the documented, more
+    // robust way to fully disable it. Remove this entry to re-enable the dashboard.
+    ":disableDependencyDashboard"
   ],
   "branchName": "{{{baseBranch}}}-{{{branchTopic}}}",
   "addLabels": [
@@ -17,10 +21,6 @@
   "vulnerabilityAlerts": {
     "enabled": false
   },
-  // TEMPORARY: Dependency Dashboard issue disabled for the initial rollout, so Renovate can only
-  // open PRs and never create/update any GitHub issue. To re-enable, remove this line
-  // ("dependencyDashboard" defaults to true under config:recommended).
-  "dependencyDashboard": false,
   // TEMPORARY: lock file maintenance paused for the initial rollout, to keep this first rollout
   // scoped to release-parent only. To re-enable, set "enabled" back to true.
   "lockFileMaintenance": {
