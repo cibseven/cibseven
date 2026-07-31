@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base"
+    "config:recommended"
   ],
   "branchName": "{{{baseBranch}}}-{{{branchTopic}}}",
   "addLabels": [
@@ -9,11 +9,7 @@
   ],
   "prConcurrentLimit": 10,
   "baseBranchPatterns": [
-    "/!^master$/",
-    "7.24",
-    "7.23",
-    "7.22",
-    "7.21"
+    "main"
   ],
   "ignorePaths": [
     "**/qa/**"
@@ -21,9 +17,14 @@
   "vulnerabilityAlerts": {
     "enabled": false
   },
+  // TEMPORARY: Dependency Dashboard issue disabled for the initial rollout, so Renovate can only
+  // open PRs and never create/update any GitHub issue. To re-enable, remove this line
+  // ("dependencyDashboard" defaults to true under config:recommended).
+  "dependencyDashboard": false,
+  // TEMPORARY: lock file maintenance paused for the initial rollout, to keep this first rollout
+  // scoped to release-parent only. To re-enable, set "enabled" back to true.
   "lockFileMaintenance": {
-    //"automerge": true // auto-merge will be activated in a second step
-    "enabled": true,
+    "enabled": false,
     "addLabels": [
       "automerge",
       "ci:e2e",
@@ -31,40 +32,51 @@
     ],
   },
   "packageRules": [
+    // TEMPORARY (commented out): Camunda's original allowlist of 19 trusted library families.
+    // Restore this block - and remove/narrow the blanket-disable-all rule right below - once the
+    // release-parent-only rollout has proven stable and you're ready to widen scope again.
+    // {
+    //   "matchPackageNames": [
+    //     "!/^org.springframework/",
+    //     "!/^org.apache.tomcat/",
+    //     "!/^commons-fileupload/",
+    //     "!/^org.apache.commons:commons-lang3/",
+    //     "!/^net.minidev:json-smart/",
+    //     "!/^com.jayway.jsonpath:json-path/",
+    //     "!/^org.apache.httpcomponents.client5/",
+    //     "!/^com.fasterxml.uuid/",
+    //     "!/^com.fasterxml.jackson/",
+    //     "!/^org.camunda.feel/",
+    //     "!/^io.quarkus/",
+    //     "!/^ch.qos.logback/",
+    //     "!/^org.graalvm/",
+    //     "!/^com.google.code.gson/",
+    //     "!/^org.postgresql/",
+    //     "!/^com.h2database/",
+    //     "!/^com.mysql/",
+    //     "!/^org.jboss.resteasy/",
+    //     "!/^org.apache.groovy/"
+    //   ],
+    //   "enabled": false
+    // },
     {
+      // TEMPORARY: disables every dependency except release-parent (see the override rule below),
+      // for a minimal-effect first rollout. Remove this rule (and uncomment the block above) to
+      // restore the original 19-library allowlist.
       "matchPackageNames": [
-        "*",
-        "!/^org.springframework/",
-        "!/^org.apache.tomcat/",
-        "!/^commons-fileupload/",
-        "!/^org.apache.commons:commons-lang3/",
-        "!/^net.minidev:json-smart/",
-        "!/^com.jayway.jsonpath:json-path/",
-        "!/^org.apache.httpcomponents.client5/",
-        "!/^com.fasterxml.uuid/",
-        "!/^com.fasterxml.jackson/",
-        "!/^org.camunda.feel/",
-        "!/^io.quarkus/",
-        "!/^ch.qos.logback/",
-        "!/^org.graalvm/",
-        "!/^com.google.code.gson/",
-        "!/^org.postgresql/",
-        "!/^com.h2database/",
-        "!/^com.mysql/",
-        "!/^org.jboss.resteasy/",
-        "!/^org.apache.groovy/"
+        "*"
       ],
       "enabled": false
     },
     {
-      //"automerge": true // auto-merge will be activated in a second step
       "matchUpdateTypes": [
         "patch"
       ],
+      // TEMPORARY: "automerge" label removed while auto-merge is disabled repo-wide (see
+      // renovate-auto-merge.yml). Add "automerge" back to this list once you re-enable it there.
       "addLabels": [
-        "automerge",
         "ci:all"
-      ],
+      ]
     },
     {
       "matchUpdateTypes": [
@@ -76,6 +88,20 @@
       ],
       "automerge": false,
       "dependencyDashboardApproval": true
+    },
+    {
+      // release-parent's available update is classified as "minor" (1.4.0 -> 1.6.0), so without
+      // the dependencyDashboardApproval override below it would inherit "true" from the rule
+      // above - which would block it forever, since the Dependency Dashboard is disabled above
+      // and can never grant that approval.
+      "matchPackageNames": [
+        "org.cibseven:release-parent"
+      ],
+      "matchDepTypes": [
+        "parent"
+      ],
+      "enabled": true,
+      "dependencyDashboardApproval": false
     }
   ]
 }
