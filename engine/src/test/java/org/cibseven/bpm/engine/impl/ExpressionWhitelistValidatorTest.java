@@ -270,6 +270,7 @@ public class ExpressionWhitelistValidatorTest {
   public void shouldRejectDisallowedExpressionOnAdhocQuery() {
     StandaloneInMemProcessEngineConfiguration configuration = new StandaloneInMemProcessEngineConfiguration();
     configuration.setEnableExpressionsInAdhocQueries(true);
+    configuration.setEnableFilterExpressionWhitelist(true);
     Context.setProcessEngineConfiguration(configuration);
 
     TaskQueryImpl adhocQuery = new TaskQueryImpl(null);
@@ -301,6 +302,7 @@ public class ExpressionWhitelistValidatorTest {
   public void shouldRejectDisallowedExpressionInOrQueryBranch() {
     StandaloneInMemProcessEngineConfiguration configuration = new StandaloneInMemProcessEngineConfiguration();
     configuration.setEnableExpressionsInAdhocQueries(true);
+    configuration.setEnableFilterExpressionWhitelist(true);
     Context.setProcessEngineConfiguration(configuration);
 
     TaskQueryImpl rootQuery = new TaskQueryImpl(null);
