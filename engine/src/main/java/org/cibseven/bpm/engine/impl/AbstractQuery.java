@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -40,7 +39,6 @@ import java.util.stream.StreamSupport;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.exception.NotValidException;
-import org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator;
 import org.cibseven.bpm.engine.impl.QueryValidators.AdhocQueryValidator;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.db.ListQueryParameterObject;
@@ -75,10 +73,7 @@ public abstract class AbstractQuery<T extends Query<?,?>, U> extends ListQueryPa
 
   protected Map<String, String> expressions = new HashMap<>();
 
-  // LinkedHashSet: validators must run in insertion order (e.g. StoredQueryValidator's
-  // feature-toggle check before ExpressionWhitelistValidator's content check), otherwise
-  // the exception message a caller sees depends on undefined HashSet iteration order.
-  protected Set<Validator<AbstractQuery<?, ?>>> validators = new LinkedHashSet<>();
+  protected Set<Validator<AbstractQuery<?, ?>>> validators = new HashSet<>();
 
   protected boolean maxResultsLimitEnabled;
 
@@ -92,8 +87,6 @@ public abstract class AbstractQuery<T extends Query<?,?>, U> extends ListQueryPa
     // are treated as adhoc queries (i.e. queries not created in the context
     // of a command)
     addValidator(AdhocQueryValidator.<AbstractQuery<?, ?>>get());
-    // adhoc queries go through the same expression whitelist as stored filter criteria
-    addValidator(ExpressionWhitelistValidator.<AbstractQuery<?, ?>>get());
   }
 
   public AbstractQuery<T, U> setCommandExecutor(CommandExecutor commandExecutor) {
