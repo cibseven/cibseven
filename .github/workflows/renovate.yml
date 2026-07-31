@@ -23,3 +23,6 @@ jobs:
           token: '${{ secrets.RENOVATE_TOKEN }}'
         env:
           RENOVATE_REPOSITORIES: '["cibseven/cibseven"]'
+          LOG_LEVEL: debug
+          # TEMPORARY: avoid real branch/PR writes while we're just diagnosing config resolution.
+          RENOVATE_DRY_RUN: full

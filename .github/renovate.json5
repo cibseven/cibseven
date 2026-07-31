@@ -1,5 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  // TEMPORARY marker to verify which branch's config Renovate actually loads; remove once confirmed.
+  "description": "TEST-CONFIG-CIB-1326",
   "extends": [
     "config:recommended"
   ],
