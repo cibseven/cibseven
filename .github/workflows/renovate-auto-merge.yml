@@ -4,12 +4,7 @@ on:
     types: [ opened, synchronize, reopened ]
 jobs:
   all-checks-passed:
-    # TEMPORARILY DISABLED: auto-merge is paused for the initial Renovate rollout (PRs only, no
-    # auto-merge yet). To re-enable: remove the "false &&" below, AND first update the actor
-    # check - 'renovate[bot]' is the Mend-hosted GitHub App's identity; this repo's self-hosted
-    # setup uses a different bot/PAT account, so this condition must match that account's actual
-    # GitHub username instead.
-    if: false && contains(github.event.pull_request.labels.*.name, 'automerge') && github.actor == 'renovate[bot]'
+    if: contains(github.event.pull_request.labels.*.name, 'automerge') && github.actor == 'renovate[bot]'
     name: All checks passed
     runs-on: ubuntu-latest
     permissions:
