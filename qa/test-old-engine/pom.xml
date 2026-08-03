@@ -93,12 +93,29 @@
     <profile>
       <id>old-engine</id>
 
+      <properties>
+        <!--
+          The unpacked test classes below come from the pre-compiled cibseven-engine:2.2.0
+          test-jar. That release was built against assertj-core 2.9.1, whose Assertions.assertThat(String)
+          method returns org.assertj.core.api.AbstractCharSequenceAssert. Newer assertj-core versions
+          (as used by version.assertj in the parent pom, currently 3.27.7) return
+          org.assertj.core.api.AbstractStringAssert instead, which is a different method signature at
+          the bytecode level. Since the old test classes are unpacked as-is (not recompiled), using the
+          current/newer assertj-core here causes:
+            java.lang.NoSuchMethodError: 'org.assertj.core.api.AbstractCharSequenceAssert
+              org.assertj.core.api.Assertions.assertThat(java.lang.String)'
+          Therefore this profile must pin assertj-core to the exact version the old engine was built
+          with, instead of using the shared ${version.assertj} property.
+        -->
+        <version.assertj.old.engine>2.9.1</version.assertj.old.engine>
+      </properties>
+
       <dependencyManagement>
         <dependencies>
           <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>${version.assertj}</version>
+            <version>${version.assertj.old.engine}</version>
             <scope>test</scope>
           </dependency>
           <dependency>
@@ -130,7 +147,21 @@
         <dependency>
           <groupId>org.assertj</groupId>
           <artifactId>assertj-core</artifactId>
-          <version>${version.assertj}</version>
+          <version>${version.assertj.old.engine}</version>
+          <scope>test</scope>
+        </dependency>
+
+        <!--
+          The old engine's own pom (and cibseven-engine's current pom) declare hamcrest as a
+          test-scoped dependency, which is never transitive. Since the unpacked old test classes
+          (e.g. AuthorizationScenarioInstance) use org.hamcrest.Matchers directly, it must be
+          declared explicitly here too. Unlike assertj-core, hamcrest's Matchers API has been
+          stable/additive since 1.3, so using the current parent version is safe.
+        -->
+        <dependency>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest</artifactId>
+          <version>${version.hamcrest}</version>
           <scope>test</scope>
         </dependency>
 
