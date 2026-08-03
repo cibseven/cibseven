@@ -124,7 +124,7 @@
     <dependency>
       <groupId>jakarta.enterprise</groupId>
       <artifactId>jakarta.enterprise.cdi-api</artifactId>
-      <scope>test</scope
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>jakarta.transaction</groupId>
