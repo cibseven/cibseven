@@ -106,7 +106,8 @@ public class CsrfPreventionIT {
       // Use containsAnyOf(), since test with SB-3.5 returns "Token ... absent/empty", and test with SB-4 returns "type=Forbidden"
       assertThat(errorResponseContent).containsAnyOf(
           "CSRFPreventionFilter: Token provided via HTTP Header is absent/empty.",
-          "type=Forbidden");
+          "type=Forbidden",
+          "\"error\":\"Forbidden\"");
     }
 
   }
