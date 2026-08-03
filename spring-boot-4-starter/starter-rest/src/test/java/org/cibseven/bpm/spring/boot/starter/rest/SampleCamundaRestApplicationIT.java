@@ -29,7 +29,7 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.resttestclient.TestRestTemplate;
@@ -41,13 +41,14 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
 
 import my.own.custom.spring.boot.project.SampleCamundaRestApplication;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = SampleCamundaRestApplication.class, webEnvironment = RANDOM_PORT)
 @AutoConfigureTestRestTemplate
 public class SampleCamundaRestApplicationIT {
