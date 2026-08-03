@@ -108,6 +108,19 @@
           with, instead of using the shared ${version.assertj} property.
         -->
         <version.assertj.old.engine>2.9.1</version.assertj.old.engine>
+
+        <!--
+          Similarly, the unpacked old test classes were compiled against hamcrest-core/hamcrest-library
+          1.3 (as declared by cibseven-engine:2.2.0's own pom). Hamcrest 1.3's CoreMatchers declares
+          fixed-arity overloads (e.g. anyOf(Matcher, Matcher)) in addition to the varargs form. The
+          current merged org.hamcrest:hamcrest artifact (version.hamcrest, currently 3.0) collapsed
+          these into a varargs-only API, removing the fixed-arity method descriptors. Calling the old
+          bytecode against the newer hamcrest jar therefore fails with:
+            java.lang.NoSuchMethodError: 'org.hamcrest.core.AnyOf
+              org.hamcrest.CoreMatchers.anyOf(org.hamcrest.Matcher, org.hamcrest.Matcher)'
+          so this profile must pin hamcrest to the exact 1.3 version the old engine was built with.
+        -->
+        <version.hamcrest.old.engine>1.3</version.hamcrest.old.engine>
       </properties>
 
       <dependencyManagement>
@@ -116,6 +129,18 @@
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>${version.assertj.old.engine}</version>
+            <scope>test</scope>
+          </dependency>
+          <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+            <version>${version.hamcrest.old.engine}</version>
+            <scope>test</scope>
+          </dependency>
+          <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <version>${version.hamcrest.old.engine}</version>
             <scope>test</scope>
           </dependency>
           <dependency>
@@ -152,16 +177,23 @@
         </dependency>
 
         <!--
-          The old engine's own pom (and cibseven-engine's current pom) declare hamcrest as a
-          test-scoped dependency, which is never transitive. Since the unpacked old test classes
-          (e.g. AuthorizationScenarioInstance) use org.hamcrest.Matchers directly, it must be
-          declared explicitly here too. Unlike assertj-core, hamcrest's Matchers API has been
-          stable/additive since 1.3, so using the current parent version is safe.
+          The old engine's own pom declares hamcrest-core/hamcrest-library 1.3 as test-scoped,
+          which is never transitive. Since the unpacked old test classes (e.g.
+          AuthorizationScenarioInstance, HistoryServiceAsyncOperationsTest) use org.hamcrest.Matchers /
+          org.hamcrest.CoreMatchers fixed-arity overloads directly, the exact 1.3 artifacts must be
+          declared explicitly here (see version.hamcrest.old.engine comment above for why the current
+          merged org.hamcrest:hamcrest 3.0 artifact is not binary-compatible).
         -->
         <dependency>
           <groupId>org.hamcrest</groupId>
-          <artifactId>hamcrest</artifactId>
-          <version>${version.hamcrest}</version>
+          <artifactId>hamcrest-core</artifactId>
+          <version>${version.hamcrest.old.engine}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest-library</artifactId>
+          <version>${version.hamcrest.old.engine}</version>
           <scope>test</scope>
         </dependency>
 
