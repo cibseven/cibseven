@@ -165,6 +165,7 @@ pipeline {
             when {
                 anyOf {
                     expression { params.BUILD_FEATURE_BRANCH == true }
+                    expression { params.SAST_SONARQUBE == true }
                     expression { params.VERIFY == true }
                 }
             }
@@ -293,12 +294,14 @@ pipeline {
                     when { expression { params.QA_RUN_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script { withMaven { sh "mvn -f distro/run/pom.xml clean install -Pintegration-test-run" }}
+                        script { withMaven { sh "mvn -f distro/run4/pom.xml clean install -Pintegration-test-run" }}
                     }
                 }
                 stage('Spring Boot Integration') {
                     when { expression { params.QA_SPRING_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script { withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }}
+                        script { withMaven { sh "mvn -f spring-boot-4-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }}
                     }
                 }
                 stage('Performance') {
@@ -527,11 +530,16 @@ pipeline {
                                 installationName: 'SonarQube'
                             ) {
                                 withMaven() {
+                                    // -pl '!:docs' \
+                                    //  drop the docs module (packaging=pom, no Java sources, nothing for Sonar to analyze) from this reactor run,
+                                    //  avoiding the MDEP-98 unpack failure entirely rather than switching to a slower package phase.
+                                    //  No other module depends on docs, so excluding it is safe.
                                     sh """
                                         mvn -f ${pipelineParams.pom} \
-                                            package sonar:sonar \
+                                            package org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar \
                                             -V -U -T4 \
                                             -Pwebapps-integration \
+                                            -pl '!:docs' \
                                             -Dmaven.test.skip=true \
                                             -Dlicense.skipDownloadLicenses=true \
                                             -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json \

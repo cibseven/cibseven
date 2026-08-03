@@ -19,12 +19,14 @@ package org.cibseven.bpm.spring.boot.starter.security.oauth2;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.WebApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@AutoConfigureTestRestTemplate
 public class CamundaBpmSampleApplicationIT extends AbstractSpringSecurityIT {
 
   @Autowired
