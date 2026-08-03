@@ -128,6 +128,12 @@ public class AuthorizationRestServiceImpl extends AbstractAuthorizedRestResource
   }
 
   @Override
+  public List<AuthorizationDto> queryOwnAuthorizations(UriInfo uriInfo) {
+    AuthorizationQueryDto queryDto = new AuthorizationQueryDto(getObjectMapper(), uriInfo.getQueryParameters());
+    return queryOwnAuthorizations(queryDto);
+  }
+  
+  @Override
   public ResourceOptionsDto availableOperations(UriInfo context) {
 
     UriBuilder baseUriBuilder = context.getBaseUriBuilder()
@@ -163,6 +169,43 @@ public class AuthorizationRestServiceImpl extends AbstractAuthorizedRestResource
     return AuthorizationDto.fromAuthorizationList(resultList, getProcessEngine().getProcessEngineConfiguration());
   }
 
+  /**
+   * Returns the authorizations applicable to the currently authenticated user.
+   *
+   * <p>The query is executed in three steps while temporarily clearing the current
+   * engine authentication. This prevents the engine's authorization checks from
+   * filtering the queried authorization objects themselves, which would otherwise
+   * hide authorizations that are applicable to the current user.
+   *
+   */
+  public List<AuthorizationDto> queryOwnAuthorizations(AuthorizationQueryDto queryDto) {
+    IdentityService identityService = getIdentityService();
+    Authentication currentAuthentication = identityService.getCurrentAuthentication();
+    if(currentAuthentication == null) {
+      throw new InvalidRequestException(Status.UNAUTHORIZED, "You must be authenticated in order to use this resource.");
+    }
+    List<String> groups = currentAuthentication.getGroupIds();
+    AuthorizationQuery userQuery = createUserAuthorizationQuery(queryDto, currentAuthentication).toQuery(getProcessEngine());
+    AuthorizationQuery globalQuery = createGlobalAuthorizationQuery(queryDto).toQuery(getProcessEngine());
+    AuthorizationQuery groupQuery = null;
+    if(groups != null && !groups.isEmpty()) {
+      groupQuery = createGroupAuthorizationQuery(queryDto, groups.toArray(new String[0])).toQuery(getProcessEngine());
+    }
+    
+    List<Authorization> resultList;
+    try {
+      identityService.clearAuthentication();
+      resultList = userQuery.list();
+      resultList.addAll(globalQuery.list());
+      if(groupQuery != null) {
+        resultList.addAll(groupQuery.list());
+      }
+    } finally {
+      identityService.setAuthentication(currentAuthentication);
+    }
+    return AuthorizationDto.fromAuthorizationList(resultList, getProcessEngine().getProcessEngineConfiguration());
+  }
+
   @Override
   public CountResultDto getAuthorizationCount(UriInfo uriInfo) {
     AuthorizationQueryDto queryDto = new AuthorizationQueryDto(getObjectMapper(), uriInfo.getQueryParameters());
@@ -191,6 +234,38 @@ public class AuthorizationRestServiceImpl extends AbstractAuthorizedRestResource
 
   protected IdentityService getIdentityService() {
     return getProcessEngine().getIdentityService();
+  }
+
+  private AuthorizationQueryDto createOwnAuthorizationQueryTemplate(AuthorizationQueryDto queryDto) {
+    AuthorizationQueryDto ownAuthorizationQueryDto = new AuthorizationQueryDto(queryDto);
+    ownAuthorizationQueryDto.setId(null);
+    ownAuthorizationQueryDto.setType(null);
+    ownAuthorizationQueryDto.setUserIdIn(null);
+    ownAuthorizationQueryDto.setGroupIdIn(null);
+    ownAuthorizationQueryDto.setObjectMapper(getObjectMapper());
+
+    return ownAuthorizationQueryDto;
+  }
+
+  private AuthorizationQueryDto createUserAuthorizationQuery(AuthorizationQueryDto queryDto, Authentication currentAuthentication) {
+    AuthorizationQueryDto userQueryDto = createOwnAuthorizationQueryTemplate(queryDto);
+    userQueryDto.setUserIdIn(new String[] { currentAuthentication.getUserId() });
+
+    return userQueryDto;
+  }
+
+  private AuthorizationQueryDto createGroupAuthorizationQuery(AuthorizationQueryDto queryDto, String[] groupIds) {
+    AuthorizationQueryDto groupQueryDto = createOwnAuthorizationQueryTemplate(queryDto);
+    groupQueryDto.setGroupIdIn(groupIds);
+
+    return groupQueryDto;
+  }
+
+  private AuthorizationQueryDto createGlobalAuthorizationQuery(AuthorizationQueryDto queryDto) {
+    AuthorizationQueryDto globalQueryDto = createOwnAuthorizationQueryTemplate(queryDto);
+    globalQueryDto.setType(Authorization.AUTH_TYPE_GLOBAL);
+
+    return globalQueryDto;
   }
 
   protected List<String> getUserGroups(String userId) {

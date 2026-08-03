@@ -62,6 +62,15 @@ public class AuthorizationQueryDto extends AbstractQueryDto<AuthorizationQuery> 
     super(objectMapper, queryParameters);
   }
 
+  public AuthorizationQueryDto(AuthorizationQueryDto queryDto) {
+    this.id = queryDto.id;
+    this.type = queryDto.type;
+    this.userIdIn = queryDto.userIdIn;
+    this.groupIdIn = queryDto.groupIdIn;
+    this.resourceType = queryDto.resourceType;
+    this.resourceId = queryDto.resourceId;
+  }
+
   @CamundaQueryParam("id")
   public void setId(String id) {
     this.id = id;
