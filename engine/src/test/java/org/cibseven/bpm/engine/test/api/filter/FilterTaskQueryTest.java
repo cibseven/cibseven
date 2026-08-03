@@ -105,8 +105,14 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
 
   protected JsonTaskQueryConverter queryConverter;
 
+  protected boolean originalEnableExpressionsInAdhocQueries;
+  protected boolean originalEnableFilterExpressionWhitelist;
+
   @Before
   public void setUp() {
+    originalEnableExpressionsInAdhocQueries = processEngineConfiguration.isEnableExpressionsInAdhocQueries();
+    originalEnableFilterExpressionWhitelist = processEngineConfiguration.isEnableFilterExpressionWhitelist();
+
     filter = filterService.newTaskFilter("name")
         .setOwner("owner")
         .setQuery(taskService.createTaskQuery())
@@ -129,8 +135,8 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
 
   @After
   public void tearDown() {
-    processEngineConfiguration.setEnableExpressionsInAdhocQueries(false);
-    processEngineConfiguration.setEnableFilterExpressionWhitelist(false);
+    processEngineConfiguration.setEnableExpressionsInAdhocQueries(originalEnableExpressionsInAdhocQueries);
+    processEngineConfiguration.setEnableFilterExpressionWhitelist(originalEnableFilterExpressionWhitelist);
 
     Mocks.reset();
 
