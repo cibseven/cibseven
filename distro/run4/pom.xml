@@ -18,6 +18,28 @@
   <dependencyManagement>
     <dependencies>
 
+      <!-- Override the Jackson version managed by Spring Boot -->
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+
+      <!-- CVE-2026-59889 (@JsonView bypass on @JsonUnwrapped during deserialization):
+           Jackson 3 arrives via spring-boot-starter-web -> spring-boot-jackson and is
+           not managed anywhere else in the build, hence the literal version. Must be
+           imported ahead of spring-boot-dependencies - within one dependencyManagement
+           block the first import wins. -->
+      <dependency>
+        <groupId>tools.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>3.1.5</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
