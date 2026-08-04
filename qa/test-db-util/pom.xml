@@ -12,18 +12,6 @@
   <packaging>jar</packaging>
   <name>CIB seven - QA - upgrade - scenario util</name>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-bom</artifactId>
-        <version>1.1.0</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
   <dependencies>
 
     <dependency>
@@ -35,6 +23,11 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.13.2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
       <scope>compile</scope>
     </dependency>
   </dependencies>

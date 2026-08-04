@@ -12,18 +12,6 @@
   <packaging>jar</packaging>
   <name>CIB seven - QA - upgrade - rolling update - test old engine</name>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-bom</artifactId>
-        <version>${cibseven.version.previous}</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
   <dependencies>
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
