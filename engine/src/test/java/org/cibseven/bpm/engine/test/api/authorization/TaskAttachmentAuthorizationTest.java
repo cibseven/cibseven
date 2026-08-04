@@ -1,0 +1,631 @@
+/*
+ * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH
+ * under one or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information regarding copyright
+ * ownership. Camunda licenses this file to you under the Apache License,
+ * Version 2.0; you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.cibseven.bpm.engine.test.api.authorization;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.cibseven.bpm.engine.authorization.Permissions.READ;
+import static org.cibseven.bpm.engine.authorization.Permissions.READ_TASK;
+import static org.cibseven.bpm.engine.authorization.Permissions.TASK_WORK;
+import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE;
+import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE_TASK;
+import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION;
+import static org.cibseven.bpm.engine.authorization.Resources.TASK;
+
+import java.util.List;
+import java.util.concurrent.Callable;
+
+import org.cibseven.bpm.engine.AuthorizationException;
+import org.cibseven.bpm.engine.task.Attachment;
+import org.cibseven.bpm.engine.task.Task;
+import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.engine.test.Deployment;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+/**
+ * Authorization of the task scoped attachment commands, see CIB7-1752.
+ */
+public class TaskAttachmentAuthorizationTest extends AuthorizationTest {
+
+  protected static final String PROCESS_KEY = "oneTaskProcess";
+  protected static final String ONE_TASK_PROCESS = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml";
+
+  protected static final String UNKNOWN_ID = "anUnknownId";
+
+  /**
+   * The checks are off by default, so every test below has to switch them on explicitly.
+   */
+  @Before
+  public void enforceAttachmentPermissions() {
+    processEngineConfiguration.setEnforceAttachmentPermissions(true);
+  }
+
+  @After
+  public void resetAttachmentPermissions() {
+    processEngineConfiguration.setEnforceAttachmentPermissions(false);
+  }
+
+  /**
+   * Standalone tasks are not covered by the deployment cleanup, so drop them including their
+   * attachments. Tests that expect an AuthorizationException leave the attachment behind.
+   */
+  @After
+  public void deleteStandaloneTask() {
+    runWithoutAuthorization((Callable<Void>) () -> {
+      Task task = taskService.createTaskQuery().taskId(TASK_ID).singleResult();
+      if (task != null) {
+        taskService.deleteTask(TASK_ID, true);
+      }
+      return null;
+    });
+  }
+
+  // create attachment ///////////////////////////////////////////////////////
+
+  @Test
+  public void shouldNotCreateStandaloneTaskAttachmentWithoutAuthorization() {
+    // given
+    createTask(TASK_ID);
+
+    // when/then
+    assertThatThrownBy(() -> taskService.createAttachment("foo", TASK_ID, null, "aName", "aDescription",
+        "http://cibseven.org"))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'TASK_WORK' permission on resource 'myTask' of type 'Task'")
+        .hasMessageContaining("'UPDATE' permission on resource 'myTask' of type 'Task'");
+  }
+
+  @Test
+  public void shouldCreateStandaloneTaskAttachmentWithUpdatePermission() {
+    // given
+    createTask(TASK_ID);
+    createGrantAuthorization(TASK, TASK_ID, userId, UPDATE);
+
+    // when
+    Attachment attachment = taskService.createAttachment("foo", TASK_ID, null, "aName", "aDescription",
+        "http://cibseven.org");
+
+    // then
+    assertThat(attachment).isNotNull();
+  }
+
+  @Test
+  public void shouldCreateStandaloneTaskAttachmentWithTaskWorkPermission() {
+    // given
+    createTask(TASK_ID);
+    createGrantAuthorization(TASK, TASK_ID, userId, TASK_WORK);
+
+    // when
+    Attachment attachment = taskService.createAttachment("foo", TASK_ID, null, "aName", "aDescription",
+        "http://cibseven.org");
+
+    // then
+    assertThat(attachment).isNotNull();
+  }
+
+  @Test
+  public void shouldNotCreateStandaloneTaskAttachmentWithReadPermissionOnly() {
+    // given
+    createTask(TASK_ID);
+    createGrantAuthorization(TASK, TASK_ID, userId, READ);
+
+    // when/then
+    assertThatThrownBy(() -> taskService.createAttachment("foo", TASK_ID, null, "aName", "aDescription",
+        "http://cibseven.org"))
+        .isInstanceOf(AuthorizationException.class);
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldNotCreateProcessTaskAttachmentWithoutAuthorization() {
+    // given
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+
+    // when/then
+    assertThatThrownBy(() -> taskService.createAttachment("foo", task.getId(), null, "aName", "aDescription",
+        "http://cibseven.org"))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'UPDATE_TASK' permission on resource 'oneTaskProcess' of type 'ProcessDefinition'");
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldCreateProcessTaskAttachmentWithUpdatePermissionOnTask() {
+    // given
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+    createGrantAuthorization(TASK, task.getId(), userId, UPDATE);
+
+    // when
+    Attachment attachment = taskService.createAttachment("foo", task.getId(), null, "aName", "aDescription",
+        "http://cibseven.org");
+
+    // then
+    assertThat(attachment).isNotNull();
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldCreateProcessTaskAttachmentWithUpdateTaskPermissionOnProcessDefinition() {
+    // given
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+    createGrantAuthorization(PROCESS_DEFINITION, PROCESS_KEY, userId, UPDATE_TASK);
+
+    // when
+    Attachment attachment = taskService.createAttachment("foo", task.getId(), null, "aName", "aDescription",
+        "http://cibseven.org");
+
+    // then
+    assertThat(attachment).isNotNull();
+  }
+
+  @Test
+  public void shouldCreateAttachmentForUnknownTaskWithoutAuthorization() {
+    // documents the current behaviour: no task can be resolved, so no permission can be checked
+    // and an orphan attachment is created
+
+    // when
+    Attachment attachment = taskService.createAttachment("foo", UNKNOWN_ID, null, "aName", "aDescription",
+        "http://cibseven.org");
+
+    // then
+    assertThat(attachment).isNotNull();
+
+    deleteAttachment(attachment.getId());
+  }
+
+  // delete attachment ///////////////////////////////////////////////////////
+
+  @Test
+  public void shouldNotDeleteStandaloneTaskAttachmentWithoutAuthorization() {
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+
+    // when/then
+    assertThatThrownBy(() -> taskService.deleteAttachment(attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'TASK_WORK' permission on resource 'myTask' of type 'Task'");
+
+    assertThat(selectAttachment(attachment.getId())).isNotNull();
+  }
+
+  @Test
+  public void shouldDeleteStandaloneTaskAttachmentWithUpdatePermission() {
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+    createGrantAuthorization(TASK, TASK_ID, userId, UPDATE);
+
+    // when
+    taskService.deleteAttachment(attachment.getId());
+
+    // then
+    assertThat(selectAttachment(attachment.getId())).isNull();
+  }
+
+  @Test
+  public void shouldNotDeleteStandaloneTaskAttachmentByTaskIdWithoutAuthorization() {
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+
+    // when/then
+    assertThatThrownBy(() -> taskService.deleteTaskAttachment(TASK_ID, attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'TASK_WORK' permission on resource 'myTask' of type 'Task'");
+
+    assertThat(selectAttachment(attachment.getId())).isNotNull();
+  }
+
+  @Test
+  public void shouldDeleteStandaloneTaskAttachmentByTaskIdWithUpdatePermission() {
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+    createGrantAuthorization(TASK, TASK_ID, userId, UPDATE);
+
+    // when
+    taskService.deleteTaskAttachment(TASK_ID, attachment.getId());
+
+    // then
+    assertThat(selectAttachment(attachment.getId())).isNull();
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldNotDeleteProcessTaskAttachmentWithoutAuthorization() {
+    // given
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+    Attachment attachment = createAttachment(task.getId(), null);
+
+    // when/then
+    assertThatThrownBy(() -> taskService.deleteAttachment(attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'UPDATE_TASK' permission on resource 'oneTaskProcess' of type 'ProcessDefinition'");
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldDeleteProcessTaskAttachmentWithUpdateTaskPermissionOnProcessDefinition() {
+    // given
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+    Attachment attachment = createAttachment(task.getId(), null);
+    createGrantAuthorization(PROCESS_DEFINITION, PROCESS_KEY, userId, UPDATE_TASK);
+
+    // when
+    taskService.deleteAttachment(attachment.getId());
+
+    // then
+    assertThat(selectAttachment(attachment.getId())).isNull();
+  }
+
+  // get task attachments ////////////////////////////////////////////////////
+
+  @Test
+  public void shouldNotGetStandaloneTaskAttachmentsWithoutAuthorization() {
+    // given
+    createTask(TASK_ID);
+    createAttachment(TASK_ID, null);
+
+    // when/then
+    assertThatThrownBy(() -> taskService.getTaskAttachments(TASK_ID))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'READ' permission on resource 'myTask' of type 'Task'");
+  }
+
+  @Test
+  public void shouldNotGetStandaloneTaskAttachmentsWithUpdatePermissionOnly() {
+    // reading requires READ, the permission that allows writing is not enough
+    // given
+    createTask(TASK_ID);
+    createAttachment(TASK_ID, null);
+    createGrantAuthorization(TASK, TASK_ID, userId, UPDATE);
+
+    // when/then
+    assertThatThrownBy(() -> taskService.getTaskAttachments(TASK_ID))
+        .isInstanceOf(AuthorizationException.class);
+  }
+
+  @Test
+  public void shouldGetStandaloneTaskAttachmentsWithReadPermission() {
+    // given
+    createTask(TASK_ID);
+    createAttachment(TASK_ID, null);
+    createGrantAuthorization(TASK, TASK_ID, userId, READ);
+
+    // when
+    List<Attachment> attachments = taskService.getTaskAttachments(TASK_ID);
+
+    // then
+    assertThat(attachments).hasSize(1);
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldNotGetProcessTaskAttachmentsWithoutAuthorization() {
+    // given
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+    createAttachment(task.getId(), null);
+
+    // when/then
+    assertThatThrownBy(() -> taskService.getTaskAttachments(task.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'READ_TASK' permission on resource 'oneTaskProcess' of type 'ProcessDefinition'");
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldGetProcessTaskAttachmentsWithReadTaskPermissionOnProcessDefinition() {
+    // given
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+    createAttachment(task.getId(), null);
+    createGrantAuthorization(PROCESS_DEFINITION, PROCESS_KEY, userId, READ_TASK);
+
+    // when
+    List<Attachment> attachments = taskService.getTaskAttachments(task.getId());
+
+    // then
+    assertThat(attachments).hasSize(1);
+  }
+
+  @Test
+  public void shouldGetEmptyAttachmentsForUnknownTaskWithoutAuthorization() {
+    // no task can be resolved, so there is nothing to check and nothing to return
+    assertThat(taskService.getTaskAttachments(UNKNOWN_ID)).isEmpty();
+  }
+
+  @Test
+  public void shouldGetEmptyAttachmentsForNullTaskIdWithoutAuthorization() {
+    // TaskManager#findTaskById rejects a null id, the command must not resolve the task in that case
+    assertThat(taskService.getTaskAttachments(null)).isEmpty();
+  }
+
+  // get single task attachment //////////////////////////////////////////////
+
+  @Test
+  public void shouldNotGetStandaloneTaskAttachmentWithoutAuthorization() {
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+
+    // when/then
+    assertThatThrownBy(() -> taskService.getTaskAttachment(TASK_ID, attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'READ' permission on resource 'myTask' of type 'Task'");
+  }
+
+  @Test
+  public void shouldGetStandaloneTaskAttachmentWithReadPermission() {
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+    createGrantAuthorization(TASK, TASK_ID, userId, READ);
+
+    // when/then
+    assertThat(taskService.getTaskAttachment(TASK_ID, attachment.getId())).isNotNull();
+  }
+
+  @Test
+  public void shouldGetNullTaskAttachmentForNullParametersWithoutAuthorization() {
+    // TaskManager#findTaskById rejects a null id, the command must not resolve the task in that case
+    assertThat(taskService.getTaskAttachment(null, null)).isNull();
+  }
+
+  @Test
+  public void shouldGetNullTaskAttachmentForUnknownAttachmentIdWithReadPermission() {
+    // given
+    createTask(TASK_ID);
+    createGrantAuthorization(TASK, TASK_ID, userId, READ);
+
+    // when/then
+    assertThat(taskService.getTaskAttachment(TASK_ID, UNKNOWN_ID)).isNull();
+  }
+
+  // get task attachment content /////////////////////////////////////////////
+
+  @Test
+  public void shouldNotGetStandaloneTaskAttachmentContentWithoutAuthorization() {
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+
+    // when/then
+    assertThatThrownBy(() -> taskService.getTaskAttachmentContent(TASK_ID, attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'READ' permission on resource 'myTask' of type 'Task'");
+  }
+
+  @Test
+  public void shouldGetStandaloneTaskAttachmentContentWithReadPermission() {
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+    createGrantAuthorization(TASK, TASK_ID, userId, READ);
+
+    // when/then
+    assertThat(taskService.getTaskAttachmentContent(TASK_ID, attachment.getId())).isNotNull();
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldNotGetProcessTaskAttachmentContentWithoutAuthorization() {
+    // given
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+    Attachment attachment = createAttachment(task.getId(), null);
+
+    // when/then
+    assertThatThrownBy(() -> taskService.getTaskAttachmentContent(task.getId(), attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'READ_TASK' permission on resource 'oneTaskProcess' of type 'ProcessDefinition'");
+  }
+
+  @Test
+  public void shouldGetNullContentForNullParametersWithoutAuthorization() {
+    // TaskManager#findTaskById rejects a null id, the command must not resolve the task in that case
+    assertThat(taskService.getTaskAttachmentContent(null, null)).isNull();
+  }
+
+  @Test
+  public void shouldGetNullContentForUrlAttachmentWithReadPermission() {
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachmentWithUrl(TASK_ID, null);
+    createGrantAuthorization(TASK, TASK_ID, userId, READ);
+
+    // when/then
+    assertThat(taskService.getTaskAttachmentContent(TASK_ID, attachment.getId())).isNull();
+  }
+
+  // get attachment by id ////////////////////////////////////////////////////
+
+  @Test
+  public void shouldNotGetTaskScopedAttachmentByIdWithoutAuthorization() {
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+
+    // when/then
+    assertThatThrownBy(() -> taskService.getAttachment(attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'READ' permission on resource 'myTask' of type 'Task'");
+  }
+
+  @Test
+  public void shouldGetTaskScopedAttachmentByIdWithReadPermission() {
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+    createGrantAuthorization(TASK, TASK_ID, userId, READ);
+
+    // when/then
+    assertThat(taskService.getAttachment(attachment.getId())).isNotNull();
+  }
+
+  @Test
+  public void shouldGetNullAttachmentForUnknownAttachmentIdWithoutAuthorization() {
+    // the attachment carries the resource to check, so an unknown id cannot be checked at all
+    assertThat(taskService.getAttachment(UNKNOWN_ID)).isNull();
+  }
+
+  // get attachment content by id ////////////////////////////////////////////
+
+  @Test
+  public void shouldNotGetTaskScopedAttachmentContentByIdWithoutAuthorization() {
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+
+    // when/then
+    assertThatThrownBy(() -> taskService.getAttachmentContent(attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'READ' permission on resource 'myTask' of type 'Task'");
+  }
+
+  @Test
+  public void shouldGetTaskScopedAttachmentContentByIdWithReadPermission() {
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+    createGrantAuthorization(TASK, TASK_ID, userId, READ);
+
+    // when/then
+    assertThat(taskService.getAttachmentContent(attachment.getId())).isNotNull();
+  }
+
+  // dispatch order //////////////////////////////////////////////////////////
+
+  @Test
+  public void shouldCheckTaskAndNotProcessInstanceWhenAttachmentCarriesBothIds() {
+    // an attachment may carry an arbitrary process instance id next to its task id, the task wins
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, UNKNOWN_ID);
+    createGrantAuthorization(TASK, TASK_ID, userId, READ);
+
+    // when/then
+    assertThat(taskService.getAttachment(attachment.getId())).isNotNull();
+  }
+
+  @Test
+  public void shouldRejectAttachmentCarryingBothIdsWithoutTaskPermission() {
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, UNKNOWN_ID);
+
+    // when/then
+    assertThatThrownBy(() -> taskService.getAttachment(attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'READ' permission on resource 'myTask' of type 'Task'");
+  }
+
+  // known limitation ////////////////////////////////////////////////////////
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldNotCheckAuthorizationForAttachmentOfCompletedTask() {
+    // known limitation of CIB7-1752: once the runtime task is gone the attachment only lives in
+    // ACT_HI_ATTACHMENT and no CommandChecker method can authorize it
+    // given
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+    Attachment attachment = createAttachment(task.getId(), null);
+    completeTask(task.getId());
+
+    // when/then
+    assertThat(taskService.getTaskAttachments(task.getId())).hasSize(1);
+    assertThat(taskService.getTaskAttachment(task.getId(), attachment.getId())).isNotNull();
+    assertThat(taskService.getAttachment(attachment.getId())).isNotNull();
+    assertThat(taskService.getAttachmentContent(attachment.getId())).isNotNull();
+  }
+
+  // enforceAttachmentPermissions disabled /////////////////////////////////////
+
+  @Test
+  public void shouldDisableAttachmentPermissionsByDefault() {
+    assertThat(new StandaloneInMemProcessEngineConfiguration().isEnforceAttachmentPermissions()).isFalse();
+  }
+
+  @Test
+  public void shouldNotCheckReadsWhenEnforcementDisabled() {
+    // given
+    processEngineConfiguration.setEnforceAttachmentPermissions(false);
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+
+    // when/then - the behaviour before CIB7-1752, no permission needed at all
+    assertThat(taskService.getTaskAttachments(TASK_ID)).hasSize(1);
+    assertThat(taskService.getTaskAttachment(TASK_ID, attachment.getId())).isNotNull();
+    assertThat(taskService.getTaskAttachmentContent(TASK_ID, attachment.getId())).isNotNull();
+    assertThat(taskService.getAttachment(attachment.getId())).isNotNull();
+    assertThat(taskService.getAttachmentContent(attachment.getId())).isNotNull();
+  }
+
+  @Test
+  public void shouldNotCheckCreateWhenEnforcementDisabled() {
+    // given
+    processEngineConfiguration.setEnforceAttachmentPermissions(false);
+    createTask(TASK_ID);
+
+    // when
+    Attachment attachment = taskService.createAttachment("foo", TASK_ID, null, "aName", "aDescription",
+        "http://cibseven.org");
+
+    // then
+    assertThat(attachment).isNotNull();
+  }
+
+  @Test
+  public void shouldNotCheckDeleteWhenEnforcementDisabled() {
+    // given
+    processEngineConfiguration.setEnforceAttachmentPermissions(false);
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+
+    // when
+    taskService.deleteAttachment(attachment.getId());
+
+    // then
+    assertThat(selectAttachment(attachment.getId())).isNull();
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldNotCheckAuthorizationWhenDeletingAttachmentOfCompletedTask() {
+    // known limitation of CIB7-1752, see above
+    // given
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+    Attachment attachment = createAttachment(task.getId(), null);
+    completeTask(task.getId());
+
+    // when
+    taskService.deleteAttachment(attachment.getId());
+
+    // then
+    assertThat(selectAttachment(attachment.getId())).isNull();
+  }
+}
