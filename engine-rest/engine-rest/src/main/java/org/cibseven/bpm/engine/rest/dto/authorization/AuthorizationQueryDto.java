@@ -63,6 +63,7 @@ public class AuthorizationQueryDto extends AbstractQueryDto<AuthorizationQuery> 
   }
 
   public AuthorizationQueryDto(AuthorizationQueryDto queryDto) {
+    this.objectMapper = queryDto.objectMapper;
     this.id = queryDto.id;
     this.type = queryDto.type;
     this.userIdIn = queryDto.userIdIn;

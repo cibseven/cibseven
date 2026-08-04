@@ -4,23 +4,17 @@
       id = "querySelfAuthorizations"
       tag = "Authorization"
       summary = "Get Authorizations"
-      desc = "Queries for a list of the currently authenticated user's authorizations using a list of parameters.
-              The size of the result set can be retrieved by using the
-              [Get Authorization Count](${docsUrl}/reference/rest/authorization/get-query-count/) method."
+      desc = "Queries for a list of the currently authenticated user's authorizations using a list of parameters."
   />
 
   "parameters" : [
 
-    <#assign last = false >
+    <#assign last = true >
     <#include "/lib/commons/authorization-self-query-params.ftl" >
     <@lib.parameters
         object = params
         last = last
     />
-    <#include "/lib/commons/sort-params.ftl">
-    <#assign last = true >
-    <#include "/lib/commons/pagination-params.ftl">
-
   ],
 
   "responses": {
