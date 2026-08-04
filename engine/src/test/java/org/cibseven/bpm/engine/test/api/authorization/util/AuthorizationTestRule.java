@@ -37,6 +37,7 @@ public class AuthorizationTestRule extends AuthorizationTestBaseRule implements 
 
   protected AuthorizationExceptionInterceptor interceptor;
   protected CommandExecutor replacedCommandExecutor;
+  protected boolean interceptorInstalled = false;
 
   protected AuthorizationScenarioInstance scenarioInstance;
 
@@ -92,11 +93,23 @@ public class AuthorizationTestRule extends AuthorizationTestBaseRule implements 
     interceptor.reset();
     engineConfiguration.getCommandInterceptorsTxRequired().get(0).setNext(interceptor);
     interceptor.setNext(engineConfiguration.getCommandInterceptorsTxRequired().get(1));
+    interceptorInstalled = true;
   }
 
   @Override
   public void afterEach(ExtensionContext context) throws Exception {
     super.afterEach(context);
+
+    // if beforeEach was never executed (e.g. because a preceding extension's
+    // beforeEach aborted/failed the test, such as via Assumptions.assumeTrue),
+    // the interceptor was never inserted into the command interceptor chain.
+    // In that case we must not touch the chain here, otherwise we would corrupt
+    // it (e.g. setting the real next interceptor to null) for subsequent tests.
+    if (!interceptorInstalled) {
+      return;
+    }
+    interceptorInstalled = false;
+
     ProcessEngineConfigurationImpl engineConfiguration =
         (ProcessEngineConfigurationImpl) engineRule.getProcessEngine().getProcessEngineConfiguration();
 
