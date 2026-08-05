@@ -837,6 +837,7 @@ public interface RepositoryService {
    * @return the created {@link Batch}
    * @throws BadUserRequestException if no deployment ids could be resolved
    * @throws AuthorizationException if the user has no {@link BatchPermissions#CREATE_BATCH_DELETE_DEPLOYMENTS} permission on {@link Resources#BATCH}
+   * @throws AuthorizationException if the user has no {@link Permissions#DELETE} permission on {@link Resources#DEPLOYMENT} for any of the resolved deployments
    */
   Batch deleteDeploymentsAsync(List<String> deploymentIds, DeploymentQuery deploymentQuery,
                                boolean cascade, boolean skipCustomListeners, boolean skipIoMappings);
