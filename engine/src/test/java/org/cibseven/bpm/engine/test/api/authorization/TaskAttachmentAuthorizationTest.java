@@ -280,6 +280,86 @@ public class TaskAttachmentAuthorizationTest extends AuthorizationTest {
     assertThat(selectAttachment(attachment.getId())).isNull();
   }
 
+  // save attachment /////////////////////////////////////////////////////////
+
+  @Test
+  public void shouldNotSaveStandaloneTaskAttachmentWithoutAuthorization() {
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+    attachment.setName("renamedByAttacker");
+
+    // when/then
+    assertThatThrownBy(() -> taskService.saveAttachment(attachment))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'TASK_WORK' permission on resource 'myTask' of type 'Task'");
+
+    assertThat(selectAttachment(attachment.getId()).getName()).isEqualTo("aName");
+  }
+
+  @Test
+  public void shouldNotSaveStandaloneTaskAttachmentWithReadPermissionOnly() {
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+    attachment.setName("renamedByAttacker");
+    createGrantAuthorization(TASK, TASK_ID, userId, READ);
+
+    // when/then
+    assertThatThrownBy(() -> taskService.saveAttachment(attachment))
+        .isInstanceOf(AuthorizationException.class);
+  }
+
+  @Test
+  public void shouldSaveStandaloneTaskAttachmentWithUpdatePermission() {
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+    attachment.setName("updatedName");
+    attachment.setDescription("updatedDescription");
+    createGrantAuthorization(TASK, TASK_ID, userId, UPDATE);
+
+    // when
+    taskService.saveAttachment(attachment);
+
+    // then
+    Attachment updated = selectAttachment(attachment.getId());
+    assertThat(updated.getName()).isEqualTo("updatedName");
+    assertThat(updated.getDescription()).isEqualTo("updatedDescription");
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldNotSaveProcessTaskAttachmentWithoutAuthorization() {
+    // given
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+    Attachment attachment = createAttachment(task.getId(), null);
+    attachment.setName("renamedByAttacker");
+
+    // when/then
+    assertThatThrownBy(() -> taskService.saveAttachment(attachment))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'UPDATE_TASK' permission on resource 'oneTaskProcess' of type 'ProcessDefinition'");
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldSaveProcessTaskAttachmentWithUpdateTaskPermissionOnProcessDefinition() {
+    // given
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+    Attachment attachment = createAttachment(task.getId(), null);
+    attachment.setName("updatedName");
+    createGrantAuthorization(PROCESS_DEFINITION, PROCESS_KEY, userId, UPDATE_TASK);
+
+    // when
+    taskService.saveAttachment(attachment);
+
+    // then
+    assertThat(selectAttachment(attachment.getId()).getName()).isEqualTo("updatedName");
+  }
+
   // get task attachments ////////////////////////////////////////////////////
 
   @Test
@@ -596,6 +676,21 @@ public class TaskAttachmentAuthorizationTest extends AuthorizationTest {
 
     // then
     assertThat(attachment).isNotNull();
+  }
+
+  @Test
+  public void shouldNotCheckSaveWhenEnforcementDisabled() {
+    // given
+    processEngineConfiguration.setEnforceAttachmentPermissions(false);
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+    attachment.setName("updatedName");
+
+    // when
+    taskService.saveAttachment(attachment);
+
+    // then - the behaviour before CIB7-1752, no permission needed at all
+    assertThat(selectAttachment(attachment.getId()).getName()).isEqualTo("updatedName");
   }
 
   @Test

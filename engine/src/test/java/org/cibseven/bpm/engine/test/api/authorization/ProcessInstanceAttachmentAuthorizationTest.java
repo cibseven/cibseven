@@ -235,6 +235,56 @@ public class ProcessInstanceAttachmentAuthorizationTest extends AuthorizationTes
     assertThat(selectAttachment(attachment.getId())).isNull();
   }
 
+  // save attachment /////////////////////////////////////////////////////////
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldNotSaveProcessInstanceAttachmentWithoutAuthorization() {
+    // given
+    String processInstanceId = startProcessInstanceByKey(PROCESS_KEY).getId();
+    Attachment attachment = createAttachment(null, processInstanceId);
+    attachment.setName("renamedByAttacker");
+
+    // when/then
+    assertThatThrownBy(() -> taskService.saveAttachment(attachment))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'UPDATE' permission on resource '" + processInstanceId + "' of type 'ProcessInstance'");
+
+    assertThat(selectAttachment(attachment.getId()).getName()).isEqualTo("aName");
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldSaveProcessInstanceAttachmentWithUpdatePermission() {
+    // given
+    String processInstanceId = startProcessInstanceByKey(PROCESS_KEY).getId();
+    Attachment attachment = createAttachment(null, processInstanceId);
+    attachment.setName("updatedName");
+    createGrantAuthorization(PROCESS_INSTANCE, processInstanceId, userId, UPDATE);
+
+    // when
+    taskService.saveAttachment(attachment);
+
+    // then
+    assertThat(selectAttachment(attachment.getId()).getName()).isEqualTo("updatedName");
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldSaveProcessInstanceAttachmentWithUpdateInstancePermissionOnProcessDefinition() {
+    // given
+    String processInstanceId = startProcessInstanceByKey(PROCESS_KEY).getId();
+    Attachment attachment = createAttachment(null, processInstanceId);
+    attachment.setName("updatedName");
+    createGrantAuthorization(PROCESS_DEFINITION, PROCESS_KEY, userId, UPDATE_INSTANCE);
+
+    // when
+    taskService.saveAttachment(attachment);
+
+    // then
+    assertThat(selectAttachment(attachment.getId()).getName()).isEqualTo("updatedName");
+  }
+
   // get attachment by id ////////////////////////////////////////////////////
 
   @Test
@@ -318,6 +368,22 @@ public class ProcessInstanceAttachmentAuthorizationTest extends AuthorizationTes
 
     // then
     assertThat(attachment).isNotNull();
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldNotCheckSaveWhenEnforcementDisabled() {
+    // given
+    processEngineConfiguration.setEnforceAttachmentPermissions(false);
+    String processInstanceId = startProcessInstanceByKey(PROCESS_KEY).getId();
+    Attachment attachment = createAttachment(null, processInstanceId);
+    attachment.setName("updatedName");
+
+    // when
+    taskService.saveAttachment(attachment);
+
+    // then - the behaviour before CIB7-1752, no permission needed at all
+    assertThat(selectAttachment(attachment.getId()).getName()).isEqualTo("updatedName");
   }
 
   @Test
