@@ -95,7 +95,10 @@ public enum BatchPermissions implements Permission {
   CREATE_BATCH_SET_VARIABLES("CREATE_BATCH_SET_VARIABLES", 131_072),
 
   /** Indicates that CREATE_BATCH_CORRELATE_MESSAGE interactions are permitted */
-  CREATE_BATCH_CORRELATE_MESSAGE("CREATE_BATCH_CORRELATE_MESSAGE", 262_144);
+  CREATE_BATCH_CORRELATE_MESSAGE("CREATE_BATCH_CORRELATE_MESSAGE", 262_144),
+
+  /** Indicates that CREATE_BATCH_DELETE_DEPLOYMENTS interactions are permitted */
+  CREATE_BATCH_DELETE_DEPLOYMENTS("CREATE_BATCH_DELETE_DEPLOYMENTS", 524_288);
 
   protected static final Resource[] RESOURCES = new Resource[] { Resources.BATCH };
 

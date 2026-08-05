@@ -12,12 +12,12 @@ import groovy.transform.Field
 @Field String mavenLocalRepoRedirected = null
 @Field Map pipelineParams = [
     pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
-    mvnContainerName: Constants.MAVEN_JDK_21_CONTAINER,
+    mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
     uiParamPresets: [:],
     testMode: false,
     dependencyTrackSynchronous: true,
     buildPodConfig: [
-        (Constants.MAVEN_JDK_21_CONTAINER): [
+        (Constants.MAVEN_JDK_17_CONTAINER): [
             resources: [
                 cpu: '4',
                 memory: '16Gi',
@@ -93,6 +93,7 @@ pipeline {
         booleanParam(name: 'ATTACH_QA_PERF_REPORTS', defaultValue: false, description: "  └─ Attach QA perfromance reports to Artifacts\n\n")
 
         booleanParam(name: 'DEPLOY_TO_ARTIFACTS', defaultValue: false, description: "  └─ 📦 Deploy to artifacts")
+        booleanParam(name: 'DEPLOY_WITHOUT_SBOM', defaultValue: false, description: "  └─ Exclude SBOM generation and deployment step\n\n")
 
         booleanParam(name: 'OPEN_API', defaultValue: false, description: "  └─ 📚 Deploy OpenAPI docs")
         booleanParam(name: 'JAVA_DOCS', defaultValue: false, description: "  └─ 📖 Deploy JavaDocs")
@@ -458,12 +459,20 @@ pipeline {
                         deployment = "-Dnexus.release.repository.id=mvn-cibseven-private -Dnexus.release.repository=https://artifacts.cibseven.de/repository/private"
                     }
 
+                    // Call cyclonedx directly from the mvn command to avoid adding a new profile to the root pom.xml.
+                    // Placed after "clean" to keep the generated files in the target, allowing to deploy them in one step.
+                    // Do not add cyclonedx options, like -DoutputDirectory/-DoutputName, as global -D CLI flags, since
+                    // they can silently override parameters of unrelated plugins: if specific cyclonedx options are needed, 
+                    // then add (or update) a pluginManagement entry for cyclonedx-maven-plugin in the root pom.xml instead.
+                    String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
+                        "org.cyclonedx:cyclonedx-maven-plugin:makeBom org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
+
                     withMaven(options: []) {
                         sh """
                             mvn -U -T4 \
                                 -DskipTests \
                                 -Pwebapps-integration ${deployment} \
-                                clean deploy
+                                clean ${sbomGenerate} deploy
                         """
                     }
                 }

@@ -51,6 +51,7 @@ public interface Batch {
   String TYPE_BATCH_SET_REMOVAL_TIME = "batch-set-removal-time";
   String TYPE_SET_VARIABLES = "set-variables";
   String TYPE_CORRELATE_MESSAGE = "correlate-message";
+  String TYPE_DEPLOYMENT_DELETION = "deployment-deletion";
 
   /**
    * @return the id of the batch
