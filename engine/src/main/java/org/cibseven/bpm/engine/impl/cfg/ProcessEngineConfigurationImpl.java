@@ -99,6 +99,7 @@ import org.cibseven.bpm.engine.impl.application.ProcessApplicationManager;
 import org.cibseven.bpm.engine.impl.batch.BatchJobHandler;
 import org.cibseven.bpm.engine.impl.batch.BatchMonitorJobHandler;
 import org.cibseven.bpm.engine.impl.batch.BatchSeedJobHandler;
+import org.cibseven.bpm.engine.impl.batch.deletion.DeleteDeploymentsJobHandler;
 import org.cibseven.bpm.engine.impl.batch.deletion.DeleteHistoricProcessInstancesJobHandler;
 import org.cibseven.bpm.engine.impl.batch.deletion.DeleteProcessInstancesJobHandler;
 import org.cibseven.bpm.engine.impl.batch.externaltask.SetExternalTaskRetriesJobHandler;
@@ -1545,6 +1546,9 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
       MessageCorrelationBatchJobHandler messageCorrelationJobHandler = new MessageCorrelationBatchJobHandler();
       batchHandlers.put(messageCorrelationJobHandler.getType(), messageCorrelationJobHandler);
+
+      DeleteDeploymentsJobHandler deleteDeploymentsJobHandler = new DeleteDeploymentsJobHandler();
+      batchHandlers.put(deleteDeploymentsJobHandler.getType(), deleteDeploymentsJobHandler);
     }
 
     if (customBatchJobHandlers != null) {
