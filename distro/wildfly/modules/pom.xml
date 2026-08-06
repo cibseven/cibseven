@@ -155,6 +155,17 @@
       <artifactId>h2</artifactId>
     </dependency>
 
+    <!-- Patched lz4-java replacing the 1.10.4 jar bundled in wildfly-dist (CVE-2026-59949).
+         WildFly's system module is excluded from the distro.
+         copy-dependencies step below already maps <groupId path>/<version>/<jar> to
+         <groupId path>/main/<jar>, which is exactly the layout the module.xml expects.
+         Drop this once WildFly ships lz4-java >= 1.11.1. -->
+    <dependency>
+      <groupId>at.yawk.lz4</groupId>
+      <artifactId>lz4-java</artifactId>
+      <version>${version.lz4-java}</version>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -427,6 +438,10 @@
                 </replace>
 
                 <replace dir="target/modules" token="@version.icu.icu4j@" value="${version.icu.icu4j}">
+                  <include name="**/module.xml" />
+                </replace>
+
+                <replace dir="target/modules" token="@version.lz4-java@" value="${version.lz4-java}">
                   <include name="**/module.xml" />
                 </replace>
 
