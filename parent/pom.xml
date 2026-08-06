@@ -68,7 +68,11 @@
     <!-- application servers -->
     <version.wildfly>41.0.0.Final</version.wildfly>
     <version.wildfly.core>33.0.0.Final</version.wildfly.core>
-    
+
+    <!-- Overrides the lz4-java shipped inside wildfly-dist (1.10.4 in WildFly 41),
+         which is flagged for CVE-2026-59949. -->
+    <version.lz4-java>1.11.1</version.lz4-java>
+
     <version.wildfly28>28.0.1.Final</version.wildfly28>
     <version.wildfly28.core>20.0.2.Final</version.wildfly28.core>
 
