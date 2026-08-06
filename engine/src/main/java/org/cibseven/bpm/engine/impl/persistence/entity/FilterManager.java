@@ -28,6 +28,7 @@ import java.util.List;
 
 import org.cibseven.bpm.engine.filter.Filter;
 import org.cibseven.bpm.engine.impl.AbstractQuery;
+import org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator;
 import org.cibseven.bpm.engine.impl.QueryValidators.StoredQueryValidator;
 import org.cibseven.bpm.engine.impl.filter.FilterQueryImpl;
 import org.cibseven.bpm.engine.impl.persistence.AbstractManager;
@@ -46,6 +47,8 @@ public class FilterManager extends AbstractManager {
 
     AbstractQuery<?, ?> query = filter.getQuery();
     query.validate(StoredQueryValidator.get());
+    // reject expressions that resolve arbitrary functions/beans, not just the on/off toggle above
+    query.validate(ExpressionWhitelistValidator.get());
 
     if (filter.getId() == null) {
       checkAuthorization(CREATE, FILTER, ANY);
