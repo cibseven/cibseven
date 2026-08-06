@@ -469,7 +469,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    * Factory method — builds the {@link ChatMemoryProvider} used when chat
    * memory is active. Each provider call returns a {@link MessageWindowChatMemory}
    * bound to the shared {@link AgentChatMemoryStore}, so memory survives between
-   * connector invocations within the same JVM.
+   * connector invocations, engine restarts, and across engine replicas.
    */
   protected ChatMemoryProvider createChatMemoryProvider(AgentRequest request) {
     int maxMessages = request.getChatMemoryMaxMessages();
