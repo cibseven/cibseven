@@ -27,7 +27,7 @@
   <properties>
     <cibseven.artifact>org.cibseven.bpm.engine.variable</cibseven.artifact>
     <camunda.osgi.import.additional>
-      !javax.activation
+      !jakarta.activation
     </camunda.osgi.import.additional>
   </properties>
   <dependencies>
@@ -62,12 +62,10 @@
     </dependency>
 
     <dependency>
-      <groupId>com.sun.activation</groupId>
-      <artifactId>javax.activation</artifactId>
-      <version>1.2.0</version>
-      <optional>true</optional>
+      <groupId>jakarta.activation</groupId>
+      <artifactId>jakarta.activation-api</artifactId>
+      <version>2.1.3</version>
     </dependency>
-
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-bpm-archunit</artifactId>
