@@ -28,6 +28,7 @@
     <module name="org.apache.groovy.groovy-all" services="import"/>
     <module name="org.graalvm.js.js-scriptengine" services="import"/>
     <module name="org.graalvm.js.js" services="import"/>
+    <module name="org.graalvm.js.js-language" services="import"/>
     <module name="org.graalvm.regex.regex" services="import"/>
     <module name="org.graalvm.sdk.graal-sdk" services="import"/>
     <module name="org.graalvm.truffle.truffle-api" services="import"/>
