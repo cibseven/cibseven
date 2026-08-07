@@ -16,6 +16,9 @@
  */
 package org.cibseven.connect.ai.agent.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 
@@ -26,11 +29,12 @@ import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
  * carry conversation history across service-task invocations — typically across
  * a human-feedback user task in between.
  *
- * <p>The default backing store is a {@link ProcessVariableChatMemoryStore}, which
- * persists the conversation as a process variable, so memory survives an engine
- * restart and is visible to every node of a clustered deployment. A
- * {@code memoryId} is therefore scoped to one process instance. Outside an engine
- * context (tests, embedded use) it falls back to an {@link InMemoryChatMemoryStore}.
+ * <p>Which store is used by default is decided here, once, from
+ * {@value #PERSISTENT_STORE_PROPERTY}: a {@link ProcessVariableChatMemoryStore}
+ * that persists the conversation as a process variable — surviving an engine
+ * restart and visible to every node of a clustered deployment, with a
+ * {@code memoryId} scoped to one process instance — or, when the flag is
+ * {@code false}, a JVM-local {@link InMemoryChatMemoryStore}.
  *
  * <p>Deployments needing different semantics — e.g. memory shared across process
  * instances — can replace the store at startup via {@link #setStore(ChatMemoryStore)},
@@ -44,11 +48,45 @@ import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
  */
 public final class AgentChatMemoryStore {
 
-  private static volatile ChatMemoryStore store =
-      new ProcessVariableChatMemoryStore(new InMemoryChatMemoryStore());
+  private static final Logger LOG = LoggerFactory.getLogger(AgentChatMemoryStore.class);
+
+  /**
+   * Selects the default store: {@code true} (the default) persists chat memory as
+   * a process variable, {@code false} keeps it in a JVM-local map — single node
+   * only, lost on restart.
+   */
+  static final String PERSISTENT_STORE_PROPERTY =
+      "cibseven.connect.ai-agent.chatMemoryVariable.enabled";
+
+  /** Environment-variable fallback for {@link #PERSISTENT_STORE_PROPERTY}. */
+  static final String PERSISTENT_STORE_ENV_VAR =
+      "CIBSEVEN_CONNECT_AI_AGENT_CHAT_MEMORY_VARIABLE_ENABLED";
+
+  private static volatile ChatMemoryStore store = resolveDefaultStore();
 
   private AgentChatMemoryStore() {
     // utility holder
+  }
+
+  /**
+   * Builds the default store from the deployment configuration. Resolved once at
+   * class initialisation: the selection is startup configuration (JVM argument or
+   * environment variable), not something that may flip while conversations are in
+   * flight. Package-private so tests can exercise the selection without relying on
+   * class-load timing.
+   */
+  static ChatMemoryStore resolveDefaultStore() {
+    boolean persistent = AgentChatListener.resolveBooleanFlag(
+        PERSISTENT_STORE_PROPERTY, PERSISTENT_STORE_ENV_VAR, true);
+    if (!persistent) {
+      LOG.warn("AI Agent connector: persistent chat memory is DISABLED (system property {} or "
+          + "env var {} = false). Memory is kept in a JVM-local store, so conversations are lost "
+          + "on engine restart and are NOT shared across engine replicas — a task resumed on "
+          + "another node will start over.",
+          PERSISTENT_STORE_PROPERTY, PERSISTENT_STORE_ENV_VAR);
+      return new InMemoryChatMemoryStore();
+    }
+    return new ProcessVariableChatMemoryStore();
   }
 
   /** Returns the currently configured shared {@link ChatMemoryStore}. */

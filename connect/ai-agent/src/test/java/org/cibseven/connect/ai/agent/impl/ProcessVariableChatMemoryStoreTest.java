@@ -49,8 +49,9 @@ import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 
 /**
  * Tests for the process-variable chat-memory store: variable naming, JSON
- * round-trip, the fallback paths (no engine context / flag disabled), and the
- * memoryId length guard.
+ * round-trip, the no-engine-context degradation, and the memoryId length guard.
+ * Which store a deployment uses is decided by {@link AgentChatMemoryStore} and
+ * covered there.
  */
 public class ProcessVariableChatMemoryStoreTest {
 
@@ -58,14 +59,12 @@ public class ProcessVariableChatMemoryStoreTest {
   private static final String VARIABLE_NAME =
       AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX + MEMORY_ID;
 
-  private ChatMemoryStore fallback;
   private ProcessVariableChatMemoryStore store;
   private boolean pushedExecution;
 
   @Before
   public void setUp() {
-    fallback = new InMemoryChatMemoryStore();
-    store = new ProcessVariableChatMemoryStore(fallback);
+    store = new ProcessVariableChatMemoryStore();
   }
 
   @After
@@ -74,8 +73,6 @@ public class ProcessVariableChatMemoryStoreTest {
       try { Context.removeExecutionContext(); } catch (Exception ignored) { }
       pushedExecution = false;
     }
-    System.clearProperty(ProcessVariableChatMemoryStore.CHAT_MEMORY_VARIABLE_PROPERTY);
-    AgentChatListener.ENV_READER = System::getenv;
   }
 
   private ExecutionEntity pushExecution() {
@@ -259,53 +256,24 @@ public class ProcessVariableChatMemoryStoreTest {
     return execution;
   }
 
-  // ── fallback paths ───────────────────────────────────────────────────────
+  // ── degradation without an engine context ────────────────────────────────
 
   @Test
-  public void shouldDelegateToFallbackWithoutExecutionContext() {
-    // No BpmnExecutionContext pushed onto this thread.
-    List<ChatMessage> messages = Arrays.asList(UserMessage.from("hi"));
-    store.updateMessages(MEMORY_ID, messages);
+  public void shouldUseInternalBufferWithoutExecutionContext() {
+    // No BpmnExecutionContext pushed onto this thread: writing a process
+    // variable is impossible, so the store must not fail but buffer internally.
+    store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("hi")));
 
-    assertThat(fallback.getMessages(MEMORY_ID)).hasSize(1);
     assertThat(store.getMessages(MEMORY_ID)).hasSize(1);
   }
 
   @Test
-  public void shouldDelegateToFallbackWhenFlagDisabledViaSystemProperty() {
-    ExecutionEntity execution = pushExecution();
-    System.setProperty(ProcessVariableChatMemoryStore.CHAT_MEMORY_VARIABLE_PROPERTY, "false");
-
+  public void shouldDelegateDeleteToBufferWithoutExecutionContext() {
+    // No BpmnExecutionContext pushed onto this thread.
     store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("hi")));
+    store.deleteMessages(MEMORY_ID);
 
-    verify(execution, never()).setVariable(org.mockito.Matchers.anyString(),
-        org.mockito.Matchers.any());
-    assertThat(fallback.getMessages(MEMORY_ID)).hasSize(1);
-  }
-
-  @Test
-  public void shouldDelegateToFallbackWhenFlagDisabledViaEnvVar() {
-    ExecutionEntity execution = pushExecution();
-    AgentChatListener.ENV_READER = name ->
-        ProcessVariableChatMemoryStore.CHAT_MEMORY_VARIABLE_ENV_VAR.equals(name) ? "false" : null;
-
-    store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("hi")));
-
-    verify(execution, never()).setVariable(org.mockito.Matchers.anyString(),
-        org.mockito.Matchers.any());
-    assertThat(fallback.getMessages(MEMORY_ID)).hasSize(1);
-  }
-
-  @Test
-  public void shouldPreferSystemPropertyOverEnvVar() {
-    ExecutionEntity execution = pushExecution();
-    System.setProperty(ProcessVariableChatMemoryStore.CHAT_MEMORY_VARIABLE_PROPERTY, "true");
-    AgentChatListener.ENV_READER = name -> "false";
-
-    store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("hi")));
-
-    verify(execution).setVariable(org.mockito.Matchers.eq(VARIABLE_NAME),
-        org.mockito.Matchers.any());
+    assertThat(store.getMessages(MEMORY_ID)).isEmpty();
   }
 
   // ── guards ───────────────────────────────────────────────────────────────
@@ -326,12 +294,6 @@ public class ProcessVariableChatMemoryStoreTest {
     String atLimit = repeat('x', maxIdLength);
 
     assertThat(ProcessVariableChatMemoryStore.variableName(atLimit)).hasSize(255);
-  }
-
-  @Test
-  public void shouldRejectNullFallback() {
-    assertThatThrownBy(() -> new ProcessVariableChatMemoryStore(null))
-        .isInstanceOf(IllegalArgumentException.class);
   }
 
   /**

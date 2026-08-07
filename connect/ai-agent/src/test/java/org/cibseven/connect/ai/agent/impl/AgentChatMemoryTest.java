@@ -90,6 +90,42 @@ public class AgentChatMemoryTest {
       try { Context.removeExecutionContext(); } catch (Exception ignored) { }
       pushedExecution = false;
     }
+    System.clearProperty(AgentChatMemoryStore.PERSISTENT_STORE_PROPERTY);
+    AgentChatListener.ENV_READER = System::getenv;
+  }
+
+  // ── default store selection ──────────────────────────────────────────────
+
+  @Test
+  public void shouldSelectProcessVariableStoreByDefault() {
+    assertThat(AgentChatMemoryStore.resolveDefaultStore())
+        .isInstanceOf(ProcessVariableChatMemoryStore.class);
+  }
+
+  @Test
+  public void shouldSelectInMemoryStoreWhenDisabledViaSystemProperty() {
+    System.setProperty(AgentChatMemoryStore.PERSISTENT_STORE_PROPERTY, "false");
+
+    assertThat(AgentChatMemoryStore.resolveDefaultStore())
+        .isInstanceOf(InMemoryChatMemoryStore.class);
+  }
+
+  @Test
+  public void shouldSelectInMemoryStoreWhenDisabledViaEnvVar() {
+    AgentChatListener.ENV_READER = name ->
+        AgentChatMemoryStore.PERSISTENT_STORE_ENV_VAR.equals(name) ? "false" : null;
+
+    assertThat(AgentChatMemoryStore.resolveDefaultStore())
+        .isInstanceOf(InMemoryChatMemoryStore.class);
+  }
+
+  @Test
+  public void shouldPreferSystemPropertyOverEnvVarForStoreSelection() {
+    System.setProperty(AgentChatMemoryStore.PERSISTENT_STORE_PROPERTY, "true");
+    AgentChatListener.ENV_READER = name -> "false";
+
+    assertThat(AgentChatMemoryStore.resolveDefaultStore())
+        .isInstanceOf(ProcessVariableChatMemoryStore.class);
   }
 
   // ── Setter / getter wiring ───────────────────────────────────────────────
@@ -303,14 +339,14 @@ public class AgentChatMemoryTest {
 
     // Node 1 — writes the first exchange.
     AgentChatMemoryStore.setStore(
-        new ProcessVariableChatMemoryStore(new InMemoryChatMemoryStore()));
+        new ProcessVariableChatMemoryStore());
     ChatMemory node1 = connector.createChatMemoryProvider(request).get(memoryId);
     node1.add(UserMessage.from("My name is Alice."));
     node1.add(AiMessage.from("Hello Alice."));
 
     // Node 2 — a different JVM: fresh store, fresh heap, same database.
     AgentChatMemoryStore.setStore(
-        new ProcessVariableChatMemoryStore(new InMemoryChatMemoryStore()));
+        new ProcessVariableChatMemoryStore());
     ChatMemory node2 = connector.createChatMemoryProvider(request).get(memoryId);
 
     assertThat(userTextsOf(node2.messages())).contains("My name is Alice.");
@@ -328,7 +364,7 @@ public class AgentChatMemoryTest {
     Context.setExecutionContext(instanceA);
     pushedExecution = true;
     AgentChatMemoryStore.setStore(
-        new ProcessVariableChatMemoryStore(new InMemoryChatMemoryStore()));
+        new ProcessVariableChatMemoryStore());
     connector.createChatMemoryProvider(request).get(memoryId)
         .add(UserMessage.from("Secret of instance A"));
     Context.removeExecutionContext();

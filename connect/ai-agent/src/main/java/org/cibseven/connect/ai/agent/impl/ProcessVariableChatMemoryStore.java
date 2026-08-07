@@ -27,6 +27,7 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.ChatMessageDeserializer;
 import dev.langchain4j.data.message.ChatMessageSerializer;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
+import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 
 import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
 import org.cibseven.bpm.engine.impl.context.Context;
@@ -49,24 +50,17 @@ import org.cibseven.connect.ai.agent.AgentConnectorConstants;
  *
  * <p>Stateless and safe to share as a singleton across job-executor threads —
  * the execution is resolved per call from the engine's thread-local
- * {@link Context}. Without an engine context (tests, embedded use) or when
- * {@value #CHAT_MEMORY_VARIABLE_PROPERTY} is {@code false}, all operations
- * delegate to {@code fallback}.
+ * {@link Context}.
+ *
+ * <p>Whether this store is used at all is decided by {@link AgentChatMemoryStore},
+ * not here. The only case this class handles itself is the absence of an engine
+ * context on the calling thread (unit tests, embedded use outside the engine):
+ * writing a process variable is then technically impossible, so operations fall
+ * back to an internal JVM-local buffer rather than failing the invocation.
  */
 final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
 
   private static final Logger LOG = LoggerFactory.getLogger(ProcessVariableChatMemoryStore.class);
-
-  /**
-   * When {@code false}, chat memory is kept in the JVM-local fallback store
-   * instead of a process variable. Default {@code true}.
-   */
-  static final String CHAT_MEMORY_VARIABLE_PROPERTY =
-      "cibseven.connect.ai-agent.chatMemoryVariable.enabled";
-
-  /** Environment-variable fallback for {@link #CHAT_MEMORY_VARIABLE_PROPERTY}. */
-  static final String CHAT_MEMORY_VARIABLE_ENV_VAR =
-      "CIBSEVEN_CONNECT_AI_AGENT_CHAT_MEMORY_VARIABLE_ENABLED";
 
   /**
    * Engine limit for the {@code NAME_} column of {@code ACT_RU_VARIABLE} —
@@ -75,28 +69,26 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
   private static final int MAX_VARIABLE_NAME_LENGTH = 255;
 
   /**
-   * Guard the one-time WARN per degradation cause. Both causes leave chat memory
-   * JVM-local, i.e. back to the behaviour this store exists to replace, so the
-   * deviation must be visible in the log. Logged once rather than per call: the
-   * store is hit several times per message, so per-call logging would flood.
+   * Guards the one-time WARN for the missing-engine-context case. That case
+   * leaves chat memory JVM-local, i.e. back to the behaviour this store exists
+   * to replace, so the deviation must be visible in the log. Logged once rather
+   * than per call: the store is hit several times per message, so per-call
+   * logging would flood.
    */
-  private static final AtomicBoolean FLAG_DISABLED_LOGGED = new AtomicBoolean(false);
   private static final AtomicBoolean NO_ENGINE_CONTEXT_LOGGED = new AtomicBoolean(false);
 
-  private final ChatMemoryStore fallback;
-
-  ProcessVariableChatMemoryStore(ChatMemoryStore fallback) {
-    if (fallback == null) {
-      throw new IllegalArgumentException("fallback ChatMemoryStore must not be null");
-    }
-    this.fallback = fallback;
-  }
+  /**
+   * Last-resort buffer for invocations without an engine context. Deliberately
+   * not injectable: it is an implementation detail of the degradation path, not
+   * a configurable collaborator — the choice of store is made one level up.
+   */
+  private final ChatMemoryStore noContextBuffer = new InMemoryChatMemoryStore();
 
   @Override
   public List<ChatMessage> getMessages(Object memoryId) {
     ExecutionEntity execution = targetExecution();
     if (execution == null) {
-      return fallback.getMessages(memoryId);
+      return noContextBuffer.getMessages(memoryId);
     }
     Object raw = execution.getVariable(variableName(memoryId));
     if (raw == null || raw.toString().isEmpty()) {
@@ -119,7 +111,7 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
   public void updateMessages(Object memoryId, List<ChatMessage> messages) {
     ExecutionEntity execution = targetExecution();
     if (execution == null) {
-      fallback.updateMessages(memoryId, messages);
+      noContextBuffer.updateMessages(memoryId, messages);
       return;
     }
     String json = ChatMessageSerializer.messagesToJson(messages);
@@ -132,34 +124,19 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
   public void deleteMessages(Object memoryId) {
     ExecutionEntity execution = targetExecution();
     if (execution == null) {
-      fallback.deleteMessages(memoryId);
+      noContextBuffer.deleteMessages(memoryId);
       return;
     }
     execution.removeVariable(variableName(memoryId));
   }
 
   /**
-   * The execution to store the memory on, or {@code null} when the caller must
-   * use the fallback store (flag disabled, or no engine context on this thread).
-   * Either case is logged once per JVM, because both silently restore the
-   * JVM-local behaviour that made conversations unusable across replicas.
-   *
-   * <p>The flag is resolved per call, not once in the constructor: this store is
-   * instantiated while {@link AgentChatMemoryStore} is class-loaded, which can
-   * precede the point at which the container applies its configuration.
+   * The execution to store the memory on, or {@code null} when there is no engine
+   * context on this thread and the caller must use {@link #noContextBuffer}.
+   * Logged once per JVM, because it silently restores the JVM-local behaviour
+   * that made conversations unusable across replicas.
    */
   private static ExecutionEntity targetExecution() {
-    if (!AgentChatListener.resolveBooleanFlag(
-        CHAT_MEMORY_VARIABLE_PROPERTY, CHAT_MEMORY_VARIABLE_ENV_VAR, true)) {
-      if (FLAG_DISABLED_LOGGED.compareAndSet(false, true)) {
-        LOG.warn("AI Agent connector: process-variable chat memory is DISABLED deployment-wide "
-            + "(system property {} or env var {} = false). Memory falls back to a JVM-local store, "
-            + "so conversations are lost on engine restart and are NOT shared across engine "
-            + "replicas — a task resumed on another node will start over. Logged once per JVM.",
-            CHAT_MEMORY_VARIABLE_PROPERTY, CHAT_MEMORY_VARIABLE_ENV_VAR);
-      }
-      return null;
-    }
     BpmnExecutionContext ctx = Context.getBpmnExecutionContext();
     if (ctx == null) {
       if (NO_ENGINE_CONTEXT_LOGGED.compareAndSet(false, true)) {
