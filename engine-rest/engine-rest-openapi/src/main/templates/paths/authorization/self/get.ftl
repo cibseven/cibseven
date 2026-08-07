@@ -64,7 +64,15 @@
                 parameter is supplied, but no `sortBy` is specified. See the
                 [Introduction](${docsUrl}/reference/rest/overview/#error-handling)
                 for the error response format."
-        last = true
+        />
+
+        <@lib.response
+      code = "401"
+      dto = "ExceptionDto"
+      desc = "The user is not authenticated. See the
+        [Introduction](${docsUrl}/reference/rest/overview/#error-handling)
+        for the error response format."
+      last = true
     />
 
   }

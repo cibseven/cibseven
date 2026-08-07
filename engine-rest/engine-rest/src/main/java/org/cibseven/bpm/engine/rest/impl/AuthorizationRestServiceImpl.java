@@ -181,14 +181,14 @@ public class AuthorizationRestServiceImpl extends AbstractAuthorizedRestResource
   public List<AuthorizationDto> queryOwnAuthorizations(AuthorizationQueryDto queryDto) {
     IdentityService identityService = getIdentityService();
     Authentication currentAuthentication = identityService.getCurrentAuthentication();
-    if(currentAuthentication == null) {
+    if (currentAuthentication == null) {
       throw new InvalidRequestException(Status.UNAUTHORIZED, "You must be authenticated in order to use this resource.");
     }
     List<String> groups = currentAuthentication.getGroupIds();
     AuthorizationQuery userQuery = createUserAuthorizationQuery(queryDto, currentAuthentication).toQuery(getProcessEngine());
     AuthorizationQuery globalQuery = createGlobalAuthorizationQuery(queryDto).toQuery(getProcessEngine());
     AuthorizationQuery groupQuery = null;
-    if(groups != null && !groups.isEmpty()) {
+    if (groups != null && !groups.isEmpty()) {
       groupQuery = createGroupAuthorizationQuery(queryDto, groups.toArray(new String[0])).toQuery(getProcessEngine());
     }
     
@@ -197,7 +197,7 @@ public class AuthorizationRestServiceImpl extends AbstractAuthorizedRestResource
       identityService.clearAuthentication();
       resultList = userQuery.list();
       resultList.addAll(globalQuery.list());
-      if(groupQuery != null) {
+      if (groupQuery != null) {
         resultList.addAll(groupQuery.list());
       }
     } finally {
