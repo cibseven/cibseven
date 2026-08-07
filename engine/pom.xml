@@ -140,6 +140,11 @@
     </dependency>
 
     <dependency>
+        <groupId>jakarta.mail</groupId>
+        <artifactId>jakarta.mail-api</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>jakarta.transaction</groupId>
       <artifactId>jakarta.transaction-api</artifactId>
       <scope>provided</scope>
@@ -216,8 +221,9 @@
     </dependency>
 
     <dependency>
-      <groupId>org.subethamail</groupId>
-      <artifactId>subethasmtp-wiser</artifactId>
+      <groupId>io.github.frshdn</groupId>
+      <artifactId>subethasmtp-java17</artifactId>
+      <version>3.1.7</version>
       <scope>test</scope>
     </dependency>
 
@@ -315,12 +321,14 @@
       <groupId>org.graalvm.js</groupId>
       <artifactId>js</artifactId>
       <scope>test</scope>
+      <version>${version.graal.js}</version>
     </dependency>
 
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js-scriptengine</artifactId>
       <scope>test</scope>
+      <version>${version.graal.js}</version>
     </dependency>
 
     <dependency>
