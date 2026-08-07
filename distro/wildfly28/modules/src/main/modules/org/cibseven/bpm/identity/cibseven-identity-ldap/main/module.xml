@@ -9,6 +9,8 @@
     <module name="java.naming" />
     <module name="org.cibseven.bpm.cibseven-engine" />
     <module name="org.cibseven.commons.cibseven-commons-logging" />
+    <!-- optional LDAP lookup caching -->
+    <module name="com.github.ben-manes.caffeine" slot="cibseven" />
 
   </dependencies>
 </module>
