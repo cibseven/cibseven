@@ -23,6 +23,7 @@ import static org.cibseven.bpm.engine.authorization.Permissions.READ_TASK;
 import static org.cibseven.bpm.engine.authorization.Permissions.TASK_WORK;
 import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE;
 import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE_TASK;
+import static org.cibseven.bpm.engine.authorization.Resources.HISTORIC_TASK;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION;
 import static org.cibseven.bpm.engine.authorization.Resources.TASK;
 
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.cibseven.bpm.engine.AuthorizationException;
+import org.cibseven.bpm.engine.authorization.HistoricTaskPermissions;
 import org.cibseven.bpm.engine.task.Attachment;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
@@ -59,6 +61,8 @@ public class TaskAttachmentAuthorizationTest extends AuthorizationTest {
   @After
   public void resetAttachmentPermissions() {
     processEngineConfiguration.setEnforceAttachmentPermissions(false);
+    // individual tests switch this on for the historic read fallback
+    processEngineConfiguration.setEnableHistoricInstancePermissions(false);
   }
 
   /**
@@ -626,9 +630,11 @@ public class TaskAttachmentAuthorizationTest extends AuthorizationTest {
 
   @Test
   @Deployment(resources = ONE_TASK_PROCESS)
-  public void shouldNotCheckAuthorizationForAttachmentOfCompletedTask() {
-    // known limitation of CIB7-1752: once the runtime task is gone the attachment only lives in
-    // ACT_HI_ATTACHMENT and no CommandChecker method can authorize it
+  public void shouldNotCheckAuthorizationForAttachmentOfCompletedTaskWithoutHistoricPermissions() {
+    // once the runtime task is gone the attachment only lives in ACT_HI_ATTACHMENT. The historic
+    // read fallback needs enableHistoricInstancePermissions, which is off here, so nothing is
+    // checked. See shouldNotReadAttachmentOfCompletedTaskWithoutHistoricReadPermission for the
+    // enabled case.
     // given
     startProcessInstanceByKey(PROCESS_KEY);
     Task task = selectSingleTask();
@@ -640,6 +646,62 @@ public class TaskAttachmentAuthorizationTest extends AuthorizationTest {
     assertThat(taskService.getTaskAttachment(task.getId(), attachment.getId())).isNotNull();
     assertThat(taskService.getAttachment(attachment.getId())).isNotNull();
     assertThat(taskService.getAttachmentContent(attachment.getId())).isNotNull();
+  }
+
+  // historic read fallback //////////////////////////////////////////////////
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldNotReadAttachmentOfCompletedTaskWithoutHistoricReadPermission() {
+    // given
+    processEngineConfiguration.setEnableHistoricInstancePermissions(true);
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+    Attachment attachment = createAttachment(task.getId(), null);
+    completeTask(task.getId());
+
+    // when/then
+    assertThatThrownBy(() -> taskService.getAttachment(attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'READ' permission on resource '" + task.getId() + "' of type 'HistoricTask'");
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldReadAttachmentOfCompletedTaskWithHistoricReadPermission() {
+    // given
+    processEngineConfiguration.setEnableHistoricInstancePermissions(true);
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+    Attachment attachment = createAttachment(task.getId(), null);
+    completeTask(task.getId());
+    createGrantAuthorization(HISTORIC_TASK, task.getId(), userId, HistoricTaskPermissions.READ);
+
+    // when/then
+    assertThat(taskService.getAttachment(attachment.getId())).isNotNull();
+    assertThat(taskService.getAttachmentContent(attachment.getId())).isNotNull();
+    assertThat(taskService.getTaskAttachments(task.getId())).hasSize(1);
+    assertThat(taskService.getTaskAttachment(task.getId(), attachment.getId())).isNotNull();
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldStillNotCheckDeleteOfCompletedTaskAttachmentWithHistoricPermissions() {
+    // remaining gap of CIB7-1752: HistoricTaskPermissions defines READ only, so there is nothing to
+    // check update and delete against once the runtime task is gone. Enabling the historic
+    // permissions does not change that.
+    // given
+    processEngineConfiguration.setEnableHistoricInstancePermissions(true);
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+    Attachment attachment = createAttachment(task.getId(), null);
+    completeTask(task.getId());
+
+    // when
+    taskService.deleteAttachment(attachment.getId());
+
+    // then
+    assertThat(selectAttachment(attachment.getId())).isNull();
   }
 
   // enforceAttachmentPermissions disabled /////////////////////////////////////

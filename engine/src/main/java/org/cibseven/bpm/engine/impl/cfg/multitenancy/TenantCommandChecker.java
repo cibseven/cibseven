@@ -408,6 +408,21 @@ public class TenantCommandChecker implements CommandChecker {
   }
 
   @Override
+  public void checkReadHistoricTaskInstance(HistoricTaskInstanceEntity task) {
+    if (task != null && !getTenantManager().isAuthenticatedTenant(task.getTenantId())) {
+      throw LOG.exceptionCommandWithUnauthorizedTenant("read the historic task instance '" + task.getId() + "'");
+    }
+  }
+
+  @Override
+  public void checkReadHistoricProcessInstance(HistoricProcessInstanceEntity processInstance) {
+    if (processInstance != null && !getTenantManager().isAuthenticatedTenant(processInstance.getTenantId())) {
+      throw LOG.exceptionCommandWithUnauthorizedTenant(
+          "read the historic process instance '" + processInstance.getId() + "'");
+    }
+  }
+
+  @Override
   public void checkDeleteHistoricTaskInstance(HistoricTaskInstanceEntity task) {
     if (task != null && !getTenantManager().isAuthenticatedTenant(task.getTenantId())) {
       throw LOG.exceptionCommandWithUnauthorizedTenant("delete the historic task instance '"+ task.getId() + "'");

@@ -925,6 +925,16 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
    * Authorization checks on the task and process instance attachment commands are disabled by
    * default. Enabling them is a behaviour change: callers that read or write attachments without
    * holding a permission on the task or process instance start receiving an AuthorizationException.
+   * <p>
+   * Scope, once enabled:
+   * <ul>
+   * <li>Attachments of <i>running</i> tasks and process instances are fully checked.</li>
+   * <li>Attachments of <i>completed</i> ones are only checked on read, and only when
+   * {@link #enableHistoricInstancePermissions} is enabled as well, because the per-instance
+   * historic authorizations resolved there are only created while that flag is set.</li>
+   * <li>Update and delete of attachments belonging to completed tasks or process instances stay
+   * unchecked. The historic resources define no such permission today. See AttachmentAuthChecks.</li>
+   * </ul>
    */
   protected boolean enforceAttachmentPermissions = false;
 

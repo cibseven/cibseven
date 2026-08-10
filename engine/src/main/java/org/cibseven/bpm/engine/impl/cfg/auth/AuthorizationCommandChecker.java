@@ -35,10 +35,14 @@ import static org.cibseven.bpm.engine.authorization.Resources.BATCH;
 import static org.cibseven.bpm.engine.authorization.Resources.DECISION_DEFINITION;
 import static org.cibseven.bpm.engine.authorization.Resources.DECISION_REQUIREMENTS_DEFINITION;
 import static org.cibseven.bpm.engine.authorization.Resources.DEPLOYMENT;
+import static org.cibseven.bpm.engine.authorization.Resources.HISTORIC_PROCESS_INSTANCE;
+import static org.cibseven.bpm.engine.authorization.Resources.HISTORIC_TASK;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_INSTANCE;
 import static org.cibseven.bpm.engine.authorization.Resources.TASK;
 
+import org.cibseven.bpm.engine.authorization.HistoricProcessInstancePermissions;
+import org.cibseven.bpm.engine.authorization.HistoricTaskPermissions;
 import org.cibseven.bpm.engine.authorization.Permission;
 import org.cibseven.bpm.engine.authorization.ProcessDefinitionPermissions;
 import org.cibseven.bpm.engine.authorization.ProcessInstancePermissions;
@@ -602,6 +606,21 @@ public class AuthorizationCommandChecker implements CommandChecker {
 
   @Override
   public void checkUpdateCaseDefinition(CaseDefinition caseDefinition) {
+  }
+
+  @Override
+  public void checkReadHistoricTaskInstance(HistoricTaskInstanceEntity task) {
+    if (task != null) {
+      getAuthorizationManager().checkAuthorization(HistoricTaskPermissions.READ, HISTORIC_TASK, task.getId());
+    }
+  }
+
+  @Override
+  public void checkReadHistoricProcessInstance(HistoricProcessInstanceEntity processInstance) {
+    if (processInstance != null) {
+      getAuthorizationManager().checkAuthorization(HistoricProcessInstancePermissions.READ,
+          HISTORIC_PROCESS_INSTANCE, processInstance.getId());
+    }
   }
 
   // delete permission ////////////////////////////////////////
