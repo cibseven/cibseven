@@ -56,7 +56,7 @@
     <version.log4j2>2.25.4</version.log4j2>
     <version.junit>4.13.1</version.junit>
     <version.assertj>2.9.1</version.assertj>
-    <version.mockito>5.17.0</version.mockito>
+    <version.mockito>5.23.0</version.mockito>
     <version.wiremock>2.27.2</version.wiremock>
     <version.testcontainers>2.0.4</version.testcontainers>
     <version.surefire>3.0.0-M5</version.surefire>
@@ -199,7 +199,7 @@
               -XX:HeapDumpPath=${project.build.directory}/heap_dump.hprof
               --add-opens=java.base/java.util=ALL-UNNAMED
               --add-opens=java.base/java.lang=ALL-UNNAMED
-              -Dnet.bytebuddy.experimental=true ${test.jvm.args.jdk25}</argLine>
+              ${test.jvm.args.jdk25}</argLine>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
             <forkCount>${surefire.forkCount}</forkCount>
           </configuration>
@@ -209,7 +209,7 @@
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>2.16</version>
           <configuration>
-            <argLine>-Xmx968m -Dnet.bytebuddy.experimental=true ${test.jvm.args.jdk25}</argLine>
+            <argLine>-Xmx968m ${test.jvm.args.jdk25}</argLine>
             <runOrder>hourly</runOrder>
           </configuration>
           <executions>
