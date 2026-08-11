@@ -1237,7 +1237,9 @@ public class BpmnParseTest {
     Assume.assumeThat(System.getProperty("java.vm.vendor"), not(containsString("IBM")));
     String oldAttributeLimit = System.getProperty("jdk.xml.elementAttributeLimit");
     try {
-      // enforce a deterministic limit for this test, independent of global JVM settings
+      // On newer JDKs the parser factory can retain limit-related state across tests,
+      // so this test must set its own finite limit instead of relying on the platform default.
+      // Restoring the system property alone may not fully reset parser internals.
       System.setProperty("jdk.xml.elementAttributeLimit", "10000");
       String resource = TestHelper.getBpmnProcessDefinitionResource(getClass(), "testParseProcessDefinitionFSP");
       repositoryService.createDeployment().name(resource).addClasspathResource(resource).deploy();
@@ -1257,7 +1259,9 @@ public class BpmnParseTest {
   public void testFeatureSecureProcessingAcceptsDefinitionWhenAttributeLimitOverridden() {
     String oldAttributeLimit = System.getProperty("jdk.xml.elementAttributeLimit");
     try {
-      // given
+      // This test intentionally disables the limit. On newer JDKs the parser factory can
+      // keep that relaxed state beyond this method, so each related test must also set its
+      // own expected limit explicitly instead of assuming the JVM default is restored.
       System.setProperty("jdk.xml.elementAttributeLimit", "0");
 
       String resource = TestHelper.getBpmnProcessDefinitionResource(getClass(), "testParseProcessDefinitionFSP");
