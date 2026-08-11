@@ -1,4 +1,3 @@
-
 <#assign sortByValues = [
   '"resourceType"',
   '"resourceId"'

@@ -16,7 +16,6 @@
  */
 package org.cibseven.bpm.engine.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import static io.restassured.RestAssured.given;
 import static org.cibseven.bpm.engine.authorization.Permissions.DELETE;
 import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE;
@@ -27,6 +26,9 @@ import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_INSTANCE;
 import static org.cibseven.bpm.engine.authorization.Resources.TASK;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyString;
@@ -66,19 +68,20 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.auth.DefaultPermissionProvider;
 import org.cibseven.bpm.engine.impl.cfg.auth.PermissionProvider;
 import org.cibseven.bpm.engine.impl.identity.Authentication;
-import org.cibseven.bpm.engine.rest.dto.authorization.AuthorizationQueryDto;
 import org.cibseven.bpm.engine.rest.dto.authorization.AuthorizationDto;
+import org.cibseven.bpm.engine.rest.dto.authorization.AuthorizationQueryDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.impl.AuthorizationRestServiceImpl;
 import org.cibseven.bpm.engine.rest.util.ResourceUtil;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.restassured.http.ContentType;
 
@@ -91,6 +94,7 @@ public class AuthorizationRestServiceInteractionTest extends AbstractRestService
   protected static final String SERVICE_PATH = TEST_RESOURCE_ROOT_PATH + AuthorizationRestService.PATH;
   protected static final String AUTH_CREATE_PATH = SERVICE_PATH + "/create";
   protected static final String AUTH_CHECK_PATH = SERVICE_PATH + "/check";
+  protected static final String AUTH_SELF_PATH = SERVICE_PATH + "/self";
   protected static final String AUTH_RESOURCE_PATH = SERVICE_PATH + "/{id}";
 
   protected AuthorizationService authorizationServiceMock;
@@ -172,6 +176,8 @@ public class AuthorizationRestServiceInteractionTest extends AbstractRestService
     Authorization userAuthorization = MockProvider.createMockGrantAuthorization();
     when(userAuthorization.getId()).thenReturn("user-auth");
 
+    // global authorizations always carry the user id ANY and are therefore returned by the
+    // very same query that selects the authorizations addressing the user directly
     Authorization globalAuthorization = MockProvider.createMockGlobalAuthorization();
     when(globalAuthorization.getId()).thenReturn("global-auth");
 
@@ -180,52 +186,43 @@ public class AuthorizationRestServiceInteractionTest extends AbstractRestService
     when(groupAuthorization.getUserId()).thenReturn(null);
     when(groupAuthorization.getGroupId()).thenReturn(MockProvider.EXAMPLE_GROUP_ID);
 
-    AuthorizationQuery userQuery = setUpOwnAuthorizationQuery(Arrays.asList(userAuthorization));
-    AuthorizationQuery globalQuery = setUpOwnAuthorizationQuery(Arrays.asList(globalAuthorization));
+    AuthorizationQuery userQuery = setUpOwnAuthorizationQuery(Arrays.asList(userAuthorization, globalAuthorization));
     AuthorizationQuery groupQuery = setUpOwnAuthorizationQuery(Arrays.asList(groupAuthorization));
-    when(authorizationServiceMock.createAuthorizationQuery()).thenReturn(userQuery, globalQuery, groupQuery);
+    when(authorizationServiceMock.createAuthorizationQuery()).thenReturn(userQuery, groupQuery);
 
     List<AuthorizationDto> result = createAuthorizationRestService().queryOwnAuthorizations(queryDto);
 
-    Assert.assertEquals(3, result.size());
-    Assert.assertEquals("user-auth", result.get(0).getId());
-    Assert.assertEquals("global-auth", result.get(1).getId());
-    Assert.assertEquals("group-auth", result.get(2).getId());
+    assertEquals(3, result.size());
+    assertEquals("user-auth", result.get(0).getId());
+    assertEquals("global-auth", result.get(1).getId());
+    assertEquals("group-auth", result.get(2).getId());
 
     ArgumentCaptor<String[]> userIdsCaptor = ArgumentCaptor.forClass(String[].class);
     verify(userQuery).userIdIn(userIdsCaptor.capture());
-    Assert.assertArrayEquals(new String[] { MockProvider.EXAMPLE_USER_ID }, userIdsCaptor.getValue());
+    assertArrayEquals(new String[] { MockProvider.EXAMPLE_USER_ID, Authorization.ANY }, userIdsCaptor.getValue());
     verify(userQuery, never()).groupIdIn(any(String[].class));
     verify(userQuery, never()).authorizationId(anyString());
     verify(userQuery, never()).authorizationType(any(Integer.class));
     verify(userQuery).resourceType(MockProvider.EXAMPLE_RESOURCE_TYPE_ID);
     verify(userQuery).resourceId(MockProvider.EXAMPLE_RESOURCE_ID);
 
-    verify(globalQuery, never()).authorizationId(anyString());
-    verify(globalQuery).authorizationType(Authorization.AUTH_TYPE_GLOBAL);
-    verify(globalQuery, never()).userIdIn(any(String[].class));
-    verify(globalQuery, never()).groupIdIn(any(String[].class));
-    verify(globalQuery).resourceType(MockProvider.EXAMPLE_RESOURCE_TYPE_ID);
-    verify(globalQuery).resourceId(MockProvider.EXAMPLE_RESOURCE_ID);
-
     ArgumentCaptor<String[]> groupIdsCaptor = ArgumentCaptor.forClass(String[].class);
     verify(groupQuery).groupIdIn(groupIdsCaptor.capture());
-    Assert.assertArrayEquals(new String[] { MockProvider.EXAMPLE_GROUP_ID }, groupIdsCaptor.getValue());
+    assertArrayEquals(new String[] { MockProvider.EXAMPLE_GROUP_ID }, groupIdsCaptor.getValue());
     verify(groupQuery, never()).authorizationId(anyString());
     verify(groupQuery, never()).authorizationType(any(Integer.class));
     verify(groupQuery, never()).userIdIn(any(String[].class));
     verify(groupQuery).resourceType(MockProvider.EXAMPLE_RESOURCE_TYPE_ID);
     verify(groupQuery).resourceId(MockProvider.EXAMPLE_RESOURCE_ID);
 
-    InOrder inOrder = inOrder(identityServiceMock, userQuery, globalQuery, groupQuery);
+    InOrder inOrder = inOrder(identityServiceMock, userQuery, groupQuery);
     inOrder.verify(identityServiceMock).getCurrentAuthentication();
     inOrder.verify(identityServiceMock).clearAuthentication();
     inOrder.verify(userQuery).list();
-    inOrder.verify(globalQuery).list();
     inOrder.verify(groupQuery).list();
     inOrder.verify(identityServiceMock).setAuthentication(authentication);
 
-    verify(authorizationServiceMock, times(3)).createAuthorizationQuery();
+    verify(authorizationServiceMock, times(2)).createAuthorizationQuery();
   }
 
   @Test
@@ -239,42 +236,130 @@ public class AuthorizationRestServiceInteractionTest extends AbstractRestService
     Authorization globalAuthorization = MockProvider.createMockGlobalAuthorization();
     when(globalAuthorization.getId()).thenReturn("global-auth");
 
-    AuthorizationQuery userQuery = setUpOwnAuthorizationQuery(Arrays.asList(userAuthorization));
-    AuthorizationQuery globalQuery = setUpOwnAuthorizationQuery(Arrays.asList(globalAuthorization));
-    when(authorizationServiceMock.createAuthorizationQuery()).thenReturn(userQuery, globalQuery);
+    AuthorizationQuery userQuery = setUpOwnAuthorizationQuery(Arrays.asList(userAuthorization, globalAuthorization));
+    when(authorizationServiceMock.createAuthorizationQuery()).thenReturn(userQuery);
 
     List<AuthorizationDto> result = createAuthorizationRestService().queryOwnAuthorizations(new AuthorizationQueryDto());
 
-    Assert.assertEquals(2, result.size());
-    Assert.assertEquals("user-auth", result.get(0).getId());
-    Assert.assertEquals("global-auth", result.get(1).getId());
+    assertEquals(2, result.size());
+    assertEquals("user-auth", result.get(0).getId());
+    assertEquals("global-auth", result.get(1).getId());
 
-    InOrder inOrder = inOrder(identityServiceMock, userQuery, globalQuery);
+    InOrder inOrder = inOrder(identityServiceMock, userQuery);
     inOrder.verify(identityServiceMock).getCurrentAuthentication();
     inOrder.verify(identityServiceMock).clearAuthentication();
     inOrder.verify(userQuery).list();
-    inOrder.verify(globalQuery).list();
     inOrder.verify(identityServiceMock).setAuthentication(authentication);
 
-    verify(authorizationServiceMock, times(2)).createAuthorizationQuery();
+    verify(authorizationServiceMock, times(1)).createAuthorizationQuery();
+  }
+
+  @Test
+  public void testQueryOwnAuthorizationsSortsMergedResult() {
+    Authentication authentication = new Authentication(MockProvider.EXAMPLE_USER_ID, Arrays.asList(MockProvider.EXAMPLE_GROUP_ID));
+    when(identityServiceMock.getCurrentAuthentication()).thenReturn(authentication);
+
+    AuthorizationQueryDto queryDto = new AuthorizationQueryDto();
+    queryDto.setSortBy("resourceId");
+    queryDto.setSortOrder("asc");
+
+    Authorization userAuthorization = MockProvider.createMockGrantAuthorization();
+    when(userAuthorization.getId()).thenReturn("user-auth");
+    when(userAuthorization.getResourceId()).thenReturn("b-resource");
+
+    Authorization groupAuthorization = MockProvider.createMockGrantAuthorization();
+    when(groupAuthorization.getId()).thenReturn("group-auth");
+    when(groupAuthorization.getResourceId()).thenReturn("a-resource");
+
+    AuthorizationQuery userQuery = setUpOwnAuthorizationQuery(Arrays.asList(userAuthorization));
+    AuthorizationQuery groupQuery = setUpOwnAuthorizationQuery(Arrays.asList(groupAuthorization));
+    when(authorizationServiceMock.createAuthorizationQuery()).thenReturn(userQuery, groupQuery);
+
+    List<AuthorizationDto> result = createAuthorizationRestService().queryOwnAuthorizations(queryDto);
+
+    // the group authorization is queried last, but sorts first
+    assertEquals(2, result.size());
+    assertEquals("group-auth", result.get(0).getId());
+    assertEquals("user-auth", result.get(1).getId());
+
+    // the sorting options must survive the copy of the query dto, so that they are applied to
+    // both queries as well
+    verify(userQuery).orderByResourceId();
+    verify(userQuery).asc();
+    verify(groupQuery).orderByResourceId();
+    verify(groupQuery).asc();
+  }
+
+  @Test
+  public void testQueryOwnAuthorizationsSortsMergedResultDescending() {
+    Authentication authentication = new Authentication(MockProvider.EXAMPLE_USER_ID, Arrays.asList(MockProvider.EXAMPLE_GROUP_ID));
+    when(identityServiceMock.getCurrentAuthentication()).thenReturn(authentication);
+
+    AuthorizationQueryDto queryDto = new AuthorizationQueryDto();
+    queryDto.setSortBy("resourceType");
+    queryDto.setSortOrder("desc");
+
+    Authorization userAuthorization = MockProvider.createMockGrantAuthorization();
+    when(userAuthorization.getId()).thenReturn("user-auth");
+    when(userAuthorization.getResourceType()).thenReturn(1);
+
+    Authorization groupAuthorization = MockProvider.createMockGrantAuthorization();
+    when(groupAuthorization.getId()).thenReturn("group-auth");
+    when(groupAuthorization.getResourceType()).thenReturn(2);
+
+    AuthorizationQuery userQuery = setUpOwnAuthorizationQuery(Arrays.asList(userAuthorization));
+    AuthorizationQuery groupQuery = setUpOwnAuthorizationQuery(Arrays.asList(groupAuthorization));
+    when(authorizationServiceMock.createAuthorizationQuery()).thenReturn(userQuery, groupQuery);
+
+    List<AuthorizationDto> result = createAuthorizationRestService().queryOwnAuthorizations(queryDto);
+
+    assertEquals(2, result.size());
+    assertEquals("group-auth", result.get(0).getId());
+    assertEquals("user-auth", result.get(1).getId());
+
+    verify(userQuery).orderByResourceType();
+    verify(userQuery).desc();
+  }
+
+  @Test
+  public void testQueryOwnAuthorizationsWithSortOrderOnlyFails() {
+    Authentication authentication = new Authentication(MockProvider.EXAMPLE_USER_ID, new ArrayList<String>());
+    when(identityServiceMock.getCurrentAuthentication()).thenReturn(authentication);
+
+    AuthorizationQuery userQuery = setUpOwnAuthorizationQuery(new ArrayList<Authorization>());
+    when(authorizationServiceMock.createAuthorizationQuery()).thenReturn(userQuery);
+
+    AuthorizationQueryDto queryDto = new AuthorizationQueryDto();
+    queryDto.setSortOrder("asc");
+
+    try {
+      createAuthorizationRestService().queryOwnAuthorizations(queryDto);
+      fail("Expected InvalidRequestException");
+    } catch (InvalidRequestException e) {
+      assertEquals(Status.BAD_REQUEST, e.getStatus());
+    }
+
+    // the request must fail before the authentication is touched
+    verify(identityServiceMock, never()).clearAuthentication();
+    verify(identityServiceMock, never()).setAuthentication(any(Authentication.class));
   }
 
   @Test
   public void testQueryOwnAuthorizationsRestoresAuthenticationOnFailure() {
-    Authentication authentication = new Authentication(MockProvider.EXAMPLE_USER_ID, new ArrayList<String>());
+    Authentication authentication = new Authentication(MockProvider.EXAMPLE_USER_ID, Arrays.asList(MockProvider.EXAMPLE_GROUP_ID));
     when(identityServiceMock.getCurrentAuthentication()).thenReturn(authentication);
 
     Authorization userAuthorization = MockProvider.createMockGrantAuthorization();
     AuthorizationQuery userQuery = setUpOwnAuthorizationQuery(Arrays.asList(userAuthorization));
-    AuthorizationQuery globalQuery = setUpOwnAuthorizationQuery(new ArrayList<Authorization>());
-    when(globalQuery.list()).thenThrow(new AuthorizationException("expected authorization exception"));
-    when(authorizationServiceMock.createAuthorizationQuery()).thenReturn(userQuery, globalQuery);
+    AuthorizationQuery groupQuery = setUpOwnAuthorizationQuery(new ArrayList<Authorization>());
+    when(groupQuery.list()).thenThrow(new AuthorizationException("expected authorization exception"));
+    when(authorizationServiceMock.createAuthorizationQuery()).thenReturn(userQuery, groupQuery);
 
     try {
       createAuthorizationRestService().queryOwnAuthorizations(new AuthorizationQueryDto());
-      Assert.fail("Expected AuthorizationException");
+      fail("Expected AuthorizationException");
     } catch (AuthorizationException e) {
-      Assert.assertEquals("expected authorization exception", e.getMessage());
+      assertEquals("expected authorization exception", e.getMessage());
     }
 
     verify(identityServiceMock).clearAuthentication();
@@ -288,14 +373,54 @@ public class AuthorizationRestServiceInteractionTest extends AbstractRestService
 
     try {
       createAuthorizationRestService().queryOwnAuthorizations(new AuthorizationQueryDto());
-      Assert.fail("Expected InvalidRequestException");
+      fail("Expected InvalidRequestException");
     } catch (InvalidRequestException e) {
-      Assert.assertEquals(Status.UNAUTHORIZED, e.getStatus());
-      Assert.assertEquals("You must be authenticated in order to use this resource.", e.getMessage());
+      assertEquals(Status.UNAUTHORIZED, e.getStatus());
+      assertEquals("You must be authenticated in order to use this resource.", e.getMessage());
     }
 
     verify(identityServiceMock, never()).clearAuthentication();
     verify(identityServiceMock, never()).setAuthentication(any(Authentication.class));
+    verify(authorizationServiceMock, never()).createAuthorizationQuery();
+  }
+
+  @Test
+  public void testQueryOwnAuthorizationsViaRestEndpoint() {
+    Authentication authentication = new Authentication(MockProvider.EXAMPLE_USER_ID, new ArrayList<String>());
+    when(identityServiceMock.getCurrentAuthentication()).thenReturn(authentication);
+
+    AuthorizationQuery userQuery = setUpOwnAuthorizationQuery(MockProvider.createMockGlobalAuthorizations());
+    when(authorizationServiceMock.createAuthorizationQuery()).thenReturn(userQuery);
+
+    given()
+        .queryParam("resourceType", MockProvider.EXAMPLE_RESOURCE_TYPE_ID)
+        .queryParam("resourceId", MockProvider.EXAMPLE_RESOURCE_ID)
+    .then().expect().statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON)
+        .body("size()", equalTo(1))
+        .body("[0].id", equalTo(MockProvider.EXAMPLE_AUTHORIZATION_ID))
+        .body("[0].type", equalTo(Authorization.AUTH_TYPE_GLOBAL))
+        .body("[0].userId", equalTo(Authorization.ANY))
+    .when().get(AUTH_SELF_PATH);
+
+    ArgumentCaptor<String[]> userIdsCaptor = ArgumentCaptor.forClass(String[].class);
+    verify(userQuery).userIdIn(userIdsCaptor.capture());
+    assertArrayEquals(new String[] { MockProvider.EXAMPLE_USER_ID, Authorization.ANY }, userIdsCaptor.getValue());
+    verify(userQuery).resourceType(MockProvider.EXAMPLE_RESOURCE_TYPE_ID);
+    verify(userQuery).resourceId(MockProvider.EXAMPLE_RESOURCE_ID);
+    verify(identityServiceMock).clearAuthentication();
+    verify(identityServiceMock).setAuthentication(authentication);
+  }
+
+  @Test
+  public void testQueryOwnAuthorizationsViaRestEndpointRequiresAuthentication() {
+    when(identityServiceMock.getCurrentAuthentication()).thenReturn(null);
+
+    given()
+    .then().expect().statusCode(Status.UNAUTHORIZED.getStatusCode()).contentType(MediaType.APPLICATION_JSON)
+        .body("type", equalTo(InvalidRequestException.class.getSimpleName()))
+        .body("message", equalTo("You must be authenticated in order to use this resource."))
+    .when().get(AUTH_SELF_PATH);
+
     verify(authorizationServiceMock, never()).createAuthorizationQuery();
   }
 

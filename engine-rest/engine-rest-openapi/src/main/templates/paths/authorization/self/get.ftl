@@ -1,20 +1,29 @@
 <#macro endpoint_macro docsUrl="">
 {
   <@lib.endpointInfo
-      id = "querySelfAuthorizations"
+      id = "queryOwnAuthorizations"
       tag = "Authorization"
-      summary = "Get Authorizations"
-      desc = "Queries for a list of the currently authenticated user's authorizations using a list of parameters."
+      summary = "Get Own Authorizations"
+      desc = "Queries for a list of the authorizations that are applicable to the currently
+              authenticated user, using a list of parameters. This includes the authorizations
+              that address the user directly, the authorizations that address one of the user's
+              groups and the global authorizations.
+              In contrast to [Get Authorizations](${docsUrl}/reference/rest/authorization/get-query/),
+              the result is not restricted to the authorizations the user is allowed to read, and
+              it is not paginated: all matching authorizations are returned."
   />
 
   "parameters" : [
 
-    <#assign last = true >
+    <#assign last = false >
     <#include "/lib/commons/authorization-self-query-params.ftl" >
     <@lib.parameters
         object = params
         last = last
     />
+    <#assign last = true >
+    <#include "/lib/commons/sort-params.ftl">
+
   ],
 
   "responses": {
@@ -30,7 +39,7 @@
                        "value": [
                          {
                            "id": "anAuthorizationId",
-                           "type": 0,
+                           "type": 1,
                            "permissions": [
                              "ALL"
                            ],
@@ -46,7 +55,7 @@
                              "CREATE",
                              "READ"
                            ],
-                           "userId": "jonny1",
+                           "userId": "*",
                            "groupId": null,
                            "resourceType": 1,
                            "resourceId": "*",
@@ -64,15 +73,15 @@
                 parameter is supplied, but no `sortBy` is specified. See the
                 [Introduction](${docsUrl}/reference/rest/overview/#error-handling)
                 for the error response format."
-        />
+    />
 
-        <@lib.response
-      code = "401"
-      dto = "ExceptionDto"
-      desc = "The user is not authenticated. See the
-        [Introduction](${docsUrl}/reference/rest/overview/#error-handling)
-        for the error response format."
-      last = true
+    <@lib.response
+        code = "401"
+        dto = "ExceptionDto"
+        desc = "The user is not authenticated. See the
+                [Introduction](${docsUrl}/reference/rest/overview/#error-handling)
+                for the error response format."
+        last = true
     />
 
   }
