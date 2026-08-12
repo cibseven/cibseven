@@ -174,14 +174,6 @@ public class AuthorizationRestServiceImpl extends AbstractAuthorizedRestResource
   /**
    * Returns the authorizations that are applicable to the currently authenticated user.
    *
-   * <p>Two queries are required because an {@link AuthorizationQuery} cannot filter by user ids
-   * and group ids at the same time. The first one selects the authorizations addressing the user
-   * directly, including those addressing {@link Authorization#ANY}, which apply to every user and
-   * therefore also cover the global authorizations (those always carry the user id
-   * {@link Authorization#ANY}). The second one selects the authorizations addressing any of the
-   * user's groups. Together they mirror the {@code USER_ID_ IN (authUserId, '*') OR GROUP_ID_ IN
-   * (...)} condition that the engine applies when it performs an authorization check itself.
-   *
    * <p>Both queries are executed while the current engine authentication is temporarily cleared.
    * This prevents the engine's authorization checks from filtering the queried authorization
    * objects themselves, which would otherwise hide authorizations that are applicable to the
@@ -255,12 +247,6 @@ public class AuthorizationRestServiceImpl extends AbstractAuthorizedRestResource
     return getProcessEngine().getIdentityService();
   }
 
-  /**
-   * Orders the merged result of the queries issued by
-   * {@link #queryOwnAuthorizations(AuthorizationQueryDto)} according to the sorting options of
-   * the given query. Ordering the queries in the database is not sufficient, since that only
-   * orders each partial result.
-   */
   protected void sortOwnAuthorizations(List<Authorization> authorizations, AuthorizationQueryDto queryDto) {
     String sortBy = queryDto.getSortBy();
     if(sortBy == null) {
