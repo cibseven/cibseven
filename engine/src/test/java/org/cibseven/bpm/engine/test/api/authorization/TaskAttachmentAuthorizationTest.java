@@ -19,6 +19,7 @@ package org.cibseven.bpm.engine.test.api.authorization;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ;
+import static org.cibseven.bpm.engine.authorization.Permissions.READ_HISTORY;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ_TASK;
 import static org.cibseven.bpm.engine.authorization.Permissions.TASK_WORK;
 import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE;
@@ -630,16 +631,29 @@ public class TaskAttachmentAuthorizationTest extends AuthorizationTest {
 
   @Test
   @Deployment(resources = ONE_TASK_PROCESS)
-  public void shouldNotCheckAuthorizationForAttachmentOfCompletedTaskWithoutHistoricPermissions() {
-    // once the runtime task is gone the attachment only lives in ACT_HI_ATTACHMENT. The historic
-    // read fallback needs enableHistoricInstancePermissions, which is off here, so nothing is
-    // checked. See shouldNotReadAttachmentOfCompletedTaskWithoutHistoricReadPermission for the
-    // enabled case.
+  public void shouldNotReadAttachmentOfCompletedTaskWithoutAnyHistoricPermission() {
     // given
     startProcessInstanceByKey(PROCESS_KEY);
     Task task = selectSingleTask();
     Attachment attachment = createAttachment(task.getId(), null);
     completeTask(task.getId());
+
+    // when/then
+    assertThatThrownBy(() -> taskService.getAttachment(attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'READ_HISTORY' permission on resource '" + PROCESS_KEY + "' of type 'ProcessDefinition'")
+        .hasMessageContaining("'READ' permission on resource '" + task.getId() + "' of type 'HistoricTask'");
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldReadAttachmentOfCompletedTaskWithReadHistoryOnProcessDefinition() {
+    // given
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+    Attachment attachment = createAttachment(task.getId(), null);
+    completeTask(task.getId());
+    createGrantAuthorization(PROCESS_DEFINITION, PROCESS_KEY, userId, READ_HISTORY);
 
     // when/then
     assertThat(taskService.getTaskAttachments(task.getId())).hasSize(1);

@@ -293,17 +293,11 @@ public interface CommandChecker {
 
   /**
    * Checks if it is allowed to read the given historic task instance.
-   * <p>
-   * Only meaningful when {@code enableHistoricInstancePermissions} is switched on, because the
-   * per-instance authorizations this resolves against are only created while that flag is set.
    */
   void checkReadHistoricTaskInstance(HistoricTaskInstanceEntity task);
 
   /**
    * Checks if it is allowed to read the given historic process instance.
-   * <p>
-   * Only meaningful when {@code enableHistoricInstancePermissions} is switched on, because the
-   * per-instance authorizations this resolves against are only created while that flag is set.
    */
   void checkReadHistoricProcessInstance(HistoricProcessInstanceEntity processInstance);
 

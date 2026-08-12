@@ -610,17 +610,40 @@ public class AuthorizationCommandChecker implements CommandChecker {
 
   @Override
   public void checkReadHistoricTaskInstance(HistoricTaskInstanceEntity task) {
-    if (task != null) {
-      getAuthorizationManager().checkAuthorization(HistoricTaskPermissions.READ, HISTORIC_TASK, task.getId());
+    if (task == null) {
+      return;
     }
+
+    // mirrors AuthorizationManager#configureHistoricTaskInstanceQuery: a historic read is granted by
+    // either the coarse READ_HISTORY on the process definition or the fine grained per-instance
+    // permission. The latter only exists while enableHistoricInstancePermissions is set.
+    PermissionCheckBuilder builder = new PermissionCheckBuilder().disjunctive();
+
+    if (task.getProcessDefinitionKey() != null) {
+      builder.atomicCheckForResourceId(PROCESS_DEFINITION, task.getProcessDefinitionKey(), READ_HISTORY);
+    }
+    builder.atomicCheckForResourceId(HISTORIC_TASK, task.getId(), HistoricTaskPermissions.READ);
+
+    getAuthorizationManager().checkAuthorization(builder.build());
   }
 
   @Override
   public void checkReadHistoricProcessInstance(HistoricProcessInstanceEntity processInstance) {
-    if (processInstance != null) {
-      getAuthorizationManager().checkAuthorization(HistoricProcessInstancePermissions.READ,
-          HISTORIC_PROCESS_INSTANCE, processInstance.getId());
+    if (processInstance == null) {
+      return;
     }
+
+    // same disjunction as above, see AuthorizationManager#configureHistoricProcessInstanceQuery
+    PermissionCheckBuilder builder = new PermissionCheckBuilder().disjunctive();
+
+    if (processInstance.getProcessDefinitionKey() != null) {
+      builder.atomicCheckForResourceId(PROCESS_DEFINITION, processInstance.getProcessDefinitionKey(),
+          READ_HISTORY);
+    }
+    builder.atomicCheckForResourceId(HISTORIC_PROCESS_INSTANCE, processInstance.getId(),
+        HistoricProcessInstancePermissions.READ);
+
+    getAuthorizationManager().checkAuthorization(builder.build());
   }
 
   // delete permission ////////////////////////////////////////

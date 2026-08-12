@@ -19,6 +19,7 @@ package org.cibseven.bpm.engine.test.api.authorization;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ;
+import static org.cibseven.bpm.engine.authorization.Permissions.READ_HISTORY;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ_INSTANCE;
 import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE;
 import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE_INSTANCE;
@@ -409,16 +410,30 @@ public class ProcessInstanceAttachmentAuthorizationTest extends AuthorizationTes
 
   @Test
   @Deployment(resources = ONE_TASK_PROCESS)
-  public void shouldNotCheckAuthorizationForAttachmentOfCompletedProcessInstanceWithoutHistoricPermissions() {
-    // once the runtime execution is gone the attachment only lives in ACT_HI_ATTACHMENT. The
-    // historic read fallback needs enableHistoricInstancePermissions, which is off here, so nothing
-    // is checked. See shouldNotReadAttachmentOfCompletedProcessInstanceWithoutHistoricReadPermission
-    // for the enabled case.
+  public void shouldNotReadAttachmentOfCompletedProcessInstanceWithoutAnyHistoricPermission() {
     // given
     String processInstanceId = startProcessInstanceByKey(PROCESS_KEY).getId();
     Attachment attachment = createAttachment(null, processInstanceId);
     Task task = selectSingleTask();
     completeTask(task.getId());
+
+    // when/then
+    assertThatThrownBy(() -> taskService.getAttachment(attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'READ_HISTORY' permission on resource '" + PROCESS_KEY + "' of type 'ProcessDefinition'")
+        .hasMessageContaining(
+            "'READ' permission on resource '" + processInstanceId + "' of type 'HistoricProcessInstance'");
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldReadAttachmentOfCompletedProcessInstanceWithReadHistoryOnProcessDefinition() {
+    // given
+    String processInstanceId = startProcessInstanceByKey(PROCESS_KEY).getId();
+    Attachment attachment = createAttachment(null, processInstanceId);
+    Task task = selectSingleTask();
+    completeTask(task.getId());
+    createGrantAuthorization(PROCESS_DEFINITION, PROCESS_KEY, userId, READ_HISTORY);
 
     // when/then
     assertThat(taskService.getProcessInstanceAttachments(processInstanceId)).hasSize(1);
