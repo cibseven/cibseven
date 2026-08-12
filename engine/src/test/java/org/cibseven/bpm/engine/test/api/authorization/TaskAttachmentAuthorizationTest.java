@@ -77,6 +77,10 @@ public class TaskAttachmentAuthorizationTest extends AuthorizationTest {
       if (task != null) {
         taskService.deleteTask(TASK_ID, true);
       }
+      // a completed standalone task leaves history behind that no deployment cleanup covers
+      if (historyService.createHistoricTaskInstanceQuery().taskId(TASK_ID).count() > 0) {
+        historyService.deleteHistoricTaskInstance(TASK_ID);
+      }
       return null;
     });
   }
@@ -798,5 +802,38 @@ public class TaskAttachmentAuthorizationTest extends AuthorizationTest {
 
     // then
     assertThat(selectAttachment(attachment.getId())).isNull();
+  }
+
+  @Test
+  public void shouldReadAttachmentOfCompletedStandaloneTaskWithoutHistoricInstancePermissions() {
+    // a standalone task carries no process definition key, so with enableHistoricInstancePermissions
+    // off neither branch of the disjunction can ever match. Denying here would be stricter than the
+    // historic queries, which return such a task without any permission.
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+    completeTask(TASK_ID);
+
+    // when/then
+    assertThat(taskService.getAttachment(attachment.getId())).isNotNull();
+    assertThat(taskService.getAttachmentContent(attachment.getId())).isNotNull();
+    assertThat(taskService.getTaskAttachments(TASK_ID)).hasSize(1);
+    // the engine's own historic query agrees: no permission needed for this task
+    assertThat(historyService.createHistoricTaskInstanceQuery().taskId(TASK_ID).singleResult()).isNotNull();
+  }
+
+  @Test
+  public void shouldNotReadAttachmentOfCompletedStandaloneTaskWithHistoricInstancePermissions() {
+    // with the flag on, the per-instance permission exists and is enforced
+    // given
+    processEngineConfiguration.setEnableHistoricInstancePermissions(true);
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+    completeTask(TASK_ID);
+
+    // when/then
+    assertThatThrownBy(() -> taskService.getAttachment(attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'READ' permission on resource '" + TASK_ID + "' of type 'HistoricTask'");
   }
 }

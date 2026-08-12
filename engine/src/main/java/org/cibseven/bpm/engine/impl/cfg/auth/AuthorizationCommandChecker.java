@@ -616,10 +616,17 @@ public class AuthorizationCommandChecker implements CommandChecker {
 
     // mirrors AuthorizationManager#configureHistoricTaskInstanceQuery: a historic read is granted by
     // either the coarse READ_HISTORY on the process definition or the fine grained per-instance
-    // permission. The latter only exists while enableHistoricInstancePermissions is set.
+    // permission. The latter only exists while enableHistoricInstancePermissions is set, so for a
+    // standalone task with that flag off neither branch can ever match and nothing is checked,
+    // matching what the historic queries return for such tasks.
+    boolean hasProcessDefinition = task.getProcessDefinitionKey() != null;
+    if (!hasProcessDefinition && !isHistoricInstancePermissionsEnabled()) {
+      return;
+    }
+
     PermissionCheckBuilder builder = new PermissionCheckBuilder().disjunctive();
 
-    if (task.getProcessDefinitionKey() != null) {
+    if (hasProcessDefinition) {
       builder.atomicCheckForResourceId(PROCESS_DEFINITION, task.getProcessDefinitionKey(), READ_HISTORY);
     }
     builder.atomicCheckForResourceId(HISTORIC_TASK, task.getId(), HistoricTaskPermissions.READ);
@@ -634,9 +641,14 @@ public class AuthorizationCommandChecker implements CommandChecker {
     }
 
     // same disjunction as above, see AuthorizationManager#configureHistoricProcessInstanceQuery
+    boolean hasProcessDefinition = processInstance.getProcessDefinitionKey() != null;
+    if (!hasProcessDefinition && !isHistoricInstancePermissionsEnabled()) {
+      return;
+    }
+
     PermissionCheckBuilder builder = new PermissionCheckBuilder().disjunctive();
 
-    if (processInstance.getProcessDefinitionKey() != null) {
+    if (hasProcessDefinition) {
       builder.atomicCheckForResourceId(PROCESS_DEFINITION, processInstance.getProcessDefinitionKey(),
           READ_HISTORY);
     }
@@ -1027,6 +1039,10 @@ public class AuthorizationCommandChecker implements CommandChecker {
 
   protected ExecutionEntity findExecutionById(String processInstanceId) {
     return Context.getCommandContext().getExecutionManager().findExecutionById(processInstanceId);
+  }
+
+  protected boolean isHistoricInstancePermissionsEnabled() {
+    return Context.getProcessEngineConfiguration().isEnableHistoricInstancePermissions();
   }
 
 }
