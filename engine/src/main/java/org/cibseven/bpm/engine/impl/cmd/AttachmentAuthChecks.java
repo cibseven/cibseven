@@ -33,9 +33,14 @@ import org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity;
  * which is disabled by default.
  * <p>
  * The {@code ...IfExists} methods resolve the runtime entity first. Once it is gone, which is the
- * normal state for completed tasks and process instances, reads fall back to the historic instance
- * check. Update and delete stay unchecked in that case: the historic resources only define READ,
- * so there is nothing to authorize against. That remainder of CIB7-1752 needs a product decision.
+ * normal state for completed tasks and process instances, they fall back to the historic instance:
+ * reads resolve READ_HISTORY on the process definition or the per-instance historic permission,
+ * writes resolve DELETE_HISTORY on the process definition, the only permission the engine offers
+ * for mutating historic data.
+ * <p>
+ * One gap remains: a standalone task carries no process definition key, and
+ * {@code checkDeleteHistoricTaskInstance} passes silently in that case, so writes to its
+ * attachments stay unchecked once it completed. See CIB7-1752.
  */
 final class AttachmentAuthChecks {
 
@@ -54,13 +59,15 @@ final class AttachmentAuthChecks {
     }
   }
 
-  static void checkTaskWorkIfExists(String taskId, CommandContext commandContext) {
+  static void checkModifyTaskIfExists(String taskId, CommandContext commandContext) {
     if (!isEnforced(commandContext)) {
       return;
     }
     TaskEntity task = findTask(taskId, commandContext);
     if (task != null) {
       forEachChecker(commandContext, checker -> checker.checkTaskWork(task));
+    } else {
+      checkDeleteHistoricTask(taskId, commandContext);
     }
   }
 
@@ -76,13 +83,15 @@ final class AttachmentAuthChecks {
     }
   }
 
-  static void checkUpdateProcessInstanceIfExists(String processInstanceId, CommandContext commandContext) {
+  static void checkModifyProcessInstanceIfExists(String processInstanceId, CommandContext commandContext) {
     if (!isEnforced(commandContext)) {
       return;
     }
     ExecutionEntity processInstance = findProcessInstance(processInstanceId, commandContext);
     if (processInstance != null) {
       forEachChecker(commandContext, checker -> checker.checkUpdateProcessInstance(processInstance));
+    } else {
+      checkDeleteHistoricProcessInstance(processInstanceId, commandContext);
     }
   }
 
@@ -95,8 +104,8 @@ final class AttachmentAuthChecks {
   }
 
   static void checkUpdateAttachment(AttachmentEntity attachment, CommandContext commandContext) {
-    checkAttachment(attachment, AttachmentAuthChecks::checkTaskWorkIfExists,
-        AttachmentAuthChecks::checkUpdateProcessInstanceIfExists, commandContext);
+    checkAttachment(attachment, AttachmentAuthChecks::checkModifyTaskIfExists,
+        AttachmentAuthChecks::checkModifyProcessInstanceIfExists, commandContext);
   }
 
   private static void checkAttachment(AttachmentEntity attachment,
@@ -144,6 +153,38 @@ final class AttachmentAuthChecks {
     if (historicProcessInstance != null) {
       forEachChecker(commandContext,
           checker -> checker.checkReadHistoricProcessInstance(historicProcessInstance));
+    }
+  }
+
+  /**
+   * Delete fallback for a task that is no longer in the runtime tables.
+   */
+  private static void checkDeleteHistoricTask(String taskId, CommandContext commandContext) {
+    if (isBlank(taskId)) {
+      return;
+    }
+    HistoricTaskInstanceEntity historicTask = commandContext
+            .getHistoricTaskInstanceManager()
+            .findHistoricTaskInstanceById(taskId);
+    if (historicTask != null) {
+      forEachChecker(commandContext, checker -> checker.checkDeleteHistoricTaskInstance(historicTask));
+    }
+  }
+
+  /**
+   * Write fallback for a process instance that is no longer in the runtime tables. DELETE_HISTORY on
+   * the process definition is the only permission the engine offers for mutating historic data.
+   */
+  private static void checkDeleteHistoricProcessInstance(String processInstanceId, CommandContext commandContext) {
+    if (isBlank(processInstanceId)) {
+      return;
+    }
+    HistoricProcessInstanceEntity historicProcessInstance = commandContext
+        .getHistoricProcessInstanceManager()
+        .findHistoricProcessInstance(processInstanceId);
+    if (historicProcessInstance != null) {
+      forEachChecker(commandContext,
+          checker -> checker.checkDeleteHistoricProcessInstance(historicProcessInstance));
     }
   }
 

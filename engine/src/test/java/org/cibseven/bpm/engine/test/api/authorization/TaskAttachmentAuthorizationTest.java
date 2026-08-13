@@ -18,6 +18,7 @@ package org.cibseven.bpm.engine.test.api.authorization;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.cibseven.bpm.engine.authorization.Permissions.DELETE_HISTORY;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ_HISTORY;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ_TASK;
@@ -704,16 +705,62 @@ public class TaskAttachmentAuthorizationTest extends AuthorizationTest {
 
   @Test
   @Deployment(resources = ONE_TASK_PROCESS)
-  public void shouldStillNotCheckDeleteOfCompletedTaskAttachmentWithHistoricPermissions() {
-    // remaining gap of CIB7-1752: HistoricTaskPermissions defines READ only, so there is nothing to
-    // check update and delete against once the runtime task is gone. Enabling the historic
-    // permissions does not change that.
+  public void shouldNotDeleteCompletedTaskAttachmentWithoutDeleteHistory() {
     // given
-    processEngineConfiguration.setEnableHistoricInstancePermissions(true);
     startProcessInstanceByKey(PROCESS_KEY);
     Task task = selectSingleTask();
     Attachment attachment = createAttachment(task.getId(), null);
     completeTask(task.getId());
+
+    // when/then
+    assertThatThrownBy(() -> taskService.deleteAttachment(attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'DELETE_HISTORY' permission on resource '" + PROCESS_KEY + "' of type 'ProcessDefinition'");
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldDeleteCompletedTaskAttachmentWithDeleteHistory() {
+    // given
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+    Attachment attachment = createAttachment(task.getId(), null);
+    completeTask(task.getId());
+    createGrantAuthorization(PROCESS_DEFINITION, PROCESS_KEY, userId, DELETE_HISTORY);
+
+    // when
+    taskService.deleteAttachment(attachment.getId());
+
+    // then
+    assertThat(selectAttachment(attachment.getId())).isNull();
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldNotSaveCompletedTaskAttachmentWithoutDeleteHistory() {
+    // saving mutates historic data just like deleting, so it takes the same permission
+    // given
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+    Attachment attachment = createAttachment(task.getId(), null);
+    completeTask(task.getId());
+    attachment.setName("aNewName");
+
+    // when/then
+    assertThatThrownBy(() -> taskService.saveAttachment(attachment))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'DELETE_HISTORY' permission on resource '" + PROCESS_KEY + "' of type 'ProcessDefinition'");
+  }
+
+  @Test
+  public void shouldStillNotCheckDeleteOfCompletedStandaloneTaskAttachment() {
+    // remaining gap: a standalone task carries no process definition key, and
+    // checkDeleteHistoricTaskInstance silently passes in that case. HistoricTaskPermissions defines
+    // no write permission that could take its place.
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+    completeTask(TASK_ID);
 
     // when
     taskService.deleteAttachment(attachment.getId());
@@ -779,23 +826,6 @@ public class TaskAttachmentAuthorizationTest extends AuthorizationTest {
     processEngineConfiguration.setEnforceAttachmentPermissions(false);
     createTask(TASK_ID);
     Attachment attachment = createAttachment(TASK_ID, null);
-
-    // when
-    taskService.deleteAttachment(attachment.getId());
-
-    // then
-    assertThat(selectAttachment(attachment.getId())).isNull();
-  }
-
-  @Test
-  @Deployment(resources = ONE_TASK_PROCESS)
-  public void shouldNotCheckAuthorizationWhenDeletingAttachmentOfCompletedTask() {
-    // known limitation of CIB7-1752, see above
-    // given
-    startProcessInstanceByKey(PROCESS_KEY);
-    Task task = selectSingleTask();
-    Attachment attachment = createAttachment(task.getId(), null);
-    completeTask(task.getId());
 
     // when
     taskService.deleteAttachment(attachment.getId());

@@ -18,6 +18,7 @@ package org.cibseven.bpm.engine.test.api.authorization;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.cibseven.bpm.engine.authorization.Permissions.DELETE_HISTORY;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ_HISTORY;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ_INSTANCE;
@@ -480,15 +481,28 @@ public class ProcessInstanceAttachmentAuthorizationTest extends AuthorizationTes
 
   @Test
   @Deployment(resources = ONE_TASK_PROCESS)
-  public void shouldStillNotCheckDeleteOfCompletedProcessInstanceAttachmentWithHistoricPermissions() {
-    // remaining gap of CIB7-1752: HistoricProcessInstancePermissions defines READ only, so there is
-    // nothing to check update and delete against once the runtime execution is gone.
+  public void shouldNotDeleteCompletedProcessInstanceAttachmentWithoutDeleteHistory() {
     // given
-    processEngineConfiguration.setEnableHistoricInstancePermissions(true);
     String processInstanceId = startProcessInstanceByKey(PROCESS_KEY).getId();
     Attachment attachment = createAttachment(null, processInstanceId);
     Task task = selectSingleTask();
     completeTask(task.getId());
+
+    // when/then
+    assertThatThrownBy(() -> taskService.deleteAttachment(attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'DELETE_HISTORY' permission on resource '" + PROCESS_KEY + "' of type 'ProcessDefinition'");
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldDeleteCompletedProcessInstanceAttachmentWithDeleteHistory() {
+    // given
+    String processInstanceId = startProcessInstanceByKey(PROCESS_KEY).getId();
+    Attachment attachment = createAttachment(null, processInstanceId);
+    Task task = selectSingleTask();
+    completeTask(task.getId());
+    createGrantAuthorization(PROCESS_DEFINITION, PROCESS_KEY, userId, DELETE_HISTORY);
 
     // when
     taskService.deleteAttachment(attachment.getId());
@@ -499,18 +513,18 @@ public class ProcessInstanceAttachmentAuthorizationTest extends AuthorizationTes
 
   @Test
   @Deployment(resources = ONE_TASK_PROCESS)
-  public void shouldNotCheckAuthorizationWhenDeletingAttachmentOfCompletedProcessInstance() {
-    // known limitation of CIB7-1752, see above
+  public void shouldNotSaveCompletedProcessInstanceAttachmentWithoutDeleteHistory() {
+    // saving mutates historic data just like deleting, so it takes the same permission
     // given
     String processInstanceId = startProcessInstanceByKey(PROCESS_KEY).getId();
     Attachment attachment = createAttachment(null, processInstanceId);
     Task task = selectSingleTask();
     completeTask(task.getId());
+    attachment.setName("aNewName");
 
-    // when
-    taskService.deleteAttachment(attachment.getId());
-
-    // then
-    assertThat(selectAttachment(attachment.getId())).isNull();
+    // when/then
+    assertThatThrownBy(() -> taskService.saveAttachment(attachment))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'DELETE_HISTORY' permission on resource '" + PROCESS_KEY + "' of type 'ProcessDefinition'");
   }
 }
