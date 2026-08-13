@@ -25,6 +25,7 @@ import static org.cibseven.bpm.engine.authorization.Permissions.READ_TASK;
 import static org.cibseven.bpm.engine.authorization.Permissions.TASK_WORK;
 import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE;
 import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE_TASK;
+import static org.cibseven.bpm.engine.authorization.Resources.HISTORIC_PROCESS_INSTANCE;
 import static org.cibseven.bpm.engine.authorization.Resources.HISTORIC_TASK;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION;
 import static org.cibseven.bpm.engine.authorization.Resources.TASK;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.cibseven.bpm.engine.AuthorizationException;
+import org.cibseven.bpm.engine.authorization.HistoricProcessInstancePermissions;
 import org.cibseven.bpm.engine.authorization.HistoricTaskPermissions;
 import org.cibseven.bpm.engine.task.Attachment;
 import org.cibseven.bpm.engine.task.Task;
@@ -705,6 +707,45 @@ public class TaskAttachmentAuthorizationTest extends AuthorizationTest {
 
   @Test
   @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldReadAttachmentOfCompletedTaskWithHistoricProcessInstanceReadPermission() {
+    // the read check mirrors configureHistoricTaskInstanceQuery, which also lets the permission on
+    // the owning historic process instance grant access to the task
+    // given
+    processEngineConfiguration.setEnableHistoricInstancePermissions(true);
+    String processInstanceId = startProcessInstanceByKey(PROCESS_KEY).getId();
+    Task task = selectSingleTask();
+    Attachment attachment = createAttachment(task.getId(), null);
+    completeTask(task.getId());
+    createGrantAuthorization(HISTORIC_PROCESS_INSTANCE, processInstanceId, userId,
+        HistoricProcessInstancePermissions.READ);
+
+    // when/then
+    assertThat(taskService.getAttachment(attachment.getId())).isNotNull();
+    assertThat(taskService.getAttachmentContent(attachment.getId())).isNotNull();
+    assertThat(taskService.getTaskAttachments(task.getId())).hasSize(1);
+    assertThat(taskService.getTaskAttachment(task.getId(), attachment.getId())).isNotNull();
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldListAllThreeWaysInWhenReadOfCompletedTaskAttachmentIsDenied() {
+    // given
+    processEngineConfiguration.setEnableHistoricInstancePermissions(true);
+    String processInstanceId = startProcessInstanceByKey(PROCESS_KEY).getId();
+    Task task = selectSingleTask();
+    Attachment attachment = createAttachment(task.getId(), null);
+    completeTask(task.getId());
+
+    // when/then
+    assertThatThrownBy(() -> taskService.getAttachment(attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'READ_HISTORY' permission on resource '" + PROCESS_KEY + "' of type 'ProcessDefinition'")
+        .hasMessageContaining("'READ' permission on resource '" + processInstanceId + "' of type 'HistoricProcessInstance'")
+        .hasMessageContaining("'READ' permission on resource '" + task.getId() + "' of type 'HistoricTask'");
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
   public void shouldNotDeleteCompletedTaskAttachmentWithoutDeleteHistory() {
     // given
     startProcessInstanceByKey(PROCESS_KEY);
@@ -753,20 +794,52 @@ public class TaskAttachmentAuthorizationTest extends AuthorizationTest {
   }
 
   @Test
-  public void shouldStillNotCheckDeleteOfCompletedStandaloneTaskAttachment() {
-    // remaining gap: a standalone task carries no process definition key, and
-    // checkDeleteHistoricTaskInstance silently passes in that case. HistoricTaskPermissions defines
-    // no write permission that could take its place.
+  public void shouldNotDeleteCompletedStandaloneTaskAttachmentWithoutHistoricTaskAll() {
+    // a standalone task carries no process definition key, so DELETE_HISTORY can never match and
+    // ALL on the historic task is the only way in
     // given
     createTask(TASK_ID);
     Attachment attachment = createAttachment(TASK_ID, null);
     completeTask(TASK_ID);
+
+    // when/then
+    assertThatThrownBy(() -> taskService.deleteAttachment(attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'ALL' permission on resource '" + TASK_ID + "' of type 'HistoricTask'");
+  }
+
+  @Test
+  public void shouldDeleteCompletedStandaloneTaskAttachmentWithHistoricTaskAll() {
+    // given
+    createTask(TASK_ID);
+    Attachment attachment = createAttachment(TASK_ID, null);
+    completeTask(TASK_ID);
+    createGrantAuthorization(HISTORIC_TASK, TASK_ID, userId, HistoricTaskPermissions.ALL);
 
     // when
     taskService.deleteAttachment(attachment.getId());
 
     // then
     assertThat(selectAttachment(attachment.getId())).isNull();
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldSaveCompletedTaskAttachmentWithHistoricTaskAll() {
+    // the non-delete way in: ALL on the historic task instead of DELETE_HISTORY on the definition
+    // given
+    startProcessInstanceByKey(PROCESS_KEY);
+    Task task = selectSingleTask();
+    Attachment attachment = createAttachment(task.getId(), null);
+    completeTask(task.getId());
+    createGrantAuthorization(HISTORIC_TASK, task.getId(), userId, HistoricTaskPermissions.ALL);
+    attachment.setName("aNewName");
+
+    // when
+    taskService.saveAttachment(attachment);
+
+    // then
+    assertThat(selectAttachment(attachment.getId()).getName()).isEqualTo("aNewName");
   }
 
   // enforceAttachmentPermissions disabled /////////////////////////////////////

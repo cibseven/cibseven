@@ -610,52 +610,12 @@ public class AuthorizationCommandChecker implements CommandChecker {
 
   @Override
   public void checkReadHistoricTaskInstance(HistoricTaskInstanceEntity task) {
-    if (task == null) {
-      return;
-    }
-
-    // mirrors AuthorizationManager#configureHistoricTaskInstanceQuery: a historic read is granted by
-    // either the coarse READ_HISTORY on the process definition or the fine grained per-instance
-    // permission. The latter only exists while enableHistoricInstancePermissions is set, so for a
-    // standalone task with that flag off neither branch can ever match and nothing is checked,
-    // matching what the historic queries return for such tasks.
-    boolean hasProcessDefinition = task.getProcessDefinitionKey() != null;
-    if (!hasProcessDefinition && !isHistoricInstancePermissionsEnabled()) {
-      return;
-    }
-
-    PermissionCheckBuilder builder = new PermissionCheckBuilder().disjunctive();
-
-    if (hasProcessDefinition) {
-      builder.atomicCheckForResourceId(PROCESS_DEFINITION, task.getProcessDefinitionKey(), READ_HISTORY);
-    }
-    builder.atomicCheckForResourceId(HISTORIC_TASK, task.getId(), HistoricTaskPermissions.READ);
-
-    getAuthorizationManager().checkAuthorization(builder.build());
+    getAuthorizationManager().checkReadHistoricTaskInstance(task);
   }
 
   @Override
   public void checkReadHistoricProcessInstance(HistoricProcessInstanceEntity processInstance) {
-    if (processInstance == null) {
-      return;
-    }
-
-    // same disjunction as above, see AuthorizationManager#configureHistoricProcessInstanceQuery
-    boolean hasProcessDefinition = processInstance.getProcessDefinitionKey() != null;
-    if (!hasProcessDefinition && !isHistoricInstancePermissionsEnabled()) {
-      return;
-    }
-
-    PermissionCheckBuilder builder = new PermissionCheckBuilder().disjunctive();
-
-    if (hasProcessDefinition) {
-      builder.atomicCheckForResourceId(PROCESS_DEFINITION, processInstance.getProcessDefinitionKey(),
-          READ_HISTORY);
-    }
-    builder.atomicCheckForResourceId(HISTORIC_PROCESS_INSTANCE, processInstance.getId(),
-        HistoricProcessInstancePermissions.READ);
-
-    getAuthorizationManager().checkAuthorization(builder.build());
+    getAuthorizationManager().checkReadHistoricProcessInstance(processInstance);
   }
 
   // delete permission ////////////////////////////////////////
@@ -676,6 +636,50 @@ public class AuthorizationCommandChecker implements CommandChecker {
   @Override
   public void checkDeleteHistoricProcessInstance(HistoricProcessInstance instance) {
     getAuthorizationManager().checkAuthorization(DELETE_HISTORY, PROCESS_DEFINITION, instance.getProcessDefinitionKey());
+  }
+
+  // modify permission /////////////////////////////////////////////////
+  //
+  // The engine has no dedicated write permission for historic data, so a manual mutation of a
+  // historic instance is granted by ALL on that very instance. Unlike DELETE_HISTORY on the process
+  // definition this stays scoped to the single instance and carries no delete semantics, which is
+  // what the attachment commands need when they create or save on a completed task or instance.
+
+  @Override
+  public void checkModifyHistoricTaskInstance(HistoricTaskInstanceEntity task) {
+    // modifying an unexisting historic task instance is silently ignored,
+    // mirroring checkDeleteHistoricTaskInstance
+    if (task == null) {
+      return;
+    }
+
+    PermissionCheckBuilder builder = new PermissionCheckBuilder().disjunctive();
+
+    if (task.getProcessDefinitionKey() != null) {
+      builder.atomicCheckForResourceId(PROCESS_DEFINITION, task.getProcessDefinitionKey(),
+          DELETE_HISTORY);
+    }
+    builder.atomicCheckForResourceId(HISTORIC_TASK, task.getId(), HistoricTaskPermissions.ALL);
+
+    getAuthorizationManager().checkAuthorization(builder.build());
+  }
+
+  @Override
+  public void checkModifyHistoricProcessInstance(HistoricProcessInstance instance) {
+    if (instance == null) {
+      return;
+    }
+
+    PermissionCheckBuilder builder = new PermissionCheckBuilder().disjunctive();
+
+    if (instance.getProcessDefinitionKey() != null) {
+      builder.atomicCheckForResourceId(PROCESS_DEFINITION, instance.getProcessDefinitionKey(),
+          DELETE_HISTORY);
+    }
+    builder.atomicCheckForResourceId(HISTORIC_PROCESS_INSTANCE, instance.getId(),
+        HistoricProcessInstancePermissions.ALL);
+
+    getAuthorizationManager().checkAuthorization(builder.build());
   }
 
   @Override
@@ -1039,10 +1043,6 @@ public class AuthorizationCommandChecker implements CommandChecker {
 
   protected ExecutionEntity findExecutionById(String processInstanceId) {
     return Context.getCommandContext().getExecutionManager().findExecutionById(processInstanceId);
-  }
-
-  protected boolean isHistoricInstancePermissionsEnabled() {
-    return Context.getProcessEngineConfiguration().isEnableHistoricInstancePermissions();
   }
 
 }

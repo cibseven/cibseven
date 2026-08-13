@@ -527,4 +527,99 @@ public class ProcessInstanceAttachmentAuthorizationTest extends AuthorizationTes
         .isInstanceOf(AuthorizationException.class)
         .hasMessageContaining("'DELETE_HISTORY' permission on resource '" + PROCESS_KEY + "' of type 'ProcessDefinition'");
   }
+
+  // historic write fallback via the per-instance permission //////////////////
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldListBothWaysInWhenWriteOfCompletedProcessInstanceAttachmentIsDenied() {
+    // the write check is disjunctive, so the exception has to name both alternatives
+    // given
+    String processInstanceId = startProcessInstanceByKey(PROCESS_KEY).getId();
+    Attachment attachment = createAttachment(null, processInstanceId);
+    Task task = selectSingleTask();
+    completeTask(task.getId());
+
+    // when/then
+    assertThatThrownBy(() -> taskService.deleteAttachment(attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'DELETE_HISTORY' permission on resource '" + PROCESS_KEY + "' of type 'ProcessDefinition'")
+        .hasMessageContaining("'ALL' permission on resource '" + processInstanceId + "' of type 'HistoricProcessInstance'");
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldDeleteCompletedProcessInstanceAttachmentWithHistoricProcessInstanceAll() {
+    // ALL on the single historic instance is the delete free way in, no DELETE_HISTORY needed
+    // given
+    String processInstanceId = startProcessInstanceByKey(PROCESS_KEY).getId();
+    Attachment attachment = createAttachment(null, processInstanceId);
+    Task task = selectSingleTask();
+    completeTask(task.getId());
+    createGrantAuthorization(HISTORIC_PROCESS_INSTANCE, processInstanceId, userId,
+        HistoricProcessInstancePermissions.ALL);
+
+    // when
+    taskService.deleteAttachment(attachment.getId());
+
+    // then
+    assertThat(selectAttachment(attachment.getId())).isNull();
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldSaveCompletedProcessInstanceAttachmentWithHistoricProcessInstanceAll() {
+    // given
+    String processInstanceId = startProcessInstanceByKey(PROCESS_KEY).getId();
+    Attachment attachment = createAttachment(null, processInstanceId);
+    Task task = selectSingleTask();
+    completeTask(task.getId());
+    createGrantAuthorization(HISTORIC_PROCESS_INSTANCE, processInstanceId, userId,
+        HistoricProcessInstancePermissions.ALL);
+    attachment.setName("aNewName");
+
+    // when
+    taskService.saveAttachment(attachment);
+
+    // then
+    assertThat(selectAttachment(attachment.getId()).getName()).isEqualTo("aNewName");
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldNotWriteCompletedProcessInstanceAttachmentWithHistoricReadOnly() {
+    // READ is not enough, the write check asks for ALL
+    // given
+    String processInstanceId = startProcessInstanceByKey(PROCESS_KEY).getId();
+    Attachment attachment = createAttachment(null, processInstanceId);
+    Task task = selectSingleTask();
+    completeTask(task.getId());
+    createGrantAuthorization(HISTORIC_PROCESS_INSTANCE, processInstanceId, userId,
+        HistoricProcessInstancePermissions.READ);
+
+    // when/then
+    assertThatThrownBy(() -> taskService.deleteAttachment(attachment.getId()))
+        .isInstanceOf(AuthorizationException.class)
+        .hasMessageContaining("'ALL' permission on resource '" + processInstanceId + "' of type 'HistoricProcessInstance'");
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
+  public void shouldWriteCompletedProcessInstanceAttachmentWithHistoricAllIndependentOfInstancePermissionFlag() {
+    // the direct check does not consult enableHistoricInstancePermissions, unlike the queries
+    // given
+    processEngineConfiguration.setEnableHistoricInstancePermissions(false);
+    String processInstanceId = startProcessInstanceByKey(PROCESS_KEY).getId();
+    Attachment attachment = createAttachment(null, processInstanceId);
+    Task task = selectSingleTask();
+    completeTask(task.getId());
+    createGrantAuthorization(HISTORIC_PROCESS_INSTANCE, processInstanceId, userId,
+        HistoricProcessInstancePermissions.ALL);
+
+    // when
+    taskService.deleteAttachment(attachment.getId());
+
+    // then
+    assertThat(selectAttachment(attachment.getId())).isNull();
+  }
 }

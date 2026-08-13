@@ -35,12 +35,8 @@ import org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity;
  * The {@code ...IfExists} methods resolve the runtime entity first. Once it is gone, which is the
  * normal state for completed tasks and process instances, they fall back to the historic instance:
  * reads resolve READ_HISTORY on the process definition or the per-instance historic permission,
- * writes resolve DELETE_HISTORY on the process definition, the only permission the engine offers
- * for mutating historic data.
- * <p>
- * One gap remains: a standalone task carries no process definition key, and
- * {@code checkDeleteHistoricTaskInstance} passes silently in that case, so writes to its
- * attachments stay unchecked once it completed. See CIB7-1752.
+ * writes resolve DELETE_HISTORY on the process definition or ALL on the historic instance, since
+ * the engine offers no dedicated write permission for historic data.
  */
 final class AttachmentAuthChecks {
 
@@ -67,7 +63,7 @@ final class AttachmentAuthChecks {
     if (task != null) {
       forEachChecker(commandContext, checker -> checker.checkTaskWork(task));
     } else {
-      checkDeleteHistoricTask(taskId, commandContext);
+      checkModifyHistoricTask(taskId, commandContext);
     }
   }
 
@@ -91,7 +87,7 @@ final class AttachmentAuthChecks {
     if (processInstance != null) {
       forEachChecker(commandContext, checker -> checker.checkUpdateProcessInstance(processInstance));
     } else {
-      checkDeleteHistoricProcessInstance(processInstanceId, commandContext);
+      checkModifyHistoricProcessInstance(processInstanceId, commandContext);
     }
   }
 
@@ -157,9 +153,12 @@ final class AttachmentAuthChecks {
   }
 
   /**
-   * Delete fallback for a task that is no longer in the runtime tables.
+   * Write fallback for a task that is no longer in the runtime tables. The engine has no dedicated
+   * write permission for historic data, so CommandChecker#checkModifyHistoricTaskInstance accepts
+   * either DELETE_HISTORY on the process definition or ALL on the historic task, whether the caller
+   * is creating, saving or deleting an attachment.
    */
-  private static void checkDeleteHistoricTask(String taskId, CommandContext commandContext) {
+  private static void checkModifyHistoricTask(String taskId, CommandContext commandContext) {
     if (isBlank(taskId)) {
       return;
     }
@@ -167,15 +166,15 @@ final class AttachmentAuthChecks {
             .getHistoricTaskInstanceManager()
             .findHistoricTaskInstanceById(taskId);
     if (historicTask != null) {
-      forEachChecker(commandContext, checker -> checker.checkDeleteHistoricTaskInstance(historicTask));
+      forEachChecker(commandContext, checker -> checker.checkModifyHistoricTaskInstance(historicTask));
     }
   }
 
   /**
-   * Write fallback for a process instance that is no longer in the runtime tables. DELETE_HISTORY on
-   * the process definition is the only permission the engine offers for mutating historic data.
+   * Write fallback for a process instance that is no longer in the runtime tables. Same reasoning
+   * as {@link #checkModifyHistoricTask}.
    */
-  private static void checkDeleteHistoricProcessInstance(String processInstanceId, CommandContext commandContext) {
+  private static void checkModifyHistoricProcessInstance(String processInstanceId, CommandContext commandContext) {
     if (isBlank(processInstanceId)) {
       return;
     }
@@ -184,7 +183,7 @@ final class AttachmentAuthChecks {
         .findHistoricProcessInstance(processInstanceId);
     if (historicProcessInstance != null) {
       forEachChecker(commandContext,
-          checker -> checker.checkDeleteHistoricProcessInstance(historicProcessInstance));
+          checker -> checker.checkModifyHistoricProcessInstance(historicProcessInstance));
     }
   }
 
