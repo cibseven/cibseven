@@ -128,6 +128,7 @@
     <plugin.version.maven-bundle>5.1.9</plugin.version.maven-bundle> <!-- compatible with JDK 17 -->
     <!-- Define the maximum number of JVM processes that Surefire will spawn concurrently to execute the tests. 1C equals to number of available CPU cores in system. -->
     <surefire.forkCount>1</surefire.forkCount>
+    <!-- Arguments for test plugins on JDK 25; conditionally activated by the jdk25-test-jvm-args profile. -->
     <test.jvm.args.jdk25 />
   </properties>
 

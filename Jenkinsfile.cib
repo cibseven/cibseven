@@ -12,17 +12,14 @@ import groovy.transform.Field
 @Field String mavenLocalRepoRedirected = null
 @Field Map pipelineParams = [
     pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
-    mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
     uiParamPresets: [:],
     testMode: false,
     dependencyTrackSynchronous: true,
     buildPodConfig: [
-        (Constants.MAVEN_JDK_17_CONTAINER): [
-            resources: [
-                cpu: '4',
-                memory: '16Gi',
-                ephemeralStorage: '16Gi'
-            ]
+        resources: [
+            cpu: '4',
+            memory: '16Gi',
+            ephemeralStorage: '16Gi'
         ]
     ]
 ]
@@ -32,15 +29,21 @@ pipeline {
     agent {
         kubernetes {
             yaml BuildPodCreator.cibStandardPod(nodepool: Constants.NODEPOOL_STABLE)
-                    .withContainerFromName(pipelineParams.mvnContainerName, pipelineParams.buildPodConfig[pipelineParams.mvnContainerName])
-                    .withContainerFromName(Constants.MAVEN_JDK_17_CONTAINER, [resources: [cpu: '2', memory: '16Gi', ephemeralStorage: '16Gi']])
+                    .withContainerFromName(Constants.MAVEN_JDK_25_CONTAINER, pipelineParams.buildPodConfig)
+                    .withContainerFromName(Constants.MAVEN_JDK_17_CONTAINER, pipelineParams.buildPodConfig)
                     .asYaml()
-            defaultContainer pipelineParams.mvnContainerName
+            defaultContainer(params.JDK_VERSION == '17' ? Constants.MAVEN_JDK_17_CONTAINER : Constants.MAVEN_JDK_25_CONTAINER)
         }
     }
 
     // Parameter that can be changed in the Jenkins UI
     parameters {
+
+        choice(
+            name: 'JDK_VERSION',
+            choices: ['17', '25'],
+            description: '  └─ Java version for the Maven container'
+        )
 
         booleanParam(
             name: 'BUILD_FEATURE_BRANCH',
@@ -169,11 +172,9 @@ pipeline {
                 }
             }
             steps {
-                container(Constants.MAVEN_JDK_17_CONTAINER) {
-                    script {
-                        withMaven(options: []) {
-                            sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
-                        }
+                script {
+                    withMaven(options: []) {
+                        sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
                     }
                 }
             }
@@ -277,18 +278,25 @@ pipeline {
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat10,h2,engine-integration-jakarta" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,engine-integration-jakarta" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly-domain,h2,engine-integration-jakarta" }}
-                        ///////script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,engine-integration-jakarta" }}
-                        ///////script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28-domain,h2,engine-integration-jakarta" }}
+                        script {
+                            if (params.JDK_VERSION != '25') {
+                                withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,engine-integration-jakarta" }
+                                withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28-domain,h2,engine-integration-jakarta" }
+                            }
+                        }
                     }
                 }
                 stage('Web Integration') {
                     when { expression { params.QA_WEB_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        // TODO: enable chrome and chromedriver on jenkins and remove the exclusion for org.cibseven.bpm.LoginIT
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat10,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}
-                        ///////script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,webapps-integration" }}
+                        script {
+                            if (params.JDK_VERSION != '25') {
+                                withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,webapps-integration" }
+                            }
+                        }
                     }
                 }
                 stage('Run Integration') {
@@ -437,6 +445,7 @@ pipeline {
                 anyOf {
                     // allow deploy of snapshots from main branch
                     allOf {
+                        expression { params.JDK_VERSION == '17' }
                         branch 'main'
                         expression { mavenProjectInformation.version.endsWith("-SNAPSHOT") == true }
                         anyOf {
@@ -446,6 +455,7 @@ pipeline {
                     }
                     // force deploy
                     allOf {
+                        expression { params.JDK_VERSION == '17' }
                         expression { params.DEPLOY_TO_ARTIFACTS }
                     }
                 }
@@ -476,6 +486,7 @@ pipeline {
         stage('Deploy to Maven Central') {
             when {
                 allOf {
+                    expression { params.JDK_VERSION == '17' }
                     expression { params.DEPLOY_TO_MAVEN_CENTRAL }
                     expression { mavenProjectInformation.version.endsWith("-SNAPSHOT") == false }
                     expression { isPatchVersion() == false }
