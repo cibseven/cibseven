@@ -30,9 +30,10 @@ pipeline {
         kubernetes {
             yaml BuildPodCreator.cibStandardPod(nodepool: Constants.NODEPOOL_STABLE)
                     .withContainerFromName(Constants.MAVEN_JDK_25_CONTAINER, pipelineParams.buildPodConfig)
+                    .withContainerFromName(Constants.MAVEN_JDK_21_CONTAINER, pipelineParams.buildPodConfig)
                     .withContainerFromName(Constants.MAVEN_JDK_17_CONTAINER, pipelineParams.buildPodConfig)
                     .asYaml()
-            defaultContainer(params.JDK_VERSION == '17' ? Constants.MAVEN_JDK_17_CONTAINER : Constants.MAVEN_JDK_25_CONTAINER)
+            defaultContainer(params.JDK_VERSION == '17' ? Constants.MAVEN_JDK_17_CONTAINER : (params.JDK_VERSION == '21' ? Constants.MAVEN_JDK_21_CONTAINER : Constants.MAVEN_JDK_25_CONTAINER))
         }
     }
 
@@ -41,7 +42,7 @@ pipeline {
 
         choice(
             name: 'JDK_VERSION',
-            choices: ['17', '25'],
+            choices: ['17', '21', '25'],
             description: '  └─ Java version for the Maven container'
         )
 
