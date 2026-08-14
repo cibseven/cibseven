@@ -455,7 +455,6 @@ pipeline {
                     }
                     // force deploy
                     allOf {
-                        expression { params.JDK_VERSION == '17' }
                         expression { params.DEPLOY_TO_ARTIFACTS }
                     }
                 }
