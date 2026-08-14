@@ -21,7 +21,7 @@
     <dependencySet>
       <outputDirectory>server</outputDirectory>
       <includes>
-        <include>org.wildfly:wildfly-dist:tar.gz:${version.wildfly}</include>
+        <include>org.wildfly:wildfly-dist:zip:${version.wildfly}</include>
       </includes>
       <unpack>true</unpack>
       <unpackOptions>
@@ -32,6 +32,9 @@
           <exclude>**/bin/standalone.conf.bat</exclude>
           <!-- exclude wildfly's shipped version of h2database -->
           <exclude>**/h2database/**</exclude>
+          <!-- exclude wildfly's shipped lz4-java (CVE-2026-59949); replaced by the
+               at/yawk/lz4 module from ../modules, see version.lz4-java -->
+          <exclude>**/at/yawk/lz4/**</exclude>
         </excludes>
       </unpackOptions>
     </dependencySet>

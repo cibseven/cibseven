@@ -155,6 +155,17 @@
       <artifactId>h2</artifactId>
     </dependency>
 
+    <!-- Patched lz4-java replacing the 1.10.4 jar bundled in wildfly-dist (CVE-2026-59949).
+         WildFly's system module is excluded from the distro.
+         copy-dependencies step below already maps <groupId path>/<version>/<jar> to
+         <groupId path>/main/<jar>, which is exactly the layout the module.xml expects.
+         Drop this once WildFly ships lz4-java >= 1.11.1. -->
+    <dependency>
+      <groupId>at.yawk.lz4</groupId>
+      <artifactId>lz4-java</artifactId>
+      <version>${version.lz4-java}</version>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -297,6 +308,18 @@
                 </copy>
                 <delete dir="target/modules/org/apache/httpcomponents/core5/httpcore5-h2" />
 
+                <!-- move caffeine into its own slot, so that we do not shadow the
+                  caffeine module WildFly provides for Infinispan -->
+                <delete dir="target/modules/com/github/ben-manes/caffeine" />
+                <copy todir="target/modules" flatten="false">
+                  <fileset refid="maven.project.dependencies" />
+                  <mapper>
+                    <chainedmapper>
+                      <regexpmapper from="^(com.github.ben-manes.caffeine)/caffeine/[^/]+/(caffeine-.*\.jar)$$" to="\1/cibseven/\2" handledirsep="yes" />
+                    </chainedmapper>
+                  </mapper>
+                </copy>
+
                 <!-- copy groovy dependencies to single dir -->
                 <delete dir="target/modules/org/apache/groovy" />
                 <copy todir="target/modules" flatten="false">
@@ -394,6 +417,10 @@
                   <include name="**/module.xml" />
                 </replace>
 
+                <replace dir="target/modules" token="@version.caffeine@" value="${version.caffeine}">
+                  <include name="**/module.xml" />
+                </replace>
+
                 <replace dir="target/modules" token="@version.h2@" value="${version.h2}">
                   <include name="**/module.xml" />
                 </replace>
@@ -411,6 +438,10 @@
                 </replace>
 
                 <replace dir="target/modules" token="@version.icu.icu4j@" value="${version.icu.icu4j}">
+                  <include name="**/module.xml" />
+                </replace>
+
+                <replace dir="target/modules" token="@version.lz4-java@" value="${version.lz4-java}">
                   <include name="**/module.xml" />
                 </replace>
 
