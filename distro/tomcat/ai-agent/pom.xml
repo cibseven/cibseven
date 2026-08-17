@@ -20,6 +20,29 @@
     <skip-third-party-bom>false</skip-third-party-bom>
   </properties>
 
+  <!-- CIB7-1426: langchain4j 1.16.3 transitively pulls jackson-core/databind 2.21.3
+       (CVE-2026-54512 / CVE-2026-54513), fixed in 2.21.4. Tomcat is the ONLY distro
+       where langchain4j's Jackson is authoritative on the runtime classpath: the
+       overlay's jars are the sole jackson-core/databind on the lib-ai/ common.loader
+       (run/run4 let the spring-boot BOM govern, wildfly the JBoss module). So the
+       version is forced here — local to the Tomcat distro — rather than in the shared
+       parent, which would raise the "then pin it in the run starter too" question.
+       Tracks ${version.jackson} so a future CVE bump flows through a single knob. -->
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${version.jackson}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${version.jackson}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
 
     <dependency>
@@ -61,6 +84,38 @@
                    never leak into this execution. -->
               <outputDirectory>${project.build.directory}/dependency</outputDirectory>
               <includeScope>runtime</includeScope>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- CIB7-1426 guard: the pin above forces Jackson to ${version.jackson}. This
+           fails the build if langchain4j (or any other overlay dep) ever REQUIRES a
+           jackson-core/databind newer than what we ship — i.e. it detects a silent
+           downgrade rather than a CVE. Scoped to Jackson only, so the langchain4j /
+           ONNX / pdfbox tree is not otherwise subjected to convergence checks. When
+           it fires, bump ${version.jackson} to a version that satisfies langchain4j
+           (and stays in sync with the spring-boot BOM the other distros use). -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>enforce-jackson-not-downgraded</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireUpperBoundDeps>
+                  <includes>
+                    <include>com.fasterxml.jackson.core:jackson-core</include>
+                    <include>com.fasterxml.jackson.core:jackson-databind</include>
+                  </includes>
+                </requireUpperBoundDeps>
+              </rules>
             </configuration>
           </execution>
         </executions>

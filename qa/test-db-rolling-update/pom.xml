@@ -13,6 +13,11 @@
     <version>2.3.0-SNAPSHOT</version>
   </parent>
 
+  <!-- centralized previous version for old-engine BOMs; update only on release or override via -Dcibseven.version.previous -->
+  <properties>
+    <cibseven.version.previous>2.2.0</cibseven.version.previous>
+  </properties>
+
   <modules>
     <module>rolling-update-util</module>
     <module>create-old-engine</module>

@@ -57,6 +57,11 @@ public interface AuthorizationRestService {
       @QueryParam("firstResult") Integer firstResult, @QueryParam("maxResults") Integer maxResults);
 
   @GET
+  @Path("/self")
+  @Produces(MediaType.APPLICATION_JSON)
+  List<AuthorizationDto> queryOwnAuthorizations(@Context UriInfo uriInfo);
+
+  @GET
   @Path("/count")
   @Produces(MediaType.APPLICATION_JSON)
   CountResultDto getAuthorizationCount(@Context UriInfo uriInfo);

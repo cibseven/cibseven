@@ -281,6 +281,18 @@
                 </copy>
                 <delete dir="target/modules/org/apache/httpcomponents/core5/httpcore5-h2" />
 
+                <!-- move caffeine into its own slot, so that we do not shadow the
+                  caffeine module WildFly provides for Infinispan -->
+                <delete dir="target/modules/com/github/ben-manes/caffeine" />
+                <copy todir="target/modules" flatten="false">
+                  <fileset refid="maven.project.dependencies" />
+                  <mapper>
+                    <chainedmapper>
+                      <regexpmapper from="^(com.github.ben-manes.caffeine)/caffeine/[^/]+/(caffeine-.*\.jar)$$" to="\1/cibseven/\2" handledirsep="yes" />
+                    </chainedmapper>
+                  </mapper>
+                </copy>
+
                 <!-- copy groovy dependencies to single dir -->
                 <delete dir="target/modules/org/apache/groovy" />
                 <copy todir="target/modules" flatten="false">
@@ -296,6 +308,19 @@
                 <copy todir="target/modules" flatten="false">
                   <fileset dir="src/main/modules" />
                 </copy>
+
+                <!-- relocate jackson module.xml files from '@version.jackson@' placeholder to version-named slot -->
+                <move todir="target/modules" flatten="false">
+                  <fileset dir="target/modules">
+                    <include name="com/fasterxml/jackson/**/@version.jackson@/module.xml" />
+                  </fileset>
+                  <regexpmapper from="^(com/fasterxml/jackson.*)/@version.jackson@/(module.xml)$$"
+                                to="\1/${version.jackson}/\2"
+                                handledirsep="yes" />
+                </move>
+                <delete dir="target/modules/com/fasterxml/jackson/core/jackson-annotations/@version.jackson@" />
+                <delete dir="target/modules/com/fasterxml/jackson/core/jackson-core/@version.jackson@" />
+                <delete dir="target/modules/com/fasterxml/jackson/core/jackson-databind/@version.jackson@" />
 
                 <replace dir="target/modules" token="@project.version@" value="${project.version}">
                   <include name="**/module.xml" />
@@ -346,6 +371,10 @@
                 </replace>
 
                 <replace dir="target/modules" token="@version.accessors-smart@" value="${version.accessors-smart}">
+                  <include name="**/module.xml" />
+                </replace>
+
+                <replace dir="target/modules" token="@version.caffeine@" value="${version.caffeine}">
                   <include name="**/module.xml" />
                 </replace>
 

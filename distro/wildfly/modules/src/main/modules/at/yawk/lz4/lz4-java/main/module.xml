@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Replaces the lz4-java module shipped inside wildfly-dist, which pins 1.10.4 and
+  is flagged for CVE-2026-59949. WildFly's copy of this module is excluded from the
+  distro unpack (see distro/wildfly/assembly/assembly.xml) so only this one ships.
+  Layout and the private jboss.api marker are kept identical to WildFly's original;
+  only the jar version differs (version.lz4-java in parent/pom.xml).
+  -->
+<module xmlns="urn:jboss:module:1.9" name="at.yawk.lz4.lz4-java">
+
+  <properties>
+    <property name="jboss.api" value="private"/>
+  </properties>
+
+  <resources>
+    <resource-root path="lz4-java-@version.lz4-java@.jar"/>
+  </resources>
+</module>

@@ -17,6 +17,8 @@
 package org.cibseven.bpm.engine.history;
 
 import java.util.Date;
+import java.util.stream.Stream;
+
 import org.cibseven.bpm.engine.query.Query;
 
 
@@ -135,5 +137,11 @@ public interface HistoricVariableInstanceQuery extends Query<HistoricVariableIns
    * Only select historic process variables that were created after the given date.
    */
   HistoricVariableInstanceQuery createdAfter(Date date);
+
+  /**
+   * Streams all matching results using stable keyset (seek) pagination ordered by variable id,
+   * so the stream contains no duplicates and skips no entries under concurrent inserts/deletes.
+   */
+  Stream<HistoricVariableInstance> streamStable();
 
 }

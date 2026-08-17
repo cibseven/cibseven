@@ -17,26 +17,13 @@
 
   <dependencyManagement>
     <dependencies>
-
-      <!-- CVE fix: the embedded Tomcat is otherwise taken from the imported Spring Boot
-           BOM (10.1.54 for SB 3.5.x), which is affected by CVE-2026-41293, -43512, -43515,
-           -41284, -43513, -42498, -43514. Pin it to the patched 10.1.x line
-           (${version.tomcat10} from parent/pom.xml). Declared BEFORE the spring-boot-dependencies
-           import so this version wins over the BOM-managed one. -->
+      <!-- Override the Jackson version managed by Spring Boot -->
       <dependency>
-        <groupId>org.apache.tomcat.embed</groupId>
-        <artifactId>tomcat-embed-core</artifactId>
-        <version>${version.tomcat10}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.tomcat.embed</groupId>
-        <artifactId>tomcat-embed-el</artifactId>
-        <version>${version.tomcat10}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.tomcat.embed</groupId>
-        <artifactId>tomcat-embed-websocket</artifactId>
-        <version>${version.tomcat10}</version>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson}</version>
+        <scope>import</scope>
+        <type>pom</type>
       </dependency>
 
       <dependency>
@@ -119,6 +106,8 @@
         <module>modules/example</module>
         <module>modules/webapps</module>
         <module>modules/ai-agent</module>
+        <module>modules/http-client</module>
+        <module>modules/soap-http-client</module>
         <module>core</module>
         <module>assembly</module>
         <module>qa</module>

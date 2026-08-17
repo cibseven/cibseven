@@ -20,6 +20,7 @@ import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.cibseven.bpm.engine.impl.cmd.CommandLogger;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
@@ -38,6 +39,12 @@ public class VariableInstanceQueryImpl extends AbstractVariableQueryImpl<Variabl
   private final static CommandLogger LOG = ProcessEngineLogger.CMD_LOGGER;
 
   private static final long serialVersionUID = 1L;
+  
+/**
+ * Only used internally by {@link #stream()} for keyset (seek) pagination. Not exposed as a public
+ * query filter since the id is a random UUID and "greater than" has no meaningful semantics
+ */
+  protected String variableIdGreaterThan;
 
   protected String variableId;
   protected String variableName;
@@ -142,6 +149,11 @@ public class VariableInstanceQueryImpl extends AbstractVariableQueryImpl<Variabl
 
   // ordering ////////////////////////////////////////////////////
 
+  public VariableInstanceQuery orderByVariableId() {
+    orderBy(VariableInstanceQueryProperty.VARIABLE_ID);
+    return this;
+  }
+
   public VariableInstanceQuery orderByVariableName() {
     orderBy(VariableInstanceQueryProperty.VARIABLE_NAME);
     return this;
@@ -160,6 +172,18 @@ public class VariableInstanceQueryImpl extends AbstractVariableQueryImpl<Variabl
   public VariableInstanceQuery orderByTenantId() {
     orderBy(VariableInstanceQueryProperty.TENANT_ID);
     return this;
+  }
+
+  @Override
+  public Stream<VariableInstance> streamStable() {
+    return streamByKeyset(
+        VariableInstance::getId,
+        idGreaterThan -> this.variableIdGreaterThan = idGreaterThan,
+        () -> { orderByVariableId(); asc(); });
+  }
+
+  public String getVariableIdGreaterThan() {
+    return variableIdGreaterThan;
   }
 
   @Override
