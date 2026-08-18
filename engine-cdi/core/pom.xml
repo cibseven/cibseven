@@ -226,6 +226,10 @@
               <forceCreation>true</forceCreation>
               <excludes>
                 <exclude>org/cibseven/bpm/engine/cdi/test/CdiProcessEngineTestCase.class</exclude>
+                <!-- Quarkus ARC does not support CDI Full @Specializes, and the whole archive is
+                     validated during augmentation, so this fixture must not reach the Quarkus
+                     test jar. The normal CDI test jar keeps it. -->
+                <exclude>org/cibseven/bpm/engine/cdi/test/impl/beans/SpecializedTestBean.class</exclude>
               </excludes>
             </configuration>
           </execution>
