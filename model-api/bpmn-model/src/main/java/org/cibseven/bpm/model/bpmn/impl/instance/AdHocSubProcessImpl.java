@@ -53,6 +53,7 @@ public class AdHocSubProcessImpl extends SubProcessImpl implements AdHocSubProce
       });
 
     orderingAttribute = typeBuilder.namedEnumAttribute(BPMN_ATTRIBUTE_ORDERING, AdHocOrdering.class)
+      .defaultValue(AdHocOrdering.Parallel)
       .build();
 
     cancelRemainingInstancesAttribute = typeBuilder.booleanAttribute(BPMN_ATTRIBUTE_CANCEL_REMAINING_INSTANCES)
@@ -62,6 +63,8 @@ public class AdHocSubProcessImpl extends SubProcessImpl implements AdHocSubProce
     SequenceBuilder sequenceBuilder = typeBuilder.sequence();
 
     completionConditionChild = sequenceBuilder.element(CompletionCondition.class)
+      .minOccurs(0)
+      .maxOccurs(1)
       .build();
 
     typeBuilder.build();
