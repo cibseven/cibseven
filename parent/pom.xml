@@ -18,7 +18,7 @@
   </description>
 
   <properties>
-    <version.quarkus>3.27.0</version.quarkus>
+    <version.quarkus>3.33.3</version.quarkus>
     <version.spring.framework>5.3.39</version.spring.framework>
     <version.spring.framework6>6.2.11</version.spring.framework6>
     <version.spring.framework7>7.0.6</version.spring.framework7>
