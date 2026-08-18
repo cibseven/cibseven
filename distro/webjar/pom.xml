@@ -39,6 +39,7 @@
       <version>${project.parent.version}</version>
       <type>jar</type>
       <classifier>classes</classifier>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.cibseven.webapp</groupId>
@@ -46,6 +47,8 @@
       <version>${cibseven-webapp.version}</version>
       <type>jar</type>
       <classifier>classes</classifier>
+      <!-- optional prevents the dependency from being transitive to dependents -->
+      <optional>true</optional>
     </dependency>
   </dependencies>
 

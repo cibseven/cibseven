@@ -17,3 +17,15 @@
 
 insert into ACT_GE_SCHEMA_LOG
 values ('1600', CURRENT_TIMESTAMP, '2.3.0');
+
+-- Chat: soft-delete tombstone (long-polling change detection)
+ALTER TABLE CHAT_MESSAGES ADD DELETED_AT DATETIME2;
+
+-- Chat: DB-backed presence for long-polling transport
+CREATE TABLE CHAT_PRESENCE (
+    ROOM_ID      NVARCHAR(255) NOT NULL,
+    USER_ID      NVARCHAR(255) NOT NULL,
+    DISPLAY_NAME NVARCHAR(255),
+    LAST_SEEN    DATETIME2     NOT NULL,
+    CONSTRAINT CHAT_PK_PRESENCE PRIMARY KEY (ROOM_ID, USER_ID)
+);
