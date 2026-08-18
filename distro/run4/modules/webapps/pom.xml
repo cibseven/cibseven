@@ -25,14 +25,6 @@
     <dependency>
       <groupId>org.cibseven.bpm.springboot</groupId>
       <artifactId>cibseven-bpm-spring-boot-starter-webapp-4</artifactId>
-      <exclusions>
-        <!-- Exclude SB3 webclient-web pulled in transitively via cibseven-webapp-webjar;
-             the SB4 variant (cibseven-webclient-web-spring-boot-4) is already included -->
-        <exclusion>
-          <groupId>org.cibseven.webapp</groupId>
-          <artifactId>cibseven-webclient-web</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>
