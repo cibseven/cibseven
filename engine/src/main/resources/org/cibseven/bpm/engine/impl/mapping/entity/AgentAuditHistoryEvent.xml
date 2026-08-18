@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+
+    Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH
+    under one or more contributor license agreements. See the NOTICE file
+    distributed with this work for additional information regarding copyright
+    ownership. Camunda licenses this file to you under the Apache License,
+    Version 2.0; you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.cibseven.bpm.engine.impl.history.event.AgentAuditHistoryEventEntity">
+
+  <!-- AGENT AUDIT INSERT -->
+
+  <insert id="insertAgentAuditHistoryEvent" parameterType="org.cibseven.bpm.engine.impl.history.event.AgentAuditHistoryEventEntity">
+      insert into ${prefix}ACT_HI_AGENT_AUDIT (
+        ID_,
+        ROOT_PROC_INST_ID_,
+        PROC_DEF_KEY_,
+        PROC_DEF_ID_,
+        PROC_INST_ID_,
+        EXECUTION_ID_,
+        ACT_ID_,
+        TENANT_ID_,
+        TIMESTAMP_,
+        SCHEMA_VERSION_,
+        AUDIT_TYPE_,
+        RUN_ID_,
+        EVENT_SEQ_,
+        PROVIDER_,
+        MODEL_,
+        RESPONSE_ID_,
+        ENDPOINT_,
+        USER_ID_,
+        GROUP_IDS_,
+        FINISH_REASON_,
+        DURATION_,
+        ERROR_CLASS_,
+        MODEL_PARAMS_,
+        PAYLOAD_BYTEARRAY_ID_,
+        REMOVAL_TIME_
+      ) values (
+        #{id, jdbcType=VARCHAR},
+        #{rootProcessInstanceId, jdbcType=VARCHAR},
+        #{processDefinitionKey, jdbcType=VARCHAR},
+        #{processDefinitionId, jdbcType=VARCHAR},
+        #{processInstanceId, jdbcType=VARCHAR},
+        #{executionId, jdbcType=VARCHAR},
+        #{activityId, jdbcType=VARCHAR},
+        #{tenantId, jdbcType=VARCHAR},
+        #{timestamp, jdbcType=TIMESTAMP},
+        #{schemaVersion, jdbcType=INTEGER},
+        #{auditType, jdbcType=VARCHAR},
+        #{runId, jdbcType=VARCHAR},
+        #{eventSeq, jdbcType=INTEGER},
+        #{provider, jdbcType=VARCHAR},
+        #{model, jdbcType=VARCHAR},
+        #{responseId, jdbcType=VARCHAR},
+        #{endpoint, jdbcType=VARCHAR},
+        #{userId, jdbcType=VARCHAR},
+        #{groupIds, jdbcType=VARCHAR},
+        #{finishReason, jdbcType=VARCHAR},
+        #{durationMs, jdbcType=BIGINT},
+        #{errorClass, jdbcType=VARCHAR},
+        #{modelParams, jdbcType=VARCHAR},
+        #{payloadByteArrayId, jdbcType=VARCHAR},
+        #{removalTime, jdbcType=TIMESTAMP}
+      )
+  </insert>
+
+  <!-- AGENT AUDIT DELETE -->
+
+  <delete id="deleteAgentAuditHistoryEvent" parameterType="org.cibseven.bpm.engine.impl.history.event.AgentAuditHistoryEventEntity">
+    delete from ${prefix}ACT_HI_AGENT_AUDIT where ID_ = #{id}
+  </delete>
+
+  <delete id="deleteAgentAuditByProcessInstanceIds">
+    delete from ${prefix}ACT_HI_AGENT_AUDIT
+    where
+      <bind name="listOfIds" value="list"/>
+      <bind name="fieldName" value="'PROC_INST_ID_'"/>
+      <include refid="org.cibseven.bpm.engine.impl.persistence.entity.Commons.applyInForPaginatedCollection"/>
+  </delete>
+
+  <!-- AGENT AUDIT RESULTMAP -->
+
+  <resultMap id="agentAuditHistoryEventResultMap" type="org.cibseven.bpm.engine.impl.history.event.AgentAuditHistoryEventEntity">
+    <id property="id" column="ID_" jdbcType="VARCHAR" />
+    <result property="rootProcessInstanceId" column="ROOT_PROC_INST_ID_" jdbcType="VARCHAR" />
+    <result property="processDefinitionKey" column="PROC_DEF_KEY_" jdbcType="VARCHAR" />
+    <result property="processDefinitionId" column="PROC_DEF_ID_" jdbcType="VARCHAR" />
+    <result property="processInstanceId" column="PROC_INST_ID_" jdbcType="VARCHAR" />
+    <result property="executionId" column="EXECUTION_ID_" jdbcType="VARCHAR" />
+    <result property="activityId" column="ACT_ID_" jdbcType="VARCHAR" />
+    <result property="tenantId" column="TENANT_ID_" jdbcType="VARCHAR" />
+    <result property="timestamp" column="TIMESTAMP_" jdbcType="TIMESTAMP" />
+    <result property="schemaVersion" column="SCHEMA_VERSION_" jdbcType="INTEGER" />
+    <result property="auditType" column="AUDIT_TYPE_" jdbcType="VARCHAR" />
+    <result property="runId" column="RUN_ID_" jdbcType="VARCHAR" />
+    <result property="eventSeq" column="EVENT_SEQ_" jdbcType="INTEGER" />
+    <result property="provider" column="PROVIDER_" jdbcType="VARCHAR" />
+    <result property="model" column="MODEL_" jdbcType="VARCHAR" />
+    <result property="responseId" column="RESPONSE_ID_" jdbcType="VARCHAR" />
+    <result property="endpoint" column="ENDPOINT_" jdbcType="VARCHAR" />
+    <result property="userId" column="USER_ID_" jdbcType="VARCHAR" />
+    <result property="groupIds" column="GROUP_IDS_" jdbcType="VARCHAR" />
+    <result property="finishReason" column="FINISH_REASON_" jdbcType="VARCHAR" />
+    <result property="durationMs" column="DURATION_" jdbcType="BIGINT" />
+    <result property="errorClass" column="ERROR_CLASS_" jdbcType="VARCHAR" />
+    <result property="modelParams" column="MODEL_PARAMS_" jdbcType="VARCHAR" />
+    <result property="payloadByteArrayId" column="PAYLOAD_BYTEARRAY_ID_" jdbcType="VARCHAR" />
+    <result property="removalTime" column="REMOVAL_TIME_" jdbcType="TIMESTAMP" />
+  </resultMap>
+
+  <!-- AGENT AUDIT SELECT -->
+
+  <select id="selectAgentAuditHistoryEvent" parameterType="string" resultMap="agentAuditHistoryEventResultMap">
+    select * from ${prefix}ACT_HI_AGENT_AUDIT where ID_ = #{id}
+  </select>
+
+  <select id="selectAgentAuditByRunId" parameterType="string" resultMap="agentAuditHistoryEventResultMap">
+    select * from ${prefix}ACT_HI_AGENT_AUDIT
+    where RUN_ID_ = #{runId}
+    order by EVENT_SEQ_ asc
+  </select>
+
+  <select id="selectAgentAuditByProcessInstanceId" parameterType="string" resultMap="agentAuditHistoryEventResultMap">
+    select * from ${prefix}ACT_HI_AGENT_AUDIT
+    where PROC_INST_ID_ = #{processInstanceId}
+    order by TIMESTAMP_ asc, EVENT_SEQ_ asc
+  </select>
+
+</mapper>

@@ -56,8 +56,12 @@ import dev.langchain4j.model.openai.OpenAiResponsesChatRequestParameters;
 import dev.langchain4j.model.output.FinishReason;
 import dev.langchain4j.model.output.TokenUsage;
 
+import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
 import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.history.HistoryLevel;
+import org.cibseven.bpm.engine.impl.history.event.AgentAuditHistoryEventEntity;
+import org.cibseven.bpm.engine.impl.history.event.HistoryEventTypes;
 import org.cibseven.bpm.engine.impl.identity.Authentication;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.variable.Variables;
@@ -126,6 +130,10 @@ class AgentChatListener implements ChatModelListener {
   private static final Logger LOG = LoggerFactory.getLogger(AgentChatListener.class);
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
+
+  /** Builds the {@link AgentAuditHistoryEventEntity} handed to the engine's history handler. */
+  private static final AgentAuditHistoryEventProducer AUDIT_PRODUCER =
+      new AgentAuditHistoryEventProducer();
 
   private static final TypeReference<List<Map<String, Object>>> EVENT_LIST_TYPE =
       new TypeReference<List<Map<String, Object>>>() {};
@@ -848,6 +856,50 @@ class AgentChatListener implements ChatModelListener {
     }
     events.add(event);
     persistEvents();
+    emitHistoryEvent(event);
+  }
+
+  /**
+   * Emits one {@link AgentAuditHistoryEventEntity} through the engine's history event handler,
+   * where the default {@code DbHistoryEventHandler} writes it to {@code ACT_HI_AGENT_AUDIT}.
+   * A deployer who has registered additional handlers receives it there as well.
+   *
+   * <h3>History level</h3>
+   * <p>Gated on {@link HistoryEventTypes#AGENT_AUDIT} so the audit trail honours the configured
+   * history level like every other history event — it is produced from level {@code audit}
+   * upwards and suppressed below that.</p>
+   *
+   * <h3>Failure policy</h3>
+   * <p>Building the event is guarded and <em>fail-open</em>: a defect in this bookkeeping path is
+   * logged and the entry is dropped, but the surrounding engine command, and with it the business
+   * process, continues. Handing the event to the handler chain is deliberately not guarded — a
+   * deployer-supplied handler may choose fail-closed semantics and must be able to abort the
+   * transaction.</p>
+   */
+  private void emitHistoryEvent(Map<String, Object> event) {
+    ProcessEngineConfigurationImpl configuration = Context.getProcessEngineConfiguration();
+    if (configuration == null) {
+      // No command context on this thread — e.g. the ProcessStarterTool executor pool.
+      return;
+    }
+
+    HistoryLevel historyLevel = configuration.getHistoryLevel();
+    if (historyLevel == null || !historyLevel.isHistoryEventProduced(HistoryEventTypes.AGENT_AUDIT, this)) {
+      return;
+    }
+
+    AgentAuditHistoryEventEntity historyEvent;
+    try {
+      ExecutionEntity execution = currentExecution();
+      String rootProcessInstanceId = execution == null ? null : execution.getRootProcessInstanceId();
+      historyEvent = AUDIT_PRODUCER.createAgentAuditEvent(event, rootProcessInstanceId);
+    } catch (JsonProcessingException | RuntimeException e) {
+      LOG.error("Failed to build agent audit history event (runId={}, type={}); the entry is "
+          + "dropped and the process step continues.", runId, event.get("type"), e);
+      return;
+    }
+
+    configuration.getHistoryEventHandler().handleEvent(historyEvent);
   }
 
   /**

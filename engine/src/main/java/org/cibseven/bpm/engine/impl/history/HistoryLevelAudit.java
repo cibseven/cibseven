@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.impl.history;
 
+import static org.cibseven.bpm.engine.impl.history.event.HistoryEventTypes.AGENT_AUDIT;
 import static org.cibseven.bpm.engine.impl.history.event.HistoryEventTypes.FORM_PROPERTY_UPDATE;
 import static org.cibseven.bpm.engine.impl.history.event.HistoryEventTypes.VARIABLE_INSTANCE_CREATE;
 import static org.cibseven.bpm.engine.impl.history.event.HistoryEventTypes.VARIABLE_INSTANCE_DELETE;
@@ -48,6 +49,8 @@ public class HistoryLevelAudit extends HistoryLevelActivity {
         || VARIABLE_INSTANCE_DELETE == eventType
 
         || FORM_PROPERTY_UPDATE == eventType
+
+        || AGENT_AUDIT == eventType
       ;
 
   }

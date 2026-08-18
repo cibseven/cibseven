@@ -143,3 +143,12 @@ drop table ACT_HI_JOB_LOG if exists;
 drop table ACT_HI_BATCH if exists;
 drop table ACT_HI_IDENTITYLINK if exists;
 drop table ACT_HI_EXT_TASK_LOG if exists;
+
+-- AI agent audit trail (EU AI Act Art. 12 / Art. 26) --
+
+drop index ACT_IDX_HI_AGENT_RUN;
+drop index ACT_IDX_HI_AGENT_PI;
+drop index ACT_IDX_HI_AGENT_ROOT_PI;
+drop index ACT_IDX_HI_AGENT_TYPE;
+drop index ACT_IDX_HI_AGENT_RM_TIME;
+drop table ACT_HI_AGENT_AUDIT if exists;

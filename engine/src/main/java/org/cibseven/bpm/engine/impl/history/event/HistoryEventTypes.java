@@ -197,7 +197,17 @@ public enum HistoryEventTypes implements HistoryEventType {
    *
    * @since 7.10, 7.9.1, 7.8.7
    */
-  USER_OPERATION_LOG("user-operation-log", "create");
+  USER_OPERATION_LOG("user-operation-log", "create"),
+
+  /**
+   * fired when an AI agent activity records an audit entry (EU AI Act Art. 12 / Art. 26
+   * record-keeping). One event per LLM request, response, error or retrieval; the concrete
+   * kind is carried in the event's own {@code auditType} field rather than as a separate
+   * history event type, so a single history entity and table serve all of them.
+   *
+   * @since 2.3
+   */
+  AGENT_AUDIT("agent-audit", "agent-audit");
 
   private HistoryEventTypes(String entityType, String eventName) {
     this.entityType = entityType;

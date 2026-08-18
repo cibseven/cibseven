@@ -21,6 +21,7 @@ import java.util.List;
 import org.cibseven.bpm.engine.history.HistoricVariableInstance;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.db.entitymanager.DbEntityManager;
+import org.cibseven.bpm.engine.impl.history.event.AgentAuditHistoryEventEntity;
 import org.cibseven.bpm.engine.impl.history.event.HistoricDecisionEvaluationEvent;
 import org.cibseven.bpm.engine.impl.history.event.HistoricScopeInstanceEvent;
 import org.cibseven.bpm.engine.impl.history.event.HistoricVariableUpdateEventEntity;
@@ -45,6 +46,8 @@ public class DbHistoryEventHandler implements HistoryEventHandler {
       insertHistoricVariableUpdateEntity((HistoricVariableUpdateEventEntity) historyEvent);
     } else if(historyEvent instanceof HistoricDecisionEvaluationEvent) {
       insertHistoricDecisionEvaluationEvent((HistoricDecisionEvaluationEvent) historyEvent);
+    } else if(historyEvent instanceof AgentAuditHistoryEventEntity) {
+      insertAgentAuditHistoryEvent((AgentAuditHistoryEventEntity) historyEvent);
     } else {
       insertOrUpdate(historyEvent);
     }
@@ -135,6 +138,37 @@ public class DbHistoryEventHandler implements HistoryEventHandler {
         historicVariableInstanceEntity.setState(HistoricVariableInstance.STATE_DELETED);
       }
     }
+  }
+
+  /**
+   * <p>Customized insert behavior for {@link AgentAuditHistoryEventEntity}.</p>
+   *
+   * <p>Audit entries are append-only — an entry is never revisited after insertion — so this
+   * bypasses the insert-or-update path used by entities that have a lifecycle.</p>
+   *
+   * <p>The unbounded part of the audit payload (message history, tool inventory, tool calls)
+   * is stored as a byte array in {@code ACT_GE_BYTEARRAY} and referenced from the audit row,
+   * mirroring how historic variable values are handled. An inline column is not viable: the
+   * agent's system prompt alone exceeds the 4000-character {@code varchar} limit shared by all
+   * supported databases.</p>
+   */
+  protected void insertAgentAuditHistoryEvent(AgentAuditHistoryEventEntity historyEvent) {
+    DbEntityManager dbEntityManager = getDbEntityManager();
+
+    byte[] payload = historyEvent.getPayload();
+    if (payload != null) {
+      ByteArrayEntity byteArrayEntity = new ByteArrayEntity(historyEvent.getRunId(), payload, ResourceTypes.HISTORY);
+      byteArrayEntity.setRootProcessInstanceId(historyEvent.getRootProcessInstanceId());
+      byteArrayEntity.setRemovalTime(historyEvent.getRemovalTime());
+
+      Context
+        .getCommandContext()
+        .getByteArrayManager()
+        .insertByteArray(byteArrayEntity);
+      historyEvent.setPayloadByteArrayId(byteArrayEntity.getId());
+    }
+
+    dbEntityManager.insert(historyEvent);
   }
 
   protected boolean shouldWriteHistoricDetail(HistoricVariableUpdateEventEntity historyEvent) {

@@ -88,5 +88,9 @@
     <mapper resource="org/cibseven/bpm/engine/impl/mapping/entity/HistoricDecisionOutputInstance.xml" />
     <mapper resource="org/cibseven/bpm/engine/impl/mapping/entity/DecisionRequirementsDefinition.xml" />
 
+    <!-- AI agent audit trail (EU AI Act Art. 12 / Art. 26) -->
+
+    <mapper resource="org/cibseven/bpm/engine/impl/mapping/entity/AgentAuditHistoryEvent.xml" />
+
 	</mappers>
 </configuration>
