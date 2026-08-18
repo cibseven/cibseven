@@ -180,6 +180,7 @@ public final class BpmnModelConstants {
   public static final String BPMN_ELEMENT_RENDERING = "rendering";
   public static final String BPMN_ELEMENT_BOUNDARY_EVENT = "boundaryEvent";
   public static final String BPMN_ELEMENT_SUB_PROCESS = "subProcess";
+  public static final String BPMN_ELEMENT_AD_HOC_SUB_PROCESS = "adHocSubProcess";
   public static final String BPMN_ELEMENT_TRANSACTION = "transaction";
   public static final String BPMN_ELEMENT_GATEWAY = "gateway";
   public static final String BPMN_ELEMENT_PARALLEL_GATEWAY = "parallelGateway";
@@ -375,6 +376,8 @@ public final class BpmnModelConstants {
   public static final String BPMN_ATTRIBUTE_DATA_OBJECT_REF = "dataObjectRef";
   public static final String BPMN_ATTRIBUTE_DATA_STORE_REF = "dataStoreRef";
   public static final String BPMN_ATTRIBUTE_METHOD = "method";
+  public static final String BPMN_ATTRIBUTE_ORDERING = "ordering";
+  public static final String BPMN_ATTRIBUTE_CANCEL_REMAINING_INSTANCES = "cancelRemainingInstances";
   public static final String BPMN_ATTRIBUTE_CAPACITY = "capacity";
   public static final String BPMN_ATTRIBUTE_IS_UNLIMITED = "isUnlimited";
   public static final String BPMN_ATTRIBUTE_CATEGORY_VALUE_REF = "categoryValueRef";
