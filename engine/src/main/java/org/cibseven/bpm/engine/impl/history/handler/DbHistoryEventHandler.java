@@ -141,16 +141,11 @@ public class DbHistoryEventHandler implements HistoryEventHandler {
   }
 
   /**
-   * <p>Customized insert behavior for {@link AgentAuditHistoryEventEntity}.</p>
+   * <p>Customized insert behavior for {@link AgentAuditHistoryEventEntity}. Audit entries are
+   * append-only, so this inserts directly instead of using the insert-or-update path.</p>
    *
-   * <p>Audit entries are append-only — an entry is never revisited after insertion — so this
-   * bypasses the insert-or-update path used by entities that have a lifecycle.</p>
-   *
-   * <p>The unbounded part of the audit payload (message history, tool inventory, tool calls)
-   * is stored as a byte array in {@code ACT_GE_BYTEARRAY} and referenced from the audit row,
-   * mirroring how historic variable values are handled. An inline column is not viable: the
-   * agent's system prompt alone exceeds the 4000-character {@code varchar} limit shared by all
-   * supported databases.</p>
+   * <p>The unbounded part of the payload is stored as a byte array: the agent's system prompt
+   * alone exceeds the 4000-character {@code varchar} limit shared by all supported databases.</p>
    */
   protected void insertAgentAuditHistoryEvent(AgentAuditHistoryEventEntity historyEvent) {
     DbEntityManager dbEntityManager = getDbEntityManager();

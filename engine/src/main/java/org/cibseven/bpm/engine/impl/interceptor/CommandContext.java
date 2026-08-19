@@ -72,6 +72,7 @@ import org.cibseven.bpm.engine.impl.persistence.entity.HistoricCaseInstanceManag
 import org.cibseven.bpm.engine.impl.persistence.entity.HistoricDetailManager;
 import org.cibseven.bpm.engine.impl.persistence.entity.HistoricExternalTaskLogManager;
 import org.cibseven.bpm.engine.impl.persistence.entity.HistoricIdentityLinkLogManager;
+import org.cibseven.bpm.engine.impl.persistence.entity.AgentAuditManager;
 import org.cibseven.bpm.engine.impl.persistence.entity.HistoricIncidentManager;
 import org.cibseven.bpm.engine.impl.persistence.entity.HistoricJobLogManager;
 import org.cibseven.bpm.engine.impl.persistence.entity.HistoricProcessInstanceManager;
@@ -370,6 +371,10 @@ public class CommandContext {
 
   public HistoricTaskInstanceManager getHistoricTaskInstanceManager() {
     return getSession(HistoricTaskInstanceManager.class);
+  }
+
+  public AgentAuditManager getAgentAuditManager() {
+    return getSession(AgentAuditManager.class);
   }
 
   public HistoricIncidentManager getHistoricIncidentManager() {

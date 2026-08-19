@@ -860,21 +860,13 @@ class AgentChatListener implements ChatModelListener {
   }
 
   /**
-   * Emits one {@link AgentAuditHistoryEventEntity} through the engine's history event handler,
-   * where the default {@code DbHistoryEventHandler} writes it to {@code ACT_HI_AGENT_AUDIT}.
-   * A deployer who has registered additional handlers receives it there as well.
+   * Emits one {@link AgentAuditHistoryEventEntity} into the engine's history event handler chain,
+   * where {@code DbHistoryEventHandler} writes it to {@code ACT_HI_AGENT_AUDIT}.
    *
-   * <h3>History level</h3>
-   * <p>Gated on {@link HistoryEventTypes#AGENT_AUDIT} so the audit trail honours the configured
-   * history level like every other history event — it is produced from level {@code audit}
-   * upwards and suppressed below that.</p>
-   *
-   * <h3>Failure policy</h3>
-   * <p>Building the event is guarded and <em>fail-open</em>: a defect in this bookkeeping path is
-   * logged and the entry is dropped, but the surrounding engine command, and with it the business
-   * process, continues. Handing the event to the handler chain is deliberately not guarded — a
-   * deployer-supplied handler may choose fail-closed semantics and must be able to abort the
-   * transaction.</p>
+   * <p>Building the event is guarded and fail-open: a defect in this bookkeeping path is logged
+   * and the entry dropped, but the business process continues. Handing the event to the handler
+   * chain is deliberately not guarded, so a deployer-supplied handler can still choose
+   * fail-closed semantics and abort the transaction.</p>
    */
   private void emitHistoryEvent(Map<String, Object> event) {
     ProcessEngineConfigurationImpl configuration = Context.getProcessEngineConfiguration();

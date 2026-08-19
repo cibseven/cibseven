@@ -1,109 +1,70 @@
 /*
- * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH
+ * Copyright CIB software GmbH and/or licensed to CIB software GmbH
  * under one or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information regarding copyright
- * ownership. Camunda licenses this file to you under the Apache License,
+ * ownership. CIB software licenses this file to you under the Apache License,
  * Version 2.0; you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 package org.cibseven.bpm.engine.impl.history.event;
 
 import java.util.Date;
 
 /**
- * History event carrying one audit entry of an AI agent activity, as required by
- * EU AI Act Art. 12 (record-keeping) and Art. 26 (deployer obligations).
+ * One audit entry of an AI agent activity, stored in {@code ACT_HI_AGENT_AUDIT}.
  *
- * <p>One instance is emitted per LLM request, response, error and retrieval. All four
- * share the single history event type {@link HistoryEventTypes#AGENT_AUDIT}; which of
- * them it is, is carried in {@link #auditType}. That keeps one entity and one table
- * ({@code ACT_HI_AGENT_AUDIT}) for the whole audit stream.</p>
+ * <p>Request, response, error and retrieval entries all share the single event type
+ * {@link HistoryEventTypes#AGENT_AUDIT}; which one it is, is carried in {@link #auditType}.</p>
  *
- * <h3>Field layout</h3>
- * <p>Scalar fields that an auditor or operator would filter on — {@code runId},
- * {@code auditType}, {@code provider}, {@code model}, {@code finishReason},
- * {@code userId}, {@code errorClass} — are individual columns so they are reachable
- * with plain SQL. The unbounded parts of the audit payload (the message history, the
- * tool inventory and the tool calls) live in {@link #payload}, which is written to
- * {@code ACT_GE_BYTEARRAY} and referenced through {@link #payloadByteArrayId}. The
- * system prompt alone exceeds the 4000-character limit that all supported databases
- * share for {@code varchar}, so an inline column is not an option.</p>
- *
- * <p>Correlation fields ({@code processInstanceId}, {@code executionId},
- * {@code processDefinitionId}, {@code processDefinitionKey},
- * {@code rootProcessInstanceId}) and {@code removalTime} are inherited from
- * {@link HistoryEvent} and are not redeclared here.</p>
- *
- * <p>Audit entries are append-only: an instance is never updated after insertion, so
- * {@link org.cibseven.bpm.engine.impl.history.handler.DbHistoryEventHandler} inserts it
- * directly rather than going through the insert-or-update path used by entities that
- * have a lifecycle.</p>
- *
- * @since 2.3
+ * <p>Scalar fields are individual columns so they are reachable with plain SQL. The unbounded
+ * parts of the entry — message history, tool inventory, tool calls — go into {@link #payload},
+ * which is written to {@code ACT_GE_BYTEARRAY}: the agent system prompt alone exceeds the
+ * 4000-character {@code varchar} limit shared by all supported databases.</p>
  */
 public class AgentAuditHistoryEventEntity extends HistoryEvent {
 
   private static final long serialVersionUID = 1L;
 
-  /** Wall-clock time at which the audited interaction occurred. */
   protected Date timestamp;
-
   protected String tenantId;
-
-  /** Id of the BPMN activity the agent runs in. */
   protected String activityId;
-
-  /** Version of the audit payload schema, so consumers can adapt to changes. */
   protected int schemaVersion;
 
-  /** Kind of audit entry: {@code request}, {@code response}, {@code error} or {@code retrieval}. */
+  /** One of {@code request}, {@code response}, {@code error}, {@code retrieval}. */
   protected String auditType;
 
-  /** Correlates all entries belonging to one agent invocation. */
+  /** Correlates all entries of one agent invocation; {@link #eventSeq} orders them within it. */
   protected String runId;
-
-  /** Monotonic sequence number of this entry within {@link #runId}. */
   protected int eventSeq;
 
-  /** LLM provider as reported by the chat model, e.g. {@code OPEN_AI}. */
   protected String provider;
-
-  /** Model name or provider-reported snapshot used for this turn. */
   protected String model;
-
-  /** Provider-assigned response identifier, when reported. */
   protected String responseId;
-
-  /** Endpoint the request was sent to — relevant for data-residency questions. */
   protected String endpoint;
-
-  /** Engine user on whose behalf the agent ran, when an authentication was present. */
   protected String userId;
 
-  /** Comma-separated group ids of {@link #userId}. */
+  /** Comma-separated. */
   protected String groupIds;
 
-  /** Provider-reported reason the turn ended, e.g. {@code STOP}, {@code CONTENT_FILTER}. */
   protected String finishReason;
 
-  /** Duration of the LLM call in milliseconds; {@code null} on request events. */
+  /** {@code null} on request entries, which have not completed yet. */
   protected Long durationMs;
 
-  /** Class name of the failure on error events; {@code null} otherwise. */
   protected String errorClass;
 
-  /** Model invocation parameters as JSON (temperature, topP, maxTokens, seed, ...). */
+  /** JSON. */
   protected String modelParams;
 
-  /** Full audit payload as JSON, including message history, tools and tool calls. */
+  /** The complete entry as JSON, including message history, tools and tool calls. */
   protected byte[] payload;
 
   /** Reference into {@code ACT_GE_BYTEARRAY} holding {@link #payload}. */

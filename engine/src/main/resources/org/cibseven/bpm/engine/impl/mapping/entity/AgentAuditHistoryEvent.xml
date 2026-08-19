@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
 
-    Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH
+    Copyright CIB software GmbH and/or licensed to CIB software GmbH
     under one or more contributor license agreements. See the NOTICE file
     distributed with this work for additional information regarding copyright
-    ownership. Camunda licenses this file to you under the Apache License,
+    ownership. CIB software licenses this file to you under the Apache License,
     Version 2.0; you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
@@ -93,6 +93,31 @@
       <include refid="org.cibseven.bpm.engine.impl.persistence.entity.Commons.applyInForPaginatedCollection"/>
   </delete>
 
+  <!-- Must run before the rows themselves are deleted, otherwise the payloads are orphaned. -->
+  <delete id="deleteAgentAuditByteArraysByProcessInstanceIds">
+    delete from ${prefix}ACT_GE_BYTEARRAY
+    where ID_ in (
+      select DISTINCT PAYLOAD_BYTEARRAY_ID_
+      from ${prefix}ACT_HI_AGENT_AUDIT
+      where PAYLOAD_BYTEARRAY_ID_ is not NULL
+      and
+        <bind name="listOfIds" value="list"/>
+        <bind name="fieldName" value="'PROC_INST_ID_'"/>
+        <include refid="org.cibseven.bpm.engine.impl.persistence.entity.Commons.applyInForPaginatedCollection"/>
+    )
+  </delete>
+
+  <delete id="deleteAgentAuditByteArraysByProcessInstanceIds_mysql">
+    delete B from ${prefix}ACT_GE_BYTEARRAY B
+    inner join ${prefix}ACT_HI_AGENT_AUDIT A
+      on B.ID_ = A.PAYLOAD_BYTEARRAY_ID_
+    where A.PAYLOAD_BYTEARRAY_ID_ is not NULL
+    and
+      <bind name="listOfIds" value="list"/>
+      <bind name="fieldName" value="'A.PROC_INST_ID_'"/>
+      <include refid="org.cibseven.bpm.engine.impl.persistence.entity.Commons.applyInForPaginatedCollection"/>
+  </delete>
+
   <!-- AGENT AUDIT RESULTMAP -->
 
   <resultMap id="agentAuditHistoryEventResultMap" type="org.cibseven.bpm.engine.impl.history.event.AgentAuditHistoryEventEntity">
@@ -140,5 +165,194 @@
     where PROC_INST_ID_ = #{processInstanceId}
     order by TIMESTAMP_ asc, EVENT_SEQ_ asc
   </select>
+
+  <!-- AGENT AUDIT UPDATE REMOVAL TIME -->
+
+  <update id="updateAgentAuditByRootProcessInstanceId"
+          parameterType="java.util.Map">
+    update
+    <if test="maxResults != null">
+      ${limitBeforeWithoutOffset}
+    </if>
+    ${prefix}ACT_HI_AGENT_AUDIT set
+    REMOVAL_TIME_ = #{removalTime, jdbcType=TIMESTAMP}
+
+    where ROOT_PROC_INST_ID_ = #{rootProcessInstanceId, jdbcType=VARCHAR}
+    <if test="maxResults != null">
+      and (REMOVAL_TIME_ is null or REMOVAL_TIME_ != #{removalTime, jdbcType=TIMESTAMP})
+      ${limitAfterWithoutOffset}
+    </if>
+  </update>
+
+  <update id="updateAgentAuditByRootProcessInstanceId_postgres"
+          parameterType="java.util.Map">
+    update ${prefix}ACT_HI_AGENT_AUDIT set
+    REMOVAL_TIME_ = #{removalTime, jdbcType=TIMESTAMP}
+    <if test="maxResults != null">
+      ${limitBeforeInUpdate} ${prefix}ACT_HI_AGENT_AUDIT
+    </if>
+
+    where ROOT_PROC_INST_ID_ = #{rootProcessInstanceId, jdbcType=VARCHAR}
+    <if test="maxResults != null">
+      and (REMOVAL_TIME_ is null or REMOVAL_TIME_ != #{removalTime, jdbcType=TIMESTAMP})
+      ${limitAfterInUpdate}
+    </if>
+  </update>
+
+  <update id="updateAgentAuditByRootProcessInstanceId_mssql"
+          parameterType="java.util.Map">
+    update
+    <if test="maxResults != null">
+      ${limitBeforeWithoutOffset}
+    </if>
+    RES set
+    RES.REMOVAL_TIME_ = #{removalTime, jdbcType=TIMESTAMP}
+    FROM ${prefix}ACT_HI_AGENT_AUDIT RES WITH (FORCESEEK)
+    where RES.ROOT_PROC_INST_ID_ = #{rootProcessInstanceId, jdbcType=VARCHAR}
+    <if test="maxResults != null">
+      and (REMOVAL_TIME_ is null or REMOVAL_TIME_ != #{removalTime, jdbcType=TIMESTAMP})
+      ${limitAfterWithoutOffset}
+    </if>
+  </update>
+
+  <update id="updateAgentAuditByRootProcessInstanceId_mysql"
+          parameterType="java.util.Map">
+    update ${prefix}ACT_HI_AGENT_AUDIT
+    <choose>
+      <when test="maxResults != null">
+        ${limitBeforeInUpdate} ${prefix}ACT_HI_AGENT_AUDIT
+      </when>
+      <otherwise>
+        set REMOVAL_TIME_ = #{removalTime, jdbcType=TIMESTAMP},
+            TIMESTAMP_ = TIMESTAMP_
+      </otherwise>
+    </choose>
+
+    where ROOT_PROC_INST_ID_ = #{rootProcessInstanceId, jdbcType=VARCHAR}
+    <if test="maxResults != null">
+      and (REMOVAL_TIME_ is null or REMOVAL_TIME_ != #{removalTime, jdbcType=TIMESTAMP})
+      ${limitAfterInUpdate}
+      set REMOVAL_TIME_ = #{removalTime, jdbcType=TIMESTAMP},
+          TIMESTAMP_ = TIMESTAMP_
+    </if>
+  </update>
+
+  <update id="updateAgentAuditByProcessInstanceId"
+          parameterType="java.util.Map">
+    update
+    <if test="maxResults != null">
+      ${limitBeforeWithoutOffset}
+    </if>
+    ${prefix}ACT_HI_AGENT_AUDIT
+      set REMOVAL_TIME_ = #{removalTime, jdbcType=TIMESTAMP}
+      where PROC_INST_ID_ = #{processInstanceId, jdbcType=VARCHAR}
+      <if test="maxResults != null">
+        and (REMOVAL_TIME_ is null or REMOVAL_TIME_ != #{removalTime, jdbcType=TIMESTAMP})
+        ${limitAfterWithoutOffset}
+      </if>
+  </update>
+
+  <update id="updateAgentAuditByProcessInstanceId_postgres"
+          parameterType="java.util.Map">
+    update ${prefix}ACT_HI_AGENT_AUDIT set
+    REMOVAL_TIME_ = #{removalTime, jdbcType=TIMESTAMP}
+    <if test="maxResults != null">
+      ${limitBeforeInUpdate} ${prefix}ACT_HI_AGENT_AUDIT
+    </if>
+
+    where PROC_INST_ID_ = #{processInstanceId, jdbcType=VARCHAR}
+    <if test="maxResults != null">
+      and (REMOVAL_TIME_ is null or REMOVAL_TIME_ != #{removalTime, jdbcType=TIMESTAMP})
+      ${limitAfterInUpdate}
+    </if>
+  </update>
+
+  <update id="updateAgentAuditByProcessInstanceId_mssql"
+          parameterType="java.util.Map">
+    update
+    <if test="maxResults != null">
+      ${limitBeforeWithoutOffset}
+    </if>
+    RES set
+    RES.REMOVAL_TIME_ = #{removalTime, jdbcType=TIMESTAMP}
+    FROM ${prefix}ACT_HI_AGENT_AUDIT RES WITH (FORCESEEK)
+    where RES.PROC_INST_ID_ = #{processInstanceId, jdbcType=VARCHAR}
+    <if test="maxResults != null">
+      and (REMOVAL_TIME_ is null or REMOVAL_TIME_ != #{removalTime, jdbcType=TIMESTAMP})
+      ${limitAfterWithoutOffset}
+    </if>
+  </update>
+
+  <update id="updateAgentAuditByProcessInstanceId_mysql"
+          parameterType="java.util.Map">
+    update ${prefix}ACT_HI_AGENT_AUDIT
+    <choose>
+      <when test="maxResults != null">
+        ${limitBeforeInUpdate} ${prefix}ACT_HI_AGENT_AUDIT
+      </when>
+      <otherwise>
+        set REMOVAL_TIME_ = #{removalTime, jdbcType=TIMESTAMP},
+            TIMESTAMP_ = TIMESTAMP_
+      </otherwise>
+    </choose>
+
+    where PROC_INST_ID_ = #{processInstanceId, jdbcType=VARCHAR}
+    <if test="maxResults != null">
+      and (REMOVAL_TIME_ is null or REMOVAL_TIME_ != #{removalTime, jdbcType=TIMESTAMP})
+      ${limitAfterInUpdate}
+      set REMOVAL_TIME_ = #{removalTime, jdbcType=TIMESTAMP},
+          TIMESTAMP_ = TIMESTAMP_
+    </if>
+  </update>
+
+  <!-- AGENT AUDIT DELETE BY REMOVAL TIME -->
+
+  <!-- Restricts a parallel cleanup job to its slice of the hour; renders empty when a single
+       job owns all 60 minutes, so no redundant function call lands on the indexed column. -->
+  <sql id="andWhereMinuteInDateBetweenSql">
+    <if test="parameter.minuteFrom != null and parameter.minuteTo != null">
+      AND ${datepart1}<include refid="org.cibseven.bpm.engine.impl.persistence.entity.Commons.periodUnitFunction"/>${datepart2}${date}${datepart3}
+      between #{parameter.minuteFrom, jdbcType=INTEGER} and #{parameter.minuteTo, jdbcType=INTEGER}
+    </if>
+  </sql>
+
+  <sql id="andWhereMinuteInDateBetweenSql_oracle">
+    <if test="parameter.minuteFrom != null and parameter.minuteTo != null">
+      AND ${datepart1}${date}${datepart2}<include refid="org.cibseven.bpm.engine.impl.persistence.entity.Commons.periodUnitFunction"/>${datepart3}
+      between #{parameter.minuteFrom, jdbcType=INTEGER} and #{parameter.minuteTo, jdbcType=INTEGER}
+    </if>
+  </sql>
+
+  <delete id="deleteAgentAuditByRemovalTime"
+          parameterType="org.cibseven.bpm.engine.impl.db.ListQueryParameterObject">
+    <bind name="date" value="'REMOVAL_TIME_'"/>
+    <bind name="reportPeriodUnitName" value="'MINUTE'"/>
+    delete ${limitBeforeWithoutOffset} from ${prefix}ACT_HI_AGENT_AUDIT
+    where REMOVAL_TIME_ &lt;= #{parameter.removalTime}
+    <include refid="andWhereMinuteInDateBetweenSql"/>
+    ${limitAfterWithoutOffset}
+  </delete>
+
+  <delete id="deleteAgentAuditByRemovalTime_oracle"
+          parameterType="org.cibseven.bpm.engine.impl.db.ListQueryParameterObject">
+    <bind name="date" value="'REMOVAL_TIME_'"/>
+    <bind name="reportPeriodUnitName" value="'MINUTE'"/>
+    delete ${limitBeforeWithoutOffset} from ${prefix}ACT_HI_AGENT_AUDIT
+    where REMOVAL_TIME_ &lt;= #{parameter.removalTime}
+    <include refid="andWhereMinuteInDateBetweenSql_oracle"/>
+    ${limitAfterWithoutOffset}
+  </delete>
+
+  <delete id="deleteAgentAuditByRemovalTime_postgres_or_db2"
+          parameterType="org.cibseven.bpm.engine.impl.db.ListQueryParameterObject">
+    <bind name="date" value="'REMOVAL_TIME_'"/>
+    <bind name="reportPeriodUnitName" value="'MINUTE'"/>
+    delete ${limitBeforeWithoutOffset} from ${prefix}ACT_HI_AGENT_AUDIT
+    where ID_ IN
+      (SELECT ID_
+       FROM ${prefix}ACT_HI_AGENT_AUDIT
+       WHERE REMOVAL_TIME_ &lt;= #{parameter.removalTime} <include refid="andWhereMinuteInDateBetweenSql"/>
+       ${limitAfterWithoutOffset})
+  </delete>
 
 </mapper>

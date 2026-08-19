@@ -311,6 +311,7 @@ import org.cibseven.bpm.engine.impl.persistence.entity.HistoricCaseInstanceManag
 import org.cibseven.bpm.engine.impl.persistence.entity.HistoricDetailManager;
 import org.cibseven.bpm.engine.impl.persistence.entity.HistoricExternalTaskLogManager;
 import org.cibseven.bpm.engine.impl.persistence.entity.HistoricIdentityLinkLogManager;
+import org.cibseven.bpm.engine.impl.persistence.entity.AgentAuditManager;
 import org.cibseven.bpm.engine.impl.persistence.entity.HistoricIncidentManager;
 import org.cibseven.bpm.engine.impl.persistence.entity.HistoricJobLogManager;
 import org.cibseven.bpm.engine.impl.persistence.entity.HistoricProcessInstanceManager;
@@ -2033,6 +2034,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
       addSessionFactory(new GenericManagerFactory(HistoricTaskInstanceManager.class));
       addSessionFactory(new GenericManagerFactory(HistoricVariableInstanceManager.class));
       addSessionFactory(new GenericManagerFactory(HistoricIncidentManager.class));
+      addSessionFactory(new GenericManagerFactory(AgentAuditManager.class));
       addSessionFactory(new GenericManagerFactory(HistoricIdentityLinkLogManager.class));
       addSessionFactory(new GenericManagerFactory(HistoricJobLogManager.class));
       addSessionFactory(new GenericManagerFactory(HistoricExternalTaskLogManager.class));

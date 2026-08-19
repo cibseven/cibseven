@@ -1,8 +1,8 @@
 /*
- * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH
+ * Copyright CIB software GmbH and/or licensed to CIB software GmbH
  * under one or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information regarding copyright
- * ownership. Camunda licenses this file to you under the Apache License,
+ * ownership. CIB software licenses this file to you under the Apache License,
  * Version 2.0; you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -37,10 +37,10 @@ import org.junit.Rule;
 import org.junit.Test;
 
 /**
- * Verifies the persistence path of {@link AgentAuditHistoryEventEntity}: that the MyBatis
- * statement name derived from the class name resolves, that the row lands in
- * {@code ACT_HI_AGENT_AUDIT} with its typed columns, and that the unbounded payload is stored
- * as a byte array and read back intact.
+ * Verifies that the MyBatis statement name derived from
+ * {@link AgentAuditHistoryEventEntity}'s class name resolves, that the row lands in
+ * {@code ACT_HI_AGENT_AUDIT} with its typed columns, and that the payload survives the
+ * round trip through {@code ACT_GE_BYTEARRAY}.
  */
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class AgentAuditHistoryEventTest {

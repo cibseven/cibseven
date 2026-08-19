@@ -33,6 +33,7 @@ import org.cibseven.bpm.engine.impl.db.DbEntity;
 import org.cibseven.bpm.engine.impl.db.ListQueryParameterObject;
 import org.cibseven.bpm.engine.impl.db.entitymanager.operation.DbOperation;
 import org.cibseven.bpm.engine.impl.db.sql.DbSqlSessionFactory;
+import org.cibseven.bpm.engine.impl.history.event.AgentAuditHistoryEventEntity;
 import org.cibseven.bpm.engine.impl.history.event.HistoricActivityInstanceEventEntity;
 import org.cibseven.bpm.engine.impl.history.event.HistoricDetailEventEntity;
 import org.cibseven.bpm.engine.impl.history.event.HistoricExternalTaskLogEntity;
@@ -94,6 +95,7 @@ public class HistoricProcessInstanceManager extends AbstractHistoricManager {
         commandContext.getHistoricIncidentManager().deleteHistoricIncidentsByProcessInstanceIds(partition);
         commandContext.getHistoricJobLogManager().deleteHistoricJobLogsByProcessInstanceIds(partition);
         commandContext.getHistoricExternalTaskLogManager().deleteHistoricExternalTaskLogsByProcessInstanceIds(partition);
+        commandContext.getAgentAuditManager().deleteAgentAuditByProcessInstanceIds(partition);
         commandContext.getAuthorizationManager().deleteAuthorizationsByResourceIds(Resources.HISTORIC_PROCESS_INSTANCE, partition);
 
         commandContext.getDbEntityManager().deletePreserveOrder(HistoricProcessInstanceEntity.class, "deleteHistoricProcessInstances", partition);
@@ -253,6 +255,12 @@ public class HistoricProcessInstanceManager extends AbstractHistoricManager {
           updateOperations);
     }
 
+    if (isPerformUpdate(entities, AgentAuditHistoryEventEntity.class)) {
+      addOperation(commandContext.getAgentAuditManager()
+          .addRemovalTimeToAgentAuditByRootProcessInstanceId(rootProcessInstanceId, removalTime, batchSize),
+          updateOperations);
+    }
+
     if (isEnableHistoricInstancePermissions() && isPerformUpdate(entities, AuthorizationEntity.class)) {
       addOperation(commandContext.getAuthorizationManager()
           .addRemovalTimeToAuthorizationsByRootProcessInstanceId(rootProcessInstanceId, removalTime, batchSize),
@@ -353,6 +361,12 @@ public class HistoricProcessInstanceManager extends AbstractHistoricManager {
           updateOperations);
     }
 
+    if (isPerformUpdate(entities, AgentAuditHistoryEventEntity.class)) {
+      addOperation(commandContext.getAgentAuditManager()
+          .addRemovalTimeToAgentAuditByProcessInstanceId(processInstanceId, removalTime, batchSize),
+          updateOperations);
+    }
+
     if (isEnableHistoricInstancePermissions() && isPerformUpdate(entities, AuthorizationEntity.class)) {
       addOperation(commandContext.getAuthorizationManager()
           .addRemovalTimeToAuthorizationsByProcessInstanceId(processInstanceId, removalTime, batchSize),
@@ -432,6 +446,12 @@ public class HistoricProcessInstanceManager extends AbstractHistoricManager {
       .deleteAttachmentsByRemovalTime(removalTime, minuteFrom, minuteTo, batchSize);
 
     deleteOperations.put(deleteAttachments.getEntityType(), deleteAttachments);
+
+    // before the byte arrays: an audit row must never outlive the payload it points at
+    DbOperation deleteAgentAudit = commandContext.getAgentAuditManager()
+      .deleteAgentAuditByRemovalTime(removalTime, minuteFrom, minuteTo, batchSize);
+
+    deleteOperations.put(deleteAgentAudit.getEntityType(), deleteAgentAudit);
 
     DbOperation deleteByteArrays = commandContext.getByteArrayManager()
       .deleteByteArraysByRemovalTime(removalTime, minuteFrom, minuteTo, batchSize);

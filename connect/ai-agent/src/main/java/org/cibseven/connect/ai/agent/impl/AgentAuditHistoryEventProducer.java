@@ -30,22 +30,17 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.history.event.AgentAuditHistoryEventEntity;
+import org.cibseven.bpm.engine.impl.history.event.HistoricProcessInstanceEventEntity;
 import org.cibseven.bpm.engine.impl.history.event.HistoryEventTypes;
 
 /**
- * Builds {@link AgentAuditHistoryEventEntity} instances from the structured audit events that
+ * Builds {@link AgentAuditHistoryEventEntity} instances from the audit events that
  * {@code AgentChatListener} assembles for its chat log.
  *
- * <p>Kept separate from the listener so the mapping from payload map to history entity can be
- * tested on its own, and so other producers of audit events — for example the retrieval audit
- * path in {@code AgentConnectorImpl} — can reuse it.</p>
- *
- * <p>Scalar fields an auditor would filter on are lifted out of the map into typed columns; the
- * complete map is additionally serialised into {@link AgentAuditHistoryEventEntity#getPayload()}
- * so nothing is lost, including the message history, tool inventory and tool calls.</p>
- *
- * @see AgentAuditHistoryEventEntity
+ * <p>Scalar fields are lifted into typed columns; the complete map is additionally serialised
+ * into the entity's payload, so nothing is lost.</p>
  */
 class AgentAuditHistoryEventProducer {
 
@@ -54,18 +49,11 @@ class AgentAuditHistoryEventProducer {
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   /**
-   * Builds one audit history event.
+   * The entity's {@code id} is left unset — the engine assigns one from its id generator on
+   * insert, keeping audit rows consistent with every other history entity.
    *
-   * <p>The {@code id} is deliberately left unset: the engine's {@code DbEntityManager} assigns
-   * one from the configured id generator on insert, which keeps the audit rows consistent with
-   * every other history entity.</p>
-   *
-   * @param event                 the audit event payload as assembled by the listener
-   * @param rootProcessInstanceId root process instance, needed so the payload byte array is
-   *                              cleaned up together with the rest of the instance's history;
-   *                              may be {@code null} outside a process context
-   * @return the history event, never {@code null}
-   * @throws JsonProcessingException if the payload cannot be serialised
+   * @param rootProcessInstanceId needed so the payload byte array is removed together with the
+   *                              rest of the instance history; {@code null} outside a process
    */
   AgentAuditHistoryEventEntity createAgentAuditEvent(Map<String, Object> event,
                                                      String rootProcessInstanceId)
@@ -104,7 +92,30 @@ class AgentAuditHistoryEventProducer {
 
     entity.setPayload(MAPPER.writeValueAsString(event).getBytes(StandardCharsets.UTF_8));
 
+    provideRemovalTime(entity);
+
     return entity;
+  }
+
+  /**
+   * Copies the removal time from the historic root process instance, mirroring
+   * {@code DefaultHistoryEventProducer}. Under the {@code end} strategy the root instance has no
+   * removal time yet, so this leaves the field null and
+   * {@code HistoricProcessInstanceManager} stamps it once the instance finishes.
+   */
+  private static void provideRemovalTime(AgentAuditHistoryEventEntity entity) {
+    String rootProcessInstanceId = entity.getRootProcessInstanceId();
+    if (rootProcessInstanceId == null) {
+      return;
+    }
+
+    HistoricProcessInstanceEventEntity root = Context.getCommandContext()
+        .getDbEntityManager()
+        .selectById(HistoricProcessInstanceEventEntity.class, rootProcessInstanceId);
+
+    if (root != null) {
+      entity.setRemovalTime(root.getRemovalTime());
+    }
   }
 
   private static String readString(Map<String, Object> event, String key) {
@@ -122,10 +133,7 @@ class AgentAuditHistoryEventProducer {
     return value instanceof Number ? ((Number) value).longValue() : null;
   }
 
-  /**
-   * Joins a collection-valued field into a comma-separated string so it fits one column.
-   * Tolerates a plain string, which is what a single-valued entry deserialises to.
-   */
+  /** Tolerates a plain string, which is what a single-valued entry deserialises to. */
   private static String readJoined(Map<String, Object> event, String key) {
     Object value = event.get(key);
     if (value == null) {
@@ -139,7 +147,6 @@ class AgentAuditHistoryEventProducer {
     return value.toString();
   }
 
-  /** Re-serialises a nested structure so it can be stored in a single text column. */
   private static String readJson(Map<String, Object> event, String key) {
     Object value = event.get(key);
     if (value == null) {
@@ -148,17 +155,13 @@ class AgentAuditHistoryEventProducer {
     try {
       return MAPPER.writeValueAsString(value);
     } catch (JsonProcessingException e) {
-      LOG.warn("Could not serialise audit field '{}'; the field is omitted from its column but "
-          + "remains present in the payload.", key, e);
+      LOG.warn("Could not serialise audit field '{}'; it is omitted from its column but remains "
+          + "present in the payload.", key, e);
       return null;
     }
   }
 
-  /**
-   * Reads the ISO-8601 timestamp the listener stamped on the event. Falls back to the current
-   * time so a malformed value never costs the whole audit entry — the column is
-   * {@code not null}.
-   */
+  /** Falls back to the current time: the column is {@code not null}. */
   private static Date readTimestamp(Map<String, Object> event) {
     Object value = event.get("timestamp");
     if (value != null) {

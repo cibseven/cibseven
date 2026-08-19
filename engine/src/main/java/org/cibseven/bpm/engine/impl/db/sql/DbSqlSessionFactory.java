@@ -262,6 +262,7 @@ public class DbSqlSessionFactory implements SessionFactory {
       addDatabaseSpecificStatement(mysqlLikeDatabase, "deleteHistoricDecisionOutputInstanceByteArraysByDecisionInstanceIds", "deleteHistoricDecisionOutputInstanceByteArraysByDecisionInstanceIds_mysql");
       addDatabaseSpecificStatement(mysqlLikeDatabase, "deleteHistoricVariableInstanceByIds", "deleteHistoricVariableInstanceByIds_mysql");
       addDatabaseSpecificStatement(mysqlLikeDatabase, "deleteHistoricVariableInstanceByteArraysByIds", "deleteHistoricVariableInstanceByteArraysByIds_mysql");
+      addDatabaseSpecificStatement(mysqlLikeDatabase, "deleteAgentAuditByteArraysByProcessInstanceIds", "deleteAgentAuditByteArraysByProcessInstanceIds_mysql");
       addDatabaseSpecificStatement(mysqlLikeDatabase, "deleteCommentsByIds", "deleteCommentsByIds_mysql");
       addDatabaseSpecificStatement(mysqlLikeDatabase, "deleteAttachmentByteArraysByIds", "deleteAttachmentByteArraysByIds_mysql");
       addDatabaseSpecificStatement(mysqlLikeDatabase, "deleteAttachmentByIds", "deleteAttachmentByIds_mysql");
@@ -272,6 +273,7 @@ public class DbSqlSessionFactory implements SessionFactory {
       addDatabaseSpecificStatement(mysqlLikeDatabase, "updateUserOperationLogByRootProcessInstanceId", "updateUserOperationLogByRootProcessInstanceId_mysql");
       addDatabaseSpecificStatement(mysqlLikeDatabase, "updateExternalTaskLogByRootProcessInstanceId", "updateExternalTaskLogByRootProcessInstanceId_mysql");
       addDatabaseSpecificStatement(mysqlLikeDatabase, "updateHistoricIncidentsByRootProcessInstanceId", "updateHistoricIncidentsByRootProcessInstanceId_mysql");
+      addDatabaseSpecificStatement(mysqlLikeDatabase, "updateAgentAuditByRootProcessInstanceId", "updateAgentAuditByRootProcessInstanceId_mysql");
       addDatabaseSpecificStatement(mysqlLikeDatabase, "updateHistoricIncidentsByBatchId", "updateHistoricIncidentsByBatchId_mysql");
       addDatabaseSpecificStatement(mysqlLikeDatabase, "updateIdentityLinkLogByRootProcessInstanceId", "updateIdentityLinkLogByRootProcessInstanceId_mysql");
 
@@ -279,6 +281,7 @@ public class DbSqlSessionFactory implements SessionFactory {
       addDatabaseSpecificStatement(mysqlLikeDatabase, "updateUserOperationLogByProcessInstanceId", "updateUserOperationLogByProcessInstanceId_mysql");
       addDatabaseSpecificStatement(mysqlLikeDatabase, "updateExternalTaskLogByProcessInstanceId", "updateExternalTaskLogByProcessInstanceId_mysql");
       addDatabaseSpecificStatement(mysqlLikeDatabase, "updateHistoricIncidentsByProcessInstanceId", "updateHistoricIncidentsByProcessInstanceId_mysql");
+      addDatabaseSpecificStatement(mysqlLikeDatabase, "updateAgentAuditByProcessInstanceId", "updateAgentAuditByProcessInstanceId_mysql");
       addDatabaseSpecificStatement(mysqlLikeDatabase, "updateIdentityLinkLogByProcessInstanceId", "updateIdentityLinkLogByProcessInstanceId_mysql");
 
       // related to CAM-10664
@@ -324,7 +327,9 @@ public class DbSqlSessionFactory implements SessionFactory {
       addDatabaseSpecificStatement(mysqlLikeDatabase, "updateIdentityLinkLogByRootProcessInstanceId", "updateIdentityLinkLogByRootProcessInstanceId_mysql");
       addDatabaseSpecificStatement(mysqlLikeDatabase, "updateIdentityLinkLogByProcessInstanceId", "updateIdentityLinkLogByProcessInstanceId_mysql");
       addDatabaseSpecificStatement(mysqlLikeDatabase, "updateHistoricIncidentsByRootProcessInstanceId", "updateHistoricIncidentsByRootProcessInstanceId_mysql");
+      addDatabaseSpecificStatement(mysqlLikeDatabase, "updateAgentAuditByRootProcessInstanceId", "updateAgentAuditByRootProcessInstanceId_mysql");
       addDatabaseSpecificStatement(mysqlLikeDatabase, "updateHistoricIncidentsByProcessInstanceId", "updateHistoricIncidentsByProcessInstanceId_mysql");
+      addDatabaseSpecificStatement(mysqlLikeDatabase, "updateAgentAuditByProcessInstanceId", "updateAgentAuditByProcessInstanceId_mysql");
       addDatabaseSpecificStatement(mysqlLikeDatabase, "updateUserOperationLogByRootProcessInstanceId", "updateUserOperationLogByRootProcessInstanceId_mysql");
       addDatabaseSpecificStatement(mysqlLikeDatabase, "updateUserOperationLogByProcessInstanceId", "updateUserOperationLogByProcessInstanceId_mysql");
 
@@ -427,6 +432,7 @@ public class DbSqlSessionFactory implements SessionFactory {
       addDatabaseSpecificStatement(postgresLikeDatabase, "deleteExternalTaskLogByRemovalTime", "deleteExternalTaskLogByRemovalTime_postgres_or_db2");
       addDatabaseSpecificStatement(postgresLikeDatabase, "deleteHistoricIdentityLinkLogByRemovalTime", "deleteHistoricIdentityLinkLogByRemovalTime_postgres_or_db2");
       addDatabaseSpecificStatement(postgresLikeDatabase, "deleteHistoricIncidentsByRemovalTime", "deleteHistoricIncidentsByRemovalTime_postgres_or_db2");
+      addDatabaseSpecificStatement(postgresLikeDatabase, "deleteAgentAuditByRemovalTime", "deleteAgentAuditByRemovalTime_postgres_or_db2");
       addDatabaseSpecificStatement(postgresLikeDatabase, "deleteJobLogByRemovalTime", "deleteJobLogByRemovalTime_postgres_or_db2");
       addDatabaseSpecificStatement(postgresLikeDatabase, "deleteHistoricProcessInstancesByRemovalTime", "deleteHistoricProcessInstancesByRemovalTime_postgres_or_db2");
       addDatabaseSpecificStatement(postgresLikeDatabase, "deleteHistoricTaskInstancesByRemovalTime", "deleteHistoricTaskInstancesByRemovalTime_postgres_or_db2");
@@ -474,7 +480,9 @@ public class DbSqlSessionFactory implements SessionFactory {
       addDatabaseSpecificStatement(postgresLikeDatabase, "updateIdentityLinkLogByRootProcessInstanceId", "updateIdentityLinkLogByRootProcessInstanceId_postgres");
       addDatabaseSpecificStatement(postgresLikeDatabase, "updateIdentityLinkLogByProcessInstanceId", "updateIdentityLinkLogByProcessInstanceId_postgres");
       addDatabaseSpecificStatement(postgresLikeDatabase, "updateHistoricIncidentsByRootProcessInstanceId", "updateHistoricIncidentsByRootProcessInstanceId_postgres");
+      addDatabaseSpecificStatement(postgresLikeDatabase, "updateAgentAuditByRootProcessInstanceId", "updateAgentAuditByRootProcessInstanceId_postgres");
       addDatabaseSpecificStatement(postgresLikeDatabase, "updateHistoricIncidentsByProcessInstanceId", "updateHistoricIncidentsByProcessInstanceId_postgres");
+      addDatabaseSpecificStatement(postgresLikeDatabase, "updateAgentAuditByProcessInstanceId", "updateAgentAuditByProcessInstanceId_postgres");
       addDatabaseSpecificStatement(postgresLikeDatabase, "updateUserOperationLogByRootProcessInstanceId", "updateUserOperationLogByRootProcessInstanceId_postgres");
       addDatabaseSpecificStatement(postgresLikeDatabase, "updateUserOperationLogByProcessInstanceId", "updateUserOperationLogByProcessInstanceId_postgres");
 
@@ -565,6 +573,7 @@ public class DbSqlSessionFactory implements SessionFactory {
     addDatabaseSpecificStatement(ORACLE, "deleteExternalTaskLogByRemovalTime", "deleteExternalTaskLogByRemovalTime_oracle");
     addDatabaseSpecificStatement(ORACLE, "deleteHistoricIdentityLinkLogByRemovalTime", "deleteHistoricIdentityLinkLogByRemovalTime_oracle");
     addDatabaseSpecificStatement(ORACLE, "deleteHistoricIncidentsByRemovalTime", "deleteHistoricIncidentsByRemovalTime_oracle");
+    addDatabaseSpecificStatement(ORACLE, "deleteAgentAuditByRemovalTime", "deleteAgentAuditByRemovalTime_oracle");
     addDatabaseSpecificStatement(ORACLE, "deleteJobLogByRemovalTime", "deleteJobLogByRemovalTime_oracle");
     addDatabaseSpecificStatement(ORACLE, "deleteHistoricProcessInstancesByRemovalTime", "deleteHistoricProcessInstancesByRemovalTime_oracle");
     addDatabaseSpecificStatement(ORACLE, "deleteHistoricTaskInstancesByRemovalTime", "deleteHistoricTaskInstancesByRemovalTime_oracle");
@@ -661,6 +670,7 @@ public class DbSqlSessionFactory implements SessionFactory {
     addDatabaseSpecificStatement(DB2, "deleteExternalTaskLogByRemovalTime", "deleteExternalTaskLogByRemovalTime_postgres_or_db2");
     addDatabaseSpecificStatement(DB2, "deleteHistoricIdentityLinkLogByRemovalTime", "deleteHistoricIdentityLinkLogByRemovalTime_postgres_or_db2");
     addDatabaseSpecificStatement(DB2, "deleteHistoricIncidentsByRemovalTime", "deleteHistoricIncidentsByRemovalTime_postgres_or_db2");
+    addDatabaseSpecificStatement(DB2, "deleteAgentAuditByRemovalTime", "deleteAgentAuditByRemovalTime_postgres_or_db2");
     addDatabaseSpecificStatement(DB2, "deleteJobLogByRemovalTime", "deleteJobLogByRemovalTime_postgres_or_db2");
     addDatabaseSpecificStatement(DB2, "deleteHistoricProcessInstancesByRemovalTime", "deleteHistoricProcessInstancesByRemovalTime_postgres_or_db2");
     addDatabaseSpecificStatement(DB2, "deleteHistoricTaskInstancesByRemovalTime", "deleteHistoricTaskInstancesByRemovalTime_postgres_or_db2");
@@ -787,7 +797,9 @@ public class DbSqlSessionFactory implements SessionFactory {
     addDatabaseSpecificStatement(MSSQL, "updateIdentityLinkLogByRootProcessInstanceId", "updateIdentityLinkLogByRootProcessInstanceId_mssql");
     addDatabaseSpecificStatement(MSSQL, "updateIdentityLinkLogByProcessInstanceId", "updateIdentityLinkLogByProcessInstanceId_mssql");
     addDatabaseSpecificStatement(MSSQL, "updateHistoricIncidentsByRootProcessInstanceId", "updateHistoricIncidentsByRootProcessInstanceId_mssql");
+    addDatabaseSpecificStatement(MSSQL, "updateAgentAuditByRootProcessInstanceId", "updateAgentAuditByRootProcessInstanceId_mssql");
     addDatabaseSpecificStatement(MSSQL, "updateHistoricIncidentsByProcessInstanceId", "updateHistoricIncidentsByProcessInstanceId_mssql");
+    addDatabaseSpecificStatement(MSSQL, "updateAgentAuditByProcessInstanceId", "updateAgentAuditByProcessInstanceId_mssql");
     addDatabaseSpecificStatement(MSSQL, "updateHistoricIncidentsByBatchId", "updateHistoricIncidentsByBatchId_mssql");
     addDatabaseSpecificStatement(MSSQL, "updateJobLogByRootProcessInstanceId", "updateJobLogByRootProcessInstanceId_mssql");
     addDatabaseSpecificStatement(MSSQL, "updateJobLogByProcessInstanceId", "updateJobLogByProcessInstanceId_mssql");
