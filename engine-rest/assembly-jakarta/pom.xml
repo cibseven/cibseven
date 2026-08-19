@@ -12,13 +12,6 @@
   </parent>
 
   <properties>
-    <!-- generate a bom of dependencies for the license book.
-    We include compile and provided scope dependencies;
-    all the dependencies that we include in only one of the
-    runtime-specific-WARs are in provided scope -->
-    <skip-third-party-bom>false</skip-third-party-bom>
-    <third-party-bom-scopes>compile|provided</third-party-bom-scopes>
-
     <version.resteasy>6.2.3.Final</version.resteasy>
   </properties>
 

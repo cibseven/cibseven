@@ -13,13 +13,6 @@
   <name>CIB seven - tomcat - AI Agent overlay</name>
   <packaging>pom</packaging>
 
-  <properties>
-    <!-- generate a bom of compile time dependencies for the license book.
-    Note: Every compile time dependency will end up in the license book. Please
-    declare only dependencies that are actually needed -->
-    <skip-third-party-bom>false</skip-third-party-bom>
-  </properties>
-
   <!-- CIB7-1426: langchain4j 1.16.3 transitively pulls jackson-core/databind 2.21.3
        (CVE-2026-54512 / CVE-2026-54513), fixed in 2.21.4. Tomcat is the ONLY distro
        where langchain4j's Jackson is authoritative on the runtime classpath: the
