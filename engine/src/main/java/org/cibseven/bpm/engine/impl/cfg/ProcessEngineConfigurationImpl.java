@@ -942,6 +942,13 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
    */
   protected boolean enableHistoricInstancePermissions = false;
 
+  /**
+   * Authorization checks on the task and process instance attachment commands are disabled by
+   * default. Enabling them is a behaviour change: callers that read or write attachments without
+   * holding a permission on the task or process instance start receiving an AuthorizationException.
+   */
+  protected boolean enforceAttachmentPermissions = false;
+
   protected boolean isUseSharedSqlSessionFactory = false;
 
   //History cleanup configuration
@@ -3471,6 +3478,15 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public boolean isEnableHistoricInstancePermissions() {
     return enableHistoricInstancePermissions;
+  }
+
+  public ProcessEngineConfigurationImpl setEnforceAttachmentPermissions(boolean enforce) {
+    this.enforceAttachmentPermissions = enforce;
+    return this;
+  }
+
+  public boolean isEnforceAttachmentPermissions() {
+    return enforceAttachmentPermissions;
   }
 
   public Map<String, JobHandler> getJobHandlers() {
