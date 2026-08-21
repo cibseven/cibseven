@@ -73,6 +73,86 @@ public class ProcessVariableChatMemoryStoreTest {
       try { Context.removeExecutionContext(); } catch (Exception ignored) { }
       pushedExecution = false;
     }
+    System.clearProperty(ProcessVariableChatMemoryStore.MAX_PAYLOAD_BYTES_PROPERTY);
+  }
+
+  // ── payload size guard ───────────────────────────────────────────────────
+
+  /**
+   * Without this guard an oversized window reaches the database and fails at
+   * transaction flush as a raw SQLException — DB2 caps the inline BLOB at 1 MB,
+   * MySQL/MariaDB at max_allowed_packet — leaving nothing in the trace that names
+   * the conversation responsible.
+   */
+  @Test
+  public void shouldRejectPayloadOverTheConfiguredLimit() {
+    ExecutionEntity execution = pushExecution();
+    System.setProperty(ProcessVariableChatMemoryStore.MAX_PAYLOAD_BYTES_PROPERTY, "200");
+
+    List<ChatMessage> tooBig = Arrays.asList(UserMessage.from(repeat('x', 500)));
+
+    assertThatThrownBy(() -> store.updateMessages(MEMORY_ID, tooBig))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("exceeds the 200-byte limit")
+        .hasMessageContaining(VARIABLE_NAME);
+
+    // Nothing must reach the database when the guard trips.
+    verify(execution, never()).setVariable(org.mockito.Matchers.anyString(),
+        org.mockito.Matchers.any());
+  }
+
+  @Test
+  public void shouldAcceptPayloadUnderTheConfiguredLimit() {
+    ExecutionEntity execution = pushExecution();
+    System.setProperty(ProcessVariableChatMemoryStore.MAX_PAYLOAD_BYTES_PROPERTY, "100000");
+
+    store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("kurz")));
+
+    verify(execution).setVariable(org.mockito.Matchers.eq(VARIABLE_NAME),
+        org.mockito.Matchers.any());
+  }
+
+  @Test
+  public void shouldSkipTheSizeGuardWhenLimitIsDisabled() {
+    ExecutionEntity execution = pushExecution();
+    System.setProperty(ProcessVariableChatMemoryStore.MAX_PAYLOAD_BYTES_PROPERTY, "0");
+
+    store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from(repeat('x', 5000))));
+
+    verify(execution).setVariable(org.mockito.Matchers.eq(VARIABLE_NAME),
+        org.mockito.Matchers.any());
+  }
+
+  @Test
+  public void shouldFallBackToTheDefaultLimitOnUnparseableConfiguration() {
+    ExecutionEntity execution = pushExecution();
+    System.setProperty(ProcessVariableChatMemoryStore.MAX_PAYLOAD_BYTES_PROPERTY, "nonsense");
+
+    // Falls back to the 1 MiB default rather than silently disabling the guard,
+    // so a small conversation still goes through.
+    store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("kurz")));
+
+    verify(execution).setVariable(org.mockito.Matchers.eq(VARIABLE_NAME),
+        org.mockito.Matchers.any());
+  }
+
+  // ── concurrent branch detection ──────────────────────────────────────────
+
+  /**
+   * A concurrent branch must still be able to write — the engine handles the
+   * contention via optimistic locking. The point of the check is that the
+   * condition is visible in the log, because the ensuing retry re-runs the whole
+   * service task and ProcessStarterTool's process starts are not rolled back.
+   */
+  @Test
+  public void shouldStillWriteFromAConcurrentBranch() {
+    ExecutionEntity execution = pushExecution();
+    when(execution.isConcurrent()).thenReturn(true);
+
+    store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("hi")));
+
+    verify(execution).setVariable(org.mockito.Matchers.eq(VARIABLE_NAME),
+        org.mockito.Matchers.any());
   }
 
   private ExecutionEntity pushExecution() {
