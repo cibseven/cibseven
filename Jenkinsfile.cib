@@ -468,7 +468,7 @@ pipeline {
                     // they can silently override parameters of unrelated plugins: if specific cyclonedx options are needed, 
                     // then add (or update) a pluginManagement entry for cyclonedx-maven-plugin in the root pom.xml instead.
                     String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
-                        "org.cyclonedx:cyclonedx-maven-plugin:makeBom org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
+                        "org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
 
                     withMaven(options: []) {
                         sh """
@@ -499,7 +499,7 @@ pipeline {
                 script {
                     // See "Deploy to artifacts.cibseven.org" above for details about the sbom generation.
                     String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
-                        "org.cyclonedx:cyclonedx-maven-plugin:makeBom org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
+                        "org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
 
                     withMaven(options: []) {
                         withCredentials([file(credentialsId: 'credential-cibseven-gpg-private-key', variable: 'GPG_KEY_FILE'), string(credentialsId: 'credential-cibseven-gpg-passphrase', variable: 'GPG_KEY_PASS')]) {
