@@ -478,6 +478,72 @@ pipeline {
                                 clean ${sbomGenerate} deploy
                         """
                     }
+
+                    // Generate and deploy additional aggregate SBOMs for shipped distro modules.
+                    if (!params.DEPLOY_WITHOUT_SBOM) {
+                        String sbomDeployRepositoryId = ""
+                        String sbomDeployRepositoryUrl = ""
+                        if (isPatchVersion()) {
+                            if (isSNAPSHOTVersion()) {
+                                sbomDeployRepositoryId = "mvn-cibseven-private"
+                                sbomDeployRepositoryUrl = "https://artifacts.cibseven.de/repository/private-snapshots"
+                            } else {
+                                sbomDeployRepositoryId = "mvn-cibseven-private"
+                                sbomDeployRepositoryUrl = "https://artifacts.cibseven.de/repository/private"
+                            }
+                        } else {
+                            String repository = isSNAPSHOTVersion() ? "snapshotRepository" : "repository"
+
+                            withMaven(options: []) {
+                                sbomDeployRepositoryId = sh(script: "mvn -q -f ${pipelineParams.pom} help:evaluate -Dexpression=project.distributionManagement.${repository}.id -DforceStdout", returnStdout: true).trim()
+                                sbomDeployRepositoryUrl = sh(script: "mvn -q -f ${pipelineParams.pom} help:evaluate -Dexpression=project.distributionManagement.${repository}.url -DforceStdout", returnStdout: true).trim()
+                            }
+                        }
+
+                        if (!sbomDeployRepositoryId || !sbomDeployRepositoryUrl ||
+                            sbomDeployRepositoryId.startsWith("project.") || sbomDeployRepositoryUrl.startsWith("project.")) {
+                            error "Cannot determine SBOM deploy repository from effective Maven distributionManagement"
+                        }
+
+                        // Additional CycloneDX aggregate SBOMs for shipped distro modules.
+                        def distroSbomProjects = ['distro/run', 'distro/run4', 'distro/tomcat', 'distro/wildfly', 'distro/wildfly28']
+
+                        // Each invocation uses a distinct -f path and -DoutputName, so they can
+                        // run concurrently without conflicting on the shared output directory.
+                        // Variables are captured per-iteration to avoid Groovy closure-capture issues.
+                        def parallelScans = [:]
+                        distroSbomProjects.each { relPath ->
+                            def capturedRelPath = relPath
+                            def capturedSbomBaseName = "${capturedRelPath.replace('/', '_')}_sbom"
+                            def capturedSbomDeployRepositoryId = sbomDeployRepositoryId
+                            def capturedSbomDeployRepositoryUrl = sbomDeployRepositoryUrl
+                            parallelScans[capturedRelPath] = {
+                                withMaven(options: []) {
+                                    sh "mvn -V -f ${capturedRelPath}/pom.xml org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom -DexcludeTestProject -DskipTests -DoutputName=${capturedSbomBaseName}"
+
+                                    def groupId = sh(script: "mvn -q -f ${capturedRelPath}/pom.xml help:evaluate -Dexpression=project.groupId -DforceStdout", returnStdout: true).trim()
+                                    def artifactId = sh(script: "mvn -q -f ${capturedRelPath}/pom.xml help:evaluate -Dexpression=project.artifactId -DforceStdout", returnStdout: true).trim()
+                                    def version = sh(script: "mvn -q -f ${capturedRelPath}/pom.xml help:evaluate -Dexpression=project.version -DforceStdout", returnStdout: true).trim()
+
+                                    ['json', 'xml'].each { format ->
+                                        sh """
+                                            mvn -V deploy:deploy-file \
+                                                -DgeneratePom=false \
+                                                -DgroupId=${groupId} \
+                                                -DartifactId=${artifactId} \
+                                                -Dversion=${version} \
+                                                -Dclassifier=aggregate-sbom \
+                                                -Dpackaging=${format} \
+                                                -Dfile=${capturedRelPath}/target/${capturedSbomBaseName}.${format} \
+                                                -DrepositoryId=${capturedSbomDeployRepositoryId} \
+                                                -Durl=${capturedSbomDeployRepositoryUrl}
+                                        """
+                                    }
+                                }
+                            }
+                        }
+                        parallel parallelScans
+                    }
                 }
             }
         }
