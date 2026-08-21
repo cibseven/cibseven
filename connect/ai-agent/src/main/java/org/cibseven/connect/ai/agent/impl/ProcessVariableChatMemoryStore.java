@@ -177,9 +177,12 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
    * payload is merely approaching the ceiling.
    *
    * <p>Failing here rather than at transaction flush is the whole point: the
-   * message names the conversation, its size and the two knobs that produce a
-   * large window, none of which is recoverable from the {@code SQLException} the
-   * database would otherwise raise.
+   * message names the conversation, its size and the levers an operator actually
+   * has, none of which is recoverable from the {@code SQLException} the database
+   * would otherwise raise. It deliberately does not suggest LangChain4j's
+   * {@code storeRetrievedContentInChatMemory}, which is a builder option in Java
+   * and not something a deployment can turn; the RAG cause is stated as context
+   * instead.
    */
   private static void checkPayloadSize(String variableName, String json, int messageCount) {
     int limit = maxPayloadBytes();
@@ -191,16 +194,16 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
       throw new AgentConnectorException(String.format(
           "Chat memory for variable '%s' is %d bytes over %d messages, which exceeds the %d-byte "
           + "limit. Writing it would fail at transaction flush as a database error. Reduce "
-          + "'chatMemoryMaxMessages', or switch off 'storeRetrievedContentInChatMemory' so RAG "
-          + "chunks are not persisted with every turn, or raise the limit via the system property "
-          + "'%s' if the database allows larger values.",
+          + "'chatMemoryMaxMessages', or raise the limit via the system property '%s' if the "
+          + "database allows larger values. Note that with RAG enabled each turn also persists "
+          + "the retrieved chunks, which is the usual reason a window grows this large.",
           variableName, size, messageCount, limit, MAX_PAYLOAD_BYTES_PROPERTY));
     }
     if (size > limit * PAYLOAD_WARN_RATIO && PAYLOAD_SIZE_LOGGED.compareAndSet(false, true)) {
       LOG.warn("AI Agent connector: chat memory for variable '{}' is {} bytes over {} messages, "
-          + "within {}% of the {}-byte limit. Once exceeded the agent task will fail. Consider "
-          + "lowering 'chatMemoryMaxMessages' or keeping RAG chunks out of chat memory. "
-          + "Logged once per JVM.",
+          + "within {}% of the {}-byte limit. Once exceeded the agent task will fail. Reduce "
+          + "'chatMemoryMaxMessages' or raise the limit; with RAG enabled the retrieved chunks "
+          + "are persisted with every turn and are the usual cause. Logged once per JVM.",
           variableName, size, messageCount, (int) (PAYLOAD_WARN_RATIO * 100), limit);
     }
   }
