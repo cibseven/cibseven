@@ -845,10 +845,6 @@ def getSbomDeployVersion(String groupId, String artifactId, String version, Stri
     String groupPath = groupId.replace('.', '/')
     String metadataPath = "${localRepo}/${groupPath}/${artifactId}/${version}/maven-metadata-${repositoryId}.xml"
 
-    if (!fileExists(metadataPath)) {
-        error "Cannot determine timestamped snapshot version: ${metadataPath} does not exist after resolving ${repositoryUrl}"
-    }
-
     String timestamp = sh(script: "sed -n 's:.*<timestamp>\\(.*\\)</timestamp>.*:\\1:p' '${metadataPath}' | tail -n 1", returnStdout: true).trim()
     String buildNumber = sh(script: "sed -n 's:.*<buildNumber>\\(.*\\)</buildNumber>.*:\\1:p' '${metadataPath}' | tail -n 1", returnStdout: true).trim()
 
