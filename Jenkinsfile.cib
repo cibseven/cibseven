@@ -132,9 +132,6 @@ pipeline {
                 script {
                     printSettings()
 
-                    def xmlSlurperProbe = new XmlSlurper().parseText('<probe><value>allowed</value></probe>')
-                    echo "XmlSlurper probe: ${xmlSlurperProbe.value.text()}"
-
                     def pom = readMavenPom file: pipelineParams.pom
 
                     // for overlays often no groupId is set as the parent groupId is used
