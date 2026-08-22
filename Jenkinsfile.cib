@@ -812,21 +812,20 @@ def generateAndDeployDistroSbom(String relPath, String sbomBaseName, String repo
         def version = sh(script: "mvn -q -f ${relPath}/pom.xml help:evaluate -Dexpression=project.version -DforceStdout", returnStdout: true).trim()
         def deployVersion = getSbomDeployVersion(groupId, artifactId, version, repositoryId)
 
-        sh """
-            mvn -V deploy:deploy-file \
-                -DgeneratePom=false \
-                -DgroupId=${groupId} \
-                -DartifactId=${artifactId} \
-                -Dversion=${deployVersion} \
-                -Dclassifier=aggregate-sbom \
-                -Dpackaging=json \
-                -Dfile=${relPath}/target/${sbomBaseName}.json \
-                -Dfiles=${relPath}/target/${sbomBaseName}.xml \
-                -Dclassifiers=aggregate-sbom \
-                -Dtypes=xml \
-                -DrepositoryId=${repositoryId} \
-                -Durl=${repositoryUrl}
-        """
+        ['json', 'xml'].each { format ->
+            sh """
+                mvn -V deploy:deploy-file \
+                    -DgeneratePom=false \
+                    -DgroupId=${groupId} \
+                    -DartifactId=${artifactId} \
+                    -Dversion=${deployVersion} \
+                    -Dclassifier=aggregate-sbom \
+                    -Dpackaging=${format} \
+                    -Dfile=${relPath}/target/${sbomBaseName}.${format} \
+                    -DrepositoryId=${repositoryId} \
+                    -Durl=${repositoryUrl}
+            """
+        }
     }
 }
 
