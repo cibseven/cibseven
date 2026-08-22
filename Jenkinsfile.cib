@@ -132,6 +132,9 @@ pipeline {
                 script {
                     printSettings()
 
+                    def xmlSlurperProbe = new XmlSlurper().parseText('<probe><value>allowed</value></probe>')
+                    echo "XmlSlurper probe: ${xmlSlurperProbe.value.text()}"
+
                     def pom = readMavenPom file: pipelineParams.pom
 
                     // for overlays often no groupId is set as the parent groupId is used
@@ -465,7 +468,7 @@ pipeline {
                     // Call cyclonedx directly from the mvn command to avoid adding a new profile to the root pom.xml.
                     // Placed after "clean" to keep the generated files in the target, allowing to deploy them in one step.
                     // Do not add cyclonedx options, like -DoutputDirectory/-DoutputName, as global -D CLI flags, since
-                    // they can silently override parameters of unrelated plugins: if specific cyclonedx options are needed, 
+                    // they can silently override parameters of unrelated plugins: if specific cyclonedx options are needed,
                     // then add (or update) a pluginManagement entry for cyclonedx-maven-plugin in the root pom.xml instead.
                     String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
                         "org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
@@ -481,7 +484,9 @@ pipeline {
 
                     // Generate and deploy additional aggregate SBOMs for shipped distro modules.
                     if (!params.DEPLOY_WITHOUT_SBOM) {
-                        deployDistroSboms()
+                        stage('Deploy distro aggregate SBOMs') {
+                            deployDistroSboms()
+                        }
                     }
                 }
             }
