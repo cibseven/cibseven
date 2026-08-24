@@ -965,50 +965,43 @@ Last updated: 2022-04-30
 ========================================================================
 # Java dependencies
 ========================================================================
-ai.djl.huggingface:tokenizers:0.31.1
+ai.djl.huggingface:tokenizers:0.36.0
 name: tokenizers
 description: Deep Java Library (DJL) NLP utilities for Huggingface tokenizers
 url: http://www.djl.ai/extensions/tokenizers
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-ai.djl:api:0.31.1
+ai.djl:api:0.36.0
 name: api
 description: Deep Java Library - api
 url: http://www.djl.ai/api
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-ch.qos.logback:logback-classic:1.5.32
+at.yawk.lz4:lz4-java:1.11.1
+name: lz4-java
+description: Java bindings and pure Java implementations of LZ4 and XXHash
+url: https://github.com/yawkat/lz4-java
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+ch.qos.logback:logback-classic:1.5.34
 name: logback-classic
 description: logback-classic module
 license: EPL-2.0
-license url: https://opensource.org/licenses/EPL-2.0
+license url: https://www.eclipse.org/legal/epl-2.0
 ========================================================================
-ch.qos.logback:logback-core:1.5.32
+ch.qos.logback:logback-core:1.5.34
 name: logback-core
 description: logback-core module
 license: EPL-2.0
-license url: https://opensource.org/licenses/EPL-2.0
+license url: https://www.eclipse.org/legal/epl-2.0
 ========================================================================
 com.fasterxml.jackson.core:jackson-annotations:2.21
 name: jackson-annotations
 description: Core annotations used for value types, used by Jackson data binding package.
 url: https://github.com/FasterXML/jackson
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-com.fasterxml.jackson.core:jackson-core:2.21.1
-name: jackson-core
-description: Core Jackson processing abstractions (aka Streaming API), implementation for JSON
-url: https://github.com/FasterXML/jackson-core
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-com.fasterxml.jackson.core:jackson-core:2.21.2
-name: jackson-core
-description: Core Jackson processing abstractions (aka Streaming API), implementation for JSON
-url: https://github.com/FasterXML/jackson-core
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -1019,59 +1012,66 @@ url: https://github.com/FasterXML/jackson-core
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-com.fasterxml.jackson.core:jackson-databind:2.21.1
+com.fasterxml.jackson.core:jackson-core:2.21.5
+name: jackson-core
+description: Core Jackson processing abstractions (aka Streaming API), implementation for JSON
+url: https://github.com/FasterXML/jackson-core
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+com.fasterxml.jackson.core:jackson-databind:2.21.3
 name: jackson-databind
 description: General data-binding functionality for Jackson: works on core streaming API
 url: https://github.com/FasterXML/jackson
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-com.fasterxml.jackson.core:jackson-databind:2.21.2
+com.fasterxml.jackson.core:jackson-databind:2.21.5
 name: jackson-databind
 description: General data-binding functionality for Jackson: works on core streaming API
 url: https://github.com/FasterXML/jackson
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.21.2
+com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.21.5
 name: jackson-dataformat-yaml
 description: Support for reading and writing YAML-encoded data via Jackson abstractions.
 url: https://github.com/FasterXML/jackson-dataformats-text
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.21.2
+com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.21.5
 name: jackson-datatype-jdk8
 description: Add-on module for Jackson (https://github.com/FasterXML/jackson) to support JDK 8 data types.
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.21.2
+com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.21.5
 name: jackson-datatype-jsr310
 description: Add-on module to support JSR-310 (Java 8 Date & Time API) data types.
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-com.fasterxml.jackson.jakarta.rs:jackson-jakarta-rs-base:2.21.2
+com.fasterxml.jackson.jakarta.rs:jackson-jakarta-rs-base:2.21.5
 name: jackson-jakarta-rs-base
 description: Pile of code that is shared by all Jackson-based Jakarta-RS providers.
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-com.fasterxml.jackson.jakarta.rs:jackson-jakarta-rs-json-provider:2.21.2
+com.fasterxml.jackson.jakarta.rs:jackson-jakarta-rs-json-provider:2.21.5
 name: jackson-jakarta-rs-json-provider
 description: Functionality to handle JSON input/output for Jakarta-RS implementations (like Jersey and RESTeasy) using standard Jackson data binding.
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations:2.21.2
+com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations:2.21.5
 name: jackson-module-jakarta-xmlbind-annotations
 description: Support for using Jakarta XML Bind (aka JAXB 3.0) annotations as an alternative to "native" Jackson annotations, for configuring data-binding.
 url: https://github.com/FasterXML/jackson-modules-base
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-com.fasterxml.jackson.module:jackson-module-parameter-names:2.21.2
+com.fasterxml.jackson.module:jackson-module-parameter-names:2.21.5
 name: jackson-module-parameter-names
 description: Add-on module for Jackson (https://github.com/FasterXML/jackson) to support introspection of method/constructor parameter names, without having to add explicit property name annotation.
 license: Apache-2.0
@@ -1091,7 +1091,7 @@ url: https://github.com/FasterXML/java-classmate
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-com.github.ben-manes.caffeine:caffeine:3.2.3
+com.github.ben-manes.caffeine:caffeine:3.2.4
 name: caffeine
 description: A high performance caching library
 url: https://github.com/ben-manes/caffeine
@@ -1123,10 +1123,15 @@ description: Error Prone is a static analysis tool for Java that catches common 
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
+com.google.errorprone:error_prone_annotations:2.49.0
+name: error_prone_annotations
+description: Error Prone is a static analysis tool for Java that catches common programming mistakes at compile-time.
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
 com.googlecode.javaewah:JavaEWAH:1.1.13
 name: JavaEWAH
 description: The bit array data structure is implemented in Java as the BitSet class. Unfortunately, this fails to scale without compression. JavaEWAH is a word-aligned compressed variant of the Java bitset class. It uses a 64-bit run-length encoding (RLE) compression scheme. The goal of word-aligned compression is not to achieve the best compression, but rather to improve query processing time. Hence, we try to save CPU cycles, maybe at the expense of storage. However, the EWAH scheme we implemented is always more efficient storage-wise than an uncompressed bitmap (implemented in Java as the BitSet class). Unlike some alternatives, javaewah does not rely on a patented scheme.
-url: https://github.com/lemire/javaewah
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -1138,13 +1143,6 @@ license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
 com.h2database:h2:2.3.232
-name: h2
-description: H2 Database Engine
-url: https://h2database.com
-license: MPL-2.0
-license url: https://www.mozilla.org/en-US/MPL/2.0/
-========================================================================
-com.h2database:h2:2.4.240
 name: h2
 description: H2 Database Engine
 url: https://h2database.com
@@ -1176,35 +1174,14 @@ name: jtokkit
 description: JTokkit is a Java tokenizer library designed for use with OpenAI models.
 url: https://github.com/knuddelsgmbh/jtokkit
 license: MIT
-license url: https://opensource.org/licenses/MIT
+license url: https://opensource.org/license/mit/
 ========================================================================
 com.microsoft.onnxruntime:onnxruntime:1.20.0
 name: onnxruntime
 description: ONNX Runtime is a performance-focused inference engine for ONNX (Open Neural Network Exchange) models.
 url: https://microsoft.github.io/onnxruntime/
 license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
-com.microsoft.sqlserver:mssql-jdbc:12.10.2.jre11
-name: mssql-jdbc
-description: Microsoft JDBC Driver for SQL Server.
-url: https://github.com/Microsoft/mssql-jdbc
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
-com.microsoft.sqlserver:mssql-jdbc:12.8.2.jre11
-name: mssql-jdbc
-description: Microsoft JDBC Driver for SQL Server.
-url: https://github.com/Microsoft/mssql-jdbc
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
-com.microsoft.sqlserver:mssql-jdbc:13.2.1.jre11
-name: mssql-jdbc
-description: Microsoft JDBC Driver for SQL Server.
-url: https://github.com/Microsoft/mssql-jdbc
-license: MIT
-license url: https://opensource.org/licenses/MIT
+license url: https://opensource.org/license/mit/
 ========================================================================
 com.nimbusds:content-type:2.2
 name: content-type
@@ -1223,7 +1200,7 @@ license url: https://opensource.org/licenses/Apache-2.0
 com.nimbusds:lang-tag:1.7
 name: lang-tag
 description: Java implementation of "Tags for Identifying Languages" (RFC 5646)
-url: https://bitbucket.org/connect2id/nimbus-language-tags
+url: https://bitbucket.org/connect2id/nimbus-language-tags.git
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -1253,19 +1230,19 @@ name: pgvector
 description: pgvector support for Java, Kotlin, Groovy, and Scala
 url: https://github.com/pgvector/pgvector-java
 license: MIT
-license url: https://opensource.org/licenses/MIT
+license url: https://opensource.org/license/mit/
 ========================================================================
 com.squareup.okhttp3:okhttp-sse:4.12.0
 name: okhttp-sse
 description: Square’s meticulous HTTP client for Java and Kotlin.
-url: https://square.github.io/okhttp/
+url: https://github.com/square/okhttp
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
 com.squareup.okhttp3:okhttp:4.12.0
 name: okhttp
 description: Square’s meticulous HTTP client for Java and Kotlin.
-url: https://square.github.io/okhttp/
+url: https://github.com/square/okhttp
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -1289,14 +1266,14 @@ description: istack common utility code
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
-com.sun.xml.bind:jaxb-core:4.0.6
+com.sun.xml.bind:jaxb-core:4.0.9
 name: jaxb-core
 description: Old JAXB Core module. Contains sources required by XJC, JXC and Runtime modules with dependencies.
 url: https://eclipse-ee4j.github.io/jaxb-ri/
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
-com.sun.xml.bind:jaxb-impl:4.0.6
+com.sun.xml.bind:jaxb-impl:4.0.9
 name: jaxb-impl
 description: Old JAXB Runtime module. Contains sources required for runtime processing.
 url: https://eclipse-ee4j.github.io/jaxb-ri/
@@ -1365,11 +1342,12 @@ description: Commons Logging is a thin adapter allowing configurable bridging to
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-commons-logging:commons-logging:1.2
+commons-logging:commons-logging:1.3.5
 name: commons-logging
-description: Apache Commons Logging is a thin adapter allowing configurable bridging to other, well known logging systems.
+description: Apache Commons Logging is a thin adapter allowing configurable bridging to other, well-known logging systems.
+url: https://commons.apache.org/proper/commons-logging/
 license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
+license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
 commons-logging:commons-logging:1.3.6
 name: commons-logging
@@ -1378,80 +1356,80 @@ url: https://commons.apache.org/proper/commons-logging/
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-dev.langchain4j:langchain4j-agentic-mcp:1.14.1-beta24
+dev.langchain4j:langchain4j-agentic-mcp:1.16.3-beta26
 name: langchain4j-agentic-mcp
 description: LangChain4j :: Agentic Framework :: MCP Integration
 url: https://github.com/langchain4j/langchain4j/tree/main/langchain4j-agentic-mcp
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-dev.langchain4j:langchain4j-agentic:1.14.1-beta24
+dev.langchain4j:langchain4j-agentic:1.16.3-beta26
 name: langchain4j-agentic
 description: LangChain4j :: Agentic Framework
 url: https://github.com/langchain4j/langchain4j/tree/main/langchain4j-agentic
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-dev.langchain4j:langchain4j-core:1.14.1
+dev.langchain4j:langchain4j-core:1.16.3
 name: langchain4j-core
 description: Core classes and interfaces of LangChain4j
 url: https://github.com/langchain4j/langchain4j/tree/main/langchain4j-core
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-dev.langchain4j:langchain4j-document-parser-apache-pdfbox:1.14.1-beta24
+dev.langchain4j:langchain4j-document-parser-apache-pdfbox:1.16.3-beta26
 name: langchain4j-document-parser-apache-pdfbox
 description: LangChain4j :: Document Parser :: Apache PDFBox
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-dev.langchain4j:langchain4j-embeddings-all-minilm-l6-v2:1.14.1-beta24
+dev.langchain4j:langchain4j-embeddings-all-minilm-l6-v2:1.16.3-beta26
 name: langchain4j-embeddings-all-minilm-l6-v2
 description: In-process all-minilm-l6-v2 embedding model
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-dev.langchain4j:langchain4j-embeddings:1.14.1-beta24
+dev.langchain4j:langchain4j-embeddings:1.16.3-beta26
 name: langchain4j-embeddings
 description: Common functionality for other langchain4j-embeddings-xxx modules
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-dev.langchain4j:langchain4j-http-client-jdk:1.14.1
+dev.langchain4j:langchain4j-http-client-jdk:1.16.3
 name: langchain4j-http-client-jdk
 description: LangChain4j :: HTTP Client :: JDK HttpClient
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-dev.langchain4j:langchain4j-http-client:1.14.1
+dev.langchain4j:langchain4j-http-client:1.16.3
 name: langchain4j-http-client
 description: LangChain4j :: HTTP Client
 url: https://github.com/langchain4j/langchain4j/tree/main/langchain4j-http-client
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-dev.langchain4j:langchain4j-mcp:1.14.1-beta24
+dev.langchain4j:langchain4j-mcp:1.16.3-beta26
 name: langchain4j-mcp
 description: LangChain4j :: Integration :: Model Context Protocol
 url: https://github.com/langchain4j/langchain4j/tree/main/langchain4j-mcp
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-dev.langchain4j:langchain4j-open-ai:1.14.1
+dev.langchain4j:langchain4j-open-ai:1.16.3
 name: langchain4j-open-ai
 description: LangChain4j :: Integration :: OpenAI
 url: https://github.com/langchain4j/langchain4j/tree/main/langchain4j-open-ai
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-dev.langchain4j:langchain4j-pgvector:1.14.1-beta24
+dev.langchain4j:langchain4j-pgvector:1.16.3-beta26
 name: langchain4j-pgvector
 description: LangChain4j :: Integration :: PGVector
 url: https://github.com/langchain4j/langchain4j/tree/main/langchain4j-pgvector
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-dev.langchain4j:langchain4j:1.14.1
+dev.langchain4j:langchain4j:1.16.3
 name: langchain4j
 description: Build LLM-powered applications in Java: chatbots, agents, RAG, and much more
 url: https://github.com/langchain4j/langchain4j/tree/main/langchain4j
@@ -1476,35 +1454,55 @@ description: JSON Web Token support for the JVM and Android
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-io.micrometer:micrometer-commons:1.15.11
+io.micrometer:micrometer-commons:1.15.12
 name: micrometer-commons
 description: Module containing common code
 url: https://github.com/micrometer-metrics/micrometer
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-io.micrometer:micrometer-commons:1.16.5
+io.micrometer:micrometer-commons:1.16.6
 name: micrometer-commons
 description: Module containing common code
 url: https://github.com/micrometer-metrics/micrometer
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-io.micrometer:micrometer-core:1.15.11
+io.micrometer:micrometer-core:1.15.12
 name: micrometer-core
 description: Core module of Micrometer containing instrumentation API and implementation
 url: https://github.com/micrometer-metrics/micrometer
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-io.micrometer:micrometer-observation:1.15.11
-name: micrometer-observation
-description: Module containing Observation related code
+io.micrometer:micrometer-core:1.16.6
+name: micrometer-core
+description: Core module of Micrometer containing instrumentation API and implementation
 url: https://github.com/micrometer-metrics/micrometer
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-io.micrometer:micrometer-observation:1.16.5
+io.micrometer:micrometer-jakarta9:1.15.12
+name: micrometer-jakarta9
+description: Module for Jakarta 9+ based instrumentations
+url: https://github.com/micrometer-metrics/micrometer
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+io.micrometer:micrometer-jakarta9:1.16.6
+name: micrometer-jakarta9
+description: Module for Jakarta 9+ based instrumentations
+url: https://github.com/micrometer-metrics/micrometer
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+io.micrometer:micrometer-observation:1.15.12
+name: micrometer-observation
+description: Module containing Observation related code
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+io.micrometer:micrometer-observation:1.16.6
 name: micrometer-observation
 description: Module containing Observation related code
 url: https://github.com/micrometer-metrics/micrometer
@@ -1574,7 +1572,7 @@ url: https://smallrye.io
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-io.smallrye:jandex:3.5.3
+io.smallrye:jandex:3.6.0
 name: jandex
 description: SmallRye Build Parent POM
 url: https://smallrye.io
@@ -1623,7 +1621,7 @@ description: Undertow
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-io.undertow:undertow-core:2.4.0.Final
+io.undertow:undertow-core:2.4.2.Final
 name: undertow-core
 description: Undertow
 url: https://undertow.io/
@@ -1735,7 +1733,6 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 jakarta.faces:jakarta.faces-api:4.0.1
 name: jakarta.faces-api
 description: Jakarta Faces defines an MVC framework for building user interfaces for web applications, including UI components, state management, event handing, input validation, page navigation, and support for internationalization and accessibility.
-url: https://github.com/eclipse-ee4j/faces-api
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -1763,14 +1760,12 @@ license url: https://opensource.org/licenses/EPL-2.0
 jakarta.jms:jakarta.jms-api:3.1.0
 name: jakarta.jms-api
 description: Jakarta Messaging describes a means for Java applications to create, send, and receive messages via loosely coupled, reliable asynchronous communication services.
-url: https://projects.eclipse.org/projects/ee4j.jms
 license: EPL-2.0
 license url: https://www.eclipse.org/legal/epl-2.0
 ========================================================================
-jakarta.json.bind:jakarta.json.bind-api:3.0.1
+jakarta.json.bind:jakarta.json.bind-api:3.0.2
 name: jakarta.json.bind-api
 description: Jakarta JSON Binding is a standard binding layer for converting Java objects to/from JSON documents.
-url: https://jakartaee.github.io/jsonb-api
 license: EPL-2.0
 license url: https://www.eclipse.org/legal/epl-2.0
 ========================================================================
@@ -1791,12 +1786,13 @@ license url: https://opensource.org/licenses/EPL-2.0
 jakarta.persistence:jakarta.persistence-api:3.2.0
 name: jakarta.persistence-api
 description: Eclipse Enterprise for Java (EE4J) is an open source initiative to create standard APIs, implementations of those APIs, and technology compatibility kits for Java runtimes that enable development, deployment, and management of server-side and cloud-native applications.
-url: https://github.com/jakartaee/persistence
+url: https://github.com/jakartaee/persistence.git
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
 jakarta.platform:jakarta.jakartaee-web-api:10.0.0
 name: jakarta.jakartaee-web-api
+description: Eclipse Enterprise for Java (EE4J) is an open source initiative to create standard APIs, implementations of those APIs, and technology compatibility kits for Java runtimes that enable development, deployment, and management of server-side and cloud-native applications.
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -1810,7 +1806,6 @@ license url: https://opensource.org/licenses/EPL-2.0
 jakarta.security.enterprise:jakarta.security.enterprise-api:3.0.0
 name: jakarta.security.enterprise-api
 description: Jakarta Security defines a standard for creating secure Jakarta EE applications in modern application paradigms. It defines an overarching (end-user targeted) Security API for Jakarta EE Applications.
-url: https://github.com/eclipse-ee4j/security-api
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -1873,6 +1868,7 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 jakarta.websocket:jakarta.websocket-api:2.1.1
 name: jakarta.websocket-api
 description: Jakarta WebSocket - Server API
+url: https://projects.eclipse.org/projects/ee4j.websocket
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -1916,7 +1912,7 @@ description: Jakarta XML Binding API
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
-jakarta.xml.bind:jakarta.xml.bind-api:4.0.4
+jakarta.xml.bind:jakarta.xml.bind-api:4.0.5
 name: jakarta.xml.bind-api
 description: Jakarta XML Binding API
 license: BSD-3-Clause
@@ -1935,7 +1931,7 @@ description: Byte Buddy is a Java library for creating Java classes at run time.
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-net.java.dev.jna:jna:5.14.0
+net.java.dev.jna:jna:5.17.0
 name: jna
 description: Java Native Access
 url: https://github.com/java-native-access/jna
@@ -1970,12 +1966,6 @@ url: https://urielch.github.io/
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.antlr:antlr4-runtime:4.13.0
-name: antlr4-runtime
-description: The ANTLR 4 Runtime
-license: BSD-3-Clause
-license url: https://opensource.org/licenses/BSD-3-Clause
-========================================================================
 org.antlr:antlr4-runtime:4.13.2
 name: antlr4-runtime
 description: The ANTLR 4 Runtime
@@ -1989,13 +1979,6 @@ url: https://commons.apache.org/proper/commons-compress/
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.apache.commons:commons-lang3:3.17.0
-name: commons-lang3
-description: Apache Commons Lang, a package of Java utility classes for the classes that are in java.lang's hierarchy, or are considered to be so standard as to justify existence in java.lang. The code is tested using the latest revision of the JDK for supported LTS releases: 8, 11, 17 and 21 currently. See https://github.com/apache/commons-lang/blob/master/.github/workflows/maven.yml Please ensure your build environment is up-to-date and kindly report any build issues.
-url: https://commons.apache.org/proper/commons-lang/
-license: Apache-2.0
-license url: https://www.apache.org/licenses/LICENSE-2.0
-========================================================================
 org.apache.commons:commons-lang3:3.18.0
 name: commons-lang3
 description: Apache Commons Lang, a package of Java utility classes for the classes that are in java.lang's hierarchy, or are considered to be so standard as to justify existence in java.lang. The code is tested using the latest revision of the JDK for supported LTS releases: 8, 11, 17 and 21 currently. See https://github.com/apache/commons-lang/blob/master/.github/workflows/maven.yml Please ensure your build environment is up-to-date and kindly report any build issues.
@@ -2003,7 +1986,7 @@ url: https://commons.apache.org/proper/commons-lang/
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.apache.groovy:groovy-datetime:4.0.31
+org.apache.groovy:groovy-datetime:4.0.32
 name: groovy-datetime
 description: Groovy: A powerful multi-faceted language for the JVM
 url: https://groovy-lang.org
@@ -2017,14 +2000,14 @@ url: https://groovy-lang.org
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.groovy:groovy-datetime:5.0.5
+org.apache.groovy:groovy-datetime:5.0.6
 name: groovy-datetime
 description: Groovy: A powerful multi-faceted language for the JVM
 url: https://groovy-lang.org
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.groovy:groovy-dateutil:4.0.31
+org.apache.groovy:groovy-dateutil:4.0.32
 name: groovy-dateutil
 description: Groovy: A powerful multi-faceted language for the JVM
 url: https://groovy-lang.org
@@ -2038,14 +2021,14 @@ url: https://groovy-lang.org
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.groovy:groovy-dateutil:5.0.5
+org.apache.groovy:groovy-dateutil:5.0.6
 name: groovy-dateutil
 description: Groovy: A powerful multi-faceted language for the JVM
 url: https://groovy-lang.org
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.groovy:groovy-json:4.0.31
+org.apache.groovy:groovy-json:4.0.32
 name: groovy-json
 description: Groovy: A powerful multi-faceted language for the JVM
 url: https://groovy-lang.org
@@ -2059,14 +2042,14 @@ url: https://groovy-lang.org
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.groovy:groovy-json:5.0.5
+org.apache.groovy:groovy-json:5.0.6
 name: groovy-json
 description: Groovy: A powerful multi-faceted language for the JVM
 url: https://groovy-lang.org
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.groovy:groovy-jsr223:4.0.31
+org.apache.groovy:groovy-jsr223:4.0.32
 name: groovy-jsr223
 description: Groovy: A powerful multi-faceted language for the JVM
 url: https://groovy-lang.org
@@ -2080,14 +2063,14 @@ url: https://groovy-lang.org
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.groovy:groovy-jsr223:5.0.5
+org.apache.groovy:groovy-jsr223:5.0.6
 name: groovy-jsr223
 description: Groovy: A powerful multi-faceted language for the JVM
 url: https://groovy-lang.org
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.groovy:groovy-templates:4.0.31
+org.apache.groovy:groovy-templates:4.0.32
 name: groovy-templates
 description: Groovy: A powerful multi-faceted language for the JVM
 url: https://groovy-lang.org
@@ -2101,14 +2084,14 @@ url: https://groovy-lang.org
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.groovy:groovy-templates:5.0.5
+org.apache.groovy:groovy-templates:5.0.6
 name: groovy-templates
 description: Groovy: A powerful multi-faceted language for the JVM
 url: https://groovy-lang.org
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.groovy:groovy-xml:4.0.31
+org.apache.groovy:groovy-xml:4.0.32
 name: groovy-xml
 description: Groovy: A powerful multi-faceted language for the JVM
 url: https://groovy-lang.org
@@ -2122,14 +2105,14 @@ url: https://groovy-lang.org
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.groovy:groovy-xml:5.0.5
+org.apache.groovy:groovy-xml:5.0.6
 name: groovy-xml
 description: Groovy: A powerful multi-faceted language for the JVM
 url: https://groovy-lang.org
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.groovy:groovy:4.0.31
+org.apache.groovy:groovy:4.0.32
 name: groovy
 description: Groovy: A powerful multi-faceted language for the JVM
 url: https://groovy-lang.org
@@ -2143,7 +2126,7 @@ url: https://groovy-lang.org
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.groovy:groovy:5.0.5
+org.apache.groovy:groovy:5.0.6
 name: groovy
 description: Groovy: A powerful multi-faceted language for the JVM
 url: https://groovy-lang.org
@@ -2206,22 +2189,28 @@ description: The Apache Software Foundation provides support for the Apache comm
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.apache.pdfbox:fontbox:2.0.32
+org.apache.pdfbox:fontbox:3.0.7
 name: fontbox
 description: The Apache FontBox library is an open source Java tool to obtain low level information from font files. FontBox is a subproject of Apache PDFBox.
 license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
+license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.apache.pdfbox:pdfbox:2.0.32
+org.apache.pdfbox:pdfbox-io:3.0.7
+name: pdfbox-io
+description: The Apache PDFBox library is an open source Java tool for working with PDF documents. This artefact contains IO related classes.
+license: Apache-2.0
+license url: https://www.apache.org/licenses/LICENSE-2.0
+========================================================================
+org.apache.pdfbox:pdfbox:3.0.7
 name: pdfbox
 description: The Apache PDFBox library is an open source Java tool for working with PDF documents.
 license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
+license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.apache.sshd:sshd-common:2.17.1
+org.apache.sshd:sshd-common:2.18.0
 name: sshd-common
 description: The Apache Software Foundation provides support for the Apache community of open-source software projects. The Apache projects are characterized by a collaborative, consensus based development process, an open and pragmatic software license, and a desire to create high quality software that leads the way in its field. We consider ourselves not simply a group of projects sharing a server, but rather a community of developers and users.
-url: https://github.com/apache/mina-sshd/tree/sshd-2.17.1/sshd-common
+url: https://github.com/apache/mina-sshd/tree/sshd-2.18.0/sshd-common
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
@@ -2232,10 +2221,10 @@ url: https://github.com/apache/mina-sshd/tree/sshd-2.9.2/sshd-common
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.apache.sshd:sshd-core:2.17.1
+org.apache.sshd:sshd-core:2.18.0
 name: sshd-core
 description: The Apache Software Foundation provides support for the Apache community of open-source software projects. The Apache projects are characterized by a collaborative, consensus based development process, an open and pragmatic software license, and a desire to create high quality software that leads the way in its field. We consider ourselves not simply a group of projects sharing a server, but rather a community of developers and users.
-url: https://github.com/apache/mina-sshd/tree/sshd-2.17.1/sshd-core
+url: https://github.com/apache/mina-sshd/tree/sshd-2.18.0/sshd-core
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
@@ -2290,6 +2279,8 @@ license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
 org.apache.tomcat:tomcat:11.0.22
 name: tomcat
+description: Binary distribution of Apache Tomcat
+url: https://tomcat.apache.org/
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -2467,7 +2458,6 @@ license url: https://opensource.org/licenses/EPL-2.0
 org.glassfish.hk2:osgi-resource-locator:1.0.3
 name: osgi-resource-locator
 description: Used by various API providers that rely on META-INF/services mechanism to locate providers.
-url: https://github.com/eclipse-ee4j/glassfish-hk2-extra
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -2489,21 +2479,21 @@ description: HK2 Spring Bridge
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
-org.glassfish.jaxb:jaxb-core:4.0.6
+org.glassfish.jaxb:jaxb-core:4.0.9
 name: jaxb-core
 description: JAXB Core module. Contains sources required by XJC, JXC and Runtime modules.
 url: https://eclipse-ee4j.github.io/jaxb-ri/
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
-org.glassfish.jaxb:jaxb-runtime:4.0.6
+org.glassfish.jaxb:jaxb-runtime:4.0.9
 name: jaxb-runtime
 description: JAXB (JSR 222) Reference Implementation
 url: https://eclipse-ee4j.github.io/jaxb-ri/
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
-org.glassfish.jaxb:txw2:4.0.6
+org.glassfish.jaxb:txw2:4.0.9
 name: txw2
 description: TXW is a library that allows you to write XML documents.
 url: https://eclipse-ee4j.github.io/jaxb-ri/
@@ -2627,7 +2617,6 @@ license url: https://opensource.org/licenses/EPL-2.0
 org.glassfish:jakarta.enterprise.concurrent:3.0.0
 name: jakarta.enterprise.concurrent
 description: Compatible Implementation of Jakarta Concurrency
-url: https://projects.eclipse.org/projects/ee4j.cu
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -2686,28 +2675,28 @@ url: https://github.com/hibernate/hibernate-models
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.hibernate.orm:hibernate-core:6.6.49.Final
+org.hibernate.orm:hibernate-core:6.6.53.Final
 name: hibernate-core
 description: Hibernate's core ORM functionality
 url: https://hibernate.org/orm
-license: LGPL-2.1+
-license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
+license: LGPL-2.1-only
+license url: https://opensource.org/licenses/LGPL-2.1
 ========================================================================
-org.hibernate.orm:hibernate-core:7.2.12.Final
+org.hibernate.orm:hibernate-core:7.2.19.Final
 name: hibernate-core
 description: Hibernate's core ORM functionality
 url: https://hibernate.org/orm
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.hibernate.orm:hibernate-envers:6.6.49.Final
+org.hibernate.orm:hibernate-envers:6.6.53.Final
 name: hibernate-envers
 description: Hibernate's entity version (audit/history) support
 url: https://hibernate.org/orm
-license: LGPL-2.1+
-license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
+license: LGPL-2.1-only
+license url: https://opensource.org/licenses/LGPL-2.1
 ========================================================================
-org.hibernate.orm:hibernate-envers:7.2.12.Final
+org.hibernate.orm:hibernate-envers:7.2.19.Final
 name: hibernate-envers
 description: Hibernate's entity version (audit/history) support
 url: https://hibernate.org/orm
@@ -2720,7 +2709,7 @@ description: Hibernate Validator CDI Portable Extension
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.hibernate.validator:hibernate-validator-cdi:9.1.0.Final
+org.hibernate.validator:hibernate-validator-cdi:9.1.1.Final
 name: hibernate-validator-cdi
 description: Hibernate Validator CDI Portable Extension
 url: https://hibernate.org/validator
@@ -2747,7 +2736,7 @@ url: https://hibernate.org/validator
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.hibernate.validator:hibernate-validator:9.1.0.Final
+org.hibernate.validator:hibernate-validator:9.1.1.Final
 name: hibernate-validator
 description: Hibernate's Jakarta Validation reference implementation.
 url: https://hibernate.org/validator
@@ -2763,23 +2752,22 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.infinispan.protostream:protostream:6.0.7
 name: protostream
 description: ProtoStream is a serialization library based on Protocol buffers format for serializing structured data.
-url: https://github.com/infinispan/protostream
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.infinispan:infinispan-commons:16.0.11
+org.infinispan:infinispan-commons:16.0.13
 name: infinispan-commons
 description: Infinispan Commons
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.infinispan:infinispan-core:16.0.11
+org.infinispan:infinispan-core:16.0.13
 name: infinispan-core
 description: Infinispan core module
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.infinispan:infinispan-counter-api:16.0.11
+org.infinispan:infinispan-counter-api:16.0.13
 name: infinispan-counter-api
 description: Infinispan Counter API
 license: Apache-2.0
@@ -2795,14 +2783,12 @@ license url: https://www-archive.mozilla.org/mpl/mpl-1.1
 org.jboss.classfilewriter:jboss-classfilewriter:1.3.0.Final
 name: jboss-classfilewriter
 description: A bytecode writer that creates .class files at runtime
-url: https://github.com/jbossas/jboss-classfilewriter
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
 org.jboss.classfilewriter:jboss-classfilewriter:1.3.1.Final
 name: jboss-classfilewriter
 description: A bytecode writer that creates .class files at runtime
-url: https://github.com/jbossas/jboss-classfilewriter
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -2822,7 +2808,6 @@ license url: http://repository.jboss.org/licenses/cc0-1.0.txt
 org.jboss.ejb3:jboss-ejb3-ext-api:2.4.0.Final
 name: jboss-ejb3-ext-api
 description: JBoss EJB 3 API for Bean Providers
-url: https://github.com/wildfly/jboss-ejb3-ext-api
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -2838,100 +2823,100 @@ description: Invocation Application Programming Interface - Jakarta EE Variant
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.jboss.ironjacamar:ironjacamar-common-api:3.0.19.Final
-name: ironjacamar-common-api
-description: IronJacamar: Parent Aggregator
-license: LGPL-2.1-or-later
-license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
-========================================================================
 org.jboss.ironjacamar:ironjacamar-common-api:3.0.2.Final
 name: ironjacamar-common-api
 description: IronJacamar: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.jboss.ironjacamar:ironjacamar-common-impl:3.0.19.Final
-name: ironjacamar-common-impl
+org.jboss.ironjacamar:ironjacamar-common-api:3.0.21.Final
+name: ironjacamar-common-api
 description: IronJacamar: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.jboss.ironjacamar:ironjacamar-common-impl:3.0.2.Final
 name: ironjacamar-common-impl
 description: IronJacamar: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.jboss.ironjacamar:ironjacamar-common-spi:3.0.19.Final
-name: ironjacamar-common-spi
+org.jboss.ironjacamar:ironjacamar-common-impl:3.0.21.Final
+name: ironjacamar-common-impl
 description: IronJacamar: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.jboss.ironjacamar:ironjacamar-common-spi:3.0.2.Final
 name: ironjacamar-common-spi
 description: IronJacamar: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.jboss.ironjacamar:ironjacamar-core-api:3.0.19.Final
-name: ironjacamar-core-api
+org.jboss.ironjacamar:ironjacamar-common-spi:3.0.21.Final
+name: ironjacamar-common-spi
 description: IronJacamar: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.jboss.ironjacamar:ironjacamar-core-api:3.0.2.Final
 name: ironjacamar-core-api
 description: IronJacamar: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.jboss.ironjacamar:ironjacamar-core-impl:3.0.19.Final
-name: ironjacamar-core-impl
+org.jboss.ironjacamar:ironjacamar-core-api:3.0.21.Final
+name: ironjacamar-core-api
 description: IronJacamar: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.jboss.ironjacamar:ironjacamar-core-impl:3.0.2.Final
 name: ironjacamar-core-impl
 description: IronJacamar: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.jboss.ironjacamar:ironjacamar-deployers-common:3.0.19.Final
-name: ironjacamar-deployers-common
+org.jboss.ironjacamar:ironjacamar-core-impl:3.0.21.Final
+name: ironjacamar-core-impl
 description: IronJacamar: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.jboss.ironjacamar:ironjacamar-deployers-common:3.0.2.Final
 name: ironjacamar-deployers-common
 description: IronJacamar: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.jboss.ironjacamar:ironjacamar-jdbc:3.0.19.Final
-name: ironjacamar-jdbc
+org.jboss.ironjacamar:ironjacamar-deployers-common:3.0.21.Final
+name: ironjacamar-deployers-common
 description: IronJacamar: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.jboss.ironjacamar:ironjacamar-jdbc:3.0.2.Final
 name: ironjacamar-jdbc
 description: IronJacamar: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.jboss.ironjacamar:ironjacamar-validator:3.0.19.Final
-name: ironjacamar-validator
+org.jboss.ironjacamar:ironjacamar-jdbc:3.0.21.Final
+name: ironjacamar-jdbc
 description: IronJacamar: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.jboss.ironjacamar:ironjacamar-validator:3.0.2.Final
 name: ironjacamar-validator
 description: IronJacamar: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
+license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
+========================================================================
+org.jboss.ironjacamar:ironjacamar-validator:3.0.21.Final
+name: ironjacamar-validator
+description: IronJacamar: Parent Aggregator
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.jboss.logging:jboss-logging:3.4.3.Final
@@ -2988,7 +2973,7 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.jboss.metadata:jboss-metadata-common:16.0.0.Final
 name: jboss-metadata-common
 description: JBoss Application Server: Metadata Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.jboss.metadata:jboss-metadata-common:17.1.0
@@ -3001,7 +2986,7 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.jboss.metadata:jboss-metadata-ear:16.0.0.Final
 name: jboss-metadata-ear
 description: JBoss Application Server: Metadata Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.jboss.metadata:jboss-metadata-ear:17.1.0
@@ -3014,7 +2999,7 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.jboss.metadata:jboss-metadata-ejb:16.0.0.Final
 name: jboss-metadata-ejb
 description: The JavaEE EJB metadata classes
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.jboss.metadata:jboss-metadata-ejb:17.1.0
@@ -3027,7 +3012,7 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.jboss.metadata:jboss-metadata-web:16.0.0.Final
 name: jboss-metadata-web
 description: JBoss Application Server: Metadata Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.jboss.metadata:jboss-metadata-web:17.1.0
@@ -3052,13 +3037,13 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.jboss.msc:jboss-msc:1.5.0.Final
 name: jboss-msc
 description: Provides, via submodules, a base configuration for JBoss project builds, as well as a derived configuration supporting multi-release JARs
-license: LGPL-2.1-only
+license: LGPL-2.1
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.jboss.msc:jboss-msc:1.5.6.Final
 name: jboss-msc
 description: Provides, via submodules, a base configuration for JBoss project builds, as well as a derived configuration supporting multi-release JARs
-license: LGPL-2.1-only
+license: LGPL-2.1
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.jboss.narayana.jts:narayana-jts-integration:6.0.0.Final
@@ -3115,7 +3100,7 @@ license url: https://opensource.org/licenses/EPL-2.0
 org.jboss.stdio:jboss-stdio:1.1.0.Final
 name: jboss-stdio
 description: Provides, via submodules, a base configuration for JBoss project builds, as well as a derived configuration supporting multi-release JARs
-license: LGPL-2.1-only
+license: LGPL-2.1
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.jboss.threads:jboss-threads:2.4.0.Final
@@ -3159,13 +3144,12 @@ org.jboss:jboss-dmr:1.6.1.Final
 name: jboss-dmr
 description: Parent POM for JBoss projects. Provides default project build configuration.
 url: https://github.com/jbossas/jboss-dmr
-license: LGPL-2.1-only
+license: LGPL-2.1
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.jboss:jboss-dmr:1.7.0.Final
 name: jboss-dmr
 description: Parent POM for JBoss projects. Provides default project build configuration.
-url: https://github.com/jbossas/jboss-dmr
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
@@ -3186,7 +3170,6 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.jboss:jboss-iiop-client:2.0.1.Final
 name: jboss-iiop-client
 description: Client library for EJB applications working against JBoss AS using the IIOP protocol
-url: https://github.com/jbossas/jboss-iiop-client
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
@@ -3199,7 +3182,6 @@ license url: http://repository.jboss.org/licenses/cc0-1.0.txt
 org.jboss:jboss-vfs:3.2.17.Final
 name: jboss-vfs
 description: A VFS library
-url: https://github.com/jbossas/jboss-vfs
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -3213,13 +3195,12 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.jboss:staxmapper:1.4.0.Final
 name: staxmapper
 description: Provides, via submodules, a base configuration for JBoss project builds, as well as a derived configuration supporting multi-release JARs
-license: LGPL-2.1-only
+license: LGPL-2.1
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.jboss:staxmapper:1.5.0.Final
 name: staxmapper
 description: Provides, via submodules, a base configuration for JBoss project builds, as well as a derived configuration supporting multi-release JARs
-url: https://github.com/jbossas/staxmapper
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
@@ -3314,7 +3295,7 @@ url: http://www.jgroups.org
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.jgroups:jgroups:5.5.5.Final
+org.jgroups:jgroups:5.5.6.Final
 name: jgroups
 description: Reliable cluster communication toolkit
 url: http://www.jgroups.org
@@ -3335,27 +3316,6 @@ url: http://latencyutils.github.io/LatencyUtils/
 license: CC0-1.0
 license url: https://creativecommons.org/publicdomain/zero/1.0/
 ========================================================================
-org.mariadb.jdbc:mariadb-java-client:1.7.6
-name: mariadb-java-client
-description: JDBC driver for MariaDB and MySQL
-url: https://mariadb.com/kb/en/mariadb/about-mariadb-connector-j/
-license: LGPL-2.1
-license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
-========================================================================
-org.mariadb.jdbc:mariadb-java-client:3.5.7
-name: mariadb-java-client
-description: JDBC driver for MariaDB and MySQL
-url: https://mariadb.com/kb/en/mariadb/about-mariadb-connector-j/
-license: LGPL-2.1-or-later
-license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
-========================================================================
-org.mariadb.jdbc:mariadb-java-client:3.5.8
-name: mariadb-java-client
-description: JDBC driver for MariaDB and MySQL
-url: https://mariadb.com/kb/en/mariadb/about-mariadb-connector-j/
-license: LGPL-2.1-or-later
-license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
-========================================================================
 org.mybatis:mybatis:3.5.15
 name: mybatis
 description: The MyBatis SQL mapper framework makes it easier to use a relational database with object-oriented applications. MyBatis couples objects with stored procedures or SQL statements using a XML descriptor or annotations. Simplicity is the biggest advantage of the MyBatis data mapper over object relational mapping tools.
@@ -3373,6 +3333,7 @@ license url: https://opensource.org/licenses/BSD-3-Clause
 org.ow2.asm:asm-commons:9.7
 name: asm-commons
 description: Usefull class adapters based on ASM, a very small and fast Java bytecode manipulation framework
+url: https://gitlab.ow2.org/asm/asm/
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
@@ -3383,19 +3344,12 @@ url: https://gitlab.ow2.org/asm/asm/
 license: BSD-3-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
-org.postgresql:postgresql:42.7.11
+org.postgresql:postgresql:42.7.12
 name: postgresql
 description: PostgreSQL JDBC Driver Postgresql
 url: https://jdbc.postgresql.org
 license: BSD-2-Clause
 license url: https://opensource.org/licenses/BSD-2-Clause
-========================================================================
-org.projectlombok:lombok:1.18.46
-name: lombok
-description: Spice up your java: Automatic Resource Management, automatic generation of getters, setters, equals, hashCode and toString, and more!
-url: https://projectlombok.org
-license: MIT
-license url: https://opensource.org/licenses/MIT
 ========================================================================
 org.projectodd.vdx:vdx-core:1.1.6
 name: vdx-core
@@ -3416,35 +3370,29 @@ url: http://www.reactive-streams.org/
 license: MIT-0
 license url: https://github.com/aws/mit-0
 ========================================================================
-org.slf4j:jul-to-slf4j:2.0.17
+org.slf4j:jul-to-slf4j:2.0.18
 name: jul-to-slf4j
 description: JUL to SLF4J bridge
 license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
-org.slf4j:slf4j-api:1.7.26
-name: slf4j-api
-description: The slf4j API
-license: MIT
-license url: https://opensource.org/licenses/MIT
+license url: https://opensource.org/license/mit/
 ========================================================================
 org.slf4j:slf4j-api:1.7.36
 name: slf4j-api
 description: The slf4j API
 license: MIT
-license url: https://opensource.org/licenses/MIT
+license url: https://opensource.org/license/mit/
 ========================================================================
-org.slf4j:slf4j-api:2.0.17
+org.slf4j:slf4j-api:2.0.18
 name: slf4j-api
 description: The slf4j API
 license: MIT
-license url: https://opensource.org/licenses/MIT
+license url: https://opensource.org/license/mit/
 ========================================================================
 org.slf4j:slf4j-jdk14:1.7.26
 name: slf4j-jdk14
 description: SLF4J JDK14 Binding
 license: MIT
-license url: https://opensource.org/licenses/MIT
+license url: https://opensource.org/license/mit/
 ========================================================================
 org.springdoc:springdoc-openapi-starter-common:2.8.13
 name: springdoc-openapi-starter-common
@@ -3482,537 +3430,599 @@ description: Spring openapi documentation
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-autoconfigure:3.5.14
+org.springframework.boot:spring-boot-actuator-autoconfigure:3.5.15
+name: spring-boot-actuator-autoconfigure
+description: Spring Boot Actuator AutoConfigure
+url: https://github.com/spring-projects/spring-boot
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+org.springframework.boot:spring-boot-actuator-autoconfigure:4.0.7
+name: spring-boot-actuator-autoconfigure
+description: Spring Boot Actuator AutoConfigure
+url: https://github.com/spring-projects/spring-boot
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+org.springframework.boot:spring-boot-actuator:3.5.15
+name: spring-boot-actuator
+description: Spring Boot Actuator
+url: https://github.com/spring-projects/spring-boot
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+org.springframework.boot:spring-boot-actuator:4.0.7
+name: spring-boot-actuator
+description: Spring Boot Actuator
+url: https://github.com/spring-projects/spring-boot
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+org.springframework.boot:spring-boot-autoconfigure:3.5.15
 name: spring-boot-autoconfigure
 description: Spring Boot AutoConfigure
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-autoconfigure:4.0.6
+org.springframework.boot:spring-boot-autoconfigure:4.0.7
 name: spring-boot-autoconfigure
 description: Spring Boot AutoConfigure
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-configuration-processor:3.5.14
-name: spring-boot-configuration-processor
-description: Spring Boot Configuration Annotation Processor
-url: https://github.com/spring-projects/spring-boot
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework.boot:spring-boot-data-commons:4.0.6
+org.springframework.boot:spring-boot-data-commons:4.0.7
 name: spring-boot-data-commons
 description: Spring Boot Data Commons
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-data-jpa:4.0.6
+org.springframework.boot:spring-boot-data-jpa:4.0.7
 name: spring-boot-data-jpa
 description: Spring Boot Data JPA
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-hibernate:4.0.6
+org.springframework.boot:spring-boot-health:4.0.7
+name: spring-boot-health
+description: Spring Boot Health
+url: https://github.com/spring-projects/spring-boot
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+org.springframework.boot:spring-boot-hibernate:4.0.7
 name: spring-boot-hibernate
 description: Spring Boot Hibernate
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-http-client:4.0.6
+org.springframework.boot:spring-boot-http-client:4.0.7
 name: spring-boot-http-client
 description: Spring Boot HTTP Client
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-http-converter:4.0.6
+org.springframework.boot:spring-boot-http-converter:4.0.7
 name: spring-boot-http-converter
 description: Spring Boot HTTP Converter
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-jackson2:4.0.6
+org.springframework.boot:spring-boot-jackson2:4.0.7
 name: spring-boot-jackson2
 description: Spring Boot Jackson 2 (deprecated in favor of spring-boot-jackson)
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-jackson:4.0.6
+org.springframework.boot:spring-boot-jackson:4.0.7
 name: spring-boot-jackson
 description: Spring Boot Jackson
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-jdbc:4.0.6
+org.springframework.boot:spring-boot-jdbc:4.0.7
 name: spring-boot-jdbc
 description: Spring Boot JDBC
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-jersey:4.0.6
+org.springframework.boot:spring-boot-jersey:4.0.7
 name: spring-boot-jersey
 description: Spring Boot Jersey
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-jpa:4.0.6
+org.springframework.boot:spring-boot-jpa:4.0.7
 name: spring-boot-jpa
 description: Spring Boot JPA
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-persistence:4.0.6
+org.springframework.boot:spring-boot-micrometer-metrics:4.0.7
+name: spring-boot-micrometer-metrics
+description: Spring Boot Metrics
+url: https://github.com/spring-projects/spring-boot
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+org.springframework.boot:spring-boot-micrometer-observation:4.0.7
+name: spring-boot-micrometer-observation
+description: Spring Boot Observation
+url: https://github.com/spring-projects/spring-boot
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+org.springframework.boot:spring-boot-persistence:4.0.7
 name: spring-boot-persistence
 description: Spring Boot Persistence
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-restclient:4.0.6
+org.springframework.boot:spring-boot-restclient:4.0.7
 name: spring-boot-restclient
 description: Spring Boot RestClient and RestTemplate
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-security-oauth2-client:4.0.6
+org.springframework.boot:spring-boot-security-oauth2-client:4.0.7
 name: spring-boot-security-oauth2-client
 description: Spring Boot Security OAuth2 Client
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-security-oauth2-resource-server:4.0.6
+org.springframework.boot:spring-boot-security-oauth2-resource-server:4.0.7
 name: spring-boot-security-oauth2-resource-server
 description: Spring Boot Security OAuth2 Resource Server
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-security:4.0.6
+org.springframework.boot:spring-boot-security:4.0.7
 name: spring-boot-security
 description: Spring Boot Security
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-servlet:4.0.6
+org.springframework.boot:spring-boot-servlet:4.0.7
 name: spring-boot-servlet
 description: Spring Boot Servlet
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-sql:4.0.6
+org.springframework.boot:spring-boot-sql:4.0.7
 name: spring-boot-sql
 description: Spring Boot SQL
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-data-jpa:3.5.14
+org.springframework.boot:spring-boot-starter-actuator:3.5.15
+name: spring-boot-starter-actuator
+description: Starter for using Spring Boot's Actuator which provides production ready features to help you monitor and manage your application
+url: https://github.com/spring-projects/spring-boot
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+org.springframework.boot:spring-boot-starter-actuator:4.0.7
+name: spring-boot-starter-actuator
+description: Starter for using Spring Boot's Actuator which provides production ready features to help you monitor and manage your application
+url: https://github.com/spring-projects/spring-boot
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+org.springframework.boot:spring-boot-starter-data-jpa:3.5.15
 name: spring-boot-starter-data-jpa
 description: Starter for using Spring Data JPA with Hibernate
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-data-jpa:4.0.6
+org.springframework.boot:spring-boot-starter-data-jpa:4.0.7
 name: spring-boot-starter-data-jpa
 description: Starter for using Spring Data JPA with Hibernate
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-jackson:4.0.6
+org.springframework.boot:spring-boot-starter-jackson:4.0.7
 name: spring-boot-starter-jackson
 description: Starter for using Jackson
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-jdbc:3.5.14
+org.springframework.boot:spring-boot-starter-jdbc:3.5.15
 name: spring-boot-starter-jdbc
 description: Starter for using JDBC with the HikariCP connection pool
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-jdbc:4.0.6
+org.springframework.boot:spring-boot-starter-jdbc:4.0.7
 name: spring-boot-starter-jdbc
 description: Starter for using JDBC with the HikariCP connection pool
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-jersey:3.5.14
+org.springframework.boot:spring-boot-starter-jersey:3.5.15
 name: spring-boot-starter-jersey
 description: Starter for building RESTful web applications using JAX-RS and Jersey. An alternative to spring-boot-starter-web
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-jersey:4.0.6
+org.springframework.boot:spring-boot-starter-jersey:4.0.7
 name: spring-boot-starter-jersey
 description: Starter for using JAX-RS and Jersey
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-json:3.5.14
+org.springframework.boot:spring-boot-starter-json:3.5.15
 name: spring-boot-starter-json
 description: Starter for reading and writing json
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-logging:3.5.14
+org.springframework.boot:spring-boot-starter-logging:3.5.15
 name: spring-boot-starter-logging
 description: Starter for logging using Logback. Default logging starter
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-logging:4.0.6
+org.springframework.boot:spring-boot-starter-logging:4.0.7
 name: spring-boot-starter-logging
 description: Starter for logging default logging
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-oauth2-client:3.5.14
+org.springframework.boot:spring-boot-starter-micrometer-metrics:4.0.7
+name: spring-boot-starter-micrometer-metrics
+description: Starter for using Micrometer Metrics
+url: https://github.com/spring-projects/spring-boot
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+org.springframework.boot:spring-boot-starter-oauth2-client:3.5.15
 name: spring-boot-starter-oauth2-client
 description: Starter for using Spring Security's OAuth2/OpenID Connect client features
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-oauth2-client:4.0.6
+org.springframework.boot:spring-boot-starter-oauth2-client:4.0.7
 name: spring-boot-starter-oauth2-client
 description: Starter for using Spring Security's OAuth2/OpenID Connect client features (deprecated in favor of spring-boot-starter-security-oauth2-client)
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-oauth2-resource-server:3.5.14
+org.springframework.boot:spring-boot-starter-oauth2-resource-server:3.5.15
 name: spring-boot-starter-oauth2-resource-server
 description: Starter for using Spring Security's OAuth2 resource server features
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-oauth2-resource-server:4.0.6
+org.springframework.boot:spring-boot-starter-oauth2-resource-server:4.0.7
 name: spring-boot-starter-oauth2-resource-server
 description: Starter for using Spring Security's OAuth2 resource server features (deprecated in favor of spring-boot-starter-security-oauth2-resource-server)
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-restclient:4.0.6
+org.springframework.boot:spring-boot-starter-restclient:4.0.7
 name: spring-boot-starter-restclient
 description: Starter using Spring's blocking HTTP clients (RestClient, RestTemplate and HTTP Service Clients)
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-security:3.5.14
+org.springframework.boot:spring-boot-starter-security:3.5.15
 name: spring-boot-starter-security
 description: Starter for using Spring Security
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-security:4.0.6
+org.springframework.boot:spring-boot-starter-security:4.0.7
 name: spring-boot-starter-security
 description: Starter for using Spring Security
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-tomcat-runtime:4.0.6
+org.springframework.boot:spring-boot-starter-tomcat-runtime:4.0.7
 name: spring-boot-starter-tomcat-runtime
 description: Starter for the Tomcat runtime
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-tomcat:3.5.14
+org.springframework.boot:spring-boot-starter-tomcat:3.5.15
 name: spring-boot-starter-tomcat
 description: Starter for using Tomcat as the embedded servlet container. Default servlet container starter used by spring-boot-starter-web
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-tomcat:4.0.6
+org.springframework.boot:spring-boot-starter-tomcat:4.0.7
 name: spring-boot-starter-tomcat
 description: Starter for using Tomcat as the embedded servlet container
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-validation:3.5.14
+org.springframework.boot:spring-boot-starter-validation:3.5.15
 name: spring-boot-starter-validation
 description: Starter for using Java Bean Validation with Hibernate Validator
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-validation:4.0.6
+org.springframework.boot:spring-boot-starter-validation:4.0.7
 name: spring-boot-starter-validation
 description: Starter for using Java Bean Validation with Hibernate Validator
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-web:3.5.14
+org.springframework.boot:spring-boot-starter-web:3.5.15
 name: spring-boot-starter-web
 description: Starter for building web, including RESTful, applications using Spring MVC. Uses Tomcat as the default embedded container
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-web:4.0.6
+org.springframework.boot:spring-boot-starter-web:4.0.7
 name: spring-boot-starter-web
 description: Starter for building web, including RESTful, applications using Spring MVC. Uses Tomcat as the default embedded container (deprecated in favor of spring-boot-starter-webmvc)
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter-webmvc:4.0.6
+org.springframework.boot:spring-boot-starter-webmvc:4.0.7
 name: spring-boot-starter-webmvc
 description: Starter for using Spring MVC and Tomcat
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter:3.5.14
+org.springframework.boot:spring-boot-starter:3.5.15
 name: spring-boot-starter
 description: Core starter, including auto-configuration support, logging and YAML
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-starter:4.0.6
+org.springframework.boot:spring-boot-starter:4.0.7
 name: spring-boot-starter
 description: Core starter, including auto-configuration support, logging and YAML
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-tomcat:4.0.6
+org.springframework.boot:spring-boot-tomcat:4.0.7
 name: spring-boot-tomcat
 description: Spring Boot Tomcat
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-transaction:4.0.6
+org.springframework.boot:spring-boot-transaction:4.0.7
 name: spring-boot-transaction
 description: Spring Boot Transaction
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-validation:4.0.6
+org.springframework.boot:spring-boot-validation:4.0.7
 name: spring-boot-validation
 description: Spring Boot Validation
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-web-server:4.0.6
+org.springframework.boot:spring-boot-web-server:4.0.7
 name: spring-boot-web-server
 description: Spring Boot Web Server
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot-webmvc:4.0.6
+org.springframework.boot:spring-boot-webmvc:4.0.7
 name: spring-boot-webmvc
 description: Spring Boot Web MVC
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot:3.5.14
+org.springframework.boot:spring-boot:3.5.15
 name: spring-boot
 description: Spring Boot
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.boot:spring-boot:4.0.6
+org.springframework.boot:spring-boot:4.0.7
 name: spring-boot
 description: Spring Boot
 url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.data:spring-data-commons:3.5.11
+org.springframework.data:spring-data-commons:3.5.12
 name: spring-data-commons
 description: Core Spring concepts underpinning every Spring Data module.
 url: https://github.com/spring-projects/spring-data-commons
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.data:spring-data-commons:4.0.5
+org.springframework.data:spring-data-commons:4.0.6
 name: spring-data-commons
 description: Core Spring concepts underpinning every Spring Data module.
 url: https://github.com/spring-projects/spring-data-commons
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.data:spring-data-envers:3.5.11
+org.springframework.data:spring-data-envers:3.5.12
 name: spring-data-envers
 description: Spring Data extension to work with Hibernate Envers
 url: https://github.com/SpringSource/spring-data-envers
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.data:spring-data-envers:4.0.5
+org.springframework.data:spring-data-envers:4.0.6
 name: spring-data-envers
 description: Spring Data extension to work with Hibernate Envers
 url: https://github.com/SpringSource/spring-data-envers
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.data:spring-data-jpa:3.5.11
+org.springframework.data:spring-data-jpa:3.5.12
 name: spring-data-jpa
 description: Spring Data module for JPA repositories.
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.data:spring-data-jpa:4.0.5
+org.springframework.data:spring-data-jpa:4.0.6
 name: spring-data-jpa
 description: Spring Data module for JPA repositories.
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.security:spring-security-config:6.5.10
+org.springframework.security:spring-security-config:6.5.11
+name: spring-security-config
+description: Spring Security
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+org.springframework.security:spring-security-config:7.0.6
 name: spring-security-config
 description: Spring Security
 url: https://github.com/spring-projects/spring-security
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.security:spring-security-config:7.0.5
-name: spring-security-config
-description: Spring Security
-url: https://github.com/spring-projects/spring-security
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
-org.springframework.security:spring-security-core:6.5.10
+org.springframework.security:spring-security-core:6.5.11
 name: spring-security-core
 description: Spring Security
 url: https://github.com/spring-projects/spring-security
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.security:spring-security-core:7.0.5
+org.springframework.security:spring-security-core:7.0.6
 name: spring-security-core
 description: Spring Security
 url: https://github.com/spring-projects/spring-security
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.security:spring-security-crypto:6.5.10
+org.springframework.security:spring-security-crypto:6.5.11
 name: spring-security-crypto
 description: Spring Security
 url: https://github.com/spring-projects/spring-security
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.security:spring-security-crypto:7.0.5
+org.springframework.security:spring-security-crypto:7.0.6
 name: spring-security-crypto
 description: Spring Security
 url: https://github.com/spring-projects/spring-security
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.security:spring-security-oauth2-client:6.5.10
+org.springframework.security:spring-security-oauth2-client:6.5.11
 name: spring-security-oauth2-client
 description: Spring Security
 url: https://github.com/spring-projects/spring-security
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.security:spring-security-oauth2-client:7.0.5
+org.springframework.security:spring-security-oauth2-client:7.0.6
 name: spring-security-oauth2-client
 description: Spring Security
 url: https://github.com/spring-projects/spring-security
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.security:spring-security-oauth2-core:6.5.10
+org.springframework.security:spring-security-oauth2-core:6.5.11
 name: spring-security-oauth2-core
 description: Spring Security
 url: https://github.com/spring-projects/spring-security
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.security:spring-security-oauth2-core:7.0.5
+org.springframework.security:spring-security-oauth2-core:7.0.6
 name: spring-security-oauth2-core
 description: Spring Security
 url: https://github.com/spring-projects/spring-security
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.security:spring-security-oauth2-jose:6.5.10
+org.springframework.security:spring-security-oauth2-jose:6.5.11
 name: spring-security-oauth2-jose
 description: Spring Security
 url: https://github.com/spring-projects/spring-security
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.security:spring-security-oauth2-jose:7.0.5
+org.springframework.security:spring-security-oauth2-jose:7.0.6
 name: spring-security-oauth2-jose
 description: Spring Security
 url: https://github.com/spring-projects/spring-security
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.security:spring-security-oauth2-resource-server:6.5.10
+org.springframework.security:spring-security-oauth2-resource-server:6.5.11
 name: spring-security-oauth2-resource-server
 description: Spring Security
 url: https://github.com/spring-projects/spring-security
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.security:spring-security-oauth2-resource-server:7.0.5
+org.springframework.security:spring-security-oauth2-resource-server:7.0.6
 name: spring-security-oauth2-resource-server
 description: Spring Security
 url: https://github.com/spring-projects/spring-security
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.security:spring-security-web:6.5.10
+org.springframework.security:spring-security-web:6.5.11
 name: spring-security-web
 description: Spring Security
 url: https://github.com/spring-projects/spring-security
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework.security:spring-security-web:7.0.5
+org.springframework.security:spring-security-web:7.0.6
 name: spring-security-web
 description: Spring Security
 url: https://github.com/spring-projects/spring-security
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-aop:6.2.18
+org.springframework:spring-aop:6.2.19
 name: spring-aop
 description: Spring AOP
 url: https://github.com/spring-projects/spring-framework
@@ -4026,21 +4036,21 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-aop:7.0.7
+org.springframework:spring-aop:7.0.8
 name: spring-aop
 description: Spring AOP
 url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-aspects:6.2.18
+org.springframework:spring-aspects:6.2.19
 name: spring-aspects
 description: Spring Aspects
 url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-aspects:7.0.7
+org.springframework:spring-aspects:7.0.8
 name: spring-aspects
 description: Spring Aspects
 url: https://github.com/spring-projects/spring-framework
@@ -4054,7 +4064,7 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-beans:6.2.18
+org.springframework:spring-beans:6.2.19
 name: spring-beans
 description: Spring Beans
 url: https://github.com/spring-projects/spring-framework
@@ -4068,14 +4078,14 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-beans:7.0.7
+org.springframework:spring-beans:7.0.8
 name: spring-beans
 description: Spring Beans
 url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-context:6.2.18
+org.springframework:spring-context:6.2.19
 name: spring-context
 description: Spring Context
 url: https://github.com/spring-projects/spring-framework
@@ -4089,7 +4099,7 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-context:7.0.7
+org.springframework:spring-context:7.0.8
 name: spring-context
 description: Spring Context
 url: https://github.com/spring-projects/spring-framework
@@ -4103,7 +4113,7 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-core:6.2.18
+org.springframework:spring-core:6.2.19
 name: spring-core
 description: Spring Core
 url: https://github.com/spring-projects/spring-framework
@@ -4117,14 +4127,14 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-core:7.0.7
+org.springframework:spring-core:7.0.8
 name: spring-core
 description: Spring Core
 url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-expression:6.2.18
+org.springframework:spring-expression:6.2.19
 name: spring-expression
 description: Spring Expression Language (SpEL)
 url: https://github.com/spring-projects/spring-framework
@@ -4138,7 +4148,7 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-expression:7.0.7
+org.springframework:spring-expression:7.0.8
 name: spring-expression
 description: Spring Expression Language (SpEL)
 url: https://github.com/spring-projects/spring-framework
@@ -4152,77 +4162,77 @@ url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-jcl:6.2.18
+org.springframework:spring-jcl:6.2.19
 name: spring-jcl
 description: Spring Commons Logging Bridge
 url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-jdbc:6.2.18
+org.springframework:spring-jdbc:6.2.19
 name: spring-jdbc
 description: Spring JDBC
 url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-jdbc:7.0.7
+org.springframework:spring-jdbc:7.0.8
 name: spring-jdbc
 description: Spring JDBC
 url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-orm:6.2.18
+org.springframework:spring-orm:6.2.19
 name: spring-orm
 description: Spring Object/Relational Mapping
 url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-orm:7.0.7
+org.springframework:spring-orm:7.0.8
 name: spring-orm
 description: Spring Object/Relational Mapping
 url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-tx:6.2.18
+org.springframework:spring-tx:6.2.19
 name: spring-tx
 description: Spring Transaction
 url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-tx:7.0.7
+org.springframework:spring-tx:7.0.8
 name: spring-tx
 description: Spring Transaction
 url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-web:6.2.18
+org.springframework:spring-web:6.2.19
 name: spring-web
 description: Spring Web
 url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-web:7.0.7
+org.springframework:spring-web:7.0.8
 name: spring-web
 description: Spring Web
 url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-webmvc:6.2.18
+org.springframework:spring-webmvc:6.2.19
 name: spring-webmvc
 description: Spring Web MVC
 url: https://github.com/spring-projects/spring-framework
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.springframework:spring-webmvc:7.0.7
+org.springframework:spring-webmvc:7.0.8
 name: spring-webmvc
 description: Spring Web MVC
 url: https://github.com/spring-projects/spring-framework
@@ -4232,21 +4242,12 @@ license url: https://opensource.org/licenses/Apache-2.0
 org.webjars:swagger-ui:5.28.1
 name: swagger-ui
 description: WebJar for Swagger UI
-url: https://github.com/swagger-api/swagger-ui
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
 org.webjars:swagger-ui:5.32.0
 name: swagger-ui
 description: WebJar for Swagger UI
-url: https://github.com/swagger-api/swagger-ui
-license: Apache-2.0
-license url: https://www.apache.org/licenses/LICENSE-2.0
-========================================================================
-org.webjars:swagger-ui:5.32.6
-name: swagger-ui
-description: WebJar for Swagger UI
-url: https://github.com/swagger-api/swagger-ui
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
@@ -4255,7 +4256,7 @@ name: webjars-locator-lite
 description: WebJars Locator Lite
 url: https://github.com/webjars/webjars-locator-lite
 license: MIT
-license url: https://opensource.org/licenses/MIT
+license url: https://opensource.org/license/mit/
 ========================================================================
 org.wildfly.client:wildfly-client-config:1.0.1.Final
 name: wildfly-client-config
@@ -4263,63 +4264,63 @@ description: Library for supporting WildFly common client configuration
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.clustering:wildfly-clustering-cache-spi:10.0.7.Final
+org.wildfly.clustering:wildfly-clustering-cache-spi:10.0.9.Final
 name: wildfly-clustering-cache-spi
 description: WildFly Clustering: Cache: SPI
 url: https://github.com/wildfly-clustering/wildfly-clustering
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.wildfly.clustering:wildfly-clustering-context:10.0.7.Final
+org.wildfly.clustering:wildfly-clustering-context:10.0.9.Final
 name: wildfly-clustering-context
 description: WildFly Clustering: Context propagation
 url: https://github.com/wildfly-clustering/wildfly-clustering
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.wildfly.clustering:wildfly-clustering-function:10.0.7.Final
+org.wildfly.clustering:wildfly-clustering-function:10.0.9.Final
 name: wildfly-clustering-function
 description: WildFly Clustering: Functions
 url: https://github.com/wildfly-clustering/wildfly-clustering
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.wildfly.clustering:wildfly-clustering-marshalling-jboss:10.0.7.Final
+org.wildfly.clustering:wildfly-clustering-marshalling-jboss:10.0.9.Final
 name: wildfly-clustering-marshalling-jboss
 description: WildFly Clustering: Marshalling: JBoss Marshalling
 url: https://github.com/wildfly-clustering/wildfly-clustering
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.wildfly.clustering:wildfly-clustering-marshalling-protostream:10.0.7.Final
+org.wildfly.clustering:wildfly-clustering-marshalling-protostream:10.0.9.Final
 name: wildfly-clustering-marshalling-protostream
 description: WildFly Clustering: Marshalling: ProtoStream
 url: https://github.com/wildfly-clustering/wildfly-clustering
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.wildfly.clustering:wildfly-clustering-marshalling-spi:10.0.7.Final
+org.wildfly.clustering:wildfly-clustering-marshalling-spi:10.0.9.Final
 name: wildfly-clustering-marshalling-spi
 description: WildFly Clustering: Marshalling: SPI
 url: https://github.com/wildfly-clustering/wildfly-clustering
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.wildfly.clustering:wildfly-clustering-server-api:10.0.7.Final
+org.wildfly.clustering:wildfly-clustering-server-api:10.0.9.Final
 name: wildfly-clustering-server-api
 description: WildFly Clustering: Server: API
 url: https://github.com/wildfly-clustering/wildfly-clustering
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.wildfly.clustering:wildfly-clustering-server-local:10.0.7.Final
+org.wildfly.clustering:wildfly-clustering-server-local:10.0.9.Final
 name: wildfly-clustering-server-local
 description: WildFly Clustering: Server: Local implementation
 url: https://github.com/wildfly-clustering/wildfly-clustering
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-org.wildfly.clustering:wildfly-clustering-server-spi:10.0.7.Final
+org.wildfly.clustering:wildfly-clustering-server-spi:10.0.9.Final
 name: wildfly-clustering-server-spi
 description: WildFly Clustering: Server: SPI
 url: https://github.com/wildfly-clustering/wildfly-clustering
@@ -4335,17 +4336,16 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly.common:wildfly-common:2.0.1
 name: wildfly-common
 description: Provides, via submodules, a base configuration for JBoss project builds, as well as a derived configuration supporting multi-release JARs
-url: https://github.com/wildfly/wildfly-common/
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
 org.wildfly.core:wildfly-controller-client:20.0.2.Final
 name: wildfly-controller-client
 description: WildFly: Core Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly.core:wildfly-controller-client:32.0.0.Final
+org.wildfly.core:wildfly-controller-client:33.0.0.Final
 name: wildfly-controller-client
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
@@ -4355,10 +4355,10 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly.core:wildfly-controller:20.0.2.Final
 name: wildfly-controller
 description: WildFly: Core Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly.core:wildfly-controller:32.0.0.Final
+org.wildfly.core:wildfly-controller:33.0.0.Final
 name: wildfly-controller
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
@@ -4368,10 +4368,10 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly.core:wildfly-core-management-client:20.0.2.Final
 name: wildfly-core-management-client
 description: WildFly: Core Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly.core:wildfly-core-management-client:32.0.0.Final
+org.wildfly.core:wildfly-core-management-client:33.0.0.Final
 name: wildfly-core-management-client
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
@@ -4381,10 +4381,10 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly.core:wildfly-core-security:20.0.2.Final
 name: wildfly-core-security
 description: WildFly: Core Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly.core:wildfly-core-security:32.0.0.Final
+org.wildfly.core:wildfly-core-security:33.0.0.Final
 name: wildfly-core-security
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
@@ -4394,10 +4394,10 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly.core:wildfly-deployment-repository:20.0.2.Final
 name: wildfly-deployment-repository
 description: WildFly: Core Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly.core:wildfly-deployment-repository:32.0.0.Final
+org.wildfly.core:wildfly-deployment-repository:33.0.0.Final
 name: wildfly-deployment-repository
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
@@ -4407,10 +4407,10 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly.core:wildfly-domain-http-interface:20.0.2.Final
 name: wildfly-domain-http-interface
 description: WildFly: Core Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly.core:wildfly-domain-http-interface:32.0.0.Final
+org.wildfly.core:wildfly-domain-http-interface:33.0.0.Final
 name: wildfly-domain-http-interface
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
@@ -4420,24 +4420,24 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly.core:wildfly-domain-management:20.0.2.Final
 name: wildfly-domain-management
 description: WildFly: Core Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly.core:wildfly-domain-management:32.0.0.Final
+org.wildfly.core:wildfly-domain-management:33.0.0.Final
 name: wildfly-domain-management
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.core:wildfly-embedded:32.0.0.Final
+org.wildfly.core:wildfly-embedded:33.0.0.Final
 name: wildfly-embedded
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.core:wildfly-io-spi:32.0.0.Final
+org.wildfly.core:wildfly-io-spi:33.0.0.Final
 name: wildfly-io-spi
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
@@ -4447,16 +4447,16 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly.core:wildfly-io:20.0.2.Final
 name: wildfly-io
 description: WildFly: Core Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.wildfly.core:wildfly-network:20.0.2.Final
 name: wildfly-network
 description: WildFly: Core Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly.core:wildfly-network:32.0.0.Final
+org.wildfly.core:wildfly-network:33.0.0.Final
 name: wildfly-network
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
@@ -4466,10 +4466,10 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly.core:wildfly-platform-mbean:20.0.2.Final
 name: wildfly-platform-mbean
 description: WildFly: Core Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly.core:wildfly-platform-mbean:32.0.0.Final
+org.wildfly.core:wildfly-platform-mbean:33.0.0.Final
 name: wildfly-platform-mbean
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
@@ -4479,10 +4479,10 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly.core:wildfly-process-controller:20.0.2.Final
 name: wildfly-process-controller
 description: WildFly: Core Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly.core:wildfly-process-controller:32.0.0.Final
+org.wildfly.core:wildfly-process-controller:33.0.0.Final
 name: wildfly-process-controller
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
@@ -4492,10 +4492,10 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly.core:wildfly-remoting:20.0.2.Final
 name: wildfly-remoting
 description: WildFly: Core Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly.core:wildfly-remoting:32.0.0.Final
+org.wildfly.core:wildfly-remoting:33.0.0.Final
 name: wildfly-remoting
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
@@ -4505,10 +4505,10 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly.core:wildfly-request-controller:20.0.2.Final
 name: wildfly-request-controller
 description: WildFly: Core Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly.core:wildfly-request-controller:32.0.0.Final
+org.wildfly.core:wildfly-request-controller:33.0.0.Final
 name: wildfly-request-controller
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
@@ -4518,24 +4518,24 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly.core:wildfly-server:20.0.2.Final
 name: wildfly-server
 description: WildFly: Core Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly.core:wildfly-server:32.0.0.Final
+org.wildfly.core:wildfly-server:33.0.0.Final
 name: wildfly-server
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.core:wildfly-service:32.0.0.Final
+org.wildfly.core:wildfly-service:33.0.0.Final
 name: wildfly-service
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.core:wildfly-subsystem:32.0.0.Final
+org.wildfly.core:wildfly-subsystem:33.0.0.Final
 name: wildfly-subsystem
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
@@ -4545,10 +4545,10 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly.core:wildfly-threads:20.0.2.Final
 name: wildfly-threads
 description: WildFly: Core Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly.core:wildfly-threads:32.0.0.Final
+org.wildfly.core:wildfly-threads:33.0.0.Final
 name: wildfly-threads
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
@@ -4558,10 +4558,10 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly.core:wildfly-version:20.0.2.Final
 name: wildfly-version
 description: WildFly: Core Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly.core:wildfly-version:32.0.0.Final
+org.wildfly.core:wildfly-version:33.0.0.Final
 name: wildfly-version
 description: WildFly: Core Parent Aggregator
 url: https://github.com/wildfly/wildfly-core
@@ -4606,7 +4606,7 @@ description: WildFly Security ASN.1 Implementation
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-asn1:2.9.0.Final
+org.wildfly.security:wildfly-elytron-asn1:2.9.2.Final
 name: wildfly-elytron-asn1
 description: WildFly Security ASN.1 Implementation
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4619,7 +4619,7 @@ description: WildFly Security Audit Logging Implementation
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-audit:2.9.0.Final
+org.wildfly.security:wildfly-elytron-audit:2.9.2.Final
 name: wildfly-elytron-audit
 description: WildFly Security Audit Logging Implementation
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4632,7 +4632,7 @@ description: WildFly Security Auth Server Deprecated
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-auth-server-deprecated:2.9.0.Final
+org.wildfly.security:wildfly-elytron-auth-server-deprecated:2.9.2.Final
 name: wildfly-elytron-auth-server-deprecated
 description: WildFly Security Auth Server Deprecated
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4645,7 +4645,7 @@ description: WildFly Security Auth Server HTTP
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-auth-server-http:2.9.0.Final
+org.wildfly.security:wildfly-elytron-auth-server-http:2.9.2.Final
 name: wildfly-elytron-auth-server-http
 description: WildFly Security Auth Server HTTP
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4658,7 +4658,7 @@ description: WildFly Security Auth Server SASL
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-auth-server-sasl:2.9.0.Final
+org.wildfly.security:wildfly-elytron-auth-server-sasl:2.9.2.Final
 name: wildfly-elytron-auth-server-sasl
 description: WildFly Security Auth Server SASL
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4671,7 +4671,7 @@ description: WildFly Security Auth Server
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-auth-server:2.9.0.Final
+org.wildfly.security:wildfly-elytron-auth-server:2.9.2.Final
 name: wildfly-elytron-auth-server
 description: WildFly Security Auth Server
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4684,7 +4684,7 @@ description: WildFly Security Auth Util
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-auth-util:2.9.0.Final
+org.wildfly.security:wildfly-elytron-auth-util:2.9.2.Final
 name: wildfly-elytron-auth-util
 description: WildFly Security Auth Util
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4697,7 +4697,7 @@ description: WildFly Security Auth
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-auth:2.9.0.Final
+org.wildfly.security:wildfly-elytron-auth:2.9.2.Final
 name: wildfly-elytron-auth
 description: WildFly Security Auth
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4710,7 +4710,7 @@ description: WildFly Security Base
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-base:2.9.0.Final
+org.wildfly.security:wildfly-elytron-base:2.9.2.Final
 name: wildfly-elytron-base
 description: WildFly Security Base
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4723,7 +4723,7 @@ description: WildFly Security Client
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-client:2.9.0.Final
+org.wildfly.security:wildfly-elytron-client:2.9.2.Final
 name: wildfly-elytron-client
 description: WildFly Security Client
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4736,7 +4736,7 @@ description: WildFly Security Credential Source Implementation
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-credential-source-impl:2.9.0.Final
+org.wildfly.security:wildfly-elytron-credential-source-impl:2.9.2.Final
 name: wildfly-elytron-credential-source-impl
 description: WildFly Security Credential Source Implementation
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4749,7 +4749,7 @@ description: WildFly Security Credential Store SPIs and implementaions
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-credential-store:2.9.0.Final
+org.wildfly.security:wildfly-elytron-credential-store:2.9.2.Final
 name: wildfly-elytron-credential-store
 description: WildFly Security Credential Store SPIs and implementaions
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4762,7 +4762,7 @@ description: WildFly Security Credential API
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-credential:2.9.0.Final
+org.wildfly.security:wildfly-elytron-credential:2.9.2.Final
 name: wildfly-elytron-credential
 description: WildFly Security Credential API
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4775,7 +4775,7 @@ description: WildFly Security Encryption
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-encryption:2.9.0.Final
+org.wildfly.security:wildfly-elytron-encryption:2.9.2.Final
 name: wildfly-elytron-encryption
 description: WildFly Security Encryption
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4788,7 +4788,7 @@ description: WildFly Security HTTP Utility Classes
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-http-util:2.9.0.Final
+org.wildfly.security:wildfly-elytron-http-util:2.9.2.Final
 name: wildfly-elytron-http-util
 description: WildFly Security HTTP Utility Classes
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4801,7 +4801,7 @@ description: WildFly Security HTTP Framework
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-http:2.9.0.Final
+org.wildfly.security:wildfly-elytron-http:2.9.2.Final
 name: wildfly-elytron-http
 description: WildFly Security HTTP Framework
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4814,7 +4814,7 @@ description: WildFly Security Credential API
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-keystore:2.9.0.Final
+org.wildfly.security:wildfly-elytron-keystore:2.9.2.Final
 name: wildfly-elytron-keystore
 description: WildFly Security Credential API
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4827,7 +4827,7 @@ description: WildFly Security Mechanism Digest
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-mechanism-digest:2.9.0.Final
+org.wildfly.security:wildfly-elytron-mechanism-digest:2.9.2.Final
 name: wildfly-elytron-mechanism-digest
 description: WildFly Security Mechanism Digest
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4840,7 +4840,7 @@ description: WildFly Security Mechanism GSSAPI
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-mechanism-gssapi:2.9.0.Final
+org.wildfly.security:wildfly-elytron-mechanism-gssapi:2.9.2.Final
 name: wildfly-elytron-mechanism-gssapi
 description: WildFly Security Mechanism GSSAPI
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4853,7 +4853,7 @@ description: WildFly Security Mechanism
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-mechanism:2.9.0.Final
+org.wildfly.security:wildfly-elytron-mechanism:2.9.2.Final
 name: wildfly-elytron-mechanism
 description: WildFly Security Mechanism
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4866,7 +4866,7 @@ description: WildFly Security Password Implementation
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-password-impl:2.9.0.Final
+org.wildfly.security:wildfly-elytron-password-impl:2.9.2.Final
 name: wildfly-elytron-password-impl
 description: WildFly Security Password Implementation
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4879,7 +4879,7 @@ description: WildFly Security Permission
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-permission:2.9.0.Final
+org.wildfly.security:wildfly-elytron-permission:2.9.2.Final
 name: wildfly-elytron-permission
 description: WildFly Security Permission
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4892,7 +4892,7 @@ description: WildFly Security Provider Util
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-provider-util:2.9.0.Final
+org.wildfly.security:wildfly-elytron-provider-util:2.9.2.Final
 name: wildfly-elytron-provider-util
 description: WildFly Security Provider Util
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4905,7 +4905,7 @@ description: WildFly Security Realm Implementation
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-realm:2.9.0.Final
+org.wildfly.security:wildfly-elytron-realm:2.9.2.Final
 name: wildfly-elytron-realm
 description: WildFly Security Realm Implementation
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4918,7 +4918,7 @@ description: WildFly Security Anonymous SASL Implementation
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-sasl-anonymous:2.9.0.Final
+org.wildfly.security:wildfly-elytron-sasl-anonymous:2.9.2.Final
 name: wildfly-elytron-sasl-anonymous
 description: WildFly Security Anonymous SASL Implementation
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4943,7 +4943,7 @@ description: WildFly Security Digest SASL Implementation
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-sasl-digest:2.9.0.Final
+org.wildfly.security:wildfly-elytron-sasl-digest:2.9.2.Final
 name: wildfly-elytron-sasl-digest
 description: WildFly Security Digest SASL Implementation
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4956,7 +4956,7 @@ description: WildFly Security SASL
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-sasl:2.9.0.Final
+org.wildfly.security:wildfly-elytron-sasl:2.9.2.Final
 name: wildfly-elytron-sasl
 description: WildFly Security SASL
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4969,7 +4969,7 @@ description: WildFly Security Security Manager Action
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-security-manager-action:2.9.0.Final
+org.wildfly.security:wildfly-elytron-security-manager-action:2.9.2.Final
 name: wildfly-elytron-security-manager-action
 description: WildFly Security Security Manager Action
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4982,7 +4982,7 @@ description: WildFly Security Security Manager
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-security-manager:2.9.0.Final
+org.wildfly.security:wildfly-elytron-security-manager:2.9.2.Final
 name: wildfly-elytron-security-manager
 description: WildFly Security Security Manager
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -4995,7 +4995,7 @@ description: WildFly Security SSH Util
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-ssh-util:2.9.0.Final
+org.wildfly.security:wildfly-elytron-ssh-util:2.9.2.Final
 name: wildfly-elytron-ssh-util
 description: WildFly Security SSH Util
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -5008,7 +5008,7 @@ description: WildFly Security SSL
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-ssl:2.9.0.Final
+org.wildfly.security:wildfly-elytron-ssl:2.9.2.Final
 name: wildfly-elytron-ssl
 description: WildFly Security SSL
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -5021,7 +5021,7 @@ description: WildFly Security Util
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-util:2.9.0.Final
+org.wildfly.security:wildfly-elytron-util:2.9.2.Final
 name: wildfly-elytron-util
 description: WildFly Security Util
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -5034,7 +5034,7 @@ description: WildFly Security X.500 Certificate ACME Client Implementation
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-x500-cert-acme:2.9.0.Final
+org.wildfly.security:wildfly-elytron-x500-cert-acme:2.9.2.Final
 name: wildfly-elytron-x500-cert-acme
 description: WildFly Security X.500 Certificate ACME Client Implementation
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -5047,7 +5047,7 @@ description: WildFly Security X.500 Certificate Utility Classes
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-x500-cert-util:2.9.0.Final
+org.wildfly.security:wildfly-elytron-x500-cert-util:2.9.2.Final
 name: wildfly-elytron-x500-cert-util
 description: WildFly Security X.500 Certificate Utility Classes
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -5060,7 +5060,7 @@ description: WildFly Security X.500 Certificates
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-x500-cert:2.9.0.Final
+org.wildfly.security:wildfly-elytron-x500-cert:2.9.2.Final
 name: wildfly-elytron-x500-cert
 description: WildFly Security X.500 Certificates
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -5073,7 +5073,7 @@ description: WildFly Security X.500
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly.security:wildfly-elytron-x500:2.9.0.Final
+org.wildfly.security:wildfly-elytron-x500:2.9.2.Final
 name: wildfly-elytron-x500
 description: WildFly Security X.500
 url: https://wildfly-security.github.io/wildfly-elytron/
@@ -5121,10 +5121,10 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly:wildfly-clustering-common:28.0.1.Final
 name: wildfly-clustering-common
 description: The code in this module is not explicitly related to clustering, but rather contains resuable code used by clustering modules and any modules that integrate with clustering.
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly:wildfly-clustering-common:40.0.0.Final
+org.wildfly:wildfly-clustering-common:41.0.0.Final
 name: wildfly-clustering-common
 description: The code in this module is not explicitly related to clustering, but rather contains reusable code used by clustering modules and any modules that integrate with clustering.
 url: https://wildfly.org
@@ -5134,22 +5134,22 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly:wildfly-clustering-ee-cache:28.0.1.Final
 name: wildfly-clustering-ee-cache
 description: This module contains code that is common to the wildfly-clustering-ee-hotrod and wildfly-clustering-ee-infinispan modules.
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.wildfly:wildfly-clustering-ee-spi:28.0.1.Final
 name: wildfly-clustering-ee-spi
 description: This module contains code that is common to the wildfly-clustering-ejb-spi and wildfly-clustering-web-spi modules.
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.wildfly:wildfly-clustering-ejb-spi:28.0.1.Final
 name: wildfly-clustering-ejb-spi
 description: A set of SPIs for managing distributable @Stateful bean instances for use by the the distributed Jakarta Enterprise Beans cache implementation found in the wildfly-ejb3 module. This module decouples the mechanism for managing @Stateful bean instances from the Jakarta Enterprise Beans subsystem.
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly:wildfly-clustering-ejb-spi:40.0.0.Final
+org.wildfly:wildfly-clustering-ejb-spi:41.0.0.Final
 name: wildfly-clustering-ejb-spi
 description: A set of SPIs for managing distributable @Stateful bean instances for use by the the distributed Jakarta Enterprise Beans cache implementation found in the wildfly-ejb3 module. This module decouples the mechanism for managing @Stateful bean instances from the Jakarta Enterprise Beans subsystem.
 url: https://wildfly.org
@@ -5159,10 +5159,10 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly:wildfly-clustering-infinispan-embedded-service:28.0.1.Final
 name: wildfly-clustering-infinispan-embedded-service
 description: Requirements and configurators for Infinispan services.
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly:wildfly-clustering-infinispan-embedded-service:40.0.0.Final
+org.wildfly:wildfly-clustering-infinispan-embedded-service:41.0.0.Final
 name: wildfly-clustering-infinispan-embedded-service
 description: Requirements and configurators for Infinispan services.
 url: https://wildfly.org
@@ -5172,22 +5172,22 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly:wildfly-clustering-infinispan-embedded-spi:28.0.1.Final
 name: wildfly-clustering-infinispan-embedded-spi
 description: Infinispan customizations for WildFly.
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.wildfly:wildfly-clustering-marshalling-jboss:28.0.1.Final
 name: wildfly-clustering-marshalling-jboss
 description: Adapts implementations of wildfly-clustering-marshalling-api to JBoss Marshalling. Also contains wildfly-clustering-marshalling-spi implementations using JBoss Marshalling.
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.wildfly:wildfly-clustering-server-api:28.0.1.Final
 name: wildfly-clustering-server-api
 description: Server clustering API for use by WildFly services and deployments.
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly:wildfly-clustering-server-api:40.0.0.Final
+org.wildfly:wildfly-clustering-server-api:41.0.0.Final
 name: wildfly-clustering-server-api
 description: Server clustering API for use by WildFly services and deployments.
 url: https://wildfly.org
@@ -5197,10 +5197,10 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly:wildfly-clustering-server-service:28.0.1.Final
 name: wildfly-clustering-server-service
 description: Requirements and service installation providers for server clustering features.
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly:wildfly-clustering-server-service:40.0.0.Final
+org.wildfly:wildfly-clustering-server-service:41.0.0.Final
 name: wildfly-clustering-server-service
 description: Requirements and service installation providers for server clustering features.
 url: https://wildfly.org
@@ -5210,16 +5210,16 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly:wildfly-clustering-server-spi:28.0.1.Final
 name: wildfly-clustering-server-spi
 description: Server clustering API for use by WildFly services.
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
 org.wildfly:wildfly-clustering-service:28.0.1.Final
 name: wildfly-clustering-service
 description: Extensions to JBoss MSC to simplify building MSC services.
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly:wildfly-clustering-service:40.0.0.Final
+org.wildfly:wildfly-clustering-service:41.0.0.Final
 name: wildfly-clustering-service
 description: Extensions to JBoss MSC to simplify building MSC services.
 url: https://wildfly.org
@@ -5229,27 +5229,31 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly:wildfly-clustering-singleton-api:28.0.1.Final
 name: wildfly-clustering-singleton-api
 description: Public API for installing singleton MSC services.
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly:wildfly-clustering-singleton-api:40.0.0.Final
+org.wildfly:wildfly-clustering-singleton-api:41.0.0.Final
 name: wildfly-clustering-singleton-api
 description: Public API for installing singleton MSC services.
 url: https://wildfly.org
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly:wildfly-common-ee-dependency-management:40.0.0.Final
+org.wildfly:wildfly-common-ee-dependency-management:41.0.0.Final
 name: wildfly-common-ee-dependency-management
+description: Common dependency management that can be imported by other boms used for traditional capabilities like Jakarta EE. Not meant for direct use as a bom. Contains items common to *all* feature-packs that directly provide 'base' functionality, e.g. the wildfly-ee feature-pack.
+url: https://wildfly.org
 license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
+license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly:wildfly-common-expansion-dependency-management:40.0.0.Final
+org.wildfly:wildfly-common-expansion-dependency-management:41.0.0.Final
 name: wildfly-common-expansion-dependency-management
+description: Common dependency management that can be imported by other boms used for expansion capabilities like MicroProfile. Not meant for direct use as a bom.
+url: https://wildfly.org
 license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
+license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly:wildfly-concurrency-spi:40.0.0.Final
+org.wildfly:wildfly-concurrency-spi:41.0.0.Final
 name: wildfly-concurrency-spi
 description: WildFly: Parent Aggregator
 url: https://wildfly.org
@@ -5259,10 +5263,10 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly:wildfly-connector:28.0.1.Final
 name: wildfly-connector
 description: WildFly: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly:wildfly-connector:40.0.0.Final
+org.wildfly:wildfly-connector:41.0.0.Final
 name: wildfly-connector
 description: WildFly: Parent Aggregator
 url: https://wildfly.org
@@ -5271,21 +5275,24 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
 org.wildfly:wildfly-dist:28.0.1.Final
 name: wildfly-dist
-license: LGPL-2.1
-license url: https://opensource.org/licenses/LGPL-2.1
+description: WildFly: Parent Aggregator
+license: LGPL-2.1+
+license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly:wildfly-dist:40.0.0.Final
+org.wildfly:wildfly-dist:41.0.0.Final
 name: wildfly-dist
+description: WildFly: Distribution
+url: https://wildfly.org
 license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
+license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
 org.wildfly:wildfly-ee:28.0.1.Final
 name: wildfly-ee
 description: WildFly: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly:wildfly-ee:40.0.0.Final
+org.wildfly:wildfly-ee:41.0.0.Final
 name: wildfly-ee
 description: WildFly: Parent Aggregator
 url: https://wildfly.org
@@ -5295,10 +5302,10 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly:wildfly-ejb3:28.0.1.Final
 name: wildfly-ejb3
 description: WildFly: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly:wildfly-ejb3:40.0.0.Final
+org.wildfly:wildfly-ejb3:41.0.0.Final
 name: wildfly-ejb3
 description: WildFly: Parent Aggregator
 url: https://wildfly.org
@@ -5307,21 +5314,24 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
 org.wildfly:wildfly-galleon-pack:28.0.1.Final
 name: wildfly-galleon-pack
-license: LGPL-2.1
-license url: https://opensource.org/licenses/LGPL-2.1
+description: Parent for various Galleon feature pack modules
+license: LGPL-2.1+
+license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly:wildfly-galleon-pack:40.0.0.Final
+org.wildfly:wildfly-galleon-pack:41.0.0.Final
 name: wildfly-galleon-pack
+description: WildFly 41.0.0.Final Galleon pack
+url: https://wildfly.org
 license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
+license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
 org.wildfly:wildfly-iiop-openjdk:28.0.1.Final
 name: wildfly-iiop-openjdk
 description: WildFly: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly:wildfly-iiop-openjdk:40.0.0.Final
+org.wildfly:wildfly-iiop-openjdk:41.0.0.Final
 name: wildfly-iiop-openjdk
 description: WildFly: Parent Aggregator
 url: https://wildfly.org
@@ -5331,40 +5341,43 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly:wildfly-naming-client:2.0.1.Final
 name: wildfly-naming-client
 description: Provides, via submodules, a base configuration for JBoss project builds, as well as a derived configuration supporting multi-release JARs
-url: https://github.com/wildfly/wildfly-naming-client
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
 org.wildfly:wildfly-naming:28.0.1.Final
 name: wildfly-naming
 description: WildFly: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly:wildfly-naming:40.0.0.Final
+org.wildfly:wildfly-naming:41.0.0.Final
 name: wildfly-naming
 description: WildFly: Parent Aggregator
 url: https://wildfly.org
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly:wildfly-standard-ee-bom:40.0.0.Final
+org.wildfly:wildfly-standard-ee-bom:41.0.0.Final
 name: wildfly-standard-ee-bom
+description: Build of materials that can be used to build standard WildFly maven modules that provide traditional capabilities like Jakarta EE.
+url: https://wildfly.org
 license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
+license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-org.wildfly:wildfly-standard-expansion-bom:40.0.0.Final
+org.wildfly:wildfly-standard-expansion-bom:41.0.0.Final
 name: wildfly-standard-expansion-bom
+description: Build of materials that can be used to build standard WildFly maven modules that provide expansion capabilities like MicroProfile.
+url: https://wildfly.org
 license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
+license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
 org.wildfly:wildfly-transactions:28.0.1.Final
 name: wildfly-transactions
 description: WildFly: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly:wildfly-transactions:40.0.0.Final
+org.wildfly:wildfly-transactions:41.0.0.Final
 name: wildfly-transactions
 description: WildFly: Parent Aggregator
 url: https://wildfly.org
@@ -5374,10 +5387,10 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly:wildfly-web-common:28.0.1.Final
 name: wildfly-web-common
 description: WildFly: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly:wildfly-web-common:40.0.0.Final
+org.wildfly:wildfly-web-common:41.0.0.Final
 name: wildfly-web-common
 description: WildFly: Parent Aggregator
 url: https://wildfly.org
@@ -5387,10 +5400,10 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.wildfly:wildfly-weld-common:28.0.1.Final
 name: wildfly-weld-common
 description: WildFly: Parent Aggregator
-license: LGPL-2.1-or-later
+license: LGPL-2.1+
 license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 ========================================================================
-org.wildfly:wildfly-weld-common:40.0.0.Final
+org.wildfly:wildfly-weld-common:41.0.0.Final
 name: wildfly-weld-common
 description: WildFly: Parent Aggregator
 url: https://wildfly.org
@@ -5425,14 +5438,14 @@ url: https://bitbucket.org/snakeyaml/snakeyaml
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-tools.jackson.core:jackson-core:3.1.2
+tools.jackson.core:jackson-core:3.1.5
 name: jackson-core
 description: Core Jackson processing abstractions (aka Streaming API), implementation for JSON
 url: https://github.com/FasterXML/jackson-core
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-tools.jackson.core:jackson-databind:3.1.2
+tools.jackson.core:jackson-databind:3.1.5
 name: jackson-databind
 description: General data-binding functionality for Jackson: works on core streaming API
 url: https://github.com/FasterXML/jackson
@@ -5443,35 +5456,35 @@ license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
 # Web Applications Javascript Dependencies
 ========================================================================
-@babel:generator:7.29.1
+@babel:generator:7.29.7
 name: generator
 description: Turns an AST into code.
 url: https://github.com/babel/babel
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@babel:helper-string-parser:7.27.1
+@babel:helper-string-parser:7.29.7
 name: helper-string-parser
 description: A utility package to parse strings
 url: https://github.com/babel/babel
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@babel:helper-validator-identifier:7.28.5
+@babel:helper-validator-identifier:7.29.7
 name: helper-validator-identifier
 description: Validate identifier/keywords name
 url: https://github.com/babel/babel
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@babel:parser:7.29.3
+@babel:parser:7.29.7
 name: parser
 description: A JavaScript parser
 url: https://github.com/babel/babel
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@babel:types:7.29.0
+@babel:types:7.29.7
 name: types
 description: Babel Types is a Lodash-esque utility library for AST nodes
 url: https://github.com/babel/babel
@@ -5774,7 +5787,7 @@ description: Centralized Bootstrap theme for CIB company frontend projects.
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-@cib:common-frontend:1.0.3
+@cib:common-frontend:1.0.4
 name: common-frontend
 description: Common Vue.js components library for CIB applications
 license: Apache-2.0
@@ -6074,6 +6087,13 @@ url: https://github.com/paulmillr/noble-hashes
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+@nodable:entities:3.0.0
+name: entities
+description: Entity parser for XML, HTML, External entites with security and NCR control
+url: https://github.com/nodable/val-parsers
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 @paralleldrive:cuid2:2.3.1
 name: cuid2
 description: Secure, collision-resistant ids optimized for horizontal scaling and performance. Next generation UUIDs.
@@ -6284,6 +6304,13 @@ url: https://github.com/acornjs/acorn
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+agent-base:6.0.2
+name: agent-base
+description: Turn a function into an `http.Agent` instance
+url: https://github.com/TooTallNate/node-agent-base
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 angular-animate:1.8.2
 name: angular-animate
 description: AngularJS module for animations
@@ -6375,6 +6402,13 @@ url: https://github.com/doowb/ansi-colors
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+anynum:1.0.1
+name: anynum
+description: Normalize all Unicode decimal digits (Devanagari, Arabic, Thai, etc.) to ASCII numerals. Zero dependencies, performance-first.
+url: https://github.com/NaturalIntelligence/anynum
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 apexcharts:4.7.0
 name: apexcharts
 description: A JavaScript Chart Library
@@ -6431,7 +6465,7 @@ url: https://github.com/bevacqua/atoa
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-axios:1.15.2
+axios:1.18.1
 name: axios
 description: Promise based HTTP client for the browser and node.js
 url: https://github.com/axios/axios
@@ -6473,7 +6507,7 @@ url: https://github.com/twbs/bootstrap
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-bpm-sdk:2.1.2
+bpm-sdk:2.1.3
 name: bpm-sdk
 description: Camunda BPM SDK extracted as a standalone library.
 license: Apache-2.0
@@ -6576,12 +6610,6 @@ description: Robust call-bound JavaScript intrinsics, using `call-bind` and `get
 url: https://github.com/ljharb/call-bound
 license: MIT
 license url: https://opensource.org/licenses/MIT
-========================================================================
-camunda-bpm-sdk-js:7.23
-name: camunda-bpm-sdk-js
-url: camunda-bpm-platform/webapps/frontend/camunda-bpm-sdk-js
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
 camunda-bpm-webapp:0.0.0
 name: camunda-bpm-webapp
@@ -7127,9 +7155,9 @@ url: https://github.com/cure53/DOMPurify
 license: (MPL-2.0
 license url: https://www.mozilla.org/en-US/MPL/2.0/
 ========================================================================
-dompurify:3.4.2
+dompurify:3.4.12
 name: dompurify
-description: DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It's written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Firefox and Chrome - as well as almost anything else using Blink or WebKit). DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not.
+description: DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It runs as JavaScript and works in all modern browsers, as well as in Node.js (via jsdom). DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not.
 url: https://github.com/cure53/DOMPurify
 license: (MPL-2.0
 license url: https://www.mozilla.org/en-US/MPL/2.0/
@@ -7218,6 +7246,13 @@ url: https://github.com/davidmarkclements/fast-safe-stringify
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+fast-xml-builder:1.3.0
+name: fast-xml-builder
+description: Build XML from JSON without C/C++ based libraries
+url: https://github.com/NaturalIntelligence/fast-xml-builder
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 fast-xml-parser:4.3.4
 name: fast-xml-parser
 description: Validate XML, Parse XML, Build XML without C/C++ based libraries
@@ -7225,7 +7260,7 @@ url: https://github.com/NaturalIntelligence/fast-xml-parser
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-fast-xml-parser:5.3.9
+fast-xml-parser:5.10.1
 name: fast-xml-parser
 description: Validate XML, Parse XML, Build XML without C/C++ based libraries
 url: https://github.com/NaturalIntelligence/fast-xml-parser
@@ -7307,7 +7342,7 @@ url: https://github.com/form-data/form-data
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-form-data:4.0.5
+form-data:4.0.6
 name: form-data
 description: A library to create readable "multipart/form-data" streams. Can be used to submit forms and file uploads to other web applications.
 url: https://github.com/form-data/form-data
@@ -7426,7 +7461,7 @@ url: https://github.com/tarruda/has
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-hasown:2.0.3
+hasown:2.0.4
 name: hasown
 description: A robust, ES3 compatible, "has own property" predicate.
 url: https://github.com/inspect-js/hasOwn
@@ -7460,6 +7495,13 @@ description: The Tagged Template syntax for Virtual DOM. Only browser-compatible
 url: https://github.com/developit/htm
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+https-proxy-agent:5.0.1
+name: https-proxy-agent
+description: An HTTP(s) proxy `http.Agent` implementation for HTTPS
+url: https://github.com/TooTallNate/node-https-proxy-agent
+license: MIT
+license url: https://opensource.org/licenses/MIT
 ========================================================================
 ids:0.2.2
 name: ids
@@ -7543,6 +7585,13 @@ description: Browser-friendly inheritance fully compatible with standard node.js
 url: https://github.com/isaacs/inherits
 license: ISC
 license url: https://opensource.org/license/isc-license-txt
+========================================================================
+is-unsafe:2.0.0
+name: is-unsafe
+description: Zero-dependency, DOM-free, pure predicate for detecting unsafe strings across HTML, XML, SVG, SQL, SHELL, and REGEX contexts
+url: https://github.com/NaturalIntelligence/is-unsafe
+license: MIT
+license url: https://opensource.org/licenses/MIT
 ========================================================================
 jquery-ui:1.13.2
 name: jquery-ui
@@ -7950,6 +7999,13 @@ url: https://github.com/opencollective/opencollective-postinstall
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
+path-expression-matcher:1.6.2
+name: path-expression-matcher
+description: Efficient path tracking and pattern matching for XML/JSON parsers
+url: https://github.com/NaturalIntelligence/path-expression-matcher
+license: MIT
+license url: https://opensource.org/licenses/MIT
+========================================================================
 path-intersection:1.1.1
 name: path-intersection
 description: Computes the intersection between two SVG paths
@@ -8244,7 +8300,7 @@ url: https://github.com/NaturalIntelligence/strnum
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-strnum:2.3.0
+strnum:2.4.1
 name: strnum
 description: Parse String to Number based on configuration
 url: https://github.com/NaturalIntelligence/strnum
@@ -8453,6 +8509,13 @@ description: Callback wrapping utility
 url: https://github.com/npm/wrappy
 license: ISC
 license url: https://opensource.org/license/isc-license-txt
+========================================================================
+xml-naming:0.3.0
+name: xml-naming
+description: Validates XML name productions — Name, NCName, QName, NMToken, NMTokens — for XML 1.0 and 1.1
+url: https://github.com/NaturalIntelligence/xml-naming
+license: MIT
+license url: https://opensource.org/licenses/MIT
 ========================================================================
 yallist:4.0.0
 name: yallist
