@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getIdentityLinks"
       tag = "Task Identity Link"
-      summary = "Get List"
+      summary = "Get Task Identity Link List"
       desc = "Gets the identity links for a task by id, which are the users and groups that are in
               *some* relation to it (including assignee and owner)." />
 

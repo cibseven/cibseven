@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getProcessDefinitionDiagram"
       tag = "Process Definition"
-      summary = "Get Diagram"
+      summary = "Get Process Definition Diagram"
       desc = "Retrieves the diagram of a process definition.
 
               If the process definition's deployment contains an image resource with the same file name

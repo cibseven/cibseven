@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getTask"
       tag = "Task"
-      summary = "Get"
+      summary = "Get Task"
       desc = "Retrieves a task by id." />
 
   "parameters" : [

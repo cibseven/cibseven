@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getDecisionDefinitionDiagramByKey"
       tag = "Decision Definition"
-      summary = "Get Diagram By Key"
+      summary = "Get Decision Definition Diagram By Key"
       desc = "Returns the diagram for the latest version of the decision definition which belongs to no tenant" />
 
   "parameters" : [
