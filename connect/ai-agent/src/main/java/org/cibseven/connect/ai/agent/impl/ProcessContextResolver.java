@@ -161,24 +161,27 @@ public final class ProcessContextResolver {
 
   private static ContextVariable readOne(String name, boolean required,
       TypedVariableReader reader, int maxValueChars) {
-    TypedValue typed;
+    // The guard spans reading *and* rendering. Rendering is not the safe part:
+    // typeLabel() and renderValue() touch provider-specific value implementations
+    // (Spin json/xml lazily deserialize on getValue()), so a single malformed
+    // optional variable would otherwise abort the whole activity.
     try {
-      typed = reader.read(name);
+      TypedValue typed = reader.read(name);
+      if (typed == null) {
+        return ContextVariable.absent(name, required);
+      }
+      String type = typeLabel(typed);
+      Rendered rendered = renderValue(typed);
+      if (rendered == null) {
+        return ContextVariable.nullValued(name, required, type);
+      }
+      return ContextVariable.present(name, required, type, rendered, maxValueChars);
     } catch (RuntimeException e) {
-      // A failing read must not abort the whole activity for a non-required
-      // variable — record it as absent and let failOnMissingRequired decide.
-      LOG.warn("Could not read context variable '{}': {}", name, e.toString());
+      // Record it as absent and let failOnMissingRequired decide whether that is
+      // fatal — a variable the modeler declared required still fails the run.
+      LOG.warn("Could not read or render context variable '{}': {}", name, e.toString());
       return ContextVariable.absent(name, required);
     }
-    if (typed == null) {
-      return ContextVariable.absent(name, required);
-    }
-    String type = typeLabel(typed);
-    Rendered rendered = renderValue(typed);
-    if (rendered == null) {
-      return ContextVariable.nullValued(name, required, type);
-    }
-    return ContextVariable.present(name, required, type, rendered, maxValueChars);
   }
 
   /**
@@ -218,19 +221,23 @@ public final class ProcessContextResolver {
     if (variables == null || variables.isEmpty()) {
       return null;
     }
+    String prefix = AgentConnectorConstants.CONTEXT_BLOCK_OPEN + '\n' + BLOCK_HEADER + '\n';
+    String suffix = AgentConnectorConstants.CONTEXT_BLOCK_CLOSE;
+    // The cap is on the whole block, so the delimiters, the header and a possible
+    // omission notice have to come out of the same budget — otherwise the
+    // documented limit and the blockChars we report are both understated.
+    int budget = maxBlockChars - prefix.length() - suffix.length() - OMISSION_RESERVE_CHARS;
+
     StringBuilder body = new StringBuilder();
     int omitted = 0;
-    for (int i = 0; i < variables.size(); i++) {
-      ContextVariable variable = variables.get(i);
+    for (ContextVariable variable : variables) {
       if (omitted > 0) {
         variable.omitted = true;
         omitted++;
         continue;
       }
       String line = variable.toLine();
-      // +2 keeps room for the newline and stays conservative about the closing
-      // delimiter that is appended after the loop.
-      if (body.length() + line.length() + 2 > maxBlockChars) {
+      if (body.length() + line.length() + 1 > budget) {
         variable.omitted = true;
         omitted = 1;
         continue;
@@ -245,10 +252,25 @@ public final class ProcessContextResolver {
           + "were omitted. Reduce 'contextVariables' or raise the limit.",
           maxBlockChars, omitted, variables.size());
     }
-    return AgentConnectorConstants.CONTEXT_BLOCK_OPEN + '\n'
-        + BLOCK_HEADER + '\n'
-        + body
-        + AgentConnectorConstants.CONTEXT_BLOCK_CLOSE;
+    return prefix + body + suffix;
+  }
+
+  /**
+   * Characters held back from {@link #render(List, int)}'s budget so the
+   * omission notice still fits once the limit is hit. Slightly generous on
+   * purpose: overshooting the documented cap is worse than using a little less
+   * of it.
+   */
+  static final int OMISSION_RESERVE_CHARS = 120;
+
+  /**
+   * Number of characters {@link #render(List, int)} spends before the first
+   * variable line. Exposed so tests can pick a block limit relative to it
+   * instead of hard-coding a number that breaks whenever the header is reworded.
+   */
+  static int envelopeOverhead() {
+    return AgentConnectorConstants.CONTEXT_BLOCK_OPEN.length() + 1 + BLOCK_HEADER.length() + 1
+        + AgentConnectorConstants.CONTEXT_BLOCK_CLOSE.length() + OMISSION_RESERVE_CHARS;
   }
 
   // ── audit ──────────────────────────────────────────────────────────────────
@@ -278,8 +300,12 @@ public final class ProcessContextResolver {
       }
       if (variable.present && !variable.nullValued) {
         resolved++;
-        entry.put("valueLength", variable.originalLength);
-        entry.put("valueSha256", AgentChatListener.sha256(variable.fullValue));
+        // Length and hash cover the value as rendered but BEFORE escaping, so an
+        // auditor can reproduce the digest from the process variable itself. The
+        // escaped form is a presentation detail of the prompt and would make the
+        // hash unreproducible for every value containing a newline or a quote.
+        entry.put("valueLength", variable.rawValue.length());
+        entry.put("valueSha256", AgentChatListener.sha256(variable.rawValue));
         entry.put("truncated", variable.truncated);
       }
       if (variable.omitted) {
@@ -321,10 +347,13 @@ public final class ProcessContextResolver {
    */
   private static Rendered renderValue(TypedValue typed) {
     if (typed instanceof FileValue) {
+      // Filename and mime type only. The byte count is deliberately absent: the
+      // FileValue contract exposes the payload as an InputStream, and the only
+      // way to size it is to drain it. No forward reference to a documents
+      // feature either — this release cannot send file content to the model.
       FileValue file = (FileValue) typed;
       return new Rendered("(file " + quote(nullToUnknown(file.getFilename())) + ", "
-          + nullToUnknown(file.getMimeType()) + " — pass it via 'documents' to send it "
-          + "to the model)", false);
+          + nullToUnknown(file.getMimeType()) + ", content not sent to the model)", false);
     }
     if (typed instanceof BytesValue) {
       byte[] bytes = ((BytesValue) typed).getValue();
@@ -397,16 +426,55 @@ public final class ProcessContextResolver {
   /**
    * Type label shown next to the name. For object values the concrete class is
    * appended when known, because "object" alone tells the model nothing.
+   *
+   * <p>Sanitized like a value, and for the same reason: {@code objectTypeName}
+   * is caller-supplied metadata — anyone who can write an {@code ObjectValue}
+   * (REST, or the variable dialog in the webclient) chooses it freely. Rendered
+   * raw it would let a newline plus a literal delimiter close the block from
+   * inside the type column, which is exactly the escape the value path already
+   * prevents.
    */
   private static String typeLabel(TypedValue typed) {
     String base = (typed.getType() == null) ? "unknown" : typed.getType().getName();
     if (typed instanceof ObjectValue) {
       String objectType = ((ObjectValue) typed).getObjectTypeName();
       if (objectType != null && !objectType.isEmpty()) {
-        return base + "<" + objectType + ">";
+        return escape(base + "<" + objectType + ">", false);
       }
     }
-    return base;
+    return escape(base, false);
+  }
+
+  /**
+   * Cuts an already-escaped value to {@code max} characters without leaving a
+   * broken fragment behind: no lone high surrogate (which would be invalid
+   * UTF-16), no dangling backslash from a half-cut {@code \\n} / {@code \\"},
+   * and no partial {@code &lt;} entity produced by
+   * {@link #neuterDelimiters(String)}.
+   */
+  static String cutSafely(String escaped, int max) {
+    int end = Math.min(max, escaped.length());
+    if (end <= 0) {
+      return "";
+    }
+    if (Character.isHighSurrogate(escaped.charAt(end - 1))) {
+      end--;
+    }
+    int backslashes = 0;
+    for (int i = end - 1; i >= 0 && escaped.charAt(i) == '\\'; i--) {
+      backslashes++;
+    }
+    if (backslashes % 2 == 1) {
+      end--;
+    }
+    // Trim only when the cut lands *inside* a real "&lt;" entity — a stray '&'
+    // in ordinary text is not an entity and must survive.
+    int amp = escaped.lastIndexOf('&', end - 1);
+    if (amp >= 0 && escaped.startsWith(ESCAPED_ANGLE, amp)
+        && amp + ESCAPED_ANGLE.length() > end) {
+      end = amp;
+    }
+    return escaped.substring(0, Math.max(0, end));
   }
 
   /**
@@ -458,16 +526,21 @@ public final class ProcessContextResolver {
     final String type;
     /** Escaped value as it appears in the block, already truncated. */
     final String value;
-    /** Escaped value before truncation — hashed for the audit event. */
-    final String fullValue;
-    final int originalLength;
+    /**
+     * Rendered value <em>before</em> escaping and truncation. Hashed and
+     * measured for the audit event, so the digest is reproducible from the
+     * process variable rather than from the prompt's presentation form.
+     */
+    final String rawValue;
+    /** Escaped length before truncation — the unit the block's notice reports. */
+    final int escapedLength;
     final boolean truncated;
     final boolean quoted;
     /** Set by {@link #render(List, int)} when the block size limit cut it off. */
     boolean omitted;
 
     private ContextVariable(String name, boolean required, boolean present, boolean nullValued,
-        String type, String value, String fullValue, int originalLength, boolean truncated,
+        String type, String value, String rawValue, int escapedLength, boolean truncated,
         boolean quoted) {
       this.name = name;
       this.required = required;
@@ -475,8 +548,8 @@ public final class ProcessContextResolver {
       this.nullValued = nullValued;
       this.type = type;
       this.value = value;
-      this.fullValue = fullValue;
-      this.originalLength = originalLength;
+      this.rawValue = rawValue;
+      this.escapedLength = escapedLength;
       this.truncated = truncated;
       this.quoted = quoted;
     }
@@ -493,21 +566,27 @@ public final class ProcessContextResolver {
         Rendered rendered, int maxValueChars) {
       String escaped = escape(rendered.text, rendered.quoted);
       boolean truncated = maxValueChars > 0 && escaped.length() > maxValueChars;
-      String shown = truncated ? escaped.substring(0, maxValueChars) : escaped;
-      return new ContextVariable(name, required, true, false, type, shown, escaped,
+      String shown = truncated ? cutSafely(escaped, maxValueChars) : escaped;
+      return new ContextVariable(name, required, true, false, type, shown, rendered.text,
           escaped.length(), truncated, rendered.quoted);
     }
 
-    /** The variable's line inside the rendered block. */
+    /**
+     * The variable's line inside the rendered block. The name is sanitized like
+     * every other rendered fragment: it comes from the modeler's allowlist and
+     * is therefore design-time data, but nothing about this method should be the
+     * one place where an unescaped string reaches the prompt.
+     */
     String toLine() {
+      String safeName = escape(name, false);
       if (!present) {
-        return name + " = (absent)";
+        return safeName + " = (absent)";
       }
       if (nullValued) {
-        return name + " (" + type + ") = null";
+        return safeName + " (" + type + ") = null";
       }
       StringBuilder sb = new StringBuilder();
-      sb.append(name).append(" (").append(type).append(") = ");
+      sb.append(safeName).append(" (").append(type).append(") = ");
       if (quoted) {
         sb.append('"').append(value).append('"');
       } else {
@@ -515,7 +594,7 @@ public final class ProcessContextResolver {
       }
       if (truncated) {
         sb.append(" … (truncated, ").append(value.length())
-          .append(" of ").append(originalLength).append(" chars shown)");
+          .append(" of ").append(escapedLength).append(" chars shown)");
       }
       return sb.toString();
     }

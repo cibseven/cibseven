@@ -149,21 +149,25 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     ProcessStarterToolContext.setEngine(callerEngine);
     ProcessStarterToolContext.setAuthentication(callerAuth);
 
-    // Read the declared process-variable allowlist before any model object
-    // exists — the read is local and cheap, and a mis-declared context should
-    // not first build a chat model. The audit event and the required-variable
-    // check happen further down, after createChatModel() has installed the
-    // listener, which is the earliest point at which an event can be recorded
-    // at all.
-    List<ProcessContextResolver.ContextVariable> contextVariables =
-        resolveProcessContext(request);
     // MCP clients live for the duration of this single agent invocation. Declared
     // out here (not inside the try) so the finally block can close them — without
     // close() each DefaultMcpClient leaks its health-check scheduler thread and
     // the HTTP transport for the JVM lifetime, which over many BPMN runs turns
     // into a noisy burst of reconnect WARNs every time the MCP server restarts.
     List<McpClient> mcpClients = new ArrayList<>();
+    // Everything after the two ThreadLocal writes above must sit inside this try:
+    // its finally is what clears them again, and a leaked caller Authentication
+    // would be visible to the next, unrelated task on this pooled thread.
     try {
+      // Read the declared process-variable allowlist before any model object
+      // exists — the read is local and cheap, and a mis-declared context should
+      // not first build a chat model. The audit event and the required-variable
+      // check happen further down, after createChatModel() has installed the
+      // listener, which is the earliest point at which an event can be recorded
+      // at all.
+      List<ProcessContextResolver.ContextVariable> contextVariables =
+          resolveProcessContext(request);
+
       ChatModel chatModel = createChatModel(request, apiKey, baseUrl, customHeaders);
 
       // Now that createChatModel has installed the AgentChatListener, record
