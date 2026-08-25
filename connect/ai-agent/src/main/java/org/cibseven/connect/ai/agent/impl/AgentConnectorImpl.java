@@ -148,6 +148,15 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     Authentication callerAuth = captureCallerAuthentication(callerEngine);
     ProcessStarterToolContext.setEngine(callerEngine);
     ProcessStarterToolContext.setAuthentication(callerAuth);
+
+    // Read the declared process-variable allowlist before any model object
+    // exists — the read is local and cheap, and a mis-declared context should
+    // not first build a chat model. The audit event and the required-variable
+    // check happen further down, after createChatModel() has installed the
+    // listener, which is the earliest point at which an event can be recorded
+    // at all.
+    List<ProcessContextResolver.ContextVariable> contextVariables =
+        resolveProcessContext(request);
     // MCP clients live for the duration of this single agent invocation. Declared
     // out here (not inside the try) so the finally block can close them — without
     // close() each DefaultMcpClient leaks its health-check scheduler thread and
@@ -156,6 +165,24 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     List<McpClient> mcpClients = new ArrayList<>();
     try {
       ChatModel chatModel = createChatModel(request, apiKey, baseUrl, customHeaders);
+
+      // Now that createChatModel has installed the AgentChatListener, record
+      // which declared variables resolved, then abort if a required one is
+      // missing. Note the record does not survive that abort: the failing
+      // activity rolls its transaction back and takes the chat-log variable
+      // with it. The evidence of an aborted run is the incident and the
+      // exception message; deployments that need it in the audit trail have to
+      // route events to an external sink.
+      final String contextBlock = ProcessContextResolver.render(contextVariables,
+          AgentConnectorConstants.DEFAULT_MAX_CONTEXT_BLOCK_CHARS);
+      if (!contextVariables.isEmpty()) {
+        AgentChatListener contextListener = ProcessStarterToolContext.getActiveListener();
+        if (contextListener != null) {
+          contextListener.recordContextEvent(
+              ProcessContextResolver.describe(contextVariables, contextBlock));
+        }
+        ProcessContextResolver.failOnMissingRequired(contextVariables);
+      }
 
       List<McpServerSpec> mcpServerSpecs = parseMcpServers(request.getMcpServers());
       mcpClients = createMcpClients(request);
@@ -188,7 +215,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       Class<?> agentClass = (memoryId != null) ? LangChainMemoryAgent.class : LangChainAgent.class;
       AiServices<?> builder = AiServices.builder(agentClass)
           .chatModel(chatModel)
-          .systemMessageProvider(chatMemoryId -> buildSystemPrompt(request));
+          .systemMessageProvider(chatMemoryId -> buildSystemPrompt(request, contextBlock));
       if (!tools.isEmpty()) {
         builder.tools(tools.toArray());
       }
@@ -382,18 +409,8 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    * historic process instance record, or the start user cannot be resolved.
    */
   private Authentication deriveAuthenticationFromProcessInstance(ProcessEngine engine) {
-    String processInstanceId = null;
-    try {
-      BpmnExecutionContext executionContext = Context.getBpmnExecutionContext();
-      if (executionContext != null) {
-        ExecutionEntity execution = executionContext.getExecution();
-        if (execution != null) {
-          processInstanceId = execution.getProcessInstanceId();
-        }
-      }
-    } catch (Exception e) {
-      LOG.debug("Could not read BPMN execution context: {}", e.toString());
-    }
+    ExecutionEntity execution = currentExecution();
+    String processInstanceId = (execution == null) ? null : execution.getProcessInstanceId();
     if (processInstanceId == null) {
       LOG.debug("No BPMN execution context on thread; cannot derive authentication from process instance");
       return null;
@@ -531,7 +548,60 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
   /** Lazily loaded cache for {@link #DEFAULT_INSTRUCTION_RESOURCE}. */
   private static volatile String defaultInstructionCache;
 
-  private String buildSystemPrompt(AgentRequest request) {
+  /**
+   * Resolves the declared {@code contextVariables} allowlist against the
+   * execution this connector runs in. Returns an empty list when neither
+   * {@code contextVariables} nor {@code requiredContextVariables} is configured,
+   * which keeps the prompt byte-for-byte identical to releases before the
+   * parameter existed.
+   *
+   * <p>Reads with {@code deserializeValue = false} so an {@code ObjectValue}
+   * whose payload class is absent from the connector's classloader — the normal
+   * case for customer POJOs — does not blow up the activity. See
+   * {@link ProcessContextResolver} for how the serialized form is rendered.
+   *
+   * @throws AgentConnectorException when context is configured but there is no
+   *     BPMN execution on the thread. Silently dropping declared context is
+   *     exactly the failure mode this feature exists to remove, so it is a hard
+   *     error rather than a warning.
+   */
+  private List<ProcessContextResolver.ContextVariable> resolveProcessContext(
+      AgentRequest request) {
+    String declared = request.getContextVariables();
+    String required = request.getRequiredContextVariables();
+    boolean configured = (declared != null && !declared.trim().isEmpty())
+        || (required != null && !required.trim().isEmpty());
+    if (!configured) {
+      return List.of();
+    }
+    ExecutionEntity execution = currentExecution();
+    if (execution == null) {
+      throw new AgentConnectorException(
+          "'contextVariables' is configured but no BPMN execution is available on this thread, "
+          + "so process variables cannot be read. This parameter only works when the connector "
+          + "runs from a service task inside the engine.");
+    }
+    return ProcessContextResolver.resolve(declared, required,
+        name -> execution.getVariableTyped(name, false),
+        AgentConnectorConstants.DEFAULT_MAX_CONTEXT_VALUE_CHARS);
+  }
+
+  /**
+   * The {@link ExecutionEntity} driving the current BPMN activity, or
+   * {@code null} when the connector runs outside an engine command (standalone
+   * Connect usage, unit tests). Failures are swallowed at debug level.
+   */
+  private static ExecutionEntity currentExecution() {
+    try {
+      BpmnExecutionContext executionContext = Context.getBpmnExecutionContext();
+      return (executionContext == null) ? null : executionContext.getExecution();
+    } catch (RuntimeException e) {
+      LOG.debug("Could not read BPMN execution context: {}", e.toString());
+      return null;
+    }
+  }
+
+  private String buildSystemPrompt(AgentRequest request, String contextBlock) {
     String description = request.getAgentDescription();
     String callerInstruction = request.getInstruction();
     String mode = request.getInstructionMode();
@@ -546,10 +616,29 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     LOG.debug("buildSystemPrompt: resolved instruction length={}, description length={}",
         hasInstruction ? instruction.length() : 0,
         hasDescription ? description.length() : 0);
-    if (hasDescription && hasInstruction) {
-      return description + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR + instruction;
+    String prompt = (hasDescription && hasInstruction)
+        ? description + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR + instruction
+        : (hasInstruction ? instruction : description);
+    return appendContextBlock(prompt, contextBlock);
+  }
+
+  /**
+   * Appends the rendered process-context block after the deployer's instruction.
+   *
+   * <p>Order matters: the instruction defines the agent's role, the context is
+   * the data it works on. Fluxnova's note that a <em>trailing system message</em>
+   * suppresses tool calls in some models does not apply here — {@code AiServices}
+   * emits exactly one system message, so this is one message with the context at
+   * its end, not a second message after the instruction.
+   */
+  private static String appendContextBlock(String prompt, String contextBlock) {
+    if (contextBlock == null || contextBlock.isEmpty()) {
+      return prompt;
     }
-    return hasInstruction ? instruction : description;
+    if (prompt == null || prompt.isEmpty()) {
+      return contextBlock;
+    }
+    return prompt + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR + contextBlock;
   }
 
   /**

@@ -38,6 +38,10 @@ import org.cibseven.connect.spi.Connector;
  *       <camunda:inputParameter name="model">gpt-5.4-nano</camunda:inputParameter>
  *       <camunda:inputParameter name="message">${userMessage}</camunda:inputParameter>
  *
+ *       <!-- Process context: allowlist of variable NAMES (not expressions) -->
+ *       <camunda:inputParameter name="contextVariables">orderId,customerName,totalAmount</camunda:inputParameter>
+ *       <camunda:inputParameter name="requiredContextVariables">orderId</camunda:inputParameter>
+ *
  *       <!-- LLM endpoint / authentication -->
  *       <camunda:inputParameter name="baseUrl">http://localhost:11434/v1</camunda:inputParameter>
  *       <camunda:inputParameter name="apiKey">${secrets.OPENAI_API_KEY}</camunda:inputParameter>
@@ -190,6 +194,51 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * }</pre>
    */
   String PARAM_NAME_MCP_SERVERS = "mcpServers";
+
+  // ── Process context input parameter names ─────────────────────────────────
+
+  /**
+   * Optional. Comma-separated allowlist of process-variable <em>names</em> whose
+   * values are rendered into a structured {@code <process-context>} block and
+   * appended to the system prompt. Empty (the default) means no context is
+   * passed — the agent sees exactly what {@link #PARAM_NAME_MESSAGE} carries,
+   * which is the behaviour of every release before this parameter existed.
+   *
+   * <p>Names, not {@code ${expressions}}: the Connect boundary unwraps every
+   * {@code TypedValue} before the connector runs, so an expression would arrive
+   * stripped of its type (and, for files, of filename and mime type). The
+   * connector reads {@code execution.getVariableTyped(name, false)} itself, so
+   * types survive and {@code null} stays distinguishable from an empty string.
+   *
+   * <p>Example: {@code "orderId,customerName,totalAmount"}
+   *
+   * <p>Variables holding files or raw bytes are rendered as a descriptor, never
+   * as content. Values are escaped and capped
+   * ({@value AgentConnectorConstants#DEFAULT_MAX_CONTEXT_VALUE_CHARS} characters
+   * per value, {@value AgentConnectorConstants#DEFAULT_MAX_CONTEXT_BLOCK_CHARS}
+   * per block); truncation and omission are visible in the block and in the
+   * {@code context} audit event.
+   *
+   * <p><b>Security:</b> process variables routinely hold user- or
+   * document-sourced text. Everything listed here becomes part of the prompt of
+   * a possibly tool-enabled agent — declare the minimum the task needs.
+   */
+  String PARAM_NAME_CONTEXT_VARIABLES = "contextVariables";
+
+  /**
+   * Optional. Comma-separated subset of {@link #PARAM_NAME_CONTEXT_VARIABLES}
+   * that must exist and hold a non-{@code null} value. When one does not, the
+   * activity fails with {@code AgentConnectorException} and the agent is never
+   * invoked.
+   *
+   * <p>Without this, a missing variable simply renders as {@code (absent)} and
+   * the model answers fluently over data that is not there — the worst available
+   * failure mode, because the answer looks exactly like a correct one.
+   *
+   * <p>Names listed here are added to the allowlist automatically, so declaring
+   * a variable required is enough.
+   */
+  String PARAM_NAME_REQUIRED_CONTEXT_VARIABLES = "requiredContextVariables";
 
   /**
    * Optional. Reasoning effort hint for reasoning-capable models

@@ -85,6 +85,25 @@ public class AgentRequestTest {
   }
 
   @Test
+  public void shouldSetAndGetContextVariables() {
+    AgentRequest request = connector.createRequest().contextVariables("orderId,customerName");
+    assertThat(request.getContextVariables()).isEqualTo("orderId,customerName");
+  }
+
+  @Test
+  public void shouldSetAndGetRequiredContextVariables() {
+    AgentRequest request = connector.createRequest().requiredContextVariables("orderId");
+    assertThat(request.getRequiredContextVariables()).isEqualTo("orderId");
+  }
+
+  @Test
+  public void shouldReturnNullForContextVariablesWhenUnset() {
+    AgentRequest request = connector.createRequest();
+    assertThat(request.getContextVariables()).isNull();
+    assertThat(request.getRequiredContextVariables()).isNull();
+  }
+
+  @Test
   public void shouldSetAndGetApiKey() {
     AgentRequest request = connector.createRequest().apiKey("sk-test-key");
     assertThat(request.getApiKey()).isEqualTo("sk-test-key");

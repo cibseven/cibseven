@@ -444,7 +444,33 @@ class AgentChatListener implements ChatModelListener {
     if (payload == null) {
       return;
     }
-    Map<String, Object> event = newRetrievalEvent();
+    Map<String, Object> event = newCorrelatedEvent("retrieval");
+    event.putAll(payload);
+    appendEvent(event);
+  }
+
+  /**
+   * Emits one {@code context} audit event describing the declared process
+   * variables that were resolved into the system prompt — name, type, presence,
+   * null-ness, value length and SHA-256 per variable, never the value itself.
+   *
+   * <p>Without it the chat log records the rendered prompt only, so "which
+   * process data reached the model" cannot be reconstructed after the fact.
+   * That is an EU AI Act Art. 12 (record-keeping) and Art. 14 (human oversight)
+   * evidence gap, and it is the reason
+   * {@link ProcessContextResolver#describe(java.util.List, String)} exists
+   * alongside the rendered block.
+   *
+   * <p>Emitted before the first model turn. It is <em>not</em> a record of
+   * aborted runs: when a missing required variable fails the activity, the
+   * transaction rolls back and this event goes with it, like every other write
+   * to the chat-log variable.
+   */
+  void recordContextEvent(Map<String, Object> payload) {
+    if (payload == null) {
+      return;
+    }
+    Map<String, Object> event = newCorrelatedEvent("context");
     event.putAll(payload);
     appendEvent(event);
   }
@@ -695,13 +721,15 @@ class AgentChatListener implements ChatModelListener {
   }
 
   /**
-   * Envelope for {@code retrieval} events. Same shape as {@link #newEvent}
-   * minus the chat-model identity block (retrievals carry their own
-   * {@code embeddingModel} + {@code store} sub-blocks).
+   * Envelope for events that are not a chat turn — currently {@code retrieval}
+   * and {@code context}. Same shape as {@link #newEvent} minus the chat-model
+   * identity block: a retrieval carries its own {@code embeddingModel} and
+   * {@code store} sub-blocks, and a context event is not a model call at all,
+   * so stamping the chat model's identity onto either would be misleading.
    */
-  private Map<String, Object> newRetrievalEvent() {
+  private Map<String, Object> newCorrelatedEvent(String type) {
     Map<String, Object> event = new LinkedHashMap<>();
-    putEnvelopeStart(event, "retrieval");
+    putEnvelopeStart(event, type);
     putCorrelationAndCaller(event);
     return event;
   }
@@ -948,7 +976,13 @@ class AgentChatListener implements ChatModelListener {
     }
   }
 
-  private static String sha256(String s) {
+  /**
+   * SHA-256 of {@code s}, prefixed with {@code sha256:}. Package-private so
+   * non-listener audit sites can hash a payload they must not emit in the clear
+   * — {@link ProcessContextResolver} uses it to record which process-variable
+   * values reached the model without writing the values a second time.
+   */
+  static String sha256(String s) {
     try {
       MessageDigest md = MessageDigest.getInstance("SHA-256");
       byte[] digest = md.digest(s.getBytes(StandardCharsets.UTF_8));

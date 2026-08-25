@@ -1004,6 +1004,50 @@ public class AgentChatListenerTest {
     assertThat(listener.lastResponseIdentity()).isEmpty();
   }
 
+  // ── Process-context audit (Art. 12 / 14) ─────────────────────────────────
+
+  @Test
+  public void shouldEmitContextEventWithEnvelopeAndPayload() {
+    AgentChatListener listener = new AgentChatListener();
+
+    Map<String, Object> payload = new HashMap<>();
+    payload.put("declared", 2);
+    payload.put("resolved", 1);
+
+    listener.recordContextEvent(payload);
+
+    assertThat(listener.events()).hasSize(1);
+    Map<String, Object> event = listener.events().get(0);
+    assertThat(event)
+        .containsEntry("type", "context")
+        .containsEntry("schemaVersion", AgentChatListener.SCHEMA_VERSION)
+        .containsEntry("eventSeq", 0)
+        .containsEntry("declared", 2)
+        .containsEntry("resolved", 1);
+    assertThat(event).containsKey("runId").containsKey("timestamp");
+  }
+
+  @Test
+  public void contextEventShouldOmitChatModelIdentityFields() {
+    AgentChatListener listener = new AgentChatListener("gpt-5.4-nano", "https://example/v1");
+
+    listener.recordContextEvent(new HashMap<>(Map.of("declared", 1)));
+
+    // Resolving process variables is not a model call — stamping the chat
+    // model's identity onto it would be misleading.
+    Map<String, Object> event = listener.events().get(0);
+    assertThat(event).doesNotContainKey("provider")
+        .doesNotContainKey("model")
+        .doesNotContainKey("endpoint");
+  }
+
+  @Test
+  public void shouldIgnoreNullContextPayload() {
+    AgentChatListener listener = new AgentChatListener();
+    listener.recordContextEvent(null);
+    assertThat(listener.events()).isEmpty();
+  }
+
   // ── RAG retrieval audit (Art. 10 / 12 / 26) ──────────────────────────────
 
   @Test
