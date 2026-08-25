@@ -17,8 +17,10 @@
 package org.cibseven.connect.ai.agent.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
@@ -126,6 +128,49 @@ public class AgentChatMemoryTest {
 
     assertThat(AgentChatMemoryStore.resolveDefaultStore())
         .isInstanceOf(ProcessVariableChatMemoryStore.class);
+  }
+
+  // ── clear() contract ─────────────────────────────────────────────────────
+
+  /**
+   * With the process-variable store the conversation is only reachable from a
+   * thread carrying a BpmnExecutionContext. Clearing from anywhere else would hit
+   * the store's fallback buffer and leave the variable in the database, so the
+   * helper must refuse rather than report success.
+   */
+  @Test
+  public void shouldRefuseToClearPersistentMemoryWithoutAnEngineContext() {
+    AgentChatMemoryStore.setStore(new ProcessVariableChatMemoryStore());
+
+    assertThatThrownBy(() -> AgentChatMemoryStore.clear("mem-1"))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("no BpmnExecutionContext")
+        .hasMessageContaining("mem-1");
+  }
+
+  @Test
+  public void shouldClearPersistentMemoryInsideAnEngineContext() {
+    AgentChatMemoryStore.setStore(new ProcessVariableChatMemoryStore());
+    ExecutionEntity execution = statefulExecutionMock();
+    Context.setExecutionContext(execution);
+    pushedExecution = true;
+
+    AgentChatMemoryStore.clear("mem-1");
+
+    verify(execution).removeVariable(
+        AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX + "mem-1");
+  }
+
+  /** A JVM-local store has no such restriction, so the guard must not apply. */
+  @Test
+  public void shouldClearInMemoryStoreWithoutAnEngineContext() {
+    AgentChatMemoryStore.setStore(new InMemoryChatMemoryStore());
+    AgentChatMemoryStore.getStore().updateMessages("mem-1",
+        java.util.Arrays.asList(UserMessage.from("hi")));
+
+    AgentChatMemoryStore.clear("mem-1");
+
+    assertThat(AgentChatMemoryStore.getStore().getMessages("mem-1")).isEmpty();
   }
 
   // ── Setter / getter wiring ───────────────────────────────────────────────

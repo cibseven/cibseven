@@ -87,16 +87,41 @@ public class ProcessVariableChatMemoryStoreTest {
   @Test
   public void shouldRejectPayloadOverTheConfiguredLimit() {
     ExecutionEntity execution = pushExecution();
-    System.setProperty(ProcessVariableChatMemoryStore.MAX_PAYLOAD_BYTES_PROPERTY, "200");
+    // 8 KiB configured, minus the 4 KiB overhead margin, leaves ~4 KiB usable.
+    System.setProperty(ProcessVariableChatMemoryStore.MAX_PAYLOAD_BYTES_PROPERTY, "8192");
 
-    List<ChatMessage> tooBig = Arrays.asList(UserMessage.from(repeat('x', 500)));
+    List<ChatMessage> tooBig = Arrays.asList(UserMessage.from(repeat('x', 6000)));
 
     assertThatThrownBy(() -> store.updateMessages(MEMORY_ID, tooBig))
         .isInstanceOf(AgentConnectorException.class)
-        .hasMessageContaining("exceeds the 200-byte limit")
-        .hasMessageContaining(VARIABLE_NAME);
+        .hasMessageContaining("too large to store")
+        .hasMessageContaining(VARIABLE_NAME)
+        // The message must name both numbers, so the reader can tell the
+        // configured limit from the usable ceiling.
+        .hasMessageContaining("8192");
 
     // Nothing must reach the database when the guard trips.
+    verify(execution, never()).setVariable(org.mockito.Matchers.anyString(),
+        org.mockito.Matchers.any());
+  }
+
+  /**
+   * The guard compares against the configured limit minus a margin, because the
+   * measured JSON is smaller than the Java-serialized form the engine persists.
+   * A payload between the two must therefore still be rejected.
+   */
+  @Test
+  public void shouldRejectPayloadInsideTheOverheadMargin() {
+    ExecutionEntity execution = pushExecution();
+    System.setProperty(ProcessVariableChatMemoryStore.MAX_PAYLOAD_BYTES_PROPERTY, "8192");
+
+    // ~5 KB: under the configured 8192 but over the ~4096 usable ceiling.
+    List<ChatMessage> withinMargin = Arrays.asList(UserMessage.from(repeat('x', 5000)));
+
+    assertThatThrownBy(() -> store.updateMessages(MEMORY_ID, withinMargin))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("margin");
+
     verify(execution, never()).setVariable(org.mockito.Matchers.anyString(),
         org.mockito.Matchers.any());
   }
@@ -117,7 +142,7 @@ public class ProcessVariableChatMemoryStoreTest {
     ExecutionEntity execution = pushExecution();
     System.setProperty(ProcessVariableChatMemoryStore.MAX_PAYLOAD_BYTES_PROPERTY, "0");
 
-    store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from(repeat('x', 5000))));
+    store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from(repeat('x', 500000))));
 
     verify(execution).setVariable(org.mockito.Matchers.eq(VARIABLE_NAME),
         org.mockito.Matchers.any());

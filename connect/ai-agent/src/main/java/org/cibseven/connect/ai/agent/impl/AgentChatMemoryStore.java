@@ -107,13 +107,34 @@ public final class AgentChatMemoryStore {
   }
 
   /**
-   * Convenience helper to forget the chat history for a given memory id —
-   * mirrors {@link ChatMemoryStore#deleteMessages(Object)} on the current store.
-   * Rarely needed with the default store, where the memory variable dies with
-   * the process instance.
+   * Forgets the chat history for a given memory id — mirrors
+   * {@link ChatMemoryStore#deleteMessages(Object)} on the current store. Rarely
+   * needed with the default store, where the memory variable dies with the
+   * process instance anyway.
+   *
+   * <p><b>Contract:</b> with the default {@link ProcessVariableChatMemoryStore}
+   * the conversation lives in a process variable, which is only reachable from a
+   * thread that carries a {@code BpmnExecutionContext} — that is, from inside an
+   * engine command. Called from an administration or application thread it would
+   * reach only the store's internal fallback buffer and leave the variable in the
+   * database. Rather than reporting success in that case, this method throws.
+   *
+   * @throws AgentConnectorException when the current thread cannot reach the
+   *     persisted conversation. Call it from within an engine command (for
+   *     example a {@code JavaDelegate} or an execution listener), or delete the
+   *     process instance, which removes the variable with it.
    */
   public static void clear(Object memoryId) {
-    store.deleteMessages(memoryId);
+    ChatMemoryStore current = store;
+    if (current instanceof ProcessVariableChatMemoryStore
+        && !((ProcessVariableChatMemoryStore) current).deletesPersistently()) {
+      throw new AgentConnectorException(
+          "Cannot clear chat memory '" + memoryId + "': the conversation is stored as a process "
+          + "variable, and the current thread has no BpmnExecutionContext, so the delete would "
+          + "only affect an in-memory fallback buffer and leave the variable in the database. "
+          + "Call this from inside an engine command, or delete the process instance instead.");
+    }
+    current.deleteMessages(memoryId);
   }
 
 }

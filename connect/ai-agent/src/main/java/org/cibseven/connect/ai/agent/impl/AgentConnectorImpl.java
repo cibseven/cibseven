@@ -468,8 +468,17 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
   /**
    * Factory method — builds the {@link ChatMemoryProvider} used when chat
    * memory is active. Each provider call returns a {@link MessageWindowChatMemory}
-   * bound to the shared {@link AgentChatMemoryStore}, so memory survives between
-   * connector invocations, engine restarts, and across engine replicas.
+   * bound to whatever store {@link AgentChatMemoryStore} currently holds, so how
+   * long the conversation survives depends on that store rather than on this
+   * factory.
+   *
+   * <p>With the default {@code ProcessVariableChatMemoryStore} it survives
+   * between connector invocations, across engine restarts and across engine
+   * replicas. It does not when the deployment has switched the store to the
+   * JVM-local one, when a custom store was installed via
+   * {@link AgentChatMemoryStore#setStore}, or when the connector runs outside an
+   * engine command context — the process-variable store then falls back to an
+   * in-memory buffer.
    */
   protected ChatMemoryProvider createChatMemoryProvider(AgentRequest request) {
     int maxMessages = request.getChatMemoryMaxMessages();

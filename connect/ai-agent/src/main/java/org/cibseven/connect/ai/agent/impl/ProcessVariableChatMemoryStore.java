@@ -106,6 +106,24 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
   private static final double PAYLOAD_WARN_RATIO = 0.8;
 
   /**
+   * Headroom subtracted from the configured ceiling before comparing it against
+   * the measured JSON size.
+   *
+   * <p>The two are not the same quantity: what reaches the database is the JSON
+   * put through the engine's Java object serializer, which adds stream framing on
+   * top of the characters, and the database in turn counts the whole statement
+   * against limits like {@code max_allowed_packet}. Measuring the JSON is cheap
+   * and happens anyway; measuring the persisted form would mean serializing the
+   * payload once for the check and again for the engine.
+   *
+   * <p>This guard exists to turn an opaque {@code SQLException} at flush into a
+   * legible error, not to predict the database limit exactly, so a fixed margin
+   * is the proportionate trade-off. 4 KiB covers the serializer framing with room
+   * to spare.
+   */
+  private static final int PAYLOAD_OVERHEAD_MARGIN_BYTES = 4096;
+
+  /**
    * Guards the one-time WARNs. Each of these conditions is a property of the
    * deployment or the process model, not of the individual call, so one entry per
    * JVM is enough — and per-call logging would flood, because the store is hit
@@ -114,6 +132,7 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
   private static final AtomicBoolean NO_ENGINE_CONTEXT_LOGGED = new AtomicBoolean(false);
   private static final AtomicBoolean PAYLOAD_SIZE_LOGGED = new AtomicBoolean(false);
   private static final AtomicBoolean CONCURRENT_BRANCH_LOGGED = new AtomicBoolean(false);
+  private static final AtomicBoolean UNPARSEABLE_LIMIT_LOGGED = new AtomicBoolean(false);
 
   /**
    * Last-resort buffer for invocations without an engine context. Deliberately
@@ -165,10 +184,28 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
   public void deleteMessages(Object memoryId) {
     ExecutionEntity execution = targetExecution();
     if (execution == null) {
+      // Without an engine context the process variable is unreachable, so this
+      // can only clear the internal buffer. Returning quietly would tell the
+      // caller the conversation is gone while it is still in the database —
+      // see deletesPersistently() and AgentChatMemoryStore.clear(Object).
       noContextBuffer.deleteMessages(memoryId);
       return;
     }
     execution.removeVariable(variableName(memoryId));
+  }
+
+  /**
+   * Whether a {@link #deleteMessages(Object)} on the current thread would remove
+   * the persisted conversation, as opposed to only the in-memory fallback buffer.
+   *
+   * <p>Exists so {@link AgentChatMemoryStore#clear(Object)} can tell its callers
+   * whether the delete actually took effect. A delete from an administration or
+   * application thread — anywhere without a {@code BpmnExecutionContext} — cannot
+   * reach the process variable, and silently reporting success there would be
+   * worse than reporting failure.
+   */
+  boolean deletesPersistently() {
+    return targetExecution() != null;
   }
 
   /**
@@ -185,26 +222,34 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
    * instead.
    */
   private static void checkPayloadSize(String variableName, String json, int messageCount) {
-    int limit = maxPayloadBytes();
-    if (limit <= 0) {
+    int configuredLimit = maxPayloadBytes();
+    if (configuredLimit <= 0) {
       return;
     }
+    // The measured JSON is smaller than what the database ultimately stores, so
+    // compare against the ceiling minus a margin. Floored at 1 so an absurdly
+    // small configured limit still rejects rather than silently passing.
+    int effectiveLimit = Math.max(1, configuredLimit - PAYLOAD_OVERHEAD_MARGIN_BYTES);
     int size = json.getBytes(StandardCharsets.UTF_8).length;
-    if (size > limit) {
+    if (size > effectiveLimit) {
       throw new AgentConnectorException(String.format(
-          "Chat memory for variable '%s' is %d bytes over %d messages, which exceeds the %d-byte "
-          + "limit. Writing it would fail at transaction flush as a database error. Reduce "
-          + "'chatMemoryMaxMessages', or raise the limit via the system property '%s' if the "
-          + "database allows larger values. Note that with RAG enabled each turn also persists "
-          + "the retrieved chunks, which is the usual reason a window grows this large.",
-          variableName, size, messageCount, limit, MAX_PAYLOAD_BYTES_PROPERTY));
+          "Chat memory for variable '%s' is too large to store: %d messages serialize to %d bytes "
+          + "of JSON, and the usable ceiling is %d bytes (the configured limit of %d minus a %d-byte "
+          + "margin for serialization and database overhead). Writing it would fail at transaction "
+          + "flush as a database error. Reduce 'chatMemoryMaxMessages', or raise the limit via the "
+          + "system property '%s' if the database allows larger values. Note that with RAG enabled "
+          + "each turn also persists the retrieved chunks, which is the usual reason a window grows "
+          + "this large.",
+          variableName, messageCount, size, effectiveLimit, configuredLimit,
+          PAYLOAD_OVERHEAD_MARGIN_BYTES, MAX_PAYLOAD_BYTES_PROPERTY));
     }
-    if (size > limit * PAYLOAD_WARN_RATIO && PAYLOAD_SIZE_LOGGED.compareAndSet(false, true)) {
-      LOG.warn("AI Agent connector: chat memory for variable '{}' is {} bytes over {} messages, "
-          + "within {}% of the {}-byte limit. Once exceeded the agent task will fail. Reduce "
-          + "'chatMemoryMaxMessages' or raise the limit; with RAG enabled the retrieved chunks "
-          + "are persisted with every turn and are the usual cause. Logged once per JVM.",
-          variableName, size, messageCount, (int) (PAYLOAD_WARN_RATIO * 100), limit);
+    if (size > effectiveLimit * PAYLOAD_WARN_RATIO
+        && PAYLOAD_SIZE_LOGGED.compareAndSet(false, true)) {
+      LOG.warn("AI Agent connector: chat memory for variable '{}' holds {} messages serializing to "
+          + "{} bytes, within {}% of the {}-byte usable ceiling. Once exceeded the agent task will "
+          + "fail. Reduce 'chatMemoryMaxMessages' or raise the limit; with RAG enabled the retrieved "
+          + "chunks are persisted with every turn and are the usual cause. Logged once per JVM.",
+          variableName, messageCount, size, (int) (PAYLOAD_WARN_RATIO * 100), effectiveLimit);
     }
   }
 
@@ -224,9 +269,12 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
     try {
       return Integer.parseInt(raw.trim());
     } catch (NumberFormatException e) {
-      LOG.warn("Ignoring unparseable chat-memory payload limit '{}' from {} / {}; using the "
-          + "default of {} bytes.", raw, MAX_PAYLOAD_BYTES_PROPERTY, MAX_PAYLOAD_BYTES_ENV_VAR,
-          DEFAULT_MAX_PAYLOAD_BYTES);
+      if (UNPARSEABLE_LIMIT_LOGGED.compareAndSet(false, true)) {
+        LOG.warn("Ignoring unparseable chat-memory payload limit '{}' from {} / {}; using the "
+            + "default of {} bytes. Logged once per JVM.",
+            raw, MAX_PAYLOAD_BYTES_PROPERTY, MAX_PAYLOAD_BYTES_ENV_VAR,
+            DEFAULT_MAX_PAYLOAD_BYTES);
+      }
       return DEFAULT_MAX_PAYLOAD_BYTES;
     }
   }
