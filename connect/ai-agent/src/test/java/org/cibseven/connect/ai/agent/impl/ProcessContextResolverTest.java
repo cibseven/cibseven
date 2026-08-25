@@ -170,6 +170,59 @@ public class ProcessContextResolverTest {
     ProcessContextResolver.failOnMissingRequired(resolved);
   }
 
+  /**
+   * Copilot review finding: a required variable that resolved fine but was
+   * dropped from the block by the size cap left the agent just as blind as an
+   * absent one, yet the activity proceeded.
+   */
+  @Test
+  public void shouldFailWhenTheBlockSizeCapDropsARequiredVariable() {
+    variables.put("orderId", Variables.stringValue("x".repeat(500)));
+
+    List<ContextVariable> resolved = resolve("orderId", "orderId");
+    // Envelope plus almost nothing — not even the first line fits.
+    ProcessContextResolver.render(resolved, ProcessContextResolver.envelopeOverhead() + 10);
+
+    assertThat(resolved.get(0).omitted).isTrue();
+    assertThatThrownBy(() -> ProcessContextResolver.failOnMissingRequired(resolved))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("orderId")
+        .hasMessageContaining("omitted");
+  }
+
+  @Test
+  public void shouldKeepRequiredVariablesWhenOnlyOptionalOnesHaveToGo() {
+    for (int i = 0; i < 20; i++) {
+      variables.put("filler" + i, Variables.stringValue("f".repeat(300)));
+    }
+    variables.put("orderId", Variables.stringValue("4711"));
+    String declared = String.join(",", variables.keySet());
+
+    List<ContextVariable> resolved = resolve(declared, "orderId");
+    ProcessContextResolver.render(resolved, ProcessContextResolver.envelopeOverhead() + 700);
+
+    // orderId sorts first, so the cap eats the optional tail instead.
+    assertThat(resolved.get(0).name).isEqualTo("orderId");
+    assertThat(resolved.get(0).omitted).isFalse();
+    assertThat(resolved.get(resolved.size() - 1).omitted).isTrue();
+    ProcessContextResolver.failOnMissingRequired(resolved);
+  }
+
+  /**
+   * Copilot review finding: required names used to be appended last, which is
+   * exactly where render() starts dropping when the cap is hit.
+   */
+  @Test
+  public void shouldOrderRequiredVariablesFirstSoTheCapCannotDropThem() {
+    variables.put("a", Variables.stringValue("1"));
+    variables.put("b", Variables.stringValue("2"));
+    variables.put("c", Variables.stringValue("3"));
+
+    List<ContextVariable> resolved = resolve("a,b,c", "c");
+
+    assertThat(resolved).extracting(v -> v.name).containsExactly("c", "a", "b");
+  }
+
   @Test
   public void shouldAddRequiredNamesToTheAllowlistAutomatically() {
     variables.put("orderId", Variables.stringValue("4711"));
@@ -444,7 +497,7 @@ public class ProcessContextResolverTest {
         AgentConnectorConstants.DEFAULT_MAX_CONTEXT_BLOCK_CHARS);
     Map<String, Object> payload = ProcessContextResolver.describe(resolved, block);
 
-    assertThat(payload).containsEntry("declared", 2).containsEntry("resolved", 1)
+    assertThat(payload).containsEntry("declared", 2).containsEntry("sent", 1)
         .containsEntry("omitted", 0);
     assertThat((Integer) payload.get("blockChars")).isPositive();
 
@@ -468,6 +521,35 @@ public class ProcessContextResolverTest {
     Map<String, Object> second = entries.get(1);
     assertThat(second).containsEntry("name", "gone").containsEntry("null", true);
     assertThat(second).doesNotContainKey("valueSha256");
+  }
+
+  /**
+   * Copilot review finding: an omitted variable used to be counted as resolved
+   * and to carry a hash, which in an Art. 12 record reads like evidence that the
+   * value was transmitted.
+   */
+  @Test
+  public void shouldNotHashOrCountVariablesThatNeverReachedTheModel() {
+    variables.put("kept", Variables.stringValue("k".repeat(120)));
+    variables.put("dropped", Variables.stringValue("d".repeat(300)));
+
+    List<ContextVariable> resolved = resolve("kept,dropped", null);
+    String block = ProcessContextResolver.render(resolved,
+        ProcessContextResolver.envelopeOverhead() + 140);
+    Map<String, Object> payload = ProcessContextResolver.describe(resolved, block);
+
+    assertThat(payload).containsEntry("declared", 2)
+        .containsEntry("sent", 1)
+        .containsEntry("omitted", 1);
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> entries = (List<Map<String, Object>>) payload.get("variables");
+    assertThat(entries.get(0)).containsEntry("name", "kept").containsEntry("omitted", false)
+        .containsKey("valueSha256");
+    assertThat(entries.get(1)).containsEntry("name", "dropped").containsEntry("omitted", true)
+        .doesNotContainKey("valueSha256")
+        .doesNotContainKey("valueLength")
+        .doesNotContainKey("truncated");
   }
 
   // ── robustness ─────────────────────────────────────────────────────────────
