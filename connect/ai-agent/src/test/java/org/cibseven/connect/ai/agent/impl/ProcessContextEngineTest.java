@@ -258,7 +258,7 @@ public class ProcessContextEngineTest {
 
     assertThat(contextEvent)
         .containsEntry("declared", 2)
-        .containsEntry("resolved", 1)
+        .containsEntry("sent", 1)
         .containsEntry("omitted", 0);
     // Same envelope as every other audit event — Art. 12 correlation.
     assertThat(contextEvent).containsKeys("runId", "eventSeq", "timestamp",

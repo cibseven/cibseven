@@ -143,12 +143,21 @@ public final class ProcessContextResolver {
     }
 
     Set<String> requiredNames = new LinkedHashSet<>(required);
-    List<String> names = new ArrayList<>(declared);
+    // Required variables go first. render() drops from the tail once the block
+    // cap is hit, and a name given only in requiredContextVariables used to be
+    // appended last — i.e. exactly where the axe falls. Order stays
+    // deterministic (required in their declared order, then the rest in theirs),
+    // which is what provider-side prompt caching needs.
+    List<String> names = new ArrayList<>(required);
+    for (String name : declared) {
+      if (!requiredNames.contains(name)) {
+        names.add(name);
+      }
+    }
     for (String name : required) {
-      if (!names.contains(name)) {
+      if (!declared.contains(name)) {
         LOG.debug("Variable '{}' is declared required but not listed in contextVariables; "
             + "adding it to the allowlist", name);
-        names.add(name);
       }
     }
 
@@ -185,23 +194,37 @@ public final class ProcessContextResolver {
   }
 
   /**
-   * Throws when any variable declared in {@code requiredContextVariables} is
-   * absent or holds {@code null}.
+   * Throws when a variable declared in {@code requiredContextVariables} will not
+   * reach the model — because it is absent, holds {@code null}, or was dropped
+   * from the rendered block by the size cap.
    *
    * <p>This is the whole point of the {@code requiredContextVariables} input:
    * without it the agent answers fluently over missing data, which is the worst
-   * failure mode available — wrong, but confidently phrased.
+   * failure mode available — wrong, but confidently phrased. "Resolved but
+   * omitted" produces exactly the same blind spot as "absent", so it has to fail
+   * the same way.
+   *
+   * <p><b>Call this after {@link #render(List, int)}</b>: the omission flag is
+   * set there. Calling it earlier silently skips the omission check.
    */
   static void failOnMissingRequired(List<ContextVariable> variables) {
     List<String> missing = new ArrayList<>();
     for (ContextVariable variable : variables) {
-      if (variable.required && (!variable.present || variable.nullValued)) {
-        missing.add(variable.name + (variable.present ? " (null)" : " (absent)"));
+      if (!variable.required) {
+        continue;
+      }
+      if (!variable.present) {
+        missing.add(variable.name + " (absent)");
+      } else if (variable.nullValued) {
+        missing.add(variable.name + " (null)");
+      } else if (variable.omitted) {
+        missing.add(variable.name + " (omitted: context block size limit reached)");
       }
     }
     if (!missing.isEmpty()) {
       throw new AgentConnectorException(
-          "Required process context variable(s) missing or null: " + String.join(", ", missing)
+          "Required process context variable(s) did not reach the model: "
+          + String.join(", ", missing)
           + ". Declared in 'requiredContextVariables'; the agent was not invoked.");
     }
   }
@@ -287,7 +310,7 @@ public final class ProcessContextResolver {
    */
   static Map<String, Object> describe(List<ContextVariable> variables, String renderedBlock) {
     List<Map<String, Object>> entries = new ArrayList<>(variables.size());
-    int resolved = 0;
+    int sent = 0;
     int omitted = 0;
     for (ContextVariable variable : variables) {
       Map<String, Object> entry = new LinkedHashMap<>();
@@ -298,8 +321,11 @@ public final class ProcessContextResolver {
       if (variable.type != null) {
         entry.put("type", variable.type);
       }
-      if (variable.present && !variable.nullValued) {
-        resolved++;
+      // Hash and length are recorded only for variables that actually reached
+      // the model. A digest next to a variable the size cap dropped would read,
+      // in an Art. 12 record, like evidence that the value was transmitted.
+      if (variable.present && !variable.nullValued && !variable.omitted) {
+        sent++;
         // Length and hash cover the value as rendered but BEFORE escaping, so an
         // auditor can reproduce the digest from the process variable itself. The
         // escaped form is a presentation detail of the prompt and would make the
@@ -316,7 +342,10 @@ public final class ProcessContextResolver {
     }
     Map<String, Object> payload = new LinkedHashMap<>();
     payload.put("declared", variables.size());
-    payload.put("resolved", resolved);
+    // "sent", not "resolved": the question this event exists to answer is which
+    // process data reached the model, and a variable can resolve fine and still
+    // be dropped by the block cap.
+    payload.put("sent", sent);
     payload.put("omitted", omitted);
     payload.put("blockChars", renderedBlock == null ? 0 : renderedBlock.length());
     payload.put("variables", entries);
