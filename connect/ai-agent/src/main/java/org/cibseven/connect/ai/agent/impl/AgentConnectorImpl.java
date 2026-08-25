@@ -410,7 +410,17 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    */
   private Authentication deriveAuthenticationFromProcessInstance(ProcessEngine engine) {
     ExecutionEntity execution = currentExecution();
-    String processInstanceId = (execution == null) ? null : execution.getProcessInstanceId();
+    String processInstanceId = null;
+    if (execution != null) {
+      try {
+        processInstanceId = execution.getProcessInstanceId();
+      } catch (RuntimeException e) {
+        // Kept inside the guard the inline version had: a detached entity can
+        // blow up here, and authentication is a best-effort fallback, not a
+        // reason to fail the activity.
+        LOG.debug("Could not read processInstanceId from current execution: {}", e.toString());
+      }
+    }
     if (processInstanceId == null) {
       LOG.debug("No BPMN execution context on thread; cannot derive authentication from process instance");
       return null;
