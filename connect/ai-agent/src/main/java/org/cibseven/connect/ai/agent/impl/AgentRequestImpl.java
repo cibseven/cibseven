@@ -105,6 +105,19 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   }
 
   @Override
+  public AgentRequest contextVariables(String contextVariables) {
+    setRequestParameter(AgentConnector.PARAM_NAME_CONTEXT_VARIABLES, contextVariables);
+    return this;
+  }
+
+  @Override
+  public AgentRequest requiredContextVariables(String requiredContextVariables) {
+    setRequestParameter(AgentConnector.PARAM_NAME_REQUIRED_CONTEXT_VARIABLES,
+        requiredContextVariables);
+    return this;
+  }
+
+  @Override
   public AgentRequest reasoningEffort(String reasoningEffort) {
     setRequestParameter(AgentConnector.PARAM_NAME_REASONING_EFFORT, reasoningEffort);
     return this;
@@ -263,6 +276,16 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   @Override
   public String getMcpServers() {
     return getRequestParameter(AgentConnector.PARAM_NAME_MCP_SERVERS);
+  }
+
+  @Override
+  public String getContextVariables() {
+    return getRequestParameter(AgentConnector.PARAM_NAME_CONTEXT_VARIABLES);
+  }
+
+  @Override
+  public String getRequiredContextVariables() {
+    return getRequestParameter(AgentConnector.PARAM_NAME_REQUIRED_CONTEXT_VARIABLES);
   }
 
   @Override

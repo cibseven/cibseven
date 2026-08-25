@@ -77,6 +77,20 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   AgentRequest mcpServers(String mcpServers);
 
   /**
+   * Optional. Comma-separated allowlist of process-variable names rendered into
+   * the system prompt as a structured block. See
+   * {@link AgentConnector#PARAM_NAME_CONTEXT_VARIABLES}.
+   */
+  AgentRequest contextVariables(String contextVariables);
+
+  /**
+   * Optional. Comma-separated subset of {@link #contextVariables(String)} that
+   * must resolve to a non-null value, else the activity fails. See
+   * {@link AgentConnector#PARAM_NAME_REQUIRED_CONTEXT_VARIABLES}.
+   */
+  AgentRequest requiredContextVariables(String requiredContextVariables);
+
+  /**
    * Optional. Reasoning effort hint (e.g. {@code "low"}, {@code "medium"},
    * {@code "high"}). Values are model-dependent.
    */
@@ -158,6 +172,10 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   String getCustomHeaders();
 
   String getMcpServers();
+
+  String getContextVariables();
+
+  String getRequiredContextVariables();
 
   String getReasoningEffort();
 

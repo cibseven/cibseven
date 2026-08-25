@@ -12,7 +12,8 @@
     "bpmn:ServiceTask"
   ],
   "groups": [
-    { "id": "input",  "label": "Input"  },
+    { "id": "input",   "label": "Input"           },
+    { "id": "context", "label": "Process context" },
     { "id": "agent",  "label": "Agent"  },
     { "id": "tools",  "label": "Tools"  },
     { "id": "memory", "label": "Memory" },
@@ -80,6 +81,28 @@
           "binding": {
             "type": "camunda:inputParameter",
             "name": "instructionMode"
+          }
+        },
+        {
+          "label": "Context variables",
+          "type": "Text",
+          "group": "context",
+          "description": "Comma-separated NAMES of process variables (not ${expressions}) that the agent may see, e.g. orderId,customerName,totalAmount. They are rendered into a <process-context> block appended to the system prompt, with name, type and value, and null stays distinguishable from an empty string. Leave empty (default) to pass no process data at all. File and byte variables appear as a descriptor only. Security: everything listed here becomes part of the prompt — declare the minimum the task needs.",
+          "placeholder": "orderId,customerName,totalAmount",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "contextVariables"
+          }
+        },
+        {
+          "label": "Required context variables",
+          "type": "Text",
+          "group": "context",
+          "description": "Comma-separated subset of 'Context variables' that must exist and be non-null. If one is missing the activity fails and the agent is never called — instead of the model answering fluently over data that is not there. Names listed here are added to the allowlist automatically.",
+          "placeholder": "orderId",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "requiredContextVariables"
           }
         },
         {
