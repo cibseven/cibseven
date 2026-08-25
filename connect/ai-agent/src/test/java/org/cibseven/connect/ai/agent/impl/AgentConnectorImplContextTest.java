@@ -126,6 +126,27 @@ public class AgentConnectorImplContextTest {
         .hasMessageContaining("contextVariables");
   }
 
+  /**
+   * Regression: context resolution used to sit between the
+   * {@link ProcessStarterToolContext} writes and the {@code try}, so throwing
+   * there left the engine reference and the caller {@code Authentication} on the
+   * thread. On a pooled JobExecutor or Tomcat thread the next, unrelated task
+   * would then run under someone else's identity.
+   */
+  @Test
+  public void shouldClearTheToolContextEvenWhenContextResolutionFails() {
+    AgentRequest request = connector.createRequest()
+        .agentName("agent")
+        .message("hello")
+        .contextVariables("orderId");
+
+    assertThatThrownBy(() -> connector.execute(request))
+        .isInstanceOf(AgentConnectorException.class);
+
+    assertThat(ProcessStarterToolContext.getEngine()).isNull();
+    assertThat(ProcessStarterToolContext.getAuthentication()).isNull();
+  }
+
   @Test
   public void shouldAlsoFailWhenOnlyRequiredContextVariablesIsSet() {
     AgentRequest request = connector.createRequest()
