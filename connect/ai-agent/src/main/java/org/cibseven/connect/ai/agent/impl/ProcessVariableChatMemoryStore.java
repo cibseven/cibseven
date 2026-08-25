@@ -147,7 +147,8 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
     if (execution == null) {
       return noContextBuffer.getMessages(memoryId);
     }
-    Object raw = execution.getVariable(variableName(memoryId));
+    String name = variableName(memoryId);
+    Object raw = execution.getVariable(name);
     if (raw == null || raw.toString().isEmpty()) {
       return new ArrayList<>();
     }
@@ -159,7 +160,7 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
       // in-flight instance may carry history this version cannot read. A
       // forgetful agent beats a stuck process instance.
       LOG.warn("Could not decode chat memory from variable '{}'; continuing with an empty "
-          + "conversation.", variableName(memoryId), e);
+          + "conversation.", name, e);
       return new ArrayList<>();
     }
   }
@@ -259,15 +260,12 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
    * falls back to the default rather than disabling the guard silently.
    */
   private static int maxPayloadBytes() {
-    String raw = System.getProperty(MAX_PAYLOAD_BYTES_PROPERTY);
-    if (raw == null || raw.trim().isEmpty()) {
-      raw = System.getenv(MAX_PAYLOAD_BYTES_ENV_VAR);
-    }
-    if (raw == null || raw.trim().isEmpty()) {
+    String raw = ConnectorSettings.resolve(MAX_PAYLOAD_BYTES_PROPERTY, MAX_PAYLOAD_BYTES_ENV_VAR);
+    if (raw == null) {
       return DEFAULT_MAX_PAYLOAD_BYTES;
     }
     try {
-      return Integer.parseInt(raw.trim());
+      return Integer.parseInt(raw);
     } catch (NumberFormatException e) {
       if (UNPARSEABLE_LIMIT_LOGGED.compareAndSet(false, true)) {
         LOG.warn("Ignoring unparseable chat-memory payload limit '{}' from {} / {}; using the "
@@ -326,8 +324,25 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
     return ctx.getExecution();
   }
 
+  /**
+   * The process-variable name carrying the conversation for {@code memoryId}.
+   *
+   * @throws AgentConnectorException when the id is missing or blank, or when it
+   *     is too long for the engine's variable-name column. A missing id would
+   *     otherwise produce one shared variable name for every such conversation
+   *     in the instance — every agent task without an id reading and overwriting
+   *     the same history — so it is rejected rather than mapped to a placeholder.
+   */
   static String variableName(Object memoryId) {
-    String name = AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX + String.valueOf(memoryId);
+    String id = (memoryId == null) ? null : memoryId.toString();
+    if (id == null || id.trim().isEmpty()) {
+      throw new AgentConnectorException(
+          "memoryId must not be null or blank: it names the process variable holding the "
+          + "conversation, so a missing id would make separate conversations share one variable. "
+          + "The connector generates a UUID when chat memory is active and no memoryId is given; "
+          + "a BPMN input mapping that resolves to an empty value overrides that with nothing.");
+    }
+    String name = AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX + id;
     if (name.length() > MAX_VARIABLE_NAME_LENGTH) {
       throw new AgentConnectorException(String.format(
           "memoryId is too long: the chat-memory variable name would be %d characters, but the "

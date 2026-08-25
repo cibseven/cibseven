@@ -74,9 +74,63 @@ public class ProcessVariableChatMemoryStoreTest {
       pushedExecution = false;
     }
     System.clearProperty(ProcessVariableChatMemoryStore.MAX_PAYLOAD_BYTES_PROPERTY);
+    ConnectorSettings.ENV_READER = System::getenv;
+  }
+
+  // ── memoryId validation ──────────────────────────────────────────────────
+
+  /**
+   * A missing id would map every such conversation to the same variable name, so
+   * two agent tasks in one instance would read and overwrite each other's
+   * history. Rejecting beats a shared {@code _null} placeholder.
+   */
+  @Test
+  public void shouldRejectMissingMemoryId() {
+    assertThatThrownBy(() -> ProcessVariableChatMemoryStore.variableName(null))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("must not be null or blank");
+  }
+
+  @Test
+  public void shouldRejectBlankMemoryId() {
+    assertThatThrownBy(() -> ProcessVariableChatMemoryStore.variableName("   "))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("must not be null or blank");
   }
 
   // ── payload size guard ───────────────────────────────────────────────────
+
+  /**
+   * The ceiling is a deployment setting, so it must also be configurable where
+   * deployments actually set such things — the container environment, not only a
+   * {@code -D} argument.
+   */
+  @Test
+  public void shouldReadThePayloadLimitFromTheEnvironment() {
+    ExecutionEntity execution = pushExecution();
+    ConnectorSettings.ENV_READER = name ->
+        ProcessVariableChatMemoryStore.MAX_PAYLOAD_BYTES_ENV_VAR.equals(name) ? "8192" : null;
+
+    assertThatThrownBy(() -> store.updateMessages(MEMORY_ID,
+        Arrays.asList(UserMessage.from(repeat('x', 6000)))))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("too large to store");
+
+    verify(execution, never()).setVariable(org.mockito.Matchers.anyString(),
+        org.mockito.Matchers.any());
+  }
+
+  @Test
+  public void shouldPreferTheSystemPropertyOverTheEnvironmentForThePayloadLimit() {
+    ExecutionEntity execution = pushExecution();
+    System.setProperty(ProcessVariableChatMemoryStore.MAX_PAYLOAD_BYTES_PROPERTY, "0");
+    ConnectorSettings.ENV_READER = name -> "8192";
+
+    store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from(repeat('x', 6000))));
+
+    verify(execution).setVariable(org.mockito.Matchers.eq(VARIABLE_NAME),
+        org.mockito.Matchers.any());
+  }
 
   /**
    * Without this guard an oversized window reaches the database and fails at

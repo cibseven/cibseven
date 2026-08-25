@@ -93,7 +93,7 @@ public class AgentChatMemoryTest {
       pushedExecution = false;
     }
     System.clearProperty(AgentChatMemoryStore.PERSISTENT_STORE_PROPERTY);
-    AgentChatListener.ENV_READER = System::getenv;
+    ConnectorSettings.ENV_READER = System::getenv;
   }
 
   // ── default store selection ──────────────────────────────────────────────
@@ -114,7 +114,7 @@ public class AgentChatMemoryTest {
 
   @Test
   public void shouldSelectInMemoryStoreWhenDisabledViaEnvVar() {
-    AgentChatListener.ENV_READER = name ->
+    ConnectorSettings.ENV_READER = name ->
         AgentChatMemoryStore.PERSISTENT_STORE_ENV_VAR.equals(name) ? "false" : null;
 
     assertThat(AgentChatMemoryStore.resolveDefaultStore())
@@ -124,7 +124,7 @@ public class AgentChatMemoryTest {
   @Test
   public void shouldPreferSystemPropertyOverEnvVarForStoreSelection() {
     System.setProperty(AgentChatMemoryStore.PERSISTENT_STORE_PROPERTY, "true");
-    AgentChatListener.ENV_READER = name -> "false";
+    ConnectorSettings.ENV_READER = name -> "false";
 
     assertThat(AgentChatMemoryStore.resolveDefaultStore())
         .isInstanceOf(ProcessVariableChatMemoryStore.class);
@@ -287,6 +287,51 @@ public class AgentChatMemoryTest {
         .isEqualTo(response.getMemoryId());
   }
 
+  /**
+   * The first pass of the human-in-the-loop pattern maps
+   * {@code ${execution.getVariable('memoryId')}} before that variable exists, so
+   * an empty id means "start a conversation", not "reuse the empty one".
+   */
+  @Test
+  public void shouldGenerateMemoryIdWhenProvidedIdIsEmpty() {
+    AgentRequest request = connector.createRequest()
+        .agentName("agent")
+        .instruction("inst")
+        .message("Hello")
+        .apiKey("test-key")
+        .useChatMemory(true)
+        .memoryId("");
+
+    AgentResponse response = connector.execute(request);
+
+    assertThat(response.getMemoryId()).isNotNull().isNotEmpty();
+  }
+
+  /**
+   * Whitespace, on the other hand, is a mapping mistake — a literal blank in the
+   * template, or an expression yielding a space. Treating it as absent would hide
+   * it behind a fresh UUID every turn, so the agent would silently never
+   * remember; the store rejects it instead.
+   */
+  @Test
+  public void shouldRejectWhitespaceOnlyMemoryId() {
+    ExecutionEntity execution = statefulExecutionMock();
+    Context.setExecutionContext(execution);
+    pushedExecution = true;
+    AgentChatMemoryStore.setStore(new ProcessVariableChatMemoryStore());
+
+    AgentRequest request = connector.createRequest()
+        .agentName("agent")
+        .instruction("inst")
+        .message("Hello")
+        .apiKey("test-key")
+        .useChatMemory(true)
+        .memoryId("   ");
+
+    assertThatThrownBy(() -> connector.execute(request))
+        .hasMessageContaining("must not be null or blank");
+  }
+
   @Test
   public void shouldHonorProvidedMemoryIdWhenChatMemoryActive() {
     AgentRequest request = connector.createRequest()
@@ -421,6 +466,34 @@ public class AgentChatMemoryTest {
     ChatMemory memoryB = connector.createChatMemoryProvider(request).get(memoryId);
 
     assertThat(userTextsOf(memoryB.messages())).doesNotContain("Secret of instance A");
+  }
+
+  /**
+   * Pins what the memory variable holds besides the dialogue: LangChain4j puts
+   * the system prompt into the chat memory, so the agent's instruction — and
+   * whatever the connector folded into it — is persisted to the engine database
+   * with every turn, not just the user and assistant messages. Deployments
+   * reviewing what their process instances store need to know that; see the
+   * data-handling section of the manual.
+   */
+  @Test
+  public void shouldPersistTheSystemPromptAlongsideTheConversation() {
+    ExecutionEntity execution = statefulExecutionMock();
+    Context.setExecutionContext(execution);
+    pushedExecution = true;
+    AgentChatMemoryStore.setStore(new ProcessVariableChatMemoryStore());
+
+    connector.execute(connector.createRequest()
+        .agentName("agent")
+        .instruction("You are a claims adjuster for ACME Insurance.")
+        .message("Hello")
+        .apiKey("test-key")
+        .useChatMemory(true)
+        .memoryId("mem-sys"));
+
+    Object stored = execution.getVariable(
+        AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX + "mem-sys");
+    assertThat(stored).asString().contains("claims adjuster for ACME Insurance");
   }
 
   /**

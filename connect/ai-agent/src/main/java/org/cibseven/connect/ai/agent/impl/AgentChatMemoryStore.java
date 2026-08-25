@@ -23,11 +23,16 @@ import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 
 /**
- * JVM-wide singleton holder for the {@link ChatMemoryStore} used by the agent
- * connector. Each connector invocation that activates chat memory looks up its
- * memory by {@code memoryId} in this shared store, allowing a BPMN process to
- * carry conversation history across service-task invocations — typically across
- * a human-feedback user task in between.
+ * Decides and holds the one {@link ChatMemoryStore} the agent connector uses.
+ * Every connector invocation with chat memory active looks its conversation up
+ * by {@code memoryId} in that store, which is how a BPMN process carries
+ * history across service-task invocations — typically across a human-feedback
+ * user task in between.
+ *
+ * <p>The reference here is per-JVM; where the conversations themselves live is
+ * the store's business. With the default store they are process variables in the
+ * engine database, shared by every replica, and this class holds nothing but the
+ * choice.
  *
  * <p>Which store is used by default is decided here, once, from
  * {@value #PERSISTENT_STORE_PROPERTY}: a {@link ProcessVariableChatMemoryStore}
@@ -76,7 +81,7 @@ public final class AgentChatMemoryStore {
    * class-load timing.
    */
   static ChatMemoryStore resolveDefaultStore() {
-    boolean persistent = AgentChatListener.resolveBooleanFlag(
+    boolean persistent = ConnectorSettings.resolveBoolean(
         PERSISTENT_STORE_PROPERTY, PERSISTENT_STORE_ENV_VAR, true);
     if (!persistent) {
       LOG.warn("AI Agent connector: persistent chat memory is DISABLED (system property {} or "
