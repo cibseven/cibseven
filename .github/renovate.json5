@@ -54,6 +54,7 @@
         "/^net.minidev:json-smart/",
         "/^com.jayway.jsonpath:json-path/",
         "/^org.apache.httpcomponents.client5/",
+        "/^org.apache.httpcomponents.core5/",
         "/^com.fasterxml.uuid/",
         "/^com.fasterxml.jackson/",
         "/^org.camunda.feel/",
