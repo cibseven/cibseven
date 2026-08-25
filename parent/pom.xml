@@ -45,15 +45,15 @@
     <version.xml.jaxb-impl>2.3.6</version.xml.jaxb-impl>
     <version.xml.jaxb-impl4>4.0.5</version.xml.jaxb-impl4>
     <version.jakarta.xml.bind-api>4.0.2</version.jakarta.xml.bind-api>
-    <version.httpclient5>5.5</version.httpclient5>
-    <version.httpcore5>5.3.4</version.httpcore5>
+    <version.httpclient5>5.6.4</version.httpclient5>
+    <version.httpcore5>5.4.3</version.httpcore5>
     <version.cronutils>9.2.1</version.cronutils>
     <version.jjwt>0.12.6</version.jjwt>
     <version.caffeine>3.2.4</version.caffeine>
 
     <version.slf4j>1.7.36</version.slf4j>
     <version.logback>1.2.13</version.logback>
-    <version.log4j2>2.25.4</version.log4j2>
+    <version.log4j2>2.26.1</version.log4j2>
     <version.junit>4.13.1</version.junit>
     <version.assertj>2.9.1</version.assertj>
     <version.mockito>5.17.0</version.mockito>
