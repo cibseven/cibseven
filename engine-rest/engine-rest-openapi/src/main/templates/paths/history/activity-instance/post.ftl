@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "queryHistoricActivityInstances"
       tag = "Historic Activity Instance"
-      summary = "Get List (POST)"
+      summary = "Get List"
       desc = "Queries for historic activity instances that fulfill the given parameters.
               The size of the result set can be retrieved by using the
               [Get Historic Activity Instance Count](${docsUrl}/reference/rest/history/activity-instance/get-activity-instance-query-count/) method." />

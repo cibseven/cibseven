@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "queryExecutions"
       tag = "Execution"
-      summary = "Get Executions (POST)"
+      summary = "Get Executions"
       desc = "Queries for executions that fulfill given parameters through a JSON object.
               This method is slightly more powerful than the [Get
               Executions](${docsUrl}/reference/rest/execution/get-query/) method
