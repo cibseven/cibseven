@@ -19,7 +19,7 @@
     <skip-third-party-bom>false</skip-third-party-bom>
     <third-party-bom-scopes>compile|provided</third-party-bom-scopes>
 
-    <version.resteasy>6.2.3.Final</version.resteasy>
+    <version.resteasy>6.2.17.Final</version.resteasy>
   </properties>
 
   <dependencyManagement>

@@ -5,13 +5,18 @@
     // TEMPORARY: the raw "dependencyDashboard": false option turned out to be unreliable (a
     // Dependency Dashboard issue still got created once). This preset is the documented, more
     // robust way to fully disable it. Remove this entry to re-enable the dashboard.
-    ":disableDependencyDashboard"
+    // ":disableDependencyDashboard"
   ],
-  "branchName": "{{{baseBranch}}}-{{{branchTopic}}}",
+  "branchPrefix": "renovate/",
   "addLabels": [
     "dependencies"
   ],
   "prConcurrentLimit": 10,
+  "prHourlyLimit": 5,
+  "reviewers": [
+    "fernando-m-g",
+    "vladgrind"
+  ],
   "baseBranchPatterns": [
     "main"
   ],
@@ -21,8 +26,8 @@
   "vulnerabilityAlerts": {
     "enabled": false
   },
-  // TEMPORARY: lock file maintenance paused for the initial rollout, to keep this first rollout
-  // scoped to release-parent only. To re-enable, set "enabled" back to true.
+  // TEMPORARY: lock file maintenance paused for the initial rollout
+  // To re-enable, set "enabled" back to true.
   "lockFileMaintenance": {
     "enabled": false,
     "addLabels": [
@@ -32,50 +37,46 @@
     ],
   },
   "packageRules": [
-    // TEMPORARY (commented out): Camunda's original allowlist of 19 trusted library families.
-    // Restore this block - and remove/narrow the blanket-disable-all rule right below - once the
-    // release-parent-only rollout has proven stable and you're ready to widen scope again.
-    // {
-    //   "matchPackageNames": [
-    //     "!/^org.springframework/",
-    //     "!/^org.apache.tomcat/",
-    //     "!/^commons-fileupload/",
-    //     "!/^org.apache.commons:commons-lang3/",
-    //     "!/^net.minidev:json-smart/",
-    //     "!/^com.jayway.jsonpath:json-path/",
-    //     "!/^org.apache.httpcomponents.client5/",
-    //     "!/^com.fasterxml.uuid/",
-    //     "!/^com.fasterxml.jackson/",
-    //     "!/^org.camunda.feel/",
-    //     "!/^io.quarkus/",
-    //     "!/^ch.qos.logback/",
-    //     "!/^org.graalvm/",
-    //     "!/^com.google.code.gson/",
-    //     "!/^org.postgresql/",
-    //     "!/^com.h2database/",
-    //     "!/^com.mysql/",
-    //     "!/^org.jboss.resteasy/",
-    //     "!/^org.apache.groovy/"
-    //   ],
-    //   "enabled": false
-    // },
+    // Disable all packages by default; later rules explicitly re-enable trusted packages.
     {
-      // TEMPORARY: disables every dependency except release-parent (see the override rule below),
-      // for a minimal-effect first rollout. Remove this rule (and uncomment the block above) to
-      // restore the original 19-library allowlist.
       "matchPackageNames": [
         "*"
       ],
       "enabled": false
     },
+    // Re-enable only the trusted dependency families.
+    {
+      "matchPackageNames": [
+        "/^org.springframework/",
+        "/^org.apache.tomcat/",
+        "/^commons-fileupload/",
+        "/^org.apache.commons:commons-lang3/",
+        "/^net.minidev:json-smart/",
+        "/^com.jayway.jsonpath:json-path/",
+        "/^org.apache.httpcomponents.client5/",
+        "/^com.fasterxml.uuid/",
+        "/^com.fasterxml.jackson/",
+        "/^org.camunda.feel/",
+        "/^io.quarkus/",
+        "/^ch.qos.logback/",
+        "/^org.graalvm/",
+        "/^com.google.code.gson/",
+        "/^org.postgresql/",
+        "/^com.h2database/",
+        "/^com.mysql/",
+        "/^org.jboss.resteasy/",
+        "/^org.apache.groovy/"
+      ],
+      "enabled": true
+    },
+    // Add labels to eligible patch PRs; the automerge label is consumed by the auto-merge workflow.
     {
       "matchUpdateTypes": [
         "patch"
       ],
-      // TEMPORARY: "automerge" label removed while auto-merge is disabled repo-wide (see
-      // renovate-auto-merge.yml). Add "automerge" back to this list once you re-enable it there.
       "addLabels": [
-        "ci:all"
+        "ci:default-build",
+        "automerge"
       ]
     },
     {
@@ -86,14 +87,9 @@
       "addLabels": [
         "ci:all"
       ],
-      "automerge": false,
       "dependencyDashboardApproval": true
     },
     {
-      // release-parent's available update is classified as "minor" (1.4.0 -> 1.6.0), so without
-      // the dependencyDashboardApproval override below it would inherit "true" from the rule
-      // above - which would block it forever, since the Dependency Dashboard is disabled above
-      // and can never grant that approval.
       "matchPackageNames": [
         "org.cibseven:release-parent"
       ],
@@ -101,7 +97,10 @@
         "parent"
       ],
       "enabled": true,
-      "dependencyDashboardApproval": false
+      "addLabels": [
+        "ci:default-build",
+        "automerge"
+      ]
     }
   ]
 }
