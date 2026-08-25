@@ -3,7 +3,7 @@
   <@lib.endpointInfo
       id = "setVariablesAsyncOperation"
       tag = "Process Instance"
-      summary = "Set Variables Async (POST)"
+      summary = "Set Variables Async"
       desc = "Update or create runtime process variables in the root scope of process instances." />
 
 

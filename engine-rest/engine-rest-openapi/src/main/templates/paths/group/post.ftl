@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "postQueryGroups"
       tag = "Group"
-      summary = "Get List (POST)"
+      summary = "Get List"
       desc = "Queries for a list of groups using a list of parameters.
               The size of the result set can be retrieved by using the
               [Get Group Count (POST)](${docsUrl}/reference/rest/group/post-query-count/) method."

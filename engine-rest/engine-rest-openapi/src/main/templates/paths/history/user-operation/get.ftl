@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "queryUserOperationEntries"
       tag = "Historic User Operation Log"
-      summary = "Get User Operation Log (Historic)"
+      summary = "Get User Operation Log"
       desc = "Queries for user operation log entries that fulfill the given parameters.
               The size of the result set can be retrieved by using the
               [Get User Operation Log Count](${docsUrl}/reference/rest/history/user-operation-log/get-user-operation-log-query-count/)

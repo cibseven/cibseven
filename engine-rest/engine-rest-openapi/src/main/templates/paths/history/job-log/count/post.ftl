@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "queryHistoricJobLogsCount"
       tag = "Historic Job Log"
-      summary = "Get Job Log Count (POST)"
+      summary = "Get Job Log Count"
       desc = "Queries for the number of historic job logs that fulfill the given parameters.
               This method takes the same message body as the
               [Get Job Logs (POST)](${docsUrl}/reference/rest/history/job-log/post-job-log-query/)

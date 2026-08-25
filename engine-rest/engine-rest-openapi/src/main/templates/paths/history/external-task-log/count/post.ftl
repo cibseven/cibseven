@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "queryHistoricExternalTaskLogsCount"
       tag = "Historic External Task Log"
-      summary = "Get External Task Log Count (POST)"
+      summary = "Get External Task Log Count"
       desc = "Queries for the number of historic external task logs that fulfill the given
               parameters.
               This method takes the same message body as the

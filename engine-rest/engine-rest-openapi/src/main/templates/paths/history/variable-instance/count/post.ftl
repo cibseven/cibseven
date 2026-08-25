@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "queryHistoricVariableInstancesCount"
       tag = "Historic Variable Instance"
-      summary = "Get Variable Instance Count (POST)"
+      summary = "Get Variable Instance Count"
       desc = "Queries for historic variable instances that fulfill the given parameters.
               This method takes the same message body as the
               [Get Variable Instances (POST)](${docsUrl}/reference/rest/history/variable-instance/post-variable-instance-query/)

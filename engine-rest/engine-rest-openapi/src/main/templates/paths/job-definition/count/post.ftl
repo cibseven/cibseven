@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "queryJobDefinitionsCount"
       tag = "Job Definition"
-      summary = "Get Job Definition Count (POST)"
+      summary = "Get Job Definition Count"
       desc = "Queries for the number of job definitions that fulfill given parameters. This
               method takes the same message body as the
               [Get Job Definitions (POST)](${docsUrl}/reference/rest/job-definition/post-query/)
