@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright The WildFly Authors
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+<!--
+  Replaces the log4j-api module shipped inside wildfly-dist, which pins 2.25.4 and
+  is flagged for CVE-2026-49844. WildFly's copy of this module is excluded from the
+  distro unpack (see distro/wildfly/assembly/assembly.xml) so only this one ships.
+  Layout and the private jboss.api marker are kept identical to WildFly's original;
+  only the jar version differs (version.log4j-api in parent/pom.xml).
+  -->
+<module name="org.apache.logging.log4j.api" xmlns="urn:jboss:module:1.9">
+
+    <properties>
+        <property name="jboss.api" value="public"/>
+    </properties>
+
+    <resources>
+        <resource-root path="log4j-api-@version.log4j2@.jar"/>
+    </resources>
+
+    <dependencies>
+        <!--
+            This is a circular dependency to avoid adding the private implementation to a dependent module. The API uses
+            static variables for the providers and factories. These are located through a custom service loader and we
+            should bind to this implementation only. Users wanting to not use this implementation need to also not use
+            this API.
+        -->
+        <module name="org.jboss.logmanager.log4j2" services="import"/>
+    </dependencies>
+</module>

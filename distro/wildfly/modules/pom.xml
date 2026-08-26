@@ -166,6 +166,17 @@
       <version>${version.lz4-java}</version>
     </dependency>
 
+      <!-- Patched log4j-api replacing the 2.25.4 jar bundled in wildfly-dist (CVE-2026-49844).
+         WildFly's system module is excluded from the distro.
+         copy-dependencies step below already maps <groupId path>/<version>/<jar> to
+         <groupId path>/main/<jar>, which is exactly the layout the module.xml expects.
+         Drop this once WildFly ships log4j >= 2.25.4 -->
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>${version.log4j2}</version>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -308,6 +319,20 @@
                 </copy>
                 <delete dir="target/modules/org/apache/httpcomponents/core5/httpcore5-h2" />
 
+                <!-- log4j-api (CVE-2026-49844): the generic copy above derives the module
+                     dir from the coordinates, landing the jar in
+                     org/apache/logging/log4j/log4j-api/main. WildFly's module is named
+                     org.apache.logging.log4j.api -->
+                <move todir="target/modules" flatten="false">
+                  <fileset dir="target/modules">
+                    <include name="org/apache/logging/log4j/log4j-api/main/*.jar" />
+                  </fileset>
+                  <regexpmapper from="^org/apache/logging/log4j/log4j-api/main/(.*)$$"
+                                to="org/apache/logging/log4j/api/main/\1"
+                                handledirsep="yes" />
+                </move>
+                <delete dir="target/modules/org/apache/logging/log4j/log4j-api" />
+
                 <!-- move caffeine into its own slot, so that we do not shadow the
                   caffeine module WildFly provides for Infinispan -->
                 <delete dir="target/modules/com/github/ben-manes/caffeine" />
@@ -442,6 +467,10 @@
                 </replace>
 
                 <replace dir="target/modules" token="@version.lz4-java@" value="${version.lz4-java}">
+                  <include name="**/module.xml" />
+                </replace>
+
+                <replace dir="target/modules" token="@version.log4j2@" value="${version.log4j2}">
                   <include name="**/module.xml" />
                 </replace>
 

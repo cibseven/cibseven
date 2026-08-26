@@ -35,6 +35,9 @@
           <!-- exclude wildfly's shipped lz4-java (CVE-2026-59949); replaced by the
                at/yawk/lz4 module from ../modules, see version.lz4-java -->
           <exclude>**/at/yawk/lz4/**</exclude>
+          <!-- exclude wildfly's shipped log4j-api (CVE-2026-49844); replaced by the
+               org/apache/logging/log4j/api module from ../modules, see version.log4j2 -->
+          <exclude>**/org/apache/logging/log4j/api/**</exclude>
         </excludes>
       </unpackOptions>
     </dependencySet>
