@@ -118,6 +118,33 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     Result<String> chat(@MemoryId Object memoryId, @UserMessage String message);
   }
 
+  /**
+   * Internal AI service interface used when documents are attached.
+   *
+   * <p>The message stays a separate {@code String} parameter on purpose, rather
+   * than being folded into the content list as a leading {@code TextContent}.
+   * {@code DefaultAiServices} augments the user message for RAG <em>before</em>
+   * it appends content arguments, and {@code DefaultRetrievalAugmentor} calls
+   * {@code UserMessage.singleText()} — which throws on a multi-content message.
+   * With the text as its own {@code @UserMessage} parameter the augmented
+   * message is still single-text at that point, so RAG and documents work
+   * together; folding them into one list breaks RAG outright.
+   *
+   * <p>{@code dev.langchain4j.data.message.Content} is fully qualified because
+   * this class already imports {@code dev.langchain4j.rag.content.Content} for
+   * the retrieval path — two unrelated types with the same simple name.
+   */
+  interface LangChainDocumentAgent {
+    Result<String> chat(@UserMessage String message,
+        @UserMessage List<dev.langchain4j.data.message.Content> contents);
+  }
+
+  /** {@link LangChainDocumentAgent} with chat memory. See both for the reasoning. */
+  interface LangChainMemoryDocumentAgent {
+    Result<String> chat(@MemoryId Object memoryId, @UserMessage String message,
+        @UserMessage List<dev.langchain4j.data.message.Content> contents);
+  }
+
   public AgentConnectorImpl() {
     super(AgentConnector.ID);
   }
@@ -188,6 +215,21 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         ProcessContextResolver.failOnMissingRequired(contextVariables);
       }
 
+      // Documents resolve after the listener exists for the same reason as the
+      // context block: a failure here should still be preceded by a record of
+      // what was attempted, and the descriptors have to reach the listener
+      // before the first model turn so a multi-content user message renders as
+      // descriptors instead of Base64.
+      List<DocumentContentResolver.ResolvedDocument> documents = resolveDocuments(request);
+      if (!documents.isEmpty()) {
+        AgentChatListener documentListener = ProcessStarterToolContext.getActiveListener();
+        if (documentListener != null) {
+          documentListener.setDocumentDescriptors(
+              DocumentContentResolver.describeByContent(documents));
+          documentListener.recordDocumentsEvent(DocumentContentResolver.describe(documents));
+        }
+      }
+
       List<McpServerSpec> mcpServerSpecs = parseMcpServers(request.getMcpServers());
       mcpClients = createMcpClients(request);
 
@@ -215,11 +257,23 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       }
 
       String memoryId = resolveMemoryId(request);
+      boolean hasDocuments = !documents.isEmpty();
 
-      Class<?> agentClass = (memoryId != null) ? LangChainMemoryAgent.class : LangChainAgent.class;
+      Class<?> agentClass = selectAgentInterface(memoryId != null, hasDocuments);
       AiServices<?> builder = AiServices.builder(agentClass)
           .chatModel(chatModel)
           .systemMessageProvider(chatMemoryId -> buildSystemPrompt(request, contextBlock));
+      if (hasDocuments && memoryId != null) {
+        // LangChain4j stores the *augmented* user message in chat memory by
+        // default, and with documents attached that message carries their whole
+        // Base64 payload. Since CIB7-1417 the memory is a process variable, so
+        // the default would write megabytes of Base64 into the engine database
+        // on every turn — and replay them to the provider on the next one.
+        // Trade-off: RAG-retrieved context is then no longer persisted in memory
+        // for these runs either. Documented in the manual.
+        LOG.debug("Documents attached — not storing the augmented user message in chat memory");
+        builder.storeRetrievedContentInChatMemory(false);
+      }
       if (!tools.isEmpty()) {
         builder.tools(tools.toArray());
       }
@@ -250,12 +304,17 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       }
 
       Result<String> result;
-      if (memoryId != null) {
-        LangChainMemoryAgent agent = (LangChainMemoryAgent) builder.build();
-        result = agent.chat(memoryId, request.getMessage());
+      if (memoryId != null && hasDocuments) {
+        result = ((LangChainMemoryDocumentAgent) builder.build())
+            .chat(memoryId, request.getMessage(), DocumentContentResolver.toContents(documents));
+      } else if (memoryId != null) {
+        result = ((LangChainMemoryAgent) builder.build())
+            .chat(memoryId, request.getMessage());
+      } else if (hasDocuments) {
+        result = ((LangChainDocumentAgent) builder.build())
+            .chat(request.getMessage(), DocumentContentResolver.toContents(documents));
       } else {
-        LangChainAgent agent = (LangChainAgent) builder.build();
-        result = agent.chat(request.getMessage());
+        result = ((LangChainAgent) builder.build()).chat(request.getMessage());
       }
       String output = result.content();
 
@@ -603,6 +662,47 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     return ProcessContextResolver.resolve(declared, optional,
         name -> execution.getVariableTyped(name, false),
         AgentConnectorConstants.DEFAULT_MAX_CONTEXT_VALUE_CHARS);
+  }
+
+  /**
+   * Picks the AI service interface for this invocation. Four combinations of
+   * memory and documents, because {@code AiServices} derives the call shape from
+   * the interface method's parameters — there is no way to make one signature
+   * cover an absent {@code @MemoryId} or an empty content list.
+   */
+  private static Class<?> selectAgentInterface(boolean withMemory, boolean withDocuments) {
+    if (withMemory) {
+      return withDocuments ? LangChainMemoryDocumentAgent.class : LangChainMemoryAgent.class;
+    }
+    return withDocuments ? LangChainDocumentAgent.class : LangChainAgent.class;
+  }
+
+  /**
+   * Resolves the declared {@code documents} into native attachments. Returns an
+   * empty list when the parameter is unset, which keeps the outgoing message
+   * exactly what it was before this feature.
+   *
+   * @throws AgentConnectorException when documents are declared but no BPMN
+   *     execution is available, or when a document cannot be turned into an
+   *     attachment. Both name the offending variable.
+   */
+  private List<DocumentContentResolver.ResolvedDocument> resolveDocuments(AgentRequest request) {
+    String declared = request.getDocuments();
+    if (declared == null || declared.trim().isEmpty()) {
+      return List.of();
+    }
+    ExecutionEntity execution = currentExecution();
+    if (execution == null) {
+      throw new AgentConnectorException(
+          "'documents' is configured but no BPMN execution is available on this thread, so file "
+          + "variables cannot be read. This parameter only works when the connector runs from a "
+          + "service task inside the engine.");
+    }
+    return DocumentContentResolver.resolve(declared, request.getDocumentMimeTypes(),
+        DocumentContentResolver.parseDetailLevel(request.getDocumentDetailLevel()),
+        request.isAllowAudioVideo(),
+        name -> execution.getVariableTyped(name, false),
+        DocumentContentResolver.Limits.defaults());
   }
 
   /**

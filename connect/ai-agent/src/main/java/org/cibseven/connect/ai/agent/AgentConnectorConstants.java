@@ -173,6 +173,38 @@ public final class AgentConnectorConstants {
    */
   public static final int DEFAULT_MAX_CONTEXT_BLOCK_CHARS = 20000;
 
+  // ── Documents (files from variables as native LLM attachments) ────────────
+
+  /**
+   * Maximum size of a single document, in raw bytes before Base64 encoding.
+   * Checked before encoding because Base64 inflates by roughly a third and the
+   * encoded copy is what ends up in memory and on the wire.
+   *
+   * <p>Aligned with the 10 MB multipart limit Camunda 8's document store uses,
+   * halved: a document that large in a prompt is nearly always a modelling
+   * mistake, and the failure should come from us rather than from a provider
+   * rejecting the request minutes later.
+   */
+  public static final int DEFAULT_MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
+
+  /** Maximum combined raw size of all documents attached to one invocation. */
+  public static final int DEFAULT_MAX_TOTAL_DOCUMENT_BYTES = 20 * 1024 * 1024;
+
+  /** Maximum number of documents attached to one invocation. */
+  public static final int DEFAULT_MAX_DOCUMENT_COUNT = 10;
+
+  /**
+   * Opening delimiter wrapped around a text document handed to the model.
+   * Text files are the one document kind that becomes prompt text rather than a
+   * typed attachment, so they need the same containment the process-context
+   * block gets — Camunda 8 inlines them raw and records that as a known
+   * prompt-injection gap.
+   */
+  public static final String DOCUMENT_BLOCK_OPEN = "<document";
+
+  /** Closing delimiter of a text document block. See {@link #DOCUMENT_BLOCK_OPEN}. */
+  public static final String DOCUMENT_BLOCK_CLOSE = "</document>";
+
   // ── instructionMode values ────────────────────────────────────────────────
 
   /**

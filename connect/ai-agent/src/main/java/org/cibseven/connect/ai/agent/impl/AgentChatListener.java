@@ -294,6 +294,15 @@ class AgentChatListener implements ChatModelListener {
    */
   private volatile Map<String, Map<String, Object>> toolProvenance;
 
+  /**
+   * Descriptor per attached document, keyed by the exact {@code Content}
+   * instance handed to the model. Lets {@code renderMultiContent} name the
+   * source variable and file instead of dumping Base64. {@code null} when no
+   * documents are attached, which is the normal case.
+   */
+  private volatile Map<dev.langchain4j.data.message.Content, Map<String, Object>>
+      documentDescriptors;
+
   AgentChatListener() {
     this(null, null, null);
   }
@@ -471,6 +480,36 @@ class AgentChatListener implements ChatModelListener {
       return;
     }
     Map<String, Object> event = newCorrelatedEvent("context");
+    event.putAll(payload);
+    appendEvent(event);
+  }
+
+  /**
+   * Publishes the per-{@code Content} descriptor map for the documents attached
+   * to this invocation. Must be set before the first model turn, because it is
+   * what {@code renderMultiContent} uses to describe an attachment instead of
+   * serialising it. Pass {@code null} to clear.
+   */
+  void setDocumentDescriptors(
+      Map<dev.langchain4j.data.message.Content, Map<String, Object>> descriptors) {
+    this.documentDescriptors = (descriptors == null || descriptors.isEmpty()) ? null : descriptors;
+  }
+
+  /**
+   * Emits one {@code documents} audit event listing the attachments sent to the
+   * model — variable, filename, mime type, content kind, byte size and SHA-256
+   * per document, plus the count and combined size.
+   *
+   * <p>Never the payload. The hash covers the Base64 form that was actually
+   * transmitted, so an auditor can prove which file reached the model without
+   * the chat-log variable carrying a second copy of it — which for documents
+   * would mean megabytes per run in the engine database.
+   */
+  void recordDocumentsEvent(Map<String, Object> payload) {
+    if (payload == null) {
+      return;
+    }
+    Map<String, Object> event = newCorrelatedEvent("documents");
     event.putAll(payload);
     appendEvent(event);
   }
@@ -905,7 +944,7 @@ class AgentChatListener implements ChatModelListener {
 
   // ── message content extraction ───────────────────────────────────────────
 
-  private static String extractContent(ChatMessage msg) {
+  private String extractContent(ChatMessage msg) {
     return maybeRedact(extractPlainContent(msg));
   }
 
@@ -924,10 +963,10 @@ class AgentChatListener implements ChatModelListener {
     return plain;
   }
 
-  private static String extractPlainContent(ChatMessage msg) {
+  private String extractPlainContent(ChatMessage msg) {
     if (msg instanceof UserMessage) {
       UserMessage user = (UserMessage) msg;
-      return user.hasSingleText() ? user.singleText() : user.toString();
+      return user.hasSingleText() ? user.singleText() : renderMultiContent(user);
     }
     if (msg instanceof SystemMessage) {
       return ((SystemMessage) msg).text();
@@ -952,6 +991,53 @@ class AgentChatListener implements ChatModelListener {
       return ((ToolExecutionResultMessage) msg).text();
     }
     return msg.toString();
+  }
+
+  /**
+   * Renders a multi-content user message — the shape produced when documents are
+   * attached — as text plus one descriptor per attachment.
+   *
+   * <p>This method is the reason document support is safe to persist at all.
+   * The previous fallback was {@code UserMessage.toString()}, which prints the
+   * whole Base64 payload of every attachment; with the chat log being a process
+   * variable, one invoice PDF would put megabytes of Base64 into the engine
+   * database on every run. A descriptor — variable, filename, mime type, size,
+   * SHA-256 — carries the evidence without the payload.
+   *
+   * <p>Descriptors come from {@link #setDocumentDescriptors(Map)}, published by
+   * the connector while resolving. When none is available (a content object the
+   * connector did not build) the fallback still emits type and size only, never
+   * the data.
+   */
+  private String renderMultiContent(UserMessage user) {
+    Map<dev.langchain4j.data.message.Content, Map<String, Object>> descriptors =
+        this.documentDescriptors;
+    List<Object> parts = new ArrayList<>();
+    for (dev.langchain4j.data.message.Content content : user.contents()) {
+      if (content instanceof dev.langchain4j.data.message.TextContent) {
+        Map<String, Object> part = new LinkedHashMap<>();
+        part.put("type", "TEXT");
+        part.put("text", ((dev.langchain4j.data.message.TextContent) content).text());
+        parts.add(part);
+        continue;
+      }
+      Map<String, Object> descriptor = (descriptors == null) ? null : descriptors.get(content);
+      if (descriptor != null) {
+        parts.add(new LinkedHashMap<>(descriptor));
+      } else {
+        Map<String, Object> part = new LinkedHashMap<>();
+        part.put("type", content.type() == null ? "UNKNOWN" : content.type().name());
+        part.put("descriptor", "unavailable");
+        parts.add(part);
+      }
+    }
+    try {
+      return MAPPER.writeValueAsString(parts);
+    } catch (JsonProcessingException e) {
+      LOG.error("Failed to serialise multi-content user message; emitting a placeholder "
+          + "rather than the raw message, which would contain base64 payloads.", e);
+      return "[" + parts.size() + " content part(s); serialisation failed]";
+    }
   }
 
   /**

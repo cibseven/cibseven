@@ -254,6 +254,63 @@ public interface AgentConnector extends Connector<AgentRequest> {
    */
   String PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES = "optionalContextVariables";
 
+  // ── Document input parameter names ────────────────────────────────────────
+
+  /**
+   * Optional. Comma-separated list of process-variable <em>names</em> holding
+   * files that are sent to the model as native attachments — a PDF as a PDF, an
+   * image as an image, rather than as text spliced into the prompt.
+   *
+   * <p>Accepts {@code FileValue} variables (which carry filename and mime type)
+   * and {@code BytesValue} variables (which carry neither, so their mime type
+   * has to come from {@link #PARAM_NAME_DOCUMENT_MIME_TYPES}).
+   *
+   * <p>Names, not {@code ${expressions}} — and here the reason is not just type
+   * loss: Connect hands over {@code FileValue.getValue()}, which is a bare
+   * {@code InputStream}, so filename and mime type are already gone, and the
+   * request-parameter accessor is an unchecked cast that would fail with a
+   * {@code ClassCastException} rather than a usable message.
+   *
+   * <p>Every declared document must exist. Unlike
+   * {@link #PARAM_NAME_CONTEXT_VARIABLES} there is no optional variant: an
+   * agent asked to read an invoice that was not attached is not working on
+   * degraded input, it is working on a different task.
+   *
+   * <p>Example: {@code "invoicePdf,signatureScan"}
+   */
+  String PARAM_NAME_DOCUMENTS = "documents";
+
+  /**
+   * Optional. JSON object of variable name → mime type, used when a document's
+   * own metadata does not say what it is, or to override it.
+   *
+   * <p>Required for every {@code BytesValue} variable listed in
+   * {@link #PARAM_NAME_DOCUMENTS}: raw bytes carry no mime type, and guessing
+   * one from the leading bytes would fail silently when it guesses wrong.
+   *
+   * <p>Example: {@code {"scan": "image/png", "report": "application/pdf"}}
+   */
+  String PARAM_NAME_DOCUMENT_MIME_TYPES = "documentMimeTypes";
+
+  /**
+   * Optional. Detail level requested for image attachments — {@code AUTO}
+   * (default), {@code LOW}, {@code MEDIUM}, {@code HIGH} or {@code ULTRA_HIGH}.
+   * Higher levels cost more input tokens. Ignored for non-image documents.
+   */
+  String PARAM_NAME_DOCUMENT_DETAIL_LEVEL = "documentDetailLevel";
+
+  /**
+   * Optional. Enables {@code audio/*} and {@code video/*} attachments, which are
+   * rejected by default.
+   *
+   * <p>Not a capability switch but an honesty switch: LangChain4j sends audio as
+   * Base64 only and requires a well-formed mime type, and video maps to a field
+   * that is not an official OpenAI one, so whether either works depends on the
+   * gateway behind {@link #PARAM_NAME_BASE_URL}. Enabling this says "I have
+   * verified my endpoint accepts these".
+   */
+  String PARAM_NAME_ALLOW_AUDIO_VIDEO = "allowAudioVideo";
+
   /**
    * Optional. Reasoning effort hint for reasoning-capable models
    * (e.g. {@code "low"}, {@code "medium"}, {@code "high"}).

@@ -91,6 +91,25 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   AgentRequest optionalContextVariables(String optionalContextVariables);
 
   /**
+   * Optional. Comma-separated names of file-typed process variables sent to the
+   * model as native attachments. See {@link AgentConnector#PARAM_NAME_DOCUMENTS}.
+   */
+  AgentRequest documents(String documents);
+
+  /**
+   * Optional. JSON object of variable name → mime type for documents whose own
+   * metadata is missing or wrong. See
+   * {@link AgentConnector#PARAM_NAME_DOCUMENT_MIME_TYPES}.
+   */
+  AgentRequest documentMimeTypes(String documentMimeTypes);
+
+  /** Optional. Image detail level: AUTO, LOW, MEDIUM, HIGH, ULTRA_HIGH. */
+  AgentRequest documentDetailLevel(String documentDetailLevel);
+
+  /** Optional. Allows audio and video attachments, which are off by default. */
+  AgentRequest allowAudioVideo(boolean allowAudioVideo);
+
+  /**
    * Optional. Reasoning effort hint (e.g. {@code "low"}, {@code "medium"},
    * {@code "high"}). Values are model-dependent.
    */
@@ -176,6 +195,14 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   String getContextVariables();
 
   String getOptionalContextVariables();
+
+  String getDocuments();
+
+  String getDocumentMimeTypes();
+
+  String getDocumentDetailLevel();
+
+  boolean isAllowAudioVideo();
 
   String getReasoningEffort();
 
