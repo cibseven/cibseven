@@ -172,24 +172,49 @@ public final class DocumentContentResolver {
     }
     Map<String, String> overrides = parseMimeTypeOverrides(mimeTypeOverridesJson);
 
-    List<ResolvedDocument> resolved = new ArrayList<>(names.size());
+    // Two passes on purpose. Reading and size-checking every document first
+    // means an over-budget attachment set is rejected before a single byte has
+    // been Base64 encoded — encoding inflates by a third, and doing it eagerly
+    // would peak at well over the documented 20 MB before the cap even fires.
+    List<RawDocument> raw = new ArrayList<>(names.size());
     long totalBytes = 0;
     for (String name : names) {
-      ResolvedDocument document =
-          readOne(name, overrides, detailLevel, allowAudioVideo, reader, limits);
-      totalBytes += document.byteSize;
+      RawDocument document = readOne(name, overrides, reader, limits);
+      totalBytes += document.bytes.length;
       if (totalBytes > limits.maxTotalBytes) {
         throw new AgentConnectorException("Documents exceed the combined size limit: "
             + totalBytes + " bytes after adding '" + name + "', limit is "
             + limits.maxTotalBytes + " bytes.");
       }
-      resolved.add(document);
+      raw.add(document);
+    }
+
+    List<ResolvedDocument> resolved = new ArrayList<>(raw.size());
+    for (RawDocument document : raw) {
+      resolved.add(buildContent(document, detailLevel, allowAudioVideo));
     }
     return resolved;
   }
 
-  private static ResolvedDocument readOne(String name, Map<String, String> overrides,
-      ImageContent.DetailLevel detailLevel, boolean allowAudioVideo,
+  /** A document read off the execution, before it is encoded for the model. */
+  private static final class RawDocument {
+    final String variable;
+    final String filename;
+    final String mimeType;
+    final byte[] bytes;
+    final Charset charset;
+
+    RawDocument(String variable, String filename, String mimeType, byte[] bytes,
+        Charset charset) {
+      this.variable = variable;
+      this.filename = filename;
+      this.mimeType = mimeType;
+      this.bytes = bytes;
+      this.charset = charset;
+    }
+  }
+
+  private static RawDocument readOne(String name, Map<String, String> overrides,
       TypedVariableReader reader, Limits limits) {
     TypedValue typed;
     try {
@@ -248,8 +273,7 @@ public final class DocumentContentResolver {
           + " bytes.");
     }
 
-    return buildContent(name, nullToName(filename, name), mimeType, bytes,
-        detailLevel, allowAudioVideo, charsetOf(typed));
+    return new RawDocument(name, nullToName(filename, name), mimeType, bytes, charsetOf(typed));
   }
 
   /**
@@ -257,34 +281,46 @@ public final class DocumentContentResolver {
    * The switch is deliberately explicit: an unmapped type fails here rather than
    * being silently sent as something the provider will reject or, worse, ignore.
    */
-  private static ResolvedDocument buildContent(String variable, String filename, String mimeType,
-      byte[] bytes, ImageContent.DetailLevel detailLevel, boolean allowAudioVideo,
-      Charset charset) {
+  private static ResolvedDocument buildContent(RawDocument raw,
+      ImageContent.DetailLevel detailLevel, boolean allowAudioVideo) {
+    String variable = raw.variable;
+    String filename = raw.filename;
+    String mimeType = raw.mimeType;
+    byte[] bytes = raw.bytes;
     String lower = mimeType.toLowerCase(Locale.ROOT);
-    String sha256 = AgentChatListener.sha256(Base64.getEncoder().encodeToString(bytes));
+
+    if (isTextual(lower)) {
+      // Text never becomes Base64 — it goes into the prompt as characters, so
+      // the digest covers the same bytes an auditor reads off the variable.
+      String text = new String(bytes,
+          raw.charset != null ? raw.charset : StandardCharsets.UTF_8);
+      return new ResolvedDocument(variable, filename, mimeType, bytes.length,
+          AgentChatListener.sha256(text), "TEXT",
+          TextContent.from(wrapTextDocument(variable, filename, mimeType, bytes.length, text)));
+    }
+
+    // Encoded exactly once and reused for both the attachment and the digest.
+    // Encoding twice doubled peak memory for every binary attachment.
+    String base64 = Base64.getEncoder().encodeToString(bytes);
+    String sha256 = AgentChatListener.sha256(base64);
 
     if ("application/pdf".equals(lower)) {
       return new ResolvedDocument(variable, filename, mimeType, bytes.length, sha256, "PDF",
-          PdfFileContent.from(base64(bytes), mimeType));
+          PdfFileContent.from(base64, mimeType));
     }
     if (SUPPORTED_IMAGE_TYPES.contains(lower)) {
       return new ResolvedDocument(variable, filename, mimeType, bytes.length, sha256, "IMAGE",
-          ImageContent.from(base64(bytes), mimeType, detailLevel));
-    }
-    if (isTextual(lower)) {
-      String text = new String(bytes, charset != null ? charset : StandardCharsets.UTF_8);
-      return new ResolvedDocument(variable, filename, mimeType, bytes.length, sha256, "TEXT",
-          TextContent.from(wrapTextDocument(variable, filename, mimeType, bytes.length, text)));
+          ImageContent.from(base64, mimeType, detailLevel));
     }
     if (lower.startsWith("audio/")) {
       requireAudioVideoOptIn(variable, mimeType, allowAudioVideo);
       return new ResolvedDocument(variable, filename, mimeType, bytes.length, sha256, "AUDIO",
-          AudioContent.from(base64(bytes), mimeType));
+          AudioContent.from(base64, mimeType));
     }
     if (lower.startsWith("video/")) {
       requireAudioVideoOptIn(variable, mimeType, allowAudioVideo);
       return new ResolvedDocument(variable, filename, mimeType, bytes.length, sha256, "VIDEO",
-          VideoContent.from(base64(bytes), mimeType));
+          VideoContent.from(base64, mimeType));
     }
     throw new AgentConnectorException("Document '" + variable + "' has mime type '" + mimeType
         + "', which cannot be sent to the model. Supported: application/pdf, "
@@ -314,9 +350,12 @@ public final class DocumentContentResolver {
    */
   static String wrapTextDocument(String variable, String filename, String mimeType,
       int byteSize, String text) {
-    String safe = ProcessContextResolver.neuterDelimiters(text)
-        .replace(AgentConnectorConstants.DOCUMENT_BLOCK_CLOSE,
-            "&lt;/document>");
+    // Both tags, both directions, case insensitive. An exact-match replace of
+    // the lower-case closing tag would leave "</DOCUMENT>" intact and would not
+    // touch a forged "<document …>" header at all — either is enough to break
+    // out of the block.
+    String safe = ProcessContextResolver.neuterTag(
+        ProcessContextResolver.neuterDelimiters(text), "document");
     return AgentConnectorConstants.DOCUMENT_BLOCK_OPEN
         + " variable=\"" + xmlAttribute(variable) + "\""
         + " name=\"" + xmlAttribute(filename) + "\""
@@ -466,10 +505,6 @@ public final class DocumentContentResolver {
       }
     }
     return null;
-  }
-
-  private static String base64(byte[] bytes) {
-    return Base64.getEncoder().encodeToString(bytes);
   }
 
   private static String nullToName(String filename, String fallback) {
