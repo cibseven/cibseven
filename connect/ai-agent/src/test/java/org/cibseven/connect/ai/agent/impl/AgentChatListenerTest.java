@@ -1004,6 +1004,97 @@ public class AgentChatListenerTest {
     assertThat(listener.lastResponseIdentity()).isEmpty();
   }
 
+  // ── Document audit: descriptors, never payloads ──────────────────────────
+
+  /**
+   * Before the fix, a multi-content user message fell through to
+   * {@code UserMessage.toString()}, which prints every attachment's full Base64
+   * payload — straight into a process variable.
+   */
+  @Test
+  public void shouldRenderAttachmentsAsDescriptorsInsteadOfBase64() {
+    AgentChatListener listener = new AgentChatListener();
+    String base64 = java.util.Base64.getEncoder().encodeToString("pretend-pdf".getBytes());
+    dev.langchain4j.data.message.PdfFileContent pdf =
+        dev.langchain4j.data.message.PdfFileContent.from(base64, "application/pdf");
+
+    Map<dev.langchain4j.data.message.Content, Map<String, Object>> descriptors =
+        new java.util.IdentityHashMap<>();
+    Map<String, Object> descriptor = new HashMap<>();
+    descriptor.put("variable", "invoice");
+    descriptor.put("filename", "invoice.pdf");
+    descriptor.put("kind", "PDF");
+    descriptors.put(pdf, descriptor);
+    listener.setDocumentDescriptors(descriptors);
+
+    listener.onRequest(requestContext(dev.langchain4j.data.message.UserMessage.from(
+        dev.langchain4j.data.message.TextContent.from("Read it."), pdf)));
+
+    String content = firstUserContent(listener);
+    assertThat(content).contains("invoice.pdf").contains("\"kind\":\"PDF\"")
+        .contains("Read it.");
+    assertThat(content).doesNotContain(base64);
+  }
+
+  @Test
+  public void shouldStillOmitPayloadsWhenNoDescriptorIsAvailable() {
+    AgentChatListener listener = new AgentChatListener();
+    String base64 = java.util.Base64.getEncoder().encodeToString("pretend-png".getBytes());
+    dev.langchain4j.data.message.ImageContent image =
+        dev.langchain4j.data.message.ImageContent.from(base64, "image/png");
+
+    // No setDocumentDescriptors call — the fallback must still be safe.
+    listener.onRequest(requestContext(dev.langchain4j.data.message.UserMessage.from(
+        dev.langchain4j.data.message.TextContent.from("Look."), image)));
+
+    String content = firstUserContent(listener);
+    assertThat(content).contains("IMAGE").contains("unavailable");
+    assertThat(content).doesNotContain(base64);
+  }
+
+  @Test
+  public void shouldEmitDocumentsEventWithEnvelopeAndPayload() {
+    AgentChatListener listener = new AgentChatListener();
+
+    Map<String, Object> payload = new HashMap<>();
+    payload.put("count", 2);
+    payload.put("totalBytes", 4096);
+
+    listener.recordDocumentsEvent(payload);
+
+    Map<String, Object> event = listener.events().get(0);
+    assertThat(event)
+        .containsEntry("type", "documents")
+        .containsEntry("count", 2)
+        .containsEntry("totalBytes", 4096);
+    assertThat(event).containsKey("runId").containsKey("timestamp");
+  }
+
+  @Test
+  public void shouldIgnoreNullDocumentsPayload() {
+    AgentChatListener listener = new AgentChatListener();
+    listener.recordDocumentsEvent(null);
+    assertThat(listener.events()).isEmpty();
+  }
+
+  /** Minimal request context carrying just the given user message. */
+  private static ChatModelRequestContext requestContext(UserMessage message) {
+    return new ChatModelRequestContext(
+        ChatRequest.builder().messages(Collections.singletonList(message)).build(),
+        null, new HashMap<>());
+  }
+
+  @SuppressWarnings("unchecked")
+  private static String firstUserContent(AgentChatListener listener) {
+    Map<String, Object> event = listener.events().get(0);
+    for (Map<String, Object> message : (List<Map<String, Object>>) event.get("messages")) {
+      if ("USER".equals(message.get("role"))) {
+        return String.valueOf(message.get("content"));
+      }
+    }
+    throw new AssertionError("no USER message recorded");
+  }
+
   // ── Process-context audit (Art. 12 / 14) ─────────────────────────────────
 
   @Test

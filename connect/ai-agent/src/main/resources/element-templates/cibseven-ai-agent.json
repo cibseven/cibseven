@@ -2,7 +2,7 @@
   "$schema": "https://unpkg.com/@camunda/element-templates-json-schema/resources/schema.json",
   "name": "CIB seven - AI Agent",
   "id": "org.cibseven.connect.ai.agent",
-  "version": 2,
+  "version": 3,
   "description": "Element template for the cibseven-ai-agent connector.",
   "icon": {
     "contents": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTkuNTAwMSAxLjAwMDAxTDYuODQzODUgNi44NDM3NkwxLjAwMDEgOS41MDAwMUw2Ljg0Mzg1IDEyLjE1NjNMOS41MDAxIDE4TDEyLjE1NjMgMTIuMTU2M0wxOC4wMDAxIDkuNTAwMDFMMTIuMTU2MyA2Ljg0Mzc2IiBmaWxsPSIjRTExRTE5Ii8+CjxwYXRoIGQ9Ik0xOCAxM0wxNi40Mzc1IDE2LjQzNzVMMTMgMThMMTYuNDM3NSAxOS41NjI1TDE4IDIzTDE5LjU2MjUgMTkuNTYyNUwyMyAxOEwxOS41NjI1IDE2LjQzNzUiIGZpbGw9IiMwRjIxMzMiLz4KPC9zdmc+Cg=="
@@ -14,6 +14,7 @@
   "groups": [
     { "id": "input",   "label": "Input"           },
     { "id": "context", "label": "Process context" },
+    { "id": "documents", "label": "Documents"      },
     { "id": "agent",  "label": "Agent"  },
     { "id": "tools",  "label": "Tools"  },
     { "id": "memory", "label": "Memory" },
@@ -103,6 +104,61 @@
           "binding": {
             "type": "camunda:inputParameter",
             "name": "optionalContextVariables"
+          }
+        },
+        {
+          "label": "Documents",
+          "type": "Text",
+          "group": "documents",
+          "description": "Comma-separated NAMES of file or bytes process variables sent to the model as native attachments — a PDF as a PDF, an image as an image, not as text pasted into the prompt. Names, not ${expressions}: Connect strips the filename and mime type off a file value before the connector sees it. Every declared document must exist; a missing one fails the activity. Supported: application/pdf, image/png, image/jpeg, image/gif, image/webp, text/*, application/json, application/xml, application/yaml. Limits: 5 MB per document, 20 MB total, 10 documents.",
+          "placeholder": "invoicePdf,signatureScan",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "documents"
+          }
+        },
+        {
+          "label": "Document mime types",
+          "type": "Text",
+          "group": "documents",
+          "description": "JSON object of variable name → mime type, e.g. {\"scan\": \"image/png\"}. Required for every bytes variable, since raw bytes carry no mime type. Also overrides the mime type of a file variable when it is missing or wrong.",
+          "placeholder": "{\"scan\": \"image/png\"}",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "documentMimeTypes"
+          }
+        },
+        {
+          "label": "Image detail level",
+          "type": "Dropdown",
+          "group": "documents",
+          "value": "",
+          "description": "Detail requested for image attachments. Higher levels cost more input tokens. Ignored for non-image documents.",
+          "choices": [
+            { "name": "Auto (default)", "value": ""           },
+            { "name": "Low",            "value": "LOW"        },
+            { "name": "Medium",         "value": "MEDIUM"     },
+            { "name": "High",           "value": "HIGH"       },
+            { "name": "Ultra high",     "value": "ULTRA_HIGH" }
+          ],
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "documentDetailLevel"
+          }
+        },
+        {
+          "label": "Allow audio and video",
+          "type": "Dropdown",
+          "group": "documents",
+          "value": "${false}",
+          "description": "Off by default. Provider support is uneven: audio is sent as base64 only and video maps to a field that is not an official OpenAI one, so both depend on your gateway. Enable only after verifying your endpoint accepts them.",
+          "choices": [
+            { "name": "No",  "value": "${false}" },
+            { "name": "Yes", "value": "${true}"  }
+          ],
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "allowAudioVideo"
           }
         },
         {
