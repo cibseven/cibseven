@@ -84,8 +84,9 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   AgentRequest contextVariables(String contextVariables);
 
   /**
-   * Optional. Comma-separated subset of {@link #contextVariables(String)} that
-   * must resolve to a non-null value, else the activity fails. See
+   * Optional. Comma-separated subset of {@link #contextVariables(String)} that is
+   * allowed to be missing; everything else declared fails the activity when it
+   * cannot reach the model. See
    * {@link AgentConnector#PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES}.
    */
   AgentRequest optionalContextVariables(String optionalContextVariables);

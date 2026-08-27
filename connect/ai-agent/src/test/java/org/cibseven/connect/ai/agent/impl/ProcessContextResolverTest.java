@@ -581,6 +581,50 @@ public class ProcessContextResolverTest {
 
   // ── robustness ─────────────────────────────────────────────────────────────
 
+  /**
+   * Review finding: a read that throws used to be reported as {@code (absent)},
+   * which the block header defines as "not set at all" — a false statement about
+   * the process data, in the prompt and in the Art. 12 record alike.
+   */
+  @Test
+  public void shouldDistinguishAnUnreadableVariableFromAnAbsentOne() {
+    variables.put("fine", Variables.stringValue("x"));
+    ProcessContextResolver.TypedVariableReader partlyBroken = name -> {
+      if ("broken".equals(name)) {
+        throw new IllegalStateException("lazy deserialization failed");
+      }
+      return variables.get(name);
+    };
+
+    List<ContextVariable> resolved = ProcessContextResolver.resolve(
+        "fine,broken,gone", "broken,gone", partlyBroken, 100);
+    String block = ProcessContextResolver.render(resolved, 10_000);
+
+    assertThat(block).contains("broken = (unreadable)").contains("gone = (absent)");
+    assertThat(ProcessContextResolver.render(resolved, 10_000))
+        .contains("(unreadable) means it exists but could not be read");
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> entries =
+        (List<Map<String, Object>>) ProcessContextResolver.describe(resolved, block)
+            .get("variables");
+    assertThat(entries.get(1)).containsEntry("name", "broken").containsEntry("unreadable", true);
+    assertThat(entries.get(2)).containsEntry("name", "gone").doesNotContainKey("unreadable");
+  }
+
+  @Test
+  public void shouldStillFailARequiredVariableThatCouldNotBeRead() {
+    ProcessContextResolver.TypedVariableReader boom = name -> {
+      throw new IllegalStateException("variable store exploded");
+    };
+
+    List<ContextVariable> resolved = ProcessContextResolver.resolve("x", null, boom, 100);
+
+    assertThatThrownBy(() -> ProcessContextResolver.failOnMissingRequired(resolved))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("x (unreadable)");
+  }
+
   @Test
   public void shouldTreatAFailingReadAsAbsentRatherThanAbortingTheActivity() {
     ProcessContextResolver.TypedVariableReader boom = name -> {
