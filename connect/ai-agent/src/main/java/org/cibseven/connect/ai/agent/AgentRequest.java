@@ -86,9 +86,9 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   /**
    * Optional. Comma-separated subset of {@link #contextVariables(String)} that
    * must resolve to a non-null value, else the activity fails. See
-   * {@link AgentConnector#PARAM_NAME_REQUIRED_CONTEXT_VARIABLES}.
+   * {@link AgentConnector#PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES}.
    */
-  AgentRequest requiredContextVariables(String requiredContextVariables);
+  AgentRequest optionalContextVariables(String optionalContextVariables);
 
   /**
    * Optional. Reasoning effort hint (e.g. {@code "low"}, {@code "medium"},
@@ -175,7 +175,7 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
 
   String getContextVariables();
 
-  String getRequiredContextVariables();
+  String getOptionalContextVariables();
 
   String getReasoningEffort();
 

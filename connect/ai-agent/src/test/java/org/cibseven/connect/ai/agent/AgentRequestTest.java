@@ -91,16 +91,16 @@ public class AgentRequestTest {
   }
 
   @Test
-  public void shouldSetAndGetRequiredContextVariables() {
-    AgentRequest request = connector.createRequest().requiredContextVariables("orderId");
-    assertThat(request.getRequiredContextVariables()).isEqualTo("orderId");
+  public void shouldSetAndGetOptionalContextVariables() {
+    AgentRequest request = connector.createRequest().optionalContextVariables("escalationReason");
+    assertThat(request.getOptionalContextVariables()).isEqualTo("escalationReason");
   }
 
   @Test
   public void shouldReturnNullForContextVariablesWhenUnset() {
     AgentRequest request = connector.createRequest();
     assertThat(request.getContextVariables()).isNull();
-    assertThat(request.getRequiredContextVariables()).isNull();
+    assertThat(request.getOptionalContextVariables()).isNull();
   }
 
   @Test

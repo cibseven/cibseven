@@ -18,6 +18,7 @@ package org.cibseven.connect.ai.agent.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -44,13 +45,13 @@ public class ProcessContextResolverTest {
     return variables::get;
   }
 
-  private List<ContextVariable> resolve(String declared, String required) {
-    return ProcessContextResolver.resolve(declared, required, reader(),
+  private List<ContextVariable> resolve(String declared, String optional) {
+    return ProcessContextResolver.resolve(declared, optional, reader(),
         AgentConnectorConstants.DEFAULT_MAX_CONTEXT_VALUE_CHARS);
   }
 
-  private String render(String declared, String required) {
-    return ProcessContextResolver.render(resolve(declared, required),
+  private String render(String declared, String optional) {
+    return ProcessContextResolver.render(resolve(declared, optional),
         AgentConnectorConstants.DEFAULT_MAX_CONTEXT_BLOCK_CHARS);
   }
 
@@ -134,13 +135,14 @@ public class ProcessContextResolverTest {
         .contains("actual (string) = null");
   }
 
-  // ── required variables ─────────────────────────────────────────────────────
+  // ── required by default, optional as the exception ────────────────────────
 
   @Test
-  public void shouldFailWhenARequiredVariableIsAbsent() {
+  public void shouldFailWhenADeclaredVariableIsAbsent() {
     variables.put("present", Variables.stringValue("x"));
 
-    List<ContextVariable> resolved = resolve("present", "missing");
+    // "missing" is declared and not marked optional, so it is required.
+    List<ContextVariable> resolved = resolve("present,missing", null);
 
     assertThatThrownBy(() -> ProcessContextResolver.failOnMissingRequired(resolved))
         .isInstanceOf(AgentConnectorException.class)
@@ -149,10 +151,10 @@ public class ProcessContextResolverTest {
   }
 
   @Test
-  public void shouldFailWhenARequiredVariableIsNull() {
+  public void shouldFailWhenADeclaredVariableIsNull() {
     variables.put("orderId", Variables.stringValue(null));
 
-    List<ContextVariable> resolved = resolve("orderId", "orderId");
+    List<ContextVariable> resolved = resolve("orderId", null);
 
     assertThatThrownBy(() -> ProcessContextResolver.failOnMissingRequired(resolved))
         .isInstanceOf(AgentConnectorException.class)
@@ -161,13 +163,45 @@ public class ProcessContextResolverTest {
   }
 
   @Test
-  public void shouldNotFailWhenARequiredVariableIsAnEmptyString() {
+  public void shouldNotFailWhenADeclaredVariableIsAnEmptyString() {
     // Empty is a value; only null and absent are failures.
     variables.put("comment", Variables.stringValue(""));
 
-    List<ContextVariable> resolved = resolve("comment", "comment");
+    ProcessContextResolver.failOnMissingRequired(resolve("comment", null));
+  }
+
+  @Test
+  public void shouldNotFailWhenAMissingVariableIsMarkedOptional() {
+    variables.put("orderId", Variables.stringValue("4711"));
+    // "escalationReason" is never written — the branch that would set it was skipped.
+
+    List<ContextVariable> resolved = resolve("orderId,escalationReason", "escalationReason");
 
     ProcessContextResolver.failOnMissingRequired(resolved);
+    assertThat(ProcessContextResolver.render(resolved, 10_000))
+        .contains("escalationReason = (absent)");
+  }
+
+  @Test
+  public void shouldStillFailForTheNonOptionalOnesWhenSomeAreOptional() {
+    List<ContextVariable> resolved = resolve("orderId,escalationReason", "escalationReason");
+
+    Throwable thrown = catchThrowable(() -> ProcessContextResolver.failOnMissingRequired(resolved));
+
+    assertThat(thrown).isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("orderId");
+    // The optional one is absent too, but must not appear in the failure list.
+    assertThat(thrown.getMessage()).doesNotContain("escalationReason");
+  }
+
+  @Test
+  public void shouldListEveryMissingRequiredVariableInOneMessage() {
+    List<ContextVariable> resolved = resolve("a,b", null);
+
+    assertThatThrownBy(() -> ProcessContextResolver.failOnMissingRequired(resolved))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("a (absent)")
+        .hasMessageContaining("b (absent)");
   }
 
   /**
@@ -179,7 +213,7 @@ public class ProcessContextResolverTest {
   public void shouldFailWhenTheBlockSizeCapDropsARequiredVariable() {
     variables.put("orderId", Variables.stringValue("x".repeat(500)));
 
-    List<ContextVariable> resolved = resolve("orderId", "orderId");
+    List<ContextVariable> resolved = resolve("orderId", null);
     // Envelope plus almost nothing — not even the first line fits.
     ProcessContextResolver.render(resolved, ProcessContextResolver.envelopeOverhead() + 10);
 
@@ -191,55 +225,48 @@ public class ProcessContextResolverTest {
   }
 
   @Test
-  public void shouldKeepRequiredVariablesWhenOnlyOptionalOnesHaveToGo() {
-    for (int i = 0; i < 20; i++) {
-      variables.put("filler" + i, Variables.stringValue("f".repeat(300)));
-    }
+  public void shouldNotFailWhenTheCapDropsAnOptionalVariable() {
     variables.put("orderId", Variables.stringValue("4711"));
-    String declared = String.join(",", variables.keySet());
+    variables.put("note", Variables.stringValue("n".repeat(400)));
 
-    List<ContextVariable> resolved = resolve(declared, "orderId");
-    ProcessContextResolver.render(resolved, ProcessContextResolver.envelopeOverhead() + 700);
+    List<ContextVariable> resolved = resolve("orderId,note", "note");
+    ProcessContextResolver.render(resolved, ProcessContextResolver.envelopeOverhead() + 40);
 
-    // orderId sorts first, so the cap eats the optional tail instead.
-    assertThat(resolved.get(0).name).isEqualTo("orderId");
     assertThat(resolved.get(0).omitted).isFalse();
-    assertThat(resolved.get(resolved.size() - 1).omitted).isTrue();
+    assertThat(resolved.get(1).omitted).isTrue();
     ProcessContextResolver.failOnMissingRequired(resolved);
   }
 
-  /**
-   * Copilot review finding: required names used to be appended last, which is
-   * exactly where render() starts dropping when the cap is hit.
-   */
+  // ── the optional list is a modifier, not a second source of names ─────────
+
   @Test
-  public void shouldOrderRequiredVariablesFirstSoTheCapCannotDropThem() {
+  public void shouldIgnoreOptionalNamesThatAreNotDeclared() {
+    variables.put("orderId", Variables.stringValue("4711"));
+    variables.put("stray", Variables.stringValue("should not appear"));
+
+    List<ContextVariable> resolved = resolve("orderId", "stray");
+
+    assertThat(resolved).extracting(v -> v.name).containsExactly("orderId");
+    assertThat(ProcessContextResolver.render(resolved, 10_000)).doesNotContain("stray");
+  }
+
+  @Test
+  public void shouldPassNoContextWhenOnlyTheOptionalListIsSet() {
+    variables.put("orderId", Variables.stringValue("4711"));
+
+    assertThat(resolve(null, "orderId")).isEmpty();
+  }
+
+  @Test
+  public void shouldPreserveDeclarationOrderRegardlessOfOptionality() {
     variables.put("a", Variables.stringValue("1"));
     variables.put("b", Variables.stringValue("2"));
     variables.put("c", Variables.stringValue("3"));
 
-    List<ContextVariable> resolved = resolve("a,b,c", "c");
+    List<ContextVariable> resolved = resolve("a,b,c", "a");
 
-    assertThat(resolved).extracting(v -> v.name).containsExactly("c", "a", "b");
-  }
-
-  @Test
-  public void shouldAddRequiredNamesToTheAllowlistAutomatically() {
-    variables.put("orderId", Variables.stringValue("4711"));
-
-    String block = render(null, "orderId");
-
-    assertThat(block).contains("orderId (string) = \"4711\"");
-  }
-
-  @Test
-  public void shouldListEveryMissingRequiredVariableInOneMessage() {
-    List<ContextVariable> resolved = resolve(null, "a,b");
-
-    assertThatThrownBy(() -> ProcessContextResolver.failOnMissingRequired(resolved))
-        .isInstanceOf(AgentConnectorException.class)
-        .hasMessageContaining("a (absent)")
-        .hasMessageContaining("b (absent)");
+    // No reordering by optionality — what the modeler typed is what the model sees.
+    assertThat(resolved).extracting(v -> v.name).containsExactly("a", "b", "c");
   }
 
   // ── binary and object values ───────────────────────────────────────────────
@@ -492,7 +519,7 @@ public class ProcessContextResolverTest {
     variables.put("secretish", Variables.stringValue("Musterbau GmbH"));
     variables.put("gone", Variables.stringValue(null));
 
-    List<ContextVariable> resolved = resolve("secretish,gone", "secretish");
+    List<ContextVariable> resolved = resolve("secretish,gone", "gone");
     String block = ProcessContextResolver.render(resolved,
         AgentConnectorConstants.DEFAULT_MAX_CONTEXT_BLOCK_CHARS);
     Map<String, Object> payload = ProcessContextResolver.describe(resolved, block);
@@ -507,7 +534,7 @@ public class ProcessContextResolverTest {
 
     Map<String, Object> first = entries.get(0);
     assertThat(first).containsEntry("name", "secretish")
-        .containsEntry("required", true)
+        .containsEntry("optional", false)
         .containsEntry("present", true)
         .containsEntry("null", false)
         .containsEntry("type", "string")
@@ -598,7 +625,7 @@ public class ProcessContextResolverTest {
       throw new IllegalStateException("variable store exploded");
     };
 
-    List<ContextVariable> resolved = ProcessContextResolver.resolve(null, "x", boom, 100);
+    List<ContextVariable> resolved = ProcessContextResolver.resolve("x", null, boom, 100);
 
     assertThatThrownBy(() -> ProcessContextResolver.failOnMissingRequired(resolved))
         .isInstanceOf(AgentConnectorException.class);
