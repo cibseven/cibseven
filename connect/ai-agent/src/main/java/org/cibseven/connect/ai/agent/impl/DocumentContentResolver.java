@@ -289,20 +289,24 @@ public final class DocumentContentResolver {
     byte[] bytes = raw.bytes;
     String lower = mimeType.toLowerCase(Locale.ROOT);
 
+    // The digest is always over the raw variable bytes, never over a derived
+    // form. Text is decoded before it enters the prompt and binary is Base64
+    // encoded, so hashing the derived form would give a value the auditor
+    // cannot reproduce: they would have to guess the charset, or match our
+    // Base64 flavour exactly, before they could compare. Against the raw bytes,
+    // `sha256sum invoice.pdf` lines up with the descriptor directly.
+    String sha256 = AgentChatListener.sha256(bytes);
+
     if (isTextual(lower)) {
-      // Text never becomes Base64 — it goes into the prompt as characters, so
-      // the digest covers the same bytes an auditor reads off the variable.
       String text = new String(bytes,
           raw.charset != null ? raw.charset : StandardCharsets.UTF_8);
-      return new ResolvedDocument(variable, filename, mimeType, bytes.length,
-          AgentChatListener.sha256(text), "TEXT",
+      return new ResolvedDocument(variable, filename, mimeType, bytes.length, sha256, "TEXT",
           TextContent.from(wrapTextDocument(variable, filename, mimeType, bytes.length, text)));
     }
 
-    // Encoded exactly once and reused for both the attachment and the digest.
-    // Encoding twice doubled peak memory for every binary attachment.
+    // Encoded exactly once and reused for every branch below. Encoding twice
+    // doubled peak memory for every binary attachment.
     String base64 = Base64.getEncoder().encodeToString(bytes);
-    String sha256 = AgentChatListener.sha256(base64);
 
     if ("application/pdf".equals(lower)) {
       return new ResolvedDocument(variable, filename, mimeType, bytes.length, sha256, "PDF",

@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -394,6 +396,56 @@ public class DocumentContentResolverTest {
     String rendered = entries.toString();
     assertThat(rendered).doesNotContain("secret")
         .doesNotContain(Base64.getEncoder().encodeToString("%PDF-1.7 secret".getBytes()));
+  }
+
+  /**
+   * The descriptor hash is what an auditor has instead of the file, so it has to
+   * be the digest of the file — not of the Base64 we transmit, and not of the
+   * text we decoded. Both derived forms would force the auditor to reconstruct
+   * our encoding before they could compare; the raw digest they can produce with
+   * {@code sha256sum}. Pinned here because nothing else would catch a drift back
+   * to hashing whatever happens to be in scope.
+   */
+  @Test
+  public void shouldHashTheRawBytesNotTheTransmittedForm() {
+    byte[] pdf = "%PDF-1.7 payload".getBytes(StandardCharsets.UTF_8);
+    putFile("invoice", "invoice.pdf", "application/pdf", pdf);
+
+    assertThat(resolve("invoice").get(0).sha256).isEqualTo(expectedSha256(pdf));
+  }
+
+  /**
+   * The same claim where the two candidates actually diverge: a text file in a
+   * charset other than UTF-8. Hashing the decoded {@code String} re-encodes it
+   * as UTF-8, which for these bytes is a different sequence — so this fails if
+   * the digest is ever taken over the text again.
+   */
+  @Test
+  public void shouldHashTheStoredBytesOfANonUtf8TextDocument() {
+    byte[] latin1 = "Grüße".getBytes(StandardCharsets.ISO_8859_1);
+    variables.put("latin", Variables.fileValue("latin.txt")
+        .file(latin1)
+        .mimeType("text/plain")
+        .encoding(StandardCharsets.ISO_8859_1)
+        .create());
+
+    ResolvedDocument resolved = resolve("latin").get(0);
+    assertThat(resolved.sha256).isEqualTo(expectedSha256(latin1));
+    assertThat(resolved.sha256)
+        .isNotEqualTo(expectedSha256("Grüße".getBytes(StandardCharsets.UTF_8)));
+  }
+
+  /** Digest computed independently of the production helper, on purpose. */
+  private static String expectedSha256(byte[] bytes) {
+    try {
+      StringBuilder hex = new StringBuilder("sha256:");
+      for (byte b : MessageDigest.getInstance("SHA-256").digest(bytes)) {
+        hex.append(String.format("%02x", b));
+      }
+      return hex.toString();
+    } catch (NoSuchAlgorithmException e) {
+      throw new IllegalStateException(e);
+    }
   }
 
   @Test
