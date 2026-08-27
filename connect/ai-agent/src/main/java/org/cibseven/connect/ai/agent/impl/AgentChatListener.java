@@ -1005,9 +1005,12 @@ class AgentChatListener implements ChatModelListener {
    * SHA-256 — carries the evidence without the payload.
    *
    * <p>Descriptors come from {@link #setDocumentDescriptors(Map)}, published by
-   * the connector while resolving. When none is available (a content object the
-   * connector did not build) the fallback still emits type and size only, never
-   * the data.
+   * the connector while resolving. When none is available — a content object the
+   * connector did not build, so nothing is known about its provenance — the
+   * fallback emits the content type and {@code descriptor: "unavailable"}. No
+   * size, because reading one would mean reaching into each LangChain4j content
+   * type for its payload, which is the very assumption this branch exists to
+   * avoid. The guarantee that matters holds either way: never the data.
    */
   private String renderMultiContent(UserMessage user) {
     Map<dev.langchain4j.data.message.Content, Map<String, Object>> descriptors =
@@ -1063,15 +1066,32 @@ class AgentChatListener implements ChatModelListener {
   }
 
   /**
-   * SHA-256 of {@code s}, prefixed with {@code sha256:}. Package-private so
-   * non-listener audit sites can hash a payload they must not emit in the clear
-   * — {@link ProcessContextResolver} uses it to record which process-variable
-   * values reached the model without writing the values a second time.
+   * SHA-256 of {@code s} encoded as UTF-8, prefixed with {@code sha256:}.
+   * Package-private so non-listener audit sites can hash a payload they must not
+   * emit in the clear — {@link ProcessContextResolver} uses it to record which
+   * process-variable values reached the model without writing the values a
+   * second time.
+   *
+   * <p>Use {@link #sha256(byte[])} for anything that originated as bytes: going
+   * through a {@code String} re-encodes it as UTF-8, so the digest would no
+   * longer match the stored bytes for any other charset.
    */
   static String sha256(String s) {
+    return sha256(s.getBytes(StandardCharsets.UTF_8));
+  }
+
+  /**
+   * SHA-256 of {@code bytes}, prefixed with {@code sha256:}.
+   *
+   * <p>{@link DocumentContentResolver} hashes the raw variable bytes with this,
+   * so a document descriptor in the audit log carries the fingerprint of the
+   * file as stored — reproducible with {@code sha256sum} or {@code Get-FileHash}
+   * against the original, whatever the mime type or charset.
+   */
+  static String sha256(byte[] bytes) {
     try {
       MessageDigest md = MessageDigest.getInstance("SHA-256");
-      byte[] digest = md.digest(s.getBytes(StandardCharsets.UTF_8));
+      byte[] digest = md.digest(bytes);
       StringBuilder hex = new StringBuilder(digest.length * 2 + 7);
       hex.append("sha256:");
       for (byte b : digest) {
