@@ -38,9 +38,10 @@ import org.cibseven.connect.spi.Connector;
  *       <camunda:inputParameter name="model">gpt-5.4-nano</camunda:inputParameter>
  *       <camunda:inputParameter name="message">${userMessage}</camunda:inputParameter>
  *
- *       <!-- Process context: allowlist of variable NAMES (not expressions) -->
- *       <camunda:inputParameter name="contextVariables">orderId,customerName,totalAmount</camunda:inputParameter>
- *       <camunda:inputParameter name="requiredContextVariables">orderId</camunda:inputParameter>
+ *       <!-- Process context: allowlist of variable NAMES (not expressions).
+ *            Everything listed is required; the second list names the exceptions. -->
+ *       <camunda:inputParameter name="contextVariables">orderId,totalAmount,escalationReason</camunda:inputParameter>
+ *       <camunda:inputParameter name="optionalContextVariables">escalationReason</camunda:inputParameter>
  *
  *       <!-- LLM endpoint / authentication -->
  *       <camunda:inputParameter name="baseUrl">http://localhost:11434/v1</camunda:inputParameter>
@@ -212,6 +213,12 @@ public interface AgentConnector extends Connector<AgentRequest> {
    *
    * <p>Example: {@code "orderId,customerName,totalAmount"}
    *
+   * <p>Every name listed here is <b>required</b> unless it also appears in
+   * {@link #PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES}: if it cannot reach the model,
+   * the activity fails and the agent is not invoked. That default is deliberate —
+   * declaring a variable means the task needs it, and the alternative (proceeding
+   * over missing data) fails silently.
+   *
    * <p>Variables holding files or raw bytes are rendered as a descriptor, never
    * as content. Values are escaped and capped
    * ({@value AgentConnectorConstants#DEFAULT_MAX_CONTEXT_VALUE_CHARS} characters
@@ -227,18 +234,25 @@ public interface AgentConnector extends Connector<AgentRequest> {
 
   /**
    * Optional. Comma-separated subset of {@link #PARAM_NAME_CONTEXT_VARIABLES}
-   * that must exist and hold a non-{@code null} value. When one does not, the
-   * activity fails with {@code AgentConnectorException} and the agent is never
-   * invoked.
+   * that is allowed to be missing. Such a variable renders as {@code (absent)}
+   * and the agent runs on; everything else declared fails the activity when it
+   * cannot reach the model.
    *
-   * <p>Without this, a missing variable simply renders as {@code (absent)} and
-   * the model answers fluently over data that is not there — the worst available
-   * failure mode, because the answer looks exactly like a correct one.
+   * <p>Use it for context that legitimately exists on only some paths — an
+   * escalation reason written by a branch that is often skipped, a decision from
+   * a previous loop iteration, an answer to an optional enquiry. Requiring those
+   * would force the modeler to pre-initialise them, which collapses the
+   * {@code (absent)} / empty distinction this block exists to preserve.
    *
-   * <p>Names listed here are added to the allowlist automatically, so declaring
-   * a variable required is enough.
+   * <p>This list is a pure <em>modifier</em>: it never adds a name to the
+   * allowlist. A name listed here but absent from
+   * {@link #PARAM_NAME_CONTEXT_VARIABLES} is ignored with a warning, so there is
+   * exactly one place that decides what the agent sees.
+   *
+   * <p>Note that an <em>empty string</em> counts as a value. Only variables that
+   * were never written are affected by this list.
    */
-  String PARAM_NAME_REQUIRED_CONTEXT_VARIABLES = "requiredContextVariables";
+  String PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES = "optionalContextVariables";
 
   /**
    * Optional. Reasoning effort hint for reasoning-capable models

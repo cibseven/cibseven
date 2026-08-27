@@ -103,7 +103,7 @@ public class AgentConnectorImplContextTest {
         .message("hello")
         .instruction("be brief")
         .contextVariables("   ")
-        .requiredContextVariables("");
+        .optionalContextVariables("");
 
     assertThat(connector.execute(request).getOutput()).isEqualTo("ok");
     assertThat(systemMessage()).doesNotContain(AgentConnectorConstants.CONTEXT_BLOCK_OPEN);
@@ -147,16 +147,21 @@ public class AgentConnectorImplContextTest {
     assertThat(ProcessStarterToolContext.getAuthentication()).isNull();
   }
 
+  /**
+   * The optional list only modifies names from the allowlist. On its own it has
+   * nothing to modify, so it must not activate the feature — and in particular
+   * must not fail for a missing BPMN execution it never needed.
+   */
   @Test
-  public void shouldAlsoFailWhenOnlyRequiredContextVariablesIsSet() {
+  public void shouldNotActivateContextWhenOnlyTheOptionalListIsSet() {
     AgentRequest request = connector.createRequest()
         .agentName("agent")
         .message("hello")
-        .requiredContextVariables("orderId");
+        .instruction("be brief")
+        .optionalContextVariables("orderId");
 
-    assertThatThrownBy(() -> connector.execute(request))
-        .isInstanceOf(AgentConnectorException.class)
-        .hasMessageContaining("no BPMN execution");
+    assertThat(connector.execute(request).getOutput()).isEqualTo("ok");
+    assertThat(systemMessage()).isEqualTo("be brief");
   }
 
   // ── placement inside the system prompt ─────────────────────────────────────

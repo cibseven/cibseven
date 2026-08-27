@@ -2,7 +2,7 @@
   "$schema": "https://unpkg.com/@camunda/element-templates-json-schema/resources/schema.json",
   "name": "CIB seven - AI Agent",
   "id": "org.cibseven.connect.ai.agent",
-  "version": 1,
+  "version": 2,
   "description": "Element template for the cibseven-ai-agent connector.",
   "icon": {
     "contents": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTkuNTAwMSAxLjAwMDAxTDYuODQzODUgNi44NDM3NkwxLjAwMDEgOS41MDAwMUw2Ljg0Mzg1IDEyLjE1NjNMOS41MDAxIDE4TDEyLjE1NjMgMTIuMTU2M0wxOC4wMDAxIDkuNTAwMDFMMTIuMTU2MyA2Ljg0Mzc2IiBmaWxsPSIjRTExRTE5Ii8+CjxwYXRoIGQ9Ik0xOCAxM0wxNi40Mzc1IDE2LjQzNzVMMTMgMThMMTYuNDM3NSAxOS41NjI1TDE4IDIzTDE5LjU2MjUgMTkuNTYyNUwyMyAxOEwxOS41NjI1IDE2LjQzNzUiIGZpbGw9IiMwRjIxMzMiLz4KPC9zdmc+Cg=="
@@ -87,22 +87,22 @@
           "label": "Context variables",
           "type": "Text",
           "group": "context",
-          "description": "Comma-separated NAMES of process variables (not ${expressions}) that the agent may see, e.g. orderId,customerName,totalAmount. They are rendered into a <process-context> block appended to the system prompt, with name, type and value, and null stays distinguishable from an empty string. Leave empty (default) to pass no process data at all. File and byte variables appear as a descriptor only. Security: everything listed here becomes part of the prompt — declare the minimum the task needs.",
-          "placeholder": "orderId,customerName,totalAmount",
+          "description": "Comma-separated NAMES of process variables (not ${expressions}) that the agent may see, e.g. orderId,totalAmount,escalationReason. They are rendered into a <process-context> block appended to the system prompt, with name, type and value, and null stays distinguishable from an empty string. EVERY name listed here is required: if it cannot reach the model the activity fails and the agent is not invoked — list the exceptions under Optional context variables. Leave this field empty (default) to pass no process data at all. File and byte variables appear as a descriptor only. Security: everything listed here becomes part of the prompt — declare the minimum the task needs.",
+          "placeholder": "orderId,totalAmount,escalationReason",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "contextVariables"
           }
         },
         {
-          "label": "Required context variables",
+          "label": "Optional context variables",
           "type": "Text",
           "group": "context",
-          "description": "Comma-separated subset of 'Context variables' that must exist and be non-null. If one is missing the activity fails and the agent is never called — instead of the model answering fluently over data that is not there. Names listed here are added to the allowlist automatically.",
-          "placeholder": "orderId",
+          "description": "Comma-separated subset of 'Context variables' that is allowed to be missing. Such a variable renders as (absent) and the agent runs on. Use it for context that exists on only some paths — an escalation reason from a branch that is often skipped, a value from a previous loop iteration. This list only modifies names from 'Context variables'; a name that is not declared there is ignored with a warning. An empty string counts as a value, so only never-written variables need to be listed.",
+          "placeholder": "escalationReason",
           "binding": {
             "type": "camunda:inputParameter",
-            "name": "requiredContextVariables"
+            "name": "optionalContextVariables"
           }
         },
         {

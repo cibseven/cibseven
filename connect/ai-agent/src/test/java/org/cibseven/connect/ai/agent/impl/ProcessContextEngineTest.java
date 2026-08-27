@@ -168,7 +168,7 @@ public class ProcessContextEngineTest {
           .message("What is the order about?")
           .instruction("be brief")
           .contextVariables((String) execution.getVariable("_declared"))
-          .requiredContextVariables((String) execution.getVariable("_required"));
+          .optionalContextVariables((String) execution.getVariable("_optional"));
       connector.execute(request);
     }
   }
@@ -179,6 +179,7 @@ public class ProcessContextEngineTest {
   public void shouldRenderDeclaredVariablesIntoTheSystemPromptWithTheirEngineTypes() {
     start(Variables.createVariables()
         .putValue("_declared", "orderId,totalAmount,approved,comment,notSet")
+        .putValue("_optional", "notSet")
         .putValue("orderId", "4711")
         .putValue("totalAmount", 199.99d)
         .putValue("approved", Boolean.FALSE)
@@ -200,6 +201,7 @@ public class ProcessContextEngineTest {
   public void shouldDistinguishAnExplicitNullFromAnAbsentVariable() {
     start(Variables.createVariables()
         .putValue("_declared", "nulled,neverSet")
+        .putValue("_optional", "nulled,neverSet")
         .putValueTyped("nulled", Variables.stringValue(null)));
 
     assertThat(capturedSystemMessage)
@@ -234,8 +236,7 @@ public class ProcessContextEngineTest {
   @Test
   public void shouldFailTheActivityWhenARequiredVariableIsMissing() {
     Throwable thrown = catchThrowable(() -> start(Variables.createVariables()
-        .putValue("_declared", "orderId")
-        .putValue("_required", "orderId")));
+        .putValue("_declared", "orderId")));
 
     assertThat(rootCause(thrown))
         .isInstanceOf(AgentConnectorException.class)
@@ -252,6 +253,7 @@ public class ProcessContextEngineTest {
   public void shouldRecordAContextAuditEventCarryingHashesButNoValues() throws Exception {
     start(Variables.createVariables()
         .putValue("_declared", "orderId,missing")
+        .putValue("_optional", "missing")
         .putValue("orderId", "4711"));
 
     Map<String, Object> contextEvent = singleEventOfType("context");
@@ -291,8 +293,7 @@ public class ProcessContextEngineTest {
   @Test
   public void shouldRollBackTheContextEventWhenARequiredVariableAbortsTheRun() {
     catchThrowable(() -> start(Variables.createVariables()
-        .putValue("_declared", "orderId")
-        .putValue("_required", "orderId")));
+        .putValue("_declared", "orderId")));
 
     assertThat(engineRule.getRuntimeService().createVariableInstanceQuery()
         .variableNameLike(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "%")

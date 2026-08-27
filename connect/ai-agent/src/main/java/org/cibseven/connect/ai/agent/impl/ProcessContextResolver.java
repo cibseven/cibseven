@@ -125,50 +125,49 @@ public final class ProcessContextResolver {
    * descriptor per name, in declaration order so the rendered prompt is stable
    * across invocations (which is what provider-side prompt caching keys on).
    *
-   * <p>Names listed in {@code requiredCsv} but not in {@code contextVariablesCsv}
-   * are appended to the allowlist: declaring a variable required and forgetting
-   * to also declare it as context is a modelling slip, not a reason to ignore it.
+   * <p>{@code contextVariablesCsv} is the single source of what the agent sees.
+   * {@code optionalCsv} is a pure modifier over that set: a name listed there but
+   * not declared has no effect and is logged as a warning, because silently
+   * inventing an allowlist entry from the modifier list would give two different
+   * ways to say the same thing.
+   *
+   * <p>Everything declared is <em>required</em> unless listed as optional. The
+   * safe behaviour is the default: forgetting to think about a variable yields a
+   * loud incident on the first run that lacks it, not an agent quietly answering
+   * over data that is not there.
    *
    * <p>Missing required variables are <em>marked</em>, not thrown on — the caller
-   * emits the audit event first and then calls
-   * {@link #failOnMissingRequired(List)}, so a run that fails for missing input
-   * still leaves an Art. 12 record of what was looked for.
+   * renders the block, emits the audit event, and only then calls
+   * {@link #failOnMissingRequired(List)}, which is also what makes the
+   * "dropped by the block cap" case detectable.
    */
-  static List<ContextVariable> resolve(String contextVariablesCsv, String requiredCsv,
+  static List<ContextVariable> resolve(String contextVariablesCsv, String optionalCsv,
       TypedVariableReader reader, int maxValueChars) {
     List<String> declared = parseNames(contextVariablesCsv);
-    List<String> required = parseNames(requiredCsv);
-    if (declared.isEmpty() && required.isEmpty()) {
+    if (declared.isEmpty()) {
       return Collections.emptyList();
     }
 
-    Set<String> requiredNames = new LinkedHashSet<>(required);
-    // Required variables go first. render() drops from the tail once the block
-    // cap is hit, and a name given only in requiredContextVariables used to be
-    // appended last — i.e. exactly where the axe falls. Order stays
-    // deterministic (required in their declared order, then the rest in theirs),
-    // which is what provider-side prompt caching needs.
-    List<String> names = new ArrayList<>(required);
-    for (String name : declared) {
-      if (!requiredNames.contains(name)) {
-        names.add(name);
-      }
-    }
-    for (String name : required) {
+    Set<String> optionalNames = new LinkedHashSet<>(parseNames(optionalCsv));
+    for (String name : optionalNames) {
       if (!declared.contains(name)) {
-        LOG.debug("Variable '{}' is declared required but not listed in contextVariables; "
-            + "adding it to the allowlist", name);
+        LOG.warn("Variable '{}' is listed in 'optionalContextVariables' but not in "
+            + "'contextVariables' — ignored. Only 'contextVariables' decides what the agent "
+            + "sees; check for a typo, otherwise the variable you meant stays required.", name);
       }
     }
 
-    List<ContextVariable> resolved = new ArrayList<>(names.size());
-    for (String name : names) {
-      resolved.add(readOne(name, requiredNames.contains(name), reader, maxValueChars));
+    // Declaration order as typed — deterministic, which is what provider-side
+    // prompt caching needs. No reordering by required-ness is necessary now that
+    // a required variable dropped by the block cap fails the run anyway.
+    List<ContextVariable> resolved = new ArrayList<>(declared.size());
+    for (String name : declared) {
+      resolved.add(readOne(name, optionalNames.contains(name), reader, maxValueChars));
     }
     return resolved;
   }
 
-  private static ContextVariable readOne(String name, boolean required,
+  private static ContextVariable readOne(String name, boolean optional,
       TypedVariableReader reader, int maxValueChars) {
     // The guard spans reading *and* rendering. Rendering is not the safe part:
     // typeLabel() and renderValue() touch provider-specific value implementations
@@ -177,32 +176,32 @@ public final class ProcessContextResolver {
     try {
       TypedValue typed = reader.read(name);
       if (typed == null) {
-        return ContextVariable.absent(name, required);
+        return ContextVariable.absent(name, optional);
       }
       String type = typeLabel(typed);
       Rendered rendered = renderValue(typed);
       if (rendered == null) {
-        return ContextVariable.nullValued(name, required, type);
+        return ContextVariable.nullValued(name, optional, type);
       }
-      return ContextVariable.present(name, required, type, rendered, maxValueChars);
+      return ContextVariable.present(name, optional, type, rendered, maxValueChars);
     } catch (RuntimeException e) {
       // Record it as absent and let failOnMissingRequired decide whether that is
       // fatal — a variable the modeler declared required still fails the run.
       LOG.warn("Could not read or render context variable '{}': {}", name, e.toString());
-      return ContextVariable.absent(name, required);
+      return ContextVariable.absent(name, optional);
     }
   }
 
   /**
-   * Throws when a variable declared in {@code requiredContextVariables} will not
-   * reach the model — because it is absent, holds {@code null}, or was dropped
-   * from the rendered block by the size cap.
+   * Throws when a declared variable that is <em>not</em> marked optional will
+   * not reach the model — because it is absent, holds {@code null}, or was
+   * dropped from the rendered block by the size cap.
    *
-   * <p>This is the whole point of the {@code requiredContextVariables} input:
-   * without it the agent answers fluently over missing data, which is the worst
-   * failure mode available — wrong, but confidently phrased. "Resolved but
-   * omitted" produces exactly the same blind spot as "absent", so it has to fail
-   * the same way.
+   * <p>Required is the default, so this fires for anything the modeler did not
+   * consciously list in {@code optionalContextVariables}. Without it the agent
+   * answers fluently over missing data, which is the worst failure mode
+   * available — wrong, but confidently phrased. "Resolved but omitted" produces
+   * exactly the same blind spot as "absent", so it has to fail the same way.
    *
    * <p><b>Call this after {@link #render(List, int)}</b>: the omission flag is
    * set there. Calling it earlier silently skips the omission check.
@@ -210,7 +209,7 @@ public final class ProcessContextResolver {
   static void failOnMissingRequired(List<ContextVariable> variables) {
     List<String> missing = new ArrayList<>();
     for (ContextVariable variable : variables) {
-      if (!variable.required) {
+      if (variable.optional) {
         continue;
       }
       if (!variable.present) {
@@ -225,7 +224,8 @@ public final class ProcessContextResolver {
       throw new AgentConnectorException(
           "Required process context variable(s) did not reach the model: "
           + String.join(", ", missing)
-          + ". Declared in 'requiredContextVariables'; the agent was not invoked.");
+          + ". Every name in 'contextVariables' is required unless listed in "
+          + "'optionalContextVariables'; the agent was not invoked.");
     }
   }
 
@@ -315,7 +315,7 @@ public final class ProcessContextResolver {
     for (ContextVariable variable : variables) {
       Map<String, Object> entry = new LinkedHashMap<>();
       entry.put("name", variable.name);
-      entry.put("required", variable.required);
+      entry.put("optional", variable.optional);
       entry.put("present", variable.present);
       entry.put("null", variable.nullValued);
       if (variable.type != null) {
@@ -548,7 +548,7 @@ public final class ProcessContextResolver {
   static final class ContextVariable {
 
     final String name;
-    final boolean required;
+    final boolean optional;
     final boolean present;
     final boolean nullValued;
     /** Engine type name, {@code null} when the variable does not exist. */
@@ -568,11 +568,11 @@ public final class ProcessContextResolver {
     /** Set by {@link #render(List, int)} when the block size limit cut it off. */
     boolean omitted;
 
-    private ContextVariable(String name, boolean required, boolean present, boolean nullValued,
+    private ContextVariable(String name, boolean optional, boolean present, boolean nullValued,
         String type, String value, String rawValue, int escapedLength, boolean truncated,
         boolean quoted) {
       this.name = name;
-      this.required = required;
+      this.optional = optional;
       this.present = present;
       this.nullValued = nullValued;
       this.type = type;
@@ -583,20 +583,20 @@ public final class ProcessContextResolver {
       this.quoted = quoted;
     }
 
-    static ContextVariable absent(String name, boolean required) {
-      return new ContextVariable(name, required, false, false, null, null, null, 0, false, false);
+    static ContextVariable absent(String name, boolean optional) {
+      return new ContextVariable(name, optional, false, false, null, null, null, 0, false, false);
     }
 
-    static ContextVariable nullValued(String name, boolean required, String type) {
-      return new ContextVariable(name, required, true, true, type, null, null, 0, false, false);
+    static ContextVariable nullValued(String name, boolean optional, String type) {
+      return new ContextVariable(name, optional, true, true, type, null, null, 0, false, false);
     }
 
-    static ContextVariable present(String name, boolean required, String type,
+    static ContextVariable present(String name, boolean optional, String type,
         Rendered rendered, int maxValueChars) {
       String escaped = escape(rendered.text, rendered.quoted);
       boolean truncated = maxValueChars > 0 && escaped.length() > maxValueChars;
       String shown = truncated ? cutSafely(escaped, maxValueChars) : escaped;
-      return new ContextVariable(name, required, true, false, type, shown, rendered.text,
+      return new ContextVariable(name, optional, true, false, type, shown, rendered.text,
           escaped.length(), truncated, rendered.quoted);
     }
 

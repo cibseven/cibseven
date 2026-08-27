@@ -111,9 +111,9 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   }
 
   @Override
-  public AgentRequest requiredContextVariables(String requiredContextVariables) {
-    setRequestParameter(AgentConnector.PARAM_NAME_REQUIRED_CONTEXT_VARIABLES,
-        requiredContextVariables);
+  public AgentRequest optionalContextVariables(String optionalContextVariables) {
+    setRequestParameter(AgentConnector.PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES,
+        optionalContextVariables);
     return this;
   }
 
@@ -284,8 +284,8 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   }
 
   @Override
-  public String getRequiredContextVariables() {
-    return getRequestParameter(AgentConnector.PARAM_NAME_REQUIRED_CONTEXT_VARIABLES);
+  public String getOptionalContextVariables() {
+    return getRequestParameter(AgentConnector.PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES);
   }
 
   @Override

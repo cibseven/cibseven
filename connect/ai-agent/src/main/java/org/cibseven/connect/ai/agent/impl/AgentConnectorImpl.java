@@ -564,10 +564,13 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
 
   /**
    * Resolves the declared {@code contextVariables} allowlist against the
-   * execution this connector runs in. Returns an empty list when neither
-   * {@code contextVariables} nor {@code requiredContextVariables} is configured,
-   * which keeps the prompt byte-for-byte identical to releases before the
-   * parameter existed.
+   * execution this connector runs in. Returns an empty list when
+   * {@code contextVariables} is not configured, which keeps the prompt
+   * byte-for-byte identical to releases before the parameter existed.
+   *
+   * <p>{@code optionalContextVariables} alone does not activate the feature: it
+   * only modifies names from the allowlist, so without one there is nothing to
+   * modify.
    *
    * <p>Reads with {@code deserializeValue = false} so an {@code ObjectValue}
    * whose payload class is absent from the connector's classloader — the normal
@@ -582,10 +585,12 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
   private List<ProcessContextResolver.ContextVariable> resolveProcessContext(
       AgentRequest request) {
     String declared = request.getContextVariables();
-    String required = request.getRequiredContextVariables();
-    boolean configured = (declared != null && !declared.trim().isEmpty())
-        || (required != null && !required.trim().isEmpty());
-    if (!configured) {
+    String optional = request.getOptionalContextVariables();
+    if (declared == null || declared.trim().isEmpty()) {
+      if (optional != null && !optional.trim().isEmpty()) {
+        LOG.warn("'optionalContextVariables' is set but 'contextVariables' is empty — no process "
+            + "context is passed. The optional list only modifies declared names.");
+      }
       return List.of();
     }
     ExecutionEntity execution = currentExecution();
@@ -595,7 +600,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
           + "so process variables cannot be read. This parameter only works when the connector "
           + "runs from a service task inside the engine.");
     }
-    return ProcessContextResolver.resolve(declared, required,
+    return ProcessContextResolver.resolve(declared, optional,
         name -> execution.getVariableTyped(name, false),
         AgentConnectorConstants.DEFAULT_MAX_CONTEXT_VALUE_CHARS);
   }
