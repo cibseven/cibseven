@@ -85,6 +85,62 @@ public class AgentRequestTest {
   }
 
   @Test
+  public void shouldSetAndGetContextVariables() {
+    AgentRequest request = connector.createRequest().contextVariables("orderId,customerName");
+    assertThat(request.getContextVariables()).isEqualTo("orderId,customerName");
+  }
+
+  @Test
+  public void shouldSetAndGetOptionalContextVariables() {
+    AgentRequest request = connector.createRequest().optionalContextVariables("escalationReason");
+    assertThat(request.getOptionalContextVariables()).isEqualTo("escalationReason");
+  }
+
+  @Test
+  public void shouldReturnNullForContextVariablesWhenUnset() {
+    AgentRequest request = connector.createRequest();
+    assertThat(request.getContextVariables()).isNull();
+    assertThat(request.getOptionalContextVariables()).isNull();
+  }
+
+  @Test
+  public void shouldSetAndGetDocuments() {
+    AgentRequest request = connector.createRequest().documents("invoicePdf,scan");
+    assertThat(request.getDocuments()).isEqualTo("invoicePdf,scan");
+  }
+
+  @Test
+  public void shouldSetAndGetDocumentMimeTypes() {
+    AgentRequest request = connector.createRequest()
+        .documentMimeTypes("{\"scan\": \"image/png\"}");
+    assertThat(request.getDocumentMimeTypes()).isEqualTo("{\"scan\": \"image/png\"}");
+  }
+
+  @Test
+  public void shouldSetAndGetDocumentDetailLevel() {
+    AgentRequest request = connector.createRequest().documentDetailLevel("HIGH");
+    assertThat(request.getDocumentDetailLevel()).isEqualTo("HIGH");
+  }
+
+  @Test
+  public void shouldDefaultAllowAudioVideoToFalse() {
+    assertThat(connector.createRequest().isAllowAudioVideo()).isFalse();
+  }
+
+  @Test
+  public void shouldSetAndGetAllowAudioVideo() {
+    assertThat(connector.createRequest().allowAudioVideo(true).isAllowAudioVideo()).isTrue();
+  }
+
+  @Test
+  public void shouldReturnNullForDocumentsWhenUnset() {
+    AgentRequest request = connector.createRequest();
+    assertThat(request.getDocuments()).isNull();
+    assertThat(request.getDocumentMimeTypes()).isNull();
+    assertThat(request.getDocumentDetailLevel()).isNull();
+  }
+
+  @Test
   public void shouldSetAndGetApiKey() {
     AgentRequest request = connector.createRequest().apiKey("sk-test-key");
     assertThat(request.getApiKey()).isEqualTo("sk-test-key");

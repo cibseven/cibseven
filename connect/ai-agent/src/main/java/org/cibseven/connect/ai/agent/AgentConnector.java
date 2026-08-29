@@ -38,6 +38,11 @@ import org.cibseven.connect.spi.Connector;
  *       <camunda:inputParameter name="model">gpt-5.4-nano</camunda:inputParameter>
  *       <camunda:inputParameter name="message">${userMessage}</camunda:inputParameter>
  *
+ *       <!-- Process context: allowlist of variable NAMES (not expressions).
+ *            Everything listed is required; the second list names the exceptions. -->
+ *       <camunda:inputParameter name="contextVariables">orderId,totalAmount,escalationReason</camunda:inputParameter>
+ *       <camunda:inputParameter name="optionalContextVariables">escalationReason</camunda:inputParameter>
+ *
  *       <!-- LLM endpoint / authentication -->
  *       <camunda:inputParameter name="baseUrl">http://localhost:11434/v1</camunda:inputParameter>
  *       <camunda:inputParameter name="apiKey">${secrets.OPENAI_API_KEY}</camunda:inputParameter>
@@ -190,6 +195,121 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * }</pre>
    */
   String PARAM_NAME_MCP_SERVERS = "mcpServers";
+
+  // ── Process context input parameter names ─────────────────────────────────
+
+  /**
+   * Optional. Comma-separated allowlist of process-variable <em>names</em> whose
+   * values are rendered into a structured {@code <process-context>} block and
+   * appended to the system prompt. Empty (the default) means no context is
+   * passed — the agent sees exactly what {@link #PARAM_NAME_MESSAGE} carries,
+   * which is the behaviour of every release before this parameter existed.
+   *
+   * <p>Names, not {@code ${expressions}}: the Connect boundary unwraps every
+   * {@code TypedValue} before the connector runs, so an expression would arrive
+   * stripped of its type (and, for files, of filename and mime type). The
+   * connector reads {@code execution.getVariableTyped(name, false)} itself, so
+   * types survive and {@code null} stays distinguishable from an empty string.
+   *
+   * <p>Example: {@code "orderId,customerName,totalAmount"}
+   *
+   * <p>Every name listed here is <b>required</b> unless it also appears in
+   * {@link #PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES}: if it cannot reach the model,
+   * the activity fails and the agent is not invoked. That default is deliberate —
+   * declaring a variable means the task needs it, and the alternative (proceeding
+   * over missing data) fails silently.
+   *
+   * <p>Variables holding files or raw bytes are rendered as a descriptor, never
+   * as content. Values are escaped and capped
+   * ({@value AgentConnectorConstants#DEFAULT_MAX_CONTEXT_VALUE_CHARS} characters
+   * per value, {@value AgentConnectorConstants#DEFAULT_MAX_CONTEXT_BLOCK_CHARS}
+   * per block); truncation and omission are visible in the block and in the
+   * {@code context} audit event.
+   *
+   * <p><b>Security:</b> process variables routinely hold user- or
+   * document-sourced text. Everything listed here becomes part of the prompt of
+   * a possibly tool-enabled agent — declare the minimum the task needs.
+   */
+  String PARAM_NAME_CONTEXT_VARIABLES = "contextVariables";
+
+  /**
+   * Optional. Comma-separated subset of {@link #PARAM_NAME_CONTEXT_VARIABLES}
+   * that is allowed to be missing. Such a variable renders as {@code (absent)}
+   * and the agent runs on; everything else declared fails the activity when it
+   * cannot reach the model.
+   *
+   * <p>Use it for context that legitimately exists on only some paths — an
+   * escalation reason written by a branch that is often skipped, a decision from
+   * a previous loop iteration, an answer to an optional enquiry. Requiring those
+   * would force the modeler to pre-initialise them, which collapses the
+   * {@code (absent)} / empty distinction this block exists to preserve.
+   *
+   * <p>This list is a pure <em>modifier</em>: it never adds a name to the
+   * allowlist. A name listed here but absent from
+   * {@link #PARAM_NAME_CONTEXT_VARIABLES} is ignored with a warning, so there is
+   * exactly one place that decides what the agent sees.
+   *
+   * <p>Note that an <em>empty string</em> counts as a value. Only variables that
+   * were never written are affected by this list.
+   */
+  String PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES = "optionalContextVariables";
+
+  // ── Document input parameter names ────────────────────────────────────────
+
+  /**
+   * Optional. Comma-separated list of process-variable <em>names</em> holding
+   * files that are sent to the model as native attachments — a PDF as a PDF, an
+   * image as an image, rather than as text spliced into the prompt.
+   *
+   * <p>Accepts {@code FileValue} variables (which carry filename and mime type)
+   * and {@code BytesValue} variables (which carry neither, so their mime type
+   * has to come from {@link #PARAM_NAME_DOCUMENT_MIME_TYPES}).
+   *
+   * <p>Names, not {@code ${expressions}} — and here the reason is not just type
+   * loss: Connect hands over {@code FileValue.getValue()}, which is a bare
+   * {@code InputStream}, so filename and mime type are already gone, and the
+   * request-parameter accessor is an unchecked cast that would fail with a
+   * {@code ClassCastException} rather than a usable message.
+   *
+   * <p>Every declared document must exist. Unlike
+   * {@link #PARAM_NAME_CONTEXT_VARIABLES} there is no optional variant: an
+   * agent asked to read an invoice that was not attached is not working on
+   * degraded input, it is working on a different task.
+   *
+   * <p>Example: {@code "invoicePdf,signatureScan"}
+   */
+  String PARAM_NAME_DOCUMENTS = "documents";
+
+  /**
+   * Optional. JSON object of variable name → mime type, used when a document's
+   * own metadata does not say what it is, or to override it.
+   *
+   * <p>Required for every {@code BytesValue} variable listed in
+   * {@link #PARAM_NAME_DOCUMENTS}: raw bytes carry no mime type, and guessing
+   * one from the leading bytes would fail silently when it guesses wrong.
+   *
+   * <p>Example: {@code {"scan": "image/png", "report": "application/pdf"}}
+   */
+  String PARAM_NAME_DOCUMENT_MIME_TYPES = "documentMimeTypes";
+
+  /**
+   * Optional. Detail level requested for image attachments — {@code AUTO}
+   * (default), {@code LOW}, {@code MEDIUM}, {@code HIGH} or {@code ULTRA_HIGH}.
+   * Higher levels cost more input tokens. Ignored for non-image documents.
+   */
+  String PARAM_NAME_DOCUMENT_DETAIL_LEVEL = "documentDetailLevel";
+
+  /**
+   * Optional. Enables {@code audio/*} and {@code video/*} attachments, which are
+   * rejected by default.
+   *
+   * <p>Not a capability switch but an honesty switch: LangChain4j sends audio as
+   * Base64 only and requires a well-formed mime type, and video maps to a field
+   * that is not an official OpenAI one, so whether either works depends on the
+   * gateway behind {@link #PARAM_NAME_BASE_URL}. Enabling this says "I have
+   * verified my endpoint accepts these".
+   */
+  String PARAM_NAME_ALLOW_AUDIO_VIDEO = "allowAudioVideo";
 
   /**
    * Optional. Reasoning effort hint for reasoning-capable models

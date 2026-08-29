@@ -118,6 +118,33 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     Result<String> chat(@MemoryId Object memoryId, @UserMessage String message);
   }
 
+  /**
+   * Internal AI service interface used when documents are attached.
+   *
+   * <p>The message stays a separate {@code String} parameter on purpose, rather
+   * than being folded into the content list as a leading {@code TextContent}.
+   * {@code DefaultAiServices} augments the user message for RAG <em>before</em>
+   * it appends content arguments, and {@code DefaultRetrievalAugmentor} calls
+   * {@code UserMessage.singleText()} — which throws on a multi-content message.
+   * With the text as its own {@code @UserMessage} parameter the augmented
+   * message is still single-text at that point, so RAG and documents work
+   * together; folding them into one list breaks RAG outright.
+   *
+   * <p>{@code dev.langchain4j.data.message.Content} is fully qualified because
+   * this class already imports {@code dev.langchain4j.rag.content.Content} for
+   * the retrieval path — two unrelated types with the same simple name.
+   */
+  interface LangChainDocumentAgent {
+    Result<String> chat(@UserMessage String message,
+        @UserMessage List<dev.langchain4j.data.message.Content> contents);
+  }
+
+  /** {@link LangChainDocumentAgent} with chat memory. See both for the reasoning. */
+  interface LangChainMemoryDocumentAgent {
+    Result<String> chat(@MemoryId Object memoryId, @UserMessage String message,
+        @UserMessage List<dev.langchain4j.data.message.Content> contents);
+  }
+
   public AgentConnectorImpl() {
     super(AgentConnector.ID);
   }
@@ -148,14 +175,60 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     Authentication callerAuth = captureCallerAuthentication(callerEngine);
     ProcessStarterToolContext.setEngine(callerEngine);
     ProcessStarterToolContext.setAuthentication(callerAuth);
+
     // MCP clients live for the duration of this single agent invocation. Declared
     // out here (not inside the try) so the finally block can close them — without
     // close() each DefaultMcpClient leaks its health-check scheduler thread and
     // the HTTP transport for the JVM lifetime, which over many BPMN runs turns
     // into a noisy burst of reconnect WARNs every time the MCP server restarts.
     List<McpClient> mcpClients = new ArrayList<>();
+    // Everything after the two ThreadLocal writes above must sit inside this try:
+    // its finally is what clears them again, and a leaked caller Authentication
+    // would be visible to the next, unrelated task on this pooled thread.
     try {
+      // Read the declared process-variable allowlist before any model object
+      // exists — the read is local and cheap, and a mis-declared context should
+      // not first build a chat model. The audit event and the required-variable
+      // check happen further down, after createChatModel() has installed the
+      // listener, which is the earliest point at which an event can be recorded
+      // at all.
+      List<ProcessContextResolver.ContextVariable> contextVariables =
+          resolveProcessContext(request);
+
       ChatModel chatModel = createChatModel(request, apiKey, baseUrl, customHeaders);
+
+      // Now that createChatModel has installed the AgentChatListener, record
+      // which declared variables resolved, then abort if a required one is
+      // missing. Note the record does not survive that abort: the failing
+      // activity rolls its transaction back and takes the chat-log variable
+      // with it. The evidence of an aborted run is the incident and the
+      // exception message; deployments that need it in the audit trail have to
+      // route events to an external sink.
+      final String contextBlock = ProcessContextResolver.render(contextVariables,
+          AgentConnectorConstants.DEFAULT_MAX_CONTEXT_BLOCK_CHARS);
+      if (!contextVariables.isEmpty()) {
+        AgentChatListener contextListener = ProcessStarterToolContext.getActiveListener();
+        if (contextListener != null) {
+          contextListener.recordContextEvent(
+              ProcessContextResolver.describe(contextVariables, contextBlock));
+        }
+        ProcessContextResolver.failOnMissingRequired(contextVariables);
+      }
+
+      // Documents resolve after the listener exists for the same reason as the
+      // context block: a failure here should still be preceded by a record of
+      // what was attempted, and the descriptors have to reach the listener
+      // before the first model turn so a multi-content user message renders as
+      // descriptors instead of Base64.
+      List<DocumentContentResolver.ResolvedDocument> documents = resolveDocuments(request);
+      if (!documents.isEmpty()) {
+        AgentChatListener documentListener = ProcessStarterToolContext.getActiveListener();
+        if (documentListener != null) {
+          documentListener.setDocumentDescriptors(
+              DocumentContentResolver.describeByContent(documents));
+          documentListener.recordDocumentsEvent(DocumentContentResolver.describe(documents));
+        }
+      }
 
       List<McpServerSpec> mcpServerSpecs = parseMcpServers(request.getMcpServers());
       mcpClients = createMcpClients(request);
@@ -184,11 +257,23 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       }
 
       String memoryId = resolveMemoryId(request);
+      boolean hasDocuments = !documents.isEmpty();
 
-      Class<?> agentClass = (memoryId != null) ? LangChainMemoryAgent.class : LangChainAgent.class;
+      Class<?> agentClass = selectAgentInterface(memoryId != null, hasDocuments);
       AiServices<?> builder = AiServices.builder(agentClass)
           .chatModel(chatModel)
-          .systemMessageProvider(chatMemoryId -> buildSystemPrompt(request));
+          .systemMessageProvider(chatMemoryId -> buildSystemPrompt(request, contextBlock));
+      if (hasDocuments && memoryId != null) {
+        // LangChain4j stores the *augmented* user message in chat memory by
+        // default, and with documents attached that message carries their whole
+        // Base64 payload. Since CIB7-1417 the memory is a process variable, so
+        // the default would write megabytes of Base64 into the engine database
+        // on every turn — and replay them to the provider on the next one.
+        // Trade-off: RAG-retrieved context is then no longer persisted in memory
+        // for these runs either. Documented in the manual.
+        LOG.debug("Documents attached — not storing the augmented user message in chat memory");
+        builder.storeRetrievedContentInChatMemory(false);
+      }
       if (!tools.isEmpty()) {
         builder.tools(tools.toArray());
       }
@@ -219,12 +304,17 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       }
 
       Result<String> result;
-      if (memoryId != null) {
-        LangChainMemoryAgent agent = (LangChainMemoryAgent) builder.build();
-        result = agent.chat(memoryId, request.getMessage());
+      if (memoryId != null && hasDocuments) {
+        result = ((LangChainMemoryDocumentAgent) builder.build())
+            .chat(memoryId, request.getMessage(), DocumentContentResolver.toContents(documents));
+      } else if (memoryId != null) {
+        result = ((LangChainMemoryAgent) builder.build())
+            .chat(memoryId, request.getMessage());
+      } else if (hasDocuments) {
+        result = ((LangChainDocumentAgent) builder.build())
+            .chat(request.getMessage(), DocumentContentResolver.toContents(documents));
       } else {
-        LangChainAgent agent = (LangChainAgent) builder.build();
-        result = agent.chat(request.getMessage());
+        result = ((LangChainAgent) builder.build()).chat(request.getMessage());
       }
       String output = result.content();
 
@@ -382,17 +472,17 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    * historic process instance record, or the start user cannot be resolved.
    */
   private Authentication deriveAuthenticationFromProcessInstance(ProcessEngine engine) {
+    ExecutionEntity execution = currentExecution();
     String processInstanceId = null;
-    try {
-      BpmnExecutionContext executionContext = Context.getBpmnExecutionContext();
-      if (executionContext != null) {
-        ExecutionEntity execution = executionContext.getExecution();
-        if (execution != null) {
-          processInstanceId = execution.getProcessInstanceId();
-        }
+    if (execution != null) {
+      try {
+        processInstanceId = execution.getProcessInstanceId();
+      } catch (RuntimeException e) {
+        // Kept inside the guard the inline version had: a detached entity can
+        // blow up here, and authentication is a best-effort fallback, not a
+        // reason to fail the activity.
+        LOG.debug("Could not read processInstanceId from current execution: {}", e.toString());
       }
-    } catch (Exception e) {
-      LOG.debug("Could not read BPMN execution context: {}", e.toString());
     }
     if (processInstanceId == null) {
       LOG.debug("No BPMN execution context on thread; cannot derive authentication from process instance");
@@ -531,7 +621,106 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
   /** Lazily loaded cache for {@link #DEFAULT_INSTRUCTION_RESOURCE}. */
   private static volatile String defaultInstructionCache;
 
-  private String buildSystemPrompt(AgentRequest request) {
+  /**
+   * Resolves the declared {@code contextVariables} allowlist against the
+   * execution this connector runs in. Returns an empty list when
+   * {@code contextVariables} is not configured, which keeps the prompt
+   * byte-for-byte identical to releases before the parameter existed.
+   *
+   * <p>{@code optionalContextVariables} alone does not activate the feature: it
+   * only modifies names from the allowlist, so without one there is nothing to
+   * modify.
+   *
+   * <p>Reads with {@code deserializeValue = false} so an {@code ObjectValue}
+   * whose payload class is absent from the connector's classloader — the normal
+   * case for customer POJOs — does not blow up the activity. See
+   * {@link ProcessContextResolver} for how the serialized form is rendered.
+   *
+   * @throws AgentConnectorException when context is configured but there is no
+   *     BPMN execution on the thread. Silently dropping declared context is
+   *     exactly the failure mode this feature exists to remove, so it is a hard
+   *     error rather than a warning.
+   */
+  private List<ProcessContextResolver.ContextVariable> resolveProcessContext(
+      AgentRequest request) {
+    String declared = request.getContextVariables();
+    String optional = request.getOptionalContextVariables();
+    if (declared == null || declared.trim().isEmpty()) {
+      if (optional != null && !optional.trim().isEmpty()) {
+        LOG.warn("'optionalContextVariables' is set but 'contextVariables' is empty — no process "
+            + "context is passed. The optional list only modifies declared names.");
+      }
+      return List.of();
+    }
+    ExecutionEntity execution = currentExecution();
+    if (execution == null) {
+      throw new AgentConnectorException(
+          "'contextVariables' is configured but no BPMN execution is available on this thread, "
+          + "so process variables cannot be read. This parameter only works when the connector "
+          + "runs from a service task inside the engine.");
+    }
+    return ProcessContextResolver.resolve(declared, optional,
+        name -> execution.getVariableTyped(name, false),
+        AgentConnectorConstants.DEFAULT_MAX_CONTEXT_VALUE_CHARS);
+  }
+
+  /**
+   * Picks the AI service interface for this invocation. Four combinations of
+   * memory and documents, because {@code AiServices} derives the call shape from
+   * the interface method's parameters — there is no way to make one signature
+   * cover an absent {@code @MemoryId} or an empty content list.
+   */
+  private static Class<?> selectAgentInterface(boolean withMemory, boolean withDocuments) {
+    if (withMemory) {
+      return withDocuments ? LangChainMemoryDocumentAgent.class : LangChainMemoryAgent.class;
+    }
+    return withDocuments ? LangChainDocumentAgent.class : LangChainAgent.class;
+  }
+
+  /**
+   * Resolves the declared {@code documents} into native attachments. Returns an
+   * empty list when the parameter is unset, which keeps the outgoing message
+   * exactly what it was before this feature.
+   *
+   * @throws AgentConnectorException when documents are declared but no BPMN
+   *     execution is available, or when a document cannot be turned into an
+   *     attachment. Both name the offending variable.
+   */
+  private List<DocumentContentResolver.ResolvedDocument> resolveDocuments(AgentRequest request) {
+    String declared = request.getDocuments();
+    if (declared == null || declared.trim().isEmpty()) {
+      return List.of();
+    }
+    ExecutionEntity execution = currentExecution();
+    if (execution == null) {
+      throw new AgentConnectorException(
+          "'documents' is configured but no BPMN execution is available on this thread, so file "
+          + "variables cannot be read. This parameter only works when the connector runs from a "
+          + "service task inside the engine.");
+    }
+    return DocumentContentResolver.resolve(declared, request.getDocumentMimeTypes(),
+        DocumentContentResolver.parseDetailLevel(request.getDocumentDetailLevel()),
+        request.isAllowAudioVideo(),
+        name -> execution.getVariableTyped(name, false),
+        DocumentContentResolver.Limits.defaults());
+  }
+
+  /**
+   * The {@link ExecutionEntity} driving the current BPMN activity, or
+   * {@code null} when the connector runs outside an engine command (standalone
+   * Connect usage, unit tests). Failures are swallowed at debug level.
+   */
+  private static ExecutionEntity currentExecution() {
+    try {
+      BpmnExecutionContext executionContext = Context.getBpmnExecutionContext();
+      return (executionContext == null) ? null : executionContext.getExecution();
+    } catch (RuntimeException e) {
+      LOG.debug("Could not read BPMN execution context: {}", e.toString());
+      return null;
+    }
+  }
+
+  private String buildSystemPrompt(AgentRequest request, String contextBlock) {
     String description = request.getAgentDescription();
     String callerInstruction = request.getInstruction();
     String mode = request.getInstructionMode();
@@ -546,10 +735,29 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     LOG.debug("buildSystemPrompt: resolved instruction length={}, description length={}",
         hasInstruction ? instruction.length() : 0,
         hasDescription ? description.length() : 0);
-    if (hasDescription && hasInstruction) {
-      return description + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR + instruction;
+    String prompt = (hasDescription && hasInstruction)
+        ? description + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR + instruction
+        : (hasInstruction ? instruction : description);
+    return appendContextBlock(prompt, contextBlock);
+  }
+
+  /**
+   * Appends the rendered process-context block after the deployer's instruction.
+   *
+   * <p>Order matters: the instruction defines the agent's role, the context is
+   * the data it works on. Fluxnova's note that a <em>trailing system message</em>
+   * suppresses tool calls in some models does not apply here — {@code AiServices}
+   * emits exactly one system message, so this is one message with the context at
+   * its end, not a second message after the instruction.
+   */
+  private static String appendContextBlock(String prompt, String contextBlock) {
+    if (contextBlock == null || contextBlock.isEmpty()) {
+      return prompt;
     }
-    return hasInstruction ? instruction : description;
+    if (prompt == null || prompt.isEmpty()) {
+      return contextBlock;
+    }
+    return prompt + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR + contextBlock;
   }
 
   /**

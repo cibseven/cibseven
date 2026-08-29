@@ -77,6 +77,40 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   AgentRequest mcpServers(String mcpServers);
 
   /**
+   * Optional. Comma-separated allowlist of process-variable names rendered into
+   * the system prompt as a structured block. See
+   * {@link AgentConnector#PARAM_NAME_CONTEXT_VARIABLES}.
+   */
+  AgentRequest contextVariables(String contextVariables);
+
+  /**
+   * Optional. Comma-separated subset of {@link #contextVariables(String)} that is
+   * allowed to be missing; everything else declared fails the activity when it
+   * cannot reach the model. See
+   * {@link AgentConnector#PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES}.
+   */
+  AgentRequest optionalContextVariables(String optionalContextVariables);
+
+  /**
+   * Optional. Comma-separated names of file-typed process variables sent to the
+   * model as native attachments. See {@link AgentConnector#PARAM_NAME_DOCUMENTS}.
+   */
+  AgentRequest documents(String documents);
+
+  /**
+   * Optional. JSON object of variable name → mime type for documents whose own
+   * metadata is missing or wrong. See
+   * {@link AgentConnector#PARAM_NAME_DOCUMENT_MIME_TYPES}.
+   */
+  AgentRequest documentMimeTypes(String documentMimeTypes);
+
+  /** Optional. Image detail level: AUTO, LOW, MEDIUM, HIGH, ULTRA_HIGH. */
+  AgentRequest documentDetailLevel(String documentDetailLevel);
+
+  /** Optional. Allows audio and video attachments, which are off by default. */
+  AgentRequest allowAudioVideo(boolean allowAudioVideo);
+
+  /**
    * Optional. Reasoning effort hint (e.g. {@code "low"}, {@code "medium"},
    * {@code "high"}). Values are model-dependent.
    */
@@ -158,6 +192,18 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   String getCustomHeaders();
 
   String getMcpServers();
+
+  String getContextVariables();
+
+  String getOptionalContextVariables();
+
+  String getDocuments();
+
+  String getDocumentMimeTypes();
+
+  String getDocumentDetailLevel();
+
+  boolean isAllowAudioVideo();
 
   String getReasoningEffort();
 

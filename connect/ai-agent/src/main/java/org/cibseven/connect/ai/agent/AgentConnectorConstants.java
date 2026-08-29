@@ -139,6 +139,72 @@ public final class AgentConnectorConstants {
    */
   public static final int DEFAULT_CHAT_MEMORY_MAX_MESSAGES = 20;
 
+  // ── Process context (declared process-variable block) ─────────────────────
+
+  /**
+   * Opening delimiter of the process-context block appended to the system
+   * prompt when {@code contextVariables} is configured.
+   *
+   * <p>The block is delimited rather than concatenated so the model can tell
+   * process data apart from the deployer's instruction. Any occurrence of this
+   * token (or {@link #CONTEXT_BLOCK_CLOSE}) inside a variable value is neutered
+   * by the renderer — otherwise a variable holding user- or document-sourced
+   * text could close the block early and have the remainder read as
+   * instructions.
+   */
+  public static final String CONTEXT_BLOCK_OPEN = "<process-context>";
+
+  /** Closing delimiter of the process-context block. See {@link #CONTEXT_BLOCK_OPEN}. */
+  public static final String CONTEXT_BLOCK_CLOSE = "</process-context>";
+
+  /**
+   * Maximum number of characters rendered per context variable value before it
+   * is truncated. Prompt size is the dominant cost lever of an agent
+   * invocation, and a single large JSON variable would otherwise silently
+   * dominate it. Truncation is always visible — both in the block itself and in
+   * the {@code context} audit event.
+   */
+  public static final int DEFAULT_MAX_CONTEXT_VALUE_CHARS = 2000;
+
+  /**
+   * Maximum number of characters of the whole rendered process-context block.
+   * Variables that no longer fit are omitted from the tail, and the omission is
+   * stated in the block and recorded in the {@code context} audit event.
+   */
+  public static final int DEFAULT_MAX_CONTEXT_BLOCK_CHARS = 20000;
+
+  // ── Documents (files from variables as native LLM attachments) ────────────
+
+  /**
+   * Maximum size of a single document, in raw bytes before Base64 encoding.
+   * Checked before encoding because Base64 inflates by roughly a third and the
+   * encoded copy is what ends up in memory and on the wire.
+   *
+   * <p>Aligned with the 10 MB multipart limit Camunda 8's document store uses,
+   * halved: a document that large in a prompt is nearly always a modelling
+   * mistake, and the failure should come from us rather than from a provider
+   * rejecting the request minutes later.
+   */
+  public static final int DEFAULT_MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
+
+  /** Maximum combined raw size of all documents attached to one invocation. */
+  public static final int DEFAULT_MAX_TOTAL_DOCUMENT_BYTES = 20 * 1024 * 1024;
+
+  /** Maximum number of documents attached to one invocation. */
+  public static final int DEFAULT_MAX_DOCUMENT_COUNT = 10;
+
+  /**
+   * Opening delimiter wrapped around a text document handed to the model.
+   * Text files are the one document kind that becomes prompt text rather than a
+   * typed attachment, so they need the same containment the process-context
+   * block gets — Camunda 8 inlines them raw and records that as a known
+   * prompt-injection gap.
+   */
+  public static final String DOCUMENT_BLOCK_OPEN = "<document";
+
+  /** Closing delimiter of a text document block. See {@link #DOCUMENT_BLOCK_OPEN}. */
+  public static final String DOCUMENT_BLOCK_CLOSE = "</document>";
+
   // ── instructionMode values ────────────────────────────────────────────────
 
   /**

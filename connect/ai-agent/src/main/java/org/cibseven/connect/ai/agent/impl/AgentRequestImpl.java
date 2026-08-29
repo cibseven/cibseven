@@ -105,6 +105,43 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   }
 
   @Override
+  public AgentRequest contextVariables(String contextVariables) {
+    setRequestParameter(AgentConnector.PARAM_NAME_CONTEXT_VARIABLES, contextVariables);
+    return this;
+  }
+
+  @Override
+  public AgentRequest optionalContextVariables(String optionalContextVariables) {
+    setRequestParameter(AgentConnector.PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES,
+        optionalContextVariables);
+    return this;
+  }
+
+  @Override
+  public AgentRequest documents(String documents) {
+    setRequestParameter(AgentConnector.PARAM_NAME_DOCUMENTS, documents);
+    return this;
+  }
+
+  @Override
+  public AgentRequest documentMimeTypes(String documentMimeTypes) {
+    setRequestParameter(AgentConnector.PARAM_NAME_DOCUMENT_MIME_TYPES, documentMimeTypes);
+    return this;
+  }
+
+  @Override
+  public AgentRequest documentDetailLevel(String documentDetailLevel) {
+    setRequestParameter(AgentConnector.PARAM_NAME_DOCUMENT_DETAIL_LEVEL, documentDetailLevel);
+    return this;
+  }
+
+  @Override
+  public AgentRequest allowAudioVideo(boolean allowAudioVideo) {
+    setRequestParameter(AgentConnector.PARAM_NAME_ALLOW_AUDIO_VIDEO, allowAudioVideo);
+    return this;
+  }
+
+  @Override
   public AgentRequest reasoningEffort(String reasoningEffort) {
     setRequestParameter(AgentConnector.PARAM_NAME_REASONING_EFFORT, reasoningEffort);
     return this;
@@ -263,6 +300,39 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   @Override
   public String getMcpServers() {
     return getRequestParameter(AgentConnector.PARAM_NAME_MCP_SERVERS);
+  }
+
+  @Override
+  public String getContextVariables() {
+    return getRequestParameter(AgentConnector.PARAM_NAME_CONTEXT_VARIABLES);
+  }
+
+  @Override
+  public String getOptionalContextVariables() {
+    return getRequestParameter(AgentConnector.PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES);
+  }
+
+  @Override
+  public String getDocuments() {
+    return getRequestParameter(AgentConnector.PARAM_NAME_DOCUMENTS);
+  }
+
+  @Override
+  public String getDocumentMimeTypes() {
+    return getRequestParameter(AgentConnector.PARAM_NAME_DOCUMENT_MIME_TYPES);
+  }
+
+  @Override
+  public String getDocumentDetailLevel() {
+    return getRequestParameter(AgentConnector.PARAM_NAME_DOCUMENT_DETAIL_LEVEL);
+  }
+
+  @Override
+  public boolean isAllowAudioVideo() {
+    Object val = getRequestParameter(AgentConnector.PARAM_NAME_ALLOW_AUDIO_VIDEO);
+    if (val == null) return false;
+    if (val instanceof Boolean) return (Boolean) val;
+    return Boolean.parseBoolean(val.toString().trim());
   }
 
   @Override

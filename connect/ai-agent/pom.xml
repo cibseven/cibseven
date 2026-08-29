@@ -116,6 +116,22 @@
       <scope>test</scope>
     </dependency>
 
+    <!--
+      In-memory database for the engine-backed process-context test. The engine
+      itself is already on the test classpath via the provided-scope
+      cibseven-engine dependency; only a JDBC driver is missing.
+
+      The version is pinned here because the connect reactor does not inherit
+      from cibseven-database-settings, where version.h2 is managed for the engine
+      modules. Keep it in step with database/pom.xml.
+    -->
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>2.3.232</version>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
 
   <build>
