@@ -135,10 +135,6 @@ public class DeleteDeploymentsBatchAuthorizationTest {
     authRule.createUserAndGroup("userId", "groupId");
     repositoryService = engineRule.getRepositoryService();
     managementService = engineRule.getManagementService();
-  }
-
-  @BeforeEach
-  public void deployDeployments() {
     deployment1 = deploy("process1");
     deployment2 = deploy("process2");
   }
@@ -149,10 +145,6 @@ public class DeleteDeploymentsBatchAuthorizationTest {
       managementService.deleteBatch(batch.getId(), true);
     }
     authRule.deleteUsersAndGroups();
-  }
-
-  @AfterEach
-  public void deleteRemainingDeployments() {
     for (Deployment deployment : repositoryService.createDeploymentQuery().list()) {
       repositoryService.deleteDeployment(deployment.getId(), true);
     }
