@@ -18,12 +18,52 @@
   <dependencyManagement>
     <dependencies>
 
+      <!-- Override the Jackson version managed by Spring Boot -->
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+
+      <!-- CVE-2026-59889 (@JsonView bypass on @JsonUnwrapped during deserialization):
+           Jackson 3 arrives via spring-boot-starter-web -> spring-boot-jackson and is
+           not managed anywhere else in the build, hence the literal version. Must be
+           imported ahead of spring-boot-dependencies - within one dependencyManagement
+           block the first import wins. -->
+      <dependency>
+        <groupId>tools.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>3.1.5</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
         <version>${version.spring-boot4}</version>
         <scope>import</scope>
         <type>pom</type>
+      </dependency>
+
+      <!-- Temporary Apache HttpComponents CVE overrides.
+           Remove these once the imported Spring Boot BOM manages fixed versions. -->
+      <dependency>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5</artifactId>
+        <version>${version.httpclient5}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5</artifactId>
+        <version>${version.httpcore5}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5-h2</artifactId>
+        <version>${version.httpcore5}</version>
       </dependency>
 
       <dependency>

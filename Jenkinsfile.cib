@@ -12,12 +12,12 @@ import groovy.transform.Field
 @Field String mavenLocalRepoRedirected = null
 @Field Map pipelineParams = [
     pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
-    mvnContainerName: Constants.MAVEN_JDK_21_CONTAINER,
+    mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
     uiParamPresets: [:],
     testMode: false,
     dependencyTrackSynchronous: true,
     buildPodConfig: [
-        (Constants.MAVEN_JDK_21_CONTAINER): [
+        (Constants.MAVEN_JDK_17_CONTAINER): [
             resources: [
                 cpu: '4',
                 memory: '16Gi',
@@ -93,7 +93,8 @@ pipeline {
         booleanParam(name: 'ATTACH_QA_PERF_REPORTS', defaultValue: false, description: "  └─ Attach QA perfromance reports to Artifacts\n\n")
 
         booleanParam(name: 'DEPLOY_TO_ARTIFACTS', defaultValue: false, description: "  └─ 📦 Deploy to artifacts")
-        booleanParam(name: 'DEPLOY_TO_MAVEN_CENTRAL', defaultValue: false, description: "  └─ 📤 Deploy to Maven Central\n\n")
+        booleanParam(name: 'DEPLOY_TO_MAVEN_CENTRAL', defaultValue: false, description: "  └─ 📤 Deploy to Maven Central")
+        booleanParam(name: 'DEPLOY_WITHOUT_SBOM', defaultValue: false, description: "  └─ Exclude SBOM generation and deployment step\n\n")
 
         booleanParam(name: 'OPEN_API', defaultValue: false, description: "  └─ 📚 Deploy OpenAPI docs")
         booleanParam(name: 'JAVA_DOCS', defaultValue: false, description: "  └─ 📖 Deploy JavaDocs")
@@ -460,12 +461,20 @@ pipeline {
                         }
                     }
 
+                    // Call cyclonedx directly from the mvn command to avoid adding a new profile to the root pom.xml.
+                    // Placed after "clean" to keep the generated files in the target, allowing to deploy them in one step.
+                    // Do not add cyclonedx options, like -DoutputDirectory/-DoutputName, as global -D CLI flags, since
+                    // they can silently override parameters of unrelated plugins: if specific cyclonedx options are needed, 
+                    // then add (or update) a pluginManagement entry for cyclonedx-maven-plugin in the root pom.xml instead.
+                    String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
+                        "org.cyclonedx:cyclonedx-maven-plugin:makeBom org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
+
                     withMaven {
                         sh """
                             mvn -T4 -U \
                                 -DskipTests \
                                 -Pwebapps-integration ${deployment} \
-                                clean deploy
+                                clean ${sbomGenerate} deploy
                         """
                     }
                 }
@@ -482,6 +491,10 @@ pipeline {
             }
             steps {
                 script {
+                    // See "Deploy to artifacts.cibseven.org" above for details about the sbom generation.
+                    String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
+                        "org.cyclonedx:cyclonedx-maven-plugin:makeBom org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
+
                     withMaven {
                         withCredentials([file(credentialsId: 'credential-cibseven-gpg-private-key', variable: 'GPG_KEY_FILE'), string(credentialsId: 'credential-cibseven-gpg-passphrase', variable: 'GPG_KEY_PASS')]) {
                             sh "gpg --batch --import ${GPG_KEY_FILE}"
@@ -492,7 +505,7 @@ pipeline {
                                 mvn -T4 -U \
                                     -Dgpg.keyname="${GPG_KEYNAME}" \
                                     -Dgpg.passphrase="${GPG_KEY_PASS}" \
-                                    clean deploy \
+                                    clean ${sbomGenerate} deploy \
                                     -Psonatype-oss-release \
                                     -Dskip.cibseven.release="${!params.DEPLOY_TO_ARTIFACTS}" \
                                     -DskipTests

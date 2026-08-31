@@ -17,6 +17,7 @@
 package org.cibseven.connect.httpclient;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import org.assertj.core.api.Assertions;
 import org.cibseven.connect.ConnectorRequestException;
@@ -24,6 +25,7 @@ import org.cibseven.connect.httpclient.impl.HttpConnectorImpl;
 import org.cibseven.connect.impl.DebugRequestInterceptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.cibseven.connect.spi.CloseableConnectorResponse;
 
 public class HttpResponseTest {
 
@@ -89,6 +91,28 @@ public class HttpResponseTest {
 
   protected HttpResponse getResponse() {
     return connector.createRequest().url("http://camunda.com").get().execute();
+  }
+
+  @Test
+  public void responseShouldBeClosableAfterReadingParameters() {
+    testResponse.code(200).payload("test body");
+    HttpResponse response = getResponse();
+    // access all parameters to trigger collectResponseParameters
+    assertThat(response.getStatusCode()).isEqualTo(200);
+    assertThat(response.getResponse()).isEqualTo("test body");
+    assertThat(response.getHeaders()).isNotNull();
+    // calling close() after parameters have been collected should not throw
+    assertThat(response).isInstanceOf(CloseableConnectorResponse.class);
+    assertThat(catchThrowable(response::close)).isNull();
+  }
+
+  @Test
+  public void responseShouldBeClosableWithoutReadingParameters() {
+    testResponse.code(200).payload("test body");
+    HttpResponse response = getResponse();
+    // close without ever reading parameters — should not throw
+    assertThat(response).isInstanceOf(CloseableConnectorResponse.class);
+    assertThat(catchThrowable(response::close)).isNull();
   }
 
   @Test

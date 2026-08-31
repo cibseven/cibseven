@@ -37,8 +37,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class AuthorizationQueryDto extends AbstractQueryDto<AuthorizationQuery> {
 
-  private static final String SORT_BY_RESOURCE_TYPE = "resourceType";
-  private static final String SORT_BY_RESOURCE_ID = "resourceId";
+  public static final String SORT_BY_RESOURCE_TYPE = "resourceType";
+  public static final String SORT_BY_RESOURCE_ID = "resourceId";
 
   private static final List<String> VALID_SORT_BY_VALUES;
   static {
@@ -60,6 +60,22 @@ public class AuthorizationQueryDto extends AbstractQueryDto<AuthorizationQuery> 
 
   public AuthorizationQueryDto(ObjectMapper objectMapper, MultivaluedMap<String, String> queryParameters) {
     super(objectMapper, queryParameters);
+  }
+
+  public AuthorizationQueryDto(AuthorizationQueryDto queryDto) {
+    this.objectMapper = queryDto.objectMapper;
+    this.id = queryDto.id;
+    this.type = queryDto.type;
+    this.userIdIn = queryDto.userIdIn;
+    this.groupIdIn = queryDto.groupIdIn;
+    this.resourceType = queryDto.resourceType;
+    this.resourceId = queryDto.resourceId;
+    // the sorting options are declared by AbstractQueryDto and must be copied as well,
+    // otherwise sorting requested by the caller is silently dropped and the validation
+    // of the sortBy/sortOrder pair in toQuery() never sees them
+    this.sortBy = queryDto.sortBy;
+    this.sortOrder = queryDto.sortOrder;
+    this.sortings = queryDto.sortings;
   }
 
   @CamundaQueryParam("id")
@@ -94,6 +110,14 @@ public class AuthorizationQueryDto extends AbstractQueryDto<AuthorizationQuery> 
 
   protected boolean isValidSortByValue(String value) {
     return VALID_SORT_BY_VALUES.contains(value);
+  }
+
+  public String getSortBy() {
+    return sortBy;
+  }
+
+  public String getSortOrder() {
+    return sortOrder;
   }
 
   protected AuthorizationQuery createNewQuery(ProcessEngine engine) {

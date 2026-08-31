@@ -26,7 +26,9 @@ import java.util.Set;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.UriInfo;
+import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.ProcessEngine;
+import org.cibseven.bpm.engine.batch.Batch;
 import org.cibseven.bpm.engine.impl.calendar.DateTimeUtil;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.repository.DeploymentBuilder;
@@ -34,9 +36,11 @@ import org.cibseven.bpm.engine.repository.DeploymentQuery;
 import org.cibseven.bpm.engine.repository.DeploymentWithDefinitions;
 import org.cibseven.bpm.engine.rest.DeploymentRestService;
 import org.cibseven.bpm.engine.rest.dto.CountResultDto;
+import org.cibseven.bpm.engine.rest.dto.batch.BatchDto;
 import org.cibseven.bpm.engine.rest.dto.repository.DeploymentDto;
 import org.cibseven.bpm.engine.rest.dto.repository.DeploymentQueryDto;
 import org.cibseven.bpm.engine.rest.dto.repository.DeploymentWithDefinitionsDto;
+import org.cibseven.bpm.engine.rest.dto.runtime.batch.DeleteDeploymentsDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.mapper.MultipartFormData;
 import org.cibseven.bpm.engine.rest.mapper.MultipartFormData.FormPart;
@@ -196,5 +200,21 @@ public class DeploymentRestServiceImpl extends AbstractRestProcessEngineAware im
   @Override
   public Set<String> getRegisteredDeployments(final UriInfo uriInfo) {
     return getProcessEngine().getManagementService().getRegisteredDeployments();
+  }
+
+  @Override
+  public BatchDto deleteAsync(DeleteDeploymentsDto dto) {
+    DeploymentQuery deploymentQuery = null;
+    if (dto.getDeploymentQuery() != null) {
+      deploymentQuery = dto.getDeploymentQuery().toQuery(getProcessEngine());
+    }
+    try {
+      Batch batch = getProcessEngine().getRepositoryService().deleteDeploymentsAsync(
+              dto.getDeploymentIds(), deploymentQuery,
+              dto.isCascade(), dto.isSkipCustomListeners(), dto.isSkipIoMappings());
+      return BatchDto.fromBatch(batch);
+    } catch (BadUserRequestException e) {
+      throw new InvalidRequestException(Status.BAD_REQUEST, e.getMessage());
+    }
   }
 }

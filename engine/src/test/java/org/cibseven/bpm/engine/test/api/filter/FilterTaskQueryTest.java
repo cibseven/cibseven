@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.EntityTypes;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.filter.Filter;
@@ -102,9 +103,14 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
   protected Group testGroup;
 
   protected JsonTaskQueryConverter queryConverter;
+  protected boolean originalEnableExpressionsInAdhocQueries;
+  protected boolean originalEnableFilterExpressionWhitelist;
 
   @BeforeEach
   public void setUp() {
+    originalEnableExpressionsInAdhocQueries = processEngineConfiguration.isEnableExpressionsInAdhocQueries();
+    originalEnableFilterExpressionWhitelist = processEngineConfiguration.isEnableFilterExpressionWhitelist();
+
     filter = filterService.newTaskFilter("name")
         .setOwner("owner")
         .setQuery(taskService.createTaskQuery())
@@ -127,7 +133,8 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
 
   @AfterEach
   public void tearDown() {
-    processEngineConfiguration.setEnableExpressionsInAdhocQueries(false);
+    processEngineConfiguration.setEnableExpressionsInAdhocQueries(originalEnableExpressionsInAdhocQueries);
+    processEngineConfiguration.setEnableFilterExpressionWhitelist(originalEnableFilterExpressionWhitelist);
 
     Mocks.reset();
 
@@ -418,38 +425,36 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
   @Test
   public void testTaskQueryByBusinessKeyExpression() {
     // given
+    processEngineConfiguration.setEnableFilterExpressionWhitelist(true);
+
     String aBusinessKey = "business key";
     Mocks.register("aBusinessKey", aBusinessKey);
 
     createDeploymentWithBusinessKey(aBusinessKey);
 
-    // when
     TaskQueryImpl extendedQuery = (TaskQueryImpl)taskService.createTaskQuery()
       .processInstanceBusinessKeyExpression("${ " + Mocks.getMocks().keySet().toArray()[0] + " }");
 
     Filter filter = filterService.newTaskFilter("aFilterName");
     filter.setQuery(extendedQuery);
-    filterService.saveFilter(filter);
 
-    TaskQueryImpl filterQuery = filterService.getFilter(filter.getId()).getQuery();
-
-    // then
-    assertEquals(extendedQuery.getExpressions().get("processInstanceBusinessKey"),
-      filterQuery.getExpressions().get("processInstanceBusinessKey"));
-    assertEquals(1, filterService.list(filter.getId()).size());
+    // when/then
+    BadUserRequestException e = assertThrows(BadUserRequestException.class,
+        () -> filterService.saveFilter(filter));
+    assertTrue(e.getMessage().contains("task query criteria"));
   }
 
   @Test
   public void testTaskQueryByBusinessKeyExpressionInAdhocQuery() {
     // given
     processEngineConfiguration.setEnableExpressionsInAdhocQueries(true);
+    processEngineConfiguration.setEnableFilterExpressionWhitelist(true);
 
     String aBusinessKey = "business key";
     Mocks.register("aBusinessKey", aBusinessKey);
 
     createDeploymentWithBusinessKey(aBusinessKey);
 
-    // when
     Filter filter = filterService.newTaskFilter("aFilterName");
     filter.setQuery(taskService.createTaskQuery());
     filterService.saveFilter(filter);
@@ -457,47 +462,45 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
     TaskQueryImpl extendingQuery = (TaskQueryImpl)taskService.createTaskQuery()
       .processInstanceBusinessKeyExpression("${ " + Mocks.getMocks().keySet().toArray()[0] + " }");
 
-    // then
-    assertEquals(extendingQuery.getExpressions().get("processInstanceBusinessKey"),
-      "${ " + Mocks.getMocks().keySet().toArray()[0] + " }");
-    assertEquals(1, filterService.list(filter.getId(), extendingQuery).size());
+    // when/then
+    BadUserRequestException e = assertThrows(BadUserRequestException.class,
+        () -> filterService.list(filter.getId(), extendingQuery));
+    assertTrue(e.getMessage().contains("task query criteria"));
   }
 
   @Test
   public void testTaskQueryByBusinessKeyLikeExpression() {
     // given
+    processEngineConfiguration.setEnableFilterExpressionWhitelist(true);
+
     String aBusinessKey = "business key";
     Mocks.register("aBusinessKeyLike", "%" + aBusinessKey.substring(5));
 
     createDeploymentWithBusinessKey(aBusinessKey);
 
-    // when
     TaskQueryImpl extendedQuery = (TaskQueryImpl)taskService.createTaskQuery()
       .processInstanceBusinessKeyLikeExpression("${ " + Mocks.getMocks().keySet().toArray()[0] + " }");
 
     Filter filter = filterService.newTaskFilter("aFilterName");
     filter.setQuery(extendedQuery);
-    filterService.saveFilter(filter);
 
-    TaskQueryImpl filterQuery = filterService.getFilter(filter.getId()).getQuery();
-
-    // then
-    assertEquals(extendedQuery.getExpressions().get("processInstanceBusinessKeyLike"),
-      filterQuery.getExpressions().get("processInstanceBusinessKeyLike"));
-    assertEquals(1, filterService.list(filter.getId()).size());
+    // when/then
+    BadUserRequestException e = assertThrows(BadUserRequestException.class,
+        () -> filterService.saveFilter(filter));
+    assertTrue(e.getMessage().contains("task query criteria"));
   }
 
   @Test
   public void testTaskQueryByBusinessKeyLikeExpressionInAdhocQuery() {
     // given
     processEngineConfiguration.setEnableExpressionsInAdhocQueries(true);
+    processEngineConfiguration.setEnableFilterExpressionWhitelist(true);
 
     String aBusinessKey = "business key";
     Mocks.register("aBusinessKeyLike", "%" + aBusinessKey.substring(5));
 
     createDeploymentWithBusinessKey(aBusinessKey);
 
-    // when
     Filter filter = filterService.newTaskFilter("aFilterName");
     filter.setQuery(taskService.createTaskQuery());
     filterService.saveFilter(filter);
@@ -505,10 +508,36 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
     TaskQueryImpl extendingQuery = (TaskQueryImpl)taskService.createTaskQuery()
       .processInstanceBusinessKeyLikeExpression("${ " + Mocks.getMocks().keySet().toArray()[0] + " }");
 
-    // then
-    assertEquals(extendingQuery.getExpressions().get("processInstanceBusinessKeyLike"),
-      "${ " + Mocks.getMocks().keySet().toArray()[0] + " }");
-    assertEquals(1, filterService.list(filter.getId(), extendingQuery).size());
+    // when/then
+    BadUserRequestException e = assertThrows(BadUserRequestException.class,
+        () -> filterService.list(filter.getId(), extendingQuery));
+    assertTrue(e.getMessage().contains("task query criteria"));
+  }
+
+  @Test
+  public void testTaskQueryByBusinessKeyExpressionInOrQuery() {
+    // given
+    processEngineConfiguration.setEnableFilterExpressionWhitelist(true);
+
+    String aBusinessKey = "business key";
+    Mocks.register("aBusinessKey", aBusinessKey);
+
+    createDeploymentWithBusinessKey(aBusinessKey);
+
+    TaskQueryImpl query = (TaskQueryImpl) taskService.createTaskQuery()
+      .or()
+        .taskName("aTaskName")
+        .processInstanceBusinessKeyExpression("${ " + Mocks.getMocks().keySet().toArray()[0] + " }")
+      .endOr();
+
+    Filter filter = filterService.newTaskFilter("aFilterName");
+    filter.setQuery(query);
+    filterService.saveFilter(filter);
+
+    // when/then
+    BadUserRequestException e = assertThrows(BadUserRequestException.class,
+        () -> filterService.list(filter.getId()));
+    assertTrue(e.getMessage().contains("task query criteria"));
   }
 
   protected void createDeploymentWithBusinessKey(String aBusinessKey) {

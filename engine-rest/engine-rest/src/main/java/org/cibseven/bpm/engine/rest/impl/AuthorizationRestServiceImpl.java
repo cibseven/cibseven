@@ -24,6 +24,7 @@ import static org.cibseven.bpm.engine.authorization.Resources.AUTHORIZATION;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.core.Response.Status;
@@ -40,6 +41,7 @@ import org.cibseven.bpm.engine.identity.Group;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.identity.Authentication;
 import org.cibseven.bpm.engine.rest.AuthorizationRestService;
+import org.cibseven.bpm.engine.rest.dto.AbstractQueryDto;
 import org.cibseven.bpm.engine.rest.dto.CountResultDto;
 import org.cibseven.bpm.engine.rest.dto.ResourceOptionsDto;
 import org.cibseven.bpm.engine.rest.dto.authorization.AuthorizationCheckResultDto;
@@ -128,6 +130,12 @@ public class AuthorizationRestServiceImpl extends AbstractAuthorizedRestResource
   }
 
   @Override
+  public List<AuthorizationDto> queryOwnAuthorizations(UriInfo uriInfo) {
+    AuthorizationQueryDto queryDto = new AuthorizationQueryDto(getObjectMapper(), uriInfo.getQueryParameters());
+    return queryOwnAuthorizations(queryDto);
+  }
+
+  @Override
   public ResourceOptionsDto availableOperations(UriInfo context) {
 
     UriBuilder baseUriBuilder = context.getBaseUriBuilder()
@@ -163,6 +171,52 @@ public class AuthorizationRestServiceImpl extends AbstractAuthorizedRestResource
     return AuthorizationDto.fromAuthorizationList(resultList, getProcessEngine().getProcessEngineConfiguration());
   }
 
+  /**
+   * Returns the authorizations that are applicable to the currently authenticated user.
+   *
+   * <p>Both queries are executed while the current engine authentication is temporarily cleared.
+   * This prevents the engine's authorization checks from filtering the queried authorization
+   * objects themselves, which would otherwise hide authorizations that are applicable to the
+   * current user.
+   *
+   * <p>Sorting is applied to the merged result in memory, since ordering two separate queries in
+   * the database does not yield a globally ordered result. Pagination is deliberately not
+   * supported: it cannot be pushed down to either query, so it would require fetching both
+   * result sets completely and would only be meaningful once the engine provides a single query
+   * that combines user and group authorizations.
+   */
+  public List<AuthorizationDto> queryOwnAuthorizations(AuthorizationQueryDto queryDto) {
+    IdentityService identityService = getIdentityService();
+    Authentication currentAuthentication = identityService.getCurrentAuthentication();
+    if (currentAuthentication == null) {
+      throw new InvalidRequestException(Status.UNAUTHORIZED, "You must be authenticated in order to use this resource.");
+    }
+
+    List<String> groups = currentAuthentication.getGroupIds();
+    // toQuery() also validates the sorting options, so it must be called before the
+    // authentication is cleared in order to report invalid requests unchanged
+    AuthorizationQuery userQuery = createUserAuthorizationQuery(queryDto, currentAuthentication).toQuery(getProcessEngine());
+    AuthorizationQuery groupQuery = null;
+    if (groups != null && !groups.isEmpty()) {
+      groupQuery = createGroupAuthorizationQuery(queryDto, groups.toArray(new String[0])).toQuery(getProcessEngine());
+    }
+
+    List<Authorization> resultList = new ArrayList<>();
+    try {
+      identityService.clearAuthentication();
+      resultList.addAll(userQuery.list());
+      if(groupQuery != null) {
+        resultList.addAll(groupQuery.list());
+      }
+    } finally {
+      identityService.setAuthentication(currentAuthentication);
+    }
+
+    sortOwnAuthorizations(resultList, queryDto);
+
+    return AuthorizationDto.fromAuthorizationList(resultList, getProcessEngine().getProcessEngineConfiguration());
+  }
+
   @Override
   public CountResultDto getAuthorizationCount(UriInfo uriInfo) {
     AuthorizationQueryDto queryDto = new AuthorizationQueryDto(getObjectMapper(), uriInfo.getQueryParameters());
@@ -191,6 +245,56 @@ public class AuthorizationRestServiceImpl extends AbstractAuthorizedRestResource
 
   protected IdentityService getIdentityService() {
     return getProcessEngine().getIdentityService();
+  }
+
+  protected void sortOwnAuthorizations(List<Authorization> authorizations, AuthorizationQueryDto queryDto) {
+    String sortBy = queryDto.getSortBy();
+    if(sortBy == null) {
+      return;
+    }
+
+    Comparator<Authorization> comparator;
+    if(AuthorizationQueryDto.SORT_BY_RESOURCE_TYPE.equals(sortBy)) {
+      comparator = Comparator.comparingInt(Authorization::getResourceType);
+    } else {
+      comparator = Comparator.comparing(Authorization::getResourceId, Comparator.nullsFirst(Comparator.naturalOrder()));
+    }
+
+    if(AbstractQueryDto.SORT_ORDER_DESC_VALUE.equals(queryDto.getSortOrder())) {
+      comparator = comparator.reversed();
+    }
+
+    authorizations.sort(comparator);
+  }
+
+  /**
+   * Copies the given query and drops every filter that would allow the caller to widen the
+   * query beyond its own authorizations. Only the resource filters and the sorting options
+   * are kept.
+   */
+  protected AuthorizationQueryDto createOwnAuthorizationQueryTemplate(AuthorizationQueryDto queryDto) {
+    AuthorizationQueryDto ownAuthorizationQueryDto = new AuthorizationQueryDto(queryDto);
+    ownAuthorizationQueryDto.setId(null);
+    ownAuthorizationQueryDto.setType(null);
+    ownAuthorizationQueryDto.setUserIdIn(null);
+    ownAuthorizationQueryDto.setGroupIdIn(null);
+
+    return ownAuthorizationQueryDto;
+  }
+
+  protected AuthorizationQueryDto createUserAuthorizationQuery(AuthorizationQueryDto queryDto, Authentication currentAuthentication) {
+    AuthorizationQueryDto userQueryDto = createOwnAuthorizationQueryTemplate(queryDto);
+    // ANY matches the authorizations that apply to every user, including the global ones
+    userQueryDto.setUserIdIn(new String[] { currentAuthentication.getUserId(), ANY });
+
+    return userQueryDto;
+  }
+
+  protected AuthorizationQueryDto createGroupAuthorizationQuery(AuthorizationQueryDto queryDto, String[] groupIds) {
+    AuthorizationQueryDto groupQueryDto = createOwnAuthorizationQueryTemplate(queryDto);
+    groupQueryDto.setGroupIdIn(groupIds);
+
+    return groupQueryDto;
   }
 
   protected List<String> getUserGroups(String userId) {

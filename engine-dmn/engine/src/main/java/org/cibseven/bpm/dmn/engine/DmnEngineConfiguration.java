@@ -151,7 +151,7 @@ public abstract class DmnEngineConfiguration {
    * Set the list of post decision evaluation listeners. They will be notified after
    * the default decision evaluation listeners.
    *
-   * @param decisionTableEvaluationListeners the list of post decision evaluation listeners
+   * @param decisionEvaluationListeners the list of post decision evaluation listeners
    * @return this configuration
    */
 
