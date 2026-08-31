@@ -18,14 +18,20 @@ package org.cibseven.bpm.spring.boot.starter.webapp;
 
 import java.util.Map;
 
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.Filter;
+
 import org.cibseven.bpm.spring.boot.starter.CamundaBpmAutoConfiguration;
 import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
 import org.cibseven.bpm.spring.boot.starter.property.WebappProperty;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.LazyDelegateFilter.InitHook;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.LazyInitRegistration;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.ResourceLoaderDependingFilter;
+import org.cibseven.bpm.spring.boot.starter.webapp.filter.SsoLogoutInjectionFilter;
 import org.cibseven.webapp.rest.BaseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -79,7 +85,29 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer, WebM
   public FaviconResourceResolver faviconResourceResolver() {
     return new FaviconResourceResolver();
   }
-  
+
+  /**
+   * Only registered once an end session endpoint is configured, so that installations without
+   * single sign on keep the logout behaviour they have.
+   */
+  @Bean
+  @ConditionalOnProperty(prefix = "cibseven.webclient.sso", name = "endpoints.logout")
+  public FilterRegistrationBean<Filter> ssoLogoutInjectionFilter(
+      @Value("${cibseven.webclient.sso.endpoints.logout:}") String endSessionEndpoint,
+      @Value("${cibseven.webclient.sso.clientId:}") String clientId) {
+    String applicationPath = properties.getWebapp().getApplicationPath();
+
+    FilterRegistrationBean<Filter> filterRegistration = new FilterRegistrationBean<>();
+    filterRegistration.setName("SSO Logout Injection Filter");
+    filterRegistration.setFilter(new SsoLogoutInjectionFilter(applicationPath, endSessionEndpoint, clientId));
+    // the filter picks the pages it rewrites itself, everything else passes straight through
+    filterRegistration.addUrlPatterns(applicationPath + "/*");
+    // the entry point of the application reaches the index through a forward, see addViewControllers
+    filterRegistration.setDispatcherTypes(DispatcherType.REQUEST, DispatcherType.FORWARD);
+    return filterRegistration;
+  }
+
+
   @Override
   public RequestMappingHandlerMapping getRequestMappingHandlerMapping() {
     RequestMappingHandlerMapping mapping = new RequestMappingHandlerMapping();
