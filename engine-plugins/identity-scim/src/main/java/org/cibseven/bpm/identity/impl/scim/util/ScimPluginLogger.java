@@ -32,8 +32,13 @@ public class ScimPluginLogger extends BaseLogger {
     logInfo("001", "PLUGIN {} activated on process engine {}", pluginClassName, engineName);
   }
 
-  public void acceptingUntrustedCertificates() {
-    logWarn("002", "Enabling accept of untrusted certificates. Use at own risk.");
+  public void acceptingUntrustedCertificatesNoLongerSupported() {
+    logError("002", "Property 'acceptUntrustedCertificates' is no longer supported and is ignored: "
+        + "disabling TLS certificate validation exposes the SCIM connection to man-in-the-middle attacks. "
+        + "To connect to a SCIM server with a self-signed or privately issued certificate, export that "
+        + "certificate and configure 'trustStore', 'trustStorePassword' and optionally 'trustStoreType' instead. "
+        + "If the certificate does not match the host name of 'serverUrl', additionally set "
+        + "'hostnameVerificationEnabled' to false.");
   }
 
   public void httpClientException(String operation, Exception e) {
@@ -112,5 +117,13 @@ public class ScimPluginLogger extends BaseLogger {
 
   public void userCacheUnavailable() {
     logWarn("015", "SCIM can't cache authenticated user");
+  }
+
+  public void usingTrustStore(String trustStore, String trustStoreType) {
+    logInfo("016", "SCIM using trust store {} of type {}", trustStore, trustStoreType);
+  }
+
+  public void hostnameVerificationDisabled() {
+    logWarn("017", "Disabling TLS hostname verification. Use at own risk.");
   }
 }

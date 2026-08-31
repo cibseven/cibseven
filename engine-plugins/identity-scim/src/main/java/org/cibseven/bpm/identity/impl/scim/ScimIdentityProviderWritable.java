@@ -33,7 +33,6 @@ import org.cibseven.bpm.engine.impl.identity.IdentityProviderException;
 import org.cibseven.bpm.engine.impl.identity.WritableIdentityProvider;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import static org.cibseven.bpm.engine.impl.context.Context.getCommandContext;
@@ -304,14 +303,12 @@ public class ScimIdentityProviderWritable extends ScimIdentityProviderReadOnly i
     
     // simplest for now: compare textual representation of the top-level values
     HashSet<String> topLevelFields = new HashSet<>();
-    Iterator<Map.Entry<String, JsonNode>> itOld = first.fields();
-    while (itOld.hasNext()) {
-      topLevelFields.add(itOld.next().getKey());
+    for (Map.Entry<String, JsonNode> field : first.properties()) {
+      topLevelFields.add(field.getKey());
     }
 
-    Iterator<Map.Entry<String, JsonNode>> itNew = second.fields();
-    while (itNew.hasNext()) {
-      topLevelFields.add(itNew.next().getKey());
+    for (Map.Entry<String, JsonNode> field : second.properties()) {
+      topLevelFields.add(field.getKey());
     }
      
     for (String field : topLevelFields) {

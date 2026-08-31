@@ -101,7 +101,11 @@ This plugin provides integration with SCIM 2.0 (System for Cross-domain Identity
 
 ### SSL/TLS Settings
 - `useSsl`: Use SSL/TLS (default: true)
-- `acceptUntrustedCertificates`: Accept self-signed certificates (default: false, use with caution)
+- `trustStore`: Path to a trust store containing the SCIM server certificate or its issuing CA. If not set, the JVM default trust material is used.
+- `trustStorePassword`: Password of the trust store
+- `trustStoreType`: Trust store type, e.g. `JKS` or `PKCS12` (default: JVM default type)
+- `hostnameVerificationEnabled`: Verify that the server certificate matches the host name (default: true)
+- `acceptUntrustedCertificates`: **No longer supported and ignored.** Configure `trustStore` instead; if the certificate does not match the host name, additionally set `hostnameVerificationEnabled` to `false`.
 
 ### Other Settings
 - `authorizationCheckEnabled`: Enable authorization checks (default: true)

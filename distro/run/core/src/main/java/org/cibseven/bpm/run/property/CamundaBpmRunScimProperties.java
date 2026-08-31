@@ -22,6 +22,8 @@ public class CamundaBpmRunScimProperties extends ScimIdentityProviderPlugin {
 
   public static final String PREFIX = CamundaBpmRunProperties.PREFIX + ".scim";
 
+  protected static final String MASKED = "******"; // sensitive for logging
+
   boolean enabled = true;
 
   public boolean isEnabled() {
@@ -36,15 +38,15 @@ public class CamundaBpmRunScimProperties extends ScimIdentityProviderPlugin {
   public String toString() {
     return "CamundaBpmRunScimProperty [enabled=" + enabled +
         ", scimVersion=" + scimVersion +
-        ", serverUrl=******" + // sensitive for logging
-        ", authenticationType=******" + // sensitive for logging
-        ", username=******" + // sensitive for logging
-        ", password=******" + // sensitive for logging
-        ", bearerToken=******" + // sensitive for logging
-        ", oauth2TokenUrl=******" + // sensitive for logging
-        ", oauth2ClientId=******" + // sensitive for logging
-        ", oauth2ClientSecret=******" + // sensitive for logging
-        ", oauth2Scope=******" + // sensitive for logging
+        ", serverUrl=" + MASKED +
+        ", authenticationType=" + MASKED +
+        ", username=" + MASKED +
+        ", password=" + MASKED +
+        ", bearerToken=" + MASKED +
+        ", oauth2TokenUrl=" + MASKED +
+        ", oauth2ClientId=" + MASKED +
+        ", oauth2ClientSecret=" + MASKED +
+        ", oauth2Scope=" + MASKED +
         ", usersEndpoint=" + usersEndpoint +
         ", groupsEndpoint=" + groupsEndpoint +
         ", userBaseFilter=" + userBaseFilter +

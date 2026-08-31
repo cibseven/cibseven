@@ -33,25 +33,28 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.ssl.SSLContexts;
 import org.cibseven.bpm.engine.impl.identity.IdentityProviderException;
 import org.cibseven.bpm.identity.impl.scim.ScimClient.HttpMethod;
 import org.cibseven.bpm.identity.impl.scim.util.ScimPluginLogger;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyManagementException;
+import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -92,22 +95,33 @@ public class ScimClient {
     if (configuration.getServerUrl() == null || configuration.getServerUrl().isEmpty()) {
       throw new IdentityProviderException("Failed to check SCIM configuration: serverUrl is not set.");
     }
+    if (configuration.isAcceptUntrustedCertificates()) {
+      ScimPluginLogger.INSTANCE.acceptingUntrustedCertificatesNoLongerSupported();
+    }
+    if (isTrustStoreConfigured() && !Files.isReadable(Paths.get(configuration.getTrustStore()))) {
+      throw new IdentityProviderException(
+          "Failed to check SCIM configuration: trustStore is not readable: " + configuration.getTrustStore());
+    }
   }
 
-  @SuppressWarnings("deprecation")
+  protected boolean isTrustStoreConfigured() {
+    return configuration.getTrustStore() != null && !configuration.getTrustStore().isEmpty();
+  }
+
   protected void initializeHttpClient() {
     try {
       PoolingHttpClientConnectionManagerBuilder connectionManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create();
-      if (configuration.isAcceptUntrustedCertificates()) {
-        try {
-            SSLContext sslContext = createTrustAllSSLContext();
-            SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(
-                sslContext, NoopHostnameVerifier.INSTANCE);
-            connectionManagerBuilder.setSSLSocketFactory(sslSocketFactory);
+      SSLContext sslContext = createSslContext();
+      boolean verifyHostname = configuration.isHostnameVerificationEnabled();
+      if (sslContext != null || !verifyHostname) {
+        ClientTlsStrategyBuilder tlsStrategyBuilder = ClientTlsStrategyBuilder.create();
+        if (sslContext != null) {
+          tlsStrategyBuilder.setSslContext(sslContext);
         }
-        catch (KeyManagementException | NoSuchAlgorithmException e) {
-          throw new Exception("Failed to initialize trust-all ssl context", e);
+        if (!verifyHostname) {
+          tlsStrategyBuilder.setHostnameVerifier(NoopHostnameVerifier.INSTANCE);
         }
+        connectionManagerBuilder.setTlsSocketStrategy(tlsStrategyBuilder.buildClassic());
       }
       
       ConnectionConfig connectionConfig = ConnectionConfig.custom()
@@ -127,24 +141,28 @@ public class ScimClient {
     }
   }
 
-  protected SSLContext createTrustAllSSLContext() throws NoSuchAlgorithmException, KeyManagementException {
-    TrustManager[] trustAllCerts = new TrustManager[]{
-        new X509TrustManager() {
-          public X509Certificate[] getAcceptedIssuers() {
-            return null;
-          }
-
-          public void checkClientTrusted(X509Certificate[] certs, String authType) {
-          }
-
-          public void checkServerTrusted(X509Certificate[] certs, String authType) {
-          }
-        }
-    };
-
-    SSLContext sslContext = SSLContext.getInstance("TLS");
-    sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-    return sslContext;
+  /**
+   * @return the SSL context to use, or {@code null} to use the JVM default trust material
+   */
+  protected SSLContext createSslContext() throws NoSuchAlgorithmException, KeyManagementException {
+    if (!isTrustStoreConfigured()) {
+      return null;
+    }
+    Path trustStorePath = Paths.get(configuration.getTrustStore());
+    String type = configuration.getTrustStoreType() != null && !configuration.getTrustStoreType().isEmpty()
+        ? configuration.getTrustStoreType() : KeyStore.getDefaultType();
+    char[] password = configuration.getTrustStorePassword() != null
+        ? configuration.getTrustStorePassword().toCharArray() : null;
+    try {
+      KeyStore trustStore = KeyStore.getInstance(type);
+      try (InputStream in = Files.newInputStream(trustStorePath)) {
+        trustStore.load(in, password);
+      }
+      ScimPluginLogger.INSTANCE.usingTrustStore(trustStorePath.toString(), type);
+      return SSLContexts.custom().loadTrustMaterial(trustStore, null).build();
+    } catch (Exception e) {
+      throw new IdentityProviderException("Failed to load SCIM trust store: " + trustStorePath, e);
+    }
   }
 
   /**

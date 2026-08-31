@@ -38,7 +38,10 @@ public class ScimIdentityProviderPlugin extends ScimConfiguration implements Pro
         processEngineConfiguration.getProcessEngineName());
 
     if (isAcceptUntrustedCertificates()) {
-      ScimPluginLogger.INSTANCE.acceptingUntrustedCertificates();
+      ScimPluginLogger.INSTANCE.acceptingUntrustedCertificatesNoLongerSupported();
+    }
+    if (!isHostnameVerificationEnabled()) {
+      ScimPluginLogger.INSTANCE.hostnameVerificationDisabled();
     }
 
     ScimIdentityProviderFactory scimIdentityProviderFactory = new ScimIdentityProviderFactory();

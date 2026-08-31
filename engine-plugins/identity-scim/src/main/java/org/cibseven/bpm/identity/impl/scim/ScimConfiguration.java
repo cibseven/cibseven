@@ -72,7 +72,13 @@ public class ScimConfiguration {
   
   // SSL/TLS settings
   // Note: SSL/TLS is determined by the serverUrl scheme (https://)
+  /** @deprecated no longer supported, configure {@link #trustStore} instead */
+  @Deprecated
   protected boolean acceptUntrustedCertificates = false;
+  protected String trustStore;
+  protected String trustStorePassword;
+  protected String trustStoreType; // JKS, PKCS12, ...; defaults to the JVM default type
+  protected boolean hostnameVerificationEnabled = true;
   
   // Authorization settings
   protected boolean authorizationCheckEnabled = true;
@@ -304,12 +310,48 @@ public class ScimConfiguration {
     this.maxConnections = maxConnections;
   }
 
+  /** @deprecated no longer supported, configure {@link #getTrustStore()} instead */
+  @Deprecated
   public boolean isAcceptUntrustedCertificates() {
     return acceptUntrustedCertificates;
   }
 
+  /** @deprecated no longer supported, configure {@link #setTrustStore(String)} instead */
+  @Deprecated
   public void setAcceptUntrustedCertificates(boolean acceptUntrustedCertificates) {
     this.acceptUntrustedCertificates = acceptUntrustedCertificates;
+  }
+
+  public String getTrustStore() {
+    return trustStore;
+  }
+
+  public void setTrustStore(String trustStore) {
+    this.trustStore = trustStore;
+  }
+
+  public String getTrustStorePassword() {
+    return trustStorePassword;
+  }
+
+  public void setTrustStorePassword(String trustStorePassword) {
+    this.trustStorePassword = trustStorePassword;
+  }
+
+  public String getTrustStoreType() {
+    return trustStoreType;
+  }
+
+  public void setTrustStoreType(String trustStoreType) {
+    this.trustStoreType = trustStoreType;
+  }
+
+  public boolean isHostnameVerificationEnabled() {
+    return hostnameVerificationEnabled;
+  }
+
+  public void setHostnameVerificationEnabled(boolean hostnameVerificationEnabled) {
+    this.hostnameVerificationEnabled = hostnameVerificationEnabled;
   }
 
   public boolean isAuthorizationCheckEnabled() {

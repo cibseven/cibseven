@@ -621,7 +621,9 @@ public class ScimIdentityProviderReadOnly implements ReadOnlyIdentityProvider {
         result = scimUser != null && scimUser.getScimId() != null;
       } else if ("scim".equalsIgnoreCase(scimConfiguration.getUserAuthenticationProtocol())) {
         String userIdAttrib = scimConfiguration.getUserIdAttribute();
-        String filter = userIdAttrib + " eq \"" + escapeScimFilter(userId) + "\" and password eq \"" + escapeScimFilter(password) + "\"";
+        String passwordAttrib = scimConfiguration.getUserPasswordAttribute();
+        String filter = userIdAttrib + " eq \"" + escapeScimFilter(userId) + "\" and "
+            + passwordAttrib + " eq \"" + escapeScimFilter(password) + "\"";
         result = scimClient.checkUserWithSearchFilter(userId, filter);
       } else if ("oidc".equalsIgnoreCase(scimConfiguration.getUserAuthenticationProtocol())) {
         result = scimClient.checkUserPasswordWithOidc(userId, password);
