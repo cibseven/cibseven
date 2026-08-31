@@ -35,16 +35,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.batch.Batch;
 import org.cibseven.bpm.engine.repository.DeploymentQuery;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.restassured.http.ContentType;
 
@@ -54,7 +54,7 @@ import io.restassured.http.ContentType;
  */
 public class DeploymentRestServiceAsyncDeleteTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String RESOURCE_URL = TEST_RESOURCE_ROOT_PATH + "/deployment";
@@ -63,7 +63,7 @@ public class DeploymentRestServiceAsyncDeleteTest extends AbstractRestServiceTes
   protected RepositoryService mockRepositoryService;
 
   // must not be named setUp() to keep AbstractRestServiceTest#setUp() (engine mock init) running
-  @Before
+  @BeforeEach
   public void setUpMocks() {
     mockRepositoryService = mock(RepositoryService.class);
     when(processEngine.getRepositoryService()).thenReturn(mockRepositoryService);
