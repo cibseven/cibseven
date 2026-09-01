@@ -109,30 +109,34 @@ public class ProcessEngineRule implements BeforeEachCallback, AfterEachCallback,
     // Optionally handle deployment setup if needed for JUnit 5
     // Deployment annotation handling can be added here if required
     //rest of apply() code:
-    Optional<Method> method = context.getTestMethod();
-    Optional<Class<?>> testClass = context.getTestClass();
+    if (!context.getTestMethod().isPresent() || !context.getTestClass().isPresent()) {
+      // not a regular test method (e.g. class-level lifecycle callback) - nothing more to do
+      return;
+    }
+    Method method = context.getTestMethod().get();
+    Class<?> testClass = context.getTestClass().get();
 
     RequiredHistoryLevel reqHistoryLevel = context.getElement().map(
         element -> element.getAnnotation(RequiredHistoryLevel.class)).orElse(null);
     boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine,
-        reqHistoryLevel, testClass.get(), method.get().getName());
+        reqHistoryLevel, testClass, method.getName());
 
-    RequiredDatabase requiredDatabase = method.get().getAnnotation(RequiredDatabase.class);
+    RequiredDatabase requiredDatabase = method.getAnnotation(RequiredDatabase.class);
     boolean runsWithRequiredDatabase = TestHelper.annotationRequiredDatabaseCheck(processEngine,
-    requiredDatabase, testClass.get(), method.get().getName());
+    requiredDatabase, testClass, method.getName());
     assumeTrue(hasRequiredHistoryLevel, "ignored because the current history level is too low");
     assumeTrue(runsWithRequiredDatabase, "ignored because the database doesn't match the required ones");
 
 
     //from starting(Description description) method
-    String methodName = method.get().getName();
+    String methodName = method.getName();
     if (methodName != null) {
       // cut off method variant suffix "[variant name]" for parameterized tests
       int methodNameVariantStart = methodName.indexOf('[');
       int methodNameEnd = methodNameVariantStart < 0 ? methodName.length() : methodNameVariantStart;
       methodName = methodName.substring(0, methodNameEnd);
     }
-    deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, testClass.get(), methodName, method.get().getParameterTypes());
+    deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, testClass, methodName, method.getParameterTypes());
   
   }
 
