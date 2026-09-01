@@ -38,6 +38,24 @@
         <scope>import</scope>
         <type>pom</type>
       </dependency>
+
+      <!-- Temporary Apache HttpComponents CVE overrides.
+           Remove these once the imported Spring Boot BOM manages fixed versions. -->
+      <dependency>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5</artifactId>
+        <version>${version.httpclient5}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5</artifactId>
+        <version>${version.httpcore5}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5-h2</artifactId>
+        <version>${version.httpcore5}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   

@@ -20,8 +20,8 @@
   <properties>
     <version.quarkus>3.27.0</version.quarkus>
     <version.spring.framework>5.3.39</version.spring.framework>
-    <version.spring.framework6>6.2.11</version.spring.framework6>
-    <version.spring.framework7>7.0.6</version.spring.framework7>
+    <version.spring.framework6>6.2.19</version.spring.framework6>
+    <version.spring.framework7>7.0.9</version.spring.framework7>
     <version.spring-boot>3.5.15</version.spring-boot>
     <version.spring-boot4>4.0.7</version.spring-boot4>
     <version.resteasy>3.15.6.Final</version.resteasy>
@@ -29,7 +29,7 @@
     <!-- use minimum version of resteasy and jersey -->
     <version.jaxrs.api>2.0.1.Final</version.jaxrs.api>
     <version.groovy>5.0.4</version.groovy>
-    <version.graal.js>21.3.12</version.graal.js>
+    <version.graal.js>21.3.19.1</version.graal.js>
     <version.icu.icu4j>71.1</version.icu.icu4j>
     <!-- json-smart and accessors-smart are runtime dependencies of json-path -->
     <version.json-path>2.9.0</version.json-path>
@@ -45,15 +45,15 @@
     <version.xml.jaxb-impl>2.3.6</version.xml.jaxb-impl>
     <version.xml.jaxb-impl4>4.0.5</version.xml.jaxb-impl4>
     <version.jakarta.xml.bind-api>4.0.2</version.jakarta.xml.bind-api>
-    <version.httpclient5>5.5</version.httpclient5>
-    <version.httpcore5>5.3.4</version.httpcore5>
+    <version.httpclient5>5.6.4</version.httpclient5>
+    <version.httpcore5>5.4.3</version.httpcore5>
     <version.cronutils>9.2.1</version.cronutils>
     <version.jjwt>0.12.6</version.jjwt>
     <version.caffeine>3.2.4</version.caffeine>
 
-    <version.slf4j>1.7.26</version.slf4j>
+    <version.slf4j>1.7.36</version.slf4j>
     <version.logback>1.2.13</version.logback>
-    <version.log4j2>2.25.4</version.log4j2>
+    <version.log4j2>2.25.5</version.log4j2>
     <version.junit>4.13.1</version.junit>
     <version.assertj>2.9.1</version.assertj>
     <version.mockito>5.17.0</version.mockito>
@@ -66,7 +66,7 @@
     <version.bouncycastle>1.47</version.bouncycastle>
 
     <!-- application servers -->
-    <version.wildfly>41.0.0.Final</version.wildfly>
+    <version.wildfly>41.0.1.Final</version.wildfly>
     <version.wildfly.core>33.0.0.Final</version.wildfly.core>
 
     <!-- Overrides the lz4-java shipped inside wildfly-dist (1.10.4 in WildFly 41),
@@ -180,6 +180,24 @@
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-to-slf4j</artifactId>
         <version>${version.log4j2}</version>
+      </dependency>
+
+      <!-- Temporary Apache HttpComponents CVE overrides.
+           Remove these once the imported Spring Boot BOM manages fixed versions. -->
+      <dependency>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5</artifactId>
+        <version>${version.httpclient5}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5</artifactId>
+        <version>${version.httpcore5}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5-h2</artifactId>
+        <version>${version.httpcore5}</version>
       </dependency>
 
     </dependencies>
