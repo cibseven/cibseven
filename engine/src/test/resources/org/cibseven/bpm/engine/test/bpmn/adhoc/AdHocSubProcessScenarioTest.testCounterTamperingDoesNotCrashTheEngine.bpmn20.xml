@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             targetNamespace="http://cibseven.org/adhoc">
+
+  <process id="adHocTamper" isExecutable="true">
+
+    <startEvent id="start" />
+    <sequenceFlow id="toAdHoc" sourceRef="start" targetRef="adHoc" />
+
+    <!-- "tamper" is an ordinary child of the scope. It writes the very process
+         variable the implementation uses as its activation counter. setVariable
+         walks up the execution hierarchy, finds the variable on the ad hoc scope
+         execution and overwrites the parent's counter.
+
+         Two things make this fixture load-bearing, so do not "simplify" it:
+
+         1. The write goes through a JUEL expression, so the value arrives as a
+            Long, not an Integer. AdHocSubProcessActivityBehavior.getActivatedCount
+            must therefore read it as a Number; a plain (Integer) cast throws
+            ClassCastException from inside a PVM atomic operation. This is the only
+            fixture in the suite that exercises that path.
+         2. taskA gives the scope a live child, so the tamper lands while the scope
+            is in a well-defined state rather than already draining. -->
+    <adHocSubProcess id="adHoc" cancelRemainingInstances="true">
+      <userTask id="taskA" name="Task A" />
+      <serviceTask id="tamper" name="Tamper"
+                   camunda:expression="${execution.setVariable('nrOfActivatedInstances', 0)}" />
+    </adHocSubProcess>
+
+    <sequenceFlow id="toEnd" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+
+  </process>
+</definitions>

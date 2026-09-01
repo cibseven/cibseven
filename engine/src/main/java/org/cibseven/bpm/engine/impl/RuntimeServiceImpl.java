@@ -45,6 +45,8 @@ import org.cibseven.bpm.engine.impl.cmd.ResolveIncidentCmd;
 import org.cibseven.bpm.engine.impl.cmd.SetAnnotationForIncidentCmd;
 import org.cibseven.bpm.engine.impl.cmd.SetExecutionVariablesCmd;
 import org.cibseven.bpm.engine.impl.cmd.SignalCmd;
+import org.cibseven.bpm.engine.impl.cmd.CompleteAdHocSubProcessCmd;
+import org.cibseven.bpm.engine.impl.cmd.TriggerAdHocActivitiesCmd;
 import org.cibseven.bpm.engine.impl.cmd.batch.DeleteProcessInstanceBatchCmd;
 import org.cibseven.bpm.engine.impl.cmd.batch.variables.SetVariablesToProcessInstancesBatchCmd;
 import org.cibseven.bpm.engine.impl.migration.MigrationPlanBuilderImpl;
@@ -825,4 +827,27 @@ public class RuntimeServiceImpl extends ServiceImpl implements RuntimeService {
   public ConditionEvaluationBuilder createConditionEvaluation() {
     return new ConditionEvaluationBuilderImpl(commandExecutor);
   }
+
+  @Override
+  public List<String> triggerAdHocActivities(String executionId, Collection<String> activityIds) {
+    return triggerAdHocActivities(executionId, activityIds, null);
+  }
+
+  @Override
+  public List<String> triggerAdHocActivities(String executionId, Collection<String> activityIds,
+      Map<String, Map<String, Object>> activityVariables) {
+    return commandExecutor.execute(
+        new TriggerAdHocActivitiesCmd(executionId, activityIds, activityVariables));
+  }
+
+  @Override
+  public void completeAdHocSubProcess(String executionId) {
+    completeAdHocSubProcess(executionId, null);
+  }
+
+  @Override
+  public void completeAdHocSubProcess(String executionId, Map<String, Object> variables) {
+    commandExecutor.execute(new CompleteAdHocSubProcessCmd(executionId, variables));
+  }
+
 }

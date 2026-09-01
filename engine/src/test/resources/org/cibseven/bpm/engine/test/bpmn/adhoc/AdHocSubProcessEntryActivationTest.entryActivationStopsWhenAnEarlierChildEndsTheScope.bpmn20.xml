@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc">
+  <process id="adHocBatchCond" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="toAdHoc" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc" cancelRemainingInstances="true">
+      <extensionElements>
+        <camunda:properties>
+          <camunda:property name="activeActivityIds" value="sync,taskA" />
+        </camunda:properties>
+      </extensionElements>
+      <!-- synchronous, and it makes the completion condition true as it runs -->
+      <serviceTask id="sync" camunda:expression="${execution.setVariable('enough', true)}" />
+      <userTask id="taskA" name="Task A" />
+      <completionCondition xsi:type="tFormalExpression">${execution.hasVariable('enough') and enough}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="toEnd" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

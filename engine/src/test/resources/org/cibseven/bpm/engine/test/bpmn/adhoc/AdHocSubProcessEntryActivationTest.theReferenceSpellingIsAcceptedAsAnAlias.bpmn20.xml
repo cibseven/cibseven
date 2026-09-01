@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc">
+  <process id="adHocEntryAlias" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="toAdHoc" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <extensionElements>
+        <camunda:properties>
+          <camunda:property name="activeTasksCollection" value="taskA,taskB" />
+        </camunda:properties>
+      </extensionElements>
+      <userTask id="taskA" name="Task A" />
+      <userTask id="taskB" name="Task B" />
+      <userTask id="taskC" name="Task C" />
+      <completionCondition xsi:type="tFormalExpression">${false}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="toEnd" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- An error thrown by an ad hoc child must reach a boundary error event on the scope, and taking it
+     must cancel the scope including any child still active. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <error id="theError" errorCode="23" name="Business fault" />
+  <process id="adHocBoundaryError" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <userTask id="taskA" />
+      <serviceTask id="boom"
+          camunda:class="org.cibseven.bpm.engine.test.bpmn.event.error.ThrowBpmnErrorDelegate" />
+    </adHocSubProcess>
+    <boundaryEvent id="onError" attachedToRef="adHoc">
+      <errorEventDefinition errorRef="theError" />
+    </boundaryEvent>
+    <sequenceFlow id="f3" sourceRef="onError" targetRef="handled" />
+    <userTask id="handled" />
+    <sequenceFlow id="f4" sourceRef="handled" targetRef="end" />
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

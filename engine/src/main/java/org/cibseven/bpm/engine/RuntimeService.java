@@ -2416,4 +2416,91 @@ public interface RuntimeService {
    */
   ConditionEvaluationBuilder createConditionEvaluation();
 
+
+  /**
+   * Starts one or more children of an ad hoc sub process.
+   *
+   * <p>An ad hoc sub process starts nothing on entry: BPMN 2.0.0 section 10.3.5 leaves the sequence
+   * and number of performances to the performers, so a performer has to say what to start.
+   *
+   * <p>Only a directly startable child can be started. A child is directly startable if it is an
+   * activity and has no incoming sequence flow from within the scope, so a gateway or an
+   * intermediate event inside the scope is reachable by flow but never started directly.
+   *
+   * <p>All or nothing: every activity id is validated before anything is created, so a call naming
+   * one unknown activity starts none of the others.
+   *
+   * @param executionId the execution of the ad hoc sub process scope itself
+   * @param activityIds the ids of the children to start; an activity may appear more than once,
+   *          because the specification allows an activity to be performed multiple times
+   * @return the activity instance ids of the started activities, in the order given, including for
+   *         an activity that ran to completion synchronously during the call. An entry is
+   *         <code>null</code> where that activity was not started because an earlier one in the same
+   *         batch ran synchronously and satisfied the scope's completion condition, which ends the
+   *         scope and cancels whatever it had not started yet
+   *
+   * @throws BadUserRequestException if the execution does not exist, is not an ad hoc sub process
+   *           scope, or any of the activity ids is not directly startable
+   * @throws AuthorizationException if the user has no {@link Permissions#UPDATE} permission on
+   *           {@link Resources#PROCESS_INSTANCE} or no {@link Permissions#UPDATE_INSTANCE}
+   *           permission on {@link Resources#PROCESS_DEFINITION}
+   */
+  List<String> triggerAdHocActivities(String executionId, Collection<String> activityIds);
+
+  /**
+   * Starts one or more children of an ad hoc sub process, each with its own variables.
+   *
+   * <p>Variables are set on the started child's execution rather than on the scope. That is
+   * deliberate: the runtime variable table is unique on scope and name, so variables keyed by
+   * activity id on the scope would make a second performance of the same child overwrite the first.
+   *
+   * <p>They are keyed per activity <em>definition</em>, not per performance. If {@code activityIds}
+   * names the same activity twice, both performances receive the same variables. To give two
+   * performances of one activity different variables, call this once per performance.
+   *
+   * @param executionId the execution of the ad hoc sub process scope itself
+   * @param activityIds the ids of the children to start
+   * @param activityVariables variables per activity id, applied locally to the execution of every
+   *          performance of that activity in this call; may be null, and may name only some of the
+   *          activities
+   * @return the activity instance ids of the started activities, in the order given. An entry is
+   *         <code>null</code> where that activity was not started because an earlier one in the same
+   *         batch ran synchronously and satisfied the scope's completion condition, which ends the
+   *         scope and cancels whatever it had not started yet
+   *
+   * @see #triggerAdHocActivities(String, Collection)
+   */
+  List<String> triggerAdHocActivities(String executionId, Collection<String> activityIds,
+      Map<String, Map<String, Object>> activityVariables);
+
+  /**
+   * Ends an ad hoc sub process, cancelling whatever is still running inside it.
+   *
+   * <p>The performers decide when an ad hoc scope is finished. Without this, a scope whose
+   * completion condition never becomes true has no exit short of deleting the process instance.
+   *
+   * <p>Running children are cancelled whether or not {@code cancelRemainingInstances} is set. That
+   * attribute governs what happens when the completion condition is satisfied, not what happens
+   * when a performer explicitly says the scope is done.
+   *
+   * @param executionId the execution of the ad hoc sub process scope itself
+   *
+   * @throws BadUserRequestException if the execution does not exist or is not an ad hoc sub process
+   *           scope
+   * @throws AuthorizationException if the user has no {@link Permissions#UPDATE} permission on
+   *           {@link Resources#PROCESS_INSTANCE} or no {@link Permissions#UPDATE_INSTANCE}
+   *           permission on {@link Resources#PROCESS_DEFINITION}
+   */
+  void completeAdHocSubProcess(String executionId);
+
+  /**
+   * Ends an ad hoc sub process after setting variables on it.
+   *
+   * @param executionId the execution of the ad hoc sub process scope itself
+   * @param variables variables to set on the scope execution before it ends; may be null
+   *
+   * @see #completeAdHocSubProcess(String)
+   */
+  void completeAdHocSubProcess(String executionId, Map<String, Object> variables);
+
 }

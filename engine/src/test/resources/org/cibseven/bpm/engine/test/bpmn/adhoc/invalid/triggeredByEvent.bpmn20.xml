@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- An ad hoc event sub process. Schema-legal, but unreachable: an event sub process is started by
+     a start event, and BPMN 2.0.0 section 10.3.5 forbids a start event inside an ad hoc scope. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="adHocTriggeredByEvent" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="outer" />
+    <subProcess id="outer">
+      <startEvent id="innerStart" />
+      <sequenceFlow id="f2" sourceRef="innerStart" targetRef="hold" />
+      <userTask id="hold" />
+      <sequenceFlow id="f3" sourceRef="hold" targetRef="innerEnd" />
+      <endEvent id="innerEnd" />
+      <adHocSubProcess id="adHoc" triggeredByEvent="true">
+        <userTask id="taskA" />
+      </adHocSubProcess>
+    </subProcess>
+    <sequenceFlow id="f4" sourceRef="outer" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

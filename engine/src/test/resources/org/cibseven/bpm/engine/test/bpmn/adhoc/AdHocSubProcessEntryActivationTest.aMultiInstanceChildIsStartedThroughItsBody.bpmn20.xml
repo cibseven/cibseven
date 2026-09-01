@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc">
+  <process id="adHocEntryMi" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="toAdHoc" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <extensionElements>
+        <camunda:properties>
+          <camunda:property name="activeActivityIds" value="looped" />
+        </camunda:properties>
+      </extensionElements>
+      <userTask id="looped" name="Looped">
+        <multiInstanceLoopCharacteristics isSequential="false">
+          <loopCardinality>2</loopCardinality>
+        </multiInstanceLoopCharacteristics>
+      </userTask>
+      <completionCondition xsi:type="tFormalExpression">${false}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="toEnd" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>
