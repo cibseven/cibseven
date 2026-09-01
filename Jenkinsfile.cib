@@ -753,6 +753,8 @@ def isSNAPSHOTVersion() {
     return mavenProjectInformation.version.endsWith("-SNAPSHOT")
 }
 
+// Generates and deploys aggregate SBOMs for every shipped distro.
+// Independent distro reactors run in parallel to reduce deployment time.
 def deployDistroSboms() {
     Map sbomDeployRepository = getSbomDeployRepository()
 
@@ -774,6 +776,8 @@ def deployDistroSboms() {
     parallel parallelScans
 }
 
+// Resolves the Maven repository receiving distro SBOMs.
+// Patch versions use the private repository; other versions use distributionManagement.
 def getSbomDeployRepository() {
     String sbomDeployRepositoryId = ""
     String sbomDeployRepositoryUrl = ""
@@ -803,6 +807,8 @@ def getSbomDeployRepository() {
     return [id: sbomDeployRepositoryId, url: sbomDeployRepositoryUrl]
 }
 
+// Generates one distro-wide aggregate SBOM and deploys its JSON and XML attachments.
+// Snapshot attachments use the timestamped version of the already deployed distro artifact.
 def generateAndDeployDistroSbom(String relPath, String sbomBaseName, String repositoryId, String repositoryUrl) {
     withMaven(options: []) {
         sh "mvn -V -f ${relPath}/pom.xml org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom -DexcludeTestProject -DskipTests -DoutputName=${sbomBaseName}"
@@ -829,6 +835,8 @@ def generateAndDeployDistroSbom(String relPath, String sbomBaseName, String repo
     }
 }
 
+// Resolves the timestamped Maven version needed to attach SBOMs to an existing snapshot.
+// Release versions are used unchanged.
 def getSbomDeployVersion(String groupId, String artifactId, String version, String repositoryId) {
     if (!version.endsWith("-SNAPSHOT")) {
         return version
