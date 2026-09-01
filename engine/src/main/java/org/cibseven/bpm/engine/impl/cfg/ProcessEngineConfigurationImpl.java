@@ -284,6 +284,7 @@ import org.cibseven.bpm.engine.impl.migration.validation.instruction.Conditional
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.GatewayMappingValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.MigrationInstructionValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.OnlyOnceMappedActivityInstructionValidator;
+import org.cibseven.bpm.engine.impl.migration.validation.instruction.SameAdHocCompletionRuleValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.SameBehaviorInstructionValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.SameEventScopeInstructionValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.SameEventTypeValidator;
@@ -4809,6 +4810,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     migrationInstructionValidators.add(new UpdateEventTriggersValidator());
     migrationInstructionValidators.add(new AdditionalFlowScopeInstructionValidator());
     migrationInstructionValidators.add(new ConditionalEventUpdateEventTriggerValidator());
+    migrationInstructionValidators.add(new SameAdHocCompletionRuleValidator());
     return migrationInstructionValidators;
   }
 

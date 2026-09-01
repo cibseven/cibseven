@@ -281,6 +281,11 @@ public class ExecutionEntity extends PvmExecutionImpl implements Execution, Proc
     // make created execution start in same activity instance
     createdExecution.activityInstanceId = activityInstanceId;
 
+    // A scope activity is entered by a freshly created execution rather than by this one, so the
+    // sink has to travel with it or it would never fire for a scope. Harmless otherwise: it is null
+    // unless a command is currently waiting for one specific id, and it clears itself on first use.
+    createdExecution.setEnteredActivityInstanceIdSink(getEnteredActivityInstanceIdSink());
+
     // inherit the tenant id from parent execution
     if(tenantId != null) {
       createdExecution.setTenantId(tenantId);

@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.engine.impl.pvm.runtime.operation;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
 import org.cibseven.bpm.engine.impl.pvm.delegate.CompositeActivityBehavior;
 import org.cibseven.bpm.engine.impl.pvm.runtime.CompensationBehavior;
@@ -39,6 +41,18 @@ public abstract class PvmAtomicOperationActivityInstanceStart extends AbstractPv
     execution.incrementSequenceCounter();
     execution.activityInstanceStarting();
     execution.enterActivityInstance();
+
+    // A caller that started this activity and needs to know which instance it created cannot read
+    // the id afterwards: anything synchronous has already left the instance by then, and the
+    // execution reports the enclosing instance's id instead. Captured here, on the normal
+    // activity-start path only, and cleared at once so it holds the activity that was started
+    // rather than whatever that activity goes on to do.
+    AtomicReference<String> sink = execution.getEnteredActivityInstanceIdSink();
+    if (sink != null) {
+      sink.set(execution.getActivityInstanceId());
+      execution.setEnteredActivityInstanceIdSink(null);
+    }
+
     execution.setTransition(null);
 
     return execution;

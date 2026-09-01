@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import org.cibseven.bpm.engine.ActivityTypes;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
@@ -1298,6 +1299,32 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
   @Override
   public void setActivity(PvmActivity activity) {
     this.activity = (ActivityImpl) activity;
+  }
+
+  /**
+   * A one-shot slot for the id of the activity instance this execution is about to enter.
+   *
+   * <p>An activity instance id lives on the execution only between {@link #enterActivityInstance()}
+   * and {@link #leaveActivityInstance()}, which replaces it with the enclosing instance's. A caller
+   * that starts an activity and needs to know which instance it created therefore cannot read it
+   * afterwards: for anything synchronous it is already gone, and what is left looks like a valid id
+   * and is the wrong one.
+   *
+   * <p>Filled by {@code PvmAtomicOperationActivityInstanceStart}, which is the normal
+   * activity-start path, rather than by {@link #enterActivityInstance()} itself. That method is also
+   * reached when compensation and migration attach event scopes, and this has no business firing
+   * there.
+   *
+   * <p>Transient and null except for the duration of one such call, so nothing here is state.
+   */
+  protected transient AtomicReference<String> enteredActivityInstanceIdSink;
+
+  public void setEnteredActivityInstanceIdSink(AtomicReference<String> sink) {
+    this.enteredActivityInstanceIdSink = sink;
+  }
+
+  public AtomicReference<String> getEnteredActivityInstanceIdSink() {
+    return enteredActivityInstanceIdSink;
   }
 
   @Override

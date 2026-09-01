@@ -32,7 +32,7 @@
 					<xsd:element name="completionCondition" type="tExpression" minOccurs="0" maxOccurs="1"/>
 				</xsd:sequence>
 				<xsd:attribute name="cancelRemainingInstances" type="xsd:boolean" default="true"/>
-				<xsd:attribute name="ordering" type="tAdHocOrdering"/>
+				<xsd:attribute name="ordering" type="tAdHocOrdering" default="Parallel"/>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
