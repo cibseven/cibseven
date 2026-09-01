@@ -14,20 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.model.bpmn;
+package org.cibseven.bpm.model.bpmn.builder;
 
-/**
- * The BPMN tAdHocOrdering type.
- *
- * <p>{@link #Parallel} is the default, per BPMN 2.0.0 Table 10.22, so an absent {@code ordering}
- * attribute reads back as {@link #Parallel}.
- *
- * <p>Note that the engine currently supports {@link #Parallel} only; a model declaring
- * {@link #Sequential} is rejected at deployment rather than silently executed in parallel.
- */
-public enum AdHocOrdering {
+import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
+import org.cibseven.bpm.model.bpmn.instance.AdHocSubProcess;
 
-  Parallel,
-  Sequential
+public class AdHocSubProcessBuilder extends AbstractAdHocSubProcessBuilder<AdHocSubProcessBuilder> {
 
+  public AdHocSubProcessBuilder(BpmnModelInstance modelInstance, AdHocSubProcess element) {
+    super(modelInstance, element, AdHocSubProcessBuilder.class);
+  }
 }

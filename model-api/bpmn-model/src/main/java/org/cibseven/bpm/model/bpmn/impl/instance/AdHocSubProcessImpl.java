@@ -52,10 +52,15 @@ public class AdHocSubProcessImpl extends SubProcessImpl implements AdHocSubProce
         }
       });
 
+    // BPMN 2.0.0 Table 10.22 and the normative schema in Table 10.33 both give 'ordering' the
+    // default Parallel, so an absent attribute means Parallel and not "unspecified". Declared the
+    // same way as cancelRemainingInstances below, so the default lives in one place (AD-7).
     orderingAttribute = typeBuilder.namedEnumAttribute(BPMN_ATTRIBUTE_ORDERING, AdHocOrdering.class)
       .defaultValue(AdHocOrdering.Parallel)
       .build();
 
+    // The XSD declares default="true". A Java boolean primitive would default to false,
+    // so this default is declared once, here, and the parser reads it from the model (AD-7).
     cancelRemainingInstancesAttribute = typeBuilder.booleanAttribute(BPMN_ATTRIBUTE_CANCEL_REMAINING_INSTANCES)
       .defaultValue(true)
       .build();

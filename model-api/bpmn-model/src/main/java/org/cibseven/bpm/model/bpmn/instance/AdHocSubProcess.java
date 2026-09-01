@@ -32,9 +32,9 @@ public interface AdHocSubProcess extends SubProcess {
    * Returns the BPMN {@code ordering} attribute of the ad-hoc activities,
    * {@link AdHocOrdering#Parallel} when the attribute is absent.
    *
-   * <p>This is model metadata. In the current engine implementation ad-hoc
-   * runtime activation is parallel-only, and {@link AdHocOrdering#Sequential}
-   * is not enforced as execution behavior.
+   * <p>The engine implements {@link AdHocOrdering#Parallel} only. A model declaring
+   * {@link AdHocOrdering#Sequential} is rejected at deployment naming the attribute, rather than
+   * being accepted and executed in parallel.
    */
   AdHocOrdering getOrdering();
 
