@@ -19,6 +19,9 @@ package org.cibseven.bpm.engine.rest.sub.runtime;
 import org.cibseven.bpm.engine.rest.dto.CreateIncidentDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.ExecutionDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.ExecutionTriggerDto;
+import org.cibseven.bpm.engine.rest.dto.runtime.TriggerAdHocActivitiesDto;
+import org.cibseven.bpm.engine.rest.dto.runtime.AdHocActivityInstanceDto;
+import java.util.List;
 import org.cibseven.bpm.engine.rest.dto.runtime.IncidentDto;
 import org.cibseven.bpm.engine.rest.sub.VariableResource;
 
@@ -42,6 +45,27 @@ public interface ExecutionResource {
   
   @Path("/messageSubscriptions/{messageName}")
   EventSubscriptionResource getMessageEventSubscription(@PathParam("messageName") String messageName);
+
+  /**
+   * Starts one or more children of an ad hoc sub process.
+   *
+   * <p>Returns what it started, rather than 204, because a caller that starts activities inside a
+   * running instance needs the created activity instance ids to join an audit record against. That is
+   * the reason the engine API returns them too.
+   */
+  @POST
+  @Path("/ad-hoc-activities/trigger")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.APPLICATION_JSON)
+  List<AdHocActivityInstanceDto> triggerAdHocActivities(TriggerAdHocActivitiesDto dto);
+
+  /**
+   * Ends an ad hoc sub process, cancelling whatever is still running inside it.
+   */
+  @POST
+  @Path("/ad-hoc-activities/complete")
+  @Consumes(MediaType.APPLICATION_JSON)
+  void completeAdHocSubProcess(ExecutionTriggerDto dto);
 
   @POST
   @Path("/create-incident")

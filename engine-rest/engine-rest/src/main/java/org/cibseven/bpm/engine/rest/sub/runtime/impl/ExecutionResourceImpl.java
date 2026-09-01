@@ -16,6 +16,12 @@
  */
 package org.cibseven.bpm.engine.rest.sub.runtime.impl;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.AuthorizationException;
@@ -27,6 +33,8 @@ import org.cibseven.bpm.engine.rest.dto.CreateIncidentDto;
 import org.cibseven.bpm.engine.rest.dto.VariableValueDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.ExecutionDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.ExecutionTriggerDto;
+import org.cibseven.bpm.engine.rest.dto.runtime.AdHocActivityInstanceDto;
+import org.cibseven.bpm.engine.rest.dto.runtime.TriggerAdHocActivitiesDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.IncidentDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.exception.RestException;
@@ -91,6 +99,55 @@ public class ExecutionResourceImpl implements ExecutionResource {
   @Override
   public EventSubscriptionResource getMessageEventSubscription(String messageName) {
     return new MessageEventSubscriptionResource(engine, executionId, messageName, objectMapper);
+  }
+
+  @Override
+  public List<AdHocActivityInstanceDto> triggerAdHocActivities(TriggerAdHocActivitiesDto dto) {
+    List<String> activityIds = dto == null ? null : dto.getActivityIds();
+
+    Map<String, Map<String, Object>> activityVariables = null;
+    if (dto != null && dto.getActivityVariables() != null) {
+      activityVariables = new LinkedHashMap<>();
+      for (Map.Entry<String, Map<String, VariableValueDto>> entry : dto.getActivityVariables().entrySet()) {
+        activityVariables.put(entry.getKey(),
+            VariableValueDto.toMap(entry.getValue(), engine, objectMapper));
+      }
+    }
+
+    List<String> activityInstanceIds;
+    try {
+      activityInstanceIds = engine.getRuntimeService()
+          .triggerAdHocActivities(executionId, activityIds, activityVariables);
+
+      // BadUserRequestException, not ProcessEngineException. Everything this command refuses — an
+      // activity that is not directly startable, an unknown id, an execution that is not an ad hoc
+      // scope — is the caller's mistake and must be a 400. Letting it fall through to the generic
+      // engine-exception handler would report every one of them as a 500.
+    } catch (BadUserRequestException e) {
+      throw new InvalidRequestException(Status.BAD_REQUEST, e.getMessage());
+    }
+
+    List<AdHocActivityInstanceDto> result = new ArrayList<>();
+    Iterator<String> requested = activityIds.iterator();
+    for (String activityInstanceId : activityInstanceIds) {
+      result.add(new AdHocActivityInstanceDto(requested.next(), activityInstanceId));
+    }
+    return result;
+  }
+
+  @Override
+  public void completeAdHocSubProcess(ExecutionTriggerDto dto) {
+    VariableMap variables = dto == null ? null
+        : VariableValueDto.toMap(dto.getVariables(), engine, objectMapper);
+
+    try {
+      engine.getRuntimeService().completeAdHocSubProcess(executionId, variables);
+
+      // Caught here too, so the two endpoints behave the same way. The reference implementation
+      // catches it in one and not the other, which is worse than not catching it in either.
+    } catch (BadUserRequestException e) {
+      throw new InvalidRequestException(Status.BAD_REQUEST, e.getMessage());
+    }
   }
 
   @Override
