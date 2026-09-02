@@ -455,8 +455,25 @@ public final class ProcessContextResolver {
     return (value == null || value.isEmpty()) ? "unknown" : value;
   }
 
+  /**
+   * Quotes a descriptor field, escaping backslash and double quote inside it.
+   *
+   * <p>Needed because the descriptors this builds are rendered as
+   * <em>unquoted</em> values, and {@link #escape} deliberately leaves those two
+   * characters alone there — an unquoted value has no closing quote to break out
+   * of, so escaping them would only turn readable JSON into backslash noise. But
+   * a descriptor quotes a field of its own, and a filename is attacker-chosen:
+   * whoever uploads the file names it. A name containing {@code "} could
+   * otherwise close its own quote and go on to describe a file that does not
+   * exist, or claim its content was sent when it was not.
+   *
+   * <p>This escapes nothing the block relies on — newlines, tabs and the block
+   * delimiters are handled by {@link #escape} for every value regardless — so it
+   * closes an ambiguity inside the line, not an escape out of it. The two
+   * characters added here survive {@code escape(text, false)} untouched.
+   */
   private static String quote(String value) {
-    return "\"" + value + "\"";
+    return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
   }
 
   /**

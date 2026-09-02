@@ -16,6 +16,7 @@
  */
 package org.cibseven.connect.ai.agent.impl;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -90,6 +91,9 @@ public final class DocumentContentResolver {
   /** Image mime types LangChain4j and the OpenAI mapping actually accept. */
   private static final List<String> SUPPORTED_IMAGE_TYPES =
       List.of("image/png", "image/jpeg", "image/gif", "image/webp");
+
+  /** Chunk size for the bounded read in {@link #readBoundedBytes}. */
+  private static final int READ_CHUNK_BYTES = 8192;
 
   private DocumentContentResolver() {
     // utility class
@@ -237,7 +241,7 @@ public final class DocumentContentResolver {
       FileValue file = (FileValue) typed;
       filename = file.getFilename();
       mimeType = file.getMimeType();
-      bytes = readAllBytes(name, file.getValue());
+      bytes = readBoundedBytes(name, file.getValue(), limits.maxBytesPerDocument);
     } else if (typed instanceof BytesValue) {
       filename = name;
       // A BytesValue carries no metadata at all, so the modeler has to say what
@@ -267,6 +271,10 @@ public final class DocumentContentResolver {
     }
     mimeType = mimeType.trim();
 
+    // Reached only by the bytes path: the file path was already capped while
+    // reading, by readBoundedBytes. A BytesValue is handed to us as a finished
+    // array, so there is nothing to stop early — but its length is free, which
+    // is why this branch can name the actual size and the other one cannot.
     if (bytes.length > limits.maxBytesPerDocument) {
       throw new AgentConnectorException("Document '" + name + "' is " + bytes.length
           + " bytes, which exceeds the per-document limit of " + limits.maxBytesPerDocument
@@ -378,9 +386,11 @@ public final class DocumentContentResolver {
    * attachment with variable, filename, mime type, size, SHA-256 and the content
    * kind — and never a byte of the payload.
    *
-   * <p>The hash covers the Base64 form that was actually transmitted, so an
-   * auditor can prove which file reached the model without the audit log holding
-   * a second copy of it.
+   * <p>The hash covers the raw bytes of the variable — not the Base64 the
+   * connector transmits, and not the decoded text of a text document. Either
+   * derived form would force an auditor to reconstruct our encoding before they
+   * could compare; against the raw digest {@code sha256sum invoice.pdf} lines up
+   * with the descriptor directly, and the audit log still holds no copy.
    */
   static Map<String, Object> describe(List<ResolvedDocument> documents) {
     List<Map<String, Object>> entries = new ArrayList<>(documents.size());
@@ -484,13 +494,43 @@ public final class DocumentContentResolver {
         || lowerMimeType.endsWith("+xml");
   }
 
-  private static byte[] readAllBytes(String variable, InputStream in) {
+  /**
+   * Reads the stream of a file variable, refusing to buffer more than
+   * {@code maxBytes} of it.
+   *
+   * <p>{@code InputStream.readAllBytes()} would size the array from the content,
+   * so an oversized document was fully materialised and only then rejected by
+   * the per-document cap. With today's {@code FileValueImpl} — a {@code byte[]}
+   * field handed out as a {@link java.io.ByteArrayInputStream} — the engine has
+   * already loaded the file by the time we are called, so this does not save the
+   * first copy. It saves the second one, which for a document that is going to
+   * be rejected anyway is pure waste, and it keeps the cap meaningful if a file
+   * variable ever loads lazily.
+   *
+   * <p>Reading stops at the first chunk that crosses the limit, so the exact
+   * size is not known and the message does not claim one. The bytes path knows
+   * its length for free and does report it.
+   */
+  private static byte[] readBoundedBytes(String variable, InputStream in, int maxBytes) {
     if (in == null) {
       throw new AgentConnectorException(
           "Document variable '" + variable + "' is a file variable with no content.");
     }
     try (InputStream stream = in) {
-      return stream.readAllBytes();
+      ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+      byte[] chunk = new byte[READ_CHUNK_BYTES];
+      long total = 0;
+      int read;
+      while ((read = stream.read(chunk)) != -1) {
+        total += read;
+        if (total > maxBytes) {
+          throw new AgentConnectorException("Document '" + variable + "' exceeds the "
+              + "per-document limit of " + maxBytes + " bytes. Reading stopped there rather "
+              + "than buffering the rest, so the full size is not reported.");
+        }
+        buffer.write(chunk, 0, read);
+      }
+      return buffer.toByteArray();
     } catch (IOException e) {
       throw new AgentConnectorException(
           "Could not read the content of document variable '" + variable + "'", e);
