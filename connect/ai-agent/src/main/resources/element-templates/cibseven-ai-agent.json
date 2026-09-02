@@ -198,7 +198,7 @@
           "label": "Memory ID",
           "type": "String",
           "group": "memory",
-          "description": "Leave empty to start a new conversation (ID returned in output). Set ${memoryId} to reuse a known ID. In a loop use ${execution.getVariable('memoryId')}: creates memory on first iteration, reuses it on subsequent ones.",
+          "description": "Conversation id, scoped to THIS process instance. Leave empty to start a new conversation (ID returned in output). Set ${memoryId} to reuse a known ID. In a loop use ${execution.getVariable('memoryId')}: creates memory on first iteration, reuses it on subsequent ones. Reusing the same ID in a different process instance does NOT continue the conversation. Max 222 characters.",
           "placeholder": "${execution.getVariable('memoryId')}",
           "condition": {
             "property": "useChatMemory",
