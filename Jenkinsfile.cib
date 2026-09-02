@@ -465,10 +465,10 @@ pipeline {
                     // Call cyclonedx directly from the mvn command to avoid adding a new profile to the root pom.xml.
                     // Placed after "clean" to keep the generated files in the target, allowing to deploy them in one step.
                     // Do not add cyclonedx options, like -DoutputDirectory/-DoutputName, as global -D CLI flags, since
-                    // they can silently override parameters of unrelated plugins: if specific cyclonedx options are needed, 
+                    // they can silently override parameters of unrelated plugins: if specific cyclonedx options are needed,
                     // then add (or update) a pluginManagement entry for cyclonedx-maven-plugin in the root pom.xml instead.
                     String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
-                        "org.cyclonedx:cyclonedx-maven-plugin:makeBom org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
+                        "org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
 
                     withMaven(options: []) {
                         sh """
@@ -477,6 +477,13 @@ pipeline {
                                 -Pwebapps-integration ${deployment} \
                                 clean ${sbomGenerate} deploy
                         """
+                    }
+
+                    // Generate and deploy additional aggregate SBOMs for shipped distro modules.
+                    if (!params.DEPLOY_WITHOUT_SBOM) {
+                        stage('Deploy distro aggregate SBOMs') {
+                            deployDistroSboms()
+                        }
                     }
                 }
             }
@@ -494,7 +501,7 @@ pipeline {
                 script {
                     // See "Deploy to artifacts.cibseven.org" above for details about the sbom generation.
                     String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
-                        "org.cyclonedx:cyclonedx-maven-plugin:makeBom org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
+                        "org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
 
                     withMaven(options: []) {
                         withCredentials([file(credentialsId: 'credential-cibseven-gpg-private-key', variable: 'GPG_KEY_FILE'), string(credentialsId: 'credential-cibseven-gpg-passphrase', variable: 'GPG_KEY_PASS')]) {
@@ -744,6 +751,109 @@ def isPatchVersion() {
 
 def isSNAPSHOTVersion() {
     return mavenProjectInformation.version.endsWith("-SNAPSHOT")
+}
+
+// Generates and deploys aggregate SBOMs for every shipped distro.
+// Independent distro reactors run in parallel to reduce deployment time.
+def deployDistroSboms() {
+    Map sbomDeployRepository = getSbomDeployRepository()
+
+    def distroSbomProjects = ['distro/run', 'distro/run4', 'distro/tomcat', 'distro/wildfly', 'distro/wildfly28']
+
+    // Each invocation uses a distinct -f path and -DoutputName, so they can
+    // run concurrently without conflicting on the shared output directory.
+    // Variables are captured per-iteration to avoid Groovy closure-capture issues.
+    def parallelScans = [:]
+    distroSbomProjects.each { relPath ->
+        def capturedRelPath = relPath
+        def capturedSbomBaseName = "${capturedRelPath.replace('/', '_')}_sbom"
+        def capturedRepositoryId = sbomDeployRepository.id
+        def capturedRepositoryUrl = sbomDeployRepository.url
+        parallelScans[capturedRelPath] = {
+            generateAndDeployDistroSbom(capturedRelPath, capturedSbomBaseName, capturedRepositoryId, capturedRepositoryUrl)
+        }
+    }
+    parallel parallelScans
+}
+
+// Resolves the Maven repository receiving distro SBOMs.
+// Patch versions use the private repository; other versions use distributionManagement.
+def getSbomDeployRepository() {
+    String sbomDeployRepositoryId = ""
+    String sbomDeployRepositoryUrl = ""
+
+    if (isPatchVersion()) {
+        if (isSNAPSHOTVersion()) {
+            sbomDeployRepositoryId = "mvn-cibseven-private"
+            sbomDeployRepositoryUrl = "https://artifacts.cibseven.de/repository/private-snapshots"
+        } else {
+            sbomDeployRepositoryId = "mvn-cibseven-private"
+            sbomDeployRepositoryUrl = "https://artifacts.cibseven.de/repository/private"
+        }
+    } else {
+        String repository = isSNAPSHOTVersion() ? "snapshotRepository" : "repository"
+
+        withMaven(options: []) {
+            sbomDeployRepositoryId = sh(script: "mvn -q -f ${pipelineParams.pom} help:evaluate -Dexpression=project.distributionManagement.${repository}.id -DforceStdout", returnStdout: true).trim()
+            sbomDeployRepositoryUrl = sh(script: "mvn -q -f ${pipelineParams.pom} help:evaluate -Dexpression=project.distributionManagement.${repository}.url -DforceStdout", returnStdout: true).trim()
+        }
+    }
+
+    if (!sbomDeployRepositoryId || !sbomDeployRepositoryUrl ||
+        sbomDeployRepositoryId.startsWith("project.") || sbomDeployRepositoryUrl.startsWith("project.")) {
+        error "Cannot determine SBOM deploy repository from effective Maven distributionManagement"
+    }
+
+    return [id: sbomDeployRepositoryId, url: sbomDeployRepositoryUrl]
+}
+
+// Generates one distro-wide aggregate SBOM and deploys its JSON and XML attachments.
+// Snapshot attachments use the timestamped version of the already deployed distro artifact.
+def generateAndDeployDistroSbom(String relPath, String sbomBaseName, String repositoryId, String repositoryUrl) {
+    withMaven(options: []) {
+        sh "mvn -V -f ${relPath}/pom.xml org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom -DexcludeTestProject -DskipTests -DoutputName=${sbomBaseName}"
+
+        def groupId = sh(script: "mvn -q -f ${relPath}/pom.xml help:evaluate -Dexpression=project.groupId -DforceStdout", returnStdout: true).trim()
+        def artifactId = sh(script: "mvn -q -f ${relPath}/pom.xml help:evaluate -Dexpression=project.artifactId -DforceStdout", returnStdout: true).trim()
+        def version = sh(script: "mvn -q -f ${relPath}/pom.xml help:evaluate -Dexpression=project.version -DforceStdout", returnStdout: true).trim()
+        def deployVersion = getSbomDeployVersion(groupId, artifactId, version, repositoryId)
+
+        ['json', 'xml'].each { format ->
+            sh """
+                mvn -V deploy:deploy-file \
+                    -DgeneratePom=false \
+                    -DgroupId=${groupId} \
+                    -DartifactId=${artifactId} \
+                    -Dversion=${deployVersion} \
+                    -Dclassifier=aggregate-sbom \
+                    -Dpackaging=${format} \
+                    -Dfile=${relPath}/target/${sbomBaseName}.${format} \
+                    -DrepositoryId=${repositoryId} \
+                    -Durl=${repositoryUrl}
+            """
+        }
+    }
+}
+
+// Resolves the timestamped Maven version needed to attach SBOMs to an existing snapshot.
+// Release versions are used unchanged.
+def getSbomDeployVersion(String groupId, String artifactId, String version, String repositoryId) {
+    if (!version.endsWith("-SNAPSHOT")) {
+        return version
+    }
+
+    String localRepo = getMavenRepository()
+    String groupPath = groupId.replace('.', '/')
+    String metadataPath = "${localRepo}/${groupPath}/${artifactId}/${version}/maven-metadata-${repositoryId}.xml"
+
+    String timestamp = sh(script: "grep -oP '(?<=<timestamp>).*?(?=</timestamp>)' '${metadataPath}' | tail -n 1", returnStdout: true).trim()
+    String buildNumber = sh(script: "grep -oP '(?<=<buildNumber>).*?(?=</buildNumber>)' '${metadataPath}' | tail -n 1", returnStdout: true).trim()
+
+    if (!timestamp || !buildNumber) {
+        error "Cannot determine timestamped snapshot version from ${metadataPath}"
+    }
+
+    return "${version - '-SNAPSHOT'}-${timestamp}-${buildNumber}"
 }
 
 // returns "1.2" for versions
