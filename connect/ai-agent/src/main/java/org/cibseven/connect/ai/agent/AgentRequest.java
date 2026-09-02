@@ -107,9 +107,6 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   /** Optional. Image detail level: AUTO, LOW, MEDIUM, HIGH, ULTRA_HIGH. */
   AgentRequest documentDetailLevel(String documentDetailLevel);
 
-  /** Optional. Allows audio and video attachments, which are off by default. */
-  AgentRequest allowAudioVideo(boolean allowAudioVideo);
-
   /**
    * Optional. Reasoning effort hint (e.g. {@code "low"}, {@code "medium"},
    * {@code "high"}). Values are model-dependent.
@@ -202,8 +199,6 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   String getDocumentMimeTypes();
 
   String getDocumentDetailLevel();
-
-  boolean isAllowAudioVideo();
 
   String getReasoningEffort();
 

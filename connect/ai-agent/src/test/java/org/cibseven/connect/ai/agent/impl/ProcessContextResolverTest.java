@@ -205,6 +205,36 @@ public class ProcessContextResolverTest {
   }
 
   /**
+   * Review finding: this failure rolls the transaction back, and the
+   * {@code context} audit event goes with it — so the exception is the only
+   * surviving record of what the resolution saw. Listing what *did* resolve is
+   * the difference between "orderId was missing" and being able to tell that the
+   * other names were read fine, which is what separates one bad variable from a
+   * mistyped allowlist.
+   */
+  @Test
+  public void shouldNameTheVariablesThatDidResolve() {
+    variables.put("orderId", Variables.stringValue("4711"));
+    variables.put("customer", Variables.stringValue("Musterbau GmbH"));
+
+    List<ContextVariable> resolved = resolve("orderId,customer,invoiceNo", null);
+
+    assertThatThrownBy(() -> ProcessContextResolver.failOnMissingRequired(resolved))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("invoiceNo (absent)")
+        .hasMessageContaining("Resolved successfully: orderId, customer");
+  }
+
+  /** With nothing resolved the message says so rather than trailing off. */
+  @Test
+  public void shouldSayNoneWhenNothingResolved() {
+    assertThatThrownBy(
+        () -> ProcessContextResolver.failOnMissingRequired(resolve("a,b", null)))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("Resolved successfully: none");
+  }
+
+  /**
    * Copilot review finding: a required variable that resolved fine but was
    * dropped from the block by the size cap left the agent just as blind as an
    * absent one, yet the activity proceeded.

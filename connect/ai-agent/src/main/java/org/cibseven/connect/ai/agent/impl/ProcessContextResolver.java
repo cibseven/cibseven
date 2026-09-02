@@ -212,15 +212,20 @@ public final class ProcessContextResolver {
    */
   static void failOnMissingRequired(List<ContextVariable> variables) {
     List<String> missing = new ArrayList<>();
+    List<String> resolved = new ArrayList<>();
     for (ContextVariable variable : variables) {
-      if (variable.optional) {
+      boolean reached = variable.present && !variable.nullValued && !variable.omitted;
+      if (reached) {
+        resolved.add(variable.name);
+      }
+      if (variable.optional || reached) {
         continue;
       }
       if (!variable.present) {
         missing.add(variable.name + (variable.unreadable ? " (unreadable)" : " (absent)"));
       } else if (variable.nullValued) {
         missing.add(variable.name + " (null)");
-      } else if (variable.omitted) {
+      } else {
         missing.add(variable.name + " (omitted: context block size limit reached)");
       }
     }
@@ -228,6 +233,14 @@ public final class ProcessContextResolver {
       throw new AgentConnectorException(
           "Required process context variable(s) did not reach the model: "
           + String.join(", ", missing)
+          // The failure rolls the transaction back and takes the `context` audit
+          // event with it, so this message is the only surviving record of the
+          // resolution. Naming what *did* resolve is the difference between
+          // "orderId was missing" and being able to see that the other four were
+          // read fine — which is what tells you it was one bad variable rather
+          // than a broken allowlist.
+          + ". Resolved successfully: "
+          + (resolved.isEmpty() ? "none" : String.join(", ", resolved))
           + ". Every name in 'contextVariables' is required unless listed in "
           + "'optionalContextVariables'; the agent was not invoked.");
     }

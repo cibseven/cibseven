@@ -300,18 +300,6 @@ public interface AgentConnector extends Connector<AgentRequest> {
   String PARAM_NAME_DOCUMENT_DETAIL_LEVEL = "documentDetailLevel";
 
   /**
-   * Optional. Enables {@code audio/*} and {@code video/*} attachments, which are
-   * rejected by default.
-   *
-   * <p>Not a capability switch but an honesty switch: LangChain4j sends audio as
-   * Base64 only and requires a well-formed mime type, and video maps to a field
-   * that is not an official OpenAI one, so whether either works depends on the
-   * gateway behind {@link #PARAM_NAME_BASE_URL}. Enabling this says "I have
-   * verified my endpoint accepts these".
-   */
-  String PARAM_NAME_ALLOW_AUDIO_VIDEO = "allowAudioVideo";
-
-  /**
    * Optional. Reasoning effort hint for reasoning-capable models
    * (e.g. {@code "low"}, {@code "medium"}, {@code "high"}).
    * Allowed values are model-dependent and forwarded as-is to the OpenAI builder.

@@ -136,12 +136,6 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   }
 
   @Override
-  public AgentRequest allowAudioVideo(boolean allowAudioVideo) {
-    setRequestParameter(AgentConnector.PARAM_NAME_ALLOW_AUDIO_VIDEO, allowAudioVideo);
-    return this;
-  }
-
-  @Override
   public AgentRequest reasoningEffort(String reasoningEffort) {
     setRequestParameter(AgentConnector.PARAM_NAME_REASONING_EFFORT, reasoningEffort);
     return this;
@@ -325,14 +319,6 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   @Override
   public String getDocumentDetailLevel() {
     return getRequestParameter(AgentConnector.PARAM_NAME_DOCUMENT_DETAIL_LEVEL);
-  }
-
-  @Override
-  public boolean isAllowAudioVideo() {
-    Object val = getRequestParameter(AgentConnector.PARAM_NAME_ALLOW_AUDIO_VIDEO);
-    if (val == null) return false;
-    if (val instanceof Boolean) return (Boolean) val;
-    return Boolean.parseBoolean(val.toString().trim());
   }
 
   @Override
