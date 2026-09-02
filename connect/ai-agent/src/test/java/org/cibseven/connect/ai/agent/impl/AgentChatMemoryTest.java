@@ -17,10 +17,19 @@
 package org.cibseven.connect.ai.agent.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.cibseven.connect.ai.agent.AgentConnector;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.cibseven.connect.ai.agent.AgentRequest;
@@ -32,6 +41,7 @@ import org.junit.Test;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
@@ -64,6 +74,7 @@ public class AgentChatMemoryTest {
 
   private EchoConnector connector;
   private ChatMemoryStore originalStore;
+  private boolean pushedExecution;
 
   @Before
   public void setUp() {
@@ -71,11 +82,95 @@ public class AgentChatMemoryTest {
     // Isolate each test from any shared state between runs.
     originalStore = AgentChatMemoryStore.getStore();
     AgentChatMemoryStore.setStore(new InMemoryChatMemoryStore());
+    pushedExecution = false;
   }
 
   @After
   public void tearDown() {
     AgentChatMemoryStore.setStore(originalStore);
+    if (pushedExecution) {
+      try { Context.removeExecutionContext(); } catch (Exception ignored) { }
+      pushedExecution = false;
+    }
+    System.clearProperty(AgentChatMemoryStore.PERSISTENT_STORE_PROPERTY);
+    ConnectorSettings.ENV_READER = System::getenv;
+  }
+
+  // ── default store selection ──────────────────────────────────────────────
+
+  @Test
+  public void shouldSelectProcessVariableStoreByDefault() {
+    assertThat(AgentChatMemoryStore.resolveDefaultStore())
+        .isInstanceOf(ProcessVariableChatMemoryStore.class);
+  }
+
+  @Test
+  public void shouldSelectInMemoryStoreWhenDisabledViaSystemProperty() {
+    System.setProperty(AgentChatMemoryStore.PERSISTENT_STORE_PROPERTY, "false");
+
+    assertThat(AgentChatMemoryStore.resolveDefaultStore())
+        .isInstanceOf(InMemoryChatMemoryStore.class);
+  }
+
+  @Test
+  public void shouldSelectInMemoryStoreWhenDisabledViaEnvVar() {
+    ConnectorSettings.ENV_READER = name ->
+        AgentChatMemoryStore.PERSISTENT_STORE_ENV_VAR.equals(name) ? "false" : null;
+
+    assertThat(AgentChatMemoryStore.resolveDefaultStore())
+        .isInstanceOf(InMemoryChatMemoryStore.class);
+  }
+
+  @Test
+  public void shouldPreferSystemPropertyOverEnvVarForStoreSelection() {
+    System.setProperty(AgentChatMemoryStore.PERSISTENT_STORE_PROPERTY, "true");
+    ConnectorSettings.ENV_READER = name -> "false";
+
+    assertThat(AgentChatMemoryStore.resolveDefaultStore())
+        .isInstanceOf(ProcessVariableChatMemoryStore.class);
+  }
+
+  // ── clear() contract ─────────────────────────────────────────────────────
+
+  /**
+   * With the process-variable store the conversation is only reachable from a
+   * thread carrying a BpmnExecutionContext. Clearing from anywhere else would hit
+   * the store's fallback buffer and leave the variable in the database, so the
+   * helper must refuse rather than report success.
+   */
+  @Test
+  public void shouldRefuseToClearPersistentMemoryWithoutAnEngineContext() {
+    AgentChatMemoryStore.setStore(new ProcessVariableChatMemoryStore());
+
+    assertThatThrownBy(() -> AgentChatMemoryStore.clear("mem-1"))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("no BpmnExecutionContext")
+        .hasMessageContaining("mem-1");
+  }
+
+  @Test
+  public void shouldClearPersistentMemoryInsideAnEngineContext() {
+    AgentChatMemoryStore.setStore(new ProcessVariableChatMemoryStore());
+    ExecutionEntity execution = statefulExecutionMock();
+    Context.setExecutionContext(execution);
+    pushedExecution = true;
+
+    AgentChatMemoryStore.clear("mem-1");
+
+    verify(execution).removeVariable(
+        AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX + "mem-1");
+  }
+
+  /** A JVM-local store has no such restriction, so the guard must not apply. */
+  @Test
+  public void shouldClearInMemoryStoreWithoutAnEngineContext() {
+    AgentChatMemoryStore.setStore(new InMemoryChatMemoryStore());
+    AgentChatMemoryStore.getStore().updateMessages("mem-1",
+        java.util.Arrays.asList(UserMessage.from("hi")));
+
+    AgentChatMemoryStore.clear("mem-1");
+
+    assertThat(AgentChatMemoryStore.getStore().getMessages("mem-1")).isEmpty();
   }
 
   // ── Setter / getter wiring ───────────────────────────────────────────────
@@ -192,6 +287,51 @@ public class AgentChatMemoryTest {
         .isEqualTo(response.getMemoryId());
   }
 
+  /**
+   * The first pass of the human-in-the-loop pattern maps
+   * {@code ${execution.getVariable('memoryId')}} before that variable exists, so
+   * an empty id means "start a conversation", not "reuse the empty one".
+   */
+  @Test
+  public void shouldGenerateMemoryIdWhenProvidedIdIsEmpty() {
+    AgentRequest request = connector.createRequest()
+        .agentName("agent")
+        .instruction("inst")
+        .message("Hello")
+        .apiKey("test-key")
+        .useChatMemory(true)
+        .memoryId("");
+
+    AgentResponse response = connector.execute(request);
+
+    assertThat(response.getMemoryId()).isNotNull().isNotEmpty();
+  }
+
+  /**
+   * Whitespace, on the other hand, is a mapping mistake — a literal blank in the
+   * template, or an expression yielding a space. Treating it as absent would hide
+   * it behind a fresh UUID every turn, so the agent would silently never
+   * remember; the store rejects it instead.
+   */
+  @Test
+  public void shouldRejectWhitespaceOnlyMemoryId() {
+    ExecutionEntity execution = statefulExecutionMock();
+    Context.setExecutionContext(execution);
+    pushedExecution = true;
+    AgentChatMemoryStore.setStore(new ProcessVariableChatMemoryStore());
+
+    AgentRequest request = connector.createRequest()
+        .agentName("agent")
+        .instruction("inst")
+        .message("Hello")
+        .apiKey("test-key")
+        .useChatMemory(true)
+        .memoryId("   ");
+
+    assertThatThrownBy(() -> connector.execute(request))
+        .hasMessageContaining("must not be null or blank");
+  }
+
   @Test
   public void shouldHonorProvidedMemoryIdWhenChatMemoryActive() {
     AgentRequest request = connector.createRequest()
@@ -265,6 +405,114 @@ public class AgentChatMemoryTest {
     // The B-conversation must NOT contain the A-conversation user turn.
     List<ChatMessage> bMessages = connector.echoModel.lastMessages;
     assertThat(userTextsOf(bMessages)).doesNotContain("Secret-A");
+  }
+
+  // ── Continuity across engine replicas (CIB7-1417) ────────────────────────
+
+  /**
+   * Reproduces the two-pod Kubernetes case: turn 1 runs on one node, turn 2 on
+   * another. Each node gets its own store instance with its own JVM-local
+   * fallback; the only thing they share is the execution ("the database"). With
+   * the previous {@code InMemoryChatMemoryStore} default, node 2 saw an empty
+   * conversation.
+   */
+  @Test
+  public void shouldCarryConversationAcrossNodesViaProcessVariable() {
+    ExecutionEntity sharedDatabase = statefulExecutionMock();
+    Context.setExecutionContext(sharedDatabase);
+    pushedExecution = true;
+
+    String memoryId = "mem-cluster";
+    AgentRequest request = connector.createRequest()
+        .useChatMemory(true)
+        .memoryId(memoryId);
+
+    // Node 1 — writes the first exchange.
+    AgentChatMemoryStore.setStore(
+        new ProcessVariableChatMemoryStore());
+    ChatMemory node1 = connector.createChatMemoryProvider(request).get(memoryId);
+    node1.add(UserMessage.from("My name is Alice."));
+    node1.add(AiMessage.from("Hello Alice."));
+
+    // Node 2 — a different JVM: fresh store, fresh heap, same database.
+    AgentChatMemoryStore.setStore(
+        new ProcessVariableChatMemoryStore());
+    ChatMemory node2 = connector.createChatMemoryProvider(request).get(memoryId);
+
+    assertThat(userTextsOf(node2.messages())).contains("My name is Alice.");
+  }
+
+  @Test
+  public void shouldIsolateConversationsAcrossProcessInstances() {
+    String memoryId = "same-id-both-instances";
+    AgentRequest request = connector.createRequest()
+        .useChatMemory(true)
+        .memoryId(memoryId);
+
+    // Instance A.
+    ExecutionEntity instanceA = statefulExecutionMock();
+    Context.setExecutionContext(instanceA);
+    pushedExecution = true;
+    AgentChatMemoryStore.setStore(
+        new ProcessVariableChatMemoryStore());
+    connector.createChatMemoryProvider(request).get(memoryId)
+        .add(UserMessage.from("Secret of instance A"));
+    Context.removeExecutionContext();
+
+    // Instance B reuses the very same memoryId but must not see A's history:
+    // the memory lives on A's process instance.
+    ExecutionEntity instanceB = statefulExecutionMock();
+    Context.setExecutionContext(instanceB);
+    ChatMemory memoryB = connector.createChatMemoryProvider(request).get(memoryId);
+
+    assertThat(userTextsOf(memoryB.messages())).doesNotContain("Secret of instance A");
+  }
+
+  /**
+   * Pins what the memory variable holds besides the dialogue: LangChain4j puts
+   * the system prompt into the chat memory, so the agent's instruction — and
+   * whatever the connector folded into it — is persisted to the engine database
+   * with every turn, not just the user and assistant messages. Deployments
+   * reviewing what their process instances store need to know that; see the
+   * data-handling section of the manual.
+   */
+  @Test
+  public void shouldPersistTheSystemPromptAlongsideTheConversation() {
+    ExecutionEntity execution = statefulExecutionMock();
+    Context.setExecutionContext(execution);
+    pushedExecution = true;
+    AgentChatMemoryStore.setStore(new ProcessVariableChatMemoryStore());
+
+    connector.execute(connector.createRequest()
+        .agentName("agent")
+        .instruction("You are a claims adjuster for ACME Insurance.")
+        .message("Hello")
+        .apiKey("test-key")
+        .useChatMemory(true)
+        .memoryId("mem-sys"));
+
+    Object stored = execution.getVariable(
+        AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX + "mem-sys");
+    assertThat(stored).asString().contains("claims adjuster for ACME Insurance");
+  }
+
+  /**
+   * Mocked execution that actually retains variables, standing in for the engine
+   * database. {@code setVariable} receives a {@code TypedValue}; the engine hands
+   * the deserialized value back on read, so the mock unwraps it the same way.
+   */
+  private static ExecutionEntity statefulExecutionMock() {
+    Map<String, Object> variables = new HashMap<>();
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    doAnswer(invocation -> {
+      Object value = invocation.getArguments()[1];
+      variables.put((String) invocation.getArguments()[0],
+          (value instanceof TypedValue) ? ((TypedValue) value).getValue() : value);
+      return null;
+    }).when(execution).setVariable(org.mockito.Matchers.anyString(), org.mockito.Matchers.any());
+    when(execution.getVariable(org.mockito.Matchers.anyString()))
+        .thenAnswer(invocation -> variables.get((String) invocation.getArguments()[0]));
+    return execution;
   }
 
   private static List<String> userTextsOf(List<ChatMessage> messages) {
