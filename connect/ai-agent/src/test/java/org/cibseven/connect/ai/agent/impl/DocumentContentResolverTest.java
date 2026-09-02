@@ -247,16 +247,53 @@ public class DocumentContentResolverTest {
 
   // ── size and count caps ────────────────────────────────────────────────────
 
+  /**
+   * Review finding: the file path used to call {@code InputStream.readAllBytes},
+   * which sizes its array from the content — so an oversized document was fully
+   * buffered and only then rejected. It now stops at the first chunk past the
+   * limit, which is also why the message names the limit but not the actual
+   * size: at that point we deliberately have not read far enough to know it.
+   */
   @Test
-  public void shouldRejectADocumentOverThePerDocumentLimit() {
+  public void shouldRejectAFileDocumentWithoutBufferingAllOfIt() {
     putFile("big", "big.pdf", "application/pdf", new byte[2048]);
 
     assertThatThrownBy(() -> DocumentContentResolver.resolve("big", null,
         ImageContent.DetailLevel.AUTO, false, reader(), new Limits(1024, 99_999, 10)))
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("big")
+        .hasMessageContaining("1024");
+  }
+
+  /**
+   * The bytes path has nothing to stop early — a {@code BytesValue} arrives as a
+   * finished array — so it keeps reporting the actual size, which costs nothing
+   * and is the more useful message of the two.
+   */
+  @Test
+  public void shouldRejectAByteDocumentNamingItsActualSize() {
+    variables.put("big", Variables.byteArrayValue(new byte[2048]));
+
+    assertThatThrownBy(() -> DocumentContentResolver.resolve("big",
+        "{\"big\": \"application/pdf\"}",
+        ImageContent.DetailLevel.AUTO, false, reader(), new Limits(1024, 99_999, 10)))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("big")
         .hasMessageContaining("2048")
         .hasMessageContaining("1024");
+  }
+
+  /** A file just under the cap still comes through whole. */
+  @Test
+  public void shouldReadAFileRightUpToTheLimit() {
+    byte[] content = new byte[1024];
+    content[1023] = 42;
+    putFile("edge", "edge.pdf", "application/pdf", content);
+
+    List<ResolvedDocument> resolved = DocumentContentResolver.resolve("edge", null,
+        ImageContent.DetailLevel.AUTO, false, reader(), new Limits(1024, 99_999, 10));
+
+    assertThat(resolved.get(0).byteSize).isEqualTo(1024);
   }
 
   @Test

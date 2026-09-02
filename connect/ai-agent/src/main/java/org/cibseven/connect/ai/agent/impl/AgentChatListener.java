@@ -500,10 +500,10 @@ class AgentChatListener implements ChatModelListener {
    * model — variable, filename, mime type, content kind, byte size and SHA-256
    * per document, plus the count and combined size.
    *
-   * <p>Never the payload. The hash covers the Base64 form that was actually
-   * transmitted, so an auditor can prove which file reached the model without
-   * the chat-log variable carrying a second copy of it — which for documents
-   * would mean megabytes per run in the engine database.
+   * <p>Never the payload. The hash covers the raw bytes of the variable, so an
+   * auditor holding the original file can prove it is the one that reached the
+   * model without the chat-log variable carrying a second copy of it — which for
+   * documents would mean megabytes per run in the engine database.
    */
   void recordDocumentsEvent(Map<String, Object> payload) {
     if (payload == null) {
@@ -760,11 +760,16 @@ class AgentChatListener implements ChatModelListener {
   }
 
   /**
-   * Envelope for events that are not a chat turn — currently {@code retrieval}
-   * and {@code context}. Same shape as {@link #newEvent} minus the chat-model
-   * identity block: a retrieval carries its own {@code embeddingModel} and
-   * {@code store} sub-blocks, and a context event is not a model call at all,
-   * so stamping the chat model's identity onto either would be misleading.
+   * Envelope for events that are not a chat turn — currently {@code retrieval},
+   * {@code context} and {@code documents}. Same shape as {@link #newEvent} minus
+   * the chat-model identity block: a retrieval carries its own
+   * {@code embeddingModel} and {@code store} sub-blocks, while context and
+   * documents record what was assembled <em>before</em> any model call, so
+   * stamping the chat model's identity onto them would claim the model saw
+   * something at a point where it had not been invoked yet.
+   *
+   * <p>Keep new event types out of {@link #newEvent} unless they really are a
+   * call to the chat model.
    */
   private Map<String, Object> newCorrelatedEvent(String type) {
     Map<String, Object> event = new LinkedHashMap<>();
