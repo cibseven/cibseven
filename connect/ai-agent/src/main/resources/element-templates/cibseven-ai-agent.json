@@ -147,21 +147,6 @@
           }
         },
         {
-          "label": "Allow audio and video",
-          "type": "Dropdown",
-          "group": "documents",
-          "value": "${false}",
-          "description": "Off by default. Provider support is uneven: audio is sent as base64 only and video maps to a field that is not an official OpenAI one, so both depend on your gateway. Enable only after verifying your endpoint accepts them.",
-          "choices": [
-            { "name": "No",  "value": "${false}" },
-            { "name": "Yes", "value": "${true}"  }
-          ],
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "allowAudioVideo"
-          }
-        },
-        {
           "label": "Base URL",
           "type": "String",
           "group": "agent",

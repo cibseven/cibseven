@@ -123,16 +123,6 @@ public class AgentRequestTest {
   }
 
   @Test
-  public void shouldDefaultAllowAudioVideoToFalse() {
-    assertThat(connector.createRequest().isAllowAudioVideo()).isFalse();
-  }
-
-  @Test
-  public void shouldSetAndGetAllowAudioVideo() {
-    assertThat(connector.createRequest().allowAudioVideo(true).isAllowAudioVideo()).isTrue();
-  }
-
-  @Test
   public void shouldReturnNullForDocumentsWhenUnset() {
     AgentRequest request = connector.createRequest();
     assertThat(request.getDocuments()).isNull();

@@ -78,6 +78,8 @@ public class DocumentEngineTest {
   /** The outgoing user message of the last model call. */
   static volatile UserMessage capturedUserMessage;
   static volatile String capturedSystemMessage;
+  /** Every message of the last model call, in order — memory replay included. */
+  static volatile List<ChatMessage> capturedRequestMessages;
 
   private static final ProcessEngine ENGINE = buildInMemoryEngine();
 
@@ -98,6 +100,7 @@ public class DocumentEngineTest {
   public void setUp() {
     capturedUserMessage = null;
     capturedSystemMessage = null;
+    capturedRequestMessages = null;
     originalStore = AgentChatMemoryStore.getStore();
     AgentChatMemoryStore.setStore(new InMemoryChatMemoryStore());
     deployProcess();
@@ -107,6 +110,7 @@ public class DocumentEngineTest {
   public void tearDown() {
     capturedUserMessage = null;
     capturedSystemMessage = null;
+    capturedRequestMessages = null;
     AgentChatMemoryStore.setStore(originalStore);
     engineRule.getRepositoryService().createDeploymentQuery().list()
         .forEach(d -> engineRule.getRepositoryService().deleteDeployment(d.getId(), true));
@@ -128,6 +132,7 @@ public class DocumentEngineTest {
 
     @Override
     public ChatResponse doChat(ChatRequest request) {
+      capturedRequestMessages = new ArrayList<>(request.messages());
       for (ChatMessage message : request.messages()) {
         if (message instanceof UserMessage) {
           capturedUserMessage = (UserMessage) message;
@@ -265,6 +270,56 @@ public class DocumentEngineTest {
     for (ChatMessage message : remembered) {
       assertThat(message.toString()).doesNotContain(encoded);
     }
+  }
+
+  /**
+   * Pins the mechanism the previous test only observes the result of, because
+   * that mechanism is an implementation detail of LangChain4j rather than a
+   * documented contract — and a review round rightly questioned whether we were
+   * relying on something the option does not promise.
+   *
+   * <p>In {@code DefaultAiServices}, {@code originalUserMessage} is built from
+   * the {@code @UserMessage String} parameter, and only afterwards does
+   * {@code addContentsToUserMessage} fold in the {@code List<Content>}. Chat
+   * memory then receives whichever of the two {@code storeRetrievedContentInChatMemory}
+   * selects, while the model always receives the one with the attachments. Our
+   * {@code false} therefore keeps documents out of memory — but only for as long
+   * as that ordering holds. If an upgrade appends the contents earlier, Base64
+   * starts flowing into a process variable, silently. This test is the alarm.
+   *
+   * <p>It also states the behaviour that follows for the modeler: turn two does
+   * not see turn one's document.
+   */
+  @Test
+  public void shouldNotReplayDocumentsOnASecondTurnOfTheSameMemory() {
+    String encoded = Base64.getEncoder().encodeToString(PDF_BYTES);
+
+    // Turn 1 — with the document.
+    start(Variables.createVariables()
+        .putValue("_documents", "invoice")
+        .putValue("_memoryId", "mem-multi")
+        .putValueTyped("invoice", Variables.fileValue("invoice.pdf")
+            .file(PDF_BYTES).mimeType("application/pdf").create()));
+    assertThat(capturedUserMessage.contents()).hasSize(2);   // text + attachment
+
+    // Turn 2 — same memory, no document declared.
+    start(Variables.createVariables().putValue("_memoryId", "mem-multi"));
+
+    // What the model got on turn 2: the replayed turn-1 text, the answer, and
+    // turn 2's own message — and not one byte of the attachment.
+    assertThat(capturedRequestMessages.size()).isGreaterThanOrEqualTo(3);
+    for (ChatMessage message : capturedRequestMessages) {
+      assertThat(message.toString()).doesNotContain(encoded);
+    }
+    assertThat(capturedUserMessage.hasSingleText()).isTrue();
+
+    // The conversation itself did survive — this is not "memory was empty".
+    List<ChatMessage> remembered = AgentChatMemoryStore.getStore().getMessages("mem-multi");
+    assertThat(remembered.size()).isGreaterThanOrEqualTo(4);
+    for (ChatMessage message : remembered) {
+      assertThat(message.toString()).doesNotContain(encoded);
+    }
+    assertThat(remembered.toString()).contains("Read the attached invoice.");
   }
 
   // ── audit ──────────────────────────────────────────────────────────────────

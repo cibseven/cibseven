@@ -33,11 +33,9 @@ import org.cibseven.connect.ai.agent.impl.DocumentContentResolver.Limits;
 import org.cibseven.connect.ai.agent.impl.DocumentContentResolver.ResolvedDocument;
 import org.junit.Test;
 
-import dev.langchain4j.data.message.AudioContent;
 import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.data.message.PdfFileContent;
 import dev.langchain4j.data.message.TextContent;
-import dev.langchain4j.data.message.VideoContent;
 
 /**
  * The mapping table of {@link DocumentContentResolver}, driven through a reader
@@ -57,13 +55,12 @@ public class DocumentContentResolverTest {
   }
 
   private List<ResolvedDocument> resolve(String declared) {
-    return resolve(declared, null, false);
+    return resolve(declared, null);
   }
 
-  private List<ResolvedDocument> resolve(String declared, String mimeTypes,
-      boolean allowAudioVideo) {
+  private List<ResolvedDocument> resolve(String declared, String mimeTypes) {
     return DocumentContentResolver.resolve(declared, mimeTypes,
-        ImageContent.DetailLevel.AUTO, allowAudioVideo, reader(), Limits.defaults());
+        ImageContent.DetailLevel.AUTO, reader(), Limits.defaults());
   }
 
   private void putFile(String name, String filename, String mimeType, byte[] content) {
@@ -114,7 +111,7 @@ public class DocumentContentResolverTest {
     putFile("scan", "scan.png", "image/png", new byte[] {1});
 
     List<ResolvedDocument> documents = DocumentContentResolver.resolve("scan", null,
-        ImageContent.DetailLevel.HIGH, false, reader(), Limits.defaults());
+        ImageContent.DetailLevel.HIGH, reader(), Limits.defaults());
 
     assertThat(((ImageContent) documents.get(0).content).detailLevel())
         .isEqualTo(ImageContent.DetailLevel.HIGH);
@@ -146,31 +143,29 @@ public class DocumentContentResolverTest {
         .hasMessageContaining("Supported");
   }
 
-  // ── audio and video are opt-in ─────────────────────────────────────────────
+  // ── audio and video are unsupported ────────────────────────────────────────
 
+  /**
+   * Review finding: the previous {@code allowAudioVideo} opt-in could only
+   * express "try it", never "the configured model accepts this" — and the
+   * ticket's cross-cutting requirement is to fail predictably when it does not.
+   * Audio and video are therefore out; Camunda 8 leaves them out for the same
+   * reason. They now take the ordinary unsupported-type path.
+   */
   @Test
-  public void shouldRejectAudioAndVideoByDefault() {
+  public void shouldRejectAudioAndVideoAsUnsupportedTypes() {
     putFile("call", "call.mp3", "audio/mpeg", new byte[] {1});
     putFile("clip", "clip.mp4", "video/mp4", new byte[] {1});
 
     assertThatThrownBy(() -> resolve("call"))
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("call")
-        .hasMessageContaining("allowAudioVideo");
+        .hasMessageContaining("audio/mpeg")
+        .hasMessageContaining("Audio and video are not supported");
     assertThatThrownBy(() -> resolve("clip"))
         .isInstanceOf(AgentConnectorException.class)
-        .hasMessageContaining("allowAudioVideo");
-  }
-
-  @Test
-  public void shouldMapAudioAndVideoWhenExplicitlyAllowed() {
-    putFile("call", "call.mp3", "audio/mpeg", new byte[] {1});
-    putFile("clip", "clip.mp4", "video/mp4", new byte[] {1});
-
-    List<ResolvedDocument> documents = resolve("call,clip", null, true);
-
-    assertThat(documents.get(0).content).isInstanceOf(AudioContent.class);
-    assertThat(documents.get(1).content).isInstanceOf(VideoContent.class);
+        .hasMessageContaining("video/mp4")
+        .hasMessageContaining("Audio and video are not supported");
   }
 
   // ── mime type resolution ───────────────────────────────────────────────────
@@ -190,7 +185,7 @@ public class DocumentContentResolverTest {
     variables.put("blob", Variables.byteArrayValue("%PDF".getBytes()));
 
     ResolvedDocument document =
-        resolve("blob", "{\"blob\": \"application/pdf\"}", false).get(0);
+        resolve("blob", "{\"blob\": \"application/pdf\"}").get(0);
 
     assertThat(document.kind).isEqualTo("PDF");
     // No filename on a bytes variable, so the variable name stands in.
@@ -201,7 +196,7 @@ public class DocumentContentResolverTest {
   public void shouldLetTheOverrideWinOverTheFileValuesOwnMimeType() {
     putFile("scan", "scan.bin", "application/octet-stream", new byte[] {1});
 
-    ResolvedDocument document = resolve("scan", "{\"scan\": \"image/png\"}", false).get(0);
+    ResolvedDocument document = resolve("scan", "{\"scan\": \"image/png\"}").get(0);
 
     assertThat(document.kind).isEqualTo("IMAGE");
   }
@@ -220,7 +215,7 @@ public class DocumentContentResolverTest {
   public void shouldRejectMalformedMimeTypeJson() {
     putFile("doc", "doc.pdf", "application/pdf", new byte[] {1});
 
-    assertThatThrownBy(() -> resolve("doc", "not json", false))
+    assertThatThrownBy(() -> resolve("doc", "not json"))
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("documentMimeTypes");
   }
@@ -259,7 +254,7 @@ public class DocumentContentResolverTest {
     putFile("big", "big.pdf", "application/pdf", new byte[2048]);
 
     assertThatThrownBy(() -> DocumentContentResolver.resolve("big", null,
-        ImageContent.DetailLevel.AUTO, false, reader(), new Limits(1024, 99_999, 10)))
+        ImageContent.DetailLevel.AUTO, reader(), new Limits(1024, 99_999, 10)))
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("big")
         .hasMessageContaining("1024");
@@ -276,7 +271,7 @@ public class DocumentContentResolverTest {
 
     assertThatThrownBy(() -> DocumentContentResolver.resolve("big",
         "{\"big\": \"application/pdf\"}",
-        ImageContent.DetailLevel.AUTO, false, reader(), new Limits(1024, 99_999, 10)))
+        ImageContent.DetailLevel.AUTO, reader(), new Limits(1024, 99_999, 10)))
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("big")
         .hasMessageContaining("2048")
@@ -291,7 +286,7 @@ public class DocumentContentResolverTest {
     putFile("edge", "edge.pdf", "application/pdf", content);
 
     List<ResolvedDocument> resolved = DocumentContentResolver.resolve("edge", null,
-        ImageContent.DetailLevel.AUTO, false, reader(), new Limits(1024, 99_999, 10));
+        ImageContent.DetailLevel.AUTO, reader(), new Limits(1024, 99_999, 10));
 
     assertThat(resolved.get(0).byteSize).isEqualTo(1024);
   }
@@ -302,7 +297,7 @@ public class DocumentContentResolverTest {
     putFile("b", "b.pdf", "application/pdf", new byte[600]);
 
     assertThatThrownBy(() -> DocumentContentResolver.resolve("a,b", null,
-        ImageContent.DetailLevel.AUTO, false, reader(), new Limits(1024, 1000, 10)))
+        ImageContent.DetailLevel.AUTO, reader(), new Limits(1024, 1000, 10)))
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("combined size limit")
         .hasMessageContaining("'b'");
@@ -320,7 +315,7 @@ public class DocumentContentResolverTest {
     putFile("c", "c.pdf", "application/pdf", new byte[600]);
 
     assertThatThrownBy(() -> DocumentContentResolver.resolve("a,b,c", null,
-        ImageContent.DetailLevel.AUTO, false, reader(), new Limits(1024, 1000, 10)))
+        ImageContent.DetailLevel.AUTO, reader(), new Limits(1024, 1000, 10)))
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("'b'");
     // 'c' was never even read, let alone encoded.
@@ -329,7 +324,7 @@ public class DocumentContentResolverTest {
   @Test
   public void shouldRejectTooManyDocuments() {
     assertThatThrownBy(() -> DocumentContentResolver.resolve("a,b,c", null,
-        ImageContent.DetailLevel.AUTO, false, reader(), new Limits(1024, 9999, 2)))
+        ImageContent.DetailLevel.AUTO, reader(), new Limits(1024, 9999, 2)))
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("Too many documents")
         .hasMessageContaining("limit of 2");
@@ -407,6 +402,79 @@ public class DocumentContentResolverTest {
     assertThat(((TextContent) resolve("latin").get(0).content).text()).contains("Grüße");
   }
 
+  /**
+   * Review finding, case (b) and the common one. A file variable uploaded over
+   * REST or through the webclient's variable dialog almost never carries an
+   * encoding, and {@code FileValueImpl.getEncodingAsCharset()} returns null for
+   * that without complaining — so UTF-8 is a guess. Decoding Latin-1 bytes with
+   * it used to substitute U+FFFD silently and hand the model {@code Gr??e},
+   * which is worse than failing: the run succeeds, the answer is about mangled
+   * data, and the descriptor's raw-byte hash still proves the right file.
+   */
+  @Test
+  public void shouldRefuseToGuessUtf8ForBytesThatAreNotUtf8() {
+    variables.put("latin", Variables.fileValue("latin.txt")
+        .file("Größe: 100 €".getBytes(StandardCharsets.ISO_8859_1))
+        .mimeType("text/plain")
+        .create());
+
+    assertThatThrownBy(() -> resolve("latin"))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("latin")
+        .hasMessageContaining("UTF-8")
+        .hasMessageContaining("No encoding is declared");
+  }
+
+  /** Case (c): the encoding is declared, the content disagrees with it. */
+  @Test
+  public void shouldFailWhenTheDeclaredEncodingDoesNotMatchTheContent() {
+    variables.put("broken", Variables.fileValue("broken.txt")
+        .file(new byte[] {(byte) 0xC3, (byte) 0x28})   // invalid UTF-8 sequence
+        .mimeType("text/plain")
+        .encoding(StandardCharsets.UTF_8)
+        .create());
+
+    assertThatThrownBy(() -> resolve("broken"))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("broken")
+        .hasMessageContaining("declared on the file variable");
+  }
+
+  /**
+   * Case (a): an encoding name this JVM cannot resolve. This used to be caught
+   * and logged at DEBUG, after which the content was decoded as UTF-8 — the one
+   * reading nobody asked for, given that somebody took the trouble to declare an
+   * encoding in the first place.
+   */
+  @Test
+  public void shouldFailOnAnUnusableDeclaredEncodingRatherThanFallBack() {
+    variables.put("odd", Variables.fileValue("odd.txt")
+        .file("hello".getBytes(StandardCharsets.UTF_8))
+        .mimeType("text/plain")
+        .encoding("definitely-not-a-charset")
+        .create());
+
+    assertThatThrownBy(() -> resolve("odd"))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("odd")
+        .hasMessageContaining("definitely-not-a-charset");
+  }
+
+  /**
+   * The charset only applies to text. A PDF whose bytes are not valid UTF-8 —
+   * which is every PDF — must not be dragged through the decoder.
+   */
+  @Test
+  public void shouldNotDecodeBinaryDocuments() {
+    putFile("invoice", "invoice.pdf", "application/pdf",
+        new byte[] {(byte) 0xC3, (byte) 0x28, (byte) 0xFF});
+
+    ResolvedDocument document = resolve("invoice").get(0);
+
+    assertThat(document.kind).isEqualTo("PDF");
+    assertThat(document.charset).isNull();
+  }
+
   // ── audit descriptors ──────────────────────────────────────────────────────
 
   @Test
@@ -433,6 +501,32 @@ public class DocumentContentResolverTest {
     String rendered = entries.toString();
     assertThat(rendered).doesNotContain("secret")
         .doesNotContain(Base64.getEncoder().encodeToString("%PDF-1.7 secret".getBytes()));
+  }
+
+  /**
+   * Review finding: sha256 is over the raw bytes while a text document reaches
+   * the model as characters. Without the charset the descriptor cannot say which
+   * of the two an auditor is holding, so a decoding difference would be
+   * invisible in the audit trail. Binary documents omit the field — they are
+   * sent as bytes, so there is no second form to distinguish.
+   */
+  @Test
+  public void shouldRecordTheCharsetOfTextDocumentsOnly() {
+    variables.put("note", Variables.fileValue("note.txt")
+        .file("Grüße".getBytes(StandardCharsets.ISO_8859_1))
+        .mimeType("text/plain")
+        .encoding(StandardCharsets.ISO_8859_1)
+        .create());
+    putFile("scan", "scan.png", "image/png", new byte[] {1, 2, 3});
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> entries = (List<Map<String, Object>>)
+        DocumentContentResolver.describe(resolve("note,scan")).get("documents");
+
+    assertThat(entries.get(0)).containsEntry("kind", "TEXT")
+        .containsEntry("charset", "ISO-8859-1");
+    assertThat(entries.get(1)).containsEntry("kind", "IMAGE")
+        .doesNotContainKey("charset");
   }
 
   /**

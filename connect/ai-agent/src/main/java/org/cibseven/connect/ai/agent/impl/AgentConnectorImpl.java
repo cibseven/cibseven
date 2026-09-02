@@ -709,7 +709,6 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     }
     return DocumentContentResolver.resolve(declared, request.getDocumentMimeTypes(),
         DocumentContentResolver.parseDetailLevel(request.getDocumentDetailLevel()),
-        request.isAllowAudioVideo(),
         name -> execution.getVariableTyped(name, false),
         DocumentContentResolver.Limits.defaults());
   }

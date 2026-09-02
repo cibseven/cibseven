@@ -19,7 +19,11 @@ package org.cibseven.connect.ai.agent.impl;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -39,12 +43,10 @@ import org.cibseven.bpm.engine.variable.value.BytesValue;
 import org.cibseven.bpm.engine.variable.value.FileValue;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 
-import dev.langchain4j.data.message.AudioContent;
 import dev.langchain4j.data.message.Content;
 import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.data.message.PdfFileContent;
 import dev.langchain4j.data.message.TextContent;
-import dev.langchain4j.data.message.VideoContent;
 
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 
@@ -70,11 +72,16 @@ import org.cibseven.connect.ai.agent.AgentConnectorConstants;
  *   <li>{@code application/pdf} → {@link PdfFileContent}</li>
  *   <li>{@code image/png|jpeg|gif|webp} → {@link ImageContent} with a detail level</li>
  *   <li>{@code text/*}, JSON, XML, YAML → {@link TextContent}, delimited and escaped</li>
- *   <li>{@code audio/*}, {@code video/*} → only behind an explicit opt-in; audio is
- *       base64-only and video maps to a field that is not officially OpenAI, so
- *       both are gateway-dependent</li>
  *   <li>anything else, or a blank mime type → a hard error naming the variable</li>
  * </ul>
+ *
+ * <p>Audio and video are deliberately absent. LangChain4j has content types for
+ * both, but audio is Base64-only and video maps to a field that is not an
+ * official OpenAI one, so whether either works is a property of the gateway, not
+ * of this connector. An opt-in flag would only have let a modeler say "try it" —
+ * it could not check that the configured model accepts the type, which is what
+ * CIB7-1843 asks for. Camunda 8 leaves them out for the same reason. They fall
+ * into the unsupported-mime-type error below.
  *
  * <h3>Never the payload in the audit log</h3>
  * {@link #describe(List)} emits filename, mime type, byte size and SHA-256 —
@@ -131,18 +138,28 @@ public final class DocumentContentResolver {
     final String mimeType;
     final int byteSize;
     final String sha256;
-    /** {@code TEXT}, {@code IMAGE}, {@code PDF}, {@code AUDIO} or {@code VIDEO}. */
+    /** {@code TEXT}, {@code IMAGE} or {@code PDF}. */
     final String kind;
+    /**
+     * The charset the bytes were decoded with, for {@code TEXT} documents only;
+     * {@code null} for everything else, which is sent as bytes.
+     *
+     * <p>Recorded because {@link #sha256} covers the raw bytes while the model
+     * receives characters. Without naming the charset the audit trail cannot
+     * show which of the two an auditor is looking at.
+     */
+    final String charset;
     final Content content;
 
     ResolvedDocument(String variable, String filename, String mimeType, int byteSize,
-        String sha256, String kind, Content content) {
+        String sha256, String kind, String charset, Content content) {
       this.variable = variable;
       this.filename = filename;
       this.mimeType = mimeType;
       this.byteSize = byteSize;
       this.sha256 = sha256;
       this.kind = kind;
+      this.charset = charset;
       this.content = content;
     }
   }
@@ -159,11 +176,11 @@ public final class DocumentContentResolver {
    * a different task.
    *
    * @throws AgentConnectorException on a missing variable, an unsupported or
-   *     undeterminable mime type, a cap violation, or audio/video without the
-   *     opt-in. Every message names the variable.
+   *     undeterminable mime type, a cap violation, or text that does not decode
+   *     cleanly. Every message names the variable.
    */
   static List<ResolvedDocument> resolve(String documentsCsv, String mimeTypeOverridesJson,
-      ImageContent.DetailLevel detailLevel, boolean allowAudioVideo,
+      ImageContent.DetailLevel detailLevel,
       TypedVariableReader reader, Limits limits) {
     List<String> names = ProcessContextResolver.parseNames(documentsCsv);
     if (names.isEmpty()) {
@@ -195,7 +212,7 @@ public final class DocumentContentResolver {
 
     List<ResolvedDocument> resolved = new ArrayList<>(raw.size());
     for (RawDocument document : raw) {
-      resolved.add(buildContent(document, detailLevel, allowAudioVideo));
+      resolved.add(buildContent(document, detailLevel));
     }
     return resolved;
   }
@@ -281,7 +298,8 @@ public final class DocumentContentResolver {
           + " bytes.");
     }
 
-    return new RawDocument(name, nullToName(filename, name), mimeType, bytes, charsetOf(typed));
+    return new RawDocument(name, nullToName(filename, name), mimeType, bytes,
+        charsetOf(name, typed));
   }
 
   /**
@@ -290,7 +308,7 @@ public final class DocumentContentResolver {
    * being silently sent as something the provider will reject or, worse, ignore.
    */
   private static ResolvedDocument buildContent(RawDocument raw,
-      ImageContent.DetailLevel detailLevel, boolean allowAudioVideo) {
+      ImageContent.DetailLevel detailLevel) {
     String variable = raw.variable;
     String filename = raw.filename;
     String mimeType = raw.mimeType;
@@ -306,9 +324,10 @@ public final class DocumentContentResolver {
     String sha256 = AgentChatListener.sha256(bytes);
 
     if (isTextual(lower)) {
-      String text = new String(bytes,
-          raw.charset != null ? raw.charset : StandardCharsets.UTF_8);
+      Charset charset = (raw.charset != null) ? raw.charset : StandardCharsets.UTF_8;
+      String text = decodeStrictly(variable, bytes, charset, raw.charset != null);
       return new ResolvedDocument(variable, filename, mimeType, bytes.length, sha256, "TEXT",
+          charset.name(),
           TextContent.from(wrapTextDocument(variable, filename, mimeType, bytes.length, text)));
     }
 
@@ -318,35 +337,53 @@ public final class DocumentContentResolver {
 
     if ("application/pdf".equals(lower)) {
       return new ResolvedDocument(variable, filename, mimeType, bytes.length, sha256, "PDF",
-          PdfFileContent.from(base64, mimeType));
+          null, PdfFileContent.from(base64, mimeType));
     }
     if (SUPPORTED_IMAGE_TYPES.contains(lower)) {
       return new ResolvedDocument(variable, filename, mimeType, bytes.length, sha256, "IMAGE",
-          ImageContent.from(base64, mimeType, detailLevel));
-    }
-    if (lower.startsWith("audio/")) {
-      requireAudioVideoOptIn(variable, mimeType, allowAudioVideo);
-      return new ResolvedDocument(variable, filename, mimeType, bytes.length, sha256, "AUDIO",
-          AudioContent.from(base64, mimeType));
-    }
-    if (lower.startsWith("video/")) {
-      requireAudioVideoOptIn(variable, mimeType, allowAudioVideo);
-      return new ResolvedDocument(variable, filename, mimeType, bytes.length, sha256, "VIDEO",
-          VideoContent.from(base64, mimeType));
+          null, ImageContent.from(base64, mimeType, detailLevel));
     }
     throw new AgentConnectorException("Document '" + variable + "' has mime type '" + mimeType
         + "', which cannot be sent to the model. Supported: application/pdf, "
         + String.join(", ", SUPPORTED_IMAGE_TYPES)
-        + ", text/*, application/json, application/xml, application/yaml"
-        + " (plus audio/* and video/* when 'allowAudioVideo' is enabled).");
+        + ", text/*, application/json, application/xml, application/yaml."
+        + " Audio and video are not supported: whether a gateway accepts them cannot be"
+        + " established from here, and sending them blind is worse than refusing.");
   }
 
-  private static void requireAudioVideoOptIn(String variable, String mimeType, boolean allowed) {
-    if (!allowed) {
-      throw new AgentConnectorException("Document '" + variable + "' is '" + mimeType
-          + "'. Audio and video are off by default because provider support is uneven — audio "
-          + "accepts Base64 only, and video maps to a field that is not an official OpenAI one, "
-          + "so both depend on your gateway. Set 'allowAudioVideo' to enable them.");
+  /**
+   * Decodes a text document, failing rather than substituting.
+   *
+   * <p>{@code new String(bytes, charset)} silently replaces every byte sequence
+   * it cannot decode with U+FFFD. For an agent that is the worst available
+   * outcome: {@code Größe: 100 €} arrives as {@code Gr??e: 100 ?}, the model
+   * answers confidently about mangled data, and the run counts as a success.
+   * Worse, {@link ResolvedDocument#sha256} covers the raw bytes, so the audit
+   * trail proves the correct file was attached and says nothing about the text
+   * actually having been readable.
+   *
+   * <p>Both ways of getting here are covered. A file variable that declares an
+   * encoding is decoded with it; one that declares none is decoded as UTF-8,
+   * which is a guess — so the message distinguishes the two, because the fix
+   * differs: a wrong declared encoding is a data problem, a missing one is a
+   * one-field fix on the variable or in {@code documentMimeTypes}.
+   */
+  private static String decodeStrictly(String variable, byte[] bytes, Charset charset,
+      boolean declared) {
+    CharsetDecoder decoder = charset.newDecoder()
+        .onMalformedInput(CodingErrorAction.REPORT)
+        .onUnmappableCharacter(CodingErrorAction.REPORT);
+    try {
+      return decoder.decode(ByteBuffer.wrap(bytes)).toString();
+    } catch (CharacterCodingException e) {
+      throw new AgentConnectorException("Document '" + variable + "' does not decode as "
+          + charset.name() + (declared
+              ? ", the encoding declared on the file variable. The declared encoding and the"
+                + " actual content disagree; fix whichever is wrong."
+              : ". No encoding is declared on the file variable, so UTF-8 was assumed. Set the"
+                + " encoding on the variable if the file is in something else.")
+          + " Decoding it anyway would replace the undecodable bytes and send the model text"
+          + " that differs from the document, which the audit trail could not show.", e);
     }
   }
 
@@ -391,6 +428,11 @@ public final class DocumentContentResolver {
    * derived form would force an auditor to reconstruct our encoding before they
    * could compare; against the raw digest {@code sha256sum invoice.pdf} lines up
    * with the descriptor directly, and the audit log still holds no copy.
+   *
+   * <p>Which is exactly why a text document also records its {@code charset}. Its
+   * hash is over bytes while the model was sent characters, so without the
+   * charset the descriptor does not say what the model actually read. Binary
+   * documents omit the field: they are sent as bytes, so there is no second form.
    */
   static Map<String, Object> describe(List<ResolvedDocument> documents) {
     List<Map<String, Object>> entries = new ArrayList<>(documents.size());
@@ -403,6 +445,9 @@ public final class DocumentContentResolver {
       entry.put("kind", document.kind);
       entry.put("bytes", document.byteSize);
       entry.put("sha256", document.sha256);
+      if (document.charset != null) {
+        entry.put("charset", document.charset);
+      }
       entries.add(entry);
       totalBytes += document.byteSize;
     }
@@ -438,6 +483,9 @@ public final class DocumentContentResolver {
       entry.put("kind", document.kind);
       entry.put("bytes", document.byteSize);
       entry.put("sha256", document.sha256);
+      if (document.charset != null) {
+        entry.put("charset", document.charset);
+      }
       byContent.put(document.content, entry);
     }
     return byContent;
@@ -537,18 +585,28 @@ public final class DocumentContentResolver {
     }
   }
 
-  private static Charset charsetOf(TypedValue typed) {
-    if (typed instanceof FileValue) {
-      try {
-        return ((FileValue) typed).getEncodingAsCharset();
-      } catch (RuntimeException e) {
-        // getEncodingAsCharset documents that it forwards whatever
-        // Charset.forName throws for an unknown name. A bad encoding on the
-        // variable must not fail the activity — UTF-8 is the better guess.
-        LOG.debug("Unusable encoding on file value: {}", e.toString());
-      }
+  /**
+   * The charset declared on a file variable, or {@code null} when none is.
+   *
+   * <p>An unusable name is an error, not something to shrug off.
+   * {@code getEncodingAsCharset} forwards whatever {@code Charset.forName}
+   * throws, and this used to swallow that and fall back to UTF-8 — so a variable
+   * that explicitly said "this is windows-1252" but misspelled it was decoded as
+   * something else, silently. Somebody took the trouble to declare an encoding;
+   * ignoring the declaration because it is broken is the one interpretation
+   * nobody asked for.
+   */
+  private static Charset charsetOf(String variable, TypedValue typed) {
+    if (!(typed instanceof FileValue)) {
+      return null;
     }
-    return null;
+    try {
+      return ((FileValue) typed).getEncodingAsCharset();
+    } catch (RuntimeException e) {
+      throw new AgentConnectorException("Document variable '" + variable + "' declares the"
+          + " encoding '" + ((FileValue) typed).getEncoding() + "', which this JVM cannot use: "
+          + e + ". Correct the encoding on the variable, or clear it to have UTF-8 assumed.", e);
+    }
   }
 
   private static String nullToName(String filename, String fallback) {
