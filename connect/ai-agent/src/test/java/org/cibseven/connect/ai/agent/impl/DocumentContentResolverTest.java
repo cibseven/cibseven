@@ -18,7 +18,9 @@ package org.cibseven.connect.ai.agent.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -47,6 +49,8 @@ import dev.langchain4j.data.message.TextContent;
  * ignores — is indistinguishable from success.
  */
 public class DocumentContentResolverTest {
+
+  private static final Charset WINDOWS_1252 = Charset.forName("windows-1252");
 
   private final Map<String, TypedValue> variables = new LinkedHashMap<>();
 
@@ -414,7 +418,7 @@ public class DocumentContentResolverTest {
   @Test
   public void shouldRefuseToGuessUtf8ForBytesThatAreNotUtf8() {
     variables.put("latin", Variables.fileValue("latin.txt")
-        .file("Größe: 100 €".getBytes(StandardCharsets.ISO_8859_1))
+        .file("Größe: 100 €".getBytes(WINDOWS_1252))
         .mimeType("text/plain")
         .create());
 
@@ -458,6 +462,101 @@ public class DocumentContentResolverTest {
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("odd")
         .hasMessageContaining("definitely-not-a-charset");
+  }
+
+  /**
+   * The gap the last round left open: neither a bytes variable nor a file
+   * uploaded through the webclient can carry an encoding — the upload path has
+   * no way to set one — so without this there was no lever at all for
+   * non-UTF-8 text.
+   */
+  @Test
+  public void shouldTakeTheCharsetFromTheMimeTypeOverride() {
+    // windows-1252, not ISO-8859-1: the euro sign does not exist in the latter,
+    // which is exactly the kind of mismatch this feature has to survive.
+    variables.put("note", Variables.byteArrayValue(
+        "Größe: 100 €".getBytes(WINDOWS_1252)));
+
+    ResolvedDocument document =
+        resolve("note", "{\"note\": \"text/plain; charset=windows-1252\"}").get(0);
+
+    assertThat(((TextContent) document.content).text()).contains("Größe: 100 €");
+    // The parameter is stripped from the type that is reported and sent on.
+    assertThat(document.mimeType).isEqualTo("text/plain");
+    assertThat(document.charset).isEqualTo("windows-1252");
+  }
+
+  /**
+   * The override wins over the variable's own encoding, for the same reason it
+   * wins over the variable's own mime type: it exists to correct metadata that
+   * is wrong, and a wrong encoding is exactly that.
+   */
+  @Test
+  public void shouldPreferTheOverrideCharsetOverTheVariableEncoding() {
+    variables.put("note", Variables.fileValue("note.txt")
+        .file("Größe".getBytes(StandardCharsets.ISO_8859_1))
+        .mimeType("text/plain")
+        .encoding(StandardCharsets.UTF_8)          // wrong, and it would fail
+        .create());
+
+    ResolvedDocument document =
+        resolve("note", "{\"note\": \"text/plain; charset=ISO-8859-1\"}").get(0);
+
+    assertThat(((TextContent) document.content).text()).contains("Größe");
+    assertThat(document.charset).isEqualTo("ISO-8859-1");
+  }
+
+  /** A charset on the variable's own mime type is honoured too. */
+  @Test
+  public void shouldTakeTheCharsetFromTheVariableMimeType() {
+    variables.put("note", Variables.fileValue("note.txt")
+        .file("Größe".getBytes(StandardCharsets.ISO_8859_1))
+        .mimeType("text/plain; charset=ISO-8859-1")
+        .create());
+
+    ResolvedDocument document = resolve("note").get(0);
+
+    assertThat(((TextContent) document.content).text()).contains("Größe");
+    assertThat(document.mimeType).isEqualTo("text/plain");
+  }
+
+  /** An unusable charset name in the mime type is an error, not a fallback. */
+  @Test
+  public void shouldRejectAnUnusableCharsetInTheMimeType() {
+    variables.put("note", Variables.byteArrayValue("hi".getBytes(StandardCharsets.UTF_8)));
+
+    assertThatThrownBy(() -> resolve("note", "{\"note\": \"text/plain; charset=nonsense\"}"))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("note")
+        .hasMessageContaining("nonsense");
+  }
+
+  /**
+   * A bytes variable has no encoding field, so the old advice — "set the
+   * encoding on the variable" — pointed at something that does not exist.
+   */
+  @Test
+  public void shouldTellAByteVariableToUseTheOverrideNotAVariableEncoding() {
+    variables.put("note", Variables.byteArrayValue(
+        "Größe".getBytes(StandardCharsets.ISO_8859_1)));
+
+    Throwable thrown = catchThrowable(() -> resolve("note", "{\"note\": \"text/plain\"}"));
+
+    assertThat(thrown).isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("A bytes variable carries no encoding")
+        .hasMessageContaining("documentMimeTypes");
+    assertThat(thrown.getMessage()).doesNotContain("Set the encoding on the variable");
+  }
+
+  /** Unrelated mime-type parameters must not turn a supported type unsupported. */
+  @Test
+  public void shouldIgnoreMimeTypeParametersOtherThanCharset() {
+    putFile("invoice", "invoice.pdf", "application/pdf; version=1.7", "%PDF".getBytes());
+
+    ResolvedDocument document = resolve("invoice").get(0);
+
+    assertThat(document.kind).isEqualTo("PDF");
+    assertThat(document.mimeType).isEqualTo("application/pdf");
   }
 
   /**
