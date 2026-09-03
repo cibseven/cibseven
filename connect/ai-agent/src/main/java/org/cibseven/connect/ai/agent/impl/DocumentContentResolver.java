@@ -221,16 +221,32 @@ public final class DocumentContentResolver {
   private static final class RawDocument {
     final String variable;
     final String filename;
+    /** Base type only — parameters like {@code charset} are stripped. */
     final String mimeType;
     final byte[] bytes;
+    /** The charset to decode with, or {@code null} when none was established. */
     final Charset charset;
+    /** How to fix a decoding failure, given where the charset came from. */
+    final String charsetHint;
 
     RawDocument(String variable, String filename, String mimeType, byte[] bytes,
-        Charset charset) {
+        Charset charset, String charsetHint) {
       this.variable = variable;
       this.filename = filename;
       this.mimeType = mimeType;
       this.bytes = bytes;
+      this.charset = charset;
+      this.charsetHint = charsetHint;
+    }
+  }
+
+  /** A mime type split into its base type and the {@code charset} parameter. */
+  private static final class MimeTypeSpec {
+    final String baseType;
+    final Charset charset;
+
+    MimeTypeSpec(String baseType, Charset charset) {
+      this.baseType = baseType;
       this.charset = charset;
     }
   }
@@ -278,7 +294,8 @@ public final class DocumentContentResolver {
     }
 
     String override = overrides.get(name);
-    if (override != null && !override.trim().isEmpty()) {
+    boolean overridden = override != null && !override.trim().isEmpty();
+    if (overridden) {
       mimeType = override.trim();
     }
     if (mimeType == null || mimeType.trim().isEmpty()) {
@@ -286,7 +303,8 @@ public final class DocumentContentResolver {
           + "File variables normally carry one; byte variables never do. Supply it via "
           + "'documentMimeTypes', e.g. {\"" + name + "\": \"application/pdf\"}.");
     }
-    mimeType = mimeType.trim();
+    MimeTypeSpec spec = parseMimeType(name, mimeType.trim());
+    mimeType = spec.baseType;
 
     // Reached only by the bytes path: the file path was already capped while
     // reading, by readBoundedBytes. A BytesValue is handed to us as a finished
@@ -298,8 +316,85 @@ public final class DocumentContentResolver {
           + " bytes.");
     }
 
-    return new RawDocument(name, nullToName(filename, name), mimeType, bytes,
-        charsetOf(name, typed));
+    return withCharset(new RawDocument(name, nullToName(filename, name), mimeType, bytes,
+        null, null), spec.charset, overridden, typed);
+  }
+
+  /**
+   * Settles which charset a text document is decoded with, and what to tell the
+   * modeler when that decoding fails.
+   *
+   * <p>Order: an explicit {@code charset} parameter wins, then the encoding
+   * declared on the file variable, then UTF-8 as an assumption. The parameter
+   * comes first for the same reason {@code documentMimeTypes} can override a
+   * mime type at all — it exists to correct metadata that is missing or wrong,
+   * and a variable whose encoding is wrong is exactly that case.
+   *
+   * <p>The hint matters as much as the charset. A bytes variable has no encoding
+   * field, so telling its owner to "set the encoding on the variable" sends them
+   * looking for something that does not exist; for them the override is the only
+   * lever there is.
+   */
+  private static RawDocument withCharset(RawDocument raw, Charset fromMimeType,
+      boolean overridden, TypedValue typed) {
+    if (fromMimeType != null) {
+      return new RawDocument(raw.variable, raw.filename, raw.mimeType, raw.bytes, fromMimeType,
+          overridden
+              ? "The charset comes from the 'documentMimeTypes' entry for this variable — correct"
+                + " it there, or fix the content."
+              : "The charset comes from the mime type on the variable — correct it there, or"
+                + " override it via 'documentMimeTypes'.");
+    }
+
+    Charset declared = charsetOf(raw.variable, typed);
+    if (declared != null) {
+      return new RawDocument(raw.variable, raw.filename, raw.mimeType, raw.bytes, declared,
+          "That encoding is declared on the file variable, so the declaration and the content"
+          + " disagree — fix whichever is wrong.");
+    }
+
+    String lever = "Pass one via 'documentMimeTypes', e.g. {\"" + raw.variable + "\": \""
+        + raw.mimeType + "; charset=ISO-8859-1\"}.";
+    return new RawDocument(raw.variable, raw.filename, raw.mimeType, raw.bytes, null,
+        (typed instanceof FileValue)
+            ? "No encoding is declared on the file variable, so UTF-8 was assumed. Set the"
+              + " encoding on the variable, or override it: " + lever
+            : "A bytes variable carries no encoding, so UTF-8 was assumed. " + lever);
+  }
+
+  /**
+   * Splits {@code raw} into its base type and {@code charset} parameter.
+   *
+   * <p>Parsing at all is what makes {@code documentMimeTypes} able to carry an
+   * encoding — the only lever a bytes variable has, and the only one a file
+   * variable uploaded through the webclient has either, since that path cannot
+   * set an encoding. Other parameters are ignored: they are legal on a mime type
+   * and none of them concern us.
+   *
+   * <p>It also stops a perfectly valid {@code application/pdf; version=1.7} from
+   * failing as an unsupported type, which it did while the whole string was
+   * compared.
+   */
+  private static MimeTypeSpec parseMimeType(String variable, String raw) {
+    String[] parts = raw.split(";");
+    String baseType = parts[0].trim();
+    Charset charset = null;
+    for (int i = 1; i < parts.length; i++) {
+      String parameter = parts[i].trim();
+      int eq = parameter.indexOf('=');
+      if (eq < 0 || !"charset".equalsIgnoreCase(parameter.substring(0, eq).trim())) {
+        continue;
+      }
+      String value = parameter.substring(eq + 1).trim().replace("\"", "");
+      try {
+        charset = Charset.forName(value);
+      } catch (RuntimeException e) {
+        throw new AgentConnectorException("Document '" + variable + "' declares the charset '"
+            + value + "' in its mime type, which this JVM cannot use: " + e
+            + ". Use a charset name the JVM knows, such as UTF-8 or ISO-8859-1.", e);
+      }
+    }
+    return new MimeTypeSpec(baseType, charset);
   }
 
   /**
@@ -325,10 +420,18 @@ public final class DocumentContentResolver {
 
     if (isTextual(lower)) {
       Charset charset = (raw.charset != null) ? raw.charset : StandardCharsets.UTF_8;
-      String text = decodeStrictly(variable, bytes, charset, raw.charset != null);
+      String text = decodeStrictly(variable, bytes, charset, raw.charsetHint);
       return new ResolvedDocument(variable, filename, mimeType, bytes.length, sha256, "TEXT",
           charset.name(),
           TextContent.from(wrapTextDocument(variable, filename, mimeType, bytes.length, text)));
+    }
+
+    if (raw.charset != null) {
+      // Harmless, but say so: a charset on a binary type is a sign the modeler
+      // expected this document to be treated as text, and silence would let that
+      // misunderstanding survive all the way to a confusing answer.
+      LOG.warn("Document '{}' is '{}' and carries a charset ({}), which is ignored — a charset "
+          + "only applies to textual mime types.", variable, mimeType, raw.charset.name());
     }
 
     // Encoded exactly once and reused for every branch below. Encoding twice
@@ -362,14 +465,12 @@ public final class DocumentContentResolver {
    * trail proves the correct file was attached and says nothing about the text
    * actually having been readable.
    *
-   * <p>Both ways of getting here are covered. A file variable that declares an
-   * encoding is decoded with it; one that declares none is decoded as UTF-8,
-   * which is a guess — so the message distinguishes the two, because the fix
-   * differs: a wrong declared encoding is a data problem, a missing one is a
-   * one-field fix on the variable or in {@code documentMimeTypes}.
+   * <p>The {@code hint} says where the charset came from and therefore what to
+   * change, which {@link #withCharset} works out — there are four ways to arrive
+   * here and they do not have the same fix.
    */
   private static String decodeStrictly(String variable, byte[] bytes, Charset charset,
-      boolean declared) {
+      String hint) {
     CharsetDecoder decoder = charset.newDecoder()
         .onMalformedInput(CodingErrorAction.REPORT)
         .onUnmappableCharacter(CodingErrorAction.REPORT);
@@ -377,11 +478,7 @@ public final class DocumentContentResolver {
       return decoder.decode(ByteBuffer.wrap(bytes)).toString();
     } catch (CharacterCodingException e) {
       throw new AgentConnectorException("Document '" + variable + "' does not decode as "
-          + charset.name() + (declared
-              ? ", the encoding declared on the file variable. The declared encoding and the"
-                + " actual content disagree; fix whichever is wrong."
-              : ". No encoding is declared on the file variable, so UTF-8 was assumed. Set the"
-                + " encoding on the variable if the file is in something else.")
+          + charset.name() + ". " + hint
           + " Decoding it anyway would replace the undecodable bytes and send the model text"
           + " that differs from the document, which the audit trail could not show.", e);
     }
