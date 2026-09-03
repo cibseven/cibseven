@@ -96,6 +96,35 @@ public class UserQueryTest extends PluggableProcessEngineTest {
   }
 
   @Test
+  public void testQueryByIdCaseInsensitive() {
+    verifyQueryResults(identityService.createUserQuery().userId("KERMIT"), 1);
+    verifyQueryResults(identityService.createUserQuery().userId("Kermit"), 1);
+  }
+
+  /**
+   * The user id criterion matches case-insensitively, i.e. it consists of two conditions
+   * combined with OR. Those have to be bracketed, otherwise the AND of every subsequent
+   * criterion (including the authorization check) binds tighter than the OR and is
+   * short-circuited by an exact id match.
+   */
+  @Test
+  public void testQueryByIdCombinedWithOtherCriteria() {
+    // kermit matches the id but not the remaining criterion
+    verifyQueryResults(identityService.createUserQuery().userId("kermit").userFirstName("Fozzie"), 0);
+    verifyQueryResults(identityService.createUserQuery().userId("kermit").userLastName("Bear"), 0);
+    verifyQueryResults(identityService.createUserQuery().userId("kermit").userEmail("fozzie@muppetshow.com"), 0);
+    verifyQueryResults(identityService.createUserQuery().userId("kermit").memberOfGroup("nonExisting"), 0);
+    verifyQueryResults(identityService.createUserQuery().userId("kermit").memberOfTenant("nonExisting"), 0);
+
+    // same for a case-insensitive id match
+    verifyQueryResults(identityService.createUserQuery().userId("KERMIT").userFirstName("Fozzie"), 0);
+
+    // both criteria match
+    verifyQueryResults(identityService.createUserQuery().userId("kermit").userFirstName("Kermit_"), 1);
+    verifyQueryResults(identityService.createUserQuery().userId("KERMIT").userFirstName("Kermit_"), 1);
+  }
+
+  @Test
   public void testQueryByInvalidId() {
     UserQuery query = identityService.createUserQuery().userId("invalid");
     verifyQueryResults(query, 0);

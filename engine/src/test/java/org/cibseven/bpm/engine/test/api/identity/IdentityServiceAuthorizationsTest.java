@@ -935,6 +935,56 @@ public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTes
 
   }
 
+  /**
+   * The user id criterion matches case-insensitively, i.e. it consists of two conditions
+   * combined with OR. If those are not bracketed, the AND of the authorization check binds
+   * tighter than the OR and an exact id match bypasses the check altogether.
+   */
+  @Test
+  public void testUserQueryAuthorizationsWithUserIdCriterion() {
+
+    // we are jonny2
+    String authUserId = "jonny2";
+    identityService.setAuthenticatedUserId(authUserId);
+
+    // create new user jonny1
+    User jonny1 = identityService.newUser("jonny1");
+    identityService.saveUser(jonny1);
+
+    // set base permission for all users (no-one has any permissions on users)
+    Authorization basePerms = authorizationService.createNewAuthorization(AUTH_TYPE_GLOBAL);
+    basePerms.setResource(USER);
+    basePerms.setResourceId(ANY);
+    authorizationService.saveAuthorization(basePerms);
+
+    // now enable checks
+    processEngineConfiguration.setAuthorizationEnabled(true);
+
+    // we cannot fetch the user by its id, neither exactly nor case-insensitively
+    assertNull(identityService.createUserQuery().userId("jonny1").singleResult());
+    assertEquals(0, identityService.createUserQuery().userId("jonny1").count());
+    assertNull(identityService.createUserQuery().userId("JONNY1").singleResult());
+    assertEquals(0, identityService.createUserQuery().userId("JONNY1").count());
+
+    processEngineConfiguration.setAuthorizationEnabled(false);
+
+    // now we add permission for jonny2 to read the user:
+    Authorization ourPerms = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
+    ourPerms.setUserId(authUserId);
+    ourPerms.setResource(USER);
+    ourPerms.setResourceId(ANY);
+    ourPerms.addPermission(READ);
+    authorizationService.saveAuthorization(ourPerms);
+
+    processEngineConfiguration.setAuthorizationEnabled(true);
+
+    // now we can fetch the user by its id
+    assertNotNull(identityService.createUserQuery().userId("jonny1").singleResult());
+    assertEquals(1, identityService.createUserQuery().userId("jonny1").count());
+    assertNotNull(identityService.createUserQuery().userId("JONNY1").singleResult());
+    assertEquals(1, identityService.createUserQuery().userId("JONNY1").count());
+  }
+
   @Test
   public void testUserQueryAuthorizationsMultipleGroups() {
 
