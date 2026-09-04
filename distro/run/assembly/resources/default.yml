@@ -2,7 +2,7 @@
 # https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#configure-cibseven-bpm-run
 # https://docs.cibseven.org/manual/latest/user-guide/spring-boot-integration/configuration/#camunda-engine-properties
 
-camunda.bpm:
+cibseven.bpm:
   admin-user:
     id: demo
     password: demo
