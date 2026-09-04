@@ -60,6 +60,21 @@
       <scope>runtime</scope>
     </dependency>
 
+    <!--
+      Many integration test classes build their WebArchive directly via
+      ShrinkWrap.create(...) (bypassing the shared initWebArchiveDeployment()
+      helper) and use org.assertj.core.api.Assertions in their @Test methods,
+      which run inside the deployed WAR (in-container testing). Making
+      assertj-core available on Tomcat's shared classpath (like weld and the
+      JDBC drivers below) ensures it's visible to every deployed WAR,
+      regardless of how it was assembled.
+    -->
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
   </dependencies>
 
   <profiles>

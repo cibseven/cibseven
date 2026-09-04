@@ -34,6 +34,7 @@ import org.jboss.shrinkwrap.api.asset.ByteArrayAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 
 import java.io.ByteArrayOutputStream;
@@ -43,6 +44,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
+@ExtendWith(ArquillianExtension.class)
 public class SetVariablesAsyncTest extends AbstractFoxPlatformIntegrationTest {
 
   public static BpmnModelInstance oneTaskProcess(String key) {

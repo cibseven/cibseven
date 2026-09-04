@@ -27,8 +27,10 @@ import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 
+@ExtendWith(ArquillianExtension.class)
 public class SignalEventCatchBoundaryWithVariablesTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment

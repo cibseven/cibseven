@@ -29,11 +29,13 @@ import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Thorben Lindhauer
  *
  */
+@ExtendWith(ArquillianExtension.class)
 public class JobPrioritizationTest extends AbstractFoxPlatformIntegrationTest {
 
   protected ProcessInstance processInstance;

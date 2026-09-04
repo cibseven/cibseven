@@ -64,6 +64,14 @@ public abstract class AbstractFoxPlatformIntegrationTest {
   protected DecisionService decisionService;
 
   public static WebArchive initWebArchiveDeployment(String name, String processesXmlPath) {
+    // Note: assertj-core is intentionally NOT added as a WAR library here.
+    // It is provided on Tomcat's/WildFly's shared server classpath (see
+    // qa/tomcat-runtime/pom.xml), so every deployed WAR sees a single,
+    // consistently-versioned copy. Adding a second copy into WEB-INF/lib
+    // (resolved independently via the offline ShrinkWrap resolver) can pull
+    // in a different transitive version than the one managed by the BOM,
+    // and since the WAR classloader is child-first, that mismatched copy
+    // would shadow the server-provided one and cause NoSuchMethodError.
     WebArchive archive = ShrinkWrap.create(WebArchive.class, name)
               .addAsWebInfResource("org/cibseven/bpm/integrationtest/beans.xml", "beans.xml")
               .addAsLibraries(DeploymentHelper.getEngineCdi())
@@ -75,6 +83,7 @@ public abstract class AbstractFoxPlatformIntegrationTest {
 
     return archive;
   }
+
   public static WebArchive initWebArchiveDeployment(String name) {
     return initWebArchiveDeployment(name, "META-INF/processes.xml");
   }
