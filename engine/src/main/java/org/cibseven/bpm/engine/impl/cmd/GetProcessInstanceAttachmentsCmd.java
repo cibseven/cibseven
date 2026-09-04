@@ -37,6 +37,8 @@ public class GetProcessInstanceAttachmentsCmd implements Command<List<Attachment
   }
 
   public List<Attachment> execute(CommandContext commandContext) {
+    AttachmentAuthChecks.checkReadProcessInstanceIfExists(processInstanceId, commandContext);
+
     return commandContext
       .getAttachmentManager()
       .findAttachmentsByProcessInstanceId(processInstanceId);
