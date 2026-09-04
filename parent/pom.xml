@@ -78,7 +78,7 @@
 
     <version.tomcat9>9.0.118</version.tomcat9>
     <version.tomcat10>10.1.55</version.tomcat10>
-    <version.tomcat>11.0.22</version.tomcat>
+    <version.tomcat>11.0.25</version.tomcat>
 
     <version.arquillian>1.1.10.Final</version.arquillian>
     <version.shrinkwrap.resolvers>2.2.7</version.shrinkwrap.resolvers>
