@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getHistoricTaskInstances"
       tag = "Historic Task Instance"
-      summary = "Get Tasks (Historic)"
+      summary = "Get Historic Task List"
       desc = "Queries for historic tasks that fulfill the given parameters. The size of the result
               set can be retrieved by using the
               [Get Task Count](${docsUrl}/reference/rest/history/task/get-task-query-count/)

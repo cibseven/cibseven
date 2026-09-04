@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "queryJobs"
       tag = "Job"
-      summary = "Get Jobs (POST)"
+      summary = "Get Jobs"
       desc = "Queries for jobs that fulfill given parameters. This method is slightly more
               powerful than the [Get Jobs](${docsUrl}/reference/rest/job/get-query/)
               method because it allows filtering by multiple jobs of types `String`,

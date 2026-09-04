@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getBatchesCount"
       tag = "Batch"
-      summary = "Get List Count"
+      summary = "Get Batch List Count"
       desc = "Requests the number of batches that fulfill the query criteria.
               Takes the same filtering parameters as the [Get Batches](${docsUrl}/reference/rest/batch/get-query/) method." />
 

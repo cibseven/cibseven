@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "queryExecutionsCount"
       tag = "Execution"
-      summary = "Get Execution Count (POST)"
+      summary = "Get Execution Count"
       desc = "Queries for the number of executions that fulfill given parameters. This method
               takes the same message body as the [Get Executions
               POST](${docsUrl}/reference/rest/execution/post-query/) method and
