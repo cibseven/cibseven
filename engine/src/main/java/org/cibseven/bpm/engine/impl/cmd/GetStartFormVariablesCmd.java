@@ -34,8 +34,8 @@ public class GetStartFormVariablesCmd extends AbstractGetFormVariablesCmd {
 
   private static final long serialVersionUID = 1L;
 
-  public GetStartFormVariablesCmd(String resourceId, Collection<String> formVariableNames, boolean deserializeObjectValues) {
-    super(resourceId, formVariableNames, deserializeObjectValues);
+  public GetStartFormVariablesCmd(String resourceId, Collection<String> formVariableNames, boolean deserializeObjectValues, boolean localVariablesOnly) {
+    super(resourceId, formVariableNames, deserializeObjectValues, localVariablesOnly);
   }
 
   public VariableMap execute(final CommandContext commandContext) {
