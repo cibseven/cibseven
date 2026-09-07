@@ -215,9 +215,12 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
     }
     // Also clear the pre-change location, so a conversation started by an earlier
     // build is really gone rather than only half gone.
-    if (execution.getVariable(name) != null) {
-      execution.removeVariable(name);
-    }
+    //
+    // Unconditionally, because removeVariable already checks containsKey before it
+    // walks up the parent chain and does nothing when the name is nowhere. Guarding
+    // on getVariable() != null instead would skip a variable that exists holding
+    // null, which is a delete that does not delete.
+    execution.removeVariable(name);
   }
 
   /**
