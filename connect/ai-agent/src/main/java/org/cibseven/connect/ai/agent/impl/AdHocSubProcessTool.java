@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.cibseven.bpm.engine.ProcessEngine;
+import org.cibseven.bpm.engine.history.HistoricDetail;
+import org.cibseven.bpm.engine.history.HistoricVariableUpdate;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessActivityBehavior;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
 import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
@@ -19,6 +22,8 @@ import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
 import org.cibseven.bpm.engine.runtime.ActivityInstance;
+import org.cibseven.bpm.engine.variable.type.ValueType;
+import org.cibseven.bpm.engine.variable.value.TypedValue;
 
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
@@ -69,13 +74,29 @@ public class AdHocSubProcessTool {
      */
     static final int DEFAULT_MAX_TURNS = 10;
 
+    /**
+     * Characters allowed per reported result value.
+     *
+     * <p>A result variable can hold a whole document, and prompt size is the
+     * dominant cost lever, so a long value is cut and says so rather than being
+     * sent whole.
+     */
+    static final int MAX_RESULT_VALUE_CHARS = 2000;
+
+    /** Characters allowed across all result values of one turn. */
+    static final int MAX_RESULT_BLOCK_CHARS = 20000;
+
     @Tool("Lists what this agent can do in the ad hoc sub process it is running in, and what it is "
             + "already waiting for. 'activities' are the ones you may start, each with 'id', 'name' and "
-            + "'documentation'. 'finishedSinceLastTurn' are the ones that completed since you last ran; "
-            + "their results are process variables now. 'stillRunning' are the ones you already started "
-            + "that have not finished — do not start those again, and do not try to end the scope while "
-            + "they are listed. 'turn' is how many turns you have taken and 'maxTurns' the limit. Call "
-            + "this first in every turn.")
+            + "'documentation'. 'finishedSinceLastTurn' are the ones that completed since you last ran, "
+            + "each with 'activityId' and 'results' — the values of the variables that activity wrote. "
+            + "A long value is truncated and says so; a file or an object is replaced by a short "
+            + "description of its type. 'resultsFrom' says where the values came from, and an empty "
+            + "'results' with a note means nothing could be determined rather than that the activity "
+            + "produced nothing. 'stillRunning' are the ones you already started that have not finished "
+            + "— do not start those again, and do not try to end the scope while they are listed. "
+            + "'turn' is how many turns you have taken and 'maxTurns' the limit. Call this first in "
+            + "every turn.")
     public Map<String, Object> listAvailableActivities() {
         ExecutionEntity scope = requireAdHocScope();
         ProcessEngine engine = requireEngine();
@@ -88,6 +109,7 @@ public class AdHocSubProcessTool {
         AdHocLoopState.countTurn(scope);
 
         List<Map<String, Object>> activities = new ArrayList<>();
+        Map<String, List<String>> declaredResults = new LinkedHashMap<>();
         for (AdHocToolCatalog.Entry entry : AdHocToolCatalog.read(
                 engine.getRepositoryService(), scope.getProcessDefinitionId(), adHocActivityId)) {
             Map<String, Object> item = new LinkedHashMap<>();
@@ -95,6 +117,7 @@ public class AdHocSubProcessTool {
             item.put("name", entry.getName());
             item.put("documentation", entry.getDocumentation());
             activities.add(item);
+            declaredResults.put(entry.getId(), entry.getResultVariables());
         }
 
         Map<String, String> pending = AdHocLoopState.pending(scope);
@@ -105,20 +128,31 @@ public class AdHocSubProcessTool {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("adHocActivityId", adHocActivityId);
         result.put("activities", activities);
-        result.put("finishedSinceLastTurn", new ArrayList<>(finished.values()));
+        result.put("finishedSinceLastTurn", describeFinished(engine, scope, finished, declaredResults));
         result.put("stillRunning", new ArrayList<>(pending.values()));
         result.put("turn", AdHocLoopState.turns(scope));
         result.put("maxTurns", maxTurns(scope));
+        if (pending.isEmpty()) {
+            // Said out loud, because the scope is parked and the agent is its driver:
+            // a driver does not re-activate itself, so if this turn ends without
+            // starting something that waits and without completing the scope, nothing
+            // will wake it again. The timer boundary event on the scope is the net
+            // under that, not a substitute for deciding.
+            result.put("note", "Nothing you started is still running. If you end this turn without "
+                    + "starting an activity that waits for a person or another system, and without "
+                    + "calling completeScope, the process stops here and nothing will wake it. "
+                    + "Decide now.");
+        }
         return result;
     }
 
     @Tool("Starts one activity of the ad hoc sub process this agent is running in, optionally with "
-            + "variables that only that activity sees. Returns 'activityInstanceId'. The activity runs on "
-            + "its own: a fully automatic one has already finished when this returns, one that waits for "
-            + "a person or for another system is now waiting, and you will get another turn when it "
-            + "finishes. This call does not return the activity's result — results become process "
-            + "variables. Call this once per activity you want started; do not try to start several in "
-            + "one call.")
+            + "variables that only that activity sees. 'status' tells you what happened: 'finished' "
+            + "means it ran without waiting and is already done, and 'results' holds the values it "
+            + "wrote — this is the only turn in which you see them, so use them now. 'waiting' means "
+            + "it waits for a person or another system, 'results' is empty, and you will get another "
+            + "turn when it finishes. Call this once per activity you want started; do not try to "
+            + "start several in one call.")
     public Map<String, Object> startActivity(
             @P("Id of the activity to start, exactly as returned by listAvailableActivities")
             String activityId,
@@ -144,15 +178,50 @@ public class AdHocSubProcessTool {
                 scope.getId(), Collections.singletonList(activityId), perActivity);
 
         String activityInstanceId = activityInstanceIds.isEmpty() ? null : activityInstanceIds.get(0);
-        AdHocLoopState.addPending(scope, activityInstanceId, activityId);
-
-        LOG.debug("startActivity: scope='{}', activity='{}', activityInstanceId='{}'",
-                scope.getActivity().getId(), activityId, activityInstanceId);
-        publishAuditRecord("startActivity", scope, activityId, activityInstanceId);
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("activityId", activityId);
         result.put("activityInstanceId", activityInstanceId);
+
+        // Whether the activity is still in the runtime tree decides everything else.
+        // One that runs without waiting has already finished inside the call above,
+        // and this is the only turn in which the agent can see its result: the agent
+        // is the scope's driver and is running, so that activity's end gives it no
+        // further turn.
+        boolean stillRunning = activityInstanceId != null
+                && runningActivityInstanceIds(engine, scope).contains(activityInstanceId);
+
+        if (stillRunning) {
+            AdHocLoopState.addPending(scope, activityInstanceId, activityId);
+            result.put("status", "waiting");
+            result.put("results", Collections.emptyMap());
+            result.put("resultsNote", "Still running. You will get another turn when it finishes.");
+        } else {
+            // Not recorded as pending: there is nothing to wait for, and an entry that
+            // is already finished would refuse completeScope until a later turn
+            // reconciled it away.
+            result.put("status", "finished");
+            // Model-derived names rather than the history: the activity ran in the
+            // transaction this call is part of, and whether its variable updates are
+            // already queryable from history here is unmeasured. The values themselves
+            // are read from the scope, where an output mapping has just written them.
+            List<String> names = declaredResultVariables(engine, scope, activityId);
+            ResultBlock block = readResults(scope, names, MAX_RESULT_BLOCK_CHARS);
+            result.put("results", block.values);
+            result.put("resultsFrom", names.isEmpty() ? "nothing declared" : "model declaration");
+            if (block.note != null) {
+                result.put("resultsNote", block.note);
+            } else if (names.isEmpty()) {
+                result.put("resultsNote", "This activity declares no output mapping, result variable "
+                        + "or form fields, so what it wrote cannot be determined from the model. Add "
+                        + "one of those, or camunda:property adHocResultVariables, if the agent needs "
+                        + "its values.");
+            }
+        }
+
+        LOG.debug("startActivity: scope='{}', activity='{}', activityInstanceId='{}', status='{}'",
+                scope.getActivity().getId(), activityId, activityInstanceId, result.get("status"));
+        publishAuditRecord("startActivity", scope, activityId, activityInstanceId);
         return result;
     }
 
@@ -259,6 +328,170 @@ public class AdHocSubProcessTool {
         for (ActivityInstance child : node.getChildActivityInstances()) {
             collectIds(child, ids);
         }
+    }
+
+    /**
+     * Describes the activities that finished since the previous turn, each with the
+     * values it wrote.
+     *
+     * <p>The history is asked first, because it is the only source that knows what
+     * an activity <em>actually</em> wrote: at history level {@code full} every
+     * variable update carries the activity instance that caused it, so a delegate
+     * calling {@code setVariable} with no mapping anywhere is covered too, and a
+     * variable the activity never touched cannot appear. The model declaration is
+     * the fallback, for a deployment on a lower history level.
+     *
+     * <p>Values are read now rather than when the activity ended, because the
+     * connector is not on the thread that ends a child. That is also correct: an
+     * output mapping writes to the scope as the child ends, so by the time this runs
+     * the values are in place.
+     *
+     * <p>Two performances of the same activity write the same variable names, so the
+     * second overwrites the first. That is the documented behaviour of the activation
+     * API's per-activity variables and applies here unchanged; an activity meant to
+     * run repeatedly should write into a collection rather than a scalar.
+     */
+    private static List<Map<String, Object>> describeFinished(ProcessEngine engine,
+            ExecutionEntity scope, Map<String, String> finished,
+            Map<String, List<String>> declaredResults) {
+
+        List<Map<String, Object>> described = new ArrayList<>();
+        int budget = MAX_RESULT_BLOCK_CHARS;
+
+        for (Map.Entry<String, String> entry : finished.entrySet()) {
+            String activityInstanceId = entry.getKey();
+            String activityId = entry.getValue();
+
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("activityId", activityId);
+            item.put("activityInstanceId", activityInstanceId);
+
+            List<String> names = historyResultVariables(engine, activityInstanceId);
+            String source = "history";
+            if (names.isEmpty()) {
+                List<String> declared = declaredResults.get(activityId);
+                names = (declared == null) ? Collections.<String>emptyList() : declared;
+                source = names.isEmpty() ? "nothing determined" : "model declaration";
+            }
+
+            ResultBlock block = readResults(scope, names, budget);
+            budget -= block.charsUsed;
+            item.put("results", block.values);
+            item.put("resultsFrom", source);
+            if (block.note != null) {
+                item.put("resultsNote", block.note);
+            } else if (names.isEmpty()) {
+                item.put("resultsNote", "Neither the history nor the model says what this activity "
+                        + "wrote. Either the history level is below 'full' and the activity declares "
+                        + "no output mapping, result variable or form fields, or it wrote nothing.");
+            }
+            described.add(item);
+        }
+        return described;
+    }
+
+    /**
+     * The names of the variables the activity instance actually wrote, from history.
+     *
+     * <p>Empty when the history level does not record variable updates — only
+     * {@code full} does — or when the activity wrote nothing. The two cases are not
+     * distinguishable here, which is why the caller falls back to the model
+     * declaration rather than reporting "wrote nothing".
+     *
+     * <p>Failures are swallowed: a missing history is a deployment choice, not a
+     * reason to fail the agent's turn.
+     */
+    private static List<String> historyResultVariables(ProcessEngine engine, String activityInstanceId) {
+        if (activityInstanceId == null) {
+            return Collections.emptyList();
+        }
+        try {
+            Set<String> names = new LinkedHashSet<>();
+            List<HistoricDetail> details = engine.getHistoryService()
+                    .createHistoricDetailQuery()
+                    .activityInstanceId(activityInstanceId)
+                    .variableUpdates()
+                    .list();
+            for (HistoricDetail detail : details) {
+                if (detail instanceof HistoricVariableUpdate) {
+                    String name = ((HistoricVariableUpdate) detail).getVariableName();
+                    if (name != null && !name.isEmpty()) {
+                        names.add(name);
+                    }
+                }
+            }
+            return new ArrayList<>(names);
+        } catch (RuntimeException e) {
+            LOG.debug("Could not read variable updates for activity instance '{}': {}",
+                    activityInstanceId, e.toString());
+            return Collections.emptyList();
+        }
+    }
+
+    /** The result variables the model declares for {@code activityId}, or an empty list. */
+    private static List<String> declaredResultVariables(ProcessEngine engine, ExecutionEntity scope,
+            String activityId) {
+        for (AdHocToolCatalog.Entry entry : AdHocToolCatalog.read(engine.getRepositoryService(),
+                scope.getProcessDefinitionId(), scope.getActivity().getId())) {
+            if (activityId.equals(entry.getId())) {
+                return entry.getResultVariables();
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    /** The values of {@code names}, capped, plus how much of the budget was used. */
+    private static ResultBlock readResults(ExecutionEntity scope, List<String> names, int budget) {
+        ResultBlock block = new ResultBlock();
+        int remaining = budget;
+        for (String name : names) {
+            if (remaining <= 0) {
+                block.note = "Some values were omitted because the size limit of "
+                        + MAX_RESULT_BLOCK_CHARS + " characters for one turn was reached.";
+                break;
+            }
+            Object value = readResult(scope, name);
+            block.values.put(name, value);
+            int used = String.valueOf(value).length();
+            remaining -= used;
+            block.charsUsed += used;
+        }
+        return block;
+    }
+
+    /**
+     * One result value, in a form that is safe to put in a tool result.
+     *
+     * <p>Read without deserializing, so a customer POJO whose class is absent from
+     * this classloader does not fail the turn — the normal case for an object
+     * variable, and the reason {@code getValue()} is not called on one. Only a
+     * primitive value is passed through; anything else becomes a descriptor naming
+     * its type, which keeps a file, a byte array or a serialized object out of the
+     * prompt.
+     */
+    private static Object readResult(ExecutionEntity scope, String name) {
+        TypedValue typed = scope.getVariableTyped(name, false);
+        if (typed == null) {
+            return null;
+        }
+        ValueType type = typed.getType();
+        if (type == null || !type.isPrimitiveValueType()) {
+            return "<" + (type == null ? "unknown" : type.getName()) + " value, not shown>";
+        }
+        Object value = typed.getValue();
+        if (value instanceof String && ((String) value).length() > MAX_RESULT_VALUE_CHARS) {
+            String text = (String) value;
+            return text.substring(0, MAX_RESULT_VALUE_CHARS)
+                    + "… (truncated, " + text.length() + " characters total)";
+        }
+        return value;
+    }
+
+    /** The values read for one activity, with what they cost and why some are missing. */
+    private static final class ResultBlock {
+        private final Map<String, Object> values = new LinkedHashMap<>();
+        private int charsUsed;
+        private String note;
     }
 
     /**
