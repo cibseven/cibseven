@@ -376,7 +376,6 @@ public class ProcessDefinitionResourceImpl implements ProcessDefinitionResource 
       StringListConverter stringListConverter = new StringListConverter();
       formVariables = stringListConverter.convertQueryParameterToType(variableNames);
     }
-
     VariableMap startFormVariables = formService.getStartFormVariables(processDefinitionId, formVariables, deserializeValues);
 
     return VariableValueDto.fromMap(startFormVariables);
