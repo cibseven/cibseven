@@ -412,11 +412,16 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
    * <p>Without this, an instance whose conversation started before this change
    * would keep a readable and writable copy at the process instance, so the
    * exposure this change removes would persist for exactly those instances.
+   *
+   * <p>Unconditional for the same reason as in {@link #deleteMessages(Object)}:
+   * {@code removeVariable} already checks {@code containsKey} before walking up
+   * the parent chain, so it does nothing when the name is nowhere. Guarding on
+   * {@code getVariable() != null} would leave behind a variable that exists
+   * holding null — and leaving the old copy behind is precisely the exposure
+   * this method exists to close.
    */
   private static void removeLegacyCopy(ExecutionEntity execution, String name) {
-    if (execution.getVariable(name) != null) {
-      execution.removeVariable(name);
-    }
+    execution.removeVariable(name);
   }
 
 
