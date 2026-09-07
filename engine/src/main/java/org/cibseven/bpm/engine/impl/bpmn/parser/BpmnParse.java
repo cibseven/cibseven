@@ -4194,6 +4194,11 @@ public class BpmnParse extends Parse {
    *
    * <p>Both live in the same {@code camunda:properties} block, so they are read together rather
    * than by two methods parsing the same element twice.
+   *
+   * <p>The block is also kept on the activity, so properties a client reads at runtime survive
+   * parsing. Everywhere else in this parser an ad hoc scope's extension properties were read and
+   * then dropped — {@code parseExternalServiceTask} is the only other place that stores them —
+   * which left {@code adHocMaxTurns} unreadable and the agent's turn cap stuck at its default.
    */
   protected void parseAdHocAgenticProperties(Element adHocElement, ActivityImpl activity,
                                              AdHocSubProcessActivityBehavior behavior) {
@@ -4202,6 +4207,8 @@ public class BpmnParse extends Parse {
     if (properties == null) {
       return;
     }
+
+    activity.getProperties().set(BpmnProperties.EXTENSION_PROPERTIES, properties);
 
     boolean parked = parseExplicitCompletionOnly(adHocElement, activity, properties);
     if (parked) {
