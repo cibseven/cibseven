@@ -292,6 +292,16 @@ public interface CommandChecker {
   void checkUpdateCaseDefinition(CaseDefinition caseDefinition);
 
   /**
+   * Checks if it is allowed to read the given historic task instance.
+   */
+  void checkReadHistoricTaskInstance(HistoricTaskInstanceEntity task);
+
+  /**
+   * Checks if it is allowed to read the given historic process instance.
+   */
+  void checkReadHistoricProcessInstance(HistoricProcessInstanceEntity processInstance);
+
+  /**
    * Checks if it is allowed to delete the given historic task instance.
    */
   void checkDeleteHistoricTaskInstance(HistoricTaskInstanceEntity task);
@@ -300,6 +310,20 @@ public interface CommandChecker {
    * Checks if it is allowed to delete the given historic process instance.
    */
   void checkDeleteHistoricProcessInstance(HistoricProcessInstance instance);
+
+  /**
+   * Checks if it is allowed to modify the given historic task instance, e.g. when an attachment is
+   * created, saved or deleted after the task has completed. The engine has no dedicated write
+   * permission for historic data, so this is granted by either DELETE_HISTORY on the process
+   * definition or ALL on the historic task itself.
+   */
+  void checkModifyHistoricTaskInstance(HistoricTaskInstanceEntity task);
+
+  /**
+   * Checks if it is allowed to modify the given historic process instance.
+   * Same reasoning as {@link #checkModifyHistoricTaskInstance}.
+   */
+  void checkModifyHistoricProcessInstance(HistoricProcessInstance instance);
 
   /**
    * Checks if it is allowed to delete the given historic case instance.

@@ -27,6 +27,7 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineException;
@@ -104,6 +105,8 @@ public class TaskAttachmentResourceImpl implements TaskAttachmentResource {
 
     try {
       engine.getTaskService().deleteTaskAttachment(taskId, attachmentId);
+    } catch (AuthorizationException e) {
+      throw e;
     } catch (ProcessEngineException e) {
       throw new InvalidRequestException(Status.NOT_FOUND, "Deletion is not possible. No attachment exists for task id '" + taskId + "' and attachment id '" + attachmentId + "'.");
     }
@@ -145,6 +148,8 @@ public class TaskAttachmentResourceImpl implements TaskAttachmentResource {
       } else if (urlPart != null) {
         attachment = engine.getTaskService().createAttachment(attachmentType, taskId, null, attachmentName, attachmentDescription, urlPart.getTextContent());
       }
+    } catch (AuthorizationException e) {
+      throw e;
     } catch (ProcessEngineException e) {
       throw new InvalidRequestException(Status.BAD_REQUEST, e, "Task id is null");
     }

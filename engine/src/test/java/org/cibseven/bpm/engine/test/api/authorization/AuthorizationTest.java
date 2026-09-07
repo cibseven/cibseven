@@ -28,6 +28,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -50,6 +51,7 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.CaseInstance;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
+import org.cibseven.bpm.engine.task.Attachment;
 import org.cibseven.bpm.engine.task.Comment;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
@@ -292,6 +294,34 @@ public abstract class AuthorizationTest extends PluggableProcessEngineTest {
 
   protected Comment createComment(String taskId, String processInstanceId, String message) {
     return runWithoutAuthorization(() -> taskService.createComment(taskId, processInstanceId, message));
+  }
+
+  protected Attachment createAttachment(String taskId, String processInstanceId) {
+    return runWithoutAuthorization(() -> taskService.createAttachment("foo", taskId, processInstanceId,
+        "aName", "aDescription", new ByteArrayInputStream("aContent".getBytes())));
+  }
+
+  protected Attachment createAttachmentWithUrl(String taskId, String processInstanceId) {
+    return runWithoutAuthorization(() -> taskService.createAttachment("foo", taskId, processInstanceId,
+        "aName", "aDescription", "http://cibseven.org"));
+  }
+
+  protected Attachment selectAttachment(final String attachmentId) {
+    return runWithoutAuthorization(() -> taskService.getAttachment(attachmentId));
+  }
+
+  protected void deleteAttachment(final String attachmentId) {
+    runWithoutAuthorization((Callable<Void>) () -> {
+      taskService.deleteAttachment(attachmentId);
+      return null;
+    });
+  }
+
+  protected void completeTask(final String taskId) {
+    runWithoutAuthorization((Callable<Void>) () -> {
+      taskService.complete(taskId);
+      return null;
+    });
   }
 
   protected void addCandidateUser(final String taskId, final String user) {

@@ -3083,6 +3083,121 @@ public class TaskRestServiceInteractionTest extends
   }
 
   @Test
+  public void testDeleteSingleTaskAttachmentThrowsAuthorizationException() {
+    String message = "expected exception";
+    doThrow(new AuthorizationException(message)).when(taskServiceMock)
+        .deleteTaskAttachment(EXAMPLE_TASK_ID, EXAMPLE_TASK_ATTACHMENT_ID);
+
+    given()
+      .pathParam("id", EXAMPLE_TASK_ID)
+      .pathParam("attachmentId", EXAMPLE_TASK_ATTACHMENT_ID)
+      .header("accept", MediaType.APPLICATION_JSON)
+    .then().expect()
+      .statusCode(Status.FORBIDDEN.getStatusCode())
+      .contentType(ContentType.JSON)
+      .body("type", equalTo(AuthorizationException.class.getSimpleName()))
+      .body("message", equalTo(message))
+    .when()
+      .delete(SINGLE_TASK_DELETE_SINGLE_ATTACHMENT_URL);
+  }
+
+  @Test
+  public void testCreateTaskAttachmentWithContentThrowsAuthorizationException() {
+    String message = "expected exception";
+    doThrow(new AuthorizationException(message)).when(taskServiceMock)
+        .createAttachment(any(), any(), any(), any(), any(), any(InputStream.class));
+
+    given()
+      .pathParam("id", EXAMPLE_TASK_ID)
+      .multiPart("attachment-name", EXAMPLE_TASK_ATTACHMENT_NAME)
+      .multiPart("attachment-description", EXAMPLE_TASK_ATTACHMENT_DESCRIPTION)
+      .multiPart("attachment-type", EXAMPLE_TASK_ATTACHMENT_TYPE)
+      .multiPart("content", createMockByteData())
+      .header("accept", MediaType.APPLICATION_JSON)
+    .then().expect()
+      .statusCode(Status.FORBIDDEN.getStatusCode())
+      .contentType(ContentType.JSON)
+      .body("type", equalTo(AuthorizationException.class.getSimpleName()))
+      .body("message", equalTo(message))
+    .when()
+      .post(SINGLE_TASK_ADD_ATTACHMENT_URL);
+  }
+
+  @Test
+  public void testCreateTaskAttachmentWithUrlThrowsAuthorizationException() {
+    String message = "expected exception";
+    doThrow(new AuthorizationException(message)).when(taskServiceMock)
+        .createAttachment(any(), any(), any(), any(), any(), anyString());
+
+    given()
+      .pathParam("id", EXAMPLE_TASK_ID)
+      .multiPart("attachment-name", EXAMPLE_TASK_ATTACHMENT_NAME)
+      .multiPart("attachment-description", EXAMPLE_TASK_ATTACHMENT_DESCRIPTION)
+      .multiPart("attachment-type", EXAMPLE_TASK_ATTACHMENT_TYPE)
+      .multiPart("url", EXAMPLE_TASK_ATTACHMENT_URL)
+      .header("accept", MediaType.APPLICATION_JSON)
+    .then().expect()
+      .statusCode(Status.FORBIDDEN.getStatusCode())
+      .contentType(ContentType.JSON)
+      .body("type", equalTo(AuthorizationException.class.getSimpleName()))
+      .body("message", equalTo(message))
+    .when()
+      .post(SINGLE_TASK_ADD_ATTACHMENT_URL);
+  }
+
+  @Test
+  public void testGetTaskAttachmentsThrowsAuthorizationException() {
+    String message = "expected exception";
+    doThrow(new AuthorizationException(message)).when(taskServiceMock).getTaskAttachments(EXAMPLE_TASK_ID);
+
+    given()
+      .pathParam("id", EXAMPLE_TASK_ID)
+      .header("accept", MediaType.APPLICATION_JSON)
+    .then().expect()
+      .statusCode(Status.FORBIDDEN.getStatusCode())
+      .contentType(ContentType.JSON)
+      .body("type", equalTo(AuthorizationException.class.getSimpleName()))
+      .body("message", equalTo(message))
+    .when()
+      .get(SINGLE_TASK_ATTACHMENTS_URL);
+  }
+
+  @Test
+  public void testGetSingleTaskAttachmentThrowsAuthorizationException() {
+    String message = "expected exception";
+    doThrow(new AuthorizationException(message)).when(taskServiceMock)
+        .getTaskAttachment(EXAMPLE_TASK_ID, EXAMPLE_TASK_ATTACHMENT_ID);
+
+    given()
+      .pathParam("id", EXAMPLE_TASK_ID)
+      .pathParam("attachmentId", EXAMPLE_TASK_ATTACHMENT_ID)
+      .header("accept", MediaType.APPLICATION_JSON)
+    .then().expect()
+      .statusCode(Status.FORBIDDEN.getStatusCode())
+      .contentType(ContentType.JSON)
+      .body("type", equalTo(AuthorizationException.class.getSimpleName()))
+      .body("message", equalTo(message))
+    .when()
+      .get(SINGLE_TASK_SINGLE_ATTACHMENT_URL);
+  }
+
+  @Test
+  public void testGetSingleTaskAttachmentContentThrowsAuthorizationException() {
+    String message = "expected exception";
+    doThrow(new AuthorizationException(message)).when(taskServiceMock)
+        .getTaskAttachmentContent(EXAMPLE_TASK_ID, EXAMPLE_TASK_ATTACHMENT_ID);
+
+    given()
+      .pathParam("id", EXAMPLE_TASK_ID)
+      .pathParam("attachmentId", EXAMPLE_TASK_ATTACHMENT_ID)
+    .then().expect()
+      .statusCode(Status.FORBIDDEN.getStatusCode())
+      .body(containsString(message))
+    .when()
+      .get(SINGLE_TASK_SINGLE_ATTACHMENT_DATA_URL);
+  }
+
+  @Test
   public void testDeleteDeleteTask() {
 
     given()
