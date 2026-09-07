@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getDecisionRequirementsDefinitionDmnXmlByKeyAndTenantId"
       tag = "Decision Requirements Definition"
-      summary = "Get DMN XML by Key and Tenant ID"
+      summary = "Get Decision Requirements Definition DMN XML by Key and Tenant ID"
       desc = "Retrieves the DMN XML of a decision requirements definition.
               Returns the XML of the latest version of the decision requirements 
               definition for a tenant."

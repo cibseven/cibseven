@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getCleanableHistoricProcessInstanceReportCount"
       tag = "Historic Process Definition"
-      summary = "Get Cleanable Process Instance Report Count"
+      summary = "Get Cleanable Historic Process Instance Report Count"
       desc = "Queries for the number of report results about a process definition and finished
               process instances relevant to history cleanup (see
               [History cleanup](${docsUrl}/user-guide/process-engine/history/#history-cleanup)).

@@ -3,7 +3,7 @@
   <@lib.endpointInfo
       id = "getDecisionDefinitionsCount"
       tag = "Decision Definition"
-      summary = "Get List Count"
+      summary = "Get Decision Definition List Count"
       desc = "Requests the number of decision definitions that fulfill the query criteria.
               Takes the same filtering parameters as the
               [Get Decision Definition](${docsUrl}/reference/rest/decision-definition/get-query/) method." />

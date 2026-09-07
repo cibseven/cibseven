@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getCleanableHistoricBatchesReport"
       tag = "Historic Batch"
-      summary = "Get Cleanable Batch Report"
+      summary = "Get Cleanable Historic Batch Report"
       desc = "Retrieves a report about a historic batch operations relevant to history cleanup
               (see
               [History cleanup](${docsUrl}/user-guide/process-engine/history/#history-cleanup)

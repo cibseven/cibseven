@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "cleanupAsync"
       tag = "History Cleanup"
-      summary = "Clean up history (POST)"
+      summary = "Clean Up History"
       desc = "Schedules asynchronous history cleanup (See
               [History cleanup](${docsUrl}/user-guide/process-engine/history/#history-cleanup)).
 

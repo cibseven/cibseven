@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getGroupCount"
       tag = "Group"
-      summary = "Get List Count"
+      summary = "Get Group List Count"
       desc = "Queries for groups using a list of parameters and retrieves the count."
   />
 

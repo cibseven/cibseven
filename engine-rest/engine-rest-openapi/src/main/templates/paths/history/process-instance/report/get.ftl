@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getHistoricProcessInstanceDurationReport"
       tag = "Historic Process Instance"
-      summary = "Get Duration Report"
+      summary = "Get Historic Process Instance Duration Report"
       desc = "Retrieves a report about the duration of completed process instances, grouped by a period.
               These reports include the maximum, minimum and average duration of all completed process instances which were started in a given period.
 

@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "findCleanupJobs"
       tag = "History Cleanup"
-      summary = "Find clean up history jobs (GET)"
+      summary = "Find History Cleanup Jobs"
       desc = "Finds history cleanup jobs (See
               [History cleanup](${docsUrl}/user-guide/process-engine/history/#history-cleanup))."
   />

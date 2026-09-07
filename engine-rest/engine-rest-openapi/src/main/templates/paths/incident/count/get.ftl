@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getIncidentsCount"
       tag = "Incident"
-      summary = "Get List Count"
+      summary = "Get Incident List Count"
       desc = "Queries for the number of incidents that fulfill given parameters. Takes the same parameters as the
       [Get Incidents](${docsUrl}/reference/rest/incident/get-query/) method." />
 
