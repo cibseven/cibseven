@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Parking together with declarative entry activation (CIB7-1891). The two are independent
+     properties in the same block, and the combination is the one an agentic scope uses: the entry
+     list starts the driver, the parking keeps the scope alive between turns. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-parked">
+  <process id="adHocParkedEntry" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <extensionElements>
+        <camunda:properties>
+          <camunda:property name="explicitCompletionOnly" value="true" />
+          <camunda:property name="activeActivityIds" value="taskA" />
+        </camunda:properties>
+      </extensionElements>
+      <userTask id="taskA" name="Task A" />
+      <userTask id="taskB" name="Task B" />
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

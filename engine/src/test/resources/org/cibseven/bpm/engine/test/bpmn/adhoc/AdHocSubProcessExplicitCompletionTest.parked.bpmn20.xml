@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A parked scope: no completion condition, so without the property it would end as soon as its
+     last activated child did. Two waiting children and one synchronous one. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-parked">
+  <process id="adHocParked" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <extensionElements>
+        <camunda:properties>
+          <camunda:property name="explicitCompletionOnly" value="true" />
+        </camunda:properties>
+      </extensionElements>
+      <userTask id="taskA" name="Task A" />
+      <userTask id="taskB" name="Task B" />
+      <serviceTask id="sync" camunda:expression="${execution.setVariable('ran', true)}" />
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

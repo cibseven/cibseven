@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The same writer in a scope that completes on the count-based rule. If agent state and the
+     engine's activation counter shared one execution, the counter would read as absent here and the
+     scope would never complete. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-agent-state">
+  <process id="adHocAgentStateNotParked" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <serviceTask id="writeState"
+                   camunda:class="org.cibseven.bpm.engine.test.bpmn.adhoc.AdHocAgentStateTest$WriteAgentState" />
+      <userTask id="workerA" name="Worker A" />
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

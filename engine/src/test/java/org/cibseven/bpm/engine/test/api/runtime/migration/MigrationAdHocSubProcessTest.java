@@ -31,7 +31,11 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.builder.AdHocSubProcessBuilder;
+import org.cibseven.bpm.model.bpmn.instance.AdHocSubProcess;
+import org.cibseven.bpm.model.bpmn.instance.ExtensionElements;
 import org.cibseven.bpm.model.bpmn.instance.UserTask;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaProperties;
+import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaProperty;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -61,6 +65,150 @@ public class MigrationAdHocSubProcessTest {
       adHoc.completionCondition(condition);
     }
     return adHoc.endEvent("end").done();
+  }
+
+  /**
+   * The same process with the agentic properties set on the scope. Written through the model API
+   * rather than a builder method: the builder hierarchy has no accessor for extension properties,
+   * and adding one would freeze a public model-API signature for the sake of a test.
+   */
+  protected static BpmnModelInstance adHocProcess(String driverActivityId, boolean parked) {
+    BpmnModelInstance model = adHocProcess(null);
+    AdHocSubProcess scope = model.getModelElementById("adHoc");
+    if (parked) {
+      property(scope, "explicitCompletionOnly", "true");
+    }
+    if (driverActivityId != null) {
+      property(scope, "adHocDriverActivity", driverActivityId);
+    }
+    return model;
+  }
+
+  protected static void property(AdHocSubProcess scope, String name, String value) {
+    BpmnModelInstance model = (BpmnModelInstance) scope.getModelInstance();
+    ExtensionElements extensionElements = scope.getExtensionElements();
+    if (extensionElements == null) {
+      extensionElements = model.newInstance(ExtensionElements.class);
+      scope.setExtensionElements(extensionElements);
+    }
+    CamundaProperties properties = extensionElements.getElementsQuery()
+        .filterByType(CamundaProperties.class).singleResult();
+    if (properties == null) {
+      properties = model.newInstance(CamundaProperties.class);
+      extensionElements.addChildElement(properties);
+    }
+    CamundaProperty property = model.newInstance(CamundaProperty.class);
+    property.setCamundaName(name);
+    property.setCamundaValue(value);
+    properties.addChildElement(property);
+  }
+
+  protected void expectRefusal(BpmnModelInstance sourceModel, BpmnModelInstance targetModel,
+      String expectedFailure) {
+    ProcessDefinition source = testHelper.deployAndGetDefinition(sourceModel);
+    ProcessDefinition target = testHelper.deployAndGetDefinition(targetModel);
+
+    try {
+      rule.getRuntimeService()
+          .createMigrationPlan(source.getId(), target.getId())
+          .mapActivities("adHoc", "adHoc")
+          .mapActivities("taskA", "taskA")
+          .build();
+      fail("the mapping must be refused: " + expectedFailure);
+    } catch (MigrationPlanValidationException e) {
+      assertThat(e.getValidationReport()).hasInstructionFailures("adHoc", expectedFailure);
+    }
+  }
+
+  // ─── parking ──────────────────────────────────────────────────────────────────
+
+  /**
+   * A parked instance mapped onto an auto-completing target would end the moment its last child
+   * does, which is the opposite of what whoever parked it intended.
+   */
+  @Test
+  public void cannotMigrateFromAParkedScopeToAnAutoCompletingOne() {
+    expectRefusal(adHocProcess(null, true), adHocProcess(null),
+        "Cannot migrate an ad hoc sub process to one with a different completion rule");
+  }
+
+  /**
+   * And the other direction: an instance that was relying on the count-based rule would afterwards
+   * wait for a completion request nobody intends to send.
+   */
+  @Test
+  public void cannotMigrateFromAnAutoCompletingScopeToAParkedOne() {
+    expectRefusal(adHocProcess(null), adHocProcess(null, true),
+        "Cannot migrate an ad hoc sub process to one with a different completion rule");
+  }
+
+  /** Parked to parked is an ordinary migration and must be allowed. */
+  @Test
+  public void canMigrateBetweenTwoParkedScopes() {
+    ProcessDefinition source = testHelper.deployAndGetDefinition(adHocProcess(null, true));
+    ProcessDefinition target = testHelper.deployAndGetDefinition(adHocProcess(null, true));
+
+    MigrationPlan plan = rule.getRuntimeService()
+        .createMigrationPlan(source.getId(), target.getId())
+        .mapActivities("adHoc", "adHoc")
+        .mapActivities("taskA", "taskA")
+        .build();
+
+    assertThat(plan.getInstructions()).as("nothing about the rule changed").isNotEmpty();
+  }
+
+  /**
+   * One violation, not three. The three rules answer the same question, so reporting all of them for
+   * one cause buries the actual difference under its consequences.
+   */
+  @Test
+  public void aChangedCompletionRuleIsReportedOnce() {
+    ProcessDefinition source = testHelper.deployAndGetDefinition(adHocProcess(null, true));
+    ProcessDefinition target = testHelper.deployAndGetDefinition(adHocProcess("${approved}"));
+
+    try {
+      rule.getRuntimeService()
+          .createMigrationPlan(source.getId(), target.getId())
+          .mapActivities("adHoc", "adHoc")
+          .mapActivities("taskA", "taskA")
+          .build();
+      fail("a parked source and a condition-driven target must be refused");
+    } catch (MigrationPlanValidationException e) {
+      assertThat(e.getValidationReport())
+          .hasInstructionFailures("adHoc",
+              "Cannot migrate an ad hoc sub process to one with a different completion rule");
+    }
+  }
+
+  // ─── the driver ───────────────────────────────────────────────────────────────
+
+  /** Gaining a driver changes who advances the scope, and no instruction describes that. */
+  @Test
+  public void cannotMigrateToAScopeThatGainsADriver() {
+    expectRefusal(adHocProcess(null, true), adHocProcess("taskA", true),
+        "Cannot migrate an ad hoc sub process to one with a different driver activity");
+  }
+
+  /** Losing one leaves a parked instance with nothing to advance it. */
+  @Test
+  public void cannotMigrateToAScopeThatLosesItsDriver() {
+    expectRefusal(adHocProcess("taskA", true), adHocProcess(null, true),
+        "Cannot migrate an ad hoc sub process to one with a different driver activity");
+  }
+
+  /** Same driver, same rule: allowed. */
+  @Test
+  public void canMigrateBetweenScopesWithTheSameDriver() {
+    ProcessDefinition source = testHelper.deployAndGetDefinition(adHocProcess("taskA", true));
+    ProcessDefinition target = testHelper.deployAndGetDefinition(adHocProcess("taskA", true));
+
+    MigrationPlan plan = rule.getRuntimeService()
+        .createMigrationPlan(source.getId(), target.getId())
+        .mapActivities("adHoc", "adHoc")
+        .mapActivities("taskA", "taskA")
+        .build();
+
+    assertThat(plan.getInstructions()).isNotEmpty();
   }
 
   protected static BpmnModelInstance plainSubProcessProcess() {

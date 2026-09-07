@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A parked scope with a driver. The driver is a user task here so a test can observe when it is
+     re-activated and can end it on demand; in production it is the agent's service task. Entry
+     activation starts the first turn. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-driver">
+  <process id="adHocDriven" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <extensionElements>
+        <camunda:properties>
+          <camunda:property name="explicitCompletionOnly" value="true" />
+          <camunda:property name="adHocDriverActivity" value="driver" />
+          <camunda:property name="activeActivityIds" value="driver" />
+        </camunda:properties>
+      </extensionElements>
+      <userTask id="driver" name="Driver" />
+      <userTask id="workerA" name="Worker A" />
+      <userTask id="workerB" name="Worker B" />
+      <userTask id="workerC" name="Worker C" />
+      <serviceTask id="sync" camunda:expression="${execution.setVariable('ran', true)}" />
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

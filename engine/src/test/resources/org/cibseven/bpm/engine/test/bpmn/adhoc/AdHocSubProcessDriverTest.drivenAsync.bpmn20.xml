@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The same scope with the driver marked asyncBefore. That is what puts the driver's work in its
+     own transaction, so a person completing a worker does not wait for it and a failure in it does
+     not roll their completion back. The driver is a user task so the test can see the job resolve
+     into something observable. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-driver">
+  <process id="adHocDrivenAsync" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <extensionElements>
+        <camunda:properties>
+          <camunda:property name="explicitCompletionOnly" value="true" />
+          <camunda:property name="adHocDriverActivity" value="driver" />
+          <camunda:property name="activeActivityIds" value="driver" />
+        </camunda:properties>
+      </extensionElements>
+      <userTask id="driver" name="Driver" camunda:asyncBefore="true" />
+      <userTask id="workerA" name="Worker A" />
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>
