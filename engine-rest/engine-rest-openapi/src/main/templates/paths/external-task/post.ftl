@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "queryExternalTasks"
       tag = "External Task"
-      summary = "Get List"
+      summary = "Get External Task List"
       desc = "Queries for external tasks that fulfill given parameters in the form of a JSON object.
 
               This method is slightly more powerful than the
