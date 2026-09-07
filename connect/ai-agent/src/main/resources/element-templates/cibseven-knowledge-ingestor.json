@@ -3,7 +3,7 @@
   "name": "CIB seven - Knowledge Ingestor",
   "id": "org.cibseven.connect.ai.agent.knowledge-ingestor",
   "version": 1,
-  "description": "Element template for the cibseven-knowledge-ingestor connector. Embeds text content into a pgvector knowledge base for later RAG retrieval by the AI Agent.",
+  "description": "Element template for the cibseven-knowledge-ingestor connector. Embeds text content into a pgvector knowledge base for later RAG retrieval by the AI Agent. The service task is forced to camunda:asyncBefore=\"true\" and camunda:asyncAfter=\"true\" so chunking + embedding (which can take seconds for large content) run on a JobExecutor thread instead of inside the parent command transaction.",
   "icon": {
     "contents": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIgMjFWMTBMMTEgMTJWMjNMMiAyMVoiIGZpbGw9IiMwRjIxMzMiLz4KPHBhdGggZD0iTTIyIDIxVjEwTDEzIDEyVjIzTDIyIDIxWiIgZmlsbD0iIzBGMjEzMyIvPgo8cGF0aCBkPSJNMTAuNDI1IDQuNDI1TDEyIDFMMTMuNTYyNSA0LjQyNUwxNyA2TDEzLjU2MjUgNy41NjI1TDEyIDExTDEwLjQyNSA3LjU2MjVMNyA2TDEwLjQyNSA0LjQyNVoiIGZpbGw9IiNFMTFFMTkiLz4KPC9zdmc+Cg=="
   },
@@ -17,7 +17,24 @@
     { "id": "embedding", "label": "Embedding"  },
     { "id": "pgvector",  "label": "PostgreSQL" }
   ],
-  "properties": [],
+  "properties": [
+    {
+      "type": "Hidden",
+      "value": "true",
+      "binding": {
+        "type": "property",
+        "name": "camunda:asyncBefore"
+      }
+    },
+    {
+      "type": "Hidden",
+      "value": "true",
+      "binding": {
+        "type": "property",
+        "name": "camunda:asyncAfter"
+      }
+    }
+  ],
   "scopes": [
     {
       "type": "camunda:Connector",
