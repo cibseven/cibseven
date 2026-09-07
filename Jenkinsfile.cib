@@ -482,7 +482,7 @@ pipeline {
                     // Generate and deploy additional aggregate SBOMs for shipped distro modules.
                     if (!params.DEPLOY_WITHOUT_SBOM) {
                         stage('Deploy distro aggregate SBOMs') {
-                            deployDistroSboms()
+                            deployDistroSboms(deployment)
                         }
                     }
                 }
@@ -755,8 +755,8 @@ def isSNAPSHOTVersion() {
 
 // Generates and deploys aggregate SBOMs for every shipped distro.
 // Independent distro reactors run in parallel to reduce deployment time.
-def deployDistroSboms() {
-    Map sbomDeployRepository = getSbomDeployRepository()
+def deployDistroSboms(String deploymentArgs) {
+    Map sbomDeployRepository = getSbomDeployRepository(deploymentArgs)
 
     def distroSbomProjects = ['distro/run', 'distro/run4', 'distro/tomcat', 'distro/wildfly', 'distro/wildfly28']
 
@@ -777,18 +777,21 @@ def deployDistroSboms() {
 }
 
 // Resolves the Maven repository receiving distro SBOMs.
-// Patch versions use the private repository; other versions use distributionManagement.
-def getSbomDeployRepository() {
+// "deploymentArgs" is the -Dnexus... argument string already built by the caller;
+// when it carries a repository id/url, they are reused as-is and no detection is
+// performed. Otherwise the repository is detected from distributionManagement.
+def getSbomDeployRepository(String deploymentArgs) {
     String sbomDeployRepositoryId = ""
     String sbomDeployRepositoryUrl = ""
 
-    if (isPatchVersion()) {
-        if (isSNAPSHOTVersion()) {
-            sbomDeployRepositoryId = "mvn-cibseven-private"
-            sbomDeployRepositoryUrl = "https://artifacts.cibseven.de/repository/private-snapshots"
-        } else {
-            sbomDeployRepositoryId = "mvn-cibseven-private"
-            sbomDeployRepositoryUrl = "https://artifacts.cibseven.de/repository/private"
+    if (deploymentArgs) {
+        def idMatcher = deploymentArgs =~ /\.repository\.id=(\S+)/
+        def urlMatcher = deploymentArgs =~ /\.repository=(\S+)/
+        if (idMatcher.find()) {
+            sbomDeployRepositoryId = idMatcher.group(1)
+        }
+        if (urlMatcher.find()) {
+            sbomDeployRepositoryUrl = urlMatcher.group(1)
         }
     } else {
         String repository = isSNAPSHOTVersion() ? "snapshotRepository" : "repository"
@@ -801,7 +804,7 @@ def getSbomDeployRepository() {
 
     if (!sbomDeployRepositoryId || !sbomDeployRepositoryUrl ||
         sbomDeployRepositoryId.startsWith("project.") || sbomDeployRepositoryUrl.startsWith("project.")) {
-        error "Cannot determine SBOM deploy repository from effective Maven distributionManagement"
+        error "Cannot determine SBOM deploy repository"
     }
 
     return [id: sbomDeployRepositoryId, url: sbomDeployRepositoryUrl]
