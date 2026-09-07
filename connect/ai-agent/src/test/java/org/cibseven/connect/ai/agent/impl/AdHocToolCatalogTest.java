@@ -52,15 +52,25 @@ public class AdHocToolCatalogTest {
         new StandaloneInMemProcessEngineConfiguration();
     configuration.setJdbcUrl("jdbc:h2:mem:adhoc-tool-catalog-test;DB_CLOSE_DELAY=-1");
     configuration.setJobExecutorActivate(false);
+    // Deployment is refused without a history time to live, and these models carry none because
+    // the catalogue has nothing to do with history cleanup. Set the global default rather than
+    // switching enforceHistoryTimeToLive off, which the engine itself advises against, or
+    // repeating the attribute in every model below.
+    configuration.setHistoryTimeToLive("P30D");
     return configuration.buildProcessEngine();
   }
 
   // --- helpers ---------------------------------------------------------------
 
+  /**
+   * deployWithResult() rather than deploy(): the latter returns a plain Deployment, which does not
+   * carry the definitions it created. Only DeploymentWithDefinitions does, and that is what the
+   * test needs to get at the definition id the catalogue is read for.
+   */
   private String deploy(String bpmn) {
     return ENGINE.getRepositoryService().createDeployment()
         .addString("catalog.bpmn20.xml", bpmn)
-        .deploy()
+        .deployWithResult()
         .getDeployedProcessDefinitions().get(0)
         .getId();
   }
