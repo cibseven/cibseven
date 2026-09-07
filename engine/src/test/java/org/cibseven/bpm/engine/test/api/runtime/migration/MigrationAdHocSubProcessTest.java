@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert.assertThat;
 import static org.junit.Assert.fail;
 
+import java.util.List;
+
 import org.cibseven.bpm.engine.migration.MigratingProcessInstanceValidationException;
 import org.cibseven.bpm.engine.migration.MigrationInstruction;
 import org.cibseven.bpm.engine.migration.MigrationPlan;
@@ -91,11 +93,16 @@ public class MigrationAdHocSubProcessTest {
       extensionElements = model.newInstance(ExtensionElements.class);
       scope.setExtensionElements(extensionElements);
     }
-    CamundaProperties properties = extensionElements.getElementsQuery()
-        .filterByType(CamundaProperties.class).singleResult();
-    if (properties == null) {
+    // list() rather than singleResult(): the latter throws when nothing matches instead of
+    // returning null, and a freshly built scope has no camunda:properties yet.
+    List<CamundaProperties> existing = extensionElements.getElementsQuery()
+        .filterByType(CamundaProperties.class).list();
+    CamundaProperties properties;
+    if (existing.isEmpty()) {
       properties = model.newInstance(CamundaProperties.class);
       extensionElements.addChildElement(properties);
+    } else {
+      properties = existing.get(0);
     }
     CamundaProperty property = model.newInstance(CamundaProperty.class);
     property.setCamundaName(name);
