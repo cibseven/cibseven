@@ -3,7 +3,7 @@
   <@lib.endpointInfo
       id = "deleteHistoricVariableInstancesOfHistoricProcessInstance"
       tag = "Historic Process Instance"
-      summary = "Delete Variable Instances"
+      summary = "Delete Historic Variable Instances"
       desc = "Deletes all variables of a process instance from the history by id." />
 
   "parameters": [

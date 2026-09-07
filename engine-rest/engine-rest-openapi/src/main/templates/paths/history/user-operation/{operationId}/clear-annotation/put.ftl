@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "clearAnnotationUserOperationLog"
       tag = "Historic User Operation Log"
-      summary = "Clear User Operation Log Annotation"
+      summary = "Clear Historic User Operation Log Annotation"
       desc = "Clear the annotation which was previously set for auditing reasons."
   />
 

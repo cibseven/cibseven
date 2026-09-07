@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "deleteHistoricVariableInstance"
       tag = "Historic Variable Instance"
-      summary = "Delete Variable Instance"
+      summary = "Delete Historic Variable Instance"
       desc = "Deletes a historic variable instance by id."
   />
 
