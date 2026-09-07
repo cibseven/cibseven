@@ -84,6 +84,39 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   protected Expression entryActivityIds;
   protected boolean cancelRemainingInstances = true;
 
+  /**
+   * When set, the scope never completes by itself: neither a completion condition nor the
+   * "nothing active" rule ends it, and only {@code RuntimeService.completeAdHocSubProcess}
+   * does.
+   *
+   * <p>Exists because a scope driven turn by turn has to survive a turn in which nothing is
+   * active. Without it the only way to express that is a completion condition written so that
+   * it can never hold, which is untrue in the model — Cockpit then shows a completion condition
+   * that will never fire — and which the modeller has to remember to write.
+   *
+   * <p>Carried as an extension property rather than a new namespace, per CIB7-1890, so it is
+   * read at parse time and never becomes a process variable that a child of the scope could
+   * rewrite.
+   */
+  protected boolean explicitCompletionOnly;
+
+  /**
+   * Id of the child activity to re-activate whenever another child of this scope ends, from
+   * {@code camunda:property adHocDriverActivity}. Null means the historical behaviour: nothing is
+   * re-activated and every activation arrives from outside.
+   *
+   * <p>This is what lets one child drive the scope turn by turn. It carries no knowledge of what
+   * that child does — it is an ordinary activity that happens to decide what to start next, so a
+   * human client, a script or an agent are all equally valid drivers and the element still
+   * deploys and runs with no AI artefact on the classpath.
+   *
+   * <p>Only meaningful together with {@link #explicitCompletionOnly}: without it the scope ends
+   * as soon as the driver's first turn does, because nothing is active afterwards, so there would
+   * never be a second turn. The parser refuses that combination.
+   */
+  protected String driverActivityId;
+
+
   @Override
   public void execute(ActivityExecution execution) throws Exception {
     // Entering an ad-hoc scope starts nothing, and deliberately records nothing: writing a zero
@@ -261,6 +294,8 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
       return;
     }
 
+    reactivateDriver(scopeExecution, endedExecution);
+
     // The scope goes back to waiting for the next activation, and the ended child has no further
     // purpose, so it is removed.
     //
@@ -279,6 +314,89 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
 
     ((ExecutionEntity) scopeExecution).dispatchDelayedEventsAndPerformOperation((Callback<PvmExecutionImpl, Void>) null);
   }
+
+  /**
+   * Re-activates the driver activity after another child ended, which is what gives the scope its
+   * next turn.
+   *
+   * <p>Does nothing in four cases.
+   *
+   * <p>When no driver is configured, which is every model written before this existed.
+   *
+   * <p>When the ended child <em>is</em> the driver. A driver that re-activated itself on its own
+   * end would run without bound, and there would be no way to stop it from the model.
+   *
+   * <p>When a driver instance is already present. Two children ending at nearly the same moment
+   * must produce one further turn rather than two, and this is where that coalescing comes from.
+   * It is decided against the execution tree — the engine's own transactional bookkeeping —
+   * rather than against a list this class would have to maintain and protect from the children.
+   *
+   * <p>And when the scope no longer accepts activation. {@code createInnerInstance} enforces that
+   * anyway by throwing, but a child ending is not the place for an exception that is not an
+   * error, so it is checked first.
+   *
+   * <p>Started the same way {@link #startEntryActivities} starts a child, so a driver marked
+   * {@code camunda:asyncBefore} becomes a job and its work runs in its own transaction rather
+   * than in the one that completed the previous child. For a driver that calls an external
+   * service that is not an optimisation but a requirement: without it a person completing a user
+   * task waits for that call, and a timeout rolls their completion back.
+   */
+  protected void reactivateDriver(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
+    if (driverActivityId == null) {
+      return;
+    }
+    PvmActivity endedActivity = endedExecution.getActivity();
+    if (endedActivity != null && driverActivityId.equals(endedActivity.getId())) {
+      return;
+    }
+    if (isDriverPresent(scopeExecution, endedExecution)) {
+      return;
+    }
+    if (isConditionSatisfied(scopeExecution) || conditionHoldsNow(scopeExecution)) {
+      return;
+    }
+
+    ScopeImpl scope = (ScopeImpl) scopeExecution.getActivity();
+    List<String> startable = scope.getProperties().get(BpmnProperties.AD_HOC_STARTABLE_ACTIVITIES);
+    if (startable == null || !startable.contains(driverActivityId)) {
+      // Validated at deployment, so reaching this means the model and the parsed form disagree.
+      throw new ProcessEngineException("Ad hoc sub process '" + scope.getId()
+          + "': adHocDriverActivity names '" + driverActivityId
+          + "', which is not directly startable here. The startable activities are "
+          + startable + ".");
+    }
+
+    PvmExecutionImpl driver = (PvmExecutionImpl) createInnerInstance(scopeExecution);
+    driver.executeActivities(Collections.<PvmActivity>emptyList(),
+            findEntryChild(scope, driverActivityId), null, null, null, false, false);
+  }
+
+  /**
+   * Whether an instance of the driver activity is already under the scope.
+   *
+   * <p>Counts an instance whose work has not started yet: with {@code asyncBefore} the execution
+   * exists and already carries the driver activity while its job waits to be picked up, and that
+   * is exactly the state in which a second one must not be created.
+   *
+   * <p>The execution that just ended is excluded, because it is removed immediately after the
+   * caller returns and would otherwise block its own successor when the driver ends.
+   *
+   * <p>Uses {@code getNonEventScopeExecutions()} rather than {@code getExecutions()} so the
+   * scope's state execution — which carries no activity and never runs — is not considered.
+   */
+  protected boolean isDriverPresent(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
+    for (PvmExecutionImpl child : ((PvmExecutionImpl) scopeExecution).getNonEventScopeExecutions()) {
+      if (child == endedExecution) {
+        continue;
+      }
+      PvmActivity activity = child.getActivity();
+      if (activity != null && driverActivityId.equals(activity.getId())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 
   /**
    * Reached when the ending child is not a plain concurrent execution, which in practice means a
@@ -309,6 +427,9 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    * (PRD FR-16a — the second clause stops an empty scope completing on entry).
    */
   protected boolean isCompleted(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
+    if (explicitCompletionOnly) {
+      return false;
+    }
     if (completionCondition != null) {
       // Latched, and it has to be: "once the condition holds" must survive the condition going
       // false again, which it can between two child-end events while cancelRemainingInstances=
@@ -533,6 +654,31 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   public boolean hasCompletionCondition() {
     return completionCondition != null;
   }
+
+  /**
+   * Whether this scope's completion is decided by a completion request alone. Read by the
+   * migration validator, which has to refuse a mapping that would change the rule.
+   */
+  public boolean isExplicitCompletionOnly() {
+    return explicitCompletionOnly;
+  }
+  public void setExplicitCompletionOnly(boolean explicitCompletionOnly) {
+    this.explicitCompletionOnly = explicitCompletionOnly;
+  }
+
+  /**
+   * The child activity re-activated whenever another child ends, or {@code null}. Read by the
+   * migration validator, which has to refuse a mapping that would change it: a parked instance
+   * whose driver changed would afterwards be driven by a different activity or by none.
+   */
+  public String getDriverActivityId() {
+    return driverActivityId;
+  }
+
+  public void setDriverActivityId(String driverActivityId) {
+    this.driverActivityId = driverActivityId;
+  }
+
 
   public void setCompletionCondition(Condition completionCondition) {
     this.completionCondition = completionCondition;

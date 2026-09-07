@@ -198,6 +198,23 @@ public class BpmnParse extends Parse {
    * and a Task is only one kind of Activity — a child may be a sub-process.
    */
   public static final String AD_HOC_ENTRY_ACTIVITIES_ALIAS = "activeTasksCollection";
+  /**
+   * {@code camunda:property} marking an ad hoc sub process that ends only on an explicit
+   * completion request.
+   *
+   * <p>Accepts "true" and "false" case-insensitively. Anything else is refused at deployment
+   * rather than read as false, because a typo would otherwise deploy a scope that ends the moment
+   * its last child does — the exact failure this property prevents, and one that would only
+   * surface in production.
+   */
+  public static final String AD_HOC_EXPLICIT_COMPLETION_PROPERTY = "explicitCompletionOnly";
+
+  /**
+   * {@code camunda:property} naming the child activity that is re-activated whenever another
+   * child of the scope ends.
+   */
+  public static final String AD_HOC_DRIVER_ACTIVITY_PROPERTY = "adHocDriverActivity";
+
 
   /**
    * The element names of every BPMN Activity, i.e. the concrete subtypes of {@code tActivity} that
@@ -4011,6 +4028,8 @@ public class BpmnParse extends Parse {
     }
 
     parseAdHocEntryActivation(adHocElement, activity, behavior);
+    parseAdHocAgenticProperties(adHocElement, activity, behavior);
+
 
     if (adHocElement.element("multiInstanceLoopCharacteristics") != null) {
       addError("Ad hoc sub process '" + activity.getId()
@@ -4168,6 +4187,106 @@ public class BpmnParse extends Parse {
 
     behavior.setEntryActivityIds(expressionManager.createExpression(raw));
   }
+
+  /**
+   * Reads the two extension properties that make an ad hoc sub process run turn by turn:
+   * {@code explicitCompletionOnly} and {@code adHocDriverActivity}.
+   *
+   * <p>Both live in the same {@code camunda:properties} block, so they are read together rather
+   * than by two methods parsing the same element twice.
+   */
+  protected void parseAdHocAgenticProperties(Element adHocElement, ActivityImpl activity,
+                                             AdHocSubProcessActivityBehavior behavior) {
+
+    Map<String, String> properties = parseCamundaExtensionProperties(adHocElement);
+    if (properties == null) {
+      return;
+    }
+
+    boolean parked = parseExplicitCompletionOnly(adHocElement, activity, properties);
+    if (parked) {
+      behavior.setExplicitCompletionOnly(true);
+    }
+    parseDriverActivity(adHocElement, activity, behavior, properties, parked);
+  }
+
+  /**
+   * Whether the scope is marked as ending only on a completion request.
+   *
+   * <p>Refuses the combination with a {@code completionCondition}. The two are different answers
+   * to the same question, and accepting both would mean silently ignoring one. It would also be
+   * inconsistent at runtime: a latched condition makes {@code ensureFurtherActivationAllowed}
+   * refuse every further activation, while this property exists precisely so that activation
+   * stays possible for the life of the instance.
+   */
+  protected boolean parseExplicitCompletionOnly(Element adHocElement, ActivityImpl activity,
+                                                Map<String, String> properties) {
+
+    String raw = properties.get(AD_HOC_EXPLICIT_COMPLETION_PROPERTY);
+    if (raw == null || raw.trim().isEmpty()) {
+      return false;
+    }
+    String value = raw.trim();
+    if (!"true".equalsIgnoreCase(value) && !"false".equalsIgnoreCase(value)) {
+      addError("Ad hoc sub process '" + activity.getId() + "': "
+          + AD_HOC_EXPLICIT_COMPLETION_PROPERTY + " must be 'true' or 'false' but is '"
+          + value + "'.", adHocElement);
+      return false;
+    }
+    if (!"true".equalsIgnoreCase(value)) {
+      // Explicitly false means the same as absent, so the property can stay in the model and be
+      // switched off without deleting it.
+      return false;
+    }
+    if (adHocElement.element("completionCondition") != null) {
+      addError("Ad hoc sub process '" + activity.getId() + "': "
+          + AD_HOC_EXPLICIT_COMPLETION_PROPERTY + " and a completionCondition are two different"
+          + " completion rules and cannot both be set. Remove one of them: with the property the"
+          + " scope ends only on a completion request, with the condition the condition decides.",
+              adHocElement);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Reads the driver activity, the child that is re-activated whenever another child ends.
+   *
+   * <p>Requires the scope to be parked. Without that the scope ends as soon as the driver's first
+   * turn does, because nothing is active afterwards, so there would never be a second turn.
+   *
+   * <p>Validated against the startable set <em>now</em>, unlike {@code activeActivityIds}: a
+   * driver is always one fixed id and never an expression, so a bad one can be caught at
+   * deployment instead of on the first child end.
+   */
+  protected void parseDriverActivity(Element adHocElement, ActivityImpl activity,
+                                     AdHocSubProcessActivityBehavior behavior, Map<String, String> properties, boolean parked) {
+
+    String raw = properties.get(AD_HOC_DRIVER_ACTIVITY_PROPERTY);
+    if (raw == null || raw.trim().isEmpty()) {
+      return;
+    }
+    String driverId = raw.trim();
+
+    if (!parked) {
+      addError("Ad hoc sub process '" + activity.getId() + "': "
+          + AD_HOC_DRIVER_ACTIVITY_PROPERTY + " requires "
+          + AD_HOC_EXPLICIT_COMPLETION_PROPERTY + "=\"true\". Without it the scope ends as soon"
+          + " as the driver's first turn does, so there is never a second turn.", adHocElement);
+      return;
+    }
+
+    List<String> startable = startableActivityIds(adHocElement);
+    if (!startable.contains(driverId)) {
+      addError("Ad hoc sub process '" + activity.getId() + "': "
+          + AD_HOC_DRIVER_ACTIVITY_PROPERTY + " names '" + driverId
+          + "', which is not directly startable here. The startable activities are "
+          + startable + ".", adHocElement);
+      return;
+    }
+    behavior.setDriverActivityId(driverId);
+  }
+
 
   protected static List<String> startableActivityIds(Element adHocElement) {
     Set<String> flowTargets = new HashSet<>();

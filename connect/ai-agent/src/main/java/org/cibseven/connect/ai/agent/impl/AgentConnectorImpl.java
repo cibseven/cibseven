@@ -37,6 +37,7 @@ import org.cibseven.bpm.BpmPlatform;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.history.HistoricProcessInstance;
 import org.cibseven.bpm.engine.identity.Group;
+import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocAgentState;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
 import org.cibseven.bpm.engine.impl.context.Context;
@@ -460,9 +461,37 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     if (id != null && !id.isEmpty()) {
       return id;
     }
+    String scoped = adHocScopeMemoryId();
+    if (scoped != null) {
+      LOG.debug("Using ad hoc scope memory id: {}", scoped);
+      return scoped;
+    }
     String generated = UUID.randomUUID().toString();
     LOG.debug("Generated new chat memory id: {}", generated);
     return generated;
+  }
+  /**
+   * A memory id derived from the enclosing ad hoc sub process, or {@code null} when
+   * there is none.
+   *
+   * <p>Without this, a turn-by-turn agent gets a fresh random id on every turn, so
+   * every turn writes a new memory variable, the agent remembers nothing, and the
+   * number of variables grows with the number of turns. The scope execution is the
+   * right anchor rather than the process instance, because two ad hoc scopes in one
+   * instance are two separate conversations.
+   *
+   * <p>An explicit {@code memoryId} from the model still wins, so a deployment that
+   * wants one conversation across several scopes can still say so.
+   */
+  private static String adHocScopeMemoryId() {
+    BpmnExecutionContext executionContext = Context.getBpmnExecutionContext();
+    ExecutionEntity execution =
+        (executionContext == null) ? null : executionContext.getExecution();
+    if (execution == null) {
+      return null;
+    }
+    ExecutionEntity scope = AdHocAgentState.findAdHocScope(execution);
+    return (scope == null) ? null : "adhoc-" + scope.getId();
   }
 
   /**

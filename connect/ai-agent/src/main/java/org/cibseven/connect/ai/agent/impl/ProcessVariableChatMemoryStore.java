@@ -30,9 +30,11 @@ import dev.langchain4j.data.message.ChatMessageSerializer;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 
+import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocAgentState;
 import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
 import org.cibseven.bpm.engine.variable.Variables;
 
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
@@ -148,7 +150,7 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
       return noContextBuffer.getMessages(memoryId);
     }
     String name = variableName(memoryId);
-    Object raw = execution.getVariable(name);
+    Object raw = readRaw(execution, name);
     if (raw == null || raw.toString().isEmpty()) {
       return new ArrayList<>();
     }
@@ -175,6 +177,17 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
     String json = ChatMessageSerializer.messagesToJson(messages);
     String name = variableName(memoryId);
     checkPayloadSize(name, json, messages.size());
+    ExecutionEntity adHocScope = AdHocAgentState.findAdHocScope(execution);
+    if (adHocScope != null) {
+      // Inside an ad hoc sub process the child activities are the agent's tools,
+      // so they are the untrusted party — and the scope execution is their
+      // ancestor. Writing here would let a tool rewrite the conversation. The
+      // agent state execution is their sibling, so it is unreachable that way.
+      PvmExecutionImpl state = AdHocAgentState.findOrCreate(adHocScope);
+      state.setVariableLocal(name, Variables.objectValue(json).create());
+      removeLegacyCopy(execution, name);
+      return;
+    }
     warnOnConcurrentBranch(execution, name);
     // Java serialization stores in ACT_GE_BYTEARRAY and so bypasses the
     // VARCHAR(4000) limit — as the chat-log variable does.
@@ -192,7 +205,19 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
       noContextBuffer.deleteMessages(memoryId);
       return;
     }
-    execution.removeVariable(variableName(memoryId));
+    String name = variableName(memoryId);
+    ExecutionEntity adHocScope = AdHocAgentState.findAdHocScope(execution);
+    if (adHocScope != null) {
+      PvmExecutionImpl state = AdHocAgentState.find(adHocScope);
+      if (state != null && state.hasVariableLocal(name)) {
+        state.removeVariableLocal(name);
+      }
+    }
+    // Also clear the pre-change location, so a conversation started by an earlier
+    // build is really gone rather than only half gone.
+    if (execution.getVariable(name) != null) {
+      execution.removeVariable(name);
+    }
   }
 
   /**
@@ -352,5 +377,44 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
     }
     return name;
   }
+
+  /**
+   * Reads the conversation, preferring the agent state execution and falling back
+   * to the pre-change location.
+   *
+   * <p>The fallback covers two cases at once: an agent task that is not inside an
+   * ad hoc sub process at all, which is the ordinary single-task usage, and an
+   * instance started before this change, whose conversation sits at the process
+   * instance.
+   *
+   * <p>Deliberately never creates a state execution, because a read must not
+   * write — a scope nobody ever stored anything in would otherwise acquire an
+   * execution just from being looked at.
+   */
+  private static Object readRaw(ExecutionEntity execution, String name) {
+    ExecutionEntity adHocScope = AdHocAgentState.findAdHocScope(execution);
+    if (adHocScope != null) {
+      PvmExecutionImpl state = AdHocAgentState.find(adHocScope);
+      if (state != null && state.hasVariableLocal(name)) {
+        return state.getVariableLocal(name);
+      }
+    }
+    return execution.getVariable(name);
+  }
+
+  /**
+   * Removes the copy at the pre-change location once the conversation has been
+   * written to the agent state execution.
+   *
+   * <p>Without this, an instance whose conversation started before this change
+   * would keep a readable and writable copy at the process instance, so the
+   * exposure this change removes would persist for exactly those instances.
+   */
+  private static void removeLegacyCopy(ExecutionEntity execution, String name) {
+    if (execution.getVariable(name) != null) {
+      execution.removeVariable(name);
+    }
+  }
+
 
 }

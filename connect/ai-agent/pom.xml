@@ -132,6 +132,18 @@
       <scope>test</scope>
     </dependency>
 
+    <!--
+      Declared explicitly although it also arrives transitively through
+      cibseven-engine: AdHocToolCatalog imports org.cibseven.bpm.model.bpmn
+      types directly, and a direct import should not rely on a transitive path.
+    -->
+    <dependency>
+      <groupId>org.cibseven.bpm.model</groupId>
+      <artifactId>cibseven-bpmn-model</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
   </dependencies>
 
   <build>

@@ -37,6 +37,12 @@ import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
  * target definition is ordinary migration behaviour, and the rule that decides completion is
  * unchanged. Changing {@code cancelRemainingInstances} is allowed for the same reason: it alters
  * what happens at completion, not what completion means.
+ *
+ *  * <p>A third rule was added later: a scope marked {@code explicitCompletionOnly} ends only on a
+ *  * completion request. Migrating between it and either of the other two is refused for the same
+ *  * reason as above — a parked instance mapped onto an auto-completing target would end the moment
+ *  * its last child does, and an auto-completing instance mapped onto a parked target would wait for
+ *  * a completion request that whoever started it never intended to send.
  */
 public class SameAdHocCompletionRuleValidator implements MigrationInstructionValidator {
 
@@ -58,7 +64,36 @@ public class SameAdHocCompletionRuleValidator implements MigrationInstructionVal
           + " rule (the source " + (sourceHasCondition ? "has" : "has no")
           + " completion condition and the target " + (sourceHasCondition ? "has none" : "has one")
           + ")");
+      return;
     }
+
+    boolean sourceIsExplicitOnly = isExplicitCompletionOnly(sourceActivity);
+    if (sourceIsExplicitOnly != isExplicitCompletionOnly(targetActivity)) {
+      report.addFailure("Cannot migrate an ad hoc sub process to one with a different completion"
+          + " rule (the source " + (sourceIsExplicitOnly ? "ends" : "does not end")
+          + " only on an explicit completion request and the target "
+          + (sourceIsExplicitOnly ? "does not" : "does") + ")");
+      return;
+    }
+
+    String sourceDriver = driverActivityId(sourceActivity);
+    String targetDriver = driverActivityId(targetActivity);
+    if (sourceDriver == null ? targetDriver != null : !sourceDriver.equals(targetDriver)) {
+      report.addFailure("Cannot migrate an ad hoc sub process to one with a different driver"
+          + " activity (the source has "
+          + (sourceDriver == null ? "none" : "'" + sourceDriver + "'") + " and the target has "
+          + (targetDriver == null ? "none" : "'" + targetDriver + "'") + ")");
+    }
+  }
+
+  protected String driverActivityId(ActivityImpl activity) {
+    return ((AdHocSubProcessActivityBehavior) activity.getActivityBehavior())
+        .getDriverActivityId();
+  }
+
+  protected boolean isExplicitCompletionOnly(ActivityImpl activity) {
+    return ((AdHocSubProcessActivityBehavior) activity.getActivityBehavior())
+        .isExplicitCompletionOnly();
   }
 
   protected boolean isAdHocSubProcess(ActivityImpl activity) {
