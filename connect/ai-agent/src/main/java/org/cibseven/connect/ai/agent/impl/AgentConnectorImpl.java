@@ -262,7 +262,22 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       Class<?> agentClass = selectAgentInterface(memoryId != null, hasDocuments);
       AiServices<?> builder = AiServices.builder(agentClass)
           .chatModel(chatModel)
-          .systemMessageProvider(chatMemoryId -> buildSystemPrompt(request, contextBlock));
+          .systemMessageProvider(chatMemoryId -> buildSystemPrompt(request, null));
+      if (contextBlock != null && !contextBlock.isEmpty()) {
+        // The block is appended here rather than inside the provider because
+        // LangChain4j runs the provider's output through PromptTemplate
+        // (DefaultAiServices.prepareSystemMessage). Process-variable values are
+        // data, and a value holding "{{name}}" would either fail the activity
+        // with "Value for the variable 'name' is missing" — naming nothing the
+        // modeler recognises — or, for the built-ins current_date, current_time
+        // and current_date_time, be silently substituted before the model saw
+        // it. A transformer runs after templating and its result is wrapped
+        // with SystemMessage.from(), so the block reaches the model verbatim.
+        // Documented for exactly this: "after all other system message
+        // configuration has been applied ... to append or prepend additional
+        // instructions".
+        builder.systemMessageTransformer(prompt -> appendContextBlock(prompt, contextBlock));
+      }
       if (hasDocuments && memoryId != null) {
         // LangChain4j stores the *augmented* user message in chat memory by
         // default, and with documents attached that message carries their whole
@@ -748,6 +763,12 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    * suppresses tool calls in some models does not apply here — {@code AiServices}
    * emits exactly one system message, so this is one message with the context at
    * its end, not a second message after the instruction.
+   *
+   * <p>Called from a {@code systemMessageTransformer}, not from
+   * {@link #buildSystemPrompt}, so that the block bypasses LangChain4j's
+   * templating of the system message. See the call site for why that matters.
+   * {@code buildSystemPrompt} keeps its second parameter for the tests and for
+   * callers that have no templating in play.
    */
   private static String appendContextBlock(String prompt, String contextBlock) {
     if (contextBlock == null || contextBlock.isEmpty()) {

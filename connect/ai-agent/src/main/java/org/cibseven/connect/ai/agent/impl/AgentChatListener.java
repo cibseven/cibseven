@@ -1010,18 +1010,36 @@ class AgentChatListener implements ChatModelListener {
    * SHA-256 — carries the evidence without the payload.
    *
    * <p>Descriptors come from {@link #setDocumentDescriptors(Map)}, published by
-   * the connector while resolving. When none is available — a content object the
-   * connector did not build, so nothing is known about its provenance — the
-   * fallback emits the content type and {@code descriptor: "unavailable"}. No
-   * size, because reading one would mean reaching into each LangChain4j content
-   * type for its payload, which is the very assumption this branch exists to
-   * avoid. The guarantee that matters holds either way: never the data.
+   * the connector while resolving, and are looked up <b>before</b> the content
+   * type is inspected. That order is the whole correctness of this method: a
+   * text document is a {@code TextContent}, so branching on the type first sends
+   * it down the "this is prompt text, print it" path and puts the entire
+   * document into the chat log. Only content the connector did not build has no
+   * descriptor.
+   *
+   * <p>For such content — the agent's own prompt text, or a content object from
+   * somewhere else — a {@code TextContent} is printed and anything else emits
+   * the content type plus {@code descriptor: "unavailable"}. No size, because
+   * reading one would mean reaching into each LangChain4j content type for its
+   * payload, which is the very assumption that branch exists to avoid. The
+   * guarantee that matters holds either way: never the data.
    */
   private String renderMultiContent(UserMessage user) {
     Map<dev.langchain4j.data.message.Content, Map<String, Object>> descriptors =
         this.documentDescriptors;
     List<Object> parts = new ArrayList<>();
     for (dev.langchain4j.data.message.Content content : user.contents()) {
+      // The descriptor lookup has to come first. A text document is a
+      // TextContent like any other, so testing the type before consulting the
+      // map wrote the whole document body into the chat log — up to 5 MB per
+      // turn, in a process variable, for exactly the content this map exists to
+      // keep out of it. Only content with no descriptor is the agent's own
+      // prompt text, and that is what the TEXT branch below is for.
+      Map<String, Object> descriptor = (descriptors == null) ? null : descriptors.get(content);
+      if (descriptor != null) {
+        parts.add(new LinkedHashMap<>(descriptor));
+        continue;
+      }
       if (content instanceof dev.langchain4j.data.message.TextContent) {
         Map<String, Object> part = new LinkedHashMap<>();
         part.put("type", "TEXT");
@@ -1029,15 +1047,10 @@ class AgentChatListener implements ChatModelListener {
         parts.add(part);
         continue;
       }
-      Map<String, Object> descriptor = (descriptors == null) ? null : descriptors.get(content);
-      if (descriptor != null) {
-        parts.add(new LinkedHashMap<>(descriptor));
-      } else {
-        Map<String, Object> part = new LinkedHashMap<>();
-        part.put("type", content.type() == null ? "UNKNOWN" : content.type().name());
-        part.put("descriptor", "unavailable");
-        parts.add(part);
-      }
+      Map<String, Object> part = new LinkedHashMap<>();
+      part.put("type", content.type() == null ? "UNKNOWN" : content.type().name());
+      part.put("descriptor", "unavailable");
+      parts.add(part);
     }
     try {
       return MAPPER.writeValueAsString(parts);
