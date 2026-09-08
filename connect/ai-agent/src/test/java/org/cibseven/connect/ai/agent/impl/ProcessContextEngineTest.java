@@ -197,6 +197,56 @@ public class ProcessContextEngineTest {
         .contains("notSet = (absent)");
   }
 
+  /**
+   * Review finding (Dmitry, PR #447): the context block used to be returned from
+   * the {@code systemMessageProvider}, and LangChain4j runs that output through
+   * {@link dev.langchain4j.model.input.PromptTemplate}
+   * (`DefaultAiServices.prepareSystemMessage`). A process variable holding a
+   * mail-merge template therefore failed the activity with
+   * "Value for the variable 'name' is missing" — a message naming nothing the
+   * modeler put anywhere.
+   *
+   * <p>Only reproducible through the engine: the resolver builds the right
+   * string either way, the damage happens one layer up in AiServices.
+   */
+  @Test
+  public void shouldNotEvaluateDoubleBracesInAValueAsATemplateVariable() {
+    start(Variables.createVariables()
+        .putValue("_declared", "note")
+        .putValue("note", "Dear {{name}}, your order is late"));
+
+    assertThat(capturedSystemMessage)
+        .contains("note (string) = \"Dear {{name}}, your order is late\"");
+  }
+
+  /**
+   * The quieter half of the same finding. {@code current_date}, {@code current_time}
+   * and {@code current_date_time} are built-ins of {@code PromptTemplate}, so
+   * they were substituted rather than rejected — the model was shown a value the
+   * process never held, and nothing failed.
+   */
+  @Test
+  public void shouldNotSubstituteTemplateBuiltInsInAValue() {
+    start(Variables.createVariables()
+        .putValue("_declared", "placeholder")
+        .putValue("placeholder", "{{current_date}}"));
+
+    assertThat(capturedSystemMessage).contains("placeholder (string) = \"{{current_date}}\"");
+  }
+
+  /** The instruction itself is still templated — that is pre-existing and unchanged. */
+  @Test
+  public void shouldStillPlaceTheContextBlockAfterTheInstruction() {
+    start(Variables.createVariables()
+        .putValue("_declared", "orderId")
+        .putValue("orderId", "4711"));
+
+    assertThat(capturedSystemMessage)
+        .startsWith("be brief")
+        .contains(AgentConnectorConstants.CONTEXT_BLOCK_OPEN)
+        .contains("orderId (string) = \"4711\"");
+  }
+
   @Test
   public void shouldDistinguishAnExplicitNullFromAnAbsentVariable() {
     start(Variables.createVariables()

@@ -364,6 +364,40 @@ public class DocumentEngineTest {
     assertThat(userContent).contains("\"kind\":\"PDF\"").contains("invoice.pdf");
   }
 
+  /**
+   * Review finding (Dmitry, PR #447): {@code renderMultiContent} tested
+   * {@code instanceof TextContent} before consulting the descriptor map, and a
+   * text document <em>is</em> a {@code TextContent} — so it never reached the
+   * descriptor branch and its whole body was written into the chat-log process
+   * variable on every turn. Up to 5 MB per model call, for exactly the content
+   * the map exists to keep out.
+   *
+   * <p>It survived the existing tests because they attach only PDFs and images,
+   * and it survived a manual run because the base64 check does not fire on text.
+   * This test attaches a text document and asserts the body is absent, so the
+   * regression cannot come back quietly.
+   */
+  @Test
+  public void shouldNotWriteTextDocumentBodiesIntoTheChatLog() {
+    String body = "VERTRAULICH Zahlungsziel 30 Tage Rabatt 3 Prozent";
+    start(Variables.createVariables()
+        .putValue("_documents", "terms")
+        .putValueTyped("terms", Variables.fileValue("terms.txt")
+            .file(body.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            .mimeType("text/plain")
+            .create()));
+
+    String rawLog = chatLog();
+
+    // The document body must not be in the chat log at all.
+    assertThat(rawLog).doesNotContain(body);
+    // What must be there instead is its descriptor.
+    assertThat(rawLog).contains("\"kind\":\"TEXT\"").contains("terms.txt");
+    // And the prompt text itself still is - it has no descriptor, so it is not
+    // a document and the TEXT branch is still the right place for it.
+    assertThat(rawLog).contains("Read the attached invoice.");
+  }
+
   // ── helpers ────────────────────────────────────────────────────────────────
 
   private void start(VariableMap variables) {
