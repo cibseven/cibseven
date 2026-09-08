@@ -456,9 +456,9 @@ pipeline {
                     String deployment = ""
                     if (isPatchVersion()) {
                         if (isSNAPSHOTVersion()) {
-                            deployment = "-Dnexus.snapshot.repository.id=mvn-cibseven-private -Dnexus.snapshot.repository=https://artifacts.cibseven.de/repository/private-snapshots"
+                            deployment = "-Dnexus.snapshot.repository.id=mvn-cibseven-private -Dnexus.snapshot.repository=https://artifacts.cibseven.org/repository/private-snapshots"
                         } else {
-                            deployment = "-Dnexus.release.repository.id=mvn-cibseven-private -Dnexus.release.repository=https://artifacts.cibseven.de/repository/private"
+                            deployment = "-Dnexus.release.repository.id=mvn-cibseven-private -Dnexus.release.repository=https://artifacts.cibseven.org/repository/private"
                         }
                     }
 
@@ -482,7 +482,7 @@ pipeline {
                     // Generate and deploy additional aggregate SBOMs for shipped distro modules.
                     if (!params.DEPLOY_WITHOUT_SBOM) {
                         stage('Deploy distro aggregate SBOMs') {
-                            deployDistroSboms()
+                            deployDistroSboms(deployment)
                         }
                     }
                 }
@@ -755,8 +755,8 @@ def isSNAPSHOTVersion() {
 
 // Generates and deploys aggregate SBOMs for every shipped distro.
 // Independent distro reactors run in parallel to reduce deployment time.
-def deployDistroSboms() {
-    Map sbomDeployRepository = getSbomDeployRepository()
+def deployDistroSboms(String deploymentArgs) {
+    Map sbomDeployRepository = getSbomDeployRepository(deploymentArgs)
 
     def distroSbomProjects = ['distro/run', 'distro/run4', 'distro/tomcat', 'distro/wildfly', 'distro/wildfly28']
 
@@ -777,31 +777,24 @@ def deployDistroSboms() {
 }
 
 // Resolves the Maven repository receiving distro SBOMs.
-// Patch versions use the private repository; other versions use distributionManagement.
-def getSbomDeployRepository() {
-    String sbomDeployRepositoryId = ""
-    String sbomDeployRepositoryUrl = ""
+// "deploymentArgs" is the -Dnexus... argument string already built by the caller for the
+// patch-version case (if any); release-parent's distributionManagement is parameterized by
+// those same nexus.* properties, so passing deploymentArgs straight into help:evaluate makes
+// it resolve to the private repository when set, and to the regular distributionManagement
+// defaults otherwise.
+def getSbomDeployRepository(String deploymentArgs) {
+    String repository = isSNAPSHOTVersion() ? "snapshotRepository" : "repository"
+    String sbomDeployRepositoryId
+    String sbomDeployRepositoryUrl
 
-    if (isPatchVersion()) {
-        if (isSNAPSHOTVersion()) {
-            sbomDeployRepositoryId = "mvn-cibseven-private"
-            sbomDeployRepositoryUrl = "https://artifacts.cibseven.de/repository/private-snapshots"
-        } else {
-            sbomDeployRepositoryId = "mvn-cibseven-private"
-            sbomDeployRepositoryUrl = "https://artifacts.cibseven.de/repository/private"
-        }
-    } else {
-        String repository = isSNAPSHOTVersion() ? "snapshotRepository" : "repository"
-
-        withMaven(options: []) {
-            sbomDeployRepositoryId = sh(script: "mvn -q -f ${pipelineParams.pom} help:evaluate -Dexpression=project.distributionManagement.${repository}.id -DforceStdout", returnStdout: true).trim()
-            sbomDeployRepositoryUrl = sh(script: "mvn -q -f ${pipelineParams.pom} help:evaluate -Dexpression=project.distributionManagement.${repository}.url -DforceStdout", returnStdout: true).trim()
-        }
+    withMaven(options: []) {
+        sbomDeployRepositoryId = sh(script: "mvn -q -f ${pipelineParams.pom} help:evaluate ${deploymentArgs} -Dexpression=project.distributionManagement.${repository}.id -DforceStdout", returnStdout: true).trim()
+        sbomDeployRepositoryUrl = sh(script: "mvn -q -f ${pipelineParams.pom} help:evaluate ${deploymentArgs} -Dexpression=project.distributionManagement.${repository}.url -DforceStdout", returnStdout: true).trim()
     }
 
     if (!sbomDeployRepositoryId || !sbomDeployRepositoryUrl ||
         sbomDeployRepositoryId.startsWith("project.") || sbomDeployRepositoryUrl.startsWith("project.")) {
-        error "Cannot determine SBOM deploy repository from effective Maven distributionManagement"
+        error "Cannot determine SBOM deploy repository"
     }
 
     return [id: sbomDeployRepositoryId, url: sbomDeployRepositoryUrl]
