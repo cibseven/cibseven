@@ -456,9 +456,9 @@ pipeline {
                     String deployment = ""
                     if (isPatchVersion()) {
                         if (isSNAPSHOTVersion()) {
-                            deployment = "-Dnexus.snapshot.repository.id=mvn-cibseven-private -Dnexus.snapshot.repository=https://artifacts.cibseven.de/repository/private-snapshots"
+                            deployment = "-Dnexus.snapshot.repository.id=mvn-cibseven-private -Dnexus.snapshot.repository=https://artifacts.cibseven.org/repository/private-snapshots"
                         } else {
-                            deployment = "-Dnexus.release.repository.id=mvn-cibseven-private -Dnexus.release.repository=https://artifacts.cibseven.de/repository/private"
+                            deployment = "-Dnexus.release.repository.id=mvn-cibseven-private -Dnexus.release.repository=https://artifacts.cibseven.org/repository/private"
                         }
                     }
 
@@ -777,29 +777,19 @@ def deployDistroSboms(String deploymentArgs) {
 }
 
 // Resolves the Maven repository receiving distro SBOMs.
-// "deploymentArgs" is the -Dnexus... argument string already built by the caller;
-// when it carries a repository id/url, they are reused as-is and no detection is
-// performed. Otherwise the repository is detected from distributionManagement.
+// "deploymentArgs" is the -Dnexus... argument string already built by the caller for the
+// patch-version case (if any); release-parent's distributionManagement is parameterized by
+// those same nexus.* properties, so passing deploymentArgs straight into help:evaluate makes
+// it resolve to the private repository when set, and to the regular distributionManagement
+// defaults otherwise.
 def getSbomDeployRepository(String deploymentArgs) {
-    String sbomDeployRepositoryId = ""
-    String sbomDeployRepositoryUrl = ""
+    String repository = isSNAPSHOTVersion() ? "snapshotRepository" : "repository"
+    String sbomDeployRepositoryId
+    String sbomDeployRepositoryUrl
 
-    if (deploymentArgs) {
-        def idMatcher = deploymentArgs =~ /\.repository\.id=(\S+)/
-        def urlMatcher = deploymentArgs =~ /\.repository=(\S+)/
-        if (idMatcher.find()) {
-            sbomDeployRepositoryId = idMatcher.group(1)
-        }
-        if (urlMatcher.find()) {
-            sbomDeployRepositoryUrl = urlMatcher.group(1)
-        }
-    } else {
-        String repository = isSNAPSHOTVersion() ? "snapshotRepository" : "repository"
-
-        withMaven(options: []) {
-            sbomDeployRepositoryId = sh(script: "mvn -q -f ${pipelineParams.pom} help:evaluate -Dexpression=project.distributionManagement.${repository}.id -DforceStdout", returnStdout: true).trim()
-            sbomDeployRepositoryUrl = sh(script: "mvn -q -f ${pipelineParams.pom} help:evaluate -Dexpression=project.distributionManagement.${repository}.url -DforceStdout", returnStdout: true).trim()
-        }
+    withMaven(options: []) {
+        sbomDeployRepositoryId = sh(script: "mvn -q -f ${pipelineParams.pom} help:evaluate ${deploymentArgs} -Dexpression=project.distributionManagement.${repository}.id -DforceStdout", returnStdout: true).trim()
+        sbomDeployRepositoryUrl = sh(script: "mvn -q -f ${pipelineParams.pom} help:evaluate ${deploymentArgs} -Dexpression=project.distributionManagement.${repository}.url -DforceStdout", returnStdout: true).trim()
     }
 
     if (!sbomDeployRepositoryId || !sbomDeployRepositoryUrl ||
