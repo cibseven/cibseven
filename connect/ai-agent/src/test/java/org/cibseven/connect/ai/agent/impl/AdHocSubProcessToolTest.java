@@ -214,6 +214,18 @@ public class AdHocSubProcessToolTest {
         + "        <camunda:property name='adHocResultVariables' value='report' />"
         + "      </camunda:properties></extensionElements>"
         + "    </serviceTask>"
+        + "    <serviceTask id='gated' name='Gated' camunda:expression='${1}'>"
+        + "      <extensionElements><camunda:properties>"
+        + "        <camunda:property name='adHocBlockedWhileOthersRun' value='true' />"
+        + "      </camunda:properties></extensionElements>"
+        + "    </serviceTask>"
+        + "    <serviceTask id='gatedBadValue' name='Gated bad value' camunda:expression='${1}'>"
+        + "      <extensionElements><camunda:properties>"
+        + "        <camunda:property name='adHocBlockedWhileOthersRun' value='yes' />"
+        + "      </camunda:properties></extensionElements>"
+        + "    </serviceTask>"
+        + "    <serviceTask id='asyncChild' name='Async child' camunda:asyncBefore='true'"
+        + "        camunda:expression='${1}' camunda:resultVariable='asyncDone' />"
         + "    <serviceTask id='object' name='Object' camunda:class='" + OBJECT + "'>"
         + "      <extensionElements><camunda:properties>"
         + "        <camunda:property name='adHocResultVariables' value='payload' />"
@@ -329,8 +341,8 @@ public class AdHocSubProcessToolTest {
 
     Map<String, Object> listing = result(0);
     assertThat(listing.get("adHocActivityId")).isEqualTo("adHoc");
-    assertThat(ids(activities(listing)))
-        .containsExactlyInAnyOrder("agent", "waits", "quick", "bigText", "object");
+    assertThat(ids(activities(listing))).containsExactlyInAnyOrder(
+        "agent", "waits", "quick", "bigText", "object", "gated", "gatedBadValue", "asyncChild");
 
     Map<String, Object> waits = null;
     for (Map<String, Object> item : activities(listing)) {
@@ -620,5 +632,139 @@ public class AdHocSubProcessToolTest {
 
     assertThat(AgentTask.FAILURES).hasSize(1);
     assertThat(AgentTask.FAILURES.get(0).getMessage()).contains("nosuch");
+  }
+
+  // --- an asyncBefore child, the groundwork the blocking rule stands on -----
+
+  /**
+   * A queued {@code asyncBefore} child holds a marked activity back.
+   *
+   * <p>The premise of the blocking rule, and the reason it reads the execution
+   * tree: with {@code asyncBefore} the child's work has not started yet, a job is
+   * waiting to be picked up, and it has no activity instance. Asked of the
+   * activity instance tree the child looks absent, and dependent work would start
+   * while queued work had not run.
+   */
+  @Test
+  public void aQueuedAsyncBeforeChildHoldsAMarkedActivityBack() {
+    start("asyncKid", tool -> {
+      tool.startActivity("asyncChild", Collections.<String, Object>emptyMap());
+      return tool.startActivity("gated", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(AgentTask.FAILURES).hasSize(1);
+    assertThat(AgentTask.FAILURES.get(0).getMessage())
+        .contains("Cannot start 'gated'")
+        .contains("asyncChild");
+  }
+
+  // --- the blocking marking -------------------------------------------------
+
+  /**
+   * A marked activity is refused while anything else in the scope is running.
+   * This is the guarantee: work that depends on a decision someone else has to
+   * make does not start before that decision is in.
+   */
+  @Test
+  public void aMarkedActivityIsRefusedWhileSomethingElseRuns() {
+    start("gatedRefused", tool -> {
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      return tool.startActivity("gated", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(AgentTask.FAILURES).hasSize(1);
+    assertThat(AgentTask.FAILURES.get(0).getMessage())
+        .contains("Cannot start 'gated'")
+        .contains("waits")
+        .contains("end your turn");
+  }
+
+  /**
+   * And is startable when nothing else runs — including while the agent itself is
+   * running, which it always is when it asks. Without excluding the caller a
+   * marked activity would be blocked in every turn for ever.
+   */
+  @Test
+  public void aMarkedActivityIsStartableWhenNothingElseRuns() {
+    start("gatedAllowed",
+        tool -> tool.startActivity("gated", Collections.<String, Object>emptyMap()));
+
+    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(result(0).get("status")).isEqualTo("finished");
+  }
+
+  /** An unmarked activity is unaffected: the default is unchanged behaviour. */
+  @Test
+  public void anUnmarkedActivityIsNotAffectedByWhatIsRunning() {
+    start("unmarked", tool -> {
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      return tool.startActivity("quick", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(result(0).get("status")).isEqualTo("finished");
+  }
+
+  /**
+   * A value that is neither "true" nor "false" is treated as not marked. The
+   * value is a modelling mistake, and refusing to run would turn it into an
+   * outage — but it does mean a typo leaves the activity unguarded.
+   */
+  @Test
+  public void anUnparseableMarkingIsTreatedAsNotMarked() {
+    start("badMarking", tool -> {
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      return tool.startActivity("gatedBadValue", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(result(0).get("status")).isEqualTo("finished");
+  }
+
+  @Test
+  public void theListingSaysWhichActivityIsNotStartableAndWhy() {
+    start("gatedListing", tool -> {
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      return tool.listAvailableActivities();
+    });
+
+    Map<String, Object> gated = null;
+    for (Map<String, Object> item : activities(result(0))) {
+      if ("gated".equals(item.get("id"))) {
+        gated = item;
+      }
+    }
+    assertThat(gated).isNotNull();
+    assertThat(gated.get("startableNow")).isEqualTo(Boolean.FALSE);
+    assertThat(String.valueOf(gated.get("blockedBecause"))).contains("waits");
+  }
+
+  /** Nothing running, nothing said — the ordinary case costs no prompt. */
+  @Test
+  public void theListingIsSilentAboutBlockingWhenNothingRuns() {
+    start("gatedSilent", tool -> tool.listAvailableActivities());
+
+    for (Map<String, Object> item : activities(result(0))) {
+      assertThat(item).doesNotContainKey("startableNow");
+      assertThat(item).doesNotContainKey("blockedBecause");
+    }
+  }
+
+  /**
+   * Once the other work finishes, the marked activity becomes startable in the
+   * turn the engine gives the agent for it.
+   */
+  @Test
+  public void aMarkedActivityIsStartableInTheTurnAfterTheOtherWorkFinished() {
+    ProcessInstance instance = startAsync("gatedLater",
+        tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()),
+        tool -> tool.startActivity("gated", Collections.<String, Object>emptyMap()));
+
+    runPendingTurn(instance);
+    ENGINE.getTaskService().complete(task(instance, "waits").getId());
+    runPendingTurn(instance);
+
+    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(result(1).get("status")).isEqualTo("finished");
   }
 }

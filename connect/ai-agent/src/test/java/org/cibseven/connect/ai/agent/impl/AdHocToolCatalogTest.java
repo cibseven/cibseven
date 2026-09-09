@@ -388,4 +388,98 @@ public class AdHocToolCatalogTest {
     })
         .isInstanceOf(UnsupportedOperationException.class);
   }
+
+  // --- the blocking marking -------------------------------------------------
+
+  @Test
+  public void anActivityIsNotBlockingByDefault() {
+    List<AdHocToolCatalog.Entry> entries = read(process(
+        "<userTask id='plain' />"));
+
+    assertThat(entry(entries, "plain").isBlockedWhileOthersRun()).isFalse();
+  }
+
+  @Test
+  public void theMarkingIsRead() {
+    List<AdHocToolCatalog.Entry> entries = read(process(
+        "<userTask id='gated'>"
+        + "<extensionElements><camunda:properties>"
+        + "<camunda:property name='adHocBlockedWhileOthersRun' value='true' />"
+        + "</camunda:properties></extensionElements>"
+        + "</userTask>"));
+
+    assertThat(entry(entries, "gated").isBlockedWhileOthersRun()).isTrue();
+  }
+
+  @Test
+  public void theMarkingIsCaseInsensitiveAndTrimmed() {
+    List<AdHocToolCatalog.Entry> entries = read(process(
+        "<userTask id='gated'>"
+        + "<extensionElements><camunda:properties>"
+        + "<camunda:property name='adHocBlockedWhileOthersRun' value='  TRUE  ' />"
+        + "</camunda:properties></extensionElements>"
+        + "</userTask>"));
+
+    assertThat(entry(entries, "gated").isBlockedWhileOthersRun()).isTrue();
+  }
+
+  /** Explicit false means the same as absent, so it can stay in the model. */
+  @Test
+  public void anExplicitFalseIsNotBlocking() {
+    List<AdHocToolCatalog.Entry> entries = read(process(
+        "<userTask id='gated'>"
+        + "<extensionElements><camunda:properties>"
+        + "<camunda:property name='adHocBlockedWhileOthersRun' value='false' />"
+        + "</camunda:properties></extensionElements>"
+        + "</userTask>"));
+
+    assertThat(entry(entries, "gated").isBlockedWhileOthersRun()).isFalse();
+  }
+
+  /**
+   * A value that is neither is treated as not blocking and warned about. Recorded
+   * deliberately: it means a typo in the value leaves the activity unguarded, and
+   * it cannot be refused at deployment because the property sits on a child and
+   * is read by the connector, not by the parser.
+   */
+  @Test
+  public void anUnparseableMarkingIsNotBlocking() {
+    List<AdHocToolCatalog.Entry> entries = read(process(
+        "<userTask id='gated'>"
+        + "<extensionElements><camunda:properties>"
+        + "<camunda:property name='adHocBlockedWhileOthersRun' value='yes' />"
+        + "</camunda:properties></extensionElements>"
+        + "</userTask>"));
+
+    assertThat(entry(entries, "gated").isBlockedWhileOthersRun()).isFalse();
+  }
+
+  /** An empty value falls back to not blocking, like an absent property. */
+  @Test
+  public void anEmptyMarkingIsNotBlocking() {
+    List<AdHocToolCatalog.Entry> entries = read(process(
+        "<userTask id='gated'>"
+        + "<extensionElements><camunda:properties>"
+        + "<camunda:property name='adHocBlockedWhileOthersRun' value='' />"
+        + "</camunda:properties></extensionElements>"
+        + "</userTask>"));
+
+    assertThat(entry(entries, "gated").isBlockedWhileOthersRun()).isFalse();
+  }
+
+  /** The marking and the result-variable override are independent. */
+  @Test
+  public void theMarkingDoesNotDisturbTheResultVariables() {
+    List<AdHocToolCatalog.Entry> entries = read(process(
+        "<userTask id='gated'>"
+        + "<extensionElements><camunda:properties>"
+        + "<camunda:property name='adHocBlockedWhileOthersRun' value='true' />"
+        + "<camunda:property name='adHocResultVariables' value='betrag' />"
+        + "</camunda:properties></extensionElements>"
+        + "</userTask>"));
+
+    AdHocToolCatalog.Entry gated = entry(entries, "gated");
+    assertThat(gated.isBlockedWhileOthersRun()).isTrue();
+    assertThat(gated.getResultVariables()).containsExactly("betrag");
+  }
 }

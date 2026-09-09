@@ -21,6 +21,7 @@ import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
+import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
 import org.cibseven.bpm.engine.runtime.ActivityInstance;
 import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
@@ -95,6 +96,9 @@ public class AdHocSubProcessTool {
             + "'results' with a note means nothing could be determined rather than that the activity "
             + "produced nothing. 'stillRunning' are the ones you already started that have not finished "
             + "— do not start those again, and do not try to end the scope while they are listed. "
+            + "An activity carrying 'startableNow' false cannot be started yet: it depends on work "
+            + "still in flight, and 'blockedBecause' says which. Do not attempt it, it will be "
+            + "refused; wait for the turn you get when that work finishes. "
             + "'turn' is how many turns you have taken and 'maxTurns' the limit. Call this first in "
             + "every turn.")
     public Map<String, Object> listAvailableActivities() {
@@ -108,6 +112,10 @@ public class AdHocSubProcessTool {
                 AdHocLoopState.harvestFinished(scope, runningActivityInstanceIds(engine, scope));
         AdHocLoopState.countTurn(scope);
 
+        // Read after the reconciliation above, so an activity that finished during
+        // the previous turn no longer counts as blocking.
+        List<String> othersRunning = otherRunningActivityIds(engine, scope);
+
         List<Map<String, Object>> activities = new ArrayList<>();
         Map<String, List<String>> declaredResults = new LinkedHashMap<>();
         for (AdHocToolCatalog.Entry entry : AdHocToolCatalog.read(
@@ -116,6 +124,12 @@ public class AdHocSubProcessTool {
             item.put("id", entry.getId());
             item.put("name", entry.getName());
             item.put("documentation", entry.getDocumentation());
+            // Only said when it is true, so the ordinary case costs no prompt.
+            if (entry.isBlockedWhileOthersRun() && !othersRunning.isEmpty()) {
+                item.put("startableNow", Boolean.FALSE);
+                item.put("blockedBecause", "Depends on work still in flight: " + othersRunning
+                        + ". You will get another turn when that finishes.");
+            }
             activities.add(item);
             declaredResults.put(entry.getId(), entry.getResultVariables());
         }
@@ -168,6 +182,16 @@ public class AdHocSubProcessTool {
             throw new AgentConnectorException("The turn limit of " + limit + " for this ad hoc sub "
                     + "process is reached (" + turns + " turns taken), so no further activity is started. "
                     + "End the scope, or let a person take over.");
+        }
+
+        List<String> othersRunning = otherRunningActivityIds(engine, scope);
+        if (!othersRunning.isEmpty() && isBlockedWhileOthersRun(engine, scope, activityId)) {
+            throw new AgentConnectorException("Cannot start '" + activityId + "' while "
+                    + othersRunning + " " + (othersRunning.size() == 1 ? "is" : "are")
+                    + " still running. This activity is marked as depending on work that is still"
+                    + " in flight — a decision someone else has to make first. Start something"
+                    + " else, or end your turn: you will get another turn when that work"
+                    + " finishes.");
         }
 
         Map<String, Map<String, Object>> perActivity = (variables == null || variables.isEmpty())
@@ -328,6 +352,64 @@ public class AdHocSubProcessTool {
         for (ActivityInstance child : node.getChildActivityInstances()) {
             collectIds(child, ids);
         }
+    }
+
+    /**
+     * The activity ids alive inside this scope, excluding the caller's own.
+     *
+     * <p>Excluding the caller matters: the agent is a child of the scope and is
+     * running while it asks, so without that exclusion a marked activity would be
+     * blocked in every turn, for ever.
+     *
+     * <p>Asked of the engine rather than of {@link AdHocLoopState}, because the
+     * pending list holds only what the <em>agent</em> started. A decision a person
+     * activated over the REST API is exactly the kind this marking is about, and it
+     * would be missing there.
+     *
+     * <p>Read from the execution tree, not the activity instance tree. A child
+     * marked {@code camunda:asyncBefore} has no activity instance while its job
+     * waits to be picked up, so the activity instance tree reports it as absent and
+     * a marked activity would not be held back by queued work. Its execution
+     * exists and already carries the activity — the same reason the engine's own
+     * {@code isDriverPresent} reads executions.
+     *
+     * <p>Only the scope's own children, so a parallel branch elsewhere in the
+     * process instance does not block the agent — that branch has nothing to do
+     * with this scope's work. {@code getNonEventScopeExecutions()} keeps the agent
+     * state execution out, which carries no activity and never runs.
+     */
+    private static List<String> otherRunningActivityIds(ProcessEngine engine, ExecutionEntity scope) {
+        String ownExecutionId = ownExecutionId();
+        Set<String> ids = new LinkedHashSet<>();
+        for (PvmExecutionImpl child : ((PvmExecutionImpl) scope).getNonEventScopeExecutions()) {
+            if (ownExecutionId != null && ownExecutionId.equals(child.getId())) {
+                continue;
+            }
+            PvmActivity activity = child.getActivity();
+            if (activity != null) {
+                ids.add(activity.getId());
+            }
+        }
+        return new ArrayList<>(ids);
+    }
+
+    /** The execution of the activity this tool is being called from. */
+    private static String ownExecutionId() {
+        BpmnExecutionContext executionContext = Context.getBpmnExecutionContext();
+        ExecutionEntity execution = (executionContext == null) ? null : executionContext.getExecution();
+        return (execution == null) ? null : execution.getId();
+    }
+
+    /** Whether {@code activityId} carries the blocking marking in the model. */
+    private static boolean isBlockedWhileOthersRun(ProcessEngine engine, ExecutionEntity scope,
+                                                   String activityId) {
+        for (AdHocToolCatalog.Entry entry : AdHocToolCatalog.read(engine.getRepositoryService(),
+                scope.getProcessDefinitionId(), scope.getActivity().getId())) {
+            if (activityId.equals(entry.getId())) {
+                return entry.isBlockedWhileOthersRun();
+            }
+        }
+        return false;
     }
 
     /**

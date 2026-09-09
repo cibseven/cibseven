@@ -21,6 +21,10 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
@@ -63,6 +67,8 @@ import org.cibseven.bpm.model.xml.instance.ModelElementInstance;
  */
 public final class AdHocToolCatalog {
 
+    private static final Logger LOG = LoggerFactory.getLogger(AdHocToolCatalog.class);
+
     /**
      * {@code camunda:property} on a child activity naming the process variables it
      * produces, comma separated.
@@ -74,6 +80,31 @@ public final class AdHocToolCatalog {
      */
     public static final String RESULT_VARIABLES_PROPERTY = "adHocResultVariables";
 
+    /**
+     * {@code camunda:property} on a child activity marking it as one the agent may
+     * only start while nothing else in the scope is running.
+     *
+     * <p>For work that depends on a decision still being made: a payment that must
+     * not go out before a person approved it, a letter that must not be sent
+     * before the amount is confirmed. The agent is otherwise free to start
+     * anything at any time, which is what lets it run several independent
+     * activities at once.
+     *
+     * <p>Marks the <em>dependent</em> activity, not the decision. Nothing has to
+     * be said about the approval itself, and an unmarked activity behaves exactly
+     * as before this property existed.
+     *
+     * <p>Accepted values are "true" and "false", case-insensitively. Anything else
+     * is treated as false and warned about once. It cannot be refused at
+     * deployment, because it lives on a child and is read by the connector rather
+     * than by the parser — see the class comment of {@code AdHocSubProcessTool}
+     * for what that means for the guarantee.
+     */
+    public static final String BLOCKED_WHILE_OTHERS_RUN_PROPERTY = "adHocBlockedWhileOthersRun";
+
+    /** Guards the one-time WARN for an unparseable marking. */
+    private static final AtomicBoolean UNPARSEABLE_BLOCKING_LOGGED = new AtomicBoolean(false);
+
     /** One startable activity. */
     public static final class Entry {
 
@@ -81,12 +112,15 @@ public final class AdHocToolCatalog {
         private final String name;
         private final String documentation;
         private final List<String> resultVariables;
+        private final boolean blockedWhileOthersRun;
 
-        Entry(String id, String name, String documentation, List<String> resultVariables) {
+        Entry(String id, String name, String documentation, List<String> resultVariables,
+              boolean blockedWhileOthersRun) {
             this.id = id;
             this.name = name;
             this.documentation = documentation;
             this.resultVariables = resultVariables;
+            this.blockedWhileOthersRun = blockedWhileOthersRun;
         }
 
         /** The BPMN activity id — this is what an activation request names. */
@@ -116,6 +150,14 @@ public final class AdHocToolCatalog {
          */
         public List<String> getResultVariables() {
             return resultVariables;
+        }
+
+        /**
+         * Whether the agent may start this activity only while nothing else in the
+         * scope is running — see {@link #BLOCKED_WHILE_OTHERS_RUN_PROPERTY}.
+         */
+        public boolean isBlockedWhileOthersRun() {
+            return blockedWhileOthersRun;
         }
     }
 
@@ -158,7 +200,7 @@ public final class AdHocToolCatalog {
             // offering them would produce a request the engine refuses.
             if (child instanceof Activity) {
                 entries.add(new Entry(child.getId(), child.getName(), firstDocumentation(child),
-                        resultVariables(child)));
+                        resultVariables(child), blockedWhileOthersRun(child)));
             }
         }
         return Collections.unmodifiableList(entries);
@@ -276,6 +318,41 @@ public final class AdHocToolCatalog {
             return Collections.emptyList();
         }
         return extensionElements.getElementsQuery().filterByType(type).list();
+    }
+
+    /**
+     * Whether {@code element} carries {@link #BLOCKED_WHILE_OTHERS_RUN_PROPERTY}.
+     *
+     * <p>Absent means not marked, which is the behaviour every model had before
+     * this property existed. An unparseable value is treated the same and warned
+     * about, rather than failing the turn: the value is a modelling mistake, and
+     * refusing to run would turn it into an outage.
+     */
+    private static boolean blockedWhileOthersRun(FlowElement element) {
+        for (CamundaProperties properties : extensions(element, CamundaProperties.class)) {
+            for (CamundaProperty property : properties.getCamundaProperties()) {
+                if (!BLOCKED_WHILE_OTHERS_RUN_PROPERTY.equals(property.getCamundaName())) {
+                    continue;
+                }
+                String raw = property.getCamundaValue();
+                if (raw == null || raw.trim().isEmpty()) {
+                    return false;
+                }
+                String value = raw.trim();
+                if ("true".equalsIgnoreCase(value)) {
+                    return true;
+                }
+                if (!"false".equalsIgnoreCase(value)
+                        && UNPARSEABLE_BLOCKING_LOGGED.compareAndSet(false, true)) {
+                    LOG.warn("Activity '{}' has {}='{}', which is neither 'true' nor 'false'. "
+                            + "Treating it as not marked, so the agent may start this activity "
+                            + "while other activities of the scope are running.",
+                            element.getId(), BLOCKED_WHILE_OTHERS_RUN_PROPERTY, value);
+                }
+                return false;
+            }
+        }
+        return false;
     }
 
     private static void addIfPresent(Set<String> names, String candidate) {
