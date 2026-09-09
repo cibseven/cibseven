@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Case 08 - the agent ends the scope without starting anything -->
+<definitions id="defs_adHocAgent08" xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" targetNamespace="http://cibseven.org/adhoc-agent">
+  <process id="adHocAgent08" name="Case 08 - the agent ends the scope without starting anything" isExecutable="true" camunda:historyTimeToLive="P30D">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc" name="Agentic scope">
+      <documentation>The scope has no child but the agent. explicitCompletionOnly stops it ending by itself when nothing is active, so only completeScope ends it - and the process then continues past the scope.</documentation>
+      <extensionElements>
+        <camunda:properties>
+            <camunda:property name="explicitCompletionOnly" value="true" />
+            <camunda:property name="adHocDriverActivity" value="agent" />
+            <camunda:property name="activeActivityIds" value="agent" />
+        </camunda:properties>
+      </extensionElements>
+      <serviceTask id="agent" name="AI Agent" camunda:asyncBefore="true">
+        <extensionElements>
+          <camunda:connector>
+            <camunda:connectorId>cibseven-ai-agent</camunda:connectorId>
+            <camunda:inputOutput>
+              <camunda:inputParameter name="agentName">Ad-hoc Agent</camunda:inputParameter>
+              <camunda:inputParameter name="instruction">Du steuerst einen Ad-hoc-Bereich. Es ist nichts zu tun. Beende den Bereich sofort.</camunda:inputParameter>
+              <camunda:inputParameter name="instructionMode">append</camunda:inputParameter>
+              <camunda:inputParameter name="message">Es ist nichts zu tun. Beende den Ad-hoc-Bereich.</camunda:inputParameter>
+              <camunda:inputParameter name="toolClasses">org.cibseven.connect.ai.agent.impl.AdHocSubProcessTool</camunda:inputParameter>
+              <camunda:inputParameter name="useChatMemory">${true}</camunda:inputParameter>
+              <camunda:outputParameter name="agentOutput">${output}</camunda:outputParameter>
+              <camunda:outputParameter name="memoryId">${memoryId}</camunda:outputParameter>
+            </camunda:inputOutput>
+          </camunda:connector>
+        </extensionElements>
+      </serviceTask>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+  <bpmndi:BPMNDiagram id="diagram">
+    <bpmndi:BPMNPlane id="plane" bpmnElement="adHocAgent08">
+      <bpmndi:BPMNShape id="di_start" bpmnElement="start">
+        <dc:Bounds x="152" y="172" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="di_adHoc" bpmnElement="adHoc" isExpanded="true">
+        <dc:Bounds x="240" y="80" width="260" height="220" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="di_agent" bpmnElement="agent">
+        <dc:Bounds x="280" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="di_end" bpmnElement="end">
+        <dc:Bounds x="560" y="172" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="di_f1" bpmnElement="f1">
+        <di:waypoint x="188" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+        <di:waypoint x="240" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="di_f2" bpmnElement="f2">
+        <di:waypoint x="500" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+        <di:waypoint x="560" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

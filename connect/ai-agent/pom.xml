@@ -144,6 +144,17 @@
       <scope>provided</scope>
     </dependency>
 
+    <!-- Test only. The BPMN files under src/test/resources/ad-hoc-agent wire the
+         agent through camunda:connector, and the engine refuses to parse that
+         element unless the connect plugin is registered. A distribution has it;
+         a bare StandaloneInMemProcessEngineConfiguration does not. -->
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine-plugin-connect</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
 
   <build>

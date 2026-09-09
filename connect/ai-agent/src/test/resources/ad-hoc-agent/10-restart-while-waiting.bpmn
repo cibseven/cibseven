@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Case 10 - state survives a restart while a user task waits -->
+<definitions id="defs_adHocAgent10" xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" targetNamespace="http://cibseven.org/adhoc-agent">
+  <process id="adHocAgent10" name="Case 10 - state survives a restart while a user task waits" isExecutable="true" camunda:historyTimeToLive="P30D">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc" name="Agentic scope">
+      <documentation>Same shape as case 03; the test is operational, not structural. Note that memoryId is NOT set on the agent: inside an ad hoc scope the connector derives it from the scope execution, so it is the same id before and after a restart. Setting it here would bypass the mechanism under test.</documentation>
+      <extensionElements>
+        <camunda:properties>
+            <camunda:property name="explicitCompletionOnly" value="true" />
+            <camunda:property name="adHocDriverActivity" value="agent" />
+            <camunda:property name="activeActivityIds" value="agent" />
+        </camunda:properties>
+      </extensionElements>
+      <serviceTask id="agent" name="AI Agent" camunda:asyncBefore="true">
+        <extensionElements>
+          <camunda:connector>
+            <camunda:connectorId>cibseven-ai-agent</camunda:connectorId>
+            <camunda:inputOutput>
+              <camunda:inputParameter name="agentName">Ad-hoc Agent</camunda:inputParameter>
+              <camunda:inputParameter name="instruction">Du steuerst einen Ad-hoc-Bereich. Lasse die Bestellung genehmigen, fasse danach den Verlauf zusammen und beende den Bereich.</camunda:inputParameter>
+              <camunda:inputParameter name="instructionMode">append</camunda:inputParameter>
+              <camunda:inputParameter name="message">Lasse die Bestellung genehmigen und fasse danach zusammen.</camunda:inputParameter>
+              <camunda:inputParameter name="toolClasses">org.cibseven.connect.ai.agent.impl.AdHocSubProcessTool</camunda:inputParameter>
+              <camunda:inputParameter name="useChatMemory">${true}</camunda:inputParameter>
+              <camunda:outputParameter name="agentOutput">${output}</camunda:outputParameter>
+              <camunda:outputParameter name="memoryId">${memoryId}</camunda:outputParameter>
+            </camunda:inputOutput>
+          </camunda:connector>
+        </extensionElements>
+      </serviceTask>
+      <userTask id="approveOrder" name="Approve order">
+        <documentation>Restart the engine while this task is open, then complete it.</documentation>
+        <extensionElements>
+          <camunda:formData>
+              <camunda:formField id="approved" label="Approved?" type="boolean" />
+          </camunda:formData>
+        </extensionElements>
+      </userTask>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+  <bpmndi:BPMNDiagram id="diagram">
+    <bpmndi:BPMNPlane id="plane" bpmnElement="adHocAgent10">
+      <bpmndi:BPMNShape id="di_start" bpmnElement="start">
+        <dc:Bounds x="152" y="172" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="di_adHoc" bpmnElement="adHoc" isExpanded="true">
+        <dc:Bounds x="240" y="80" width="440" height="220" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="di_agent" bpmnElement="agent">
+        <dc:Bounds x="280" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="di_approveOrder" bpmnElement="approveOrder">
+        <dc:Bounds x="460" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="di_end" bpmnElement="end">
+        <dc:Bounds x="740" y="172" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="di_f1" bpmnElement="f1">
+        <di:waypoint x="188" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+        <di:waypoint x="240" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="di_f2" bpmnElement="f2">
+        <di:waypoint x="680" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+        <di:waypoint x="740" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>
