@@ -17,6 +17,7 @@
 package org.cibseven.bpm.engine.test;
 
 import java.io.FileNotFoundException;
+import java.lang.reflect.Method;
 import java.util.Date;
 
 import org.cibseven.bpm.engine.AuthorizationService;
@@ -35,6 +36,7 @@ import org.cibseven.bpm.engine.impl.test.TestHelper;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -110,9 +112,12 @@ public class ProcessEngineTestCase implements BeforeEachCallback, AfterEachCallb
       initializeProcessEngine();
       initializeServices();
     }
-    boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine, getClass(), "");
+    final Method testMethod = context.getTestMethod().get();
+
+    boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine, context.getTestClass().get(), testMethod.getName(), testMethod.getParameterTypes());
     // ignore test case when current history level is too low
     skipTest = !hasRequiredHistoryLevel;
+    Assumptions.assumeTrue(hasRequiredHistoryLevel, "ignored because the current history level is too low");
 
     if (!skipTest) {
       deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, context.getTestClass().get(), 
