@@ -34,11 +34,8 @@ import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
-import org.jboss.arquillian.protocol.servlet.arq514hack.descriptors.api.web.WebAppDescriptor;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.jboss.shrinkwrap.descriptor.api.Descriptors;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,7 +63,12 @@ public class IndependentJobExecutionTest extends AbstractFoxPlatformIntegrationT
 
     WebArchive deployment = initWebArchiveDeployment("pa1.war", "org/cibseven/bpm/integrationtest/jobexecutor/IndependentJobExecutionTest.pa1.xml")
         .addAsResource("org/cibseven/bpm/integrationtest/jobexecutor/IndependentJobExecutionTest.process1.bpmn20.xml")
-        .setWebXML(new StringAsset(Descriptors.create(WebAppDescriptor.class).version("3.0").exportAsString()));
+        .setWebXML(new StringAsset(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+            "<web-app version=\"6.0\" xmlns=\"https://jakarta.ee/xml/ns/jakartaee\"\n" +
+            "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
+            "  xsi:schemaLocation=\"https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd\">\n" +
+            "</web-app>"));
 
     TestContainer.addContainerSpecificProcessEngineConfigurationClass(deployment);
 
@@ -79,7 +81,12 @@ public class IndependentJobExecutionTest extends AbstractFoxPlatformIntegrationT
 
     return initWebArchiveDeployment("pa2.war", "org/cibseven/bpm/integrationtest/jobexecutor/IndependentJobExecutionTest.pa2.xml")
         .addAsResource("org/cibseven/bpm/integrationtest/jobexecutor/IndependentJobExecutionTest.process2.bpmn20.xml")
-        .setWebXML(new StringAsset(Descriptors.create(WebAppDescriptor.class).version("3.0").exportAsString()));
+        .setWebXML(new StringAsset(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+            "<web-app version=\"6.0\" xmlns=\"https://jakarta.ee/xml/ns/jakartaee\"\n" +
+            "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
+            "  xsi:schemaLocation=\"https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd\">\n" +
+            "</web-app>"));
   }
 
   @OperateOnDeployment("pa1")

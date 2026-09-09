@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.el.beans;
 
+
 import jakarta.inject.Named;
 
 /**

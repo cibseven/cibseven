@@ -47,6 +47,7 @@ public class CdiCallActivityVersionTagTest extends AbstractFoxPlatformIntegratio
     WebArchive deployment = ShrinkWrap.create(WebArchive.class, "client.war")
             .addAsWebInfResource("org/cibseven/bpm/integrationtest/beans.xml", "beans.xml")
             .addClass(AbstractFoxPlatformIntegrationTest.class)
+            .addClass(VersionTagBean.class)
             .addAsLibraries(DeploymentHelper.getEngineCdi());
 
     TestContainer.addContainerSpecificResourcesForNonPaEmbedCdiLib(deployment);

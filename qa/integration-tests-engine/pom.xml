@@ -86,6 +86,18 @@
       <type>pom</type>
     </dependency>
 
+    <dependency>
+      <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+      <artifactId>shrinkwrap-descriptors-api-base</artifactId>
+      <version>2.0.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+      <artifactId>shrinkwrap-descriptors-impl-base</artifactId>
+      <version>2.0.0</version>
+      <scope>test</scope>
+    </dependency>
     <!-- Arquillian JUnit 5 integration -->
     <dependency>
       <groupId>org.jboss.arquillian.junit5</groupId>
@@ -93,11 +105,11 @@
       <scope>test</scope>
     </dependency>
 
-    <dependency>
+<!--    <dependency>
       <groupId>org.jboss.arquillian.protocol</groupId>
       <artifactId>arquillian-protocol-servlet</artifactId>
       <scope>test</scope>
-    </dependency>
+    </dependency>-->
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -169,7 +181,11 @@
           <artifactId>cibseven-engine</artifactId>
           <groupId>org.cibseven.bpm</groupId>
         </exclusion>
-      </exclusions>
+       <exclusion>
+         <groupId>org.jboss.weld.servlet</groupId>
+         <artifactId>weld-servlet</artifactId>
+       </exclusion>
+     </exclusions>
     </dependency>
 
     <!-- camunda -->
@@ -274,11 +290,23 @@
       <artifactId>spring-web</artifactId>
     </dependency>
 
-     <!-- weld for CDI support on tomcat-->
+     <!-- weld for CDI support on tomcat.
+          NOTE: weld-servlet 2.4.8.Final is a CDI 1.x / javax.servlet implementation. Its
+          org.jboss.weld.environment.servlet.Listener cannot start under Tomcat 11's Jakarta
+          Servlet 6.0 container (jakarta.servlet, not javax.servlet), and it cannot process
+          jakarta.enterprise.* / jakarta.inject.* annotated beans at all. That's why WARs were
+          failing with "context failed to start" and CDI-backed EL expressions were failing
+          with "Cannot resolve identifier '...'" across the cdi/context/dmn test packages.
+          weld-servlet-shaded 6.0.3.Final is Weld's CDI 4.1 / Jakarta EE 10-11 servlet build
+          (matches the jakarta.enterprise.cdi-api 4.1.0 already used by this reactor).
+          CAVEAT: this makes the dependency Jakarta-only. If the legacy `tomcat9` profile
+          (javax-based Java EE 6/8) is still built from this pom, move this dependency into
+          the tomcat/wildfly/wildfly28/wildfly-domain profile <dependencies> blocks instead of
+          leaving it here at top level, so tomcat9 keeps resolving the old javax weld-servlet. -->
     <dependency>
       <groupId>org.jboss.weld.servlet</groupId>
-      <artifactId>weld-servlet</artifactId>
-      <version>2.4.8.Final</version>
+      <artifactId>weld-servlet-shaded</artifactId>
+      <version>6.0.3.Final</version>
       <scope>test</scope>
     </dependency>
 
@@ -349,14 +377,12 @@
           <type>pom</type>
         </dependency>
 
-        <!-- This dependency can be updated when arquillian releases the managed tomcat 10 artifact -->
         <dependency>
           <groupId>org.jboss.arquillian.container</groupId>
-          <artifactId>arquillian-tomcat-managed-8</artifactId>
-          <version>1.1.0.Final</version>
+          <artifactId>arquillian-tomcat-managed-10</artifactId>
+          <version>1.2.4.Final</version>
           <scope>test</scope>
         </dependency>
-
         <!-- Tomcat 11 requires Jakarta Servlet 5.0 protocol; the base arquillian-protocol-servlet
              dependency declared at the top of this pom only ships pre-Jakarta protocol versions.
              Explicit version needed: not managed by arquillian-bom. -->
@@ -398,8 +424,8 @@
             <artifactId>build-helper-maven-plugin</artifactId>
             <executions>
               <execution>
-                <id>add-test-source</id>
-                <phase>generate-test-sources</phase>
+                <id>add-test-source-tomcat</id>
+                <phase>initialize</phase>
                 <goals>
                   <goal>add-test-source</goal>
                 </goals>
@@ -464,6 +490,12 @@
           <artifactId>wildfly-arquillian-container-managed</artifactId>
           <version>${wildfly.container.adapter.version}</version>
           <scope>test</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>org.jboss.arquillian.testenricher</groupId>
+              <artifactId>arquillian-testenricher-cdi</artifactId>
+            </exclusion>
+          </exclusions>
         </dependency>
         <!-- WildFly uses Jakarta Servlet 5.0 protocol; the base arquillian-protocol-servlet
              dependency declared at the top of this pom only ships pre-Jakarta protocol versions.
@@ -471,6 +503,12 @@
         <dependency>
           <groupId>org.jboss.arquillian.protocol</groupId>
           <artifactId>arquillian-protocol-servlet-jakarta</artifactId>
+          <version>${version.arquillian-protocol-servlet-jakarta}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.jboss.arquillian.testenricher</groupId>
+          <artifactId>arquillian-testenricher-cdi-jakarta</artifactId>
           <version>${version.arquillian-protocol-servlet-jakarta}</version>
           <scope>test</scope>
         </dependency>
@@ -534,6 +572,9 @@
 
     <profile>
       <id>wildfly28</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
       <dependencies>
         <dependency>
           <!-- make sure this comes after runtime in the reactor build -->
@@ -548,6 +589,12 @@
           <artifactId>wildfly-arquillian-container-managed</artifactId>
           <version>${wildfly.container.adapter.version}</version>
           <scope>test</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>org.jboss.arquillian.testenricher</groupId>
+              <artifactId>arquillian-testenricher-cdi</artifactId>
+            </exclusion>
+          </exclusions>
         </dependency>
         <!-- WildFly uses Jakarta Servlet 5.0 protocol; the base arquillian-protocol-servlet
              dependency declared at the top of this pom only ships pre-Jakarta protocol versions.
@@ -555,6 +602,12 @@
         <dependency>
           <groupId>org.jboss.arquillian.protocol</groupId>
           <artifactId>arquillian-protocol-servlet-jakarta</artifactId>
+          <version>${version.arquillian-protocol-servlet-jakarta}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.jboss.arquillian.testenricher</groupId>
+          <artifactId>arquillian-testenricher-cdi-jakarta</artifactId>
           <version>${version.arquillian-protocol-servlet-jakarta}</version>
           <scope>test</scope>
         </dependency>
@@ -752,7 +805,7 @@
 
     <profile>
       <id>tomcat9</id>
-      <dependencyManagement>
+        <dependencyManagement>
         <dependencies>
           <!-- import internal dependencies before JBoss to preserve internal versions, e.g. for JUnit -->
           <dependency>
@@ -854,7 +907,9 @@
     <profile>
       <id>distro</id>
       <activation>
-        <activeByDefault>true</activeByDefault>
+        <property>
+          <name>!engine-integration</name> 
+        </property>
       </activation>
       <dependencies>
         <dependency>
@@ -862,11 +917,40 @@
           <artifactId>wildfly-arquillian-container-managed</artifactId>
           <version>${wildfly.container.adapter.version}</version>
           <scope>test</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>org.jboss.arquillian.testenricher</groupId>
+              <artifactId>arquillian-testenricher-cdi</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+          <!-- make sure this comes after runtime in the reactor build -->
+          <groupId>org.cibseven.bpm.qa</groupId>
+          <artifactId>cibseven-qa-wildfly-runtime</artifactId>
+          <version>${project.version}</version>
+          <scope>provided</scope>
+          <type>pom</type>
+        </dependency>
+        <!-- WildFly uses Jakarta Servlet 5.0 protocol; the base arquillian-protocol-servlet
+             dependency declared at the top of this pom only ships pre-Jakarta protocol versions.
+             Explicit version needed: not managed by arquillian-bom. -->
+        <dependency>
+          <groupId>org.jboss.arquillian.protocol</groupId>
+          <artifactId>arquillian-protocol-servlet-jakarta</artifactId>
+          <version>${version.arquillian-protocol-servlet-jakarta}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.jboss.arquillian.testenricher</groupId>
+          <artifactId>arquillian-testenricher-cdi-jakarta</artifactId>
+          <version>${version.arquillian-protocol-servlet-jakarta}</version>
+          <scope>test</scope>
         </dependency>
       </dependencies>
       <build>
         <plugins>
-          <plugin>
+           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
@@ -880,7 +964,7 @@
             <executions>
               <execution>
                 <id>add-test-source</id>
-                <phase>generate-test-sources</phase>
+                <phase>initialize</phase>
                 <goals>
                   <goal>add-test-source</goal>
                 </goals>

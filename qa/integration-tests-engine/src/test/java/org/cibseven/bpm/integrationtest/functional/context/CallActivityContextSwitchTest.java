@@ -23,6 +23,7 @@ import java.util.Set;
 import jakarta.enterprise.inject.spi.Bean;
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.inject.Inject;
+import jakarta.enterprise.inject.spi.CDI;
 
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.integrationtest.functional.context.beans.CalledProcessDelegate;
@@ -36,7 +37,6 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 
 /**
  * <p>This test ensures that if a call activity calls a process
@@ -70,8 +70,6 @@ public class CallActivityContextSwitchTest extends AbstractFoxPlatformIntegratio
       .addAsResource("org/cibseven/bpm/integrationtest/functional/context/CallActivityContextSwitchTest.calledProcessASync.bpmn20.xml");
   }
 
-  @Inject
-  private BeanManager beanManager;
 
   @Test
   @OperateOnDeployment("mainDeployment")
@@ -86,7 +84,8 @@ public class CallActivityContextSwitchTest extends AbstractFoxPlatformIntegratio
     }catch (NoClassDefFoundError e) {
       // expected
     }
-    Set<Bean< ? >> beans = beanManager.getBeans("calledProcessDelegate");
+
+    Set<Bean< ? >> beans = CDI.current().getBeanManager().getBeans("calledProcessDelegate");
     Assertions.assertEquals(0, beans.size());
     Map<String, Object> processVariables = new HashMap<String, Object>();
     processVariables.put("calledElement", "calledProcessSyncNoWait");
