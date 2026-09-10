@@ -25,7 +25,7 @@ import jakarta.ejb.Local;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
-import javax.resource.ResourceException;
+import jakarta.resource.ResourceException;
 
 import org.cibseven.bpm.container.ExecutorService;
 import org.cibseven.bpm.container.impl.threading.ra.outbound.JcaExecutorServiceConnection;
