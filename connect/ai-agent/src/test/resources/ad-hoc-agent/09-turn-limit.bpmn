@@ -14,7 +14,9 @@
             <camunda:property name="adHocMaxTurns" value="3" />
         </camunda:properties>
       </extensionElements>
-      <serviceTask id="agent" name="AI Agent" camunda:asyncBefore="true">
+      <serviceTask id="agent" name="AI Agent" camunda:asyncBefore="true"
+          camunda:modelerTemplate="org.cibseven.connect.ai.agent"
+          camunda:modelerTemplateVersion="1">
         <extensionElements>
           <camunda:connector>
             <camunda:connectorId>cibseven-ai-agent</camunda:connectorId>

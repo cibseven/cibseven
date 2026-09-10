@@ -164,16 +164,23 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
   };
 
   /**
-   * Writes, then starts the waiting child in the same turn.
+   * The same turn, but leaving a waiting child open behind it.
    *
-   * <p>Both in one turn on purpose. A driver is not re-activated by its own end,
-   * so a turn that starts nothing which waits is the last one — there would be no
-   * later turn to read anything back in.
+   * <p>Needed by every test that inspects the instance after a turn. A turn that
+   * starts nothing which waits is the last turn there can be — a driver is not
+   * re-activated by its own end — and the scope now ends with it, taking the
+   * variables the assertions are about with it. Starting a waiting child is how a
+   * turn says it expects a further one, so it is also the honest way to hold the
+   * instance still.
    */
-  private static final Turn WRITE_AND_START_WAITING_CHILD = (execution, store) -> {
-    WRITE.run(execution, store);
-    new AdHocSubProcessTool().startActivity("waits", Collections.<String, Object>emptyMap());
-  };
+  private static Turn keepingTheScopeOpen(Turn turn) {
+    return (execution, store) -> {
+      turn.run(execution, store);
+      new AdHocSubProcessTool().startActivity("waits", Collections.<String, Object>emptyMap());
+    };
+  }
+
+  private static final Turn WRITE_AND_START_WAITING_CHILD = keepingTheScopeOpen(WRITE);
 
   // --- model -----------------------------------------------------------------
 
@@ -250,7 +257,7 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
    */
   @Test
   public void theConversationLandsOnTheAgentStateExecution() {
-    ProcessInstance instance = start(WRITE);
+    ProcessInstance instance = start(keepingTheScopeOpen(WRITE));
 
     runTurn(instance);
 
@@ -267,7 +274,7 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
   /** And is therefore not reachable from the process instance. */
   @Test
   public void theConversationIsNotReachableFromTheProcessInstance() {
-    ProcessInstance instance = start(WRITE);
+    ProcessInstance instance = start(keepingTheScopeOpen(WRITE));
 
     runTurn(instance);
 
@@ -308,7 +315,7 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
    */
   @Test
   public void aChildOfTheScopeCannotRewriteTheConversation() {
-    ProcessInstance instance = start(WRITE, READ);
+    ProcessInstance instance = start(keepingTheScopeOpen(WRITE), READ);
 
     runTurn(instance);
 
@@ -332,7 +339,7 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
    */
   @Test
   public void aConversationFromAnEarlierBuildIsStillReadable() {
-    ProcessInstance instance = start(SEED_LEGACY_COPY, READ);
+    ProcessInstance instance = start(keepingTheScopeOpen(SEED_LEGACY_COPY), READ);
 
     runTurn(instance);
     // The seeded copy is at the process instance, where an earlier build put it.
@@ -357,7 +364,7 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
    */
   @Test
   public void theNextWriteMovesTheConversationAndRemovesTheOldCopy() {
-    ProcessInstance instance = start(SEED_LEGACY_COPY, WRITE);
+    ProcessInstance instance = start(keepingTheScopeOpen(SEED_LEGACY_COPY), WRITE);
 
     runTurn(instance);
     assertThat(memoryVariables(instance)).hasSize(1);
@@ -380,7 +387,8 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
    */
   @Test
   public void deletingClearsBothLocations() {
-    ProcessInstance instance = start(SEED_LEGACY_COPY, WRITE_THEN_SEED_AGAIN, DELETE);
+    ProcessInstance instance = start(keepingTheScopeOpen(SEED_LEGACY_COPY),
+        WRITE_THEN_SEED_AGAIN, DELETE);
 
     runTurn(instance);
     ENGINE.getRuntimeService().triggerAdHocActivities(

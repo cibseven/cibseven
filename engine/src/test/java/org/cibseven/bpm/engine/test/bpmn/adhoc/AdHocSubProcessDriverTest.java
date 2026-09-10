@@ -111,22 +111,17 @@ public class AdHocSubProcessDriverTest extends PluggableProcessEngineTest {
 
   /**
    * A driver that re-activated itself on its own end would run without bound and there would be no
-   * way to stop it from the model. The scope parks instead, and only an explicit completion — or the
-   * timer boundary event a real model carries — gets it out.
+   * way to stop it from the model.
    */
   @Deployment(resources = DRIVEN)
   @Test
   public void theDriverDoesNotReactivateItself() {
-    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocDriven");
+    runtimeService.startProcessInstanceByKey("adHocDriven");
 
     taskService.complete(task("driver").getId());
 
     assertThat(task("driver")).as("no second driver").isNull();
     assertThat(taskService.createTaskQuery().count()).as("and nothing else was started").isZero();
-    assertThat(runtimeService.createProcessInstanceQuery()
-        .processInstanceId(pi.getId()).singleResult())
-        .as("the scope is parked, waiting for a completion request")
-        .isNotNull();
   }
 
   /**
@@ -206,6 +201,85 @@ public class AdHocSubProcessDriverTest extends PluggableProcessEngineTest {
 
     assertThat(children).hasSize(1);
     assertThat(children[0].getActivityId()).as("the scope, not a child of it").isEqualTo("adHoc");
+  }
+
+  // ─── the scope's own end ──────────────────────────────────────────────────────
+
+  /**
+   * A turn that starts nothing is the last one there can be, so the scope ends with it.
+   *
+   * <p>Nothing is left under the scope at that point and a driver is not brought back by its own
+   * end, so no event can reach the scope again: the state is terminal, and the only question is
+   * whether the engine says so or leaves the instance standing. It used to leave it standing —
+   * three instances of the test suite's case 03 were found parked that way, with no task, no job
+   * and no incident.
+   *
+   * <p>This is the BPMN rule for an ad hoc scope with nothing active, applied at the point where
+   * it can be decided. {@code explicitCompletionOnly} suppressed it, which was necessary only
+   * because completion used to be evaluated before the driver was offered its turn.
+   */
+  @Deployment(resources = DRIVEN)
+  @Test
+  public void theScopeEndsWhenADriverTurnStartsNothing() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocDriven");
+
+    taskService.complete(task("driver").getId());
+
+    testRule.assertProcessEnded(pi.getId());
+  }
+
+  /**
+   * The sequence a person actually walks through: the driver hands out work, the work is done, the
+   * driver gets a turn to react, and has nothing further to do. The process must run past the scope
+   * rather than stop inside it.
+   */
+  @Deployment(resources = DRIVEN)
+  @Test
+  public void theScopeEndsAfterTheLastWorkerAndAFinalTurn() {
+    ProcessInstance pi = startAndParkWithWorker("workerA");
+
+    taskService.complete(task("workerA").getId());
+    assertThat(task("driver")).as("finishing the work produced a further turn").isNotNull();
+
+    taskService.complete(task("driver").getId());
+
+    testRule.assertProcessEnded(pi.getId());
+  }
+
+  /** A driver that leaves work open ends its turn, not the scope. */
+  @Deployment(resources = DRIVEN)
+  @Test
+  public void aWaitingWorkerKeepsTheScopeOpen() {
+    ProcessInstance pi = startAndParkWithWorker("workerA");
+
+    assertThat(runtimeService.createProcessInstanceQuery()
+        .processInstanceId(pi.getId()).count()).as("the scope waits for the worker").isOne();
+    assertThat(task("workerA")).as("and the worker is untouched").isNotNull();
+  }
+
+  /**
+   * The case the completion check has to get right: a worker whose {@code asyncBefore} job is still
+   * queued.
+   *
+   * <p>Its execution exists and already carries its activity, but it is not active yet, so a check
+   * asking {@code isActive()} concludes the scope is empty and completes it — cancelling work that
+   * was requested and never ran. The check therefore reads the execution tree, which is the same
+   * distinction the blocking rule in {@code AdHocSubProcessTool} had to make.
+   */
+  @Deployment(resources = DRIVEN)
+  @Test
+  public void aQueuedAsyncWorkerKeepsTheScopeOpen() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocDriven");
+    runtimeService.triggerAdHocActivities(scopeExecutionId(pi.getId()),
+        Collections.singletonList("workerAsync"));
+
+    taskService.complete(task("driver").getId());
+
+    Job queued = managementService.createJobQuery().processInstanceId(pi.getId()).singleResult();
+    assertThat(queued).as("the worker's job survived the driver's end").isNotNull();
+
+    managementService.executeJob(queued.getId());
+    assertThat(task("workerAsync")).as("and still runs when the executor takes it").isNotNull();
   }
 
   // ─── the transaction boundary ─────────────────────────────────────────────────

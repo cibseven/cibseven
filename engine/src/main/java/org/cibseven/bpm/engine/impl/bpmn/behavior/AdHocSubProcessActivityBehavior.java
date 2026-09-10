@@ -85,14 +85,19 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   protected boolean cancelRemainingInstances = true;
 
   /**
-   * When set, the scope never completes by itself: neither a completion condition nor the
-   * "nothing active" rule ends it, and only {@code RuntimeService.completeAdHocSubProcess}
-   * does.
+   * When set, {@link #isCompleted} never holds: neither a completion condition nor the "nothing
+   * active" rule ends the scope there.
    *
-   * <p>Exists because a scope driven turn by turn has to survive a turn in which nothing is
-   * active. Without it the only way to express that is a completion condition written so that
-   * it can never hold, which is untrue in the model — Cockpit then shows a completion condition
-   * that will never fire — and which the modeller has to remember to write.
+   * <p>Exists because a scope driven turn by turn has to survive the moment between two turns, in
+   * which nothing is active. Without it the only way to express that is a completion condition
+   * written so that it can never hold, which is untrue in the model — Cockpit then shows a
+   * completion condition that will never fire — and which the modeller has to remember to write.
+   *
+   * <p>It does <em>not</em> mean the scope can only ever be ended from outside. A driven scope
+   * still ends by itself once the driver has ended without starting anything, through
+   * {@link #completeOnIdleDrivenScope} — the same "nothing active" rule, evaluated after the
+   * driver has been offered its turn instead of before. Suppressing it here and applying it there
+   * is the difference between a scope that keeps its turns and one that parks for good.
    *
    * <p>Carried as an extension property rather than a new namespace, per CIB7-1890, so it is
    * read at parse time and never becomes a process variable that a child of the scope could
@@ -298,7 +303,13 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
       return;
     }
 
-    reactivateDriver(scopeExecution, endedExecution);
+    // The driver is offered its turn before the scope is judged idle, and that order is the whole
+    // point: judging first is what made explicitCompletionOnly necessary, because a worker ending
+    // left nothing active and completed the scope before the driver could react to it.
+    if (!reactivateDriver(scopeExecution, endedExecution)
+        && completeOnIdleDrivenScope(scopeExecution, endedExecution)) {
+      return;
+    }
 
     // The scope goes back to waiting for the next activation, and the ended child has no further
     // purpose, so it is removed.
@@ -337,12 +348,61 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     if (!AdHocAgentState.isCompletionRequested(scopeExecution)) {
       return false;
     }
+    if (!hasNoOtherLiveChild(scopeExecution, endedExecution)) {
+      return false;
+    }
+    completeScopeOnRequest(scopeExecution);
+    return true;
+  }
+
+  /**
+   * Ends a driven scope that has nothing left to run and no turn left to give, and returns whether
+   * it did.
+   *
+   * <p>Reached when the driver has ended without starting anything: nothing is under the scope, and
+   * a driver is not brought back by its own end, so nothing can ever reach the scope again. The
+   * state is terminal either way and the only question is whether the engine says so. It used to
+   * leave the instance standing — with no task, no job and no incident, invisible until someone
+   * went looking for it.
+   *
+   * <p>This is the ordinary BPMN rule for an ad hoc scope with nothing active, evaluated at the one
+   * point where a driven scope can be judged. {@link #isCompleted} cannot serve here: it runs
+   * before the driver is offered its turn, which is exactly why {@link #explicitCompletionOnly} had
+   * to switch it off.
+   *
+   * <p>Restricted to scopes with a driver. Without one, a scope with nothing active is waiting for
+   * activation from outside, which is a state a client can still act on and therefore not terminal.
+   */
+  protected boolean completeOnIdleDrivenScope(ActivityExecution scopeExecution,
+                                              ActivityExecution endedExecution) {
+    if (driverActivityId == null) {
+      return false;
+    }
+    if (!hasNoOtherLiveChild(scopeExecution, endedExecution)) {
+      return false;
+    }
+    completeScopeOnRequest(scopeExecution);
+    return true;
+  }
+
+  /**
+   * Whether nothing but the ended child lives under the scope.
+   *
+   * <p>Reads the execution tree rather than asking {@code isActive()}, and that distinction decides
+   * whether work is lost: a child whose {@code asyncBefore} job is still queued already has an
+   * execution carrying its activity but is not active yet. Judged by activity it looks like an
+   * empty scope, and completing then cancels work that was requested and never ran.
+   *
+   * <p>{@code getNonEventScopeExecutions()} keeps the scope's state execution out of it, which
+   * carries no activity and never runs.
+   */
+  protected boolean hasNoOtherLiveChild(ActivityExecution scopeExecution,
+                                        ActivityExecution endedExecution) {
     for (PvmExecutionImpl child : ((PvmExecutionImpl) scopeExecution).getNonEventScopeExecutions()) {
       if (child != endedExecution && child.getActivity() != null) {
         return false;
       }
     }
-    completeScopeOnRequest(scopeExecution);
     return true;
   }
 
@@ -350,7 +410,10 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    * Re-activates the driver activity after another child ended, which is what gives the scope its
    * next turn.
    *
-   * <p>Does nothing in four cases.
+   * <p>Returns whether a turn was started, which is what lets the caller tell a scope that is
+   * between turns from one that has no turn left to give and is therefore finished.
+   *
+   * <p>Starts nothing in four cases.
    *
    * <p>When no driver is configured, which is every model written before this existed.
    *
@@ -372,19 +435,19 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    * service that is not an optimisation but a requirement: without it a person completing a user
    * task waits for that call, and a timeout rolls their completion back.
    */
-  protected void reactivateDriver(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
+  protected boolean reactivateDriver(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
     if (driverActivityId == null) {
-      return;
+      return false;
     }
     PvmActivity endedActivity = endedExecution.getActivity();
     if (endedActivity != null && driverActivityId.equals(endedActivity.getId())) {
-      return;
+      return false;
     }
     if (isDriverPresent(scopeExecution, endedExecution)) {
-      return;
+      return false;
     }
     if (isConditionSatisfied(scopeExecution) || conditionHoldsNow(scopeExecution)) {
-      return;
+      return false;
     }
 
     ScopeImpl scope = (ScopeImpl) scopeExecution.getActivity();
@@ -400,6 +463,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     PvmExecutionImpl driver = (PvmExecutionImpl) createInnerInstance(scopeExecution);
     driver.executeActivities(Collections.<PvmActivity>emptyList(),
             findEntryChild(scope, driverActivityId), null, null, null, false, false);
+    return true;
   }
 
   /**
@@ -456,6 +520,11 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    * With a completion condition: the condition decides.
    * Without one: complete when nothing is active AND at least one child was activated
    * (PRD FR-16a — the second clause stops an empty scope completing on entry).
+   *
+   * <p>Evaluated before the driver is offered its turn, so a driven scope must not be decided here
+   * — a worker ending leaves nothing active, and completing then would end the scope before the
+   * driver could react. That is what {@link #explicitCompletionOnly} switches off, and
+   * {@link #completeOnIdleDrivenScope} is where the same rule takes effect for such a scope.
    */
   protected boolean isCompleted(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
     if (explicitCompletionOnly) {

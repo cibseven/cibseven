@@ -21,6 +21,9 @@
       <userTask id="workerA" name="Worker A" />
       <userTask id="workerB" name="Worker B" />
       <userTask id="workerC" name="Worker C" />
+      <!-- asyncBefore, so a test can hold a worker in the one state where its execution already
+           exists and carries its activity while its job is still queued. -->
+      <userTask id="workerAsync" name="Worker async" camunda:asyncBefore="true" />
       <serviceTask id="sync" camunda:expression="${execution.setVariable('ran', true)}" />
     </adHocSubProcess>
     <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
