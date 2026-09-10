@@ -397,9 +397,7 @@
           </execution>
         </executions>
         <configuration>
-          <!-- Warn-only for now: flip to true (or pass -Denforcer.fail=true) once the
-               pre-existing violations across the reactor have been triaged. -->
-          <fail>false</fail>
+          <fail>true</fail>
           <rules>
             <bannedDependencies>
               <searchTransitive>true</searchTransitive>
