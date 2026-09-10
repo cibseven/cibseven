@@ -10,11 +10,8 @@
 # *declared* values instead, so it catches drift the enforcer rule is blind to.
 #
 # Our own properties are read through maven-help-plugin rather than by matching text, because
-# help:evaluate returns the *effective* value: profile activation, parent inheritance, ${...}
-# indirection and -D overrides are all accounted for, and - most importantly on a version-bump
-# branch - a commented-out old value left above the live one cannot be picked up by mistake.
-# The Boot BOM is still read textually: it is machine-generated, declares the property exactly
-# once with a literal value, and carries no comments, so there is nothing there to get wrong.
+# help:evaluate returns the *effective* value: a commented-out old value left above the live one cannot be picked up by mistake.
+# The Boot BOM is still read textually: it is machine-generated.
 #
 # Usage:  bash .ci/scripts/check-spring-alignment.sh [path/to/parent/pom.xml]
 # Exit:   0 = aligned, 1 = mismatch, 2 = check could not run
