@@ -397,6 +397,47 @@
         </plugin>
       </plugins>
     </pluginManagement>
+
+    <plugins>
+      <!-- Catches a Spring Boot BOM bump that moves the framework
+           version without the matching version.spring.frameworkN update -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>enforce-spring-framework-alignment</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <fail>true</fail>
+          <rules>
+            <bannedDependencies>
+              <searchTransitive>true</searchTransitive>
+              <excludes>
+                <exclude>org.springframework:*</exclude>
+              </excludes>
+              <includes>
+                <include>org.springframework:*:[${version.spring.framework}]</include>
+                <include>org.springframework:*:[${version.spring.framework6}]</include>
+                <include>org.springframework:*:[${version.spring.framework7}]</include>
+              </includes>
+              <message>
+                The resolved Spring Framework version must be one of the pinned lines:
+                ${version.spring.framework} / ${version.spring.framework6} / ${version.spring.framework7}.
+                A failure here usually means a Spring Boot BOM bump moved the framework version
+                without updating the matching version.spring.frameworkN property.
+              </message>
+            </bannedDependencies>
+          </rules>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 
   <profiles>

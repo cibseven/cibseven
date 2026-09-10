@@ -161,6 +161,22 @@ pipeline {
             }
         }
 
+        stage('Spring Alignment Check') {
+            steps {
+                script {
+                    withMaven(options: []) {
+                        // Compares the pinned version.spring.frameworkN properties against the
+                        // <spring-framework.version> declared by the matching Spring Boot BOM.
+                        // Non-fatal for now: marks the stage UNSTABLE instead of failing the build.
+                        // Drop the catchError wrapper to make a mismatch break the build.
+                        catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                            sh 'bash .ci/scripts/check-spring-alignment.sh'
+                        }
+                    }
+                }
+            }
+        }
+
         stage('Build') {
             when {
                 anyOf {
