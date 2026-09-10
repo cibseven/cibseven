@@ -23,7 +23,6 @@ import java.util.Set;
 import jakarta.enterprise.inject.spi.Bean;
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.inject.Inject;
-import jakarta.enterprise.inject.spi.CDI;
 
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.integrationtest.functional.context.beans.CalledProcessDelegate;
@@ -70,6 +69,8 @@ public class CallActivityContextSwitchTest extends AbstractFoxPlatformIntegratio
       .addAsResource("org/cibseven/bpm/integrationtest/functional/context/CallActivityContextSwitchTest.calledProcessASync.bpmn20.xml");
   }
 
+  @Inject
+  private BeanManager beanManager;
 
   @Test
   @OperateOnDeployment("mainDeployment")
@@ -85,8 +86,12 @@ public class CallActivityContextSwitchTest extends AbstractFoxPlatformIntegratio
       // expected
     }
 
-    Set<Bean< ? >> beans = CDI.current().getBeanManager().getBeans("calledProcessDelegate");
+    // our bean manager does not know this bean
+    Set<Bean< ? >> beans = beanManager.getBeans("calledProcessDelegate");
     Assertions.assertEquals(0, beans.size());
+
+    // but when we execute the process, we perform the context switch to the corresponding deployment
+    // and there the class can be resolved and the bean is known.
     Map<String, Object> processVariables = new HashMap<String, Object>();
     processVariables.put("calledElement", "calledProcessSyncNoWait");
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("mainProcessSyncNoWait", processVariables);
