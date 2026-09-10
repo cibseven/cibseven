@@ -159,6 +159,20 @@
 
   <build>
     <plugins>
+      <!-- Keeps the parameter names of @Tool methods in the bytecode.
+           LangChain4j builds the tool specification a language model sees from
+           reflection, and @P only supplies the description, not the name.
+           Without this the model is offered arg0, arg1, ... and anything it
+           sends under a meaningful name binds to null - which surfaces much
+           later as an engine error that reads like a model mistake.
+           Asserted by AgentToolSpecificationTest. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <parameters>true</parameters>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
