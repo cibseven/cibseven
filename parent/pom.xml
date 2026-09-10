@@ -405,12 +405,13 @@
                 <exclude>org.springframework:*</exclude>
               </excludes>
               <includes>
+                <include>org.springframework:*:[${version.spring.framework}]</include>
                 <include>org.springframework:*:[${version.spring.framework6}]</include>
                 <include>org.springframework:*:[${version.spring.framework7}]</include>
               </includes>
               <message>
                 The resolved Spring Framework version must be one of the pinned lines:
-                ${version.spring.framework6} / ${version.spring.framework7}.
+                ${version.spring.framework} / ${version.spring.framework6} / ${version.spring.framework7}.
                 A failure here usually means a Spring Boot BOM bump moved the framework version
                 without updating the matching version.spring.frameworkN property.
               </message>
