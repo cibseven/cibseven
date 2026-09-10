@@ -294,6 +294,10 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
       return;
     }
 
+    if (completeOnDriverEnd(scopeExecution, endedExecution)) {
+      return;
+    }
+
     reactivateDriver(scopeExecution, endedExecution);
 
     // The scope goes back to waiting for the next activation, and the ended child has no further
@@ -313,6 +317,33 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     scopeExecution.forceUpdate();
 
     ((ExecutionEntity) scopeExecution).dispatchDelayedEventsAndPerformOperation((Callback<PvmExecutionImpl, Void>) null);
+  }
+
+  /**
+   * Ends the scope when the driver asked for it during its turn, and returns whether it did.
+   *
+   * <p>A driver cannot end its own scope while it runs: completing the scope deletes the driver's
+   * execution, so the rest of the turn fails and the engine cannot finish its bookkeeping for the
+   * activity. The driver therefore records the request through
+   * {@link AdHocAgentState#requestCompletion}, and it is honoured here — the one moment at which
+   * the driver has ended and nothing of it is left running.
+   *
+   * <p>Refused while another child is still alive. The driver checks that before asking, but a turn
+   * can start something after asking, and cancelling a task a person is working on is exactly what
+   * the check in {@code completeScope} exists to prevent. In that case the request stays recorded
+   * and takes effect when that child ends.
+   */
+  protected boolean completeOnDriverEnd(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
+    if (!AdHocAgentState.isCompletionRequested(scopeExecution)) {
+      return false;
+    }
+    for (PvmExecutionImpl child : ((PvmExecutionImpl) scopeExecution).getNonEventScopeExecutions()) {
+      if (child != endedExecution && child.getActivity() != null) {
+        return false;
+      }
+    }
+    completeScopeOnRequest(scopeExecution);
+    return true;
   }
 
   /**

@@ -523,11 +523,17 @@ public class AdHocSubProcessToolTest {
     assertThat(scopeStillThere(instance)).isTrue();
   }
 
+  /**
+   * The call records the request; the engine ends the scope once the turn is over.
+   * {@code completionRequested} rather than {@code completed}, because the scope is
+   * still there when the call returns and a field called "completed" would say
+   * something untrue.
+   */
   @Test
   public void endingTheScopeLetsTheProcessContinue() {
     ProcessInstance instance = start("ends", tool -> tool.completeScope());
 
-    assertThat(result(0).get("completed")).isEqualTo(Boolean.TRUE);
+    assertThat(result(0).get("completionRequested")).isEqualTo(Boolean.TRUE);
     assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
         .processInstanceId(instance.getId()).count()).isZero();
   }
@@ -766,5 +772,104 @@ public class AdHocSubProcessToolTest {
 
     assertThat(AgentTask.FAILURES).isEmpty();
     assertThat(result(1).get("status")).isEqualTo("finished");
+  }
+
+  // --- what happens after the scope has been ended --------------------------
+
+  /**
+   * Ending the scope is a request, and the turn carries on.
+   *
+   * <p>This is the failure a running distribution showed on every model. The agent
+   * is a child of the scope, so completing it inside the turn deleted the very
+   * execution the call was running on: the next tool call could not find its scope,
+   * and the engine could not finish its bookkeeping for the activity — an
+   * optimistic-locking failure here, a null parent in the error-propagation walk
+   * there. No test saw it because every test returned from its turn immediately
+   * after completing. A real conversation does not: LangChain4j asks the model
+   * again after every tool result.
+   */
+  @Test
+  public void endingTheScopeIsRecordedAndTheTurnCarriesOn() {
+    start("afterComplete", tool -> {
+      Map<String, Object> ended = tool.completeScope();
+      assertThat(ended.get("completionRequested")).isEqualTo(Boolean.TRUE);
+      // The scope is still there, so this must simply work.
+      return tool.listAvailableActivities();
+    });
+
+    assertThat(AgentTask.FAILURES).as("nothing may fail after completeScope").isEmpty();
+    assertThat(result(0)).containsKey("activities");
+  }
+
+  /** But starting something after asking to end is refused, and says why. */
+  @Test
+  public void startingAnActivityAfterAskingToEndIsRefused() {
+    start("afterCompleteStart", tool -> {
+      tool.completeScope();
+      return tool.startActivity("waits", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(AgentTask.FAILURES).hasSize(1);
+    assertThat(AgentTask.FAILURES.get(0).getMessage())
+        .contains("already asked")
+        .doesNotContain("is not inside an ad hoc sub process");
+  }
+
+  /** And the scope really does end once the turn is over. */
+  @Test
+  public void theScopeEndsAfterTheTurnThatAskedForIt() {
+    ProcessInstance instance = start("completesAfterTurn", tool -> tool.completeScope());
+
+    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processInstanceId(instance.getId()).count())
+        .as("the process should have continued past the scope").isZero();
+  }
+
+  /** Set before the turn runs, so a turn can act on the instance it is part of. */
+  static volatile String deferredScopeExecutionId;
+
+  /**
+   * A completion request waits for work that started after it was made.
+   *
+   * <p>The tool refuses to start anything once completion is asked for, but a
+   * person can still activate a child over the REST API — and cancelling a task
+   * someone is working on is exactly what the refusal in {@code completeScope}
+   * exists to prevent. The engine therefore keeps the request pending and acts on
+   * it when that child ends, rather than completing over the top of it.
+   *
+   * <p>The driver is asyncBefore so the turn runs as a job: the instance then
+   * exists before the turn, which is what lets the turn activate a child the way
+   * an outside caller would.
+   *
+   * <p>This branch came in with the fix for the completion defect, so it had no
+   * test until now.
+   */
+  @Test
+  public void aPendingCompletionWaitsForWorkStartedAfterTheRequest() {
+    ProcessInstance instance = startAsync("deferred", tool -> {
+      Map<String, Object> ended = tool.completeScope();
+      // Someone else activates a child, the way a human client would.
+      ENGINE.getRuntimeService().triggerAdHocActivities(
+          deferredScopeExecutionId, Collections.singletonList("waits"), null);
+      return ended;
+    });
+    deferredScopeExecutionId = ENGINE.getRuntimeService().createExecutionQuery()
+        .processInstanceId(instance.getId()).activityId("adHoc").list().get(0).getId();
+
+    runPendingTurn(instance);
+
+    assertThat(AgentTask.FAILURES).isEmpty();
+    Task waiting = task(instance, "waits");
+    assertThat(waiting).as("the task started after the request must survive").isNotNull();
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processInstanceId(instance.getId()).count())
+        .as("the scope must not have completed over a live task").isEqualTo(1);
+
+    ENGINE.getTaskService().complete(waiting.getId());
+
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processInstanceId(instance.getId()).count())
+        .as("once that task ends, the pending request takes effect").isZero();
   }
 }

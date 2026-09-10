@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.history.HistoricDetail;
 import org.cibseven.bpm.engine.history.HistoricVariableUpdate;
+import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocAgentState;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessActivityBehavior;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
 import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
@@ -184,6 +185,13 @@ public class AdHocSubProcessTool {
                     + "End the scope, or let a person take over.");
         }
 
+        if (AdHocAgentState.isCompletionRequested(scope)) {
+            throw new AgentConnectorException("Cannot start '" + activityId + "': you already asked "
+                    + "for this ad hoc sub process to end, and it ends as soon as this turn "
+                    + "finishes. Starting something now would only see it cancelled. Give your "
+                    + "final answer instead.");
+        }
+
         List<String> othersRunning = otherRunningActivityIds(engine, scope);
         if (!othersRunning.isEmpty() && isBlockedWhileOthersRun(engine, scope, activityId)) {
             throw new AgentConnectorException("Cannot start '" + activityId + "' while "
@@ -252,7 +260,9 @@ public class AdHocSubProcessTool {
     @Tool("Ends the ad hoc sub process this agent is running in, so the process continues after it. "
             + "Call this only when nothing you started is still running and no further activity is "
             + "needed. It is refused while something is still running, because ending the scope cancels "
-            + "whatever is inside it, including a task a person has not finished.")
+            + "whatever is inside it, including a task a person has not finished. "
+            + "The scope ends when your turn finishes, not during this call: after calling this, "
+            + "start nothing else and call no further tools — give your final answer.")
     public Map<String, Object> completeScope() {
         ExecutionEntity scope = requireAdHocScope();
         ProcessEngine engine = requireEngine();
@@ -268,13 +278,19 @@ public class AdHocSubProcessTool {
         }
 
         String adHocActivityId = scope.getActivity().getId();
-        engine.getRuntimeService().completeAdHocSubProcess(scope.getId());
-        LOG.debug("completeScope: scope='{}'", adHocActivityId);
+        // Recorded, not done. This agent is a child of the scope, so ending the scope
+        // here would delete the execution this very call is running on: the rest of the
+        // turn would fail, and the engine could not finish its bookkeeping for the
+        // activity. The engine ends the scope once this turn's execution has ended.
+        AdHocAgentState.requestCompletion(scope);
+        LOG.debug("completeScope: scope='{}' will end when this turn finishes", adHocActivityId);
         publishAuditRecord("completeScope", scope, null, null);
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("adHocActivityId", adHocActivityId);
-        result.put("completed", true);
+        result.put("completionRequested", true);
+        result.put("note", "The scope ends as soon as this turn finishes. Do not start anything "
+                + "else and do not call further tools: give your final answer now.");
         return result;
     }
 

@@ -74,6 +74,16 @@ public final class AdHocAgentState {
      */
     public static final String STATE_MARKER = "adHocAgentState";
 
+    /**
+     * Set when the driver has asked for the scope to end, but the scope must not end
+     * yet.
+     *
+     * <p>A driver runs inside the scope, so completing it from there deletes the
+     * driver's own execution while it is still running. The request is recorded here
+     * and acted on once that execution has ended.
+     */
+    public static final String COMPLETION_REQUESTED = "adHocAgentCompletionRequested";
+
     private AdHocAgentState() {
         // utility class
     }
@@ -92,6 +102,21 @@ public final class AdHocAgentState {
             }
         }
         return null;
+    }
+
+    /**
+     * Records that the scope should end once the driver's turn is over.
+     *
+     * @see #COMPLETION_REQUESTED
+     */
+    public static void requestCompletion(ActivityExecution scopeExecution) {
+        findOrCreate(scopeExecution).setVariableLocal(COMPLETION_REQUESTED, Boolean.TRUE);
+    }
+
+    /** Whether {@link #requestCompletion} was called for this scope. */
+    public static boolean isCompletionRequested(ActivityExecution scopeExecution) {
+        PvmExecutionImpl state = find(scopeExecution);
+        return state != null && Boolean.TRUE.equals(state.getVariableLocal(COMPLETION_REQUESTED));
     }
 
     /**
