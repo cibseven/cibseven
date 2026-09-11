@@ -38,11 +38,14 @@ import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
  * unchanged. Changing {@code cancelRemainingInstances} is allowed for the same reason: it alters
  * what happens at completion, not what completion means.
  *
- *  * <p>A third rule was added later: a scope marked {@code explicitCompletionOnly} ends only on a
- *  * completion request. Migrating between it and either of the other two is refused for the same
- *  * reason as above — a parked instance mapped onto an auto-completing target would end the moment
- *  * its last child does, and an auto-completing instance mapped onto a parked target would wait for
- *  * a completion request that whoever started it never intended to send.
+ * <p>A third rule was added later: a scope marked {@code explicitCompletionOnly} ends only on a
+ * completion request. Migrating between it and either of the other two is refused for the same
+ * reason as above — a parked instance mapped onto an auto-completing target would end the moment
+ * its last child does, and an auto-completing instance mapped onto a parked target would wait for
+ * a completion request that whoever started it never intended to send.
+ *
+ * <p>The driver is refused for the same reason: a parked instance whose driver changed would
+ * afterwards be driven by a different activity, or by none.
  */
 public class SameAdHocCompletionRuleValidator implements MigrationInstructionValidator {
 

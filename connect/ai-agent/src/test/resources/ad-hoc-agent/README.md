@@ -1,6 +1,6 @@
 # Ad-hoc Agent Test Suite (CIB7-1944)
 
-14 deployable BPMN processes for manual and end-to-end runs of the agentic ad-hoc
+15 deployable BPMN processes for manual and end-to-end runs of the agentic ad-hoc
 sub process. They are **not** JUnit tests: each one needs a real distribution and
 a real language model. What is automated is only that they stay valid —
 `AdHocAgentSuiteDeploymentTest` deploys every file, checks the children each scope
@@ -97,6 +97,14 @@ schreiben `result`, das zweite überschreibt das erste. Es gibt keine Aggregatio
 Eine Aktivität, die mehrfach laufen soll, sollte in eine Collection schreiben.
 
 **14** — zwei Läufe derselben Datei dürfen sich unterscheiden. Das ist der Punkt.
+
+**15** — `backgroundCheck` trägt `camunda:asyncBefore`, als einziger Arbeiter der
+Suite. Beim Start entstehen Ausführung und Job, aber keine Aktivitätsinstanz, und
+die Engine liefert überhaupt keine Instanz-Id. Genau daran meldete `startActivity`
+so ein Kind früher als *finished*, mit leeren Werten, und erwähnte es nie wieder.
+Erwartet: `status` ist `waiting`, und der Wert `checkResult` erscheint im
+`finishedSinceLastTurn` der Runde **nach** dem Job. Ohne diese Datei war der Fall
+von Hand nicht nachstellbar — er wurde nur durch zwei Unit-Tests belegt.
 
 ## Was diese Dateien nicht prüfen
 

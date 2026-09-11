@@ -80,6 +80,7 @@ public class AdHocAgentSuiteDeploymentTest {
           new String[] {"agent", "stepA", "stepB"}},
       {"14-agent-choice.bpmn", "adHocAgent14",
           new String[] {"agent", "calculatePrice", "sendEmail", "createDocument", "approveOrder"}},
+      {"15-async-worker.bpmn", "adHocAgent15", new String[] {"agent", "backgroundCheck"}},
   };
 
   private static final ProcessEngine ENGINE = buildInMemoryEngine();

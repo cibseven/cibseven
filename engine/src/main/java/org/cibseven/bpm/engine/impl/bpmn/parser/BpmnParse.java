@@ -215,7 +215,6 @@ public class BpmnParse extends Parse {
    */
   public static final String AD_HOC_DRIVER_ACTIVITY_PROPERTY = "adHocDriverActivity";
 
-
   /**
    * The element names of every BPMN Activity, i.e. the concrete subtypes of {@code tActivity} that
    * can appear as a flow element. Gateways and events are deliberately absent: they are flow nodes
@@ -4030,7 +4029,6 @@ public class BpmnParse extends Parse {
     parseAdHocEntryActivation(adHocElement, activity, behavior);
     parseAdHocAgenticProperties(adHocElement, activity, behavior);
 
-
     if (adHocElement.element("multiInstanceLoopCharacteristics") != null) {
       addError("Ad hoc sub process '" + activity.getId()
           + "': multiInstanceLoopCharacteristics is not supported on an ad hoc sub process", adHocElement);
@@ -4293,7 +4291,6 @@ public class BpmnParse extends Parse {
     }
     behavior.setDriverActivityId(driverId);
   }
-
 
   protected static List<String> startableActivityIds(Element adHocElement) {
     Set<String> flowTargets = new HashSet<>();

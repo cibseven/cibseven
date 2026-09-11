@@ -119,7 +119,6 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    */
   protected String driverActivityId;
 
-
   @Override
   public void execute(ActivityExecution execution) throws Exception {
     // Entering an ad-hoc scope starts nothing, and deliberately records nothing: writing a zero
@@ -490,7 +489,6 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     return false;
   }
 
-
   /**
    * Reached when the ending child is not a plain concurrent execution, which in practice means a
    * child that is itself a scope, such as an embedded sub-process. A non-scope child routes to
@@ -776,7 +774,6 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   public void setDriverActivityId(String driverActivityId) {
     this.driverActivityId = driverActivityId;
   }
-
 
   public void setCompletionCondition(Condition completionCondition) {
     this.completionCondition = completionCondition;
