@@ -55,7 +55,7 @@ public class PaContextSwitchCustomSerializerTest extends AbstractFoxPlatformInte
         .addAsServiceProvider(DataFormatConfigurator.class, CustomDataFormatConfigurator.class);
 
     TestContainer.addSpinJacksonJsonDataFormat(webArchive);
-
+    TestContainer.addContainerSpecificResources(webArchive);
     return webArchive;
   }
 
@@ -67,7 +67,7 @@ public class PaContextSwitchCustomSerializerTest extends AbstractFoxPlatformInte
         .addAsResource("META-INF/processes.xml")
         .addClass(AbstractFoxPlatformIntegrationTest.class)
         .addClass(ProcessApplication4.class);
-
+    TestContainer.addContainerSpecificResources(webArchive);
     return webArchive;
   }
 

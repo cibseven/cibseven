@@ -17,6 +17,7 @@
 package org.cibseven.bpm.integrationtest.functional.drools;
 
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
+import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -45,11 +46,13 @@ public class TestDeploymentWithDroolsTaskFails {
   @Deployment(managed=false, name="deployment")
   public static WebArchive processArchive() {    
     
-    return  ShrinkWrap.create(WebArchive.class, "test.war")
+    WebArchive testJar = ShrinkWrap.create(WebArchive.class, "test.war")
       .addAsWebInfResource("org/cibseven/bpm/integrationtest/beans.xml", "beans.xml")
       .addAsLibraries(DeploymentHelper.getEjbClient())
       .addAsResource("META-INF/processes.xml", "META-INF/processes.xml")
       .addAsResource("org/cibseven/bpm/integrationtest/functional/drools/TestDeploymentWithDroolsTaskFails.testDeployDroolsFails.bpmn20.xml");           
+    TestContainer.addContainerSpecificResources(testJar);
+    return testJar;
   }
   
   @Test

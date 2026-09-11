@@ -61,6 +61,7 @@ public class PaContextSwitchTest extends AbstractFoxPlatformIntegrationTest {
         .addAsServiceProvider(DataFormatConfigurator.class, JsonDataFormatConfigurator.class);
 
     TestContainer.addSpinJacksonJsonDataFormat(webArchive);
+    TestContainer.addContainerSpecificResources(webArchive);
 
     return webArchive;
   }
@@ -73,7 +74,7 @@ public class PaContextSwitchTest extends AbstractFoxPlatformIntegrationTest {
         .addAsResource("META-INF/processes.xml")
         .addClass(AbstractFoxPlatformIntegrationTest.class)
         .addClass(ProcessApplication2.class);
-
+    TestContainer.addContainerSpecificResources(webArchive);
     return webArchive;
   }
 

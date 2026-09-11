@@ -520,6 +520,18 @@
             <directory>src/test/resources-wildfly</directory>
             <filtering>true</filtering>
           </testResource>
+          <testResource>
+            <!-- resources-wildfly contains common resources for Wildfly distros -->
+            <directory>${project.build.directory}/generated-test-resources/resources-wildfly</directory>
+            <filtering>true</filtering>
+          </testResource>
+          <testResource>
+            <!-- resources-wildfly26 pairs with the java-wildfly26 test sources added
+                 below: process application descriptors, jboss-deployment-structure.xml,
+                 persistence.xml, etc. -->
+            <directory>src/test/resources-wildfly26</directory>
+            <filtering>true</filtering>
+          </testResource>
         </testResources>
         <plugins>
           <plugin>
@@ -619,7 +631,19 @@
             <directory>src/test/resources-wildfly28</directory>
             <filtering>true</filtering>
           </testResource>
-        </testResources>
+          <testResource>
+            <!-- resources-wildfly contains common resources for Wildfly distros -->
+            <directory>${project.build.directory}/generated-test-resources/resources-wildfly</directory>
+            <filtering>true</filtering>
+          </testResource>
+          <testResource>
+            <!-- resources-wildfly26 pairs with the java-wildfly26 test sources added
+                 below: process application descriptors, jboss-deployment-structure.xml,
+                 persistence.xml, etc. -->
+            <directory>src/test/resources-wildfly26</directory>
+            <filtering>true</filtering>
+          </testResource>
+          </testResources>
         <plugins>
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
@@ -700,6 +724,18 @@
         <testResources>
           <testResource>
             <directory>src/test/resources-wildfly-domain</directory>
+            <filtering>true</filtering>
+          </testResource>
+          <testResource>
+            <!-- resources-wildfly contains common resources for Wildfly distros -->
+            <directory>${project.build.directory}/generated-test-resources/resources-wildfly</directory>
+            <filtering>true</filtering>
+          </testResource>
+          <testResource>
+            <!-- resources-wildfly26 pairs with the java-wildfly26 test sources added
+                 below: process application descriptors, jboss-deployment-structure.xml,
+                 persistence.xml, etc. -->
+            <directory>src/test/resources-wildfly26</directory>
             <filtering>true</filtering>
           </testResource>
         </testResources>

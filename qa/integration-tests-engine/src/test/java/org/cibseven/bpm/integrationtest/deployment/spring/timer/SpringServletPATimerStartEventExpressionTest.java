@@ -18,6 +18,7 @@ package org.cibseven.bpm.integrationtest.deployment.spring.timer;
 
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
+import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -30,7 +31,7 @@ public class SpringServletPATimerStartEventExpressionTest extends AbstractFoxPla
 
   @Deployment
   public static WebArchive processArchive() {
-    return ShrinkWrap.create(WebArchive.class, "test.war")
+    WebArchive testJar = ShrinkWrap.create(WebArchive.class, "test.war")
       .addClass(AbstractFoxPlatformIntegrationTest.class)
       .addClass(ApplicationContext.class)
       .addClass(MyBean.class)
@@ -38,6 +39,8 @@ public class SpringServletPATimerStartEventExpressionTest extends AbstractFoxPla
       .addAsResource("org/cibseven/bpm/integrationtest/deployment/spring/timer/timer-start-event-process.bpmn", "timer-start-event-process.bpmn")
       .addAsWebInfResource("org/cibseven/bpm/integrationtest/deployment/spring/timer/start-event-expression-web.xml", "web.xml")
       .addAsLibraries(DeploymentHelper.getEngineSpring());
+    TestContainer.addContainerSpecificResources(testJar);
+    return testJar;
   }
 
   @Test

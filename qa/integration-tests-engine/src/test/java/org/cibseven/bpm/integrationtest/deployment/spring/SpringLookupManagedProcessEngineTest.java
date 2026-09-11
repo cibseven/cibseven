@@ -18,6 +18,7 @@ package org.cibseven.bpm.integrationtest.deployment.spring;
 
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
+import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -38,12 +39,15 @@ public class SpringLookupManagedProcessEngineTest extends AbstractFoxPlatformInt
 
   @Deployment
   public static WebArchive processArchive() {    
-    return ShrinkWrap.create(WebArchive.class, "test.war")
+    WebArchive testJar = ShrinkWrap.create(WebArchive.class, "test.war")
       .addClass(AbstractFoxPlatformIntegrationTest.class)
       .addAsWebInfResource("org/cibseven/bpm/integrationtest/deployment/spring/SpringLookupManagedProcessEngineTest-context.xml", "applicationContext.xml")
       .addAsLibraries(DeploymentHelper.getEngineSpring())
       .addAsManifestResource("org/cibseven/bpm/integrationtest/deployment/spring/jboss-deployment-structure.xml", "jboss-deployment-structure.xml")
       .addAsWebInfResource("org/cibseven/bpm/integrationtest/deployment/spring/web.xml", "web.xml");
+    
+    TestContainer.addContainerSpecificResources(testJar);
+    return testJar;
   }
   
     

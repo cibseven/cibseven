@@ -17,6 +17,7 @@
 package org.cibseven.bpm.integrationtest.functional.metadata.engine;
 
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
+import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -42,8 +43,8 @@ public class TestProcessEnginesXmlFails {
   
   @Deployment(managed=false, name="deployment")
   public static WebArchive processArchive() {    
-    
-    return  ShrinkWrap.create(WebArchive.class)
+
+    WebArchive testJar = ShrinkWrap.create(WebArchive.class)
             .addAsWebInfResource("org/cibseven/bpm/integrationtest/beans.xml", "beans.xml")
             .addAsLibraries(DeploymentHelper.getEjbClient())
             .addAsResource("META-INF/processes.xml", "META-INF/processes.xml")
@@ -54,6 +55,8 @@ public class TestProcessEnginesXmlFails {
                     // we add the same process engine configuration multiple times -> fails
                    .addAsResource("singleEngine.xml", "META-INF/processes.xml")
          );
+    TestContainer.addContainerSpecificResources(testJar);
+    return testJar;
   }
   
   @Test

@@ -28,6 +28,11 @@
   </dependencyManagement>
 
   <dependencies>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>runtime</scope>
+    </dependency>
     <!--
       database drivers
       we deploy all and only activate one with a *-ds.xml database deployment

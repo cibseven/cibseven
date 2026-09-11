@@ -20,6 +20,7 @@ import org.cibseven.bpm.BpmPlatform;
 import org.cibseven.bpm.ProcessApplicationService;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
+import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -37,12 +38,14 @@ public class SpringServletPALifecycleTest extends AbstractFoxPlatformIntegration
 
   @Deployment
   public static WebArchive processArchive() {
-    return ShrinkWrap.create(WebArchive.class, "test.war")
+    WebArchive testJar = ShrinkWrap.create(WebArchive.class, "test.war")
       .addClass(AbstractFoxPlatformIntegrationTest.class)
       .addClass(CustomSpringServletProcessApplication.class)
       .addAsWebInfResource("org/cibseven/bpm/integrationtest/deployment/spring/SpringServletPALifecycleTest-context.xml", "applicationContext.xml")
       .addAsLibraries(DeploymentHelper.getEngineSpring())
       .addAsWebInfResource("org/cibseven/bpm/integrationtest/deployment/spring/web.xml", "web.xml");
+    TestContainer.addContainerSpecificResources(testJar);
+    return testJar;
   }
 
   @Test
