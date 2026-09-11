@@ -109,6 +109,52 @@ public class AdHocToolCatalogTest {
         + "</process></definitions>";
   }
 
+  /** The same, with {@code driverId} named as the scope's driver. */
+  private static String processWithDriver(String driverId, String children) {
+    return process(children).replace(
+        "<camunda:property name='explicitCompletionOnly' value='true' />",
+        "<camunda:property name='explicitCompletionOnly' value='true' />"
+            + "<camunda:property name='adHocDriverActivity' value='" + driverId + "' />");
+  }
+
+  // --- the driver ------------------------------------------------------------
+
+  /**
+   * The driver is reported as one, so a caller can tell which entry is itself.
+   *
+   * <p>It stays in the catalogue rather than being filtered out here: as far as the
+   * engine is concerned the driver is directly startable, and this class describes
+   * the model. Whether to offer it is the caller's policy — see
+   * {@code AdHocSubProcessToolTest}, where starting it is refused.
+   */
+  @Test
+  public void theDriverIsMarkedAsSuch() {
+    List<AdHocToolCatalog.Entry> entries = read(processWithDriver("agent",
+        "<serviceTask id='agent' name='AI Agent' camunda:expression='${true}' />"
+            + "<userTask id='approve' name='Approve' />"));
+
+    assertThat(entry(entries, "agent").isDriver()).isTrue();
+    assertThat(entry(entries, "approve").isDriver()).isFalse();
+  }
+
+  /** Without the property nothing is a driver, which is every model written before it existed. */
+  @Test
+  public void withoutTheDriverPropertyNothingIsMarked() {
+    List<AdHocToolCatalog.Entry> entries = read(process(
+        "<serviceTask id='agent' name='AI Agent' camunda:expression='${true}' />"
+            + "<userTask id='approve' name='Approve' />"));
+
+    assertThat(entries).isNotEmpty();
+    for (AdHocToolCatalog.Entry candidate : entries) {
+      assertThat(candidate.isDriver()).as(candidate.getId()).isFalse();
+    }
+  }
+
+  // No test for a driver naming an absent child: the parser refuses that at
+  // deployment ("adHocDriverActivity names 'x', which is not directly startable
+  // here"), so the catalogue can never see one. AdHocSubProcessDriverTest covers
+  // the refusal.
+
   // --- the startable set -----------------------------------------------------
 
   @Test

@@ -118,6 +118,37 @@ public class AdHocSubProcessToolTest {
     }
   }
 
+  /**
+   * Writes enough long values that their total exceeds
+   * {@link AdHocSubProcessTool#MAX_RESULT_BLOCK_CHARS}, so the per-turn budget has
+   * to cut the block off. Each single value is over the per-value cap too, so every
+   * one of them costs the truncated length.
+   */
+  public static class WritesManyLongTexts implements JavaDelegate {
+
+    static final int COUNT =
+        (AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS / AdHocSubProcessTool.MAX_RESULT_VALUE_CHARS) + 2;
+
+    static String names() {
+      StringBuilder names = new StringBuilder();
+      for (int i = 0; i < COUNT; i++) {
+        names.append(i == 0 ? "" : ",").append("block").append(i);
+      }
+      return names.toString();
+    }
+
+    @Override
+    public void execute(DelegateExecution execution) {
+      StringBuilder text = new StringBuilder();
+      for (int i = 0; i < AdHocSubProcessTool.MAX_RESULT_VALUE_CHARS + 100; i++) {
+        text.append('y');
+      }
+      for (int i = 0; i < COUNT; i++) {
+        execution.setVariable("block" + i, text.toString());
+      }
+    }
+  }
+
   /** Writes a string longer than {@link AdHocSubProcessTool#MAX_RESULT_VALUE_CHARS}. */
   public static class WritesLongText implements JavaDelegate {
 
@@ -226,6 +257,13 @@ public class AdHocSubProcessToolTest {
         + "    </serviceTask>"
         + "    <serviceTask id='asyncChild' name='Async child' camunda:asyncBefore='true'"
         + "        camunda:expression='${1}' camunda:resultVariable='asyncDone' />"
+        + "    <serviceTask id='bigBlock' name='Big block' camunda:class='"
+        + WritesManyLongTexts.class.getName() + "'>"
+        + "      <extensionElements><camunda:properties>"
+        + "        <camunda:property name='adHocResultVariables' value='"
+        + WritesManyLongTexts.names() + "' />"
+        + "      </camunda:properties></extensionElements>"
+        + "    </serviceTask>"
         + "    <serviceTask id='object' name='Object' camunda:class='" + OBJECT + "'>"
         + "      <extensionElements><camunda:properties>"
         + "        <camunda:property name='adHocResultVariables' value='payload' />"
@@ -341,8 +379,9 @@ public class AdHocSubProcessToolTest {
 
     Map<String, Object> listing = result(0);
     assertThat(listing.get("adHocActivityId")).isEqualTo("adHoc");
+    // Every child except 'agent', which is the driver: see theAgentIsNotOfferedToItself.
     assertThat(ids(activities(listing))).containsExactlyInAnyOrder(
-        "agent", "waits", "quick", "bigText", "object", "gated", "gatedBadValue", "asyncChild");
+        "waits", "quick", "bigText", "bigBlock", "object", "gated", "gatedBadValue", "asyncChild");
 
     Map<String, Object> waits = null;
     for (Map<String, Object> item : activities(listing)) {
@@ -443,6 +482,31 @@ public class AdHocSubProcessToolTest {
     String report = String.valueOf(results(result(0)).get("report"));
     assertThat(report.length()).isLessThan(WritesLongText.LENGTH);
     assertThat(report).contains("(truncated, " + WritesLongText.LENGTH + " characters total)");
+  }
+
+  /**
+   * The per-turn budget cuts the block off and says so.
+   *
+   * <p>The per-value cap is not enough on its own: an activity declaring many long
+   * variables stays under it for each one and still sends an unbounded prompt. This
+   * is the second limit, and until now no test touched it.
+   */
+  @Test
+  public void tooManyValuesInOneTurnAreCutOffWithANote() {
+    start("blockBudget",
+        tool -> tool.startActivity("bigBlock", Collections.<String, Object>emptyMap()));
+
+    assertThat(AgentTask.FAILURES).isEmpty();
+    Map<String, Object> answer = result(0);
+    assertThat(answer.get("status")).isEqualTo("finished");
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> values = (Map<String, Object>) answer.get("results");
+    assertThat(values.size())
+        .as("fewer than the " + WritesManyLongTexts.COUNT + " declared values fit the budget")
+        .isLessThan(WritesManyLongTexts.COUNT);
+    assertThat(String.valueOf(answer.get("resultsNote")))
+        .contains("size limit of " + AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS);
   }
 
   /**
@@ -801,6 +865,47 @@ public class AdHocSubProcessToolTest {
     assertThat(result(0)).containsKey("activities");
   }
 
+  /**
+   * The agent is not offered to itself.
+   *
+   * <p>The agent task is a child of the scope like any other, so the catalogue read
+   * from the model contains it. Offering it invites the model to start a second copy
+   * of itself beside the one that is running — a further model call per copy, two
+   * agents acting on one scope, and the turn budget spent on recursion instead of
+   * work. The engine's coalescing does not prevent it: that guards the turn the
+   * engine grants when a child ends, not an explicit activation.
+   *
+   * <p>Nothing caught this for a long time because the local test stub filtered the
+   * agent out of its own candidate list, so the case was never exercised.
+   */
+  @Test
+  public void theAgentIsNotOfferedToItself() {
+    start("driverNotOffered", tool -> tool.listAvailableActivities());
+
+    assertThat(AgentTask.FAILURES).isEmpty();
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> offered =
+        (List<Map<String, Object>>) result(0).get("activities");
+    assertThat(offered).isNotEmpty();
+    List<Object> ids = new ArrayList<Object>();
+    for (Map<String, Object> item : offered) {
+      ids.add(item.get("id"));
+    }
+    assertThat(ids).as("the driver must not be in its own catalogue").doesNotContain("agent");
+  }
+
+  /** And starting it is refused even if the model names it anyway. */
+  @Test
+  public void startingTheAgentItselfIsRefused() {
+    start("driverStartRefused",
+        tool -> tool.startActivity("agent", Collections.<String, Object>emptyMap()));
+
+    assertThat(AgentTask.FAILURES).hasSize(1);
+    assertThat(AgentTask.FAILURES.get(0).getMessage())
+        .contains("that is this agent itself")
+        .doesNotContain("is not inside an ad hoc sub process");
+  }
+
   /** But starting something after asking to end is refused, and says why. */
   @Test
   public void startingAnActivityAfterAskingToEndIsRefused() {
@@ -813,6 +918,49 @@ public class AdHocSubProcessToolTest {
     assertThat(AgentTask.FAILURES.get(0).getMessage())
         .contains("already asked")
         .doesNotContain("is not inside an ad hoc sub process");
+  }
+
+  /**
+   * A scope with no driver ends on a completion request too.
+   *
+   * <p>This is the case that keeps the engine's two completion paths apart, and it
+   * had no test. {@code completeOnIdleDrivenScope} requires a driver; only
+   * {@code completeOnDriverEnd} serves a scope that has none, and merging the two
+   * would silently break exactly this model. Legal, because the parser refuses a
+   * driver without {@code explicitCompletionOnly} but not the other way round.
+   */
+  @Test
+  public void aScopeWithoutADriverEndsOnRequestToo() {
+    String processId = "noDriver";
+    String bpmn = "<?xml version='1.0' encoding='UTF-8'?>"
+        + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
+        + " xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
+        + " targetNamespace='http://cibseven.org/adhoc-tool'>"
+        + "<process id='" + processId + "' isExecutable='true'>"
+        + "  <startEvent id='start' />"
+        + "  <sequenceFlow id='f1' sourceRef='start' targetRef='adHoc' />"
+        + "  <adHocSubProcess id='adHoc'>"
+        + "    <extensionElements><camunda:properties>"
+        + "      <camunda:property name='explicitCompletionOnly' value='true' />"
+        + "      <camunda:property name='activeActivityIds' value='agent' />"
+        + "    </camunda:properties></extensionElements>"
+        + "    <serviceTask id='agent' name='Agent' camunda:class='" + AGENT + "' />"
+        + "    <userTask id='waits' name='Waits' />"
+        + "  </adHocSubProcess>"
+        + "  <sequenceFlow id='f2' sourceRef='adHoc' targetRef='end' />"
+        + "  <endEvent id='end' />"
+        + "</process></definitions>";
+
+    AgentTask.SCRIPT.add(tool -> tool.completeScope());
+    ENGINE.getRepositoryService().createDeployment()
+        .addString(processId + ".bpmn20.xml", bpmn).deploy();
+    ProcessInstance instance = ENGINE.getRuntimeService().startProcessInstanceByKey(processId);
+
+    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(result(0).get("completionRequested")).isEqualTo(Boolean.TRUE);
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processInstanceId(instance.getId()).count())
+        .as("a driverless scope must end on the request as well").isZero();
   }
 
   /** And the scope really does end once the turn is over. */

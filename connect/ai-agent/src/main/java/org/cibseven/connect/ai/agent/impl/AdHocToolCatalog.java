@@ -49,21 +49,15 @@ import org.cibseven.bpm.model.xml.instance.ModelElementInstance;
  * The activities of an ad hoc sub process that a caller may start, with the
  * information a model needs in order to choose between them.
  *
- * <h3>Why this reads the model rather than asking the engine</h3>
- * The parser computes the startable set at deployment and stores it on the
- * scope's activity, but that value is read only inside the engine, to validate
- * an incoming activation request. There is no public getter, no query and no
- * REST endpoint, so a caller has no way to ask what it may start.
- *
- * <p>This class therefore derives the set from the deployed model. The rule the
- * engine applies is "an activity with no incoming sequence flow from within the
- * scope". Sequence flows between children are rejected at parse time today, so
- * "every child activity" is currently the same set.
+ * <p>This reads the deployed model rather than asking the engine because the
+ * startable set the parser computes at deployment is engine-internal: no getter, no
+ * query, no REST endpoint. The engine's rule is "an activity with no incoming
+ * sequence flow from within the scope", and since inner sequence flows are rejected
+ * at parse time today, "every child activity" is the same set.
  *
  * <p><b>That equivalence is a deviation waiting to happen.</b> If inner sequence
  * flows become supported, this class will offer activities the engine refuses to
- * start. The fix is an engine-side API for the computed set; until then the
- * duplication is deliberate and recorded here.
+ * start. The fix is an engine-side API for the computed set.
  */
 public final class AdHocToolCatalog {
 
@@ -85,22 +79,26 @@ public final class AdHocToolCatalog {
      * only start while nothing else in the scope is running.
      *
      * <p>For work that depends on a decision still being made: a payment that must
-     * not go out before a person approved it, a letter that must not be sent
-     * before the amount is confirmed. The agent is otherwise free to start
-     * anything at any time, which is what lets it run several independent
-     * activities at once.
+     * not go out before someone approved it. It marks the <em>dependent</em>
+     * activity, not the decision, so nothing has to be said about the approval
+     * itself and an unmarked activity behaves exactly as before this existed —
+     * which is what keeps the agent free to run independent activities at once.
      *
-     * <p>Marks the <em>dependent</em> activity, not the decision. Nothing has to
-     * be said about the approval itself, and an unmarked activity behaves exactly
-     * as before this property existed.
-     *
-     * <p>Accepted values are "true" and "false", case-insensitively. Anything else
-     * is treated as false and warned about once. It cannot be refused at
-     * deployment, because it lives on a child and is read by the connector rather
-     * than by the parser — see the class comment of {@code AdHocSubProcessTool}
-     * for what that means for the guarantee.
+     * <p>"true" or "false", case-insensitively; anything else counts as false and is
+     * warned about once. It cannot be refused at deployment, because it lives on a
+     * child and is read by the connector rather than the parser, so a typo leaves the
+     * activity unguarded.
      */
     public static final String BLOCKED_WHILE_OTHERS_RUN_PROPERTY = "adHocBlockedWhileOthersRun";
+
+    /**
+     * {@code camunda:property} on the scope naming the child that drives it. Read
+     * here so the catalogue can say which entry is the caller itself.
+     *
+     * <p>Duplicated from the parser's constant rather than shared: the parser's is
+     * engine-internal, and this class already reads the model directly.
+     */
+    public static final String DRIVER_ACTIVITY_PROPERTY = "adHocDriverActivity";
 
     /** Guards the one-time WARN for an unparseable marking. */
     private static final AtomicBoolean UNPARSEABLE_BLOCKING_LOGGED = new AtomicBoolean(false);
@@ -113,14 +111,16 @@ public final class AdHocToolCatalog {
         private final String documentation;
         private final List<String> resultVariables;
         private final boolean blockedWhileOthersRun;
+        private final boolean driver;
 
         Entry(String id, String name, String documentation, List<String> resultVariables,
-              boolean blockedWhileOthersRun) {
+              boolean blockedWhileOthersRun, boolean driver) {
             this.id = id;
             this.name = name;
             this.documentation = documentation;
             this.resultVariables = resultVariables;
             this.blockedWhileOthersRun = blockedWhileOthersRun;
+            this.driver = driver;
         }
 
         /** The BPMN activity id — this is what an activation request names. */
@@ -159,6 +159,19 @@ public final class AdHocToolCatalog {
         public boolean isBlockedWhileOthersRun() {
             return blockedWhileOthersRun;
         }
+
+        /**
+         * Whether this entry is the scope's driver — the child that is started
+         * again whenever another one ends.
+         *
+         * <p>Reported rather than filtered out, because the driver <em>is</em>
+         * directly startable as far as the engine is concerned, and this class
+         * describes the model. Whether a caller should offer it to itself is a
+         * policy question, and the answer lives in {@code AdHocSubProcessTool}.
+         */
+        public boolean isDriver() {
+            return driver;
+        }
     }
 
     private AdHocToolCatalog() {
@@ -193,14 +206,18 @@ public final class AdHocToolCatalog {
                     + ", not an ad hoc sub process, so it has no startable activities.");
         }
 
+        AdHocSubProcess scope = (AdHocSubProcess) element;
+        String driverActivityId = driverActivityId(scope);
+
         List<Entry> entries = new ArrayList<>();
-        for (FlowElement child : ((AdHocSubProcess) element).getFlowElements()) {
+        for (FlowElement child : scope.getFlowElements()) {
             // Only an Activity can be started directly. Gateways and intermediate
             // events are reachable by sequence flow, never by direct activation, so
             // offering them would produce a request the engine refuses.
             if (child instanceof Activity) {
                 entries.add(new Entry(child.getId(), child.getName(), firstDocumentation(child),
-                        resultVariables(child), blockedWhileOthersRun(child)));
+                        resultVariables(child), blockedWhileOthersRun(child),
+                        child.getId() != null && child.getId().equals(driverActivityId)));
             }
         }
         return Collections.unmodifiableList(entries);
@@ -281,6 +298,19 @@ public final class AdHocToolCatalog {
             }
         }
         return Collections.unmodifiableList(new ArrayList<>(names));
+    }
+
+    /** The id from {@link #DRIVER_ACTIVITY_PROPERTY} on the scope, or {@code null}. */
+    private static String driverActivityId(AdHocSubProcess scope) {
+        for (CamundaProperties properties : extensions(scope, CamundaProperties.class)) {
+            for (CamundaProperty property : properties.getCamundaProperties()) {
+                if (DRIVER_ACTIVITY_PROPERTY.equals(property.getCamundaName())) {
+                    String raw = property.getCamundaValue();
+                    return (raw == null || raw.trim().isEmpty()) ? null : raw.trim();
+                }
+            }
+        }
+        return null;
     }
 
     /** The names from {@link #RESULT_VARIABLES_PROPERTY}, or an empty list. */

@@ -1,3 +1,19 @@
+/*
+ * Copyright CIB software GmbH and/or licensed to CIB software GmbH
+ * under one or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information regarding copyright
+ * ownership. CIB software licenses this file to you under the Apache License,
+ * Version 2.0; you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package org.cibseven.connect.ai.agent.impl;
 
 import java.util.ArrayList;
@@ -37,28 +53,23 @@ import dev.langchain4j.agent.tool.Tool;
  * <p>Wired in through the connector's {@code toolClasses} input, like
  * {@link ProcessStarterTool}. Requires no change to the connector itself.
  *
- * <h3>What the model has to be given</h3>
- * The agent service task has to sit <em>inside</em> an ad hoc sub process, and
- * that scope has to carry {@code explicitCompletionOnly="true"}. Without the
- * property the scope ends as soon as the first activity the agent starts and
- * finishes does. With {@code adHocDriverActivity} naming the agent task, the
- * engine gives the agent a further turn whenever another child ends.
+ * <p><b>What the model needs.</b> The agent service task has to sit <em>inside</em>
+ * an ad hoc sub process carrying {@code explicitCompletionOnly="true"}, with
+ * {@code adHocDriverActivity} naming the agent task — that is what gives the agent
+ * a further turn whenever another child ends.
  *
- * <h3>How the model learns the loop's state</h3>
- * Through {@link #listAvailableActivities()}, not through the system message. That
- * is deliberate: a rendered context block in the system message is process data
- * placed next to instructions, and hardening it needs delimiting, escaping, size
- * caps and its own audit event. A tool result is a channel already built for data,
- * so none of those are needed here.
+ * <p><b>State reaches the model through {@link #listAvailableActivities()}</b>, not
+ * through the system message. A rendered context block there is process data placed
+ * next to instructions, and hardening it needs delimiting, escaping, size caps and
+ * its own audit event. A tool result is a channel already built for data.
  *
- * <h3>No thread hop, unlike ProcessStarterTool</h3>
- * {@link ProcessStarterTool} deliberately runs each engine call on a separate
- * thread so it gets its own transaction, which is right for starting a
- * <em>different</em> process instance. Here every call mutates the instance this
- * connector is already running in. A second thread would wait for row locks the
- * current transaction holds while the current transaction waits for the tool call,
- * so the calls stay on this thread and join the surrounding transaction — which is
- * also what makes them roll back with the activity if the turn fails.
+ * <p><b>No thread hop, unlike {@link ProcessStarterTool}</b>, which runs each engine
+ * call on its own thread for its own transaction. That is right for starting a
+ * <em>different</em> process instance; here every call mutates the instance this
+ * connector is already running in, so a second thread would wait for row locks the
+ * current transaction holds while that transaction waits for the tool call. Staying
+ * on this thread is also what makes these calls roll back with the activity when the
+ * turn fails.
  */
 public class AdHocSubProcessTool {
 
@@ -90,7 +101,8 @@ public class AdHocSubProcessTool {
 
     @Tool("Lists what this agent can do in the ad hoc sub process it is running in, and what it is "
             + "already waiting for. 'activities' are the ones you may start, each with 'id', 'name' and "
-            + "'documentation'. 'finishedSinceLastTurn' are the ones that completed since you last ran, "
+            + "'documentation'. Your own activity is not among them: you cannot start yourself. "
+            + "'finishedSinceLastTurn' are the ones that completed since you last ran, "
             + "each with 'activityId' and 'results' — the values of the variables that activity wrote. "
             + "A long value is truncated and says so; a file or an object is replaced by a short "
             + "description of its type. 'resultsFrom' says where the values came from, and an empty "
@@ -115,12 +127,20 @@ public class AdHocSubProcessTool {
 
         // Read after the reconciliation above, so an activity that finished during
         // the previous turn no longer counts as blocking.
-        List<String> othersRunning = otherRunningActivityIds(engine, scope);
+        List<String> othersRunning = otherRunningActivityIds(scope);
 
         List<Map<String, Object>> activities = new ArrayList<>();
         Map<String, List<String>> declaredResults = new LinkedHashMap<>();
         for (AdHocToolCatalog.Entry entry : AdHocToolCatalog.read(
                 engine.getRepositoryService(), scope.getProcessDefinitionId(), adHocActivityId)) {
+            // The driver is the caller itself. Offering it would invite the model to
+            // start a second copy of itself beside the one that is running, which is
+            // a further model call per copy and two agents acting on one scope. The
+            // engine's own coalescing does not stop it: that guards the turn it
+            // grants when a child ends, not an explicit activation.
+            if (entry.isDriver()) {
+                continue;
+            }
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("id", entry.getId());
             item.put("name", entry.getName());
@@ -192,8 +212,17 @@ public class AdHocSubProcessTool {
                     + "final answer instead.");
         }
 
-        List<String> othersRunning = otherRunningActivityIds(engine, scope);
-        if (!othersRunning.isEmpty() && isBlockedWhileOthersRun(engine, scope, activityId)) {
+        AdHocToolCatalog.Entry entry = entryFor(engine, scope, activityId);
+
+        if (entry != null && entry.isDriver()) {
+            throw new AgentConnectorException("Cannot start '" + activityId + "': that is this agent "
+                    + "itself, the activity driving this ad hoc sub process. Starting it would run a "
+                    + "second agent beside you, not do any work. Start one of the other activities, "
+                    + "or end the scope.");
+        }
+
+        List<String> othersRunning = otherRunningActivityIds(scope);
+        if (!othersRunning.isEmpty() && entry != null && entry.isBlockedWhileOthersRun()) {
             throw new AgentConnectorException("Cannot start '" + activityId + "' while "
                     + othersRunning + " " + (othersRunning.size() == 1 ? "is" : "are")
                     + " still running. This activity is marked as depending on work that is still"
@@ -237,7 +266,9 @@ public class AdHocSubProcessTool {
             // transaction this call is part of, and whether its variable updates are
             // already queryable from history here is unmeasured. The values themselves
             // are read from the scope, where an output mapping has just written them.
-            List<String> names = declaredResultVariables(engine, scope, activityId);
+            List<String> names = (entry == null)
+                    ? Collections.<String>emptyList()
+                    : entry.getResultVariables();
             ResultBlock block = readResults(scope, names, MAX_RESULT_BLOCK_CHARS);
             result.put("results", block.values);
             result.put("resultsFrom", names.isEmpty() ? "nothing declared" : "model declaration");
@@ -373,28 +404,20 @@ public class AdHocSubProcessTool {
     /**
      * The activity ids alive inside this scope, excluding the caller's own.
      *
-     * <p>Excluding the caller matters: the agent is a child of the scope and is
-     * running while it asks, so without that exclusion a marked activity would be
-     * blocked in every turn, for ever.
+     * <p>Three choices here, each found by a test that failed without it. The caller
+     * is excluded, because the agent is a child of the scope and is running while it
+     * asks — otherwise a marked activity is blocked for ever. The engine is asked
+     * rather than {@link AdHocLoopState}, whose pending list holds only what the
+     * <em>agent</em> started, not what a person activated over REST. And it reads the
+     * execution tree, not the activity instance tree: a child marked
+     * {@code camunda:asyncBefore} has no activity instance while its job is queued,
+     * so the instance tree reports it absent and queued work would hold nothing back.
      *
-     * <p>Asked of the engine rather than of {@link AdHocLoopState}, because the
-     * pending list holds only what the <em>agent</em> started. A decision a person
-     * activated over the REST API is exactly the kind this marking is about, and it
-     * would be missing there.
-     *
-     * <p>Read from the execution tree, not the activity instance tree. A child
-     * marked {@code camunda:asyncBefore} has no activity instance while its job
-     * waits to be picked up, so the activity instance tree reports it as absent and
-     * a marked activity would not be held back by queued work. Its execution
-     * exists and already carries the activity — the same reason the engine's own
-     * {@code isDriverPresent} reads executions.
-     *
-     * <p>Only the scope's own children, so a parallel branch elsewhere in the
-     * process instance does not block the agent — that branch has nothing to do
-     * with this scope's work. {@code getNonEventScopeExecutions()} keeps the agent
-     * state execution out, which carries no activity and never runs.
+     * <p>Only the scope's own children, so a parallel branch elsewhere in the process
+     * instance does not block the agent. {@code getNonEventScopeExecutions()} keeps
+     * the agent state execution out, which carries no activity and never runs.
      */
-    private static List<String> otherRunningActivityIds(ProcessEngine engine, ExecutionEntity scope) {
+    private static List<String> otherRunningActivityIds(ExecutionEntity scope) {
         String ownExecutionId = ownExecutionId();
         Set<String> ids = new LinkedHashSet<>();
         for (PvmExecutionImpl child : ((PvmExecutionImpl) scope).getNonEventScopeExecutions()) {
@@ -416,38 +439,42 @@ public class AdHocSubProcessTool {
         return (execution == null) ? null : execution.getId();
     }
 
-    /** Whether {@code activityId} carries the blocking marking in the model. */
-    private static boolean isBlockedWhileOthersRun(ProcessEngine engine, ExecutionEntity scope,
+    /**
+     * The catalogue entry for {@code activityId}, or {@code null} when the scope has
+     * no such child.
+     *
+     * <p>Null rather than an exception: the engine's activation rejects an unknown id
+     * with its own message, and duplicating that check here would only change which
+     * error the model sees.
+     */
+    private static AdHocToolCatalog.Entry entryFor(ProcessEngine engine, ExecutionEntity scope,
                                                    String activityId) {
         for (AdHocToolCatalog.Entry entry : AdHocToolCatalog.read(engine.getRepositoryService(),
                 scope.getProcessDefinitionId(), scope.getActivity().getId())) {
             if (activityId.equals(entry.getId())) {
-                return entry.isBlockedWhileOthersRun();
+                return entry;
             }
         }
-        return false;
+        return null;
     }
 
     /**
      * Describes the activities that finished since the previous turn, each with the
      * values it wrote.
      *
-     * <p>The history is asked first, because it is the only source that knows what
-     * an activity <em>actually</em> wrote: at history level {@code full} every
-     * variable update carries the activity instance that caused it, so a delegate
-     * calling {@code setVariable} with no mapping anywhere is covered too, and a
-     * variable the activity never touched cannot appear. The model declaration is
-     * the fallback, for a deployment on a lower history level.
+     * <p>The history is asked first, because it alone knows what an activity
+     * <em>actually</em> wrote: at history level {@code full} every variable update
+     * carries the activity instance that caused it, so a delegate calling
+     * {@code setVariable} with no mapping anywhere is covered, and a variable the
+     * activity never touched cannot appear. The model declaration is the fallback for
+     * a lower history level.
      *
      * <p>Values are read now rather than when the activity ended, because the
-     * connector is not on the thread that ends a child. That is also correct: an
-     * output mapping writes to the scope as the child ends, so by the time this runs
-     * the values are in place.
+     * connector is not on the thread that ends a child — and an output mapping writes
+     * to the scope as the child ends, so by now they are in place.
      *
-     * <p>Two performances of the same activity write the same variable names, so the
-     * second overwrites the first. That is the documented behaviour of the activation
-     * API's per-activity variables and applies here unchanged; an activity meant to
-     * run repeatedly should write into a collection rather than a scalar.
+     * <p>Two performances of the same activity overwrite each other's variables. An
+     * activity meant to run repeatedly should write into a collection.
      */
     private static List<Map<String, Object>> describeFinished(ProcessEngine engine,
             ExecutionEntity scope, Map<String, String> finished,
@@ -524,18 +551,6 @@ public class AdHocSubProcessTool {
                     activityInstanceId, e.toString());
             return Collections.emptyList();
         }
-    }
-
-    /** The result variables the model declares for {@code activityId}, or an empty list. */
-    private static List<String> declaredResultVariables(ProcessEngine engine, ExecutionEntity scope,
-            String activityId) {
-        for (AdHocToolCatalog.Entry entry : AdHocToolCatalog.read(engine.getRepositoryService(),
-                scope.getProcessDefinitionId(), scope.getActivity().getId())) {
-            if (activityId.equals(entry.getId())) {
-                return entry.getResultVariables();
-            }
-        }
-        return Collections.emptyList();
     }
 
     /** The values of {@code names}, capped, plus how much of the budget was used. */

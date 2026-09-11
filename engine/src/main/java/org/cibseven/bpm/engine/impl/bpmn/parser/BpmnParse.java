@@ -3981,7 +3981,7 @@ public class BpmnParse extends Parse {
   }
 
   /**
-   * SPIKE — parses a BPMN adHocSubProcess.
+   * Parses a BPMN adHocSubProcess.
    *
    * <p>Fires the existing {@code parseSubProcess} listener hook rather than a new one: an ad-hoc
    * sub-process IS-A sub-process ({@code tAdHocSubProcess extends tSubProcess}), and four types

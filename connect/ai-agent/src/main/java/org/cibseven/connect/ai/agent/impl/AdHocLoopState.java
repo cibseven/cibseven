@@ -1,4 +1,19 @@
-/*  … Kopf der connect-Variante wie in Schritt D … */
+/*
+ * Copyright CIB software GmbH and/or licensed to CIB software GmbH
+ * under one or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information regarding copyright
+ * ownership. CIB software licenses this file to you under the Apache License,
+ * Version 2.0; you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package org.cibseven.connect.ai.agent.impl;
 
 import java.util.Collections;
@@ -15,24 +30,20 @@ import org.cibseven.bpm.engine.variable.Variables;
  * The agent's bookkeeping for one ad hoc scope: which activities it started and
  * has not seen finish, and how many turns it has taken.
  *
- * <h3>Why this is needed at all, given the engine knows what is running</h3>
- * The engine knows which activities are alive; it does not know which of them the
- * agent started, nor which it is still waiting for. A human client and the agent
- * can activate the same scope, and the agent must not report someone else's task
- * as its own outstanding work.
+ * <p>Needed because the engine knows which activities are alive but not which of
+ * them <em>this agent</em> started: a person and the agent can activate the same
+ * scope, and the agent must not report someone else's task as its own outstanding
+ * work.
  *
- * <h3>Why it lives on the agent state execution</h3>
- * In an agentic scope the child activities <em>are</em> the agent's tools, so they
- * are the untrusted party, and the scope execution is their ancestor — state
- * written there is reachable and writable by every one of them. A tool that can
- * clear the pending list can make the agent believe its work is done.
- * {@link AdHocAgentState} returns an execution that is their sibling instead.
+ * <p>Kept on the execution {@link AdHocAgentState} provides, a sibling of the
+ * scope's children rather than their ancestor. In an agentic scope those children
+ * are the agent's tools, and a tool that can clear the pending list can make the
+ * agent believe its work is done.
  *
- * <h3>Why there is no separate mechanism for late or duplicate results</h3>
- * The pending list is reconciled against the engine's live activity instance tree
- * at the start of each turn. An entry that is no longer in the tree is finished,
- * however it ended — completed, cancelled or deleted — and all three mean "stop
- * waiting for it".
+ * <p>No separate mechanism for late or duplicate results: the list is reconciled
+ * against the engine's live activity instance tree at the start of each turn, and an
+ * entry no longer in the tree is finished however it ended — completed, cancelled or
+ * deleted all mean "stop waiting for it".
  */
 final class AdHocLoopState {
 

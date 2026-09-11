@@ -26,42 +26,20 @@ import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
  * pending activations, its turn count, its conversation — where the scope's own
  * children cannot reach it.
  *
- * <h3>The mechanism</h3>
- * {@code setVariable} walks strictly up the parent chain and writes to the first
- * ancestor that already holds the name. The scope execution is an ancestor of
- * every ad hoc child, so anything stored there is reachable and writable by all of
- * them — and in an agentic scope the children <em>are</em> the tools, so they are
- * the untrusted party. The execution returned here is a <em>sibling</em> of those
- * children, so it is never on their walk-up path: a child writing the same name
- * creates its own variable at the process instance instead, and the copy kept here
- * is untouched.
+ * <p>{@code setVariable} walks strictly up the parent chain, and the scope execution
+ * is an ancestor of every ad hoc child, so state kept there is writable by all of
+ * them. In an agentic scope the children <em>are</em> the tools, so they are the
+ * untrusted party. The execution returned here is their <em>sibling</em> instead: a
+ * child writing the same name creates its own variable at the process instance, and
+ * the copy kept here is untouched. Event scope keeps it invisible to child
+ * iteration, completion checks and delete cascade, none of which had to change.
  *
- * <p>Event scope is what keeps it out of the way of existing code.
- * {@code getNonEventScopeExecutions()} is what child iteration, completion checks
- * and delete cascade all use, so this execution is invisible to them without
- * changing any of them.
- *
- * <h3>Deliberately separate from the engine's own state execution</h3>
- * {@link AdHocSubProcessActivityBehavior} keeps the activation counter and the
- * completion latch on an execution of its own, created by the same trick and
- * recognised by the presence of one of those two variable names. This class uses a
- * marker of its own and <b>never</b> recognises those names, so the two never
- * return each other's execution. That separation is load-bearing:
- *
- * <ul>
- * <li>The behaviour's {@code getActivatedCount} falls back to the pre-relocation
- *     location when it finds no state execution, which is how an instance started
- *     by an older build keeps completing. Sharing one execution would make that
- *     fallback stop firing as soon as an agent stored anything, and a scope
- *     without a completion condition would then never complete again.</li>
- * <li>Sharing would also make the structure depend on which side wrote first, and
- *     a lookup could return the other side's execution and find none of its own
- *     variables there.</li>
- * </ul>
- *
- * <p>The cost is one further execution per instance, and the four-setter trick
- * existing in two places. Both are cheaper than changing a merged, tested
- * completion rule.
+ * <p>Deliberately separate from the state execution
+ * {@link AdHocSubProcessActivityBehavior} keeps for its activation counter, and this
+ * class never recognises that one's variable names. Sharing would stop the
+ * behaviour's {@code getActivatedCount} fallback from firing as soon as an agent
+ * stored anything, and a scope without a completion condition would then never
+ * complete again. The cost is one further execution per instance.
  */
 public final class AdHocAgentState {
 

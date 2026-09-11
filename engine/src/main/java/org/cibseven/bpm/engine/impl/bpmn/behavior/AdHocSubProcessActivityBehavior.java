@@ -40,10 +40,8 @@ import org.cibseven.bpm.engine.impl.pvm.runtime.Callback;
 /**
  * Runtime behavior of a BPMN adHocSubProcess.
  *
- * <p>SPIKE IMPLEMENTATION — this class exists to answer the open runtime questions recorded in the
- * architecture spine (T-SP-01 … T-SP-04). It is deliberately minimal and is NOT production code.
- *
- * <p>Design notes established empirically while writing it:
+ * <p>Three facts about the surrounding PVM that this class depends on. Each was established by
+ * measurement, and each is easy to break when changing it:
  *
  * <ul>
  * <li><b>Entry creates no children.</b> {@link #execute(ActivityExecution)} leaves the scope waiting.
@@ -129,7 +127,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     // hoc instance from birth, including scopes that never activate anything. The count is created
     // on first activation instead, so a never-activated scope carries neither.
 
-    // SPIKE FINDING: do NOT null the activity here, even though parallel multi-instance does.
+    // Do NOT null the activity here, even though parallel multi-instance does.
     // An execution with activity == null does not appear in createActivityExecutionMapping(),
     // so an empty ad-hoc scope becomes untargetable: AbstractInstantiationCmd:152 walks looking
     // for a scope with executions, finds none, and throws a raw NoSuchElementException from
@@ -681,7 +679,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   }
 
   protected int getActivatedCount(ActivityExecution scopeExecution) {
-    // SPIKE (CIB7-1850): read the count from a marker execution held off the children's
+    // CIB7-1850: read the count from a marker execution held off the children's
     // ancestor path, instead of from the scope execution itself.
     PvmExecutionImpl marker = findStateExecution(scopeExecution);
     // No marker can mean two things: nothing has been activated yet, or the instance was started by
@@ -709,7 +707,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   }
 
   /**
-   * SPIKE (CIB7-1850). The completion counter lives on a dedicated event-scope child of the ad hoc
+   * CIB7-1850. The completion counter lives on a dedicated event-scope child of the ad hoc
    * scope rather than on the scope execution.
    *
    * <p>The point is the variable resolution order. {@code setVariable} walks strictly up the parent
