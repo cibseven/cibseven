@@ -25,17 +25,19 @@ import java.util.Map;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.interceptor.CommandExecutor;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.Assert;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-public class AuthorizationTestRule extends AuthorizationTestBaseRule {
+public class AuthorizationTestRule extends AuthorizationTestBaseRule implements BeforeEachCallback{
 
   protected AuthorizationExceptionInterceptor interceptor;
   protected CommandExecutor replacedCommandExecutor;
+  protected boolean interceptorInstalled = false;
 
   protected AuthorizationScenarioInstance scenarioInstance;
 
@@ -49,7 +51,7 @@ public class AuthorizationTestRule extends AuthorizationTestBaseRule {
   }
 
   public void start(AuthorizationScenario scenario, String userId, Map<String, String> resourceBindings) {
-    Assert.assertNull(interceptor.getLastException());
+    Assertions.assertNull(interceptor.getLastException());
     scenarioInstance = new AuthorizationScenarioInstance(scenario, engineRule.getAuthorizationService(), resourceBindings);
     enableAuthorization(userId);
     interceptor.activate();
@@ -83,19 +85,30 @@ public class AuthorizationTestRule extends AuthorizationTestBaseRule {
     return interceptor.getLastException() != null;
   }
 
-  protected void starting(Description description) {
+  @Override
+  public void beforeEach(ExtensionContext context) throws Exception {
     ProcessEngineConfigurationImpl engineConfiguration =
         (ProcessEngineConfigurationImpl) engineRule.getProcessEngine().getProcessEngineConfiguration();
 
     interceptor.reset();
     engineConfiguration.getCommandInterceptorsTxRequired().get(0).setNext(interceptor);
     interceptor.setNext(engineConfiguration.getCommandInterceptorsTxRequired().get(1));
-
-    super.starting(description);
+    interceptorInstalled = true;
   }
 
-  protected void finished(Description description) {
-    super.finished(description);
+  @Override
+  public void afterEach(ExtensionContext context) throws Exception {
+    super.afterEach(context);
+
+    // if beforeEach was never executed (e.g. because a preceding extension's
+    // beforeEach aborted/failed the test, such as via Assumptions.assumeTrue),
+    // the interceptor was never inserted into the command interceptor chain.
+    // In that case we must not touch the chain here, otherwise we would corrupt
+    // it (e.g. setting the real next interceptor to null) for subsequent tests.
+    if (!interceptorInstalled) {
+      return;
+    }
+    interceptorInstalled = false;
 
     ProcessEngineConfigurationImpl engineConfiguration =
         (ProcessEngineConfigurationImpl) engineRule.getProcessEngine().getProcessEngineConfiguration();

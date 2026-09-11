@@ -31,10 +31,12 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 public class MultiTenancyIdentityLinkCmdsTenantCheckTest {
 
@@ -47,20 +49,17 @@ public class MultiTenancyIdentityLinkCmdsTenantCheckTest {
     .userTask()
     .endEvent()
     .done();
-
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected TaskService taskService;
   protected IdentityService identityService;
 
   protected Task task;
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
-
-  @Before
+  @BeforeEach
   public void init() {
 
     testRule.deployForTenant(TENANT_ONE, ONE_TASK_PROCESS);

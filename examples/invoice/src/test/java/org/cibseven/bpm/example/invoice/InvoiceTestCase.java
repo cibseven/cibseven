@@ -17,6 +17,10 @@
 package org.cibseven.bpm.example.invoice;
 
 import static org.cibseven.bpm.engine.variable.Variables.fileValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.InputStream;
 import java.util.Arrays;

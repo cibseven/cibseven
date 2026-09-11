@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.test.api.history;
 
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario.scenario;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec.grant;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,34 +38,33 @@ import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.VariableMap;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Svetlana Dorokhova
  */
-@RunWith(Parameterized.class)
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class BulkHistoryDeleteProcessInstancesAuthorizationTest {
 
   protected static final String ONE_TASK_PROCESS = "oneTaskProcess";
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   private HistoryService historyService;
   private RuntimeService runtimeService;
 
-  @Before
+  @BeforeEach
   public void init() {
     runtimeService = engineRule.getRuntimeService();
     historyService = engineRule.getHistoryService();
@@ -73,10 +72,7 @@ public class BulkHistoryDeleteProcessInstancesAuthorizationTest {
     authRule.createUserAndGroup("demo", "groupId");
   }
 
-  @Parameterized.Parameter
-  public AuthorizationScenario scenario;
 
-  @Parameterized.Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
         scenario()
@@ -97,15 +93,16 @@ public class BulkHistoryDeleteProcessInstancesAuthorizationTest {
     );
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = {
       "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml"})
-  public void testCleanupHistory() {
+  public void testCleanupHistory(AuthorizationScenario scenario) {
     //given
     final List<String> ids = prepareHistoricProcesses();
     runtimeService.deleteProcessInstances(ids, null, true, true);

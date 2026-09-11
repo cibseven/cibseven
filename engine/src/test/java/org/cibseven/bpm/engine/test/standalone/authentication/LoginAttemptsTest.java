@@ -32,19 +32,21 @@ import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
 
 public class LoginAttemptsTest {
 
   private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
   private static final String INDENTITY_LOGGER = "org.cibseven.bpm.engine.identity";
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
+  @RegisterExtension
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
       configuration.setJdbcUrl("jdbc:h2:mem:LoginAttemptsTest;DB_CLOSE_DELAY=1000");
       configuration.setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_CREATE_DROP);
       configuration.setLoginMaxAttempts(5);
@@ -52,24 +54,22 @@ public class LoginAttemptsTest {
       configuration.setLoginDelayMaxTime(30);
       configuration.setLoginDelayBase(1);
   });
-
-  @Rule
-  public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-
-  @Rule
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
+  @RegisterExtension
+  @Order(5) public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(7) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
                                                       .watch(INDENTITY_LOGGER)
                                                       .level(Level.INFO);
 
   protected IdentityService identityService;
   protected ProcessEngine processEngine;
 
-  @Before
+  @BeforeEach
   public void setup() {
     identityService = engineRule.getIdentityService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ClockUtil.setCurrentTime(new Date());
     for (User user : identityService.createUserQuery().list()) {

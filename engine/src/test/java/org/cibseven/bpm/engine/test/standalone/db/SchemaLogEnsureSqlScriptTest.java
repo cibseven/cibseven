@@ -23,8 +23,8 @@ import java.util.List;
 
 import org.cibseven.bpm.engine.management.SchemaLogEntry;
 import org.cibseven.bpm.engine.test.util.TestconfigProperties;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Miklas Boskamp
@@ -36,7 +36,7 @@ public class SchemaLogEnsureSqlScriptTest extends SchemaLogTestCase {
   protected String dataBaseType;
 
   @Override
-  @Before
+  @BeforeEach
   public void init() {
     super.init();
 

@@ -33,38 +33,32 @@ import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Askar Akhmerov
  */
-@RunWith(Parameterized.class)
 public class HistoricDecisionInstanceStatisticsAuthorizationTest {
 
   protected static final String DISH_DRG_DMN = "org/cibseven/bpm/engine/test/dmn/deployment/drdDish.dmn11.xml";
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   protected DecisionService decisionService;
   protected HistoryService historyService;
   protected RepositoryService repositoryService;
 
   protected DecisionRequirementsDefinition decisionRequirementsDefinition;
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
-
-  @Parameterized.Parameter
-  public AuthorizationScenario scenario;
-
-  @Parameterized.Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
         scenario()
@@ -79,9 +73,9 @@ public class HistoricDecisionInstanceStatisticsAuthorizationTest {
     );
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
-    testHelper.deploy(DISH_DRG_DMN);
+    testRule.deploy(DISH_DRG_DMN);
     decisionService = engineRule.getDecisionService();
     historyService = engineRule.getHistoryService();
     repositoryService = engineRule.getRepositoryService();
@@ -95,13 +89,14 @@ public class HistoricDecisionInstanceStatisticsAuthorizationTest {
     decisionRequirementsDefinition = repositoryService.createDecisionRequirementsDefinitionQuery().singleResult();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
   }
 
-  @Test
-  public void testCreateStatistics() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testHistoricDecisionStatistics(AuthorizationScenario scenario) {
     //given
     authRule
         .init(scenario)

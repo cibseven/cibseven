@@ -18,13 +18,14 @@ package org.cibseven.bpm.integrationtest.deployment.spring;
 
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
+import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * <p>Integration test making sure that we can lookup a managed process engine 
@@ -33,23 +34,26 @@ import org.junit.runner.RunWith;
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class SpringLookupManagedProcessEngineTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
   public static WebArchive processArchive() {    
-    return ShrinkWrap.create(WebArchive.class, "test.war")
+    WebArchive testJar = ShrinkWrap.create(WebArchive.class, "test.war")
       .addClass(AbstractFoxPlatformIntegrationTest.class)
       .addAsWebInfResource("org/cibseven/bpm/integrationtest/deployment/spring/SpringLookupManagedProcessEngineTest-context.xml", "applicationContext.xml")
       .addAsLibraries(DeploymentHelper.getEngineSpring())
       .addAsManifestResource("org/cibseven/bpm/integrationtest/deployment/spring/jboss-deployment-structure.xml", "jboss-deployment-structure.xml")
       .addAsWebInfResource("org/cibseven/bpm/integrationtest/deployment/spring/web.xml", "web.xml");
+    
+    TestContainer.addContainerSpecificResources(testJar);
+    return testJar;
   }
   
     
   @Test
   public void testDeployProcessArchive() {
-    Assert.assertNotNull(processEngine);   
+    Assertions.assertNotNull(processEngine);   
   }
   
 }

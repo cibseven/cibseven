@@ -16,10 +16,12 @@
  */
 package org.cibseven.bpm.engine.spring.test.container;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.cibseven.bpm.BpmPlatform;
 import org.cibseven.bpm.engine.spring.container.ManagedProcessEngineFactoryBean;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -35,22 +37,22 @@ public class ManagedProcessEngineFactoryBeanTest {
   public void testProcessApplicationDeployment() {
     
     // initially, no process engine is registered:
-    Assert.assertNull(BpmPlatform.getDefaultProcessEngine());
-    Assert.assertEquals(0, BpmPlatform.getProcessEngineService().getProcessEngines().size());
+    assertNull(BpmPlatform.getDefaultProcessEngine());
+    assertEquals(0, BpmPlatform.getProcessEngineService().getProcessEngines().size());
     
     // start spring application context
     AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext("org/cibseven/bpm/engine/spring/test/container/ManagedProcessEngineFactoryBean-context.xml");
     applicationContext.start();
     
     // assert that now the process engine is registered:
-    Assert.assertNotNull(BpmPlatform.getDefaultProcessEngine());      
+    assertNotNull(BpmPlatform.getDefaultProcessEngine());      
     
     // close the spring application context
     applicationContext.close();
     
     // after closing the application context, the process engine is gone
-    Assert.assertNull(BpmPlatform.getDefaultProcessEngine());
-    Assert.assertEquals(0, BpmPlatform.getProcessEngineService().getProcessEngines().size());
+    assertNull(BpmPlatform.getDefaultProcessEngine());
+    assertEquals(0, BpmPlatform.getProcessEngineService().getProcessEngines().size());
     
   }
     

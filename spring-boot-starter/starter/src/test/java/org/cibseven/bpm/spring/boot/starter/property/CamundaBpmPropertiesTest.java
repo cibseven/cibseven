@@ -18,16 +18,13 @@ package org.cibseven.bpm.spring.boot.starter.property;
 
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class CamundaBpmPropertiesTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void initResourcePatterns() {
@@ -46,10 +43,10 @@ public class CamundaBpmPropertiesTest {
     new CamundaBpmProperties().getDatabase().setSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_CREATE_DROP);
     new CamundaBpmProperties().getDatabase().setSchemaUpdate(ProcessEngineConfigurationImpl.DB_SCHEMA_UPDATE_DROP_CREATE);
 
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("foo");
-
-    new CamundaBpmProperties().getDatabase().setSchemaUpdate("foo");
+    assertThatThrownBy(() -> {
+      new CamundaBpmProperties().getDatabase().setSchemaUpdate("foo");
+    }).isInstanceOf(IllegalArgumentException.class)
+    .hasMessageContaining("foo");
   }
 
   @Test

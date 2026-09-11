@@ -27,10 +27,11 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 /**
  * @author Thorben Lindhauer
@@ -40,12 +41,10 @@ public class MultiTenancyMigrationTest {
 
   protected static final String TENANT_ONE = "tenant1";
   protected static final String TENANT_TWO = "tenant2";
-
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
+  @RegisterExtension
+  @Order(7) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   @Test
   public void cannotCreateMigrationPlanBetweenDifferentTenants() {
@@ -58,7 +57,7 @@ public class MultiTenancyMigrationTest {
       engineRule.getRuntimeService().createMigrationPlan(tenant1Definition.getId(), tenant2Definition.getId())
       .mapEqualActivities()
       .build();
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     } catch (ProcessEngineException e) {
       // then
       assertThat(e.getMessage()).contains(
@@ -79,7 +78,7 @@ public class MultiTenancyMigrationTest {
       .build();
 
     // then
-    Assert.assertNotNull(migrationPlan);
+    Assertions.assertNotNull(migrationPlan);
   }
 
   @Test
@@ -95,7 +94,7 @@ public class MultiTenancyMigrationTest {
       .build();
 
     // then
-    Assert.assertNotNull(migrationPlan);
+    Assertions.assertNotNull(migrationPlan);
   }
 
   @Test
@@ -110,7 +109,7 @@ public class MultiTenancyMigrationTest {
       .build();
 
     // then
-    Assert.assertNotNull(migrationPlan);
+    Assertions.assertNotNull(migrationPlan);
   }
 
   @Test
@@ -151,7 +150,7 @@ public class MultiTenancyMigrationTest {
         .newMigration(migrationPlan)
         .processInstanceIds(Arrays.asList(processInstance.getId()))
         .execute();
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     } catch (ProcessEngineException e) {
       assertThat(e.getMessage()).contains(
           "Cannot migrate process instance '" + processInstance.getId()
@@ -181,7 +180,7 @@ public class MultiTenancyMigrationTest {
   }
 
   protected void assertMigratedTo(ProcessInstance processInstance, ProcessDefinition targetDefinition) {
-    Assert.assertEquals(1, engineRule.getRuntimeService()
+    Assertions.assertEquals(1, engineRule.getRuntimeService()
       .createProcessInstanceQuery()
       .processInstanceId(processInstance.getId())
       .processDefinitionId(targetDefinition.getId())

@@ -27,10 +27,10 @@ import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.runtime.Job;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
-public class ProcessEngineBootstrapRule extends TestWatcher {
+public class ProcessEngineBootstrapRule implements AfterAllCallback {
 
   private ProcessEngine processEngine;
   protected Consumer<ProcessEngineConfigurationImpl> processEngineConfigurator;
@@ -71,7 +71,7 @@ public class ProcessEngineBootstrapRule extends TestWatcher {
   }
 
   @Override
-  protected void finished(Description description) {
+  public void afterAll(ExtensionContext context) {
     deleteHistoryCleanupJob();
     processEngine.close();
     ProcessEngines.unregister(processEngine);

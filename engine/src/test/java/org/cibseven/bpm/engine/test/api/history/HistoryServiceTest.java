@@ -17,10 +17,10 @@
 package org.cibseven.bpm.engine.test.api.history;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -56,9 +56,8 @@ import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 
 /**
@@ -520,61 +519,61 @@ public class HistoryServiceTest extends PluggableProcessEngineTest {
     // Query on single short variable, should result in 2 matches
     HistoricProcessInstanceQuery query = historyService.createHistoricProcessInstanceQuery().variableValueEquals("dateVar", date1);
     List<HistoricProcessInstance> processInstances = query.list();
-    Assert.assertNotNull(processInstances);
-    Assert.assertEquals(2, processInstances.size());
+    Assertions.assertNotNull(processInstances);
+    Assertions.assertEquals(2, processInstances.size());
 
     // Query on two short variables, should result in single value
     query = historyService.createHistoricProcessInstanceQuery().variableValueEquals("dateVar", date1).variableValueEquals("dateVar2", date2);
     HistoricProcessInstance resultInstance = query.singleResult();
-    Assert.assertNotNull(resultInstance);
-    Assert.assertEquals(processInstance2.getId(), resultInstance.getId());
+    Assertions.assertNotNull(resultInstance);
+    Assertions.assertEquals(processInstance2.getId(), resultInstance.getId());
 
     // Query with unexisting variable value
     Date unexistingDate = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss").parse("01/01/1989 12:00:00");
     resultInstance = historyService.createHistoricProcessInstanceQuery().variableValueEquals("dateVar", unexistingDate).singleResult();
-    Assert.assertNull(resultInstance);
+    Assertions.assertNull(resultInstance);
 
     // Test NOT_EQUALS
     resultInstance = historyService.createHistoricProcessInstanceQuery().variableValueNotEquals("dateVar", date1).singleResult();
-    Assert.assertNotNull(resultInstance);
-    Assert.assertEquals(processInstance3.getId(), resultInstance.getId());
+    Assertions.assertNotNull(resultInstance);
+    Assertions.assertEquals(processInstance3.getId(), resultInstance.getId());
 
     // Test GREATER_THAN
     resultInstance = historyService.createHistoricProcessInstanceQuery().variableValueGreaterThan("dateVar", nextMonth.getTime()).singleResult();
-    Assert.assertNotNull(resultInstance);
-    Assert.assertEquals(processInstance3.getId(), resultInstance.getId());
+    Assertions.assertNotNull(resultInstance);
+    Assertions.assertEquals(processInstance3.getId(), resultInstance.getId());
 
-    Assert.assertEquals(0, historyService.createHistoricProcessInstanceQuery().variableValueGreaterThan("dateVar", nextYear.getTime()).count());
-    Assert.assertEquals(3, historyService.createHistoricProcessInstanceQuery().variableValueGreaterThan("dateVar", oneYearAgo.getTime()).count());
+    Assertions.assertEquals(0, historyService.createHistoricProcessInstanceQuery().variableValueGreaterThan("dateVar", nextYear.getTime()).count());
+    Assertions.assertEquals(3, historyService.createHistoricProcessInstanceQuery().variableValueGreaterThan("dateVar", oneYearAgo.getTime()).count());
 
     // Test GREATER_THAN_OR_EQUAL
     resultInstance = historyService.createHistoricProcessInstanceQuery().variableValueGreaterThanOrEqual("dateVar", nextMonth.getTime()).singleResult();
-    Assert.assertNotNull(resultInstance);
-    Assert.assertEquals(processInstance3.getId(), resultInstance.getId());
+    Assertions.assertNotNull(resultInstance);
+    Assertions.assertEquals(processInstance3.getId(), resultInstance.getId());
 
     resultInstance = historyService.createHistoricProcessInstanceQuery().variableValueGreaterThanOrEqual("dateVar", nextYear.getTime()).singleResult();
-    Assert.assertNotNull(resultInstance);
-    Assert.assertEquals(processInstance3.getId(), resultInstance.getId());
+    Assertions.assertNotNull(resultInstance);
+    Assertions.assertEquals(processInstance3.getId(), resultInstance.getId());
 
-    Assert.assertEquals(3, historyService.createHistoricProcessInstanceQuery().variableValueGreaterThanOrEqual("dateVar", oneYearAgo.getTime()).count());
+    Assertions.assertEquals(3, historyService.createHistoricProcessInstanceQuery().variableValueGreaterThanOrEqual("dateVar", oneYearAgo.getTime()).count());
 
     // Test LESS_THAN
     processInstances = historyService.createHistoricProcessInstanceQuery().variableValueLessThan("dateVar", nextYear.getTime()).list();
-    Assert.assertEquals(2, processInstances.size());
+    Assertions.assertEquals(2, processInstances.size());
 
     List<String> expecedIds = Arrays.asList(processInstance1.getId(), processInstance2.getId());
     List<String> ids = new ArrayList<String>(Arrays.asList(processInstances.get(0).getId(), processInstances.get(1).getId()));
     ids.removeAll(expecedIds);
     assertTrue(ids.isEmpty());
 
-    Assert.assertEquals(0, historyService.createHistoricProcessInstanceQuery().variableValueLessThan("dateVar", date1).count());
-    Assert.assertEquals(3, historyService.createHistoricProcessInstanceQuery().variableValueLessThan("dateVar", twoYearsLater.getTime()).count());
+    Assertions.assertEquals(0, historyService.createHistoricProcessInstanceQuery().variableValueLessThan("dateVar", date1).count());
+    Assertions.assertEquals(3, historyService.createHistoricProcessInstanceQuery().variableValueLessThan("dateVar", twoYearsLater.getTime()).count());
 
     // Test LESS_THAN_OR_EQUAL
     processInstances = historyService.createHistoricProcessInstanceQuery().variableValueLessThanOrEqual("dateVar", nextYear.getTime()).list();
-    Assert.assertEquals(3, processInstances.size());
+    Assertions.assertEquals(3, processInstances.size());
 
-    Assert.assertEquals(0, historyService.createHistoricProcessInstanceQuery().variableValueLessThanOrEqual("dateVar", oneYearAgo.getTime()).count());
+    Assertions.assertEquals(0, historyService.createHistoricProcessInstanceQuery().variableValueLessThanOrEqual("dateVar", oneYearAgo.getTime()).count());
 
     historyService.deleteHistoricProcessInstance(processInstance1.getId());
     historyService.deleteHistoricProcessInstance(processInstance2.getId());
@@ -812,7 +811,7 @@ public class HistoryServiceTest extends PluggableProcessEngineTest {
       fail("Exception expected");
     } catch (ProcessEngineException e) {
       //expected
-      Assert.assertThat(e.getMessage(), CoreMatchers.containsString("No historic process instance found with id: [aFake]" ));
+      assertThat(e.getMessage()).contains("No historic process instance found with id: [aFake]" );
     }
 
     //then expect no instance is deleted

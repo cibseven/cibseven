@@ -31,7 +31,7 @@ import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.task.TaskQuery;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.junit.Assert;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * @author Thorben Lindhauer
@@ -52,8 +52,8 @@ public class UpgradeTestRule extends ProcessEngineRule {
   }
 
   @Override
-  public void starting(Description description) {
-    Class<?> testClass = description.getTestClass();
+  public void beforeEach(ExtensionContext context) throws Exception {
+    Class<?> testClass = context.getRequiredTestClass();
     if (scenarioTestedByClass == null) {
       ScenarioUnderTest testScenarioClassAnnotation = testClass.getAnnotation(ScenarioUnderTest.class);
       if (testScenarioClassAnnotation != null) {
@@ -61,7 +61,9 @@ public class UpgradeTestRule extends ProcessEngineRule {
       }
     }
 
-    ScenarioUnderTest testScenarioAnnotation = description.getAnnotation(ScenarioUnderTest.class);
+    ScenarioUnderTest testScenarioAnnotation = context.getElement()
+        .map(element -> element.getAnnotation(ScenarioUnderTest.class))
+        .orElse(null);
     if (testScenarioAnnotation != null) {
       if (scenarioTestedByClass != null) {
         scenarioName = scenarioTestedByClass + "." + testScenarioAnnotation.value();
@@ -71,7 +73,9 @@ public class UpgradeTestRule extends ProcessEngineRule {
     }
 
     // method annotation overrides class annotation
-    Origin originAnnotation = description.getAnnotation(Origin.class);
+    Origin originAnnotation = context.getElement()
+        .map(element -> element.getAnnotation(Origin.class))
+        .orElse(null);
     if (originAnnotation == null) {
       originAnnotation = testClass.getAnnotation(Origin.class);
     }
@@ -81,10 +85,10 @@ public class UpgradeTestRule extends ProcessEngineRule {
     }
 
     if (scenarioName == null) {
-      throw new RuntimeException("Could not determine scenario under test for test " + description.getDisplayName());
+      throw new RuntimeException("Could not determine scenario under test for test " + context.getDisplayName());
     }
 
-    super.starting(description);
+    super.beforeEach(context);
   }
 
   public TaskQuery taskQuery() {

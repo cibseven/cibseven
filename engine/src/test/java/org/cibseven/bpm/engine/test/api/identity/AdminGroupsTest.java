@@ -34,27 +34,27 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 public class AdminGroupsTest {
 
-  protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule();
+  @Order(1) protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule();
 
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(7) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(9) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected IdentityService identityService;
   protected AuthorizationService authorizationService;
 
-  @Before
+  @BeforeEach
   public void init() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     identityService = engineRule.getIdentityService();
@@ -62,7 +62,7 @@ public class AdminGroupsTest {
 
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     processEngineConfiguration.setAuthorizationEnabled(false);
     cleanupAfterTest();

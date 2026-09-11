@@ -30,8 +30,9 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.assertions.helpers.Failure;
 import org.cibseven.bpm.engine.test.assertions.helpers.ProcessAssertTestCase;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class ProcessInstanceAssertExternalTaskTest extends ProcessAssertTestCase {
 
@@ -40,7 +41,7 @@ public class ProcessInstanceAssertExternalTaskTest extends ProcessAssertTestCase
   private static final String TASK3 = "ExternalTask_3";
   private static final String TASK4 = "ExternalTask_4";
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule processEngineRule = new ProcessEngineRule();
 
   @Test

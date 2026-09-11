@@ -19,10 +19,10 @@ package org.cibseven.bpm.engine.rest.sub.repository.impl;
 import java.net.URI;
 import java.util.List;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.RepositoryService;

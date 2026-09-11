@@ -31,8 +31,8 @@ import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 
 import org.cibseven.connect.ai.agent.impl.KnowledgeIngestorConnectorImpl;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the RAG ingest → retrieval pipeline using an in-memory embedding store
@@ -49,7 +49,7 @@ public class RagPipelineTest {
   private InMemoryEmbeddingStore<TextSegment> embeddingStore;
   private EmbeddingModel embeddingModel;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     embeddingStore = new InMemoryEmbeddingStore<>();
     embeddingModel = new AllMiniLmL6V2EmbeddingModel();

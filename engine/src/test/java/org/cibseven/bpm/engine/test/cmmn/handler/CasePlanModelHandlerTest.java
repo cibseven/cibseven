@@ -19,11 +19,11 @@ package org.cibseven.bpm.engine.test.cmmn.handler;
 import static org.cibseven.bpm.engine.impl.cmmn.handler.ItemHandler.PROPERTY_ACTIVITY_DESCRIPTION;
 import static org.cibseven.bpm.engine.impl.cmmn.handler.ItemHandler.PROPERTY_ACTIVITY_TYPE;
 import static org.cibseven.bpm.engine.impl.cmmn.handler.ItemHandler.PROPERTY_AUTO_COMPLETE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.cibseven.bpm.engine.impl.cmmn.behavior.CmmnActivityBehavior;
 import org.cibseven.bpm.engine.impl.cmmn.behavior.StageActivityBehavior;
@@ -37,7 +37,7 @@ import org.cibseven.bpm.model.cmmn.instance.ConditionExpression;
 import org.cibseven.bpm.model.cmmn.instance.ExitCriterion;
 import org.cibseven.bpm.model.cmmn.instance.IfPart;
 import org.cibseven.bpm.model.cmmn.instance.Sentry;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov

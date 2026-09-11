@@ -33,14 +33,15 @@ import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 public class BatchInvocationsPerJobByBatchTypeTest {
 
-  @Rule
+  @RegisterExtension
   public ProvidedProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
 
   protected ManagementService managementService;
@@ -48,7 +49,7 @@ public class BatchInvocationsPerJobByBatchTypeTest {
   protected HistoryService historyService;
   protected ProcessEngineConfigurationImpl engineConfiguration;
 
-  @Before
+  @BeforeEach
   public void assignServices() {
     managementService = processEngineRule.getManagementService();
     runtimeService = processEngineRule.getRuntimeService();
@@ -56,7 +57,7 @@ public class BatchInvocationsPerJobByBatchTypeTest {
     engineConfiguration = processEngineRule.getProcessEngineConfiguration();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     int defaultInvocationsPerJob =
         ProcessEngineConfigurationImpl.DEFAULT_INVOCATIONS_PER_BATCH_JOB;

@@ -19,8 +19,6 @@ package org.cibseven.bpm.qa.performance.engine.junit;
 import static org.cibseven.bpm.engine.authorization.Authorization.ANY;
 import static org.cibseven.bpm.engine.authorization.Authorization.AUTH_TYPE_GRANT;
 
-import java.util.List;
-
 import org.cibseven.bpm.engine.AuthorizationService;
 import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.ProcessEngine;
@@ -30,13 +28,10 @@ import org.cibseven.bpm.engine.TaskService;
 import org.cibseven.bpm.engine.authorization.Authorization;
 import org.cibseven.bpm.engine.authorization.Permission;
 import org.cibseven.bpm.engine.authorization.Resource;
-import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.qa.performance.engine.framework.PerfTestBuilder;
 import org.cibseven.bpm.qa.performance.engine.framework.PerfTestConfiguration;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Daniel Meyer
@@ -44,14 +39,11 @@ import org.junit.rules.RuleChain;
  */
 public abstract class AuthorizationPerformanceTestCase {
 
+  @RegisterExtension
   public PerfTestConfigurationRule testConfigurationRule = new PerfTestConfigurationRule();
 
+  @RegisterExtension
   public PerfTestResultRecorderRule resultRecorderRule = new PerfTestResultRecorderRule();
-
-  @Rule
-  public RuleChain ruleChain = RuleChain
-    .outerRule(testConfigurationRule)
-    .around(resultRecorderRule);
 
   protected ProcessEngine engine;
   protected TaskService taskService;
@@ -59,7 +51,7 @@ public abstract class AuthorizationPerformanceTestCase {
   protected RuntimeService runtimeService;
   protected RepositoryService repositoryService;
 
-  @Before
+  @BeforeEach
   public void setup() {
     engine = PerfTestProcessEngine.getInstance();
     taskService = engine.getTaskService();

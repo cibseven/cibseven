@@ -25,14 +25,14 @@ import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.OrderingBuilder;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,16 +43,16 @@ import java.util.Map;
 import static io.restassured.RestAssured.expect;
 import static io.restassured.RestAssured.given;
 import static io.restassured.path.json.JsonPath.from;
-import static junit.framework.TestCase.assertNotNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 public class HistoricExternalTaskLogRestServiceQueryTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String HISTORIC_EXTERNAL_TASK_LOG_RESOURCE_URL = TEST_RESOURCE_ROOT_PATH + "/history/external-task-log";
@@ -63,7 +63,7 @@ public class HistoricExternalTaskLogRestServiceQueryTest extends AbstractRestSer
 
   protected HistoricExternalTaskLogQuery mockedQuery;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() throws IOException {
     mockedQuery = setUpMockHistoricExternalTaskLogQuery(MockProvider.createMockHistoricExternalTaskLogs());
   }
@@ -406,8 +406,8 @@ public class HistoricExternalTaskLogRestServiceQueryTest extends AbstractRestSer
 
     String content = response.asString();
     List<String> logs = from(content).getList("");
-    assertEquals("There should be one historic externalTask log returned.", 1, logs.size());
-    assertNotNull("The returned historic externalTask log should not be null.", logs.get(0));
+    assertEquals(1, logs.size(), "There should be one historic externalTask log returned.");
+    assertNotNull(logs.get(0), "The returned historic externalTask log should not be null.");
 
     String returnedId = from(content).getString("[0].id");
     String returnedTimestamp = from(content).getString("[0].timestamp");
@@ -471,8 +471,8 @@ public class HistoricExternalTaskLogRestServiceQueryTest extends AbstractRestSer
 
     String content = response.asString();
     List<String> logs = from(content).getList("");
-    assertEquals("There should be one historic externalTask log returned.", 1, logs.size());
-    assertNotNull("The returned historic externalTask log should not be null.", logs.get(0));
+    assertEquals(1, logs.size(), "There should be one historic externalTask log returned.");
+    assertNotNull(logs.get(0), "The returned historic externalTask log should not be null.");
 
     String returnedId = from(content).getString("[0].id");
     String returnedTimestamp = from(content).getString("[0].timestamp");

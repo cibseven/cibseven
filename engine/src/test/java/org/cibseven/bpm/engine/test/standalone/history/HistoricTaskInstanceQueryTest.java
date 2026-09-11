@@ -18,8 +18,8 @@ package org.cibseven.bpm.engine.test.standalone.history;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Calendar;
 import java.util.Collections;
@@ -39,7 +39,7 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer

@@ -21,8 +21,8 @@ import static org.cibseven.bpm.engine.authorization.Permissions.DELETE;
 
 import java.net.URI;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.cibseven.bpm.engine.authorization.Resources;
 import org.cibseven.bpm.engine.rest.TenantRestService;

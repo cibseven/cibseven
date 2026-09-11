@@ -34,7 +34,7 @@ import org.cibseven.bpm.client.dto.ProcessDefinitionDto;
 import org.cibseven.bpm.client.dto.ProcessInstanceDto;
 import org.cibseven.bpm.client.dto.TaskDto;
 import org.cibseven.bpm.client.dto.VariableInstanceDto;
-import org.cibseven.bpm.client.rule.ClientRule;
+import org.cibseven.bpm.client.rule.ClientExtension;
 import org.cibseven.bpm.client.rule.EngineRule;
 import org.cibseven.bpm.client.task.ExternalTask;
 import org.cibseven.bpm.client.task.ExternalTaskService;
@@ -45,11 +45,9 @@ import org.cibseven.bpm.client.variable.value.XmlValue;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class XmlValueIT {
 
@@ -62,11 +60,12 @@ public class XmlValueIT {
 
   protected static final XmlValue VARIABLE_VALUE_XML_VALUE_BROKEN = ClientValues.xmlValue(VARIABLE_VALUE_XML_SERIALIZED_BROKEN);
 
-  protected ClientRule clientRule = new ClientRule();
+  @RegisterExtension
+  protected ClientExtension clientRule = new ClientExtension();
+  @RegisterExtension
   protected EngineRule engineRule = new EngineRule();
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule);
+//  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule);
 
   protected ExternalTaskClient client;
 
@@ -76,7 +75,7 @@ public class XmlValueIT {
   protected RecordingExternalTaskHandler handler = new RecordingExternalTaskHandler();
   protected RecordingInvocationHandler invocationHandler = new RecordingInvocationHandler();
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     client = clientRule.client();
     processDefinition = engineRule.deploy(TWO_EXTERNAL_TASK_PROCESS).get(0);

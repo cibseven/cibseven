@@ -21,15 +21,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.cibseven.bpm.engine.spring.SpringProcessEngineConfiguration;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 public class SpringBootProcessEnginePluginTest {
 
-  @Rule
-  public final MockitoRule mockito = MockitoJUnit.rule();
 
   private class DummySpringPlugin extends SpringBootProcessEnginePlugin {
 

@@ -49,25 +49,25 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
+import org.junit.jupiter.api.Test;
+
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class JobEntityAndJobLogBatchIdTest {
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
   protected BatchRule batchRule = new BatchRule(engineRule, testRule);
-  protected BatchSetRemovalTimeRule batchRemovalTimeRule = new BatchSetRemovalTimeRule(engineRule, testRule);
+  @RegisterExtension
+  @Order(11) protected BatchSetRemovalTimeRule batchRemovalTimeRule = new BatchSetRemovalTimeRule(engineRule, testRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain
-      .outerRule(engineRule)
-      .around(testRule)
-      .around(batchRule)
-      .around(batchRemovalTimeRule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
@@ -75,7 +75,7 @@ public class JobEntityAndJobLogBatchIdTest {
   protected DecisionService decisionService;
   protected ExternalTaskService externalTaskService;
 
-  @Before
+  @BeforeEach
   public void init() {
     runtimeService = engineRule.getRuntimeService();
     historyService = engineRule.getHistoryService();

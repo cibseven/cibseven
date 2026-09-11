@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.jobexecutor;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Date;
 import java.util.List;
@@ -32,10 +32,11 @@ import org.cibseven.bpm.engine.test.concurrency.ConcurrencyTestHelper.ThreadCont
 import org.cibseven.bpm.engine.test.jobexecutor.RecordingAcquireJobsRunnable.RecordedWaitEvent;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 /**
  * @author Thorben Lindhauer
@@ -48,8 +49,8 @@ public class JobAcquisitionBackoffIdleTest {
 
   protected ControllableJobExecutor jobExecutor;
   protected ThreadControl acquisitionThread;
-
-  protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
+  @RegisterExtension
+  @Order(3) protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
     jobExecutor = new ControllableJobExecutor(true);
     jobExecutor.setMaxJobsPerAcquisition(1);
     jobExecutor.setWaitTimeInMillis(BASE_IDLE_WAIT_TIME);
@@ -57,12 +58,10 @@ public class JobAcquisitionBackoffIdleTest {
     acquisitionThread = jobExecutor.getAcquisitionThreadControl();
     configuration.setJobExecutor(jobExecutor);
   });
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(7) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule);
-
-  @After
+  @AfterEach
   public void shutdownJobExecutor() {
     ClockUtil.reset();
     jobExecutor.shutdown();

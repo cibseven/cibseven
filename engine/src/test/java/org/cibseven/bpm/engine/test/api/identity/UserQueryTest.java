@@ -16,11 +16,11 @@
  */
 package org.cibseven.bpm.engine.test.api.identity;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 
@@ -29,9 +29,9 @@ import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.identity.UserQuery;
 import org.cibseven.bpm.engine.impl.persistence.entity.UserEntity;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -39,7 +39,7 @@ import org.junit.Test;
  */
 public class UserQueryTest extends PluggableProcessEngineTest {
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
 
 
@@ -69,7 +69,7 @@ public class UserQueryTest extends PluggableProcessEngineTest {
     return user;
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     identityService.deleteUser("kermit");
     identityService.deleteUser("fozzie");

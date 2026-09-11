@@ -16,10 +16,11 @@
  */
 package org.cibseven.bpm.engine.cdi.impl;
 
+import jakarta.el.ELResolver;
+
 import org.cibseven.bpm.application.AbstractProcessApplication;
 import org.cibseven.bpm.application.ProcessApplicationElResolver;
 import org.cibseven.bpm.engine.cdi.impl.el.CdiResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
 
 /**
  * <p>Exposes the CdiResolver in a multiple-applications, shared process engine context.</p>

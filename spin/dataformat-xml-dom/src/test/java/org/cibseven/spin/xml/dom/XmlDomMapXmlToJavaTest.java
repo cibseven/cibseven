@@ -23,7 +23,7 @@ import static org.cibseven.spin.xml.XmlTestConstants.assertIsExampleOrder;
 
 import org.cibseven.spin.xml.SpinXmlDataFormatException;
 import org.cibseven.spin.xml.mapping.Order;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class XmlDomMapXmlToJavaTest {
 

@@ -25,7 +25,7 @@ import java.util.List;
 import org.cibseven.bpm.engine.impl.cfg.CompositeProcessEnginePlugin;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CamundaBpmConfigurationTest {
 

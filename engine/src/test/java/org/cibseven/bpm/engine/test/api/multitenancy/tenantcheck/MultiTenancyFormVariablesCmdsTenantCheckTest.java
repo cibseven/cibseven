@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.test.api.multitenancy.tenantcheck;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 
@@ -28,10 +28,12 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 /**
  *
@@ -50,19 +52,16 @@ public class MultiTenancyFormVariablesCmdsTenantCheckTest {
 
   protected static final String VARIABLE_VALUE_1 = "test1";
   protected static final String VARIABLE_VALUE_2 = "test2";
-
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected ProcessInstance instance;
 
   protected static final String START_FORM_RESOURCE = "org/cibseven/bpm/engine/test/api/form/FormServiceTest.startFormFields.bpmn20.xml";
 
-  @Before
+  @BeforeEach
   public void init() {
 
     // deploy tenants

@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.api.history;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -45,36 +45,39 @@ import org.cibseven.bpm.engine.test.api.runtime.migration.MigrationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.batch.BatchMigrationHelper;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class HistoricInstanceForCleanupQueryTest {
 
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-  protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(7) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(9) protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
   protected BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
 
-  @Rule public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(migrationRule);
 
   private HistoryService historyService;
   private ManagementService managementService;
   private CaseService caseService;
   private ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void init() {
+	helper = new BatchMigrationHelper(engineRule, migrationRule);
     historyService = engineRule.getHistoryService();
     managementService = engineRule.getManagementService();
     caseService = engineRule.getCaseService();
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
   }
 
-  @After
+  @AfterEach
   public void clearDatabase() {
     helper.removeAllRunningAndHistoricBatches();
 

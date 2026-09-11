@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.quarkus.engine.extension;
 
-import org.cibseven.bpm.engine.cdi.CdiJtaProcessEngineConfiguration;
+import org.cibseven.bpm.engine.cdi.CdiJakartaTransactionProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.history.HistoryLevel;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContextInterceptor;
 import org.cibseven.bpm.engine.impl.interceptor.CommandCounterInterceptor;
@@ -29,7 +29,7 @@ import jakarta.transaction.TransactionManager;
 import java.util.ArrayList;
 import java.util.List;
 
-public class QuarkusProcessEngineConfiguration extends CdiJtaProcessEngineConfiguration {
+public class QuarkusProcessEngineConfiguration extends CdiJakartaTransactionProcessEngineConfiguration {
 
   /**
    * Default values.

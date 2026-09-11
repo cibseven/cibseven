@@ -19,6 +19,7 @@ package org.cibseven.bpm.application.impl;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
+import jakarta.servlet.ServletContextListener;
 import org.cibseven.bpm.application.AbstractProcessApplication;
 import org.cibseven.bpm.application.ProcessApplication;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
@@ -59,8 +60,8 @@ public abstract class AbstractServletProcessApplicationDeployer {
         throw getServletException(LOG.paWrongTypeException(paClass));
       }
 
-      // add it as listener if it's a servlet process application
-      if (servletProcessApplicationClass.isAssignableFrom(paClass)) {
+      // add it as listener if it's a servlet process application (implements ServletContextListener)
+      if (servletProcessApplicationClass.isAssignableFrom(paClass) || ServletContextListener.class.isAssignableFrom(paClass)) {
         LOG.detectedPa(paClass);
         processApplicationClassNameConsumer.accept(paClass.getName());
       }

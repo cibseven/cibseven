@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.rest.impl;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -42,8 +42,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.servlet.ServletContextEvent;
-import javax.ws.rs.core.Response.Status;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.ws.rs.core.Response.Status;
 import org.cibseven.bpm.engine.ExternalTaskService;
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.ProcessEngineException;
@@ -59,23 +59,26 @@ import org.cibseven.bpm.engine.rest.dto.externaltask.FetchExternalTasksExtendedD
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Tassilo Weidner
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class FetchAndLockRestServiceInteractionTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   private static final String FETCH_EXTERNAL_TASK_URL =  "/rest-test/external-task/fetchAndLock";
@@ -97,7 +100,7 @@ public class FetchAndLockRestServiceInteractionTest extends AbstractRestServiceT
   private List<String> groupIds;
   private List<String> tenantIds;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     when(processEngine.getExternalTaskService()).thenReturn(externalTaskService);
 
@@ -324,7 +327,7 @@ public class FetchAndLockRestServiceInteractionTest extends AbstractRestServiceT
       .post(FETCH_EXTERNAL_TASK_URL);
   }
 
-  @Ignore
+  @Disabled
   @Test
   public void shouldSetAuthenticationProperly() {
     when(identityServiceMock.getCurrentAuthentication())
@@ -341,9 +344,9 @@ public class FetchAndLockRestServiceInteractionTest extends AbstractRestServiceT
     ArgumentCaptor<Authentication> argumentCaptor = ArgumentCaptor.forClass(Authentication.class);
     verify(identityServiceMock, atLeastOnce()).setAuthentication(argumentCaptor.capture());
 
-    assertThat(argumentCaptor.getValue().getUserId(), is(MockProvider.EXAMPLE_USER_ID));
-    assertThat(argumentCaptor.getValue().getGroupIds(), is(groupIds));
-    assertThat(argumentCaptor.getValue().getTenantIds(), is(tenantIds));
+    assertThat(argumentCaptor.getValue().getUserId()).isEqualTo(MockProvider.EXAMPLE_USER_ID);
+    assertThat(argumentCaptor.getValue().getGroupIds()).isEqualTo(groupIds);
+    assertThat(argumentCaptor.getValue().getTenantIds()).isEqualTo(tenantIds);
   }
 
   @Test

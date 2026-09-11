@@ -33,8 +33,8 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.variable.VariableMap;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 
 /**
@@ -54,7 +54,7 @@ public abstract class AbstractCompetingTransactionsOptimisticLockingTest {
 
   protected abstract ProcessEngineTestRule getTestRule();
 
-  @After
+  @AfterEach
   public void resetConfiguration() {
     processEngineConfiguration.setEnableOptimisticLockingOnForeignKeyViolation(true);
   }
@@ -116,8 +116,8 @@ public abstract class AbstractCompetingTransactionsOptimisticLockingTest {
     // then
     assertThat(thread1.exception)
       .isInstanceOf(ProcessEngineException.class)
-      .extracting("code")
-      .contains(BuiltinExceptionCode.FOREIGN_KEY_CONSTRAINT_VIOLATION.getCode());
+      .satisfies(ex -> assertThat(ex)
+        .hasFieldOrPropertyWithValue("code", BuiltinExceptionCode.FOREIGN_KEY_CONSTRAINT_VIOLATION.getCode()));
   }
 
   public class CompleteTaskThread extends ControllableThread {

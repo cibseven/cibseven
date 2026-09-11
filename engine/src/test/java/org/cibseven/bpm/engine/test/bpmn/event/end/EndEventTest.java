@@ -16,16 +16,16 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.event.end;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.cibseven.bpm.engine.OptimisticLockingException;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Joram Barrez
@@ -64,7 +64,7 @@ public class EndEventTest extends PluggableProcessEngineTest {
       successCount++;
     }
     
-    assertEquals("(Only) one thread should have been able to successfully end the process", 1, successCount);
+    assertEquals(1, successCount, "(Only) one thread should have been able to successfully end the process");
     testRule.assertProcessEnded(processInstance.getId());
   }
   

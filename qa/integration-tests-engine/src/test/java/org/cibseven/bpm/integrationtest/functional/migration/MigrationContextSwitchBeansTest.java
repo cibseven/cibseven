@@ -29,20 +29,20 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.asset.ByteArrayAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class MigrationContextSwitchBeansTest extends AbstractFoxPlatformIntegrationTest {
 
   public static final BpmnModelInstance ONE_TASK_PROCESS = Bpmn.createExecutableProcess("oneTaskProcess")
@@ -114,8 +114,8 @@ public class MigrationContextSwitchBeansTest extends AbstractFoxPlatformIntegrat
 
     // then
     Job timerJob = managementService.createJobQuery().singleResult();
-    Assert.assertNotNull(timerJob);
-    Assert.assertNotNull(timerJob.getDuedate());
+    Assertions.assertNotNull(timerJob);
+    Assertions.assertNotNull(timerJob.getDuedate());
   }
 
   protected static Asset modelAsAsset(BpmnModelInstance modelInstance) {

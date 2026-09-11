@@ -29,9 +29,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.AuthorizationService;
 import org.cibseven.bpm.engine.IdentityService;
@@ -51,8 +51,8 @@ import org.cibseven.bpm.engine.rest.ProcessDefinitionRestService;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.impl.NamedProcessEngineRestServiceImpl;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import io.restassured.http.ContentType;
 
@@ -69,7 +69,7 @@ public abstract class AbstractAuthenticationFilterTest extends AbstractRestServi
   protected List<String> groupIds;
   protected List<String> tenantIds;
 
-  @Before
+  @BeforeEach
   public void setup() {
     authorizationServiceMock = mock(AuthorizationServiceImpl.class);
     identityServiceMock = mock(IdentityServiceImpl.class);

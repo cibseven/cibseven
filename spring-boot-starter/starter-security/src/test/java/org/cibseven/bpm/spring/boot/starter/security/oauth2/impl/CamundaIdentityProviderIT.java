@@ -34,8 +34,8 @@ import org.cibseven.bpm.engine.impl.identity.WritableIdentityProvider;
 import org.cibseven.bpm.engine.impl.identity.db.DbGroupQueryImpl;
 import org.cibseven.bpm.engine.impl.identity.db.DbUserQueryImpl;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.AbstractSpringSecurityIT;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -79,7 +79,7 @@ public class CamundaIdentityProviderIT extends AbstractSpringSecurityIT {
     mockIdentityProviderFactory();
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     super.setup();
   }

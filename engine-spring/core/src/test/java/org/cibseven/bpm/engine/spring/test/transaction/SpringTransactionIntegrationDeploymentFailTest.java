@@ -16,10 +16,12 @@
  */
 package org.cibseven.bpm.engine.spring.test.transaction;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.cibseven.bpm.engine.spring.test.SpringProcessEngineTestCase;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.springframework.test.context.ContextConfiguration;
+import org.junit.jupiter.api.AfterEach;
 
 /**
  * @author Svetlana Dorokhova
@@ -28,11 +30,10 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration("classpath:org/cibseven/bpm/engine/spring/test/transaction/SpringTransactionIntegrationDeploymentFailTest-context.xml")
 public class SpringTransactionIntegrationDeploymentFailTest extends SpringProcessEngineTestCase {
 
-  @Override
-  protected void tearDown() throws Exception {
+  @AfterEach
+  protected void tearDown()  {
     //must not be needed after CAM-4250 is fixed
     processEngineConfiguration.getDeploymentCache().discardProcessDefinitionCache();
-    super.tearDown();
   }
 
   public void testFailingAfterDeployment() {

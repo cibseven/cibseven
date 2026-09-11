@@ -17,8 +17,9 @@
 package org.cibseven.bpm.engine.impl.delegate;
 
 import org.cibseven.bpm.engine.delegate.BaseDelegateExecution;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ValueExpression;
+
+import jakarta.el.ELContext;
+import jakarta.el.ValueExpression;
 
 /**
  * Class responsible for handling Expression.setValue() invocations.

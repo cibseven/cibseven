@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.test.api.multitenancy.cmmn.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,8 +27,8 @@ import org.cibseven.bpm.engine.repository.CaseDefinitionQuery;
 import org.cibseven.bpm.engine.runtime.CaseInstance;
 import org.cibseven.bpm.engine.runtime.CaseInstanceQuery;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class MultiTenancyCaseInstanceQueryTest extends PluggableProcessEngineTest {
 
@@ -37,7 +37,7 @@ public class MultiTenancyCaseInstanceQueryTest extends PluggableProcessEngineTes
   protected final static String TENANT_ONE = "tenant1";
   protected final static String TENANT_TWO = "tenant2";
 
-  @Before
+  @BeforeEach
   public void setUp() {
     testRule.deploy(CMMN_FILE);
     testRule.deployForTenant(TENANT_ONE, CMMN_FILE);

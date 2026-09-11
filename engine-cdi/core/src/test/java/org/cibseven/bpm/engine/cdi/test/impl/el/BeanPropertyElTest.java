@@ -16,16 +16,13 @@
  */
 package org.cibseven.bpm.engine.cdi.test.impl.el;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.MessageBean;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
-@RunWith(Arquillian.class)
 public class BeanPropertyElTest extends CdiProcessEngineTestCase {
 
   @Test

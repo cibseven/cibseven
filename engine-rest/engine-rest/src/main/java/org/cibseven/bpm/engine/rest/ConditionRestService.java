@@ -18,10 +18,10 @@ package org.cibseven.bpm.engine.rest;
 
 import java.util.List;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 
 import org.cibseven.bpm.engine.rest.dto.condition.EvaluationConditionDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.ProcessInstanceDto;

@@ -30,15 +30,15 @@ import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 
 @ScenarioUnderTest("AsyncParallelMultiInstanceScenario")
 @Origin("1.1.0")
 public class AsyncParallelMultiInstanceScenarioTest {
 
-  @Rule
+  @RegisterExtension
   public UpgradeTestRule rule = new UpgradeTestRule();
 
   @Test
@@ -62,7 +62,7 @@ public class AsyncParallelMultiInstanceScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("initAsyncBeforeSubprocess.2")
   public void testInitAsyncBeforeSubprocessActivityInstanceTree() {
@@ -132,7 +132,7 @@ public class AsyncParallelMultiInstanceScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("initAsyncBeforeTask.2")
   public void testInitAsyncBeforeTaskActivityInstanceTree() {

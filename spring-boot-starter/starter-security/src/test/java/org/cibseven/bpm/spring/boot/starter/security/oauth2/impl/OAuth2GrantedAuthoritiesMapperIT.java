@@ -24,8 +24,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.AbstractSpringSecurityIT;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -40,7 +40,7 @@ public class OAuth2GrantedAuthoritiesMapperIT extends AbstractSpringSecurityIT {
   @Autowired
   private OAuth2GrantedAuthoritiesMapper authoritiesMapper;
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().watch(OAuth2GrantedAuthoritiesMapper.class.getCanonicalName());
 
   @Test

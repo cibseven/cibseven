@@ -26,13 +26,13 @@ import org.cibseven.bpm.engine.rest.AbstractRestServiceTest;
 import org.cibseven.bpm.engine.rest.helper.MockHistoricVariableUpdateBuilder;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -61,10 +61,10 @@ public class OptimizeVariableUpdateRestServiceTest extends AbstractRestServiceTe
   protected HistoricVariableUpdate historicUpdateMock;
   protected MockHistoricVariableUpdateBuilder historicUpdateBuilder;
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     historicUpdateBuilder = MockProvider.mockHistoricVariableUpdate();
     historicUpdateMock = historicUpdateBuilder.build();
@@ -209,7 +209,7 @@ public class OptimizeVariableUpdateRestServiceTest extends AbstractRestServiceTe
     String content = response.asString();
     long sequenceCounter = from(content).getLong("[0].sequenceCounter");
 
-    Assert.assertEquals(MockProvider.EXAMPLE_HISTORIC_ACTIVITY_SEQUENCE_COUNTER, sequenceCounter);
+    Assertions.assertEquals(MockProvider.EXAMPLE_HISTORIC_ACTIVITY_SEQUENCE_COUNTER, sequenceCounter);
   }
 
 }

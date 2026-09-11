@@ -28,7 +28,7 @@
 
     <dependency>
       <groupId>org.cibseven.bpm.example</groupId>
-      <artifactId>cibseven-example-invoice-jakarta</artifactId>
+      <artifactId>cibseven-example-invoice</artifactId>
       <version>${project.version}</version>
       <classifier>classes</classifier>
       <scope>provided</scope>
@@ -54,7 +54,7 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>org.cibseven.bpm.example</groupId>
-                  <artifactId>cibseven-example-invoice-jakarta</artifactId>
+                  <artifactId>cibseven-example-invoice</artifactId>
                   <version>${project.version}</version>
                   <type>war</type>
                   <outputDirectory>${project.build.directory}/classes</outputDirectory>

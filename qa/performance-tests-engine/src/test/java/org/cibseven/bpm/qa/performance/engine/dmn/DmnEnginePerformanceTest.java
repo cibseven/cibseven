@@ -22,7 +22,7 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.qa.performance.engine.junit.ProcessEnginePerformanceTestCase;
 import org.cibseven.bpm.qa.performance.engine.steps.EvaluateDecisionTableStep;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Evaluate DMN decision tables via decision service.

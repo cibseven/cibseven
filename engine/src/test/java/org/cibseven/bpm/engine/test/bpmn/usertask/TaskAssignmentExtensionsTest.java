@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.usertask;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 
@@ -27,9 +27,9 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.task.TaskQuery;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Testcase for the non-spec extensions to the task candidate use case.
@@ -38,7 +38,7 @@ import org.junit.Test;
  */
 public class TaskAssignmentExtensionsTest extends PluggableProcessEngineTest {
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     identityService.saveUser(identityService.newUser("kermit"));
     identityService.saveUser(identityService.newUser("gonzo"));
@@ -52,7 +52,7 @@ public class TaskAssignmentExtensionsTest extends PluggableProcessEngineTest {
     identityService.createMembership("fozzie", "management");
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     identityService.deleteGroup("accountancy");
     identityService.deleteGroup("management");

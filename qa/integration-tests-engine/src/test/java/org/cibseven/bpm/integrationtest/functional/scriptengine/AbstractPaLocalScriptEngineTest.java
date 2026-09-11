@@ -16,8 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.scriptengine;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.application.ProcessApplicationInterface;
 import org.cibseven.bpm.application.ProcessApplicationReference;
@@ -29,15 +28,15 @@ import org.cibseven.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Roman Smirnov
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public abstract class AbstractPaLocalScriptEngineTest extends AbstractFoxPlatformIntegrationTest {
 
   public static final String PROCESS_ID = "testProcess";
@@ -72,13 +71,13 @@ public abstract class AbstractPaLocalScriptEngineTest extends AbstractFoxPlatfor
       }
     });
 
-    assertNotNull(reference);
+    assertThat(reference).isNotNull();
 
     ProcessApplicationInterface processApplication = null;
     try {
       processApplication = reference.getProcessApplication();
     } catch (ProcessApplicationUnavailableException e) {
-      fail("Could not retrieve process application");
+      throw new AssertionError("Could not retrieve process application", e);
     }
 
     return processApplication.getRawObject();

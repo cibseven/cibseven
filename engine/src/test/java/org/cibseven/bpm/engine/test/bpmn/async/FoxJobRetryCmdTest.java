@@ -17,11 +17,11 @@
 package org.cibseven.bpm.engine.test.bpmn.async;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -48,8 +48,8 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.MessageEventDefinition;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
 
@@ -290,7 +290,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
 
     // then
     job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(9, job.getRetries());
+    Assertions.assertEquals(9, job.getRetries());
   }
 
   @Deployment(resources = { "org/cibseven/bpm/engine/test/bpmn/async/FoxJobRetryCmdTest.testFailedServiceTask.bpmn20.xml" })
@@ -338,7 +338,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
 
     // the job is not acquirable
     acquirableJobs = findAndLockAcquirableJobs();
-    assertEquals("Job shouldn't be acquirable", 0, acquirableJobs.size());
+    assertEquals(0, acquirableJobs.size(), "Job shouldn't be acquirable");
 
     ClockUtil.reset();
   }
@@ -369,7 +369,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
 
     // then
     job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(9, job.getRetries());
+    Assertions.assertEquals(9, job.getRetries());
   }
 
   @Test
@@ -398,7 +398,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
 
     // then
     job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(2, job.getRetries()); // default behaviour
+    Assertions.assertEquals(2, job.getRetries()); // default behaviour
   }
 
   @Test
@@ -432,7 +432,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
     }
 
     job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(9, job.getRetries());
+    Assertions.assertEquals(9, job.getRetries());
 
     startDate = simpleDateFormat.parse("2017-01-01T10:05:00");
     ClockUtil.setCurrentTime(startDate);
@@ -475,7 +475,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
 
     // then
     job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(2, job.getRetries()); // default behaviour
+    Assertions.assertEquals(2, job.getRetries()); // default behaviour
   }
 
   @Test
@@ -498,7 +498,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
     Job job = managementService.createJobQuery().singleResult();
 
     // assume
-    Assert.assertEquals(5, job.getRetries());
+    Assertions.assertEquals(5, job.getRetries());
 
     // when job fails
     try {
@@ -509,7 +509,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
 
     // then
     job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(4, job.getRetries());
+    Assertions.assertEquals(4, job.getRetries());
 
     Date expectedDate = simpleDateFormat.parse("2018-01-01T10:05:00");
     assertEquals(expectedDate, job.getDuedate());
@@ -536,7 +536,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
     Job job = managementService.createJobQuery().singleResult();
 
     // assume
-    Assert.assertEquals(5, job.getRetries());
+    Assertions.assertEquals(5, job.getRetries());
 
     // when job fails
     try {
@@ -547,7 +547,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
 
     // then
     job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(4, job.getRetries());
+    Assertions.assertEquals(4, job.getRetries());
 
     Date expectedDate = simpleDateFormat.parse("2018-01-01T10:05:00");
     assertEquals(expectedDate, job.getDuedate());
@@ -572,7 +572,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
     Job job = managementService.createJobQuery().singleResult();
 
     // assume
-    Assert.assertEquals(5, job.getRetries());
+    Assertions.assertEquals(5, job.getRetries());
 
     // when job fails
     try {
@@ -583,7 +583,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
 
     // then
     job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(4, job.getRetries());
+    Assertions.assertEquals(4, job.getRetries());
 
     Date expectedDate = simpleDateFormat.parse("2018-01-01T10:05:00");
     assertEquals(expectedDate, job.getDuedate());
@@ -609,7 +609,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
     Job job = managementService.createJobQuery().singleResult();
 
     // assume
-    Assert.assertEquals(5, job.getRetries());
+    Assertions.assertEquals(5, job.getRetries());
 
     // when job fails
     try {
@@ -620,7 +620,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
 
     // then
     job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(4, job.getRetries());
+    Assertions.assertEquals(4, job.getRetries());
 
     Date expectedDate = simpleDateFormat.parse("2018-01-01T10:05:00");
     assertEquals(expectedDate, job.getDuedate());
@@ -646,7 +646,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
     Job job = managementService.createJobQuery().singleResult();
 
     // assume
-    Assert.assertEquals(5, job.getRetries());
+    Assertions.assertEquals(5, job.getRetries());
 
     // when job fails
     try {
@@ -657,7 +657,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
 
     // then
     job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(4, job.getRetries());
+    Assertions.assertEquals(4, job.getRetries());
 
     Date expectedDate = simpleDateFormat.parse("2018-01-01T10:05:00");
     assertEquals(expectedDate, job.getDuedate());
@@ -685,7 +685,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
     Job job = managementService.createJobQuery().singleResult();
 
     // assume
-    Assert.assertEquals(5, job.getRetries());
+    Assertions.assertEquals(5, job.getRetries());
 
     // when job fails
     try {
@@ -696,7 +696,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
 
     // then
     job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(4, job.getRetries());
+    Assertions.assertEquals(4, job.getRetries());
 
     Date expectedDate = simpleDateFormat.parse("2018-01-01T10:05:00");
     assertEquals(expectedDate, job.getDuedate());
@@ -722,7 +722,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
     Job job = managementService.createJobQuery().singleResult();
 
     // assume
-    Assert.assertEquals(5, job.getRetries());
+    Assertions.assertEquals(5, job.getRetries());
 
     // when job fails
     try {
@@ -733,7 +733,7 @@ public class FoxJobRetryCmdTest extends PluggableProcessEngineTest {
 
     // then
     job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(4, job.getRetries());
+    Assertions.assertEquals(4, job.getRetries());
 
     Date expectedDate = simpleDateFormat.parse("2018-01-01T10:05:00");
     assertEquals(expectedDate, job.getDuedate());

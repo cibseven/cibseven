@@ -269,7 +269,7 @@ pipeline {
                 images: ['maven:3.9.7-eclipse-temurin-17', 'postgres:17.0']
               ],
               runSteps: {
-                cambpmRunMaven('qa/', 'clean install -Ptomcat,postgresql,engine-integration-jakarta',
+                cambpmRunMaven('qa/', 'clean install -Ptomcat,postgresql,engine-integration',
                   runtimeStash: true,
                   archiveStash: true,
                   jdkVersion: 'jdk-17-latest',
@@ -296,7 +296,7 @@ pipeline {
               ],
               runSteps: {
                 cambpmRunMaven('qa/', 
-                  'clean install -Pwildfly,postgresql,engine-integration-jakarta', 
+                  'clean install -Pwildfly,postgresql,engine-integration', 
                   runtimeStash: true, 
                   archiveStash: true,
                   // we need to use JDK 17 for Spring 6
@@ -325,7 +325,7 @@ pipeline {
               ],
               runSteps: {
                 cambpmRunMaven('qa/', 
-                  'clean install -Pwildfly,postgresql,postgresql-xa,engine-integration-jakarta', 
+                  'clean install -Pwildfly,postgresql,postgresql-xa,engine-integration', 
                   runtimeStash: true, 
                   archiveStash: true,
                   // we need to use JDK 17 for Spring 6
@@ -538,7 +538,7 @@ pipeline {
               agentLabel: 'h2',
               runSteps: {
                 cambpmRunMaven('qa/', 
-                  'clean install -Pwildfly-domain,h2,engine-integration-jakarta',
+                  'clean install -Pwildfly-domain,h2,engine-integration',
                   runtimeStash: true,
                   archiveStash: true,
                   // we need to use JDK 17 for Spring 6
@@ -561,7 +561,7 @@ pipeline {
               agentLabel: 'h2',
               runSteps: {
                 cambpmRunMaven('qa/',
-                  'clean install -Pwildfly,wildfly-servlet,h2,engine-integration-jakarta',
+                  'clean install -Pwildfly,wildfly-servlet,h2,engine-integration',
                   runtimeStash: true,
                   archiveStash: true,
                   // we need to use JDK 17 for Spring 6

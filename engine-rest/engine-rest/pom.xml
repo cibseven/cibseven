@@ -13,7 +13,6 @@
 
   <properties>
     <!-- pin tomcat version for engine-rest -->
-    <version.tomcat>7.0.50</version.tomcat>
     <rest.http.port>38080</rest.http.port>
     <javax.activation.version>1.1.1</javax.activation.version>
   </properties>
@@ -36,25 +35,10 @@
     </dependency>
 
     <dependency>
-      <groupId>com.fasterxml.jackson.jaxrs</groupId>
-      <artifactId>jackson-jaxrs-json-provider</artifactId>
-      <!--
-      * Since version 2.10.0 this dependency comes with transitive Jakarta dependencies
-      * These trans-deps are directly included in JDKs <= Java 8 * For Java >= 9 compatible containers, we make sure to include these dependencies
-      -->
-      <exclusions>
-        <exclusion>
-          <groupId>jakarta.activation</groupId>
-          <artifactId>jakarta.activation-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>jakarta.xml.bind</groupId>
-          <artifactId>jakarta.xml.bind-api</artifactId>
-        </exclusion>
-      </exclusions>
+      <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
+      <artifactId>jackson-jakarta-rs-json-provider</artifactId>
     </dependency>
-
-    <dependency>
+      <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
     </dependency>
@@ -84,12 +68,6 @@
 
     <!-- provided deps -->
     <dependency>
-      <groupId>org.jboss.spec.javax.servlet</groupId>
-      <artifactId>jboss-servlet-api_3.0_spec</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-engine</artifactId>
       <scope>provided</scope>
@@ -108,15 +86,38 @@
     </dependency>
 
     <dependency>
-      <groupId>javax.activation</groupId>
-      <artifactId>activation</artifactId>
-      <version>${javax.activation.version}</version>
+      <groupId>jakarta.activation</groupId>
+      <artifactId>jakarta.activation-api</artifactId>
+      <version>2.1.2</version>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-impl</artifactId>
+      <groupId>jakarta.platform</groupId>
+      <artifactId>jakarta.jakartaee-api</artifactId>
+      <version>10.0.0</version>
+      <scope>provided</scope>
+      <exclusions>
+        <!-- Exclude to prevent conflicts with explicit Jersey dependencies -->
+        <exclusion>
+          <groupId>jakarta.ws.rs</groupId>
+          <artifactId>jakarta.ws.rs-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+      <version>4.0.5</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Add JAX-RS API for test classloader -->
+    <dependency>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+      <version>3.1.0</version>
       <scope>test</scope>
     </dependency>
 
@@ -142,8 +143,21 @@
 
     <!-- test -->
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>5.12.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>5.12.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>5.12.2</version>
       <scope>test</scope>
     </dependency>
 
@@ -162,6 +176,16 @@
       <version>${version.shrinkwrap.resolvers}</version>
       <scope>test</scope>
       <type>pom</type>
+      <exclusions>
+        <exclusion>
+          <groupId>org.jboss.spec.javax.ws.rs</groupId>
+          <artifactId>jboss-jaxrs-api_1.1_spec</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.spec.javax.ws.rs</groupId>
+          <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -175,16 +199,32 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- Source: https://mvnrepository.com/artifact/uk.org.webcompere/system-stubs-jupiter -->
     <dependency>
-      <groupId>uk.org.webcompere</groupId>
-        <artifactId>system-stubs-junit4</artifactId>
-        <version>2.1.3</version>
-       <scope>test</scope>
+        <groupId>uk.org.webcompere</groupId>
+        <artifactId>system-stubs-jupiter</artifactId>
+        <version>2.1.8</version>
+        <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <!-- Exclude to prevent Jersey version conflicts -->
+        <exclusion>
+          <groupId>org.glassfish.jersey.core</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.glassfish.jersey.inject</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.glassfish.jersey.media</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -246,20 +286,21 @@
     <dependency>
       <groupId>org.apache.tomcat.embed</groupId>
       <artifactId>tomcat-embed-core</artifactId>
-      <version>${version.tomcat}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.tomcat.embed</groupId>
-      <artifactId>tomcat-embed-logging-juli</artifactId>
-      <version>${version.tomcat}</version>
+      <version>10.1.20</version> <!-- Ensure Tomcat 10+ is used -->
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
+      <version>${version.assertj}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>5.12.0</version>
       <scope>test</scope>
     </dependency>
 
@@ -338,11 +379,6 @@
     <profile>
       <id>distro</id>
       <dependencies>
-        <dependency>
-          <groupId>org.jboss.spec.javax.ws.rs</groupId>
-          <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
-          <scope>provided</scope>
-        </dependency>
       </dependencies>
       <build>
         <plugins>
@@ -363,12 +399,7 @@
         <version.netty>4.1.42.Final</version.netty>
       </properties>
       <dependencies>
-        <dependency>
-          <groupId>org.jboss.spec.javax.ws.rs</groupId>
-          <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
-          <scope>provided</scope>
-        </dependency>
-        <dependency>
+<!--        <dependency>
           <groupId>org.jboss.resteasy</groupId>
           <artifactId>resteasy-jaxrs</artifactId>
           <version>${version.resteasy}</version>
@@ -379,7 +410,7 @@
               <groupId>org.apache.httpcomponents</groupId>
             </exclusion>
           </exclusions>
-        </dependency>
+        </dependency>-->
 
         <dependency>
           <groupId>io.netty</groupId>
@@ -466,27 +497,47 @@
       </activation>
       <dependencies>
         <dependency>
-          <groupId>javax.ws.rs</groupId>
-          <artifactId>javax.ws.rs-api</artifactId>
-          <version>2.0.1</version>
-          <scope>provided</scope>
-        </dependency>
-        <dependency>
           <groupId>org.glassfish.jersey.containers</groupId>
           <artifactId>jersey-container-grizzly2-http</artifactId>
-          <version>${version.jersey2}</version>
+          <version>${version.jersey3}</version>
           <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>org.glassfish.jersey.containers</groupId>
           <artifactId>jersey-container-servlet</artifactId>
-          <version>${version.jersey2}</version>
+          <version>${version.jersey3}</version>
           <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>org.glassfish.jersey.inject</groupId>
           <artifactId>jersey-hk2</artifactId>
-          <version>${version.jersey2}</version>
+          <version>${version.jersey3}</version>
+          <scope>test</scope>
+        </dependency>
+        <!-- Jersey JAXB extension for proper JAXB integration -->
+        <dependency>
+          <groupId>org.glassfish.jersey.media</groupId>
+          <artifactId>jersey-media-jaxb</artifactId>
+          <version>${version.jersey3}</version>
+          <scope>test</scope>
+        </dependency>
+        <!-- Force consistent Jersey core version -->
+        <dependency>
+          <groupId>org.glassfish.jersey.core</groupId>
+          <artifactId>jersey-server</artifactId>
+          <version>${version.jersey3}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.glassfish.jersey.core</groupId>
+          <artifactId>jersey-common</artifactId>
+          <version>${version.jersey3}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.glassfish.jersey.core</groupId>
+          <artifactId>jersey-client</artifactId>
+          <version>${version.jersey3}</version>
           <scope>test</scope>
         </dependency>
       </dependencies>
@@ -566,13 +617,7 @@
       </properties>
 
       <dependencies>
-        <dependency>
-          <groupId>org.jboss.spec.javax.ws.rs</groupId>
-          <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
-          <scope>provided</scope>
-        </dependency>
-
-        <dependency>
+<!--        <dependency>
           <groupId>org.jboss.resteasy</groupId>
           <artifactId>resteasy-jaxrs</artifactId>
           <version>${version.resteasy}</version>
@@ -583,7 +628,7 @@
               <groupId>org.apache.httpcomponents</groupId>
             </exclusion>
           </exclusions>
-        </dependency>
+        </dependency>-->
 
         <dependency>
           <groupId>io.netty</groupId>

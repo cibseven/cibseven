@@ -16,7 +16,13 @@
  */
 package org.cibseven.spin.plugin.variables;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.spin.DataFormats.xml;
 import static org.cibseven.spin.plugin.variable.SpinValues.xmlValue;
 import static org.cibseven.spin.plugin.variable.type.SpinValueType.XML;

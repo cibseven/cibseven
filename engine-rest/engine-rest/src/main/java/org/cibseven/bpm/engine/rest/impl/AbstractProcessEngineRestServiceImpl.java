@@ -18,9 +18,9 @@ package org.cibseven.bpm.engine.rest.impl;
 
 import java.net.URI;
 
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.Providers;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.ext.Providers;
 
 import org.cibseven.bpm.engine.rest.AuthorizationRestService;
 import org.cibseven.bpm.engine.rest.BatchRestService;

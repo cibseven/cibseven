@@ -24,9 +24,9 @@ import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.el.CommandContextFunctions;
 import org.cibseven.bpm.engine.impl.el.DateTimeFunctions;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -42,25 +42,25 @@ public class CustomExpressionManagerTest {
         .setJdbcUrl("jdbc:h2:mem:camunda" + getClass().getSimpleName());
 
     CustomExpressionManager customExpressionManager = new CustomExpressionManager();
-    Assert.assertTrue(customExpressionManager.getFunctions().isEmpty());
+    Assertions.assertTrue(customExpressionManager.getFunctions().isEmpty());
     config.setExpressionManager(customExpressionManager);
 
     // when the engine is initialized
     engine = config.buildProcessEngine();
 
     // then 4 default functions should be registered
-    Assert.assertSame(customExpressionManager, config.getExpressionManager());
-    Assert.assertEquals(4, customExpressionManager.getFunctions().size());
+    Assertions.assertSame(customExpressionManager, config.getExpressionManager());
+    Assertions.assertEquals(4, customExpressionManager.getFunctions().size());
 
     Map<String, Method> functions = customExpressionManager.getFunctions();
 
-    Assert.assertTrue(functions.containsKey(CommandContextFunctions.CURRENT_USER));
-    Assert.assertTrue(functions.containsKey(CommandContextFunctions.CURRENT_USER_GROUPS));
-    Assert.assertTrue(functions.containsKey(DateTimeFunctions.NOW));
-    Assert.assertTrue(functions.containsKey(DateTimeFunctions.DATE_TIME));
+    Assertions.assertTrue(functions.containsKey(CommandContextFunctions.CURRENT_USER));
+    Assertions.assertTrue(functions.containsKey(CommandContextFunctions.CURRENT_USER_GROUPS));
+    Assertions.assertTrue(functions.containsKey(DateTimeFunctions.NOW));
+    Assertions.assertTrue(functions.containsKey(DateTimeFunctions.DATE_TIME));
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (engine != null) {
       engine.close();

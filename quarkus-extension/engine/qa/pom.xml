@@ -38,6 +38,13 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${version.junit5}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -52,7 +59,7 @@
           </systemPropertyVariables>
 
           <dependenciesToScan>
-            <dependency>org.cibseven.bpm:cibseven-engine-cdi-jakarta</dependency>
+            <dependency>org.cibseven.bpm:cibseven-engine-cdi</dependency>
           </dependenciesToScan>
 
           <excludes>
@@ -80,7 +87,7 @@
 
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-cdi-jakarta</artifactId>
+      <artifactId>cibseven-engine-cdi</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
       <classifier>tests-quarkus</classifier>
@@ -103,14 +110,26 @@
     <!-- Test dependencies -->
 
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.jboss.arquillian.junit5</groupId>
+      <artifactId>arquillian-junit5-container</artifactId>
       <scope>test</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.jboss.arquillian.junit</groupId>
-      <artifactId>arquillian-junit-container</artifactId>
+      <groupId>org.jboss.arquillian.junit5</groupId>
+      <artifactId>arquillian-junit5-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-junit5-internal</artifactId>
       <scope>test</scope>
     </dependency>
 

@@ -16,10 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.war;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.List;
 import java.util.Set;
@@ -32,12 +30,12 @@ import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TestWarDeploymentResumePreviousOnProcessDefinitionKey  extends AbstractFoxPlatformIntegrationTest {
 
   private static final String PA1 = "PA1";
@@ -59,13 +57,13 @@ public class TestWarDeploymentResumePreviousOnProcessDefinitionKey  extends Abst
   @Test
   @OperateOnDeployment(value=PA2)
   public void testDeployProcessArchive() {
-    assertThat(processEngine, is(notNullValue()));
+    assertThat(processEngine).isNotNull();
     RepositoryService repositoryService = processEngine.getRepositoryService();
     long count = repositoryService.createProcessDefinitionQuery()
       .processDefinitionKey("testDeployProcessArchive")
       .count();
 
-    assertThat(count, is(2L));
+    assertThat(count).isEqualTo(2L);
 
     // validate registrations:
     ProcessApplicationService processApplicationService = BpmPlatform.getProcessApplicationService();
@@ -82,6 +80,6 @@ public class TestWarDeploymentResumePreviousOnProcessDefinitionKey  extends Abst
         resumedRegistrationFound = true;
       }
     }
-    assertThat("Previous version of the deployment was not resumed", resumedRegistrationFound, is(true));
+    assertThat(resumedRegistrationFound).as("Previous version of the deployment was not resumed" ).isTrue();
   }
 }

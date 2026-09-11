@@ -107,12 +107,6 @@
     </dependency>
 
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
@@ -123,14 +117,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-    
-    <!-- Required to Run JUnit4 tests -->
-    <dependency>
-      <groupId>org.junit.vintage</groupId>
-      <artifactId>junit-vintage-engine</artifactId>
-      <scope>test</scope>
-    </dependency>
-
     <!-- TestRestTemplate moved to spring-boot-resttestclient in Spring Boot 4,
          which requires spring-boot-restclient for RestTemplateBuilder -->
     <dependency>

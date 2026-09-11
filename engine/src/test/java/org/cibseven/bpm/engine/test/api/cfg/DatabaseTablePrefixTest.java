@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.api.cfg;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.sql.Connection;
 
@@ -27,7 +27,7 @@ import org.cibseven.bpm.engine.impl.ProcessEngineImpl;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.util.ReflectUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer

@@ -16,12 +16,12 @@
  */
 package org.cibseven.bpm.integrationtest.jobexecutor.beans;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import javax.enterprise.concurrent.ManagedExecutorService;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.annotation.Resource;
+import jakarta.ejb.Singleton;
+import jakarta.ejb.Startup;
+import jakarta.enterprise.concurrent.ManagedExecutorService;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.cdi.impl.ManagedJobExecutor;
 

@@ -35,8 +35,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
@@ -45,10 +45,10 @@ import org.cibseven.bpm.engine.rest.util.OrderingBuilder;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.runtime.ExecutionQuery;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -58,7 +58,7 @@ import io.restassured.response.Response;
 public class ExecutionRestServiceQueryTest extends
     AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String EXECUTION_QUERY_URL = TEST_RESOURCE_ROOT_PATH + "/execution";
@@ -66,7 +66,7 @@ public class ExecutionRestServiceQueryTest extends
 
   private ExecutionQuery mockedQuery;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     mockedQuery = setUpMockExecutionQuery(createMockExecutionList());
   }
@@ -160,18 +160,18 @@ public class ExecutionRestServiceQueryTest extends
 
     String content = response.asString();
     List<String> executions = from(content).getList("");
-    Assert.assertEquals("There should be one execution returned.", 1, executions.size());
-    Assert.assertNotNull("There should be one execution returned", executions.get(0));
+    Assertions.assertEquals( 1, executions.size(), "There should be one execution returned.");
+    Assertions.assertNotNull(executions.get(0), "There should be one execution returned");
 
     String returnedExecutionId = from(content).getString("[0].id");
     Boolean returnedIsEnded = from(content).getBoolean("[0].ended");
     String returnedProcessInstanceId = from(content).getString("[0].processInstanceId");
     String returnedTenantId = from(content).getString("[0].tenantId");
 
-    Assert.assertEquals(MockProvider.EXAMPLE_EXECUTION_ID, returnedExecutionId);
-    Assert.assertEquals(MockProvider.EXAMPLE_EXECUTION_IS_ENDED, returnedIsEnded);
-    Assert.assertEquals(MockProvider.EXAMPLE_PROCESS_INSTANCE_ID, returnedProcessInstanceId);
-    Assert.assertEquals(MockProvider.EXAMPLE_TENANT_ID, returnedTenantId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_EXECUTION_ID, returnedExecutionId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_EXECUTION_IS_ENDED, returnedIsEnded);
+    Assertions.assertEquals(MockProvider.EXAMPLE_PROCESS_INSTANCE_ID, returnedProcessInstanceId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_TENANT_ID, returnedTenantId);
   }
 
   @Test
@@ -182,8 +182,8 @@ public class ExecutionRestServiceQueryTest extends
 
     String content = response.asString();
     String returnedProcessInstanceId = from(content).getString("[0].processInstanceId");
-    Assert.assertNull("Should be null, as it is also null in the original execution on the server.",
-        returnedProcessInstanceId);
+    Assertions.assertNull(returnedProcessInstanceId,
+        "Should be null, as it is also null in the original execution on the server.");
   }
 
   private List<Execution> createIncompleteMockExecutions() {

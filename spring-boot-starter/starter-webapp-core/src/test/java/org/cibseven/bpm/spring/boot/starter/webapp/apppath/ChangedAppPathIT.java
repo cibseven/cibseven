@@ -18,9 +18,9 @@ package org.cibseven.bpm.spring.boot.starter.webapp.apppath;
 
 import org.cibseven.bpm.spring.boot.starter.webapp.WebappTestApp;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.util.HttpClientRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -28,7 +28,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
 
@@ -37,7 +37,7 @@ import static org.cibseven.bpm.webapp.impl.security.filter.headersec.provider.im
 import static org.cibseven.bpm.webapp.impl.security.filter.headersec.provider.impl.ContentSecurityPolicyProvider.HEADER_NAME;
 import static org.cibseven.bpm.webapp.impl.security.filter.headersec.provider.impl.ContentSecurityPolicyProvider.HEADER_NONCE_PLACEHOLDER;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(
     classes = { WebappTestApp.class },
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -48,7 +48,7 @@ public class ChangedAppPathIT {
 
   protected static final String MY_APP_PATH = "/my/application/path";
 
-  @Rule
+  @RegisterExtension
   public HttpClientRule httpClientRule = new HttpClientRule();
 
   @LocalServerPort

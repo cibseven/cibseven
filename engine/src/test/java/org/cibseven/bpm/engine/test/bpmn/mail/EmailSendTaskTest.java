@@ -16,13 +16,13 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.mail;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import javax.activation.DataHandler;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
+import jakarta.activation.DataHandler;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -36,7 +36,7 @@ import java.util.Map;
 
 import org.cibseven.bpm.engine.impl.util.CollectionUtil;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.subethamail.wiser.WiserMessage;
 
 /**

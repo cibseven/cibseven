@@ -26,11 +26,11 @@ import org.cibseven.bpm.engine.query.PeriodUnit;
 import org.cibseven.bpm.engine.rest.AbstractRestServiceTest;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -71,14 +71,14 @@ import static org.mockito.Mockito.when;
 public class HistoricTaskReportRestServiceTest extends AbstractRestServiceTest {
 
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String TASK_REPORT_URL = TEST_RESOURCE_ROOT_PATH + "/history/task/report";
 
   protected HistoricTaskInstanceReport mockedReportQuery;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     mockedReportQuery = setUpMockReportQuery();
   }

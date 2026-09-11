@@ -18,13 +18,13 @@ package org.cibseven.spin.javascript.nashorn.json.tree;
 
 import org.cibseven.spin.impl.test.ScriptEngine;
 import org.cibseven.spin.json.tree.JsonTreeMapObjectToJsonScriptTest;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 
 /**
  * Note: Jackson is apparently not able to map Nashorn's internal representations
  * of javascript objects and arrays.
  */
-@Ignore
+@Disabled
 @ScriptEngine("nashorn")
 public class JsonTreeMapObjectToJsonJavascriptTest extends JsonTreeMapObjectToJsonScriptTest {
 

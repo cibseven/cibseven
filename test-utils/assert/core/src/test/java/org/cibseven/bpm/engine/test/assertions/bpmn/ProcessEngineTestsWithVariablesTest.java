@@ -20,79 +20,46 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.engine.test.assertions.bpmn.BpmnAwareTests.withVariables;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Stream;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(value = Parameterized.class)
 public class ProcessEngineTestsWithVariablesTest {
 
-  List<Object> keys;
-  List<Object> values;
-  Map<String, Object> expectedMap;
-
-  public ProcessEngineTestsWithVariablesTest(String key1, Object value1, String key2, Object value2, String key3, Object value3) {
-
-    expectedMap = new HashMap<>();
-    if (key1 != null)
-      expectedMap.put(key1, value1);
-    if (key2 != null)
-      expectedMap.put(key2, value2);
-    if (key3 != null)
-      expectedMap.put(key3, value3);
-
-    keys = new ArrayList<>();
-    if (key1 != null)
-    keys.add(key1);
-    if (key2 != null)
-    keys.add(key2);
-    if (key3 != null)
-    keys.add(key3);
-
-    values = new ArrayList<>();
-    if (key1 != null)
-    values.add(value1);
-    if (key2 != null)
-    values.add(value2);
-    if (key3 != null)
-    values.add(value3);
-
+  static Stream<org.junit.jupiter.params.provider.Arguments> data() {
+    return Stream.of(
+      org.junit.jupiter.params.provider.Arguments.of(Arrays.asList("key1"), Arrays.asList(1), mapOf("key1", 1)),
+      org.junit.jupiter.params.provider.Arguments.of(Arrays.asList("key1", "key2"), Arrays.asList(1, 2), mapOf("key1", 1, "key2", 2)),
+      org.junit.jupiter.params.provider.Arguments.of(Arrays.asList("key2"), Arrays.asList(2), mapOf("key2", 2)),
+      org.junit.jupiter.params.provider.Arguments.of(Arrays.asList("key1", "key2", "key3"), Arrays.asList(1, 2, 3), mapOf("key1", 1, "key2", 2, "key3", 3))
+    );
   }
 
-  @Parameterized.Parameters
-  public static Collection<Object[]> data() {
-    Object[][] data = new Object[][] {
-      { "key1", 1   , null  , null, null  , null },
-      { "key1", 1   , "key2", 2   , null  , null },
-      { null  , null, "key2", 2   , null  , null },
-      { "key1", 1   , "key2", 2   , "key3", 3    }
-    };
-    return Arrays.asList(data);
+  private static Map<String, Object> mapOf(Object... kv) {
+    Map<String, Object> map = new HashMap<>();
+    for (int i = 0; i < kv.length; i += 2) {
+      map.put((String) kv[i], kv[i + 1]);
+    }
+    return map;
   }
 
-  @Test
-  public void testWithVariables() {
-    // When we simply constuct the map with the given data
+  @ParameterizedTest
+  @MethodSource("data")
+  void testWithVariables(List<Object> keys, List<Object> values, Map<String, Object> expectedMap) {
     Map<String, Object> returnedMap = returnedMap(keys, values);
-    // Then we expect to find the expected Map
     assertThat(returnedMap).isEqualTo(expectedMap);
   }
 
   @Test
-  public void testWithVariables_NoStringKeys() {
-    // Given we replace the last key with its integer value
+  void testWithVariables_NoStringKeys() {
+    List<Object> keys = new ArrayList<>(Arrays.asList("key1", "key2", "key3"));
+    List<Object> values = new ArrayList<>(Arrays.asList(1, 2, 3));
     keys.set(keys.size() - 1, values.get(values.size() - 1));
-    // When we construct the variables map
     try {
       returnedMap(keys, values);
-    // Then we expect an exception to be thrown
     } catch (Throwable t) {
       assertThat(t).isInstanceOfAny(ClassCastException.class, IllegalArgumentException.class, AssertionError.class);
       return;
@@ -101,13 +68,12 @@ public class ProcessEngineTestsWithVariablesTest {
   }
 
   @Test
-  public void testWithVariables_NullKeys() {
-    // Given we replace the last key with a null pointer
+  void testWithVariables_NullKeys() {
+    List<Object> keys = new ArrayList<>(Arrays.asList("key1", "key2", "key3"));
+    List<Object> values = new ArrayList<>(Arrays.asList(1, 2, 3));
     keys.set(keys.size() - 1, null);
-    // When we construct the variables map
     try {
       returnedMap(keys, values);
-    // Then we expect an exception to be thrown
     } catch (Throwable t) {
       assertThat(t).isInstanceOfAny(IllegalArgumentException.class, AssertionError.class);
       return;
@@ -116,16 +82,14 @@ public class ProcessEngineTestsWithVariablesTest {
   }
 
   @Test
-  public void testWithVariables_NullValues() {
-    // Given we replace all values with a null pointer
+  void testWithVariables_NullValues() {
+    List<Object> keys = new ArrayList<>(Arrays.asList("key1", "key2", "key3"));
+    List<Object> values = new ArrayList<>(Arrays.asList(1, 2, 3));
     int idx = values.size();
     while (idx > 0)
       values.set(--idx, null);
-    // When we construct the variables map
     Map<String, Object> returnedMap = returnedMap(keys, values);
-    // Then we expect the keys to match the expectedMap keys
-    assertThat(returnedMap.keySet()).isEqualTo(expectedMap.keySet());
-    // And we expect all the values to be null
+    assertThat(returnedMap.keySet()).isEqualTo(new HashSet<>(keys));
     assertThat(returnedMap.values()).containsOnly((Object) null);
   }
 
@@ -139,5 +103,4 @@ public class ProcessEngineTestsWithVariablesTest {
       returnedMap = withVariables((String) keys.get(0), values.get(0));
     return returnedMap;
   }
-
 }

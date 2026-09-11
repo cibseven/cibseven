@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.api.mgmt.metrics;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ import org.cibseven.bpm.engine.runtime.CaseExecution;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.model.bpmn.Bpmn;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer

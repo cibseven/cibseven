@@ -34,8 +34,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.helper.variable.EqualsPrimitiveValue;
@@ -43,9 +43,9 @@ import org.cibseven.bpm.engine.rest.util.OrderingBuilder;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.bpm.engine.runtime.CaseInstance;
 import org.cibseven.bpm.engine.runtime.CaseInstanceQuery;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -58,7 +58,7 @@ import io.restassured.response.Response;
  */
 public class CaseInstanceRestServiceQueryTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String CASE_INSTANCE_QUERY_URL = TEST_RESOURCE_ROOT_PATH + "/case-instance";
@@ -66,7 +66,7 @@ public class CaseInstanceRestServiceQueryTest extends AbstractRestServiceTest {
 
   private CaseInstanceQuery mockedQuery;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     mockedQuery = setUpMockCaseInstanceQuery(MockProvider.createMockCaseInstances());
   }

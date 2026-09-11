@@ -19,10 +19,11 @@ package org.cibseven.bpm.engine.impl.el;
 import java.beans.FeatureDescriptor;
 import java.util.Iterator;
 
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
 import org.cibseven.bpm.engine.variable.context.VariableContext;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
+
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
 
 /**
  * @author Daniel Meyer

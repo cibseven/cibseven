@@ -16,11 +16,11 @@
  */
 package org.cibseven.bpm.cockpit.plugin.base;
 
-import static junit.framework.TestCase.fail;
 import static org.cibseven.bpm.engine.rest.dto.ConditionQueryParameterDto.EQUALS_OPERATOR_NAME;
 import static org.cibseven.bpm.engine.rest.dto.ConditionQueryParameterDto.LIKE_OPERATOR_NAME;
 import static org.cibseven.bpm.engine.rest.dto.ConditionQueryParameterDto.NOT_EQUALS_OPERATOR_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,10 +43,9 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.rest.dto.VariableQueryParameterDto;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ProcessDefinitionResourceTest extends AbstractCockpitPluginTest {
 
@@ -57,7 +56,7 @@ public class ProcessDefinitionResourceTest extends AbstractCockpitPluginTest {
   private ProcessDefinitionResource resource;
   protected IdentityService identityService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     super.before();
 
@@ -70,12 +69,12 @@ public class ProcessDefinitionResourceTest extends AbstractCockpitPluginTest {
     identityService = processEngine.getIdentityService();
   }
 
-  @After
+  @AfterEach
   public void clearAuthentication() {
     identityService.clearAuthentication();
   }
 
-  @After
+  @AfterEach
   public void resetQueryMaxResultsLimit() {
     processEngineConfiguration.setQueryMaxResultsLimit(Integer.MAX_VALUE);
   }
@@ -148,7 +147,7 @@ public class ProcessDefinitionResourceTest extends AbstractCockpitPluginTest {
       } else if (activityId.equals("secondCallActivity")) {
         assertThat(activityId).isEqualTo("secondCallActivity");
       } else {
-        Assert.fail("Unexpected activity id:" + activityId);
+        fail("Unexpected activity id:" + activityId);
       }
     }
   }
@@ -190,7 +189,7 @@ public class ProcessDefinitionResourceTest extends AbstractCockpitPluginTest {
       } else if (activityId.equals("secondCallActivity")) {
         assertThat(activityId).isEqualTo("secondCallActivity");
       } else {
-        Assert.fail("Unexpected activity id:" + activityId);
+        fail("Unexpected activity id:" + activityId);
       }
     }
 
@@ -258,7 +257,7 @@ public class ProcessDefinitionResourceTest extends AbstractCockpitPluginTest {
         assertThat(calledFrom).isEqualTo("secondCallActivity");
 
       } else {
-        Assert.fail("Unexpected process definition: " + id);
+        fail("Unexpected process definition: " + id);
       }
 
       assertThat(dto.getId()).isEqualTo(compareWith.getId());
@@ -312,7 +311,7 @@ public class ProcessDefinitionResourceTest extends AbstractCockpitPluginTest {
       } else if (id.equals(anotherUserTaskProcess.getId())) {
         compareWith = anotherUserTaskProcess;
       } else {
-        Assert.fail("Unexpected process definition: " + id);
+        fail("Unexpected process definition: " + id);
       }
 
       assertThat(dto.getId()).isEqualTo(compareWith.getId());

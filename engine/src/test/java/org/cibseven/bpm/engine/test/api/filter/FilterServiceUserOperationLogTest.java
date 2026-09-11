@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.test.api.filter;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.HashMap;
 
@@ -32,11 +32,12 @@ import org.cibseven.bpm.engine.history.UserOperationLogEntry;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 /**
  * @author Tobias Metzke
@@ -44,6 +45,7 @@ import org.junit.rules.RuleChain;
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class FilterServiceUserOperationLogTest {
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected FilterService filterService;
@@ -51,10 +53,8 @@ public class FilterServiceUserOperationLogTest {
   protected TaskService taskService;
   protected IdentityService identityService;
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule);
 
-  @Before
+  @BeforeEach
   public void setUp() {
     filterService = engineRule.getFilterService();
     historyService = engineRule.getHistoryService();
@@ -62,7 +62,7 @@ public class FilterServiceUserOperationLogTest {
     identityService = engineRule.getIdentityService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     // delete all existing filters
     for (Filter filter : filterService.createTaskFilterQuery().list()) {

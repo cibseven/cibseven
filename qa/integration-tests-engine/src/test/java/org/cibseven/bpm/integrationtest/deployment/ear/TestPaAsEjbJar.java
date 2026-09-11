@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.ear;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.application.impl.ejb.DefaultEjbProcessApplication;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
@@ -23,20 +25,20 @@ import org.cibseven.bpm.integrationtest.deployment.ear.beans.NamedCdiBean;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Roman Smirnov
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TestPaAsEjbJar extends AbstractFoxPlatformIntegrationTest {
 
   /**
@@ -75,13 +77,13 @@ public class TestPaAsEjbJar extends AbstractFoxPlatformIntegrationTest {
   @Test
   public void testPaAsEjbModule() {
     ProcessEngine processEngine = ProgrammaticBeanLookup.lookup(ProcessEngine.class);
-    Assert.assertNotNull(processEngine);
+    Assertions.assertNotNull(processEngine);
 
     runtimeService.startProcessInstanceByKey("paAsEjbJar-process");
-    Assert.assertEquals(1, runtimeService.createProcessInstanceQuery().count());
+    assertThat(runtimeService.createProcessInstanceQuery().count()).isEqualTo(1);
     waitForJobExecutorToProcessAllJobs();
 
-    Assert.assertEquals(0, runtimeService.createProcessInstanceQuery().count());
+    assertThat(runtimeService.createProcessInstanceQuery().count()).isEqualTo(0);
   }
 
 }

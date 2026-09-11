@@ -16,14 +16,15 @@
  */
 package org.cibseven.bpm.engine.cdi.test.impl.context;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
-import org.junit.Assert;
 
-import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 @Named
 @Dependent
@@ -34,7 +35,7 @@ public class MultiInstanceDelegate implements JavaDelegate {
 
   @Override
   public void execute(DelegateExecution delegateExecution) {
-    Assert.assertNotNull("local variable should be set", businessProcess.getVariable("localVar"));
+    assertNotNull(businessProcess.getVariable("localVar"), "local variable should be set");
   }
 
 }

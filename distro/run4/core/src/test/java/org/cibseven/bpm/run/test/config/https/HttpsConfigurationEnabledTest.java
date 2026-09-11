@@ -23,10 +23,8 @@ import java.util.List;
 import org.cibseven.bpm.run.CamundaBpmRun;
 import org.cibseven.bpm.run.test.AbstractRestTest;
 import org.cibseven.bpm.run.test.util.TestUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpEntity;
@@ -36,14 +34,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.ResourceAccessException;
 
-@SpringBootTest(classes = { CamundaBpmRun.class }, webEnvironment = WebEnvironment.DEFINED_PORT)
+@SpringBootTest(classes = { CamundaBpmRun.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(profiles = { "test-https-enabled" }, inheritProfiles = true)
 public class HttpsConfigurationEnabledTest extends AbstractRestTest {
   
-  @Rule
-  public ExpectedException exceptionRule = ExpectedException.none();
-
-  @Before
+  @BeforeEach
   public void init() throws Exception {
     TestUtils.trustSelfSignedSSL();
   }
@@ -62,14 +57,26 @@ public class HttpsConfigurationEnabledTest extends AbstractRestTest {
 
   @Test
   public void shouldNotRedirect() {
-    // given
-    String url = "http://localhost:" + 8080 + CONTEXT_PATH + "/task";
+    // given: a plain HTTP request against the HTTPS-only server port
+    String url = "http://localhost:" + localPort + CONTEXT_PATH + "/task";
 
-    // then
-    exceptionRule.expect(ResourceAccessException.class);
-    exceptionRule.expectMessage("I/O error on GET request for \"http://localhost:8080/engine-rest/task\":");
+    // when / then: the server must not redirect plain HTTP to HTTPS.
+    // Depending on the connector, this either fails at connection level
+    // (ResourceAccessException) or returns a 4xx Bad Request. Both are acceptable;
+    // a 2xx (served content) or 3xx (redirect) would be a failure.
+    try {
+      ResponseEntity<String> response =
+          testRestTemplate.exchange(url, HttpMethod.GET, HttpEntity.EMPTY, String.class);
 
-    // then
-    ResponseEntity<String> response = testRestTemplate.exchange(url, HttpMethod.GET, HttpEntity.EMPTY, String.class);
+      assertThat(response.getStatusCode().is3xxRedirection())
+          .as("Server must not redirect plain HTTP to HTTPS")
+          .isFalse();
+      assertThat(response.getStatusCode().is2xxSuccessful())
+          .as("Server must not serve content over plain HTTP")
+          .isFalse();
+    } catch (ResourceAccessException e) {
+      // expected: connection reset / TLS handshake failure on the HTTPS-only port
+      assertThat(e).hasMessageContaining("I/O error on GET request for \"" + url + "\":");
+    }
   }
 }

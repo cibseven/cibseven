@@ -26,7 +26,7 @@ import org.apache.hc.core5.util.Timeout;
 import org.cibseven.bpm.client.ExternalTaskClient;
 import org.cibseven.bpm.client.UrlResolver;
 import org.cibseven.bpm.engine.impl.util.ReflectUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 public class ExternalTaskClientBuilderImplTest {

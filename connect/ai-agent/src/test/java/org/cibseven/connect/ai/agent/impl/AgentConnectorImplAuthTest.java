@@ -35,9 +35,9 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.identity.Authentication;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for the private engine + authentication resolution methods of
@@ -61,14 +61,14 @@ public class AgentConnectorImplAuthTest {
   private boolean pushedEngineConfig;
   private boolean pushedExecution;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     connector = new AgentConnectorImpl();
     pushedEngineConfig = false;
     pushedExecution = false;
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     // Context state is held in ThreadLocal Deques shared with the engine; leaks
     // would poison sibling tests.

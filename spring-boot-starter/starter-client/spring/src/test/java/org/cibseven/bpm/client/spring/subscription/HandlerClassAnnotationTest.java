@@ -19,7 +19,7 @@ package org.cibseven.bpm.client.spring.subscription;
 import org.cibseven.bpm.client.spring.MockedTest;
 import org.cibseven.bpm.client.spring.configuration.SimpleClientConfiguration;
 import org.cibseven.bpm.client.spring.subscription.configuration.HandlerClassAnnotationConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ContextConfiguration;
 
 import static org.mockito.Mockito.times;

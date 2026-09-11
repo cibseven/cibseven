@@ -17,7 +17,7 @@
 package org.cibseven.bpm.client.task;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.cibseven.bpm.client.rule.ClientRule.LOCK_DURATION;
+import static org.cibseven.bpm.client.rule.ClientExtension.LOCK_DURATION;
 import static org.cibseven.bpm.client.util.ProcessModels.BPMN_ERROR_EXTERNAL_TASK_PROCESS;
 import static org.cibseven.bpm.client.util.ProcessModels.EXTERNAL_TASK_ID;
 import static org.cibseven.bpm.client.util.ProcessModels.EXTERNAL_TASK_PRIORITY;
@@ -40,7 +40,7 @@ import org.cibseven.bpm.client.dto.ProcessDefinitionDto;
 import org.cibseven.bpm.client.dto.ProcessInstanceDto;
 import org.cibseven.bpm.client.dto.TaskDto;
 import org.cibseven.bpm.client.dto.VariableInstanceDto;
-import org.cibseven.bpm.client.rule.ClientRule;
+import org.cibseven.bpm.client.rule.ClientExtension;
 import org.cibseven.bpm.client.rule.EngineRule;
 import org.cibseven.bpm.client.util.ProcessModels;
 import org.cibseven.bpm.client.util.RecordingExternalTaskHandler;
@@ -48,26 +48,24 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.BoundaryEvent;
 import org.cibseven.bpm.model.bpmn.instance.ErrorEventDefinition;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class ExternalTaskHandlerIT {
 
   private static final String BUSINESS_KEY = "aBusinessKey";
-  protected ClientRule clientRule = new ClientRule();
+  @RegisterExtension
+  protected ClientExtension clientRule = new ClientExtension();
+  @RegisterExtension
   protected EngineRule engineRule = new EngineRule();
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule);
 
   protected ExternalTaskClient client;
 
   protected ProcessDefinitionDto processDefinition;
   protected ProcessInstanceDto processInstance;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     client = clientRule.client();
 

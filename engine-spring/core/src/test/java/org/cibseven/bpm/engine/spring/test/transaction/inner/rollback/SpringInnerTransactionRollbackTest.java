@@ -25,21 +25,21 @@ import org.cibseven.bpm.engine.history.HistoricProcessInstance;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = {"classpath:org/cibseven/bpm/engine/spring/test/transaction/"
   + "SpringInnerTransactionRollbackTest-applicationContext.xml"})
 public class SpringInnerTransactionRollbackTest {
 
-  @Rule
+  @RegisterExtension
   @Autowired
   public ProcessEngineRule rule;
 

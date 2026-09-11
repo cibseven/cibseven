@@ -20,22 +20,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.connect.ai.agent.impl.AgentConnectorImpl;
 import org.cibseven.connect.ai.agent.impl.AgentRequestImpl;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class AgentRequestTest {
 
   private AgentConnectorImpl connector;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     connector = new AgentConnectorImpl();
     System.clearProperty(AgentConnectorConstants.DEFAULT_MODEL_PROPERTY);
     AgentConnectorConstants.ENV_READER = System::getenv;
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     System.clearProperty(AgentConnectorConstants.DEFAULT_MODEL_PROPERTY);
     AgentConnectorConstants.ENV_READER = System::getenv;

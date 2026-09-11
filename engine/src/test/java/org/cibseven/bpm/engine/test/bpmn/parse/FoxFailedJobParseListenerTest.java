@@ -17,10 +17,10 @@
 package org.cibseven.bpm.engine.test.bpmn.parse;
 
 import static org.cibseven.bpm.engine.impl.bpmn.parser.DefaultFailedJobParseListener.FAILED_JOB_CONFIGURATION;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParse;
 import org.cibseven.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
@@ -29,7 +29,7 @@ import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class FoxFailedJobParseListenerTest extends PluggableProcessEngineTest {
 

@@ -29,8 +29,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
@@ -41,9 +41,9 @@ import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.impl.identity.PasswordPolicyDigitRuleImpl;
 import org.cibseven.bpm.engine.impl.identity.PasswordPolicyLengthRuleImpl;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Miklas Boskamp
@@ -52,14 +52,14 @@ public class PasswordPolicyServiceQueryTest extends AbstractRestServiceTest {
 
   protected static final String QUERY_URL = TEST_RESOURCE_ROOT_PATH + IdentityRestService.PATH + "/password-policy";
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected ProcessEngineConfiguration processEngineConfigurationMock = mock(ProcessEngineConfiguration.class);
 
   protected IdentityService identityServiceMock;
 
-  @Before
+  @BeforeEach
   public void setUpMocks() {
     identityServiceMock = mock(IdentityService.class);
 

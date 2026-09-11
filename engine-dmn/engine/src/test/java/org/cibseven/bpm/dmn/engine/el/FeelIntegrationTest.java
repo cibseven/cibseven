@@ -42,7 +42,7 @@ import org.cibseven.bpm.dmn.feel.impl.FeelException;
 import org.cibseven.bpm.dmn.feel.impl.juel.FeelEngineFactoryImpl;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.context.VariableContext;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class FeelIntegrationTest extends DmnEngineTest {
 

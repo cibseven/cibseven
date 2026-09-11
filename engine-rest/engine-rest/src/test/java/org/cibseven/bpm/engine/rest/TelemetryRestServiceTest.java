@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.ManagementService;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
@@ -37,9 +37,9 @@ import org.cibseven.bpm.engine.telemetry.Internals;
 import org.cibseven.bpm.engine.telemetry.Jdk;
 import org.cibseven.bpm.engine.telemetry.Product;
 import org.cibseven.bpm.engine.telemetry.TelemetryData;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -47,7 +47,7 @@ import io.restassured.http.ContentType;
 
 public class TelemetryRestServiceTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String TELEMETRY_URL = TEST_RESOURCE_ROOT_PATH +  TelemetryRestService.PATH;
@@ -57,7 +57,7 @@ public class TelemetryRestServiceTest extends AbstractRestServiceTest {
   protected ManagementService managementServiceMock;
 
 
-  @Before
+  @BeforeEach
   public void setupMocks() {
     managementServiceMock = mock(ManagementService.class);
     when(processEngine.getManagementService()).thenReturn(managementServiceMock);

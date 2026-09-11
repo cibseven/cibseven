@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.api.authorization.task.getvariable;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -34,12 +34,12 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runners.Parameterized.Parameter;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Yana.Vasileva
@@ -54,14 +54,10 @@ public abstract class ProcessTaskAuthorizationTest {
   public static final String VARIABLE_VALUE = "aVariableValue";
   protected static final String PROCESS_KEY = "oneTaskProcess";
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule);
-
-  @Parameter
-  public AuthorizationScenario scenario;
+  @RegisterExtension
+  @Order(1) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected TaskService taskService;
@@ -71,7 +67,7 @@ public abstract class ProcessTaskAuthorizationTest {
   protected String deploumentId;
 
 
-  @Before
+  @BeforeEach
   public void setUp() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     taskService = engineRule.getTaskService();
@@ -81,14 +77,15 @@ public abstract class ProcessTaskAuthorizationTest {
     deploumentId = engineRule.getRepositoryService().createDeployment().addClasspathResource(ONE_TASK_PROCESS).deployWithResult().getId();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
     engineRule.getRepositoryService().deleteDeployment(deploumentId, true);
   }
 
-  @Test
-  public void testGetVariable() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariable(AuthorizationScenario scenario) {
     // given
     runtimeService.startProcessInstanceByKey(PROCESS_KEY, getVariables());
     String taskId = taskService.createTaskQuery().singleResult().getId();
@@ -108,8 +105,9 @@ public abstract class ProcessTaskAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariableLocal() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariableLocal(AuthorizationScenario scenario) {
     // given
     runtimeService.startProcessInstanceByKey(PROCESS_KEY);
     String taskId = taskService.createTaskQuery().singleResult().getId();
@@ -131,8 +129,9 @@ public abstract class ProcessTaskAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariableTyped() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariableTyped(AuthorizationScenario scenario) {
     // given
     runtimeService.startProcessInstanceByKey(PROCESS_KEY, getVariables());
     String taskId = taskService.createTaskQuery().singleResult().getId();
@@ -153,8 +152,9 @@ public abstract class ProcessTaskAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariableLocalTyped() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariableLocalTyped(AuthorizationScenario scenario) {
     // given
     runtimeService.startProcessInstanceByKey(PROCESS_KEY);
     String taskId = taskService.createTaskQuery().singleResult().getId();
@@ -177,8 +177,9 @@ public abstract class ProcessTaskAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariables() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariables(AuthorizationScenario scenario) {
     // given
     runtimeService.startProcessInstanceByKey(PROCESS_KEY, getVariables());
     String taskId = taskService.createTaskQuery().singleResult().getId();
@@ -198,8 +199,9 @@ public abstract class ProcessTaskAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariablesLocal() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariablesLocal(AuthorizationScenario scenario) {
     // given
     runtimeService.startProcessInstanceByKey(PROCESS_KEY);
     String taskId = taskService.createTaskQuery().singleResult().getId();
@@ -221,8 +223,9 @@ public abstract class ProcessTaskAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariablesTyped() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariablesTyped(AuthorizationScenario scenario) {
     // given
     runtimeService.startProcessInstanceByKey(PROCESS_KEY, getVariables());
     String taskId = taskService.createTaskQuery().singleResult().getId();
@@ -242,8 +245,9 @@ public abstract class ProcessTaskAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariablesLocalTyped() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariablesLocalTyped(AuthorizationScenario scenario) {
     // given
     runtimeService.startProcessInstanceByKey(PROCESS_KEY);
     String taskId = taskService.createTaskQuery().singleResult().getId();
@@ -265,8 +269,9 @@ public abstract class ProcessTaskAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariablesByName() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariablesByName(AuthorizationScenario scenario) {
     // given
     runtimeService.startProcessInstanceByKey(PROCESS_KEY, getVariables());
     String taskId = taskService.createTaskQuery().singleResult().getId();
@@ -286,8 +291,9 @@ public abstract class ProcessTaskAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariablesLocalByName() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariablesLocalByName(AuthorizationScenario scenario) {
     // given
     runtimeService.startProcessInstanceByKey(PROCESS_KEY);
     String taskId = taskService.createTaskQuery().singleResult().getId();
@@ -309,8 +315,9 @@ public abstract class ProcessTaskAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariablesTypedByName() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariablesTypedByName(AuthorizationScenario scenario) {
     // given
     runtimeService.startProcessInstanceByKey(PROCESS_KEY, getVariables());
     String taskId = taskService.createTaskQuery().singleResult().getId();
@@ -330,8 +337,9 @@ public abstract class ProcessTaskAuthorizationTest {
     }
   }
 
-  @Test
-  public void testGetVariablesLocalTypedByName() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testGetVariablesLocalTypedByName(AuthorizationScenario scenario) {
     // given
     runtimeService.startProcessInstanceByKey(PROCESS_KEY);
     String taskId = taskService.createTaskQuery().singleResult().getId();

@@ -21,11 +21,13 @@ import org.cibseven.bpm.engine.delegate.VariableScope;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.ExternalTaskActivityBehavior;
 import org.cibseven.bpm.engine.impl.cmmn.entity.runtime.CaseExecutionEntity;
 import org.cibseven.bpm.engine.impl.context.Context;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExternalTaskEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity;
+
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
+
 import java.beans.FeatureDescriptor;
 import java.util.Iterator;
 import java.util.List;

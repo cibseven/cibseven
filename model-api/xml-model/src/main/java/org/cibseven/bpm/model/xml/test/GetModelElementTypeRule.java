@@ -19,9 +19,9 @@ package org.cibseven.bpm.model.xml.test;
 import org.cibseven.bpm.model.xml.Model;
 import org.cibseven.bpm.model.xml.ModelInstance;
 import org.cibseven.bpm.model.xml.type.ModelElementType;
-import org.junit.rules.TestRule;
+import org.junit.jupiter.api.extension.Extension;
 
-public interface GetModelElementTypeRule extends TestRule {
+public interface GetModelElementTypeRule extends Extension {
 
   ModelInstance getModelInstance();
 

@@ -17,15 +17,15 @@
 package org.cibseven.bpm.engine.test.api.authorization;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.Test;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.authorization.Permissions;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
-import org.junit.Test;
 
 /**
  * @author Daniel Meyer

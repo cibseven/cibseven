@@ -9,6 +9,21 @@
       <module name="com.fasterxml.jackson.core.jackson-databind"/>
       <module name="com.fasterxml.jackson.datatype.jackson-datatype-jsr310"/>
       <module name="org.jboss.resteasy.resteasy-jackson2-provider"/>
+      <!-- Exclude the JSON-B provider so RESTEasy does not use JSON-B (Yasson) as the
+           default JSON serializer. JSON-B ignores our JacksonConfigurator
+           (ContextResolver<ObjectMapper>) and Jackson annotations like @JsonIgnore. -->
+      <module name="org.jboss.resteasy.resteasy-json-binding-provider"/>
+      <!-- Exclude the server's FasterXML Jackson JAX-RS provider modules. WildFly 40
+           auto-registers com.fasterxml.jackson.jakarta.jackson-jakarta-json-provider
+           (Jackson 2.21.3) which then serializes/deserializes using the server's
+           Jackson instead of the 2.22.0 provider bundled in this WAR and registered by
+           DefaultApplication. That server provider does not use our JacksonConfigurator
+           and mis-handles DTOs holding an ObjectMapper field (the "Conflicting setter
+           definitions for property config" 500). Exclude it (and the legacy jaxrs one)
+           so only the bundled jackson-jakarta-rs-json-provider is active. -->
+      <module name="com.fasterxml.jackson.jakarta.jackson-jakarta-json-provider"/>
+      <module name="com.fasterxml.jackson.jaxrs.jackson-jaxrs-json-provider"/>
+      <module name="com.fasterxml.jackson.datatype.jackson-datatype-jdk8"/>
     </exclusions>
   </deployment>
 </jboss-deployment-structure>

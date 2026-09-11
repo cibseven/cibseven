@@ -49,10 +49,12 @@ import org.cibseven.bpm.engine.test.api.resources.GetByteArrayCommand;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ResetDmnConfigUtil;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
+
 
 /**
  * @author Tassilo Weidner
@@ -60,11 +62,10 @@ import org.junit.rules.RuleChain;
 @RequiredHistoryLevel(HISTORY_FULL)
 public abstract class AbstractRemovalTimeTest {
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected FormService formService;
@@ -79,7 +80,7 @@ public abstract class AbstractRemovalTimeTest {
 
   protected static ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void init() {
     runtimeService = engineRule.getRuntimeService();
     formService = engineRule.getFormService();
@@ -102,7 +103,7 @@ public abstract class AbstractRemovalTimeTest {
         .init();
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDownAfterAll() {
     if (processEngineConfiguration != null) {
       processEngineConfiguration

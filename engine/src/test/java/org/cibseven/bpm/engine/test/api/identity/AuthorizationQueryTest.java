@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.api.identity;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 
@@ -26,9 +26,9 @@ import org.cibseven.bpm.engine.authorization.Authorization;
 import org.cibseven.bpm.engine.authorization.Permission;
 import org.cibseven.bpm.engine.authorization.Resource;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
@@ -36,7 +36,7 @@ import org.junit.Test;
  */
 public class AuthorizationQueryTest extends PluggableProcessEngineTest {
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
 
 
@@ -54,7 +54,7 @@ public class AuthorizationQueryTest extends PluggableProcessEngineTest {
     createAuthorization(null, "group3", resource2, "resource2-3", TestPermissions.DELETE);
 
   }
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     List<Authorization> list = authorizationService.createAuthorizationQuery().list();
     for (Authorization authorization : list) {

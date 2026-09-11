@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.concurrency;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.cibseven.bpm.engine.OptimisticLockingException;
 import org.cibseven.bpm.engine.RepositoryService;
@@ -33,10 +33,10 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.slf4j.Logger;
 
 /**
@@ -46,11 +46,10 @@ public class CompetingSuspensionTest {
 
   protected static Logger LOG = ProcessEngineLogger.TEST_LOGGER.getLogger();
 
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(5) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(7) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RepositoryService repositoryService;
@@ -59,7 +58,7 @@ public class CompetingSuspensionTest {
   protected static ControllableThread activeThread;
 
 
-  @Before
+  @BeforeEach
   public void initializeServices() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     repositoryService = engineRule.getRepositoryService();

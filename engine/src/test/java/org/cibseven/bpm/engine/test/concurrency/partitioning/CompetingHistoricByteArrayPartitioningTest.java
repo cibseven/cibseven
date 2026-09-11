@@ -25,7 +25,7 @@ import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.HistoricVariableInstanceEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Tassilo Weidner

@@ -31,33 +31,35 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.form.deployment.FindCamundaFormDefinitionsCmd;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 public class CamundaFormDefinitionStrictParseTest {
 
   private static final String FORM = "org/cibseven/bpm/engine/test/bpmn/CamundaFormDefinitionStrictParseTest.anyForm.form";
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RepositoryService repositoryService;
 
 
-  @Before
+  @BeforeEach
   public void setup() {
     repositoryService = engineRule.getRepositoryService();
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
   }
 
-  @After
+  @AfterEach
   public void reset() {
     processEngineConfiguration.setDisableStrictCamundaFormParsing(false);
   }

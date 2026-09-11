@@ -16,7 +16,7 @@
   <name>CIB seven - Webapp - Root</name>
 
   <properties>
-    <version.jetty>9.4.57.v20241219</version.jetty>
+    <version.jetty>11.0.26</version.jetty>
 
     <web.resources.override>src/main/runtime/default/webapp</web.resources.override>
 
@@ -85,8 +85,15 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${version.junit5}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${version.junit5}</version>
       <scope>provided</scope>
     </dependency>
 
@@ -124,7 +131,7 @@
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-common</artifactId>
-      <version>${version.jersey2}</version>
+      <version>${version.jersey3}</version>
       <scope>test</scope>
     </dependency>
 
@@ -236,7 +243,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>2.8</version>
+          <version>3.6.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -333,7 +340,6 @@
 
   <modules>
     <module>assembly</module>
-    <module>assembly-jakarta</module>
   </modules>
 
   <profiles>

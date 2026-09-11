@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.scripttask;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +29,7 @@ import org.cibseven.bpm.engine.exception.NotFoundException;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Sebastian Menski

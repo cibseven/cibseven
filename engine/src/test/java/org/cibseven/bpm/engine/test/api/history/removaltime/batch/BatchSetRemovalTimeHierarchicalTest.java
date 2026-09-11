@@ -68,10 +68,12 @@ import org.cibseven.bpm.engine.test.dmn.businessruletask.TestPojo;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 /**
  * @author Tassilo Weidner
@@ -79,12 +81,12 @@ import org.junit.rules.RuleChain;
 @RequiredHistoryLevel(HISTORY_FULL)
 public class BatchSetRemovalTimeHierarchicalTest {
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
-  protected BatchSetRemovalTimeRule testRule = new BatchSetRemovalTimeRule(engineRule, engineTestRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule).around(testRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(11) protected BatchSetRemovalTimeRule testRule = new BatchSetRemovalTimeRule(engineRule, engineTestRule);
 
   protected final Date CURRENT_DATE = testRule.CURRENT_DATE;
 
@@ -97,7 +99,7 @@ public class BatchSetRemovalTimeHierarchicalTest {
   protected DecisionService decisionService;
   protected AuthorizationService authorizationService;
 
-  @Before
+  @BeforeEach
   public void assignServices() {
     runtimeService = engineRule.getRuntimeService();
     decisionService = engineRule.getDecisionService();

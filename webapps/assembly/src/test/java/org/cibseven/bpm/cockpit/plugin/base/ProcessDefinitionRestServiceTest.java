@@ -32,19 +32,19 @@ import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.runtime.Incident;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.UriInfo;
 import java.util.Arrays;
 import java.util.List;
 
-import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class ProcessDefinitionRestServiceTest extends AbstractCockpitPluginTest {
 
@@ -56,7 +56,7 @@ public class ProcessDefinitionRestServiceTest extends AbstractCockpitPluginTest 
   private UriInfo uriInfo;
   private final MultivaluedMap<String, String> queryParameters = new MultivaluedHashMap<>();
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     super.before();
 
@@ -72,7 +72,7 @@ public class ProcessDefinitionRestServiceTest extends AbstractCockpitPluginTest 
     Mockito.doReturn(queryParameters).when(uriInfo).getQueryParameters();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     identityService.clearAuthentication();
     processEngineConfiguration.setQueryMaxResultsLimit(Integer.MAX_VALUE);

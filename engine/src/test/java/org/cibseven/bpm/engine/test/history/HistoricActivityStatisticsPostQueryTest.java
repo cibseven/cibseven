@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.history;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -35,7 +35,7 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  *

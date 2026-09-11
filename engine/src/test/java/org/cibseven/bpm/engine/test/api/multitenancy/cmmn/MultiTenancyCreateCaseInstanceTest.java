@@ -17,10 +17,7 @@
 package org.cibseven.bpm.engine.test.api.multitenancy.cmmn;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 
@@ -29,7 +26,7 @@ import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.repository.CaseDefinition;
 import org.cibseven.bpm.engine.runtime.CaseInstanceQuery;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class MultiTenancyCreateCaseInstanceTest extends PluggableProcessEngineTest {
 

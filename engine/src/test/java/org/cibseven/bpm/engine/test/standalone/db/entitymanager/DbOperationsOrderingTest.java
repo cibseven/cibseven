@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.standalone.db.entitymanager;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -30,8 +30,8 @@ import org.cibseven.bpm.engine.impl.db.entitymanager.operation.DbOperation;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
@@ -62,7 +62,7 @@ public class DbOperationsOrderingTest {
   VariableInstanceEntity variable4 = null;
 
 
-  @Before
+  @BeforeEach
   public void setup() {
     TestIdGenerator idGenerator = new TestIdGenerator();
     entityManager = new ExposingDbEntityManager(idGenerator, null);
@@ -220,13 +220,13 @@ public class DbOperationsOrderingTest {
   protected void assertHappensAfter(DbEntity entity1, DbEntity entity2, List<DbOperation> operations) {
     int idx1 = indexOfEntity(entity1, operations);
     int idx2 = indexOfEntity(entity2, operations);
-    assertTrue("operation for " + entity1 + " should be executed after operation for " + entity2, idx1 > idx2);
+    assertTrue(idx1 > idx2, "operation for " + entity1 + " should be executed after operation for " + entity2);
   }
 
   protected void assertHappensBefore(DbEntity entity1, DbEntity entity2, List<DbOperation> operations) {
     int idx1 = indexOfEntity(entity1, operations);
     int idx2 = indexOfEntity(entity2, operations);
-    assertTrue("operation for " + entity1 + " should be executed before operation for " + entity2, idx1 < idx2);
+    assertTrue(idx1 < idx2, "operation for " + entity1 + " should be executed before operation for " + entity2);
   }
 
   protected int indexOfEntity(DbEntity entity, List<DbOperation> operations) {

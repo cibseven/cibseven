@@ -23,16 +23,16 @@ import org.assertj.core.api.Assertions;
 import org.cibseven.connect.ConnectorRequestException;
 import org.cibseven.connect.httpclient.impl.HttpConnectorImpl;
 import org.cibseven.connect.impl.DebugRequestInterceptor;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.cibseven.connect.spi.CloseableConnectorResponse;
-import org.junit.Before;
-import org.junit.Test;
 
 public class HttpResponseTest {
 
   protected HttpConnector connector;
   protected TestResponse testResponse;
 
-  @Before
+  @BeforeEach
   public void getConnector() {
     testResponse = new TestResponse();
     connector = new HttpConnectorImpl();

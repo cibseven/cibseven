@@ -22,9 +22,8 @@ import java.util.Map;
 import org.cibseven.bpm.engine.rest.CustomJacksonDateFormatTest;
 import org.cibseven.bpm.engine.rest.ExceptionHandlerTest;
 import org.junit.rules.ExternalResource;
-import org.junit.rules.RuleChain;
 import org.junit.rules.TemporaryFolder;
-import org.junit.rules.TestRule;
+import org.junit.jupiter.api.extension.Extension;
 
 /**
  * @author Thorben Lindhauer
@@ -43,7 +42,7 @@ public class WinkSpecifics implements ContainerSpecifics {
     TEST_RULE_FACTORIES.put(CustomJacksonDateFormatTest.class, new ServletContainerRuleFactory("custom-date-format-web.xml"));
   }
 
-  public TestRule getTestRule(Class<?> testClass) {
+  public Extension getTestRule(Class<?> testClass) {
     TestRuleFactory ruleFactory = DEFAULT_RULE_FACTORY;
 
     if (TEST_RULE_FACTORIES.containsKey(testClass)) {
@@ -61,7 +60,7 @@ public class WinkSpecifics implements ContainerSpecifics {
       this.webXmlResource = webXmlResource;
     }
 
-    public TestRule createTestRule() {
+    public Extension createTestRule() {
       final TemporaryFolder tempFolder = new TemporaryFolder();
 
       return RuleChain

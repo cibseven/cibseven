@@ -22,7 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.cibseven.connect.ai.agent.impl.AgentResponseImpl;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class AgentResponseTest {
 

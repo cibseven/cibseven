@@ -21,12 +21,12 @@ import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.assertTha
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Collections;
 import java.util.List;
@@ -53,7 +53,7 @@ import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -1658,7 +1658,7 @@ public class ProcessInstanceModificationTest extends PluggableProcessEngineTest 
     for (String taskName : taskNames) {
       // complete any task with that name
       List<Task> tasks = taskService.createTaskQuery().taskDefinitionKey(taskName).listPage(0, 1);
-      assertTrue("task for activity " + taskName + " does not exist", !tasks.isEmpty());
+      assertTrue(!tasks.isEmpty(), "task for activity " + taskName + " does not exist");
       taskService.complete(tasks.get(0).getId());
     }
   }

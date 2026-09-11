@@ -21,15 +21,15 @@ import org.cibseven.bpm.engine.impl.cfg.IdGenerator;
 import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
 import org.cibseven.bpm.spring.boot.starter.test.nonpa.TestApplication;
 import org.cibseven.bpm.spring.boot.starter.util.CamundaSpringBootUtil;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.spring.boot.starter.configuration.id.IdGeneratorConfiguration.PREFIXED;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(
   classes = {TestApplication.class},
   properties = {

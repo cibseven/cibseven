@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+  <!--
+    Disable TLD scanning for JARs that don't contain TLDs.
+    Without this, Tomcat scans every JAR in every WAR for TLDs, which adds
+    10-40 seconds per WAR deployed and causes overall startup to exceed the
+    Cargo container timeout.
+  -->
+  <JarScanner>
+    <JarScanFilter defaultTldScan="false"/>
+  </JarScanner>
+</Context>

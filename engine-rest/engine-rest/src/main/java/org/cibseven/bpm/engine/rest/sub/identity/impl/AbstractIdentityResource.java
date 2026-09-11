@@ -22,7 +22,7 @@ import org.cibseven.bpm.engine.authorization.Resource;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.impl.AbstractAuthorizedRestResource;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 /**
  * @author Daniel Meyer

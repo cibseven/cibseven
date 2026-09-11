@@ -22,16 +22,16 @@ import org.cibseven.bpm.engine.impl.plugin.AdministratorAuthorizationPlugin;
 import org.cibseven.bpm.run.CamundaBpmRun;
 import org.cibseven.bpm.run.property.CamundaBpmRunAdministratorAuthorizationProperties;
 import org.cibseven.bpm.run.property.CamundaBpmRunProperties;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = { CamundaBpmRun.class })
 @ActiveProfiles(profiles = { "test-auth-enabled" , "test-admin-auth-enabled" })
 public class AdminAuthorizationConfigurationTest {

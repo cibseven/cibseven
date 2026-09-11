@@ -33,9 +33,9 @@ import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.authorization.Groups;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ProcessDefinitionResourceTenantCheckTest extends AbstractCockpitPluginTest {
 
@@ -52,7 +52,7 @@ public class ProcessDefinitionResourceTenantCheckTest extends AbstractCockpitPlu
   private ProcessDefinitionResource resource;
   private ProcessDefinitionQueryDto queryParameter;
 
-  @Before
+  @BeforeEach
   public void init() throws Exception {
 
     processEngine = getProcessEngine();
@@ -76,7 +76,7 @@ public class ProcessDefinitionResourceTenantCheckTest extends AbstractCockpitPlu
     queryParameter = new ProcessDefinitionQueryDto();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processEngineConfiguration.getAdminGroups().remove(ADMIN_GROUP);
     processEngineConfiguration.getAdminUsers().remove(ADMIN_USER);

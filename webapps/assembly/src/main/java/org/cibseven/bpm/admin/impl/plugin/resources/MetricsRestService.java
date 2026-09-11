@@ -23,12 +23,12 @@ import org.cibseven.bpm.admin.resource.AbstractAdminPluginResource;
 import org.cibseven.bpm.engine.impl.metrics.util.MetricsUtil;
 import org.cibseven.bpm.engine.management.Metrics;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
 

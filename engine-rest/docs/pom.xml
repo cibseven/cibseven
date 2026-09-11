@@ -33,17 +33,11 @@
             <id>unpack</id>
             <phase>generate-resources</phase>
             <goals>
-              <goal>unpack</goal>
+              <goal>unpack-dependencies</goal>
             </goals>
             <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.cibseven.bpm</groupId>
-                  <artifactId>cibseven-engine-rest-openapi</artifactId>
-                  <version>${project.version}</version>
-                  <type>jar</type>
-                </artifactItem>
-              </artifactItems>
+              <includeGroupIds>org.cibseven.bpm</includeGroupIds>
+              <includeArtifactIds>cibseven-engine-rest-openapi</includeArtifactIds>
               <includes>openapi.json</includes>
               <excludes>META-INF/**</excludes>
             </configuration>

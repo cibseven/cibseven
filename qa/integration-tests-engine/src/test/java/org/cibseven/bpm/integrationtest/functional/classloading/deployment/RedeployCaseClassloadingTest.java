@@ -16,24 +16,26 @@
  */
 package org.cibseven.bpm.integrationtest.functional.classloading.deployment;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.runtime.VariableInstanceQuery;
 import org.cibseven.bpm.integrationtest.functional.classloading.beans.ExampleCaseExecutionListener;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Roman Smirnov
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class RedeployCaseClassloadingTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -84,15 +86,15 @@ public class RedeployCaseClassloadingTest extends AbstractFoxPlatformIntegration
         .variableName("listener")
         .caseInstanceIdIn(caseInstanceId);
 
-    Assert.assertNotNull(query.singleResult());
-    Assert.assertEquals("listener-notified", query.singleResult().getValue());
+    Assertions.assertNotNull(query.singleResult());
+    assertThat(query.singleResult().getValue()).isEqualTo("listener-notified");
 
     caseService
       .withCaseExecution(caseInstanceId)
       .removeVariable("listener")
       .execute();
 
-    Assert.assertEquals(0, query.count());
+    assertThat(query.count()).isEqualTo(0);
 
     // when (2)
     caseService
@@ -100,8 +102,8 @@ public class RedeployCaseClassloadingTest extends AbstractFoxPlatformIntegration
       .complete();
 
     // then (2)
-    Assert.assertNotNull(query.singleResult());
-    Assert.assertEquals("listener-notified", query.singleResult().getValue());
+    Assertions.assertNotNull(query.singleResult());
+    assertThat(query.singleResult().getValue()).isEqualTo("listener-notified");
 
     repositoryService.deleteDeployment(deployment2.getId(), true, true);
   }

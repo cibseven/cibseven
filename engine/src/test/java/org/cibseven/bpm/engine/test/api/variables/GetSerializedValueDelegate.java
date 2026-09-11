@@ -19,7 +19,7 @@ package org.cibseven.bpm.engine.test.api.variables;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * @author Daniel Meyer
@@ -30,7 +30,7 @@ public class GetSerializedValueDelegate implements JavaDelegate {
   public void execute(DelegateExecution execution) throws Exception {
 
     TypedValue typedValue = execution.getVariableTyped("varName", false);
-    Assert.assertNotNull(typedValue);
+    Assertions.assertNotNull(typedValue);
 
   }
 

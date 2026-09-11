@@ -29,7 +29,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.ManagementService;
@@ -37,16 +37,16 @@ import org.cibseven.bpm.engine.management.Metrics;
 import org.cibseven.bpm.engine.management.MetricsQuery;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
  */
 public class MetricsRestServiceInteractionTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   public static final String METRICS_URL = TEST_RESOURCE_ROOT_PATH + MetricsRestService.PATH;
@@ -57,7 +57,7 @@ public class MetricsRestServiceInteractionTest extends AbstractRestServiceTest {
   protected ManagementService managementServiceMock;
   private MetricsQuery meterQueryMock;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     managementServiceMock = mock(ManagementService.class);
 

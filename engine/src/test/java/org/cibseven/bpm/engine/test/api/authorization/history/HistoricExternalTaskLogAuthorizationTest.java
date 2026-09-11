@@ -23,9 +23,9 @@ import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.builder.DefaultExternalTaskModelBuilder.DEFAULT_PROCESS_KEY;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.builder.DefaultExternalTaskModelBuilder.DEFAULT_TOPIC;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.builder.DefaultExternalTaskModelBuilder.createDefaultExternalTaskModel;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import org.cibseven.bpm.engine.AuthorizationException;
@@ -40,9 +40,9 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.authorization.AuthorizationTest;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class HistoricExternalTaskLogAuthorizationTest extends AuthorizationTest {
@@ -53,7 +53,7 @@ public class HistoricExternalTaskLogAuthorizationTest extends AuthorizationTest 
   protected final String ANOTHER_PROCESS_KEY = "AnotherProcess";
 
   @Override
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     BpmnModelInstance defaultModel = createDefaultExternalTaskModel().build();
     BpmnModelInstance modifiedModel = createDefaultExternalTaskModel().processKey(ANOTHER_PROCESS_KEY).build();
@@ -62,7 +62,7 @@ public class HistoricExternalTaskLogAuthorizationTest extends AuthorizationTest 
   }
 
   @Override
-  @After
+  @AfterEach
   public void tearDown() {
     super.tearDown();
     processEngineConfiguration.setEnableHistoricInstancePermissions(false);

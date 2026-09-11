@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.test.bpmn.executionlistener.ThrowingHistoryEventProducer.ERROR_CODE;
 import static org.cibseven.bpm.engine.test.bpmn.executionlistener.ThrowingHistoryEventProducer.EXCEPTION_MESSAGE;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.ManagementService;
@@ -40,12 +40,13 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.builder.ProcessBuilder;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
+import org.junit.jupiter.api.Test;
+
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_AUDIT)
 public class ThrowingHistoryExecutionListenerTest {
@@ -54,15 +55,14 @@ public class ThrowingHistoryExecutionListenerTest {
   protected static final String INTERNAL_ERROR_CODE = "208";
   protected static final ThrowingHistoryEventProducer HISTORY_PRODUCER = new ThrowingHistoryEventProducer();
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(config -> {
+  @RegisterExtension
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(config -> {
     config.setHistoryEventProducer(HISTORY_PRODUCER);
   });
-  public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(processEngineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(processEngineRule).around(testRule);
+  @RegisterExtension
+  @Order(1) public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(2) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(processEngineRule);
 
   protected RuntimeService runtimeService;
   protected TaskService taskService;
@@ -70,7 +70,7 @@ public class ThrowingHistoryExecutionListenerTest {
   protected ManagementService managementService;
   protected RepositoryService repositoryService;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     runtimeService = processEngineRule.getRuntimeService();
     taskService = processEngineRule.getTaskService();
@@ -79,7 +79,7 @@ public class ThrowingHistoryExecutionListenerTest {
     repositoryService = processEngineRule.getRepositoryService();
   }
 
-  @After
+  @AfterEach
   public void reset() {
     HISTORY_PRODUCER.reset();
   }

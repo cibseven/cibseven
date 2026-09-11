@@ -17,9 +17,9 @@
 package org.cibseven.bpm.engine.test.api.runtime.migration;
 
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.cibseven.bpm.engine.ManagementService;
 import org.cibseven.bpm.engine.migration.MigrationPlan;
@@ -31,9 +31,10 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 public class MigrationRemoveBoundaryEventsTest {
 
@@ -44,11 +45,10 @@ public class MigrationRemoveBoundaryEventsTest {
   public static final String ERROR_CODE = "Error";
   public static final String ESCALATION_CODE = "Escalation";
 
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testRemoveMessageBoundaryEventFromUserTask() {

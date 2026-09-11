@@ -4,6 +4,7 @@
     <dependencies>
       <module name="org.cibseven.bpm.cibseven-engine" />
       <module name="org.mybatis.mybatis"/>
+      <module name="org.assertj.assertj-core"/>
     </dependencies>
   </deployment>
 </jboss-deployment-structure>

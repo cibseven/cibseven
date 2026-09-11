@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.api.multitenancy.tenantcheck;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -36,10 +36,12 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class MultiTenancyCleanableHistoricCaseInstanceReportCmdTenantCheckTest {
@@ -50,13 +52,10 @@ public class MultiTenancyCleanableHistoricCaseInstanceReportCmdTenantCheckTest {
   private static final String CASE_DEFINITION_KEY = "one";
 
   protected static final String CMMN_MODEL = "org/cibseven/bpm/engine/test/repository/one.cmmn";
-
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RepositoryService repositoryService;
   protected IdentityService identityService;
@@ -66,7 +65,7 @@ public class MultiTenancyCleanableHistoricCaseInstanceReportCmdTenantCheckTest {
 
   protected String caseDefinitionId;
 
-  @Before
+  @BeforeEach
   public void init() {
     repositoryService = engineRule.getRepositoryService();
     identityService = engineRule.getIdentityService();

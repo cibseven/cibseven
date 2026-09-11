@@ -21,7 +21,7 @@ import org.cibseven.bpm.qa.performance.engine.junit.ProcessEngineJobExecutorPerf
 import org.cibseven.bpm.qa.performance.engine.steps.CountJobsStep;
 import org.cibseven.bpm.qa.performance.engine.steps.StartProcessInstanceStep;
 import org.cibseven.bpm.qa.performance.engine.steps.WaitStep;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author: Johannes Heinemann

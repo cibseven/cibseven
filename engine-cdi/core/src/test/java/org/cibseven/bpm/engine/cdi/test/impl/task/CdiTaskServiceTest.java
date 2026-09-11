@@ -19,11 +19,8 @@ package org.cibseven.bpm.engine.cdi.test.impl.task;
 import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
-@RunWith(Arquillian.class)
 public class CdiTaskServiceTest extends CdiProcessEngineTestCase {
   
   @Test

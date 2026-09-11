@@ -21,10 +21,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.test.util.CamundaFormUtils.findAllCamundaFormDefinitionEntities;
 import static org.cibseven.bpm.engine.test.util.CamundaFormUtils.writeTempFormFile;
 
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
@@ -33,15 +32,13 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.repository.CamundaFormDefinition;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.repository.DeploymentBuilder;
-import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.io.TempDir;
 
 public class CamundaFormDefinitionDeploymentTest {
 
@@ -50,23 +47,23 @@ public class CamundaFormDefinitionDeploymentTest {
   protected static final String COMPLEX_FORM = "org/cibseven/bpm/engine/test/form/deployment/CamundaFormDefinitionDeploymentTest.complex_form.form";
   protected static final String SIMPLE_BPMN = "org/cibseven/bpm/engine/test/form/deployment/CamundaFormDefinitionDeploymentTest.simpleBPMN.bpmn";
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-  protected TemporaryFolder tempFolder = new TemporaryFolder();
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(tempFolder);
+  @RegisterExtension
+  ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @TempDir
+  Path tempFolder;
 
   RepositoryService repositoryService;
   ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void init() {
     repositoryService = engineRule.getRepositoryService();
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     List<Deployment> deployments = repositoryService.createDeploymentQuery().list();
     for (Deployment deployment : deployments) {
@@ -197,11 +194,14 @@ public class CamundaFormDefinitionDeploymentTest {
     String fileName = "myForm.form";
     String formContent1 = "{\"id\"=\"myForm\",\"type\": \"default\",\"components\":[{\"key\": \"button3\",\"label\": \"Button\",\"type\": \"button\"}]}";
     String formContent2 = "{\"id\"=\"myForm\",\"type\": \"default\",\"components\": []}";
-
-    createDeploymentBuilder(true).addInputStream(fileName, writeTempFormFile(fileName, formContent1, tempFolder)).deploy();
+    FileInputStream stream = writeTempFormFile(fileName, formContent1, tempFolder);
+    createDeploymentBuilder(true).addInputStream(fileName, stream).deploy();
+    stream.close();
 
     // when deploy changed file
-    createDeploymentBuilder(true).addInputStream(fileName, writeTempFormFile(fileName, formContent2, tempFolder)).deploy();
+    stream = writeTempFormFile(fileName, formContent2, tempFolder);
+    createDeploymentBuilder(true).addInputStream(fileName, stream).deploy();
+    stream.close();
 
     // then
     List<Deployment> deployments = repositoryService.createDeploymentQuery().list();
@@ -221,10 +221,14 @@ public class CamundaFormDefinitionDeploymentTest {
     String formContent1 = "{\"id\"=\"myForm\",\"type\": \"default\",\"components\":[{\"key\": \"button3\",\"label\": \"Button\",\"type\": \"button\"}]}";
     String formContent2 = "{\"id\"=\"myForm\",\"type\": \"default\",\"components\": []}";
 
-    createDeploymentBuilder(true).tenantId("tenant1").addInputStream(fileName, writeTempFormFile(fileName, formContent1, tempFolder)).deploy();
-
+    FileInputStream stream = writeTempFormFile(fileName, formContent1, tempFolder);
+    createDeploymentBuilder(true).tenantId("tenant1").addInputStream(fileName, stream).deploy();
+    stream.close();
+    
     // when deploy changed file
-    createDeploymentBuilder(true).tenantId("tenant1").addInputStream(fileName, writeTempFormFile(fileName, formContent2, tempFolder)).deploy();
+    stream = writeTempFormFile(fileName, formContent2, tempFolder);
+    createDeploymentBuilder(true).tenantId("tenant1").addInputStream(fileName, stream).deploy();
+    stream.close();
 
     // then
     List<Deployment> deployments = repositoryService.createDeploymentQuery().list();

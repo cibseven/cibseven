@@ -17,9 +17,9 @@
 package org.cibseven.bpm.engine.test.api.cfg;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,43 +48,44 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.utils.cache.Cache;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 /**
  * @author Johannes Heinemann
  */
 public class DeploymentCacheCfgTest {
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule cacheFactoryBootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
-      // apply configuration options here
-      configuration.setCacheCapacity(2);
-      configuration.setCacheFactory(new MyCacheFactory());
-      configuration.setEnableFetchProcessDefinitionDescription(false);
+
+  @RegisterExtension
+  @Order (1) public static ProcessEngineBootstrapRule cacheFactoryBootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
+    // apply configuration options here
+    configuration.setCacheCapacity(2);
+    configuration.setCacheFactory(new MyCacheFactory());
+    configuration.setEnableFetchProcessDefinitionDescription(false);
   });
 
-  protected ProvidedProcessEngineRule cacheFactoryEngineRule = new ProvidedProcessEngineRule(cacheFactoryBootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(cacheFactoryEngineRule);
+  @RegisterExtension
+  @Order (2) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(cacheFactoryBootstrapRule);
+  @RegisterExtension
+  @Order (3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(cacheFactoryEngineRule).around(testRule);
   RepositoryService repositoryService;
   ProcessEngineConfigurationImpl processEngineConfiguration;
   RuntimeService runtimeService;
   TaskService taskService;
   ManagementService managementService;
 
-  @Before
+  @BeforeEach
   public void initialize() {
-    repositoryService = cacheFactoryEngineRule.getRepositoryService();
-    processEngineConfiguration = cacheFactoryEngineRule.getProcessEngineConfiguration();
-    runtimeService = cacheFactoryEngineRule.getRuntimeService();
-    taskService = cacheFactoryEngineRule.getTaskService();
-    managementService = cacheFactoryEngineRule.getManagementService();
+    repositoryService = engineRule.getRepositoryService();
+    processEngineConfiguration = engineRule.getProcessEngineConfiguration();
+    runtimeService = engineRule.getRuntimeService();
+    taskService = engineRule.getTaskService();
+    managementService = engineRule.getManagementService();
   }
 
   @Test

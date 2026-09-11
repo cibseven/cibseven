@@ -11,13 +11,16 @@
     <version>2.3.0-SNAPSHOT</version>
   </parent>
 
-  <properties>
-    <!-- TODO: move to parent -->
-    <version.org.jboss.ironjacamar>1.0.10.Final</version.org.jboss.ironjacamar>
-  </properties>
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>jakarta.platform</groupId>
+        <artifactId>jakarta.jakartaee-bom</artifactId>
+        <version>11.0.0</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-core-internal-dependencies</artifactId>
@@ -29,17 +32,19 @@
   </dependencyManagement>
 
   <dependencies>
-
+    <dependency>
+      <groupId>jakarta.resource</groupId>
+      <artifactId>jakarta.resource-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.transaction</groupId>
+      <artifactId>jakarta.transaction-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-engine</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.jboss.ironjacamar</groupId>
-      <artifactId>ironjacamar-spec-api</artifactId>
-      <version>${version.org.jboss.ironjacamar}</version>
       <scope>provided</scope>
     </dependency>
 
@@ -51,8 +56,15 @@
     </dependency>
 
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${version.junit5}</version>
       <scope>test</scope>
     </dependency>
 

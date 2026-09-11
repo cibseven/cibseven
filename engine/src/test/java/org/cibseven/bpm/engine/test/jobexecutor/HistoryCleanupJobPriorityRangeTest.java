@@ -26,9 +26,9 @@ import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.AcquirableJobEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.runtime.Job;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class HistoryCleanupJobPriorityRangeTest extends AbstractJobExecutorAcquireJobsTest {
 
@@ -36,14 +36,14 @@ public class HistoryCleanupJobPriorityRangeTest extends AbstractJobExecutorAcqui
   protected long defaultHistoryCleanupJobPriority;
   protected boolean defaultIsJobExecutorAcquireByPriority;
 
-  @Before
+  @BeforeEach
   public void setup() {
     historyService = rule.getHistoryService();
     defaultHistoryCleanupJobPriority = configuration.getHistoryCleanupJobPriority();
     defaultIsJobExecutorAcquireByPriority = configuration.isJobExecutorAcquireByPriority();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     configuration.setHistoryCleanupJobPriority(defaultHistoryCleanupJobPriority);
     configuration.setJobExecutorAcquireByPriority(defaultIsJobExecutorAcquireByPriority);

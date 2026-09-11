@@ -23,10 +23,10 @@ import org.cibseven.bpm.engine.impl.SchemaOperationsProcessEngineBuild;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author Roman Smirnov
@@ -37,7 +37,7 @@ public class DmnDisabledTest {
   protected static ProcessEngineImpl processEngineImpl;
 
   // make sure schema is dropped
-  @After
+  @AfterEach
   public void cleanup() {
     TestHelper.dropSchema(processEngineImpl.getProcessEngineConfiguration());
     processEngineImpl.close();

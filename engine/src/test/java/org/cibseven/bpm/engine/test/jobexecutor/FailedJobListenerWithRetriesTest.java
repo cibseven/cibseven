@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.jobexecutor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,39 +40,28 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
 public class FailedJobListenerWithRetriesTest {
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule();
+  @RegisterExtension
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule();
 
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(7) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RuntimeService runtimeService;
-
-  @Parameterized.Parameter(0)
   public int failedRetriesNumber;
-
-  @Parameterized.Parameter(1)
-  public int jobRetries;
-
-  @Parameterized.Parameter(2)
-  public boolean jobLocked;
-
-  @Before
+  
+  @BeforeEach
   public void init() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     processEngineConfiguration.setFailedJobCommandFactory(new OLEFailedJobCommandFactory());
@@ -80,7 +69,6 @@ public class FailedJobListenerWithRetriesTest {
     runtimeService = engineRule.getRuntimeService();
   }
 
-  @Parameterized.Parameters
   public static Collection<Object[]> scenarios() {
     return Arrays.asList(new Object[][] {
         { 4, 0, false },
@@ -89,9 +77,11 @@ public class FailedJobListenerWithRetriesTest {
     });
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @org.cibseven.bpm.engine.test.Deployment(resources = {"org/cibseven/bpm/engine/test/api/mgmt/IncidentTest.testShouldCreateOneIncident.bpmn"})
-  public void testFailedJobListenerRetries() {
+  public void testFailedJobListenerRetries(int failedRetriesNumber, int jobRetries, boolean jobLocked) {
+    this.failedRetriesNumber = failedRetriesNumber;
     //given
     runtimeService.startProcessInstanceByKey("failingProcess");
 

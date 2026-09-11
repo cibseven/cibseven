@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.hal.identitylink;
 
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 
 import org.cibseven.bpm.engine.rest.GroupRestService;
 import org.cibseven.bpm.engine.rest.TaskRestService;

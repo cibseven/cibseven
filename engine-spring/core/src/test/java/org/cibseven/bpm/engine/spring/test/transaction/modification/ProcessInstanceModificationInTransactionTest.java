@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.spring.test.transaction.modification;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.apache.ibatis.logging.LogFactory;
 import org.cibseven.bpm.engine.ProcessEngine;
@@ -31,20 +31,20 @@ import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = {"classpath:org/cibseven/bpm/engine/spring/test/transaction/ProcessInstanceModificationInTransactionTest-applicationContext.xml"})
 public class ProcessInstanceModificationInTransactionTest {
 
   @Autowired
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule rule;
 
   @Autowired
@@ -59,7 +59,7 @@ public class ProcessInstanceModificationInTransactionTest {
   @Autowired
   UserBean userBean;
 
-  @Before
+  @BeforeEach
   public void init() {
     LogFactory.useSlf4jLogging();
   }

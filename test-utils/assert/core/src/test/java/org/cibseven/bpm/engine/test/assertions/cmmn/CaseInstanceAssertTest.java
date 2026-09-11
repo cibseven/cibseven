@@ -27,15 +27,15 @@ import org.cibseven.bpm.engine.runtime.CaseInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.assertions.helpers.ProcessAssertTestCase;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class CaseInstanceAssertTest extends ProcessAssertTestCase {
 
 	public static final String TASK_A = "PI_TaskA";
 
-	@Rule
-	public ProcessEngineRule processEngineRule = new ProcessEngineRule();
+    @RegisterExtension
+    public ProcessEngineRule processEngineRule = new ProcessEngineRule();
 
 	@Test
 	@Deployment(resources = { "cmmn/TaskTest.cmmn" })

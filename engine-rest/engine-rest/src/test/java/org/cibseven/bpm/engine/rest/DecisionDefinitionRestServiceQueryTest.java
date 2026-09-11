@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.impl.calendar.DateTimeUtil;
 import org.cibseven.bpm.engine.repository.DecisionDefinition;
@@ -42,9 +42,9 @@ import org.cibseven.bpm.engine.repository.DecisionDefinitionQuery;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -53,7 +53,7 @@ import io.restassured.response.Response;
 
 public class DecisionDefinitionRestServiceQueryTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String DECISION_DEFINITION_QUERY_URL = TEST_RESOURCE_ROOT_PATH + "/decision-definition";
@@ -61,7 +61,7 @@ public class DecisionDefinitionRestServiceQueryTest extends AbstractRestServiceT
 
   private DecisionDefinitionQuery mockedQuery;
 
-  @Before
+  @BeforeEach
   public void setUpRuntime() {
     mockedQuery = createMockDecisionDefinitionQuery(MockProvider.createMockDecisionDefinitions());
   }

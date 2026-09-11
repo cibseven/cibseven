@@ -21,7 +21,7 @@ import org.cibseven.bpm.client.interceptor.ClientRequestInterceptor;
 import org.cibseven.bpm.client.spring.MockedTest;
 import org.cibseven.bpm.client.spring.client.configuration.RequestInterceptorConfiguration;
 import org.cibseven.bpm.client.spring.configuration.SimpleClientConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;

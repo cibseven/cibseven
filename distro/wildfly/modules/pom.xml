@@ -64,7 +64,7 @@
 
     <dependency>
       <groupId>org.cibseven.spin</groupId>
-      <artifactId>cibseven-spin-dataformat-xml-dom-jakarta</artifactId>
+      <artifactId>cibseven-spin-dataformat-xml-dom</artifactId>
     </dependency>
 
     <dependency>

@@ -15,6 +15,7 @@
     <camunda.osgi.import.additional>
       org.junit.*;resolution:=optional
     </camunda.osgi.import.additional>
+    <version.jakarta.el>4.0.0</version.jakarta.el>
   </properties>
   <dependencies>
     <dependency>
@@ -87,14 +88,22 @@
     </dependency>
 
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${version.junit5}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${version.junit5}</version>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
+      <version>${version.assertj}</version>
       <scope>test</scope>
     </dependency>
 
@@ -139,6 +148,19 @@
       <artifactId>cibseven-bpm-archunit</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>jakarta.el</artifactId>
+      <version>4.0.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.el</groupId>
+      <artifactId>jakarta.el-api</artifactId>
+      <version>5.0.1</version>
     </dependency>
 
   </dependencies>
@@ -258,5 +280,19 @@
     <system>GitHub Issues</system>
     <url>https://github.com/cibseven/cibseven/issues</url>
   </issueManagement>
+
+  <repositories>
+    <repository>
+      <id>central</id>
+      <name>Maven Central Repository</name>
+      <url>https://repo.maven.apache.org/maven2</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 
 </project>

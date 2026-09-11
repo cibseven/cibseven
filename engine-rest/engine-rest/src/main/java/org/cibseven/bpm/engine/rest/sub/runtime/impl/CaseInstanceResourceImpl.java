@@ -34,7 +34,7 @@ import org.cibseven.bpm.engine.rest.sub.runtime.CaseInstanceResource;
 import org.cibseven.bpm.engine.runtime.CaseExecutionCommandBuilder;
 import org.cibseven.bpm.engine.runtime.CaseInstance;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 import java.util.List;
 import java.util.Map;
 

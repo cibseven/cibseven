@@ -21,7 +21,7 @@ import static org.cibseven.bpm.engine.test.util.TypedValueAssert.assertObjectVal
 import static org.cibseven.bpm.engine.test.util.TypedValueAssert.assertObjectValueSerializedJava;
 import static org.cibseven.bpm.engine.variable.Variables.objectValue;
 import static org.cibseven.bpm.engine.variable.Variables.serializedObjectValue;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
@@ -36,17 +36,17 @@ import org.cibseven.bpm.engine.impl.variable.serializer.JavaObjectSerializer;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
+import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Svetlana Dorokhova
@@ -56,21 +56,23 @@ public class JavaSerializationProhibitedTest {
   protected static final String ONE_TASK_PROCESS = "org/cibseven/bpm/engine/test/api/variables/oneTaskProcess.bpmn20.xml";
 
   protected static final String JAVA_DATA_FORMAT = Variables.SerializationDataFormats.JAVA.getName();
-
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule();
-
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule();
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   private RuntimeService runtimeService;
   private TaskService taskService;
 
-  @Before
+  @BeforeEach
   public void init() {
+    if (bootstrapRule == null) {
+      bootstrapRule = new ProcessEngineBootstrapRule();
+      engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+      testRule = new ProcessEngineTestRule(engineRule);
+    }
     runtimeService = engineRule.getRuntimeService();
     taskService = engineRule.getTaskService();
     ((ProcessEngineConfigurationImpl) engineRule.getProcessEngine().getProcessEngineConfiguration())

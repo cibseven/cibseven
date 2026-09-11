@@ -22,7 +22,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 import javax.crypto.spec.SecretKeySpec;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.rest.LicenseRestService;
 import org.cibseven.bpm.engine.rest.dto.license.LicenseKeyDto;

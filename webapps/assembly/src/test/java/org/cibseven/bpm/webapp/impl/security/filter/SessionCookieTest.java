@@ -20,12 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.webapp.impl.util.HeaderRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class SessionCookieTest {
 
-  @Rule
+  @RegisterExtension
   public HeaderRule headerRule = new HeaderRule();
 
   @Test

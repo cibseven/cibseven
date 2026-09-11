@@ -17,6 +17,7 @@
 package org.cibseven.spin.xml.dom;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.cibseven.spin.xml.XmlTestConstants.EXAMPLE_VALIDATION_XML;
 import static org.cibseven.spin.xml.XmlTestConstants.createExampleOrder;
 
@@ -24,7 +25,7 @@ import org.cibseven.spin.impl.test.Script;
 import org.cibseven.spin.impl.test.ScriptTest;
 import org.cibseven.spin.xml.XmlTestUtil;
 import org.cibseven.spin.xml.mapping.Order;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public abstract class XmlDomMapJavaToXmlScriptTest extends ScriptTest {
 
@@ -45,9 +46,9 @@ public abstract class XmlDomMapJavaToXmlScriptTest extends ScriptTest {
     assertThat(xml).isXmlEqualTo(exampleValidationXmlWoTimezone);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   @Script(execute = false)
   public void shouldFailWithNull() throws Throwable {
-    failingWithException();
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> failingWithException());
   }
 }

@@ -16,8 +16,8 @@
  */
 package org.cibseven.spin.impl.xml.dom.format.spi;
 
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 
 import org.cibseven.spin.impl.xml.dom.format.DomXmlDataFormat;
 

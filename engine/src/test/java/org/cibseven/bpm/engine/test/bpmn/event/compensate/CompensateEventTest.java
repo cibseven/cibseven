@@ -20,10 +20,10 @@ import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.assertTha
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -55,9 +55,9 @@ import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
@@ -421,7 +421,7 @@ public class CompensateEventTest extends PluggableProcessEngineTest {
   }
 
   @Deployment
-  @Ignore("Fix CAM-4268")
+  @Disabled("Fix CAM-4268")
   @Test
   public void testCompensateMiSubprocessVariableSnapshotOfElementVariable() {
     Map<String, Object> variables = new HashMap<String, Object>();
@@ -727,7 +727,7 @@ public class CompensateEventTest extends PluggableProcessEngineTest {
   }
 
   @Deployment
-  @Ignore("CAM-4903")
+  @Disabled("CAM-4903")
   @Test
   public void testActivityInstanceTreeForMiSubProcessDefaultHandler() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("compensateProcess");
@@ -1006,7 +1006,7 @@ public class CompensateEventTest extends PluggableProcessEngineTest {
   }
 
   @Deployment
-  @Ignore("CAM-4387")
+  @Disabled("CAM-4387")
   @Test
   public void testSubprocessCompensationHandlerWithEventSubprocess() {
     // given a process instance in compensation
@@ -1027,7 +1027,7 @@ public class CompensateEventTest extends PluggableProcessEngineTest {
    * CAM-4387
    */
   @Deployment(resources = "org/cibseven/bpm/engine/test/bpmn/event/compensate/CompensateEventTest.testSubprocessCompensationHandlerWithEventSubprocess.bpmn20.xml")
-  @Ignore("CAM-4387")
+  @Disabled("CAM-4387")
   @Test
   public void testSubprocessCompensationHandlerWithEventSubprocessActivityInstanceTree() {
     // given a process instance in compensation
@@ -1050,7 +1050,7 @@ public class CompensateEventTest extends PluggableProcessEngineTest {
   }
 
   @Deployment
-  @Ignore("CAM-4387")
+  @Disabled("CAM-4387")
   @Test
   public void testReceiveTaskCompensationHandler() {
     // given a process instance
@@ -1130,15 +1130,15 @@ public class CompensateEventTest extends PluggableProcessEngineTest {
     // then the variable listener has been invoked and was able to read the variable on the end event
     readListener = (ReadLocalVariableListener) runtimeService.getVariable(processInstance.getId(), "readListener");
 
-    Assert.assertEquals(1, readListener.getVariableEvents().size());
+    Assertions.assertEquals(1, readListener.getVariableEvents().size());
 
     VariableEvent event = readListener.getVariableEvents().get(0);
-    Assert.assertEquals("foo", event.getVariableName());
-    Assert.assertEquals("bar", event.getVariableValue());
+    Assertions.assertEquals("foo", event.getVariableName());
+    Assertions.assertEquals("bar", event.getVariableValue());
   }
 
   @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
-  @Ignore
+  @Disabled
   @Test
   public void testDeleteInstanceWithEventScopeExecution()
   {
@@ -1202,7 +1202,7 @@ public class CompensateEventTest extends PluggableProcessEngineTest {
   private void completeTasks(String taskName, int times) {
     List<Task> tasks = taskService.createTaskQuery().taskName(taskName).list();
 
-    assertTrue("Actual there are " + tasks.size() + " open tasks with name '" + taskName + "'. Expected at least " + times, times <= tasks.size());
+    assertTrue(times <= tasks.size(), "Actual there are " + tasks.size() + " open tasks with name '" + taskName + "'. Expected at least " + times);
 
     Iterator<Task> taskIterator = tasks.iterator();
     for (int i = 0; i < times; i++) {
@@ -1213,7 +1213,7 @@ public class CompensateEventTest extends PluggableProcessEngineTest {
 
   private void completeTaskWithVariable(String taskName, String variable, Object value) {
     Task task = taskService.createTaskQuery().taskName(taskName).singleResult();
-    assertNotNull("No open task with name '" + taskName + "'", task);
+    assertNotNull(task, "No open task with name '" + taskName + "'");
 
     Map<String, Object> variables = new HashMap<String, Object>();
     if (variable != null) {

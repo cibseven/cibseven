@@ -21,9 +21,8 @@ import org.cibseven.bpm.engine.delegate.JavaDelegate;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.spin.plugin.variable.SpinValues.xmlValue;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 
 /**
  * @author Tassilo Weidner
@@ -37,7 +36,7 @@ public class XmlDelegate implements JavaDelegate {
     TypedValue typedValue = execution.getVariableTyped("xmlVariable");
 
     // then
-    assertThat(typedValue.isTransient(), is(true));
+    assertThat(typedValue.isTransient()).isTrue();
   }
 
 }

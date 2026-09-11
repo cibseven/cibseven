@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.api.repository;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Collection;
 
@@ -29,7 +29,7 @@ import org.cibseven.bpm.model.dmn.instance.DecisionTable;
 import org.cibseven.bpm.model.dmn.instance.Input;
 import org.cibseven.bpm.model.dmn.instance.Output;
 import org.cibseven.bpm.model.dmn.instance.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DmnModelElementInstanceCmdTest extends PluggableProcessEngineTest {
 

@@ -16,7 +16,6 @@
  */
 package org.cibseven.bpm.quarkus.engine.extension.impl;
 
-import static com.arjuna.ats.jta.TransactionManager.transactionManager;
 import static io.quarkus.datasource.common.runtime.DataSourceUtil.DEFAULT_DATASOURCE_NAME;
 
 import io.quarkus.agroal.runtime.DataSources;
@@ -27,6 +26,7 @@ import io.quarkus.runtime.ShutdownContext;
 import io.quarkus.runtime.annotations.Recorder;
 import io.smallrye.context.SmallRyeManagedExecutor;
 import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.transaction.TransactionManager;
 import java.util.ArrayList;
 import java.util.List;
 import org.cibseven.bpm.container.RuntimeContainerDelegate;
@@ -67,7 +67,8 @@ public class CamundaEngineRecorder {
     }
 
     if (configuration.getTransactionManager() == null) {
-      configuration.setTransactionManager(transactionManager());
+      TransactionManager tm = Arc.container().instance(TransactionManager.class).get();
+      configuration.setTransactionManager(tm);
     }
 
     // configure job executor,

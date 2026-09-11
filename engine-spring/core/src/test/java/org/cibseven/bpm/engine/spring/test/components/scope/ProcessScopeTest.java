@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.spring.test.components.scope;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -28,7 +28,7 @@ import java.util.logging.SimpleFormatter;
 import java.util.logging.StreamHandler;
 
 import org.cibseven.bpm.engine.spring.components.scope.ProcessScope;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Tobias Metzke

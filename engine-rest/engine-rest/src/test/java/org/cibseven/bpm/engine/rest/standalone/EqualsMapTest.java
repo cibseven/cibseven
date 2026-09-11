@@ -20,11 +20,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.cibseven.bpm.engine.rest.helper.EqualsMap;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Thorben Lindhauer
@@ -35,7 +35,7 @@ public class EqualsMapTest {
   protected Map<String, Object> map1;
   protected Map<String, Object> map2;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     map1 = new HashMap<String, Object>();
     map2 = new HashMap<String, Object>();

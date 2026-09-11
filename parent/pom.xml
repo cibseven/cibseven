@@ -25,8 +25,7 @@
     <version.spring-boot>3.5.15</version.spring-boot>
     <version.spring-boot4>4.0.7</version.spring-boot4>
     <version.resteasy>3.15.6.Final</version.resteasy>
-    <version.jersey2>2.34</version.jersey2>
-    <!-- use minimum version of resteasy and jersey -->
+    <version.jersey3>3.1.9</version.jersey3>
     <version.jaxrs.api>2.0.1.Final</version.jaxrs.api>
     <version.groovy>5.0.4</version.groovy>
     <version.graal.js>21.3.19.1</version.graal.js>
@@ -38,10 +37,11 @@
     <version.gson>2.8.9</version.gson>
     <version.commons-lang3>3.18.0</version.commons-lang3>
     <version.openjpa>2.4.3</version.openjpa>
-    <version.hibernate>5.6.5.Final</version.hibernate>
+    <version.hamcrest>3.0</version.hamcrest>
+    <version.hibernate>6.6.10.Final</version.hibernate>
     <version.hikaricp>4.0.3</version.hikaricp>
+    <version.jackson>2.22.0</version.jackson>
     <version.jackson>2.21.5</version.jackson>
-    <version.xml.bind-api>2.3.3</version.xml.bind-api>
     <version.xml.jaxb-impl>2.3.6</version.xml.jaxb-impl>
     <version.xml.jaxb-impl4>4.0.5</version.xml.jaxb-impl4>
     <version.jakarta.xml.bind-api>4.0.2</version.jakarta.xml.bind-api>
@@ -54,13 +54,15 @@
     <version.slf4j>1.7.36</version.slf4j>
     <version.logback>1.2.13</version.logback>
     <version.log4j2>2.25.5</version.log4j2>
-    <version.junit>4.13.1</version.junit>
-    <version.assertj>2.9.1</version.assertj>
     <version.mockito>5.17.0</version.mockito>
-    <version.wiremock>2.27.2</version.wiremock>
-    <version.testcontainers>2.0.4</version.testcontainers>
-    <version.surefire>3.0.0-M5</version.surefire>
+    <version.junit5>5.12.2</version.junit5>
+    <version.assertj>3.27.7</version.assertj>
+    <version.wiremock>3.0.1</version.wiremock>
+
+    <version.surefire>3.5.2</version.surefire>
     <version.unirest-java>2.3.10</version.unirest-java>
+    <version.testcontainers>2.0.4</version.testcontainers>
+
 
     <version.commonj>1.1.0</version.commonj>
     <version.bouncycastle>1.47</version.bouncycastle>
@@ -80,7 +82,7 @@
     <version.tomcat10>10.1.59</version.tomcat10>
     <version.tomcat>11.0.25</version.tomcat>
 
-    <version.arquillian>1.1.10.Final</version.arquillian>
+    <version.arquillian>1.10.0.Final</version.arquillian>
     <version.shrinkwrap.resolvers>2.2.7</version.shrinkwrap.resolvers>
     <version.selenium>4.26.0</version.selenium>
     <version.chromedriver>138.0.7204.94</version.chromedriver>
@@ -90,8 +92,8 @@
     <version.jakarta-ee-spec>10.0.0</version.jakarta-ee-spec>
 
     <version.eirslett.frontend.maven.plugin>1.12.1</version.eirslett.frontend.maven.plugin>
-    <version.nodejs>24.13.1</version.nodejs>
-    <version.npm>11.8.0</version.npm>
+    <version.nodejs>22.16.0</version.nodejs>
+    <version.npm>10.9.2</version.npm>
 
     <!-- OSGi bundles properties -->
     <cibseven.artifact />
@@ -182,6 +184,13 @@
         <version>${version.log4j2}</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.jboss.arquillian</groupId>
+        <artifactId>arquillian-bom</artifactId>
+        <version>${version.arquillian}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
       <!-- Temporary Apache HttpComponents CVE overrides.
            Remove these once the imported Spring Boot BOM manages fixed versions. -->
       <dependency>
@@ -227,7 +236,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <version>2.16</version>
+          <version>${version.surefire}</version>
           <configuration>
             <argLine>-Xmx968m</argLine>
             <runOrder>hourly</runOrder>
@@ -246,7 +255,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>2.8</version>
+          <version>3.6.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>

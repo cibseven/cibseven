@@ -19,9 +19,9 @@ package org.cibseven.bpm.engine.test.api.mgmt;
 import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.inverted;
 import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.jobByPriority;
 import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.verifySortingAndCount;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -33,7 +33,7 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer

@@ -19,20 +19,17 @@ package org.cibseven.bpm.engine.cdi.test.impl.el;
 import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.cibseven.bpm.engine.cdi.test.impl.el.beans.CdiTaskListenerBean.*;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author Sebastian Menski
  */
-@RunWith(Arquillian.class)
 public class TaskListenerInvocationTest extends CdiProcessEngineTestCase {
 
   @Test

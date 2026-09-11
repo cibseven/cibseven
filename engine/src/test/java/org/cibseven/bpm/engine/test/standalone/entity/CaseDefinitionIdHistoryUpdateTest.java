@@ -32,7 +32,7 @@ import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.HistoricCaseActivityInstanceEntity;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CaseDefinitionIdHistoryUpdateTest extends PluggableProcessEngineTest {
 

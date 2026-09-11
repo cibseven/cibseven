@@ -17,6 +17,7 @@
 package org.cibseven.bpm.engine.test;
 
 import java.io.FileNotFoundException;
+import java.lang.reflect.Method;
 import java.util.Date;
 
 import org.cibseven.bpm.engine.AuthorizationService;
@@ -31,11 +32,15 @@ import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.TaskService;
-import org.cibseven.bpm.engine.impl.test.ProcessEngineAssert;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
-
-import junit.framework.TestCase;
+import org.cibseven.bpm.engine.runtime.ProcessInstance;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.opentest4j.AssertionFailedError;
 
 
 /** Convenience for ProcessEngine and services initialization in the form of a JUnit base class.
@@ -52,13 +57,13 @@ import junit.framework.TestCase;
  * <p>You can declare a deployment with the {@link Deployment} annotation.
  * This base class will make sure that this deployment gets deployed in the
  * setUp and {@link RepositoryService#deleteDeploymentCascade(String, boolean) cascade deleted}
- * in the tearDown.
+ * in the afterEach.
  * </p>
  *
  * <p>This class also lets you {@link #setCurrentTime(Date) set the current time used by the
  * process engine}. This can be handy to control the exact time that is used by the engine
  * in order to verify e.g. e.g. due dates of timers.  Or start, end and duration times
- * in the history service.  In the tearDown, the internal clock will automatically be
+ * in the history service.  In the afterEach, the internal clock will automatically be
  * reset to use the current system time rather then the time that was set during
  * a test method.  In other words, you don't have to clean up your own time messing mess ;-)
  * </p>
@@ -66,7 +71,7 @@ import junit.framework.TestCase;
  * @author Tom Baeyens
  * @author Falko Menge (camunda)
  */
-public class ProcessEngineTestCase extends TestCase {
+public class ProcessEngineTestCase implements BeforeEachCallback, AfterEachCallback {
 
   protected String configurationResource = "camunda.cfg.xml";
   protected String configurationResourceCompat = "activiti.cfg.xml";
@@ -92,31 +97,31 @@ public class ProcessEngineTestCase extends TestCase {
   }
 
   public void assertProcessEnded(final String processInstanceId) {
-    ProcessEngineAssert.assertProcessEnded(processEngine, processInstanceId);
+    ProcessInstance processInstance = processEngine
+      .getRuntimeService()
+      .createProcessInstanceQuery()
+      .processInstanceId(processInstanceId)
+      .singleResult();
+    if (processInstance != null) {
+      throw new AssertionFailedError("expected finished process instance '" + processInstanceId + "' but it was still in the db");
+    }
   }
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-
+  public void beforeEach(ExtensionContext context) throws Exception {
     if (processEngine==null) {
       initializeProcessEngine();
       initializeServices();
     }
+    final Method testMethod = context.getTestMethod().get();
 
-    boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine, getClass(), getName());
+    boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine, context.getTestClass().get(), testMethod.getName(), testMethod.getParameterTypes());
     // ignore test case when current history level is too low
     skipTest = !hasRequiredHistoryLevel;
+    Assumptions.assumeTrue(hasRequiredHistoryLevel, "ignored because the current history level is too low");
 
     if (!skipTest) {
-      deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, getClass(), getName());
-    }
-  }
-
-  @Override
-  protected void runTest() throws Throwable {
-    if (!skipTest) {
-      super.runTest();
+      deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, context.getTestClass().get(), 
+          context.getTestMethod().get().getName());
     }
   }
 
@@ -149,12 +154,9 @@ public class ProcessEngineTestCase extends TestCase {
   }
 
   @Override
-  protected void tearDown() throws Exception {
-    TestHelper.annotationDeploymentTearDown(processEngine, deploymentId, getClass(), getName());
-
+  public void afterEach(ExtensionContext context) throws Exception {
+    TestHelper.annotationDeploymentTearDown(processEngine, deploymentId, getClass(), context.getTestMethod().get().getName());
     ClockUtil.reset();
-
-    super.tearDown();
   }
 
   public static void closeProcessEngines() {
@@ -172,5 +174,66 @@ public class ProcessEngineTestCase extends TestCase {
   public void setConfigurationResource(String configurationResource) {
     this.configurationResource = configurationResource;
   }
+
+  public String getConfigurationResourceCompat() {
+    return configurationResourceCompat;
+  }
+
+  public String getDeploymentId() {
+    return deploymentId;
+  }
+
+  public ProcessEngine getProcessEngine() {
+    return processEngine;
+  }
+
+  public RepositoryService getRepositoryService() {
+    return repositoryService;
+  }
+
+  public RuntimeService getRuntimeService() {
+    return runtimeService;
+  }
+
+  public TaskService getTaskService() {
+    return taskService;
+  }
+
+  public HistoryService getHistoricDataService() {
+    return historicDataService;
+  }
+
+  public HistoryService getHistoryService() {
+    return historyService;
+  }
+
+  public IdentityService getIdentityService() {
+    return identityService;
+  }
+
+  public ManagementService getManagementService() {
+    return managementService;
+  }
+
+  public FormService getFormService() {
+    return formService;
+  }
+
+  public FilterService getFilterService() {
+    return filterService;
+  }
+
+  public AuthorizationService getAuthorizationService() {
+    return authorizationService;
+  }
+
+  public CaseService getCaseService() {
+    return caseService;
+  }
+
+  public boolean isSkipTest() {
+    return skipTest;
+  }
+
 
 }

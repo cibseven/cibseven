@@ -17,6 +17,7 @@
 package org.cibseven.bpm.engine.test.api.mgmt.metrics;
 
 import static org.cibseven.bpm.engine.management.Metrics.ACTIVTY_INSTANCE_START;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.List;
@@ -24,8 +25,7 @@ import java.util.List;
 import org.cibseven.bpm.engine.impl.metrics.MetricsRegistry;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.management.MetricIntervalValue;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Represents a test suite for the metrics interval query to check if the
@@ -46,9 +46,9 @@ public class MetricsIntervalTimezoneTest extends AbstractMetricsIntervalTest {
 
     //then metric interval time should be less than FIRST_INTERVAL + 3 * DEFAULT_INTERVAL
     long metricIntervalTime = metrics.get(0).getTimestamp().getTime();
-    Assert.assertTrue(metricIntervalTime < firstInterval.plusMinutes(3 * DEFAULT_INTERVAL).getMillis());
+    assertTrue(metricIntervalTime < firstInterval.plusMinutes(3 * DEFAULT_INTERVAL).getMillis());
     //and larger than first interval time, if not than we have a timezone problem
-    Assert.assertTrue(metricIntervalTime > firstInterval.getMillis());
+    assertTrue(metricIntervalTime > firstInterval.getMillis());
 
     //when current time is used and metric is reported
     Date currentTime = new Date();
@@ -59,6 +59,6 @@ public class MetricsIntervalTimezoneTest extends AbstractMetricsIntervalTest {
 
     //then current time should be larger than metric interval time
     List<MetricIntervalValue> m2 = managementService.createMetricsQuery().limit(1).interval();
-    Assert.assertTrue(m2.get(0).getTimestamp().getTime() < currentTime.getTime());
+    assertTrue(m2.get(0).getTimestamp().getTime() < currentTime.getTime());
   }
 }

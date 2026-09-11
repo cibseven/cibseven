@@ -17,9 +17,9 @@
 package org.cibseven.bpm.engine.test.bpmn.iomapping;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -36,9 +36,9 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -46,7 +46,7 @@ import org.junit.Test;
  */
 public class InputOutputEventTest extends PluggableProcessEngineTest {
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
 
 
@@ -266,7 +266,7 @@ public class InputOutputEventTest extends PluggableProcessEngineTest {
     }
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
 
 

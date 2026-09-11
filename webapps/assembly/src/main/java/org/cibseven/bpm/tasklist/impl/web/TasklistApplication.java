@@ -20,7 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.core.Application;
 
 import org.cibseven.bpm.engine.rest.exception.ExceptionHandler;
 import org.cibseven.bpm.engine.rest.exception.RestExceptionHandler;
@@ -28,7 +28,7 @@ import org.cibseven.bpm.engine.rest.mapper.JacksonConfigurator;
 import org.cibseven.bpm.tasklist.Tasklist;
 import org.cibseven.bpm.tasklist.plugin.spi.TasklistPlugin;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
 /**
  * @author Roman Smirnov

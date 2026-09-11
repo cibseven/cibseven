@@ -100,15 +100,13 @@ pipeline {
         booleanParam(name: 'JAVA_DOCS', defaultValue: false, description: "  └─ 📖 Deploy JavaDocs")
     }
 
-    environment {
-        MAVEN_LOCAL_REPO = getLocalJobRepo(env.JOB_NAME, params.USE_PRIVATE_REPO)
-        // set bigger timeout to get rid of the maven issue with file locks: https://github.com/apache/maven/issues/9049
-        MAVEN_LOCAL_REPO_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO} -Daether.syncContext.named.time=120"
-        // set maven options only if params.USE_PRIVATE_REPO is true, otherwise use shared repo as usual
-        MAVEN_OPTS = "${params.USE_PRIVATE_REPO == true ? env.MAVEN_LOCAL_REPO_OPTS : ""}"
-    }
-
-    options {
+     environment {
+         MAVEN_LOCAL_REPO = getLocalJobRepo(env.JOB_NAME, params.USE_PRIVATE_REPO)
+         // We clean this up to strictly hold the repository path variable
+         MAVEN_LOCAL_REPO_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
+         MAVEN_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
+     }
+     options {
         buildDiscarder(
             logRotator(
                 // number of build logs to keep
@@ -171,7 +169,9 @@ pipeline {
             }
             steps {
                 script {
-                    withMaven(options: []) {
+                    withMaven {
+						//TODO: remove before merge
+						sh 'mvn org.apache.maven.plugins:maven-dependency-plugin:3.6.0:purge-local-repository -DmanualInclude="org.cibseven.bpm:cibseven-engine-rest-core" -DactTransitively=false -DreResolve=false'
                         sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
                     }
                 }
@@ -184,14 +184,14 @@ pipeline {
             }
             steps {
                 script {
-                    withMaven(options: []) {
+                    withMaven {
                         sh """
                             mvn -f ${pipelineParams.pom} \
                                 -Dbuild.number=${BUILD_NUMBER} \
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
                                 -DOPTIONAL_PGTEST_EXCLUDE=org/cibseven/bpm/engine/impl/identity/db/DbIdentityServicePGTest.java \
-                                -pl !org.cibseven.bpm:cibseven-engine-spring-6,!:cibseven-spin-core,!:cibseven-engine-rest-core-jakarta,!:cibseven-webapp-jakarta,!:cibseven-engine-cdi-jakarta,!:cibseven-example-invoice-jakarta,!:cibseven-ejb-client-jakarta,!:cibseven-sql-scripts
+                                -pl !org.cibseven.bpm:cibseven-engine-spring-6,!:cibseven-spin-core,!:cibseven-engine-rest-core,!:cibseven-webapp,!:cibseven-engine-cdi,!:cibseven-example-invoice,!:cibseven-ejb-client,!:cibseven-sql-scripts
                         """
 
                         sh """
@@ -200,7 +200,7 @@ pipeline {
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
                                 -DOPTIONAL_PGTEST_EXCLUDE=org/cibseven/bpm/engine/impl/identity/db/DbIdentityServicePGTest.java \
-                                -pl org.cibseven.bpm:cibseven-engine-spring-6,:cibseven-spin-core,:cibseven-engine-rest-core-jakarta,:cibseven-webapp-jakarta,:cibseven-engine-cdi-jakarta,:cibseven-example-invoice-jakarta,:cibseven-ejb-client-jakarta,:cibseven-sql-scripts \
+                                -pl org.cibseven.bpm:cibseven-engine-spring-6,:cibseven-spin-core,:cibseven-engine-rest-core,:cibseven-webapp,:cibseven-engine-cdi,:cibseven-example-invoice,:cibseven-ejb-client,:cibseven-sql-scripts \
                                 -fn
                         """
                     }
@@ -233,10 +233,10 @@ pipeline {
                     }
                     stages {
                         stage('engine-IT-wildfly-domain') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly-domain,h2,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly-domain,h2,engine-integration" }}}
                         }
                         stage('engine-IT-wildfly-servlet') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly,wildfly-servlet,h2,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly,wildfly-servlet,h2,engine-integration" }}}
                         }
                         stage('engine-IT-wildfly26-domain') {
                             steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly26-domain,h2,engine-integration" }}}
@@ -272,12 +272,11 @@ pipeline {
                 stage('Engine Integration') {
                     when { expression { params.QA_ENG_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat10,h2,engine-integration-jakarta" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,engine-integration-jakarta" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly-domain,h2,engine-integration-jakarta" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,engine-integration-jakarta" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28-domain,h2,engine-integration-jakarta" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Dengine-integration -Ptomcat,h2,engine-integration" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Dengine-integration -Pwildfly,h2,engine-integration" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Dengine-integration -Pwildfly-domain,h2,engine-integration" }}
+                        // fails since junit 5 migration script { withMaven { sh "mvn -f qa/pom.xml clean install -Dengine-integration -Pwildfly28,h2,engine-integration" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Dengine-integration -Pwildfly28-domain,h2,engine-integration" }}
                     }
                 }
                 stage('Web Integration') {
@@ -386,16 +385,16 @@ pipeline {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat9,postgresql,engine-integration" }}}
                         }
                         stage('engine-IT-tomcat-10-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat,postgresql,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat,postgresql,engine-integration" }}}
                         }
                         stage('engine-IT-tomcat-11-postgresql-142') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat10,postgresql,engine-integration-jakarta" }}}
                         }
                         stage('engine-IT-wildfly-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,engine-integration" }}}
                         }
                         stage('engine-IT-XA-wildfly-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,postgresql-xa,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,postgresql-xa,engine-integration" }}}
                         }
                         stage('webapp-IT-tomcat-9-h2') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat9,h2,webapps-integration" }}}
@@ -407,7 +406,7 @@ pipeline {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat10,h2,webapps-integration" }}}
                         }
                         stage('webapp-IT-wildfly-h2') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration -pl '!integration-tests-engine-jakarta'" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration -pl '!integration-tests-engine'" }}}
                         }
                     }
                 }
@@ -470,7 +469,7 @@ pipeline {
                     String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
                         "org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
 
-                    withMaven(options: []) {
+                    withMaven {
                         sh """
                             mvn -T4 -U \
                                 -DskipTests \
@@ -503,7 +502,7 @@ pipeline {
                     String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
                         "org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
 
-                    withMaven(options: []) {
+                    withMaven {
                         withCredentials([file(credentialsId: 'credential-cibseven-gpg-private-key', variable: 'GPG_KEY_FILE'), string(credentialsId: 'credential-cibseven-gpg-passphrase', variable: 'GPG_KEY_PASS')]) {
                             sh "gpg --batch --import ${GPG_KEY_FILE}"
 

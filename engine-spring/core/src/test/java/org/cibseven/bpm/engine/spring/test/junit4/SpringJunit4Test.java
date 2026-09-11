@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.spring.test.junit4;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.RuntimeService;
@@ -24,19 +24,19 @@ import org.cibseven.bpm.engine.TaskService;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 
 /**
  * @author Joram Barrez
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:org/cibseven/bpm/engine/spring/test/junit4/springTypicalUsageTest-context.xml")
 public class SpringJunit4Test {
 
@@ -50,10 +50,10 @@ public class SpringJunit4Test {
   private TaskService taskService;
 
   @Autowired
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule activitiSpringRule;
 
-  @After
+  @AfterEach
   public void closeProcessEngine() {
     // Required, since all the other tests seem to do a specific drop on the end
     processEngine.close();

@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.api.cmmn;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.cibseven.bpm.engine.exception.NotAllowedException;
 import org.cibseven.bpm.engine.runtime.CaseExecution;
@@ -26,7 +26,7 @@ import org.cibseven.bpm.engine.runtime.CaseInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov

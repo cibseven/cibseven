@@ -16,6 +16,15 @@
  */
 package org.cibseven.bpm.engine.impl.el;
 
+import jakarta.el.ArrayELResolver;
+import jakarta.el.CompositeELResolver;
+import jakarta.el.ELResolver;
+import jakarta.el.ListELResolver;
+import jakarta.el.MapELResolver;
+import jakarta.el.ValueExpression;
+import jakarta.el.ELContext;
+import jakarta.el.ExpressionFactory;
+import jakarta.el.FunctionMapper;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,15 +32,8 @@ import org.cibseven.bpm.dmn.engine.impl.spi.el.ElProvider;
 import org.cibseven.bpm.engine.delegate.VariableScope;
 import org.cibseven.bpm.engine.impl.core.variable.scope.AbstractVariableScope;
 import org.cibseven.bpm.engine.impl.dmn.el.ProcessEngineJuelElProvider;
-import org.cibseven.bpm.impl.juel.jakarta.el.ArrayELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.CompositeELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ExpressionFactory;
-import org.cibseven.bpm.impl.juel.jakarta.el.FunctionMapper;
-import org.cibseven.bpm.impl.juel.jakarta.el.ListELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.MapELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ValueExpression;
+
+
 import org.cibseven.bpm.impl.juel.ExpressionFactoryImpl;
 import org.cibseven.bpm.engine.impl.util.EnsureUtil;
 import org.cibseven.bpm.engine.test.mock.MockElResolver;

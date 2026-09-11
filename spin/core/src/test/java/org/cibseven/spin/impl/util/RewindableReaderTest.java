@@ -24,8 +24,8 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.Arrays;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class RewindableReaderTest {
 
@@ -202,7 +202,7 @@ public class RewindableReaderTest {
     assertThat(charRead).isEqualTo(-1);
   }
 
-  @After
+  @AfterEach
   public void closeReader() {
     if (reader != null) {
       SpinIoUtil.closeSilently(reader);

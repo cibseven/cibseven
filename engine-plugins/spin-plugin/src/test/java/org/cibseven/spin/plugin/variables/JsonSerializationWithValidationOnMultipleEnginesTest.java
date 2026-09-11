@@ -16,9 +16,9 @@
  */
 package org.cibseven.spin.plugin.variables;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.variable.Variables.objectValue;
-import static org.hamcrest.CoreMatchers.isA;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -33,10 +33,8 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.spin.DataFormats;
 import org.cibseven.spin.json.SpinJsonException;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test cases for multiple engines defining different validators that do not
@@ -47,7 +45,7 @@ import org.junit.rules.ExpectedException;
  */
 public class JsonSerializationWithValidationOnMultipleEnginesTest {
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRulePositive = new ProcessEngineBootstrapRule(configuration -> {
       DeserializationTypeValidator validatorMock = mock(DeserializationTypeValidator.class);
       when(validatorMock.validate(anyString())).thenReturn(true);
@@ -57,7 +55,7 @@ public class JsonSerializationWithValidationOnMultipleEnginesTest {
           .setJdbcUrl("jdbc:h2:mem:positive");
   });
 
-  @ClassRule
+  @RegisterExtension
   public static ProcessEngineBootstrapRule bootstrapRuleNegative = new ProcessEngineBootstrapRule(configuration -> {
       DeserializationTypeValidator validatorMock = mock(DeserializationTypeValidator.class);
       when(validatorMock.validate(anyString())).thenReturn(false);
@@ -67,14 +65,11 @@ public class JsonSerializationWithValidationOnMultipleEnginesTest {
           .setJdbcUrl("jdbc:h2:mem:negative");
   });
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRulePositive = new ProvidedProcessEngineRule(bootstrapRulePositive);
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRuleNegative = new ProvidedProcessEngineRule(bootstrapRuleNegative);
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void shouldUsePositiveValidator() {
@@ -109,13 +104,15 @@ public class JsonSerializationWithValidationOnMultipleEnginesTest {
     engineRuleNegative.getRuntimeService().setVariable(instance.getId(), "simpleBean",
         objectValue(bean).serializationDataFormat(DataFormats.JSON_DATAFORMAT_NAME).create());
 
-    // then
-    thrown.expect(ProcessEngineException.class);
-    thrown.expectMessage("Cannot deserialize");
-    thrown.expectCause(isA(SpinJsonException.class));
-
     // when
-    engineRuleNegative.getRuntimeService().getVariable(instance.getId(), "simpleBean");
+    
+    assertThatThrownBy(() -> 
+      engineRuleNegative.getRuntimeService().getVariable(instance.getId(), "simpleBean")
+    )
+    .isInstanceOf(ProcessEngineException.class)
+    .hasMessageContaining("Cannot deserialize")
+    .hasCauseExactlyInstanceOf(SpinJsonException.class);
+    
   }
 
   protected BpmnModelInstance getOneTaskModel() {

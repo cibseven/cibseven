@@ -16,10 +16,10 @@
  */
 package org.cibseven.bpm.application.impl.deployment.parser;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.net.URL;
 import java.util.List;
@@ -30,8 +30,8 @@ import org.cibseven.bpm.application.impl.metadata.spi.ProcessArchiveXml;
 import org.cibseven.bpm.application.impl.metadata.spi.ProcessesXml;
 import org.cibseven.bpm.container.impl.metadata.spi.ProcessEngineXml;
 import org.cibseven.bpm.engine.ProcessEngineException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * <p>The testcases for the {@link ProcessesXmlParser}</p>
@@ -43,7 +43,7 @@ public class ProcessesXmlParserTest {
 
   private ProcessesXmlParser parser;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     parser = new ProcessesXmlParser();
   }

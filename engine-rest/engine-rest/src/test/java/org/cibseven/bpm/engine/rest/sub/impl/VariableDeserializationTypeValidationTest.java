@@ -25,10 +25,10 @@ import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.runtime.DeserializationTypeValidator;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import org.mockito.Mockito;
 
 import com.fasterxml.jackson.databind.JavaType;
@@ -37,13 +37,10 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 
 public class VariableDeserializationTypeValidationTest {
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   protected AbstractVariablesResource variablesResourceSpy;
   protected DeserializationTypeValidator validator;
 
-  @Before
+  @BeforeEach
   public void setUpMocks() {
     validator = Mockito.mock(DeserializationTypeValidator.class);
 
@@ -162,12 +159,10 @@ public class VariableDeserializationTypeValidationTest {
     JavaType type = TypeFactory.defaultInstance().constructType(String.class);
     setValidatorMockResult(false);
 
-    // then
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("[java.lang.String]");
-
     // when
-    variablesResourceSpy.validateType(type);
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
+      variablesResourceSpy.validateType(type)
+    ).withMessageContaining("[java.lang.String]");
   }
 
   @Test
@@ -176,12 +171,11 @@ public class VariableDeserializationTypeValidationTest {
     JavaType type = TypeFactory.defaultInstance().constructType(Complex.class);
     setValidatorMockResult(false);
 
-    // then
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("[org.cibseven.bpm.engine.rest.sub.impl.VariableDeserializationTypeValidationTest$Complex]");
-
     // when
-    variablesResourceSpy.validateType(type);
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
+      variablesResourceSpy.validateType(type)
+    ).withMessageContaining("[org.cibseven.bpm.engine.rest.sub.impl.VariableDeserializationTypeValidationTest$Complex]");
+    
   }
 
   @Test
@@ -190,12 +184,10 @@ public class VariableDeserializationTypeValidationTest {
     JavaType type = TypeFactory.defaultInstance().constructType(Integer[].class);
     setValidatorMockResult(false);
 
-    // then
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("[java.lang.Integer]");
-
     // when
-    variablesResourceSpy.validateType(type);
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
+      variablesResourceSpy.validateType(type)
+      ).withMessageContaining("[java.lang.Integer]");
   }
 
   @Test
@@ -204,12 +196,10 @@ public class VariableDeserializationTypeValidationTest {
     JavaType type = TypeFactory.defaultInstance().constructFromCanonical("java.util.ArrayList<java.lang.String>");
     setValidatorMockResult(false);
 
-    // then
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("[java.util.ArrayList, java.lang.String]");
-
     // when
-    variablesResourceSpy.validateType(type);
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
+      variablesResourceSpy.validateType(type)
+    ).withMessageContaining("[java.util.ArrayList, java.lang.String]");
   }
 
   @Test
@@ -218,12 +208,10 @@ public class VariableDeserializationTypeValidationTest {
     JavaType type = TypeFactory.defaultInstance().constructFromCanonical("java.util.HashMap<java.lang.String, java.lang.Integer>");
     setValidatorMockResult(false);
 
-    // then
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("[java.util.HashMap, java.lang.String, java.lang.Integer]");
-
     // when
-    variablesResourceSpy.validateType(type);
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
+      variablesResourceSpy.validateType(type)
+    ).withMessageContaining("[java.util.HashMap, java.lang.String, java.lang.Integer]");
   }
 
   @Test
@@ -232,12 +220,10 @@ public class VariableDeserializationTypeValidationTest {
     JavaType type = TypeFactory.defaultInstance().constructFromCanonical("java.util.HashMap<java.lang.String, java.lang.String>");
     setValidatorMockResult(false);
 
-    // then
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("[java.util.HashMap, java.lang.String]");
-
     // when
-    variablesResourceSpy.validateType(type);
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
+      variablesResourceSpy.validateType(type)
+    ).withMessageContaining("[java.util.HashMap, java.lang.String]");
   }
 
   public static class Complex {

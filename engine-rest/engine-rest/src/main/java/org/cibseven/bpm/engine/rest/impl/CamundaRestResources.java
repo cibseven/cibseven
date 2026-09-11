@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.impl;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
 import org.cibseven.bpm.engine.rest.exception.ExceptionHandler;
 import org.cibseven.bpm.engine.rest.exception.JsonMappingExceptionHandler;

@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.cdi.impl.context;
 
-import javax.enterprise.context.RequestScoped;
+import jakarta.enterprise.context.RequestScoped;
 import java.io.Serializable;
 
 @RequestScoped

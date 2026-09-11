@@ -15,6 +15,13 @@
     <wildfly.container.adapter.groupId>org.wildfly.arquillian</wildfly.container.adapter.groupId>
     <wildfly.container.adapter.version>2.2.0.Final</wildfly.container.adapter.version>
 
+    <!-- arquillian-protocol-servlet-jakarta uses its own independent version scheme
+         (project org.jboss.arquillian.jakarta:arquillian-parent-jakarta), not tied to
+         the core arquillian-bom version (version.arquillian). This version implements
+         "Servlet 5.x" (jakarta.servlet), matching the Servlet 5.0 protocol used by
+         the tomcat/wildfly/wildfly28(-domain) profiles below. -->
+    <version.arquillian-protocol-servlet-jakarta>10.0.0.Final</version.arquillian-protocol-servlet-jakarta>
+
     <redirect.test.output>true</redirect.test.output>
   </properties>
 
@@ -41,7 +48,12 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-framework-bom</artifactId>
-        <version>${version.spring.framework}</version>
+        <!-- Must match the Spring version used by cibseven-engine-spring (Spring 6 / Jakarta),
+             which is what actually gets deployed into the WAR via DeploymentHelper.getEngineSpring().
+             Using the old javax-based version.spring.framework (5.x) here causes a version skew:
+             spring-web's ContextLoaderListener would reference javax.servlet.ServletContextListener,
+             which doesn't exist on Tomcat 11 / Jakarta EE 10 -> NoClassDefFoundError at deployment. -->
+        <version>${version.spring.framework6}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -52,6 +64,14 @@
         <version>${version.jackson}</version>
         <scope>import</scope>
         <type>pom</type>
+      </dependency>
+
+      <dependency>
+        <groupId>jakarta.platform</groupId>
+        <artifactId>jakarta.jakartaee-bom</artifactId>
+        <version>${version.jakarta-ee-spec}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
 
     </dependencies>
@@ -67,39 +87,82 @@
     </dependency>
 
     <dependency>
-      <groupId>org.jboss.arquillian.junit</groupId>
-      <artifactId>arquillian-junit-container</artifactId>
+      <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+      <artifactId>shrinkwrap-descriptors-api-base</artifactId>
+      <version>2.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+      <artifactId>shrinkwrap-descriptors-impl-base</artifactId>
+      <version>2.0.0</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- Arquillian JUnit 5 integration -->
+    <dependency>
+      <groupId>org.jboss.arquillian.junit5</groupId>
+      <artifactId>arquillian-junit5-container</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+<!--    <dependency>
       <groupId>org.jboss.arquillian.protocol</groupId>
       <artifactId>arquillian-protocol-servlet</artifactId>
       <scope>test</scope>
-    </dependency>
+    </dependency>-->
 
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.jboss.spec</groupId>
-      <artifactId>jboss-javaee-6.0</artifactId>
-      <type>pom</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>xalan</artifactId>
-          <groupId>org.apache.xalan</groupId>
-        </exclusion>
-      </exclusions>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
-      <groupId>javax.enterprise.concurrent</groupId>
-      <artifactId>javax.enterprise.concurrent-api</artifactId>
-      <version>1.0</version>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.ejb</groupId>
+      <artifactId>jakarta.ejb-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.enterprise</groupId>
+      <artifactId>jakarta.enterprise.cdi-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.transaction</groupId>
+      <artifactId>jakarta.transaction-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.persistence</groupId>
+      <artifactId>jakarta.persistence-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.enterprise.concurrent</groupId>
+      <artifactId>jakarta.enterprise.concurrent-api</artifactId>
       <scope>provided</scope>
     </dependency>
 
@@ -118,7 +181,11 @@
           <artifactId>cibseven-engine</artifactId>
           <groupId>org.cibseven.bpm</groupId>
         </exclusion>
-      </exclusions>
+       <exclusion>
+         <groupId>org.jboss.weld.servlet</groupId>
+         <artifactId>weld-servlet</artifactId>
+       </exclusion>
+     </exclusions>
     </dependency>
 
     <!-- camunda -->
@@ -223,11 +290,23 @@
       <artifactId>spring-web</artifactId>
     </dependency>
 
-     <!-- weld for CDI support on tomcat-->
+     <!-- weld for CDI support on tomcat.
+          NOTE: weld-servlet 2.4.8.Final is a CDI 1.x / javax.servlet implementation. Its
+          org.jboss.weld.environment.servlet.Listener cannot start under Tomcat 11's Jakarta
+          Servlet 6.0 container (jakarta.servlet, not javax.servlet), and it cannot process
+          jakarta.enterprise.* / jakarta.inject.* annotated beans at all. That's why WARs were
+          failing with "context failed to start" and CDI-backed EL expressions were failing
+          with "Cannot resolve identifier '...'" across the cdi/context/dmn test packages.
+          weld-servlet-shaded 6.0.3.Final is Weld's CDI 4.1 / Jakarta EE 10-11 servlet build
+          (matches the jakarta.enterprise.cdi-api 4.1.0 already used by this reactor).
+          CAVEAT: this makes the dependency Jakarta-only. If the legacy `tomcat9` profile
+          (javax-based Java EE 6/8) is still built from this pom, move this dependency into
+          the tomcat/wildfly/wildfly28/wildfly-domain profile <dependencies> blocks instead of
+          leaving it here at top level, so tomcat9 keeps resolving the old javax weld-servlet. -->
     <dependency>
       <groupId>org.jboss.weld.servlet</groupId>
-      <artifactId>weld-servlet</artifactId>
-      <version>2.4.8.Final</version>
+      <artifactId>weld-servlet-shaded</artifactId>
+      <version>6.0.3.Final</version>
       <scope>test</scope>
     </dependency>
 
@@ -287,8 +366,482 @@
 
   <profiles>
     <profile>
+      <id>tomcat</id>
+      <dependencies>
+        <dependency>
+          <!-- make sure this comes after runtime in the reactor build -->
+          <groupId>org.cibseven.bpm.qa</groupId>
+          <artifactId>cibseven-qa-tomcat-runtime</artifactId>
+          <version>${project.version}</version>
+          <scope>provided</scope>
+          <type>pom</type>
+        </dependency>
+
+        <dependency>
+          <groupId>org.jboss.arquillian.container</groupId>
+          <artifactId>arquillian-tomcat-managed-10</artifactId>
+          <version>1.2.4.Final</version>
+          <scope>test</scope>
+        </dependency>
+        <!-- Tomcat 11 requires Jakarta Servlet 5.0 protocol; the base arquillian-protocol-servlet
+             dependency declared at the top of this pom only ships pre-Jakarta protocol versions.
+             Explicit version needed: not managed by arquillian-bom. -->
+        <dependency>
+          <groupId>org.jboss.arquillian.protocol</groupId>
+          <artifactId>arquillian-protocol-servlet-jakarta</artifactId>
+          <version>${version.arquillian-protocol-servlet-jakarta}</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+
+      <build>
+        <testResources>
+          <testResource>
+            <!-- shared tomcat resources (singleEngine.xml, twoEngines.xml, etc.),
+                 excluding files that use pre-Jakarta (javax.*) namespaces/schemas
+                 specific to Tomcat 9: arquillian.xml (tomcat9.runtime.location),
+                 web.xml / web-without-weld.xml (javax web-app schema + BeanManager type),
+                 context.xml (javax.enterprise.inject.spi.BeanManager) -->
+            <directory>src/test/resources-tomcat</directory>
+            <filtering>true</filtering>
+            <excludes>
+              <exclude>arquillian.xml</exclude>
+              <exclude>web.xml</exclude>
+              <exclude>web-without-weld.xml</exclude>
+              <exclude>context.xml</exclude>
+            </excludes>
+          </testResource>
+          <testResource>
+            <!-- resources-tomcat11 contains the Jakarta EE 10 / Tomcat 11 compatible
+                 arquillian.xml, web.xml, web-without-weld.xml and context.xml -->
+            <directory>src/test/resources-tomcat11</directory>
+            <filtering>true</filtering>
+          </testResource>
+        </testResources>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>add-test-source-tomcat</id>
+                <phase>initialize</phase>
+                <goals>
+                  <goal>add-test-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>src/test/java-tomcat</source>
+                  </sources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <!-- no EE stuff on tomcat :) -->
+                <exclude>**/ear/**</exclude>
+                <exclude>**/ejb/**</exclude>
+                <exclude>**/jar/**</exclude>
+                <exclude>**/transactions/**</exclude>
+                <exclude>**/jpa/**</exclude>
+                <!-- No EJB RequestContext available -->
+                <exclude>**/JobExecutorRequestContextTest.java</exclude>
+                <!-- Not supported by arquillian tomcat container -->
+                <exclude>**/TestWarDeploymentWithBrokenBpmnXml.java</exclude>
+                <exclude>**/TestDeploymentWithDroolsTaskFails.java</exclude>
+                <exclude>**/TestProcessEnginesXmlFails.java</exclude>
+
+                <exclude>**/TestWarDeploymentWithProcessEnginePlugin.java</exclude>
+
+                <exclude>**/*_JBOSS.java</exclude>
+                <exclude>**/EjbPALifecycleCallbacksTest.java</exclude>
+
+                <exclude>**/PythonPaClassImportTest.java</exclude>
+
+                <exclude>**/MigrationContextSwitchBeansTest.java</exclude>
+
+                <exclude>**/ManagedJobExecutorTest.java</exclude>
+              </excludes>
+              <redirectTestOutputToFile>${redirect.test.output}</redirectTestOutputToFile>
+              <forkCount>1</forkCount>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>wildfly</id>
+      <dependencies>
+        <dependency>
+          <!-- make sure this comes after runtime in the reactor build -->
+          <groupId>org.cibseven.bpm.qa</groupId>
+          <artifactId>cibseven-qa-wildfly-runtime</artifactId>
+          <version>${project.version}</version>
+          <scope>provided</scope>
+          <type>pom</type>
+        </dependency>
+        <dependency>
+          <groupId>${wildfly.container.adapter.groupId}</groupId>
+          <artifactId>wildfly-arquillian-container-managed</artifactId>
+          <version>${wildfly.container.adapter.version}</version>
+          <scope>test</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>org.jboss.arquillian.testenricher</groupId>
+              <artifactId>arquillian-testenricher-cdi</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+        <!-- WildFly uses Jakarta Servlet 5.0 protocol; the base arquillian-protocol-servlet
+             dependency declared at the top of this pom only ships pre-Jakarta protocol versions.
+             Explicit version needed: not managed by arquillian-bom. -->
+        <dependency>
+          <groupId>org.jboss.arquillian.protocol</groupId>
+          <artifactId>arquillian-protocol-servlet-jakarta</artifactId>
+          <version>${version.arquillian-protocol-servlet-jakarta}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.jboss.arquillian.testenricher</groupId>
+          <artifactId>arquillian-testenricher-cdi-jakarta</artifactId>
+          <version>${version.arquillian-protocol-servlet-jakarta}</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <testResources>
+          <testResource>
+            <!-- resources-wildfly contains its specific arquillian.xml -->
+            <directory>src/test/resources-wildfly</directory>
+            <filtering>true</filtering>
+          </testResource>
+          <testResource>
+            <!-- resources-wildfly contains common resources for Wildfly distros -->
+            <directory>${project.build.directory}/generated-test-resources/resources-wildfly</directory>
+            <filtering>true</filtering>
+          </testResource>
+          <testResource>
+            <!-- resources-wildfly26 pairs with the java-wildfly26 test sources added
+                 below: process application descriptors, jboss-deployment-structure.xml,
+                 persistence.xml, etc. -->
+            <directory>src/test/resources-wildfly26</directory>
+            <filtering>true</filtering>
+          </testResource>
+        </testResources>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>add-test-source</id>
+                <phase>generate-test-sources</phase>
+                <goals>
+                  <goal>add-test-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>src/test/java-wildfly26</source>
+                  </sources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <!-- HEMERA-2453 -->
+                <exclude>**/JobExecutorRequestContextLocalInvocationTest.java</exclude>
+                <exclude>**/*_OTHERS.java</exclude>
+                <exclude>**/SpringPAExpressionResolvingTest.java</exclude>
+                <exclude>**/SpringServletPALifecycleTest.java</exclude>
+                <exclude>**/TestManagedDomain_JBOSS.java</exclude>
+                <!-- CAM-1778 -->
+                <exclude>**/TestWarDeploymentWithProcessEnginePlugin.java</exclude>
+                <exclude>**/TestWarDeploymentWithProcessEnginePlugin.exclude</exclude>
+
+                <exclude>**/SpringServletPATimerStartEventExpressionTest.java</exclude>
+                <!-- https://github.com/camunda/camunda-bpm-platform/issues/5037-->
+                <exclude>**/FeelEngineTest.java</exclude>
+              </excludes>
+              <redirectTestOutputToFile>${redirect.test.output}</redirectTestOutputToFile>
+
+              <!-- Restrict to a single JVM fork -->
+              <forkCount>1</forkCount>
+              <reuseForks>true</reuseForks>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>wildfly28</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <dependencies>
+        <dependency>
+          <!-- make sure this comes after runtime in the reactor build -->
+          <groupId>org.cibseven.bpm.qa</groupId>
+          <artifactId>cibseven-qa-wildfly-runtime</artifactId>
+          <version>${project.version}</version>
+          <scope>provided</scope>
+          <type>pom</type>
+        </dependency>
+        <dependency>
+          <groupId>${wildfly.container.adapter.groupId}</groupId>
+          <artifactId>wildfly-arquillian-container-managed</artifactId>
+          <version>${wildfly.container.adapter.version}</version>
+          <scope>test</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>org.jboss.arquillian.testenricher</groupId>
+              <artifactId>arquillian-testenricher-cdi</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+        <!-- WildFly uses Jakarta Servlet 5.0 protocol; the base arquillian-protocol-servlet
+             dependency declared at the top of this pom only ships pre-Jakarta protocol versions.
+             Explicit version needed: not managed by arquillian-bom. -->
+        <dependency>
+          <groupId>org.jboss.arquillian.protocol</groupId>
+          <artifactId>arquillian-protocol-servlet-jakarta</artifactId>
+          <version>${version.arquillian-protocol-servlet-jakarta}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.jboss.arquillian.testenricher</groupId>
+          <artifactId>arquillian-testenricher-cdi-jakarta</artifactId>
+          <version>${version.arquillian-protocol-servlet-jakarta}</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <testResources>
+          <testResource>
+            <!-- resources-wildfly28 contains its specific arquillian.xml -->
+            <directory>src/test/resources-wildfly28</directory>
+            <filtering>true</filtering>
+          </testResource>
+          <testResource>
+            <!-- resources-wildfly contains common resources for Wildfly distros -->
+            <directory>${project.build.directory}/generated-test-resources/resources-wildfly</directory>
+            <filtering>true</filtering>
+          </testResource>
+          <testResource>
+            <!-- resources-wildfly26 pairs with the java-wildfly26 test sources added
+                 below: process application descriptors, jboss-deployment-structure.xml,
+                 persistence.xml, etc. -->
+            <directory>src/test/resources-wildfly26</directory>
+            <filtering>true</filtering>
+          </testResource>
+          </testResources>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>add-test-source</id>
+                <phase>generate-test-sources</phase>
+                <goals>
+                  <goal>add-test-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>src/test/java-wildfly26</source>
+                  </sources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <!-- HEMERA-2453 -->
+                <exclude>**/JobExecutorRequestContextLocalInvocationTest.java</exclude>
+                <exclude>**/*_OTHERS.java</exclude>
+                <exclude>**/SpringPAExpressionResolvingTest.java</exclude>
+                <exclude>**/SpringServletPALifecycleTest.java</exclude>
+                <exclude>**/TestManagedDomain_JBOSS.java</exclude>
+                <!-- CAM-1778 -->
+                <exclude>**/TestWarDeploymentWithProcessEnginePlugin.java</exclude>
+                <exclude>**/TestWarDeploymentWithProcessEnginePlugin.exclude</exclude>
+
+                <exclude>**/SpringServletPATimerStartEventExpressionTest.java</exclude>
+                <!-- https://github.com/camunda/camunda-bpm-platform/issues/5037-->
+                <exclude>**/FeelEngineTest.java</exclude>
+              </excludes>
+              <redirectTestOutputToFile>${redirect.test.output}</redirectTestOutputToFile>
+
+              <!-- Restrict to a single JVM fork -->
+              <forkCount>1</forkCount>
+              <reuseForks>true</reuseForks>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>wildfly-domain</id>
+      <dependencies>
+        <dependency>
+          <!-- make sure this comes after runtime in the reactor build -->
+          <groupId>org.cibseven.bpm.qa</groupId>
+          <artifactId>cibseven-qa-wildfly-runtime</artifactId>
+          <version>${project.version}</version>
+          <scope>provided</scope>
+          <type>pom</type>
+        </dependency>
+        <dependency>
+          <groupId>${wildfly.container.adapter.groupId}</groupId>
+          <artifactId>wildfly-arquillian-container-domain-managed</artifactId>
+          <version>${wildfly.container.adapter.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <!-- WildFly uses Jakarta Servlet 5.0 protocol; the base arquillian-protocol-servlet
+             dependency declared at the top of this pom only ships pre-Jakarta protocol versions.
+             Explicit version needed: not managed by arquillian-bom. -->
+        <dependency>
+          <groupId>org.jboss.arquillian.protocol</groupId>
+          <artifactId>arquillian-protocol-servlet-jakarta</artifactId>
+          <version>${version.arquillian-protocol-servlet-jakarta}</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <testResources>
+          <testResource>
+            <directory>src/test/resources-wildfly-domain</directory>
+            <filtering>true</filtering>
+          </testResource>
+          <testResource>
+            <!-- resources-wildfly contains common resources for Wildfly distros -->
+            <directory>${project.build.directory}/generated-test-resources/resources-wildfly</directory>
+            <filtering>true</filtering>
+          </testResource>
+          <testResource>
+            <!-- resources-wildfly26 pairs with the java-wildfly26 test sources added
+                 below: process application descriptors, jboss-deployment-structure.xml,
+                 persistence.xml, etc. -->
+            <directory>src/test/resources-wildfly26</directory>
+            <filtering>true</filtering>
+          </testResource>
+        </testResources>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>add-test-source</id>
+                <phase>generate-test-sources</phase>
+                <goals>
+                  <goal>add-test-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>src/test/java-wildfly26</source>
+                  </sources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <includes>
+                <include>**/TestManagedDomain_JBOSS.java</include>
+              </includes>
+              <redirectTestOutputToFile>${redirect.test.output}</redirectTestOutputToFile>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>wildfly28-domain</id>
+      <dependencies>
+        <dependency>
+          <!-- make sure this comes after runtime in the reactor build -->
+          <groupId>org.cibseven.bpm.qa</groupId>
+          <artifactId>cibseven-qa-wildfly-runtime</artifactId>
+          <version>${project.version}</version>
+          <scope>provided</scope>
+          <type>pom</type>
+        </dependency>
+        <dependency>
+          <groupId>${wildfly.container.adapter.groupId}</groupId>
+          <artifactId>wildfly-arquillian-container-domain-managed</artifactId>
+          <version>${wildfly.container.adapter.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <!-- WildFly uses Jakarta Servlet 5.0 protocol; the base arquillian-protocol-servlet
+             dependency declared at the top of this pom only ships pre-Jakarta protocol versions.
+             Explicit version needed: not managed by arquillian-bom. -->
+        <dependency>
+          <groupId>org.jboss.arquillian.protocol</groupId>
+          <artifactId>arquillian-protocol-servlet-jakarta</artifactId>
+          <version>${version.arquillian-protocol-servlet-jakarta}</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <testResources>
+          <testResource>
+            <directory>src/test/resources-wildfly28-domain</directory>
+            <filtering>true</filtering>
+          </testResource>
+        </testResources>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>add-test-source</id>
+                <phase>generate-test-sources</phase>
+                <goals>
+                  <goal>add-test-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>src/test/java-wildfly26</source>
+                  </sources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <includes>
+                <include>**/TestManagedDomain_JBOSS.java</include>
+              </includes>
+              <redirectTestOutputToFile>${redirect.test.output}</redirectTestOutputToFile>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
       <id>tomcat9</id>
-      <dependencyManagement>
+        <dependencyManagement>
         <dependencies>
           <!-- import internal dependencies before JBoss to preserve internal versions, e.g. for JUnit -->
           <dependency>
@@ -390,7 +943,9 @@
     <profile>
       <id>distro</id>
       <activation>
-        <activeByDefault>true</activeByDefault>
+        <property>
+          <name>!engine-integration</name> 
+        </property>
       </activation>
       <dependencies>
         <dependency>
@@ -398,11 +953,40 @@
           <artifactId>wildfly-arquillian-container-managed</artifactId>
           <version>${wildfly.container.adapter.version}</version>
           <scope>test</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>org.jboss.arquillian.testenricher</groupId>
+              <artifactId>arquillian-testenricher-cdi</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+          <!-- make sure this comes after runtime in the reactor build -->
+          <groupId>org.cibseven.bpm.qa</groupId>
+          <artifactId>cibseven-qa-wildfly-runtime</artifactId>
+          <version>${project.version}</version>
+          <scope>provided</scope>
+          <type>pom</type>
+        </dependency>
+        <!-- WildFly uses Jakarta Servlet 5.0 protocol; the base arquillian-protocol-servlet
+             dependency declared at the top of this pom only ships pre-Jakarta protocol versions.
+             Explicit version needed: not managed by arquillian-bom. -->
+        <dependency>
+          <groupId>org.jboss.arquillian.protocol</groupId>
+          <artifactId>arquillian-protocol-servlet-jakarta</artifactId>
+          <version>${version.arquillian-protocol-servlet-jakarta}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.jboss.arquillian.testenricher</groupId>
+          <artifactId>arquillian-testenricher-cdi-jakarta</artifactId>
+          <version>${version.arquillian-protocol-servlet-jakarta}</version>
+          <scope>test</scope>
         </dependency>
       </dependencies>
       <build>
         <plugins>
-          <plugin>
+           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
@@ -416,7 +1000,7 @@
             <executions>
               <execution>
                 <id>add-test-source</id>
-                <phase>generate-test-sources</phase>
+                <phase>initialize</phase>
                 <goals>
                   <goal>add-test-source</goal>
                 </goals>
@@ -530,6 +1114,28 @@
             </executions>
           </plugin>
         </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>exclude-post-jdk15-tests</id>
+      <activation>
+        <jdk>[15,)</jdk>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <artifactId>maven-surefire-plugin</artifactId>
+              <configuration>
+                <!-- Nashorn is not part of the JDK anymore in Java 15+ -->
+                <excludes combine.children="append">
+                  <exclude>**/*NashornTest.java</exclude>
+                </excludes>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
       </build>
     </profile>
   </profiles>

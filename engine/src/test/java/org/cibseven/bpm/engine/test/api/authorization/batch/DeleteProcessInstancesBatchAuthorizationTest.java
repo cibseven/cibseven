@@ -19,7 +19,12 @@ package org.cibseven.bpm.engine.test.api.authorization.batch;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario.scenario;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec.grant;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,27 +40,15 @@ import org.cibseven.bpm.engine.batch.history.HistoricBatch;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 
 /**
  * @author Askar Akhmerov
  */
-@RunWith(Parameterized.class)
 public class DeleteProcessInstancesBatchAuthorizationTest extends AbstractBatchAuthorizationTest {
 
   protected static final long BATCH_OPERATIONS = 3L;
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
-
-  @Parameterized.Parameter
-  public AuthorizationScenario scenario;
-
-  @Parameterized.Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
         scenario()
@@ -89,24 +82,27 @@ public class DeleteProcessInstancesBatchAuthorizationTest extends AbstractBatchA
     );
   }
 
-  @Test
-  public void testWithTwoInvocationsProcessInstancesList() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testWithTwoInvocationsProcessInstancesList(AuthorizationScenario scenario) {
     engineRule.getProcessEngineConfiguration().setInvocationsPerBatchJob(2);
-    setupAndExecuteProcessInstancesListTest();
+    setupAndExecuteProcessInstancesListTest(scenario);
 
     // then
-    assertScenario();
+    assertScenario(scenario);
   }
 
-  @Test
-  public void testProcessInstancesList() {
-    setupAndExecuteProcessInstancesListTest();
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testProcessInstancesList(AuthorizationScenario scenario) {
+    setupAndExecuteProcessInstancesListTest(scenario);
     // then
-    assertScenario();
+    assertScenario(scenario);
   }
 
-  @Test
-  public void testWithQuery() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testWithQuery(AuthorizationScenario scenario) {
     //given
     ProcessInstanceQuery processInstanceQuery = runtimeService.createProcessInstanceQuery()
         .processInstanceIds(new HashSet<String>(Arrays.asList(processInstance.getId(), processInstance2.getId())));
@@ -127,13 +123,13 @@ public class DeleteProcessInstancesBatchAuthorizationTest extends AbstractBatchA
 
     // then
     if (authRule.assertScenario(scenario)) {
-      if (testHelper.isHistoryLevelFull()) {
+      if (testRule.isHistoryLevelFull()) {
         assertThat(engineRule.getHistoryService().createUserOperationLogQuery().entityType(EntityTypes.PROCESS_INSTANCE).count()).isEqualTo(BATCH_OPERATIONS);
       }
     }
   }
 
-  protected void setupAndExecuteProcessInstancesListTest() {
+  protected void setupAndExecuteProcessInstancesListTest(AuthorizationScenario scenario) {
     //given
     List<String> processInstanceIds = Arrays.asList(processInstance.getId(), processInstance2.getId());
     authRule
@@ -152,12 +148,12 @@ public class DeleteProcessInstancesBatchAuthorizationTest extends AbstractBatchA
     executeSeedAndBatchJobs();
   }
 
-  protected void assertScenario() {
-    if (authRule.assertScenario(getScenario())) {
+  protected void assertScenario(AuthorizationScenario scenario) {
+    if (authRule.assertScenario(scenario)) {
       Batch batch = engineRule.getManagementService().createBatchQuery().singleResult();
       assertEquals("userId", batch.getCreateUserId());
 
-      if (testHelper.isHistoryLevelFull()) {
+      if (testRule.isHistoryLevelFull()) {
         assertThat(engineRule.getHistoryService().createUserOperationLogQuery().entityType(EntityTypes.PROCESS_INSTANCE).count()).isEqualTo(BATCH_OPERATIONS);
         HistoricBatch historicBatch = engineRule.getHistoryService().createHistoricBatchQuery().list().get(0);
         assertEquals("userId", historicBatch.getCreateUserId());
@@ -169,8 +165,4 @@ public class DeleteProcessInstancesBatchAuthorizationTest extends AbstractBatchA
     }
   }
 
-  @Override
-  public AuthorizationScenario getScenario() {
-    return scenario;
-  }
-}
+ }

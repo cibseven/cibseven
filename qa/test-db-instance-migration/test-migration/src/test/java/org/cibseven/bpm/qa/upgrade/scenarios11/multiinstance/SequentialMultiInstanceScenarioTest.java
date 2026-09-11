@@ -18,6 +18,9 @@ package org.cibseven.bpm.qa.upgrade.scenarios11.multiinstance;
 
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.assertThat;
 import static org.cibseven.bpm.qa.upgrade.util.ActivityInstanceAssert.describeActivityInstanceTree;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.cibseven.bpm.engine.runtime.ActivityInstance;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
@@ -27,16 +30,15 @@ import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate.ThrowBpmnErrorDelegateException;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 
 @ScenarioUnderTest("SequentialMultiInstanceSubprocessScenario")
 @Origin("1.1.0")
 public class SequentialMultiInstanceScenarioTest {
 
-  @Rule
+  @RegisterExtension
   public UpgradeTestRule rule = new UpgradeTestRule();
 
   @Test
@@ -50,7 +52,7 @@ public class SequentialMultiInstanceScenarioTest {
 
     for (int i = 0; i < 2; i++) {
       subProcessTask = rule.taskQuery().taskDefinitionKey("subProcessTask").singleResult();
-      Assert.assertNotNull(subProcessTask);
+      assertNotNull(subProcessTask);
       rule.getTaskService().complete(subProcessTask.getId());
     }
 
@@ -59,7 +61,7 @@ public class SequentialMultiInstanceScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("init.2")
   public void testInitActivityInstanceTree() {
@@ -70,7 +72,7 @@ public class SequentialMultiInstanceScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
       describeActivityInstanceTree(instance.getProcessDefinitionId())
         .beginMiBody("miSubProcess")
@@ -105,8 +107,8 @@ public class SequentialMultiInstanceScenarioTest {
 
     // then
     Task escalatedTask = rule.taskQuery().singleResult();
-    Assert.assertEquals("escalatedTask", escalatedTask.getTaskDefinitionKey());
-    Assert.assertNotNull(escalatedTask);
+    assertEquals("escalatedTask", escalatedTask.getTaskDefinitionKey());
+    assertNotNull(escalatedTask);
 
     rule.getTaskService().complete(escalatedTask.getId());
     rule.assertScenarioEnded();
@@ -126,10 +128,10 @@ public class SequentialMultiInstanceScenarioTest {
     // then
     try {
       rule.getTaskService().complete(miSubprocessTask.getId());
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      assertEquals("unhandledException", e.getMessage());
     }
   }
 
@@ -145,7 +147,7 @@ public class SequentialMultiInstanceScenarioTest {
 
     for (int i = 0; i < 2; i++) {
       subProcessTask = rule.taskQuery().taskDefinitionKey("subProcessTask").singleResult();
-      Assert.assertNotNull(subProcessTask);
+      assertNotNull(subProcessTask);
       rule.getTaskService().complete(subProcessTask.getId());
     }
 
@@ -168,7 +170,7 @@ public class SequentialMultiInstanceScenarioTest {
     rule.getTaskService().complete(subProcessTask.getId());
     for (int i = 0; i < 2; i++) {
       subProcessTask = rule.taskQuery().taskDefinitionKey("subProcessTask").singleResult();
-      Assert.assertNotNull(subProcessTask);
+      assertNotNull(subProcessTask);
       rule.getTaskService().complete(subProcessTask.getId());
     }
 
@@ -191,7 +193,7 @@ public class SequentialMultiInstanceScenarioTest {
 
     for (int i = 0; i < 2; i++) {
       subProcessTask = rule.taskQuery().taskDefinitionKey("subProcessTask").singleResult();
-      Assert.assertNotNull(subProcessTask);
+      assertNotNull(subProcessTask);
       rule.getTaskService().complete(subProcessTask.getId());
     }
 
@@ -201,7 +203,7 @@ public class SequentialMultiInstanceScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("initNonInterruptingBoundaryEvent.4")
   public void testInitNonInterruptingBoundaryEventActivityInstanceTree() {
@@ -212,7 +214,7 @@ public class SequentialMultiInstanceScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
       describeActivityInstanceTree(instance.getProcessDefinitionId())
         .activity("afterBoundaryTask")
@@ -248,10 +250,10 @@ public class SequentialMultiInstanceScenarioTest {
     rule.getTaskService().complete(miSubprocessTask.getId());
 
     // then
-    Assert.assertEquals(2, rule.taskQuery().count());
+    assertEquals(2, rule.taskQuery().count());
 
     Task escalatedTask = rule.taskQuery().taskDefinitionKey("escalatedTask").singleResult();
-    Assert.assertNotNull(escalatedTask);
+    assertNotNull(escalatedTask);
 
     // and
     rule.getTaskService().complete(escalatedTask.getId());
@@ -273,10 +275,10 @@ public class SequentialMultiInstanceScenarioTest {
     // then
     try {
       rule.getTaskService().complete(miSubprocessTask.getId());
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      assertEquals("unhandledException", e.getMessage());
     }
   }
 

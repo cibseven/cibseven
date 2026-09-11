@@ -44,9 +44,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.ServletContextEvent;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.ExternalTaskService;
@@ -82,9 +82,9 @@ import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
@@ -95,7 +95,7 @@ import org.mockito.Mockito;
  */
 public class ExternalTaskRestServiceInteractionTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String EXTERNAL_TASK_URL = TEST_RESOURCE_ROOT_PATH + "/external-task";
@@ -127,7 +127,7 @@ public class ExternalTaskRestServiceInteractionTest extends AbstractRestServiceT
 
   protected UpdateExternalTaskRetriesBuilder updateRetriesBuilder;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     externalTaskService = mock(ExternalTaskService.class);
     when(processEngine.getExternalTaskService()).thenReturn(externalTaskService);

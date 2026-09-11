@@ -39,32 +39,23 @@ import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ExternalTaskModels;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
 public class SetExternalTasksRetriesBatchAuthorizationTest {
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule).around(testRule);
-
-  @Parameter
-  public AuthorizationScenario scenario;
-
-  @Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
       scenario()
@@ -99,17 +90,17 @@ public class SetExternalTasksRetriesBatchAuthorizationTest {
       );
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     authRule.createUserAndGroup("userId", "groupId");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
   }
 
-  @After
+  @AfterEach
   public void cleanBatch() {
     Batch batch = engineRule.getManagementService().createBatchQuery().singleResult();
     if (batch != null) {
@@ -124,8 +115,9 @@ public class SetExternalTasksRetriesBatchAuthorizationTest {
     }
   }
 
-  @Test
-  public void testSetRetriesAsync() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testSetRetriesAsync(AuthorizationScenario scenario) {
 
     // given
     ProcessDefinition processDefinition = testRule.deployAndGetDefinition(ExternalTaskModels.ONE_EXTERNAL_TASK_PROCESS);
@@ -156,13 +148,14 @@ public class SetExternalTasksRetriesBatchAuthorizationTest {
     if (authRule.assertScenario(scenario)) {
       externalTasks = engineRule.getExternalTaskService().createExternalTaskQuery().list();
       for ( ExternalTask task : externalTasks) {
-      Assert.assertEquals(5, (int) task.getRetries());
+      Assertions.assertEquals(5, (int) task.getRetries());
       }
     }
   }
 
-  @Test
-  public void testSetRetriesWithQueryAsync() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testSetRetriesWithQueryAsync(AuthorizationScenario scenario) {
 
     // given
     ProcessDefinition processDefinition = testRule.deployAndGetDefinition(ExternalTaskModels.ONE_EXTERNAL_TASK_PROCESS);
@@ -187,11 +180,11 @@ public class SetExternalTasksRetriesBatchAuthorizationTest {
 
     // then
     if (authRule.assertScenario(scenario)) {
-      Assert.assertEquals("userId", batch.getCreateUserId());
+      Assertions.assertEquals("userId", batch.getCreateUserId());
 
       externalTasks = engineRule.getExternalTaskService().createExternalTaskQuery().list();
       for ( ExternalTask task : externalTasks) {
-        Assert.assertEquals(5, (int) task.getRetries());
+        Assertions.assertEquals(5, (int) task.getRetries());
       }
     }
   }

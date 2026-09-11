@@ -25,12 +25,13 @@ import org.cibseven.bpm.engine.delegate.ExecutionListener;
 import org.cibseven.bpm.engine.delegate.TaskListener;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.context.Context;
-import org.cibseven.bpm.impl.juel.jakarta.el.BeanELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
 import org.cibseven.bpm.engine.impl.scripting.ExecutableScript;
 import org.cibseven.bpm.engine.impl.util.ClassLoaderUtil;
 import org.cibseven.bpm.engine.impl.variable.serializer.VariableSerializers;
 import org.cibseven.bpm.engine.repository.DeploymentBuilder;
+
+import jakarta.el.BeanELResolver;
+import jakarta.el.ELResolver;
 
 import javax.script.ScriptEngine;
 import java.util.Collections;
@@ -168,11 +169,11 @@ public abstract class AbstractProcessApplication implements ProcessApplicationIn
 
   }
 
-  public BeanELResolver getBeanElResolver() {
+  public jakarta.el.BeanELResolver getBeanElResolver() {
     if (processApplicationBeanElResolver == null) {
       synchronized (this) {
         if (processApplicationBeanElResolver == null) {
-          processApplicationBeanElResolver = new BeanELResolver();
+          processApplicationBeanElResolver = new jakarta.el.BeanELResolver();
         }
       }
     }

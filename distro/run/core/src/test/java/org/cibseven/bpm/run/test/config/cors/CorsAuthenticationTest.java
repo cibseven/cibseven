@@ -24,9 +24,9 @@ import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.identity.Group;
 import org.cibseven.bpm.engine.impl.persistence.entity.GroupEntity;
 import org.cibseven.bpm.run.test.AbstractRestTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
@@ -53,12 +53,12 @@ public class CorsAuthenticationTest extends AbstractRestTest {
   @Autowired
   ProcessEngine processEngine;
 
-  @Before
+  @BeforeEach
   public void init() {
     authTestRestTemplate = testRestTemplate.withBasicAuth("demo", "demo");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processEngine.getIdentityService().deleteGroup("groupId");
   }

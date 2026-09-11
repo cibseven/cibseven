@@ -36,9 +36,9 @@ import org.cibseven.bpm.engine.ProcessEnginePersistenceException;
 import org.cibseven.bpm.engine.identity.UserQuery;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests Connection Exceptions that do not originate from persistence layer but are still connection exceptions.
@@ -47,11 +47,11 @@ public class NonPersistenceConnectionExceptionLoggingTest extends AbstractRestSe
 
   protected static final String USER_QUERY_URL = TEST_RESOURCE_ROOT_PATH + "/user";
 
-  @ClassRule
-  public static TestContainerRule rule = new TestContainerRule();
+  @RegisterExtension
+  @Order(1) public static TestContainerRule rule = new TestContainerRule();
 
-  @Rule
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
+  @RegisterExtension
+  @Order(2) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch(REST_API);
 
   @Test

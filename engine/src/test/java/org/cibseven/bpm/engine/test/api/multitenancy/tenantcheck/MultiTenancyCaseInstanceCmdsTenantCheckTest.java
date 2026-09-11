@@ -38,10 +38,12 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.StringValue;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 /**
  * @author kristin.polenz
@@ -57,13 +59,10 @@ public class MultiTenancyCaseInstanceCmdsTenantCheckTest {
   protected static final String CMMN_MODEL = "org/cibseven/bpm/engine/test/api/cmmn/twoTaskCase.cmmn";
 
   protected static final String ACTIVITY_ID = "PI_HumanTask_1";
-
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected IdentityService identityService;
   protected CaseService caseService;
@@ -73,7 +72,7 @@ public class MultiTenancyCaseInstanceCmdsTenantCheckTest {
   protected String caseInstanceId;
   protected String caseExecutionId;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     identityService = engineRule.getIdentityService();

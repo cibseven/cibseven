@@ -39,9 +39,10 @@ import org.cibseven.bpm.container.impl.spi.DeploymentOperation;
 import org.cibseven.bpm.container.impl.spi.DeploymentOperationStep;
 import org.cibseven.bpm.container.impl.spi.PlatformService;
 import org.cibseven.bpm.container.impl.spi.ServiceTypes;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  *
@@ -60,7 +61,7 @@ public class StartManagedThreadPoolStepTest {
 
   private StartManagedThreadPoolStep step;
 
-  @Before
+  @BeforeEach
   public void setUp(){
     step = new StartManagedThreadPoolStep();
     deploymentOperation = new DeploymentOperation("name", container, Collections.<DeploymentOperationStep> emptyList());
@@ -69,7 +70,7 @@ public class StartManagedThreadPoolStepTest {
     deploymentOperation.addAttachment(Attachments.BPM_PLATFORM_XML, bpmPlatformXml);
   }
 
-  @After
+  @AfterEach
   public void tearDown(){
     container.stopService(ServiceTypes.BPM_PLATFORM, RuntimeContainerDelegateImpl.SERVICE_NAME_EXECUTOR);
   }

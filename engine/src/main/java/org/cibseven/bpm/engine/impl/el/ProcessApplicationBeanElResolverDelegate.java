@@ -21,8 +21,9 @@ import org.cibseven.bpm.application.ProcessApplicationReference;
 import org.cibseven.bpm.application.ProcessApplicationUnavailableException;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.context.Context;
-import org.cibseven.bpm.impl.juel.jakarta.el.BeanELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
+
+import jakarta.el.BeanELResolver;
+import jakarta.el.ELResolver;
 
 /**
  * <p>Resolves a {@link BeanELResolver} from the current process application.

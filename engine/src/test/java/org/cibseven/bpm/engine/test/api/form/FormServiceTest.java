@@ -25,12 +25,12 @@ import static org.cibseven.bpm.engine.variable.Variables.createVariables;
 import static org.cibseven.bpm.engine.variable.Variables.objectValue;
 import static org.cibseven.bpm.engine.variable.Variables.serializedObjectValue;
 import static org.cibseven.bpm.engine.variable.Variables.stringValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -89,12 +89,12 @@ import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.utils.IoUtil;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 /**
  * @author Joram Barrez
@@ -104,14 +104,13 @@ import org.junit.rules.RuleChain;
  */
 public class FormServiceTest {
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
-      configuration.setJavaSerializationFormatEnabled(true));
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order (1) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
+    configuration.setJavaSerializationFormatEnabled(true));
+  @RegisterExtension
+  @Order (2) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order (3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   private RuntimeService runtimeService;
   private TaskService taskService;
@@ -122,7 +121,7 @@ public class FormServiceTest {
   private CaseService caseService;
   private ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void init() {
     runtimeService = engineRule.getRuntimeService();
     taskService = engineRule.getTaskService();
@@ -137,7 +136,7 @@ public class FormServiceTest {
     identityService.createMembership("fozzie", "management");
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     identityService.deleteGroup("management");
     identityService.deleteUser("fozzie");

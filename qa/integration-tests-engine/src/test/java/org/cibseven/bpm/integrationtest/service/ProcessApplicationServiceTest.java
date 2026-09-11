@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Arrays;
 import java.util.Set;
 
@@ -25,18 +27,18 @@ import org.cibseven.bpm.application.ProcessApplicationInfo;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 
 /**
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class ProcessApplicationServiceTest extends AbstractFoxPlatformIntegrationTest {
   
   @Deployment(name="test1")
@@ -62,14 +64,14 @@ public class ProcessApplicationServiceTest extends AbstractFoxPlatformIntegratio
     // check if the new applications are deployed with allowed names
     processApplicationNames.retainAll(Arrays.asList(new String [] {"test1", "test2", "/test1", "/test2"}));
 
-    Assert.assertEquals(2, processApplicationNames.size());
+    assertThat(processApplicationNames.size()).isEqualTo(2);
 
     for (String appName : processApplicationNames) {
       ProcessApplicationInfo processApplicationInfo = processApplicationService.getProcessApplicationInfo(appName);
       
-      Assert.assertNotNull(processApplicationInfo);
-      Assert.assertNotNull(processApplicationInfo.getName());
-      Assert.assertEquals(1, processApplicationInfo.getDeploymentInfo().size());      
+      Assertions.assertNotNull(processApplicationInfo);
+      Assertions.assertNotNull(processApplicationInfo.getName());
+      assertThat(processApplicationInfo.getDeploymentInfo().size()).isEqualTo(1);      
     }
     
   }

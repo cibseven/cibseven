@@ -23,12 +23,12 @@ import java.net.URL;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngines;
 import org.cibseven.bpm.engine.impl.util.ReflectUtil;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class SpringProcessEngineInitializationTest {
   
-  @After
+  @AfterEach
   public void tearDown() {
     ProcessEngines.destroy();
   }

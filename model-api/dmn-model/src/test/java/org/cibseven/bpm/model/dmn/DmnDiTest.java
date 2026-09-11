@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.model.dmn;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DmnDiTest {
 

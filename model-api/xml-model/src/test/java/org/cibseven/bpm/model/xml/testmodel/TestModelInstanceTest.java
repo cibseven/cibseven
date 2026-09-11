@@ -16,15 +16,13 @@
  */
 package org.cibseven.bpm.model.xml.testmodel;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.cibseven.bpm.model.xml.ModelInstance;
 import org.cibseven.bpm.model.xml.testmodel.instance.Animal;
 import org.cibseven.bpm.model.xml.testmodel.instance.Animals;
 import org.cibseven.bpm.model.xml.testmodel.instance.Bird;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class TestModelInstanceTest {
 
@@ -42,8 +40,8 @@ public class TestModelInstanceTest {
     ModelInstance cloneInstance = modelInstance.clone();
     getFirstAnimal(cloneInstance).setId("TestId2");
 
-    assertThat(getFirstAnimal(modelInstance).getId(), is(equalTo("TestId")));
-    assertThat(getFirstAnimal(cloneInstance).getId(), is(equalTo("TestId2")));
+    assertEquals("TestId", getFirstAnimal(modelInstance).getId());
+    assertEquals("TestId2", getFirstAnimal(cloneInstance).getId());
   }
 
   protected Animal getFirstAnimal(ModelInstance modelInstance) {

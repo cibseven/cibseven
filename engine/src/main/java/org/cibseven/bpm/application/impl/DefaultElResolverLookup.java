@@ -24,8 +24,9 @@ import java.util.ServiceLoader;
 import org.cibseven.bpm.application.AbstractProcessApplication;
 import org.cibseven.bpm.application.ProcessApplicationElResolver;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
-import org.cibseven.bpm.impl.juel.jakarta.el.CompositeELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
+
+import jakarta.el.CompositeELResolver;
+import jakarta.el.ELResolver;
 
 /**
  * @author Daniel Meyer

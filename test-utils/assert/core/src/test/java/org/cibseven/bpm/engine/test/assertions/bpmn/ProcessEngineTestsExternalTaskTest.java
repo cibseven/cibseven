@@ -29,15 +29,17 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.assertions.helpers.Failure;
 import org.cibseven.bpm.engine.test.assertions.helpers.ProcessAssertTestCase;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class ProcessEngineTestsExternalTaskTest extends ProcessAssertTestCase {
 
   private static final String EXTERNAL_TASK_3 = "ExternalTask_3";
   private static final String EXTERNAL_TASK_2 = "ExternalTask_2";
   private static final String EXTERNAL_TASK_1 = "ExternalTask_1";
-  @Rule
+
+  @RegisterExtension
   public ProcessEngineRule processEngineRule = new ProcessEngineRule();
 
   @Test

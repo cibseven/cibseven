@@ -42,29 +42,51 @@
         <artifactId>activation</artifactId>
         <version>1.1</version>
       </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
   <dependencies>
 
-    <!-- jee spec -->
     <dependency>
-      <groupId>org.jboss.spec</groupId>
-      <artifactId>jboss-javaee-6.0</artifactId>
-      <type>pom</type>
+      <groupId>jakarta.platform</groupId>
+      <artifactId>jakarta.jakartaee-api</artifactId>
+      <version>10.0.0</version>
       <scope>provided</scope>
       <exclusions>
+        <!-- Exclude to prevent conflicts with explicit Jersey dependencies -->
         <exclusion>
-          <groupId>org.jboss.spec.javax.ws.rs</groupId>
-          <artifactId>jboss-jaxrs-api_1.1_spec</artifactId>
+          <groupId>jakarta.ws.rs</groupId>
+          <artifactId>jakarta.ws.rs-api</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
 
     <dependency>
-      <groupId>org.jboss.spec.javax.ws.rs</groupId>
-      <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
-      <scope>provided</scope>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
+      <artifactId>jackson-jakarta-rs-json-provider</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+      <scope>test</scope>
     </dependency>
 
     <!-- rest api -->
@@ -76,14 +98,14 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
-      <version>${version.spring.framework}</version>
+      <version>${version.spring.framework6}</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-web</artifactId>
-      <version>${version.spring.framework}</version>
+      <version>${version.spring.framework6}</version>
       <scope>test</scope>
     </dependency>
 
@@ -93,6 +115,21 @@
       <version>${project.version}</version>
       <scope>test</scope>
       <classifier>tests</classifier>
+    </dependency>
+    <!-- JUnit 5 Jupiter API -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -212,15 +249,11 @@
     <profile>
       <id>develop</id>
       <dependencies>
-        <dependency>
+<!--        <dependency>
           <groupId>org.jboss.resteasy</groupId>
           <artifactId>resteasy-jaxrs</artifactId>
           <scope>runtime</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.jboss.spec.javax.ws.rs</groupId>
-          <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
-        </dependency>
+        </dependency>-->
         <dependency>
           <groupId>org.cibseven.bpm</groupId>
           <artifactId>cibseven-engine</artifactId>
@@ -355,19 +388,15 @@
     <profile>
       <id>dev-e2e</id>
       <dependencies>
-        <dependency>
+<!--        <dependency>
           <groupId>org.jboss.resteasy</groupId>
           <artifactId>resteasy-jaxrs</artifactId>
           <scope>runtime</scope>
-        </dependency>
+        </dependency>-->
         <!-- We need to override the "provided" scope
           from the main dependency declaration here or
           else the dependency will not be available in Jetty
           (see also Jetty plugin config option useProvidedScope) -->
-        <dependency>
-          <groupId>org.jboss.spec.javax.ws.rs</groupId>
-          <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
-        </dependency>
       </dependencies>
       <build>
         <plugins>

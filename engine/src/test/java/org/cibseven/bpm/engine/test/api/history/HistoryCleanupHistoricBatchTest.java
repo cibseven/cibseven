@@ -19,8 +19,8 @@ package org.cibseven.bpm.engine.test.api.history;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.ProcessEngineConfiguration.HISTORY_CLEANUP_STRATEGY_END_TIME_BASED;
 import static org.cibseven.bpm.engine.ProcessEngineConfiguration.HISTORY_CLEANUP_STRATEGY_REMOVAL_TIME_BASED;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,22 +63,26 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
+import org.junit.jupiter.api.Test;
+
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class HistoryCleanupHistoricBatchTest {
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
+  @RegisterExtension
+  @Order (1) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configuration.setHistoryCleanupDegreeOfParallelism(3));
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-  protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
+  @RegisterExtension
+  @Order (2) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order (3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order (4) protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
   protected BatchMigrationHelper migrationHelper = new BatchMigrationHelper(engineRule, migrationRule);
   protected BatchModificationHelper modificationHelper = new BatchModificationHelper(engineRule);
 
@@ -86,15 +90,12 @@ public class HistoryCleanupHistoricBatchTest {
 
   private Random random = new Random();
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(migrationRule);
-
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
   protected ManagementService managementService;
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void init() {
     runtimeService = engineRule.getRuntimeService();
     historyService = engineRule.getHistoryService();
@@ -104,7 +105,7 @@ public class HistoryCleanupHistoricBatchTest {
     processEngineConfiguration.setHistoryCleanupStrategy(HISTORY_CLEANUP_STRATEGY_END_TIME_BASED);
   }
 
-  @After
+  @AfterEach
   public void clearDatabase() {
     migrationHelper.removeAllRunningAndHistoricBatches();
 
@@ -129,7 +130,7 @@ public class HistoryCleanupHistoricBatchTest {
     });
   }
 
-  @After
+  @AfterEach
   public void resetConfiguration() {
     processEngineConfiguration.setHistoryCleanupStrategy(HISTORY_CLEANUP_STRATEGY_REMOVAL_TIME_BASED);
     processEngineConfiguration.setBatchOperationHistoryTimeToLive(null);

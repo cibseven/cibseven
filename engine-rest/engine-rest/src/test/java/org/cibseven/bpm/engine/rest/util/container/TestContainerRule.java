@@ -20,48 +20,55 @@ import java.util.Iterator;
 import java.util.ServiceLoader;
 import java.util.logging.Logger;
 
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
+import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.Extension;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-public class TestContainerRule implements TestRule {
+public class TestContainerRule implements BeforeAllCallback, AfterAllCallback {
 
   private static final Logger LOGGER = Logger.getLogger(TestContainerRule.class.getSimpleName());
 
   protected ContainerSpecifics containerSpecifics;
+  protected Extension containerSpecificExtension;
 
-  public Statement apply(Statement base, Description description) {
-
-    lookUpContainerSpecifics();
-    TestRule containerSpecificRule = containerSpecifics.getTestRule(description.getTestClass());
-    return containerSpecificRule.apply(base, description);
-  }
-
-  protected void lookUpContainerSpecifics() {
-
+  protected void lookUpContainerSpecifics(Class<?> testClass) {
     if (this.containerSpecifics == null) {
       ServiceLoader<ContainerSpecifics> serviceLoader = ServiceLoader.load(ContainerSpecifics.class);
       Iterator<ContainerSpecifics> it = serviceLoader.iterator();
 
       if (it.hasNext()) {
         ContainerSpecifics containerSpecifics = it.next();
-
         this.containerSpecifics = containerSpecifics;
-
         if (it.hasNext()) {
           LOGGER.warning("There is more than one test runtime container implementation present on the classpath. "
               + "Using " + containerSpecifics.getClass().getName());
         }
-      }
-      else {
+      } else {
         throw new RuntimeException("Could not find container provider SPI that implements " + ContainerSpecifics.class.getName());
       }
     }
+    if (this.containerSpecificExtension == null) {
+      this.containerSpecificExtension = this.containerSpecifics.getTestExtension(testClass);
+    }
+  }
 
+  @Override
+  public void beforeAll(ExtensionContext context) throws Exception {
+    lookUpContainerSpecifics(context.getRequiredTestClass());
+    if (containerSpecificExtension instanceof BeforeAllCallback) {
+      ((BeforeAllCallback) containerSpecificExtension).beforeAll(context);
+    }
+  }
+
+  @Override
+  public void afterAll(ExtensionContext context) throws Exception {
+    if (containerSpecificExtension instanceof AfterAllCallback) {
+      ((AfterAllCallback) containerSpecificExtension).afterAll(context);
+    }
   }
 }
-

@@ -19,9 +19,9 @@ package org.cibseven.bpm.engine.test.api.runtime.migration;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.impl.migration.validation.instruction.ConditionalEventUpdateEventTriggerValidator.MIGRATION_CONDITIONAL_VALIDATION_ERROR_MSG;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -44,9 +44,10 @@ import org.cibseven.bpm.engine.test.util.ClockTestUtil;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.joda.time.DateTime;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 public class MigrationBoundaryEventsTest {
 
@@ -58,12 +59,10 @@ public class MigrationBoundaryEventsTest {
   protected static final String VAR_CONDITION = "${any=='any'}";
   protected static final String BOUNDARY_ID = "boundary";
   protected static final String USER_TASK_ID = "userTask";
-
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testMigrateMultipleBoundaryEvents() {

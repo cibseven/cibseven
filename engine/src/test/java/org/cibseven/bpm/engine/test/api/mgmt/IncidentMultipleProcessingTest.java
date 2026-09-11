@@ -29,11 +29,12 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
+import org.junit.jupiter.api.Test;
+
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,22 +46,21 @@ public class IncidentMultipleProcessingTest {
 
   private static final StubIncidentHandler JOB_HANDLER = new StubIncidentHandler(Incident.FAILED_JOB_HANDLER_TYPE);
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule processEngineBootstrapRule = new ProcessEngineBootstrapRule(
+  @RegisterExtension
+  @Order(3) public static ProcessEngineBootstrapRule processEngineBootstrapRule = new ProcessEngineBootstrapRule(
       configuration -> {
         configuration.setCompositeIncidentHandlersEnabled(true);
         configuration.setCustomIncidentHandlers(Collections.singletonList(JOB_HANDLER));
       });
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(processEngineBootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(processEngineBootstrapRule);
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   private RuntimeService runtimeService;
   private ManagementService managementService;
 
-  @Before
+  @BeforeEach
   public void init() {
     JOB_HANDLER.reset();
 

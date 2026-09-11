@@ -21,15 +21,12 @@ import java.util.Arrays;
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
 import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
 public class MultiInstanceTest extends CdiProcessEngineTestCase {
 
   @Test

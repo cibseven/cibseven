@@ -24,8 +24,8 @@ import org.cibseven.bpm.engine.runtime.CaseInstance;
 import org.cibseven.bpm.engine.test.api.multitenancy.listener.AssertingCaseExecutionListener;
 import org.cibseven.bpm.engine.test.api.multitenancy.listener.AssertingCaseExecutionListener.DelegateCaseExecutionAsserter;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests if a {@link DelegateCaseExecution} has the correct tenant-id.
@@ -38,7 +38,7 @@ public class MultiTenancyDelegateCaseExecutionTest extends PluggableProcessEngin
 
   protected static final String TENANT_ID = "tenant1";
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     AssertingCaseExecutionListener.clear();
   }

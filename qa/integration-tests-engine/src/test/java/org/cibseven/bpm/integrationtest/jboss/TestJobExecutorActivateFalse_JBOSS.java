@@ -22,18 +22,18 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TestJobExecutorActivateFalse_JBOSS extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment(name="deployment1")
@@ -47,12 +47,12 @@ public class TestJobExecutorActivateFalse_JBOSS extends AbstractFoxPlatformInteg
     ProcessEngine processEngine = processEngineService.getProcessEngine("jobExecutorActivate-FALSE-engine");
     ProcessEngineConfiguration configuration = processEngine.getProcessEngineConfiguration();
     JobExecutor jobExecutor = ((ProcessEngineConfigurationImpl)configuration).getJobExecutor();
-    assertFalse(jobExecutor.isActive());
+    assertThat(jobExecutor.isActive()).isFalse();
 
     processEngine = processEngineService.getProcessEngine("jobExecutorActivate-UNDEFINED-engine");
     configuration = processEngine.getProcessEngineConfiguration();
     jobExecutor = ((ProcessEngineConfigurationImpl)configuration).getJobExecutor();
-    assertTrue(jobExecutor.isActive());
+    assertThat(jobExecutor.isActive()).isTrue();
 
   }
 }

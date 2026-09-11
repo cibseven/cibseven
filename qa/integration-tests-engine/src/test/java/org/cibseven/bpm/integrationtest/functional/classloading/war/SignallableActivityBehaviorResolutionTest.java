@@ -22,12 +22,14 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  *
@@ -35,7 +37,7 @@ import org.junit.runner.RunWith;
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class SignallableActivityBehaviorResolutionTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -63,7 +65,7 @@ public class SignallableActivityBehaviorResolutionTest extends AbstractFoxPlatfo
     // assert that we cannot load the delegate here:
     try {
       Class.forName("org.cibseven.bpm.integrationtest.functional.classloading.beans.ExampleSignallableActivityBehavior");
-      Assert.fail("CNFE expected");
+      fail("CNFE expected");
     }catch (ClassNotFoundException e) {
       // expected
     }
@@ -82,15 +84,15 @@ public class SignallableActivityBehaviorResolutionTest extends AbstractFoxPlatfo
 
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testResolveClassFromJobExecutor");
 
-    Assert.assertEquals(1, runtimeService.createProcessInstanceQuery().processInstanceId(processInstance.getId()).count());
+    assertThat(runtimeService.createProcessInstanceQuery().processInstanceId(processInstance.getId()).count()).isEqualTo(1);
 
     waitForJobExecutorToProcessAllJobs();
 
-    Assert.assertEquals(1, runtimeService.createProcessInstanceQuery().processInstanceId(processInstance.getId()).count());
+    assertThat(runtimeService.createProcessInstanceQuery().processInstanceId(processInstance.getId()).count()).isEqualTo(1);
 
     runtimeService.signal(processInstance.getId());
 
-    Assert.assertEquals(0, runtimeService.createProcessInstanceQuery().processInstanceId(processInstance.getId()).count());
+    assertThat(runtimeService.createProcessInstanceQuery().processInstanceId(processInstance.getId()).count()).isEqualTo(0);
 
   }
 

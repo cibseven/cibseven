@@ -17,6 +17,7 @@
 package org.cibseven.spin.xml.dom;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import org.cibseven.spin.SpinList;
 import org.cibseven.spin.impl.test.Script;
@@ -26,7 +27,7 @@ import org.cibseven.spin.xml.SpinXPathException;
 import org.cibseven.spin.xml.SpinXPathQuery;
 import org.cibseven.spin.xml.SpinXmlAttribute;
 import org.cibseven.spin.xml.SpinXmlElement;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Sebastian Menski
@@ -37,7 +38,7 @@ public abstract class XmlDomXPathScriptTest extends ScriptTest {
   private static final String xmlWithNamespace = "<root xmlns:bar=\"http://camunda.org\" xmlns:foo=\"http://camunda.com\"><foo:child id=\"child\"><bar:a id=\"a\"/><foo:b id=\"b\"/><a id=\"c\"/></foo:child></root>";
   private static final String xmlWithDefaultNamespace = "<root xmlns=\"http://camunda.com/example\" xmlns:bar=\"http://camunda.org\" xmlns:foo=\"http://camunda.com\"><foo:child id=\"child\"><bar:a id=\"a\"/><foo:b id=\"b\"/><a id=\"c\"/></foo:child></root>";
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   @Script(
       name = "XmlDomXPathScriptTest.xPath",
       variables = {
@@ -47,10 +48,10 @@ public abstract class XmlDomXPathScriptTest extends ScriptTest {
     )
   public void canNotQueryDocumentAsElement() {
     SpinXPathQuery query = script.getVariable("query");
-    query.element();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(query::element);
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   @Script(
       name = "XmlDomXPathScriptTest.xPath",
       variables = {
@@ -60,10 +61,10 @@ public abstract class XmlDomXPathScriptTest extends ScriptTest {
     )
   public void canNotQueryDocumentAsElementList() {
     SpinXPathQuery query = script.getVariable("query");
-    query.elementList();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(query::elementList);
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   @Script(
       name = "XmlDomXPathScriptTest.xPath",
       variables = {
@@ -73,10 +74,10 @@ public abstract class XmlDomXPathScriptTest extends ScriptTest {
     )
   public void canNotQueryDocumentAsAttribute() {
     SpinXPathQuery query = script.getVariable("query");
-    query.attribute();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(query::attribute);
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   @Script(
       name = "XmlDomXPathScriptTest.xPath",
       variables = {
@@ -86,10 +87,10 @@ public abstract class XmlDomXPathScriptTest extends ScriptTest {
     )
   public void canNotQueryDocumentAsAttributeList() {
     SpinXPathQuery query = script.getVariable("query");
-    query.attributeList();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(query::attributeList);
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   @Script(
       name = "XmlDomXPathScriptTest.xPath",
       variables = {
@@ -99,10 +100,10 @@ public abstract class XmlDomXPathScriptTest extends ScriptTest {
     )
   public void canNotQueryDocumentAsString() {
     SpinXPathQuery query = script.getVariable("query");
-    query.string();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(query::string);
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   @Script(
       name = "XmlDomXPathScriptTest.xPath",
       variables = {
@@ -112,10 +113,10 @@ public abstract class XmlDomXPathScriptTest extends ScriptTest {
     )
   public void canNotQueryDocumentAsNumber() {
     SpinXPathQuery query = script.getVariable("query");
-    query.number();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(query::number);
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   @Script(
       name = "XmlDomXPathScriptTest.xPath",
       variables = {
@@ -125,7 +126,7 @@ public abstract class XmlDomXPathScriptTest extends ScriptTest {
     )
   public void canNotQueryDocumentAsBoolean() {
     SpinXPathQuery query = script.getVariable("query");
-    query.bool();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(query::bool);
   }
 
   @Test
@@ -143,7 +144,7 @@ public abstract class XmlDomXPathScriptTest extends ScriptTest {
     assertThat(child.attr("id").value()).isEqualTo("child");
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   @Script(
       name = "XmlDomXPathScriptTest.xPath",
       variables = {
@@ -153,10 +154,10 @@ public abstract class XmlDomXPathScriptTest extends ScriptTest {
     )
   public void canNotQueryElement() {
     SpinXPathQuery query = script.getVariable("query");
-    query.element();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(query::element);
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   @Script(
     name = "XmlDomXPathScriptTest.xPath",
     variables = {
@@ -166,7 +167,7 @@ public abstract class XmlDomXPathScriptTest extends ScriptTest {
   )
   public void canNotQueryElementAsAttribute() {
     SpinXPathQuery query = script.getVariable("query");
-    query.attribute();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(query::attribute);
   }
 
   @Test
@@ -183,7 +184,7 @@ public abstract class XmlDomXPathScriptTest extends ScriptTest {
     assertThat(childs).hasSize(2);
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   @Script(
       name = "XmlDomXPathScriptTest.xPath",
       variables = {
@@ -193,7 +194,7 @@ public abstract class XmlDomXPathScriptTest extends ScriptTest {
     )
   public void canNotQueryElementList() {
     SpinXPathQuery query = script.getVariable("query");
-    query.elementList();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(query::elementList);
   }
 
   @Test
@@ -210,7 +211,7 @@ public abstract class XmlDomXPathScriptTest extends ScriptTest {
     assertThat(attribute.value()).isEqualTo("child");
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   @Script(
       name = "XmlDomXPathScriptTest.xPath",
       variables = {
@@ -220,10 +221,10 @@ public abstract class XmlDomXPathScriptTest extends ScriptTest {
     )
   public void canNotQueryAttribute() {
     SpinXPathQuery query = script.getVariable("query");
-    query.attribute();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(query::attribute);
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   @Script(
     name = "XmlDomXPathScriptTest.xPath",
     variables = {
@@ -233,7 +234,7 @@ public abstract class XmlDomXPathScriptTest extends ScriptTest {
   )
   public void canNotQueryAttributeAsElement() {
     SpinXPathQuery query = script.getVariable("query");
-    query.element();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(query::element);
   }
 
   @Test
@@ -250,7 +251,7 @@ public abstract class XmlDomXPathScriptTest extends ScriptTest {
     assertThat(attributes).hasSize(2);
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   @Script(
       name = "XmlDomXPathScriptTest.xPath",
       variables = {
@@ -260,7 +261,7 @@ public abstract class XmlDomXPathScriptTest extends ScriptTest {
     )
   public void canNotQueryAttributeList() {
     SpinXPathQuery query = script.getVariable("query");
-    query.attributeList();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(query::attributeList);
   }
 
   @Test

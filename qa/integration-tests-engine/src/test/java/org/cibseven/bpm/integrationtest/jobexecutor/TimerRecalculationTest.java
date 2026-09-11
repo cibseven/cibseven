@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.jobexecutor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -31,16 +31,16 @@ import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.integrationtest.jobexecutor.beans.TimerExpressionBean;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  *
  * @author Tobias Metzke
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TimerRecalculationTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -61,8 +61,8 @@ public class TimerRecalculationTest extends AbstractFoxPlatformIntegrationTest {
 
     ProcessInstanceQuery instancesQuery = runtimeService.createProcessInstanceQuery().processInstanceId(instance.getId());
     JobQuery jobQuery = managementService.createJobQuery();
-    assertEquals(1, instancesQuery.count());
-    assertEquals(1, jobQuery.count());
+    assertThat(instancesQuery.count()).isEqualTo(1);
+    assertThat(jobQuery.count()).isEqualTo(1);
     
     Job job = jobQuery.singleResult();
     Date oldDueDate = job.getDuedate();
@@ -72,7 +72,7 @@ public class TimerRecalculationTest extends AbstractFoxPlatformIntegrationTest {
     managementService.recalculateJobDuedate(job.getId(), true);
 
     // then
-    assertEquals(1, jobQuery.count());
+    assertThat(jobQuery.count()).isEqualTo(1);
     Job jobRecalculated = jobQuery.singleResult();
     assertNotEquals(oldDueDate, jobRecalculated.getDuedate());
     
@@ -80,10 +80,10 @@ public class TimerRecalculationTest extends AbstractFoxPlatformIntegrationTest {
     calendar.setTime(jobRecalculated.getCreateTime());
     calendar.add(Calendar.SECOND, 1);
     Date expectedDate = calendar.getTime();
-    assertEquals(expectedDate, jobRecalculated.getDuedate());
+    assertThat(jobRecalculated.getDuedate()).isEqualTo(expectedDate);
     
     waitForJobExecutorToProcessAllJobs();
 
-    assertEquals(0, instancesQuery.count());
+    assertThat(instancesQuery.count()).isEqualTo(0);
   }
 }

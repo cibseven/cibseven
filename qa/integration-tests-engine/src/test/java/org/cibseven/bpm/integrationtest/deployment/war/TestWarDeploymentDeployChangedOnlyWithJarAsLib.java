@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.war;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
@@ -24,20 +26,20 @@ import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  *
  * @author Roman Smirnov
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TestWarDeploymentDeployChangedOnlyWithJarAsLib extends AbstractFoxPlatformIntegrationTest {
 
   private static final String PA1 = "PA1";
@@ -109,7 +111,7 @@ public class TestWarDeploymentDeployChangedOnlyWithJarAsLib extends AbstractFoxP
   @OperateOnDeployment(value=PA2)
   public void testDeployProcessArchive() {
     ProcessEngine processEngine = ProgrammaticBeanLookup.lookup(ProcessEngine.class);
-    Assert.assertNotNull(processEngine);
+    Assertions.assertNotNull(processEngine);
 
     RepositoryService repositoryService = processEngine.getRepositoryService();
 
@@ -117,7 +119,7 @@ public class TestWarDeploymentDeployChangedOnlyWithJarAsLib extends AbstractFoxP
       .processDefinitionKey("testDeployProcessArchiveUnchanged")
       .count();
 
-    Assert.assertEquals(1, count);
+    assertThat(count).isEqualTo(1);
   }
 
 }

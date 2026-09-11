@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.spring.test.components.scope;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
-import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.logging.Logger;
@@ -38,8 +38,9 @@ public class Delegate2 implements JavaDelegate {
 
 		this.statefulObject.increment();
 
-		Assert.assertNotNull( "the 'scopedCustomer' reference can't be null", this.statefulObject);
-		Assert.assertNotNull( "the 'scopedCustomer.name' property should be non-null, since it was set in a previous delegate bound to this very thread", this.statefulObject.getName() );
+		assertNotNull(this.statefulObject, "the 'scopedCustomer' reference can't be null");
+		assertNotNull(this.statefulObject.getName(), 
+		    "the 'scopedCustomer.name' property should be non-null, since it was set in a previous delegate bound to this very thread");
 		log.info( "the 'uuid' value retrieved from the ScopedCustomer#name property is '" +  this.statefulObject.getName()+ "' in "+getClass().getName());
 	}
 }

@@ -31,12 +31,14 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 /**
  * @author Thorben Lindhauer
@@ -47,12 +49,11 @@ public class ReuseEntityCacheTest {
   public static final String ENTITY_ID1 = "Execution1";
   public static final String ENTITY_ID2 = "Execution2";
 
-  protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
+  @RegisterExtension
+  @Order(1) protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configuration.setJobExecutor(new ControllableJobExecutor()));
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   protected boolean defaultSetting;
 
@@ -76,7 +77,7 @@ public class ReuseEntityCacheTest {
       .endEvent()
       .done();
 
-  @Before
+  @BeforeEach
   public void setUp() {
     defaultSetting = getEngineConfig().isDbEntityCacheReuseEnabled();
     getEngineConfig().setDbEntityCacheReuseEnabled(true);
@@ -85,12 +86,12 @@ public class ReuseEntityCacheTest {
     acquisitionThreadControl = jobExecutor.getAcquisitionThreadControl();
   }
 
-  @After
+  @AfterEach
   public void resetEngineConfiguration() {
     getEngineConfig().setDbEntityCacheReuseEnabled(defaultSetting);
   }
 
-  @After
+  @AfterEach
   public void shutdownJobExecutor() {
     jobExecutor.shutdown();
   }
@@ -130,7 +131,7 @@ public class ReuseEntityCacheTest {
     acquisitionThreadControl.waitForSync();
 
     // then the job has been successfully executed
-    Assert.assertEquals(0, engineRule.getManagementService().createJobQuery().count());
+    Assertions.assertEquals(0, engineRule.getManagementService().createJobQuery().count());
   }
 
   protected ProcessEngineConfigurationImpl getEngineConfig() {

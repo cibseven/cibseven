@@ -161,7 +161,7 @@
     <servlet-name>Cockpit Api</servlet-name>
     <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
     <init-param>
-      <param-name>javax.ws.rs.Application</param-name>
+      <param-name>jakarta.ws.rs.Application</param-name>
       <param-value>org.cibseven.bpm.cockpit.impl.web.CockpitApplication</param-value>
     </init-param>
     <init-param>

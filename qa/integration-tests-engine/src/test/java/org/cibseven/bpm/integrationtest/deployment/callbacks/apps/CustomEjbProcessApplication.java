@@ -16,20 +16,20 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.callbacks.apps;
 
-import javax.ejb.ConcurrencyManagement;
-import javax.ejb.ConcurrencyManagementType;
-import javax.ejb.Local;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
+import jakarta.ejb.ConcurrencyManagement;
+import jakarta.ejb.ConcurrencyManagementType;
+import jakarta.ejb.Local;
+import jakarta.ejb.Singleton;
+import jakarta.ejb.Startup;
+import jakarta.ejb.TransactionAttribute;
+import jakarta.ejb.TransactionAttributeType;
 
 import org.cibseven.bpm.application.PostDeploy;
 import org.cibseven.bpm.application.PreUndeploy;
 import org.cibseven.bpm.application.ProcessApplication;
 import org.cibseven.bpm.application.ProcessApplicationInterface;
 import org.cibseven.bpm.engine.ProcessEngine;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * Custom {@link org.cibseven.bpm.application.impl.EjbProcessApplication} with PA lifecycle callbacks
@@ -48,12 +48,12 @@ public class CustomEjbProcessApplication extends org.cibseven.bpm.application.im
 
   @PostDeploy
   public void postDeploy(ProcessEngine processEngine) {
-    Assert.assertNotNull(processEngine);
+    Assertions.assertNotNull(processEngine);
   }
 
   @PreUndeploy
   public void preUnDeploy(ProcessEngine processEngine) {
-    Assert.assertNotNull(processEngine);
+    Assertions.assertNotNull(processEngine);
   }
 
 }

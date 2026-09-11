@@ -19,7 +19,7 @@ package org.cibseven.bpm.cockpit.impl.plugin.base.dto.query;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 import org.cibseven.bpm.cockpit.impl.plugin.base.dto.ProcessDefinitionDto;
 import org.cibseven.bpm.cockpit.rest.dto.AbstractRestQueryParametersDto;

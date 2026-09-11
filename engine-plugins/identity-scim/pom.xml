@@ -75,6 +75,7 @@
       <groupId>com.github.tomakehurst</groupId>
       <artifactId>wiremock</artifactId>
       <scope>test</scope>
+      <version>${version.wiremock}</version>
     </dependency> 
   </dependencies> 
   

@@ -22,17 +22,17 @@ import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE;
 import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE_INSTANCE;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_INSTANCE;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.management.JobDefinition;
 import org.cibseven.bpm.engine.management.JobDefinitionQuery;
 import org.cibseven.bpm.engine.runtime.Job;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -44,7 +44,7 @@ public class JobDefinitionAuthorizationTest extends AuthorizationTest {
   protected static final String TIMER_BOUNDARY_PROCESS_KEY = "timerBoundaryProcess";
 
   @Override
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     testRule.deploy(
         "org/cibseven/bpm/engine/test/api/authorization/timerStartEventProcess.bpmn20.xml",

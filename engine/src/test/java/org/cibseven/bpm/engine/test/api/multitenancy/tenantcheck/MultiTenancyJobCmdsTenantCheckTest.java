@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.test.api.multitenancy.tenantcheck;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -36,29 +36,28 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 public class MultiTenancyJobCmdsTenantCheckTest {
 
   protected static final String TENANT_ONE = "tenant1";
 
   protected static final String PROCESS_DEFINITION_KEY = "exceptionInJobExecution";
-
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected ProcessInstance processInstance;
 
   protected ManagementService managementService;
 
   protected IdentityService identityService;
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected static final BpmnModelInstance BPMN_PROCESS = Bpmn.createExecutableProcess("exceptionInJobExecution")
     .startEvent()
@@ -78,7 +77,7 @@ public class MultiTenancyJobCmdsTenantCheckTest {
     .endEvent()
     .done();
 
-  @Before
+  @BeforeEach
   public void init() {
 
     managementService = engineRule.getManagementService();

@@ -17,25 +17,25 @@
 package org.cibseven.bpm.integrationtest.functional.metadata.engine;
 
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
+import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * 
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TestProcessEnginesXmlFails {
 
   @ArquillianResource
@@ -43,8 +43,8 @@ public class TestProcessEnginesXmlFails {
   
   @Deployment(managed=false, name="deployment")
   public static WebArchive processArchive() {    
-    
-    return  ShrinkWrap.create(WebArchive.class)
+
+    WebArchive testJar = ShrinkWrap.create(WebArchive.class)
             .addAsWebInfResource("org/cibseven/bpm/integrationtest/beans.xml", "beans.xml")
             .addAsLibraries(DeploymentHelper.getEjbClient())
             .addAsResource("META-INF/processes.xml", "META-INF/processes.xml")
@@ -55,6 +55,8 @@ public class TestProcessEnginesXmlFails {
                     // we add the same process engine configuration multiple times -> fails
                    .addAsResource("singleEngine.xml", "META-INF/processes.xml")
          );
+    TestContainer.addContainerSpecificResources(testJar);
+    return testJar;
   }
   
   @Test
@@ -62,7 +64,7 @@ public class TestProcessEnginesXmlFails {
   public void testDeployProcessArchive() {
     try {
       deployer.deploy("deployment");
-      Assert.fail("exception expected");
+      fail("exception expected");
     }catch (Exception e) {
       // expected
     }

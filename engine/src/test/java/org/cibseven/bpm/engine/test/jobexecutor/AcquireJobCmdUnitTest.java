@@ -32,8 +32,8 @@ import org.cibseven.bpm.engine.impl.jobexecutor.AcquiredJobs;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
 import org.cibseven.bpm.engine.impl.persistence.entity.AcquirableJobEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.JobManager;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class AcquireJobCmdUnitTest {
 
@@ -47,7 +47,7 @@ public class AcquireJobCmdUnitTest {
   protected JobManager jobManager;
   protected CommandContext commandContext;
 
-  @Before
+  @BeforeEach
   public void initCommand() {
     JobExecutor jobExecutor = mock(JobExecutor.class);
     when(jobExecutor.getMaxJobsPerAcquisition()).thenReturn(3);

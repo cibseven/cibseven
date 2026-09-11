@@ -26,8 +26,8 @@ import java.util.Date;
 import org.cibseven.spin.json.SpinJsonException;
 import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.json.SpinJsonPropertyException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Index:
@@ -50,7 +50,7 @@ public class JsonTreeEditListPropertyTest {
   protected SpinJsonNode customers;
   protected SpinJsonNode currencies;
 
-  @Before
+  @BeforeEach
   public void readJson() {
     jsonNode = JSON(EXAMPLE_JSON);
     customers = jsonNode.prop("customers");

@@ -44,7 +44,7 @@ import org.cibseven.bpm.model.cmmn.instance.PlanItem;
 import org.cibseven.bpm.model.cmmn.instance.Sentry;
 import org.cibseven.bpm.model.cmmn.instance.TimerEvent;
 import org.cibseven.bpm.model.cmmn.instance.UserEvent;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov

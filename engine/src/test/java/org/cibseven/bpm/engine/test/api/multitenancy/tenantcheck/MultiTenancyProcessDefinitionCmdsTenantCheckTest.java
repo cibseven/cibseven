@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.test.api.multitenancy.tenantcheck;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -41,10 +41,12 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 /**
  * @author kristin.polenz
@@ -55,13 +57,10 @@ public class MultiTenancyProcessDefinitionCmdsTenantCheckTest {
 
   protected static final String BPMN_PROCESS_MODEL = "org/cibseven/bpm/engine/test/api/multitenancy/testProcess.bpmn";
   protected static final String BPMN_PROCESS_DIAGRAM = "org/cibseven/bpm/engine/test/api/multitenancy/testProcess.png";
-
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
@@ -71,7 +70,7 @@ public class MultiTenancyProcessDefinitionCmdsTenantCheckTest {
 
   protected String processDefinitionId;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     repositoryService = engineRule.getRepositoryService();

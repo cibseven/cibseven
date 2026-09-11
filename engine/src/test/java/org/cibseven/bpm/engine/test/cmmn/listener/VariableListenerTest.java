@@ -16,11 +16,11 @@
  */
 package org.cibseven.bpm.engine.test.cmmn.listener;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import java.util.Map;
@@ -38,10 +38,10 @@ import org.cibseven.bpm.engine.runtime.CaseExecution;
 import org.cibseven.bpm.engine.runtime.CaseInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -51,7 +51,7 @@ public class VariableListenerTest extends PluggableProcessEngineTest {
 
   protected Map<Object, Object> beans = null;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
 
 
@@ -517,7 +517,7 @@ public class VariableListenerTest extends PluggableProcessEngineTest {
    * TODO: add when history for case execution variables is implemented
    */
   @Deployment
-  @Ignore
+  @Disabled
   @Test
   public void testListenerDoesNotInterfereWithHistory() {
     CaseInstance caseInstance = caseService
@@ -790,7 +790,7 @@ public class VariableListenerTest extends PluggableProcessEngineTest {
     LogVariableListener.reset();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     beans.clear();
 

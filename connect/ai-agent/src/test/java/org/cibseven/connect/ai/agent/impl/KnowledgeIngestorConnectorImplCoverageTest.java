@@ -24,8 +24,8 @@ import java.util.List;
 
 import org.cibseven.connect.ai.agent.KnowledgeIngestorRequest;
 import org.cibseven.connect.ai.agent.KnowledgeIngestorResponse;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.embedding.Embedding;
@@ -57,7 +57,7 @@ public class KnowledgeIngestorConnectorImplCoverageTest {
 
   private KnowledgeIngestorConnectorImpl connector;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     connector = new KnowledgeIngestorConnectorImpl();
   }

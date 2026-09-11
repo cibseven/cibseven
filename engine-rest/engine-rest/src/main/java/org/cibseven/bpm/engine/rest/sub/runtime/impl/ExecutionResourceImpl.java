@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.sub.runtime.impl;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.BadUserRequestException;

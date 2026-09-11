@@ -16,8 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.condition;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -28,12 +27,12 @@ import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.integrationtest.functional.condition.bean.ConditionalBean;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class ConditionalStartEventTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -47,20 +46,20 @@ public class ConditionalStartEventTest extends AbstractFoxPlatformIntegrationTes
   public void testStartInstanceWithBeanCondition() {
     List<EventSubscription> eventSubscriptions = runtimeService.createEventSubscriptionQuery().list();
 
-    assertEquals(1, eventSubscriptions.size());
-    assertEquals(EventType.CONDITONAL.name(), eventSubscriptions.get(0).getEventType());
+    assertThat(eventSubscriptions).hasSize(1);
+    assertThat(eventSubscriptions.get(0).getEventType()).isEqualTo(EventType.CONDITONAL.name());
 
     List<ProcessInstance> instances = runtimeService
         .createConditionEvaluation()
         .setVariable("foo", 1)
         .evaluateStartConditions();
 
-    assertEquals(1, instances.size());
+    assertThat(instances).hasSize(1);
 
-    assertNotNull(runtimeService.createProcessInstanceQuery().processDefinitionKey("conditionalEventProcess").singleResult());
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionKey("conditionalEventProcess").singleResult()).isNotNull();
 
     VariableInstance vars = runtimeService.createVariableInstanceQuery().singleResult();
-    assertEquals(vars.getProcessInstanceId(), instances.get(0).getId());
-    assertEquals(1, vars.getValue());
+    assertThat(vars.getProcessInstanceId()).isEqualTo(instances.get(0).getId());
+    assertThat(vars.getValue()).isEqualTo(1);
   }
 }

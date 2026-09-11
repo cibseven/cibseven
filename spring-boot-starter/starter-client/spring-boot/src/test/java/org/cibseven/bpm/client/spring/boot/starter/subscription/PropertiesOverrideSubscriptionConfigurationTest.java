@@ -19,7 +19,7 @@ package org.cibseven.bpm.client.spring.boot.starter.subscription;
 import org.cibseven.bpm.client.spring.boot.starter.subscription.configuration.FullSubscriptionConfiguration;
 import org.cibseven.bpm.client.spring.boot.starter.ParsePropertiesHelper;
 import org.cibseven.bpm.client.spring.impl.subscription.SubscriptionConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 

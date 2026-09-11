@@ -17,6 +17,7 @@
 package org.cibseven.bpm.engine.test.standalone.variables;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.DataInputStream;
 import java.io.File;
@@ -34,8 +35,8 @@ import org.cibseven.bpm.engine.variable.impl.type.FileValueTypeImpl;
 import org.cibseven.bpm.engine.variable.impl.value.UntypedValueImpl;
 import org.cibseven.bpm.engine.variable.value.FileValue;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Ronny Bräunlich
@@ -46,7 +47,7 @@ public class FileValueSerializerTest {
   private static final String SEPARATOR = "#";
   private FileValueSerializer serializer;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     serializer = new FileValueSerializer();
   }
@@ -140,9 +141,11 @@ public class FileValueSerializerTest {
     assertThat(valueFields.getTextValue2()).isEqualTo("text/plain" + SEPARATOR);
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void testThrowsExceptionWhenConvertingUnknownUntypedValueToTypedValue() {
-    serializer.convertToTypedValue((UntypedValueImpl) Variables.untypedValue(new Object()));
+    assertThrows(UnsupportedOperationException.class, () -> {
+      serializer.convertToTypedValue((UntypedValueImpl) Variables.untypedValue(new Object()));
+    });
   }
 
   @Test
@@ -289,9 +292,11 @@ public class FileValueSerializerTest {
     assertThat(valueFields.getTextValue2()).isEqualTo(SEPARATOR + encoding);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testSerializeFileValueWithoutName() {
-    Variables.fileValue((String) null).file("abc".getBytes()).create();
+    assertThrows(IllegalArgumentException.class, () -> {
+      Variables.fileValue((String) null).file("abc".getBytes()).create();
+    });
   }
 
   private void checkStreamFromValue(TypedValue value, String expected) {

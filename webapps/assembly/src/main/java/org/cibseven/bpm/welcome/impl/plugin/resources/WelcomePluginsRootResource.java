@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.welcome.impl.plugin.resources;
 
-import javax.ws.rs.Path;
+import jakarta.ws.rs.Path;
 
 import org.cibseven.bpm.welcome.impl.plugin.WelcomePlugins;
 import org.cibseven.bpm.welcome.resource.AbstractWelcomePluginRootResource;

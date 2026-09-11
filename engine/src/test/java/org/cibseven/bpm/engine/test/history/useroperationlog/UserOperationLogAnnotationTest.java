@@ -35,11 +35,11 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 @RequiredHistoryLevel(HISTORY_FULL)
 public class UserOperationLogAnnotationTest {
@@ -51,38 +51,38 @@ public class UserOperationLogAnnotationTest {
   protected static final String OPERATION_ID = "operationId";
   protected final Date CREATE_TIME = new GregorianCalendar(2013, Calendar.MARCH, 18, 13, 0, 0).getTime();
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule);
 
   protected HistoryService historyService;
   protected TaskService taskService;
 
-  @Before
+  @BeforeEach
   public void assignServices() {
     historyService = engineRule.getHistoryService();
     taskService = engineRule.getTaskService();
   }
 
-  @After
+  @AfterEach
   public void clearDatabase() {
     taskService.deleteTask(TASK_ID, true);
   }
 
-  @After
+  @AfterEach
   public void resetClock() {
     ClockUtil.reset();
   }
 
-  @Before
+  @BeforeEach
   public void setAuthentication() {
     engineRule.getIdentityService()
         .setAuthenticatedUserId(USER_ID);
   }
 
-  @After
+  @AfterEach
   public void clearAuthentication() {
     engineRule.getIdentityService()
         .clearAuthentication();

@@ -27,7 +27,7 @@
   <properties>
     <cibseven.artifact>org.cibseven.bpm.engine.variable</cibseven.artifact>
     <camunda.osgi.import.additional>
-      !javax.activation
+      !jakarta.activation
     </camunda.osgi.import.additional>
   </properties>
   <dependencies>
@@ -37,25 +37,35 @@
       <artifactId>cibseven-commons-utils</artifactId>
     </dependency>
 
+    <!-- JUnit 5 Jupiter API for unit testing -->
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${version.junit5}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${version.junit5}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${version.junit5}</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-library</artifactId>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
       <scope>test</scope>
     </dependency>
 
     <dependency>
-      <groupId>com.sun.activation</groupId>
-      <artifactId>javax.activation</artifactId>
-      <version>1.2.0</version>
-      <optional>true</optional>
+      <groupId>jakarta.activation</groupId>
+      <artifactId>jakarta.activation-api</artifactId>
+      <version>2.1.3</version>
     </dependency>
-
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-bpm-archunit</artifactId>

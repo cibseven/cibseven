@@ -1,0 +1,9 @@
+<module xmlns="urn:jboss:module:1.1" name="org.assertj.assertj-core">
+  <resources>
+    <resource-root path="assertj-core-3.27.7.jar"/>
+  </resources>
+
+  <dependencies>
+    <module name="java.base"/>
+  </dependencies>
+</module>

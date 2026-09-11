@@ -39,11 +39,13 @@ import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 public class DecisionDefinitionQueryTest {
 
@@ -53,12 +55,10 @@ public class DecisionDefinitionQueryTest {
 
   protected static final String DRD_SCORE_RESOURCE = "org/cibseven/bpm/engine/test/dmn/deployment/drdScore.dmn11.xml";
   protected static final String DRD_DISH_RESOURCE = "org/cibseven/bpm/engine/test/dmn/deployment/drdDish.dmn11.xml";
-
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RepositoryService repositoryService;
 
@@ -67,7 +67,7 @@ public class DecisionDefinitionQueryTest {
   protected String secondDeploymentId;
   protected String thirdDeploymentId;
 
-  @Before
+  @BeforeEach
   public void init() {
     repositoryService = engineRule.getRepositoryService();
 
@@ -76,7 +76,7 @@ public class DecisionDefinitionQueryTest {
     thirdDeploymentId = testRule.deploy(DMN_THREE_RESOURCE).getId();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ClockUtil.resetClock();
   }

@@ -36,11 +36,13 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 /**
  * @author kristin.polenz
@@ -52,19 +54,16 @@ public class MultiTenancyDeploymentCmdsTenantCheckTest {
 
   protected static final BpmnModelInstance emptyProcess = Bpmn.createExecutableProcess().startEvent().done();
   protected static final BpmnModelInstance startEndProcess = Bpmn.createExecutableProcess().startEvent().endEvent().done();
-
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RepositoryService repositoryService;
   protected IdentityService identityService;
   protected ProcessEngineConfiguration processEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void init() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     repositoryService = engineRule.getRepositoryService();
@@ -381,7 +380,7 @@ public class MultiTenancyDeploymentCmdsTenantCheckTest {
     assertThat(query.tenantIdIn(TENANT_TWO).count()).isEqualTo(1L);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     identityService.clearAuthentication();
     for(Deployment deployment : repositoryService.createDeploymentQuery().list()) {

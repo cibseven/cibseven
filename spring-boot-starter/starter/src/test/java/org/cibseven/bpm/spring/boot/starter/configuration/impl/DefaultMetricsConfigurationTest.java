@@ -22,15 +22,15 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import org.cibseven.bpm.engine.spring.SpringProcessEngineConfiguration;
 import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DefaultMetricsConfigurationTest {
   private DefaultMetricsConfiguration defaultMetricsConfiguration = new DefaultMetricsConfiguration();
   private CamundaBpmProperties camundaBpmProperties = new CamundaBpmProperties();
   private SpringProcessEngineConfiguration configuration = new SpringProcessEngineConfiguration();
 
-  @Before
+  @BeforeEach
   public void setUp() {
     setField(defaultMetricsConfiguration, "camundaBpmProperties", camundaBpmProperties);
     defaultMetricsConfiguration.init();

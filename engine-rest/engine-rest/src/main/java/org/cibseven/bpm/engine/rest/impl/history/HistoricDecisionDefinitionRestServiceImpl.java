@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.rest.impl.history;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.UriInfo;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.history.CleanableHistoricDecisionInstanceReport;
 import org.cibseven.bpm.engine.history.CleanableHistoricDecisionInstanceReportResult;
