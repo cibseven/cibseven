@@ -39,6 +39,18 @@
       <artifactId>cibseven-engine-plugin-connect</artifactId>
     </dependency>
 
+    <!-- Compile-only: referenced by AgentConnectorLifecycle's @PreDestroy hook.
+         The actual runtime classes are bundled via cibseven-bpm-run-modules-ai-agent
+         when the AI Agent module is included in the assembly. When that module is
+         excluded, the @ConditionalOnClass guard on AgentConnectorLifecycle skips
+         the bean and the class reference is never resolved. -->
+    <dependency>
+      <groupId>org.cibseven.connect</groupId>
+      <artifactId>cibseven-connect-ai-agent</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.cibseven.spin</groupId>
       <artifactId>cibseven-spin-dataformat-all</artifactId>
