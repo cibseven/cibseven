@@ -122,7 +122,7 @@ public class AdHocSubProcessTool {
         // Reconcile first, so the answer describes the situation the model is about to
         // act on rather than the one at the end of the previous turn.
         Map<String, String> finished =
-                AdHocLoopState.harvestFinished(scope, runningActivityInstanceIds(engine, scope));
+                AdHocLoopState.harvestFinished(scope, liveTrackingIds(engine, scope));
         AdHocLoopState.countTurn(scope);
 
         // Read after the reconciliation above, so an activity that finished during
@@ -235,6 +235,10 @@ public class AdHocSubProcessTool {
                 ? null
                 : Collections.singletonMap(activityId, variables);
 
+        // Snapshot first: a queued asyncBefore child has no activity instance, so its
+        // execution is the only handle, and spotting the new one needs the old set.
+        Set<String> childrenBefore = childExecutionIds(scope);
+
         List<String> activityInstanceIds = engine.getRuntimeService().triggerAdHocActivities(
                 scope.getId(), Collections.singletonList(activityId), perActivity);
 
@@ -244,16 +248,25 @@ public class AdHocSubProcessTool {
         result.put("activityId", activityId);
         result.put("activityInstanceId", activityInstanceId);
 
-        // Whether the activity is still in the runtime tree decides everything else.
-        // One that runs without waiting has already finished inside the call above,
-        // and this is the only turn in which the agent can see its result: the agent
-        // is the scope's driver and is running, so that activity's end gives it no
-        // further turn.
-        boolean stillRunning = activityInstanceId != null
-                && runningActivityInstanceIds(engine, scope).contains(activityInstanceId);
+        // An activity that ran without waiting has already finished inside the call
+        // above, and this is the only turn in which the agent sees its result.
+        //
+        // With an activity instance the tree answers whether it is still going. With
+        // asyncBefore the engine returns none — execution and job exist, the instance
+        // does not — so the new execution answers instead, and is also what the
+        // pending list must key on. Reading only the first case reported such a child
+        // as finished before it had run.
+        String trackingId = activityInstanceId;
+        boolean stillRunning;
+        if (activityInstanceId != null) {
+            stillRunning = runningActivityInstanceIds(engine, scope).contains(activityInstanceId);
+        } else {
+            trackingId = startedChildExecutionId(scope, childrenBefore, activityId);
+            stillRunning = trackingId != null;
+        }
 
         if (stillRunning) {
-            AdHocLoopState.addPending(scope, activityInstanceId, activityId);
+            AdHocLoopState.addPending(scope, trackingId, activityId);
             result.put("status", "waiting");
             result.put("results", Collections.emptyMap());
             result.put("resultsNote", "Still running. You will get another turn when it finishes.");
@@ -300,7 +313,7 @@ public class AdHocSubProcessTool {
 
         // Reconcile before refusing, so an entry whose activity finished during this
         // turn does not block the scope on stale bookkeeping.
-        AdHocLoopState.harvestFinished(scope, runningActivityInstanceIds(engine, scope));
+        AdHocLoopState.harvestFinished(scope, liveTrackingIds(engine, scope));
         Map<String, String> stillPending = AdHocLoopState.pending(scope);
         if (!stillPending.isEmpty()) {
             throw new AgentConnectorException("Cannot end the ad hoc sub process while "
@@ -392,6 +405,46 @@ public class AdHocSubProcessTool {
             collectIds(tree, ids);
         }
         return ids;
+    }
+
+    /**
+     * The keys a pending entry can be alive under: activity instance ids plus the
+     * scope's child execution ids, because a queued asyncBefore child is tracked by
+     * execution. An entry in neither set has finished.
+     */
+    private static Set<String> liveTrackingIds(ProcessEngine engine, ExecutionEntity scope) {
+        Set<String> ids = runningActivityInstanceIds(engine, scope);
+        ids.addAll(childExecutionIds(scope));
+        return ids;
+    }
+
+    /** The ids of the scope's child executions. */
+    private static Set<String> childExecutionIds(ExecutionEntity scope) {
+        Set<String> ids = new LinkedHashSet<>();
+        for (PvmExecutionImpl child : ((PvmExecutionImpl) scope).getNonEventScopeExecutions()) {
+            ids.add(child.getId());
+        }
+        return ids;
+    }
+
+    /**
+     * The execution created for {@code activityId} by the activation that just ran,
+     * or {@code null} when none appeared.
+     *
+     * <p>Identified as a child that was absent before and now carries that activity.
+     * Two performances started in separate calls are told apart because each call
+     * takes its own snapshot.
+     */
+    private static String startedChildExecutionId(ExecutionEntity scope, Set<String> before,
+                                                  String activityId) {
+        for (PvmExecutionImpl child : ((PvmExecutionImpl) scope).getNonEventScopeExecutions()) {
+            PvmActivity activity = child.getActivity();
+            if (!before.contains(child.getId())
+                    && activity != null && activityId.equals(activity.getId())) {
+                return child.getId();
+            }
+        }
+        return null;
     }
 
     private static void collectIds(ActivityInstance node, Set<String> ids) {

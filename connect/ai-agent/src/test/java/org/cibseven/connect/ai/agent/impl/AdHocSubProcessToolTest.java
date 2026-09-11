@@ -505,6 +505,17 @@ public class AdHocSubProcessToolTest {
     assertThat(values.size())
         .as("fewer than the " + WritesManyLongTexts.COUNT + " declared values fit the budget")
         .isLessThan(WritesManyLongTexts.COUNT);
+    // A lower bound as well, because "fewer than declared" alone would also hold if
+    // the block collapsed after one value — which is a different defect with the
+    // same symptom. What is asserted is that the budget was spent before the cut.
+    assertThat(values.size()).as("the block must not collapse early").isGreaterThan(1);
+    int chars = 0;
+    for (Object value : values.values()) {
+      chars += String.valueOf(value).length();
+    }
+    assertThat(chars)
+        .as("most of the " + AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS + " character budget is used")
+        .isGreaterThan(AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS / 2);
     assertThat(String.valueOf(answer.get("resultsNote")))
         .contains("size limit of " + AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS);
   }
@@ -715,6 +726,81 @@ public class AdHocSubProcessToolTest {
    * activity instance tree the child looks absent, and dependent work would start
    * while queued work had not run.
    */
+  /**
+   * What {@code startActivity} tells the model about a child whose asyncBefore job
+   * is still queued.
+   *
+   * <p>The status is decided against the activity instance tree, where a queued
+   * asyncBefore child does not appear — the same fact the blocking rule two methods
+   * away reads the execution tree to avoid. If that decides "not running", the model
+   * is told the work is <em>finished</em> before it has started, with whatever its
+   * declared result variables happen to hold, and the child never enters the pending
+   * list either, so no later turn reports it.
+   *
+   * <p>The existing {@link #aQueuedAsyncBeforeChildHoldsAMarkedActivityBack} starts
+   * the same child but only asserts what happens next, which is how this slipped
+   * through: nothing pinned the answer itself.
+   */
+  @Test
+  public void aQueuedAsyncBeforeChildIsReportedAsWaitingNotFinished() {
+    start("asyncStatus",
+        tool -> tool.startActivity("asyncChild", Collections.<String, Object>emptyMap()));
+
+    assertThat(AgentTask.FAILURES).isEmpty();
+    Map<String, Object> answer = result(0);
+    assertThat(answer.get("status"))
+        .as("a queued job has not run, so the model must not be told it finished")
+        .isEqualTo("waiting");
+    assertThat(answer.get("results")).as("nothing can be known yet")
+        .isEqualTo(Collections.emptyMap());
+  }
+
+  /**
+   * The whole way for a queued asyncBefore child: waiting now, reported with its
+   * value in the turn after the job ran.
+   *
+   * <p>Both halves matter and the first alone would have been a half fix. Reporting
+   * "waiting" without tracking the child would leave the agent waiting for a result
+   * that never arrives, and would let completeScope end the scope over it.
+   */
+  @Test
+  public void aQueuedAsyncBeforeChildIsReportedWhenItsJobHasRun() {
+    ProcessInstance instance = start("asyncWholeWay",
+        tool -> tool.startActivity("asyncChild", Collections.<String, Object>emptyMap()),
+        tool -> tool.listAvailableActivities());
+
+    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(result(0).get("status")).as("the job is still queued").isEqualTo("waiting");
+
+    // Running the job finishes the child, which gives the driver its next turn.
+    runPendingTurn(instance);
+
+    Map<String, Object> listing = result(1);
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> finished =
+        (List<Map<String, Object>>) listing.get("finishedSinceLastTurn");
+    // 'activityId', not 'id': a finished entry names the activity it belongs to.
+    List<String> reported = new ArrayList<>();
+    for (Map<String, Object> candidate : finished) {
+      reported.add(String.valueOf(candidate.get("activityId")));
+    }
+    assertThat(reported).as("the child must be reported once its job has run")
+        .contains("asyncChild");
+
+    Map<String, Object> entry = null;
+    for (Map<String, Object> candidate : finished) {
+      if ("asyncChild".equals(candidate.get("activityId"))) {
+        entry = candidate;
+      }
+    }
+    assertThat(entry).isNotNull();
+    @SuppressWarnings("unchecked")
+    Map<String, Object> values = (Map<String, Object>) entry.get("results");
+    // Long, not Integer: the expression ${1} is evaluated by JUEL.
+    assertThat(values).as("its declared result variable carries the value")
+        .containsEntry("asyncDone", Long.valueOf(1));
+  }
+
   @Test
   public void aQueuedAsyncBeforeChildHoldsAMarkedActivityBack() {
     start("asyncKid", tool -> {
