@@ -327,8 +327,12 @@
                   </mapper>
                 </copy>
 
+                <!-- module descriptors, with @version.*@ tokens already substituted by
+                     maven-resources-plugin (process-resources phase), must land here:
+                     after path replacements above, before the jackson relocation
+                     and the ai-agent resource-root generation below. -->
                 <copy todir="target/modules" flatten="false">
-                  <fileset dir="src/main/modules" />
+                  <fileset dir="target/modules-filtered" />
                 </copy>
 
                 <!-- relocate jackson module.xml files from '@version.jackson@' placeholder to version-named slot -->
@@ -378,92 +382,12 @@
                 <replace file="target/modules/org/cibseven/connect/cibseven-connect-ai-agent/main/module.xml"
                          token="@resource-roots@" value="${ai.agent.resource.roots}" />
 
-                <replace dir="target/modules" token="@project.version@" value="${project.version}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@project.version@" value="${project.version}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@project.version@" value="${project.version}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@project.version@" value="${project.version}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@project.version@" value="${project.version}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.freemarker@" value="${version.freemarker}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.groovy@" value="${version.groovy}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.httpclient5@" value="${version.httpclient5}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.httpcore5@" value="${version.httpcore5}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.jackson@" value="${version.jackson}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.json-path@" value="${version.json-path}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.json-smart@" value="${version.json-smart}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.accessors-smart@" value="${version.accessors-smart}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.caffeine@" value="${version.caffeine}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.h2@" value="${version.h2}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.mybatis@" value="${version.mybatis}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.feel-scala@" value="${version.feel-scala}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.graal.js@" value="${version.graal.js}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.icu.icu4j@" value="${version.icu.icu4j}">
-                  <include name="**/module.xml" />
-                </replace>
-
-                <replace dir="target/modules" token="@version.lz4-java@" value="${version.lz4-java}">
-                  <include name="**/module.xml" />
-                </replace>
-
               </target>
             </configuration>
           </execution>
         </executions>
       </plugin>
-       <plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
@@ -481,6 +405,31 @@
                   <outputDirectory>${project.build.directory}/modules/org/joda/time/2.1/</outputDirectory>
                 </artifactItem>
               </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- substitute the @version.*@ tokens in the module descriptors into a staging
+           dir. Bound to process-resources so it always runs before the antrun target,
+           independently of plugin declaration order. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>filter-modules</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/modules-filtered</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/modules</directory>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
             </configuration>
           </execution>
         </executions>
