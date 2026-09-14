@@ -327,6 +327,15 @@
                   </mapper>
                 </copy>
 
+                <!-- copy joda-time to slot -->
+                <copy todir="target/modules" flatten="false">
+                  <fileset refid="maven.project.dependencies" />
+                  <mapper>
+                    <regexpmapper from="^joda-time/joda-time/[^/]+/(joda-time-.*\.jar)$$"
+                                  to="org/joda/time/2.1/\1" handledirsep="yes" />
+                  </mapper>
+                </copy>
+
                 <!-- module descriptors, with @version.*@ tokens already substituted by
                      maven-resources-plugin (process-resources phase), must land here:
                      after path replacements above, before the jackson relocation
@@ -383,28 +392,6 @@
                          token="@resource-roots@" value="${ai.agent.resource.roots}" />
 
               </target>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>copy</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>joda-time</groupId>
-                  <artifactId>joda-time</artifactId>
-                  <outputDirectory>${project.build.directory}/modules/org/joda/time/2.1/</outputDirectory>
-                </artifactItem>
-              </artifactItems>
             </configuration>
           </execution>
         </executions>
