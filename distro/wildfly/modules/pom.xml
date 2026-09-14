@@ -194,6 +194,7 @@
                   <fileset refid="maven.project.dependencies" />
                   <mapper>
                     <chainedmapper>
+                      <!-- if any link in the chain doesn't match, the file is dropped (i.e. all non org.cibseven.bpm.*)-->
                       <regexpmapper from="^(.*)/([^/]+)/([^/]*)$$" to="\1/main/\3" handledirsep="yes" />
                       <regexpmapper from="^(org.cibseven.bpm.*)/((cibseven-[A-Za-z-]*)[0-9\.]*).*.jar$$" to="\1/\3${project.version}.jar" handledirsep="yes" />
                     </chainedmapper>
@@ -342,6 +343,24 @@
                 <delete dir="target/modules/com/fasterxml/jackson/core/jackson-annotations/@version.jackson@" />
                 <delete dir="target/modules/com/fasterxml/jackson/core/jackson-core/@version.jackson@" />
                 <delete dir="target/modules/com/fasterxml/jackson/core/jackson-databind/@version.jackson@" />
+
+                <!-- drop jars that no module.xml claims: the copies above (maven.project.dependencies)
+                 mirror the whole resolved dependency tree, src/main/modules is the actual module list -->
+                <delete includeemptydirs="true">
+                  <fileset dir="target/modules">
+                    <include name="**/*.jar" />
+                    <present present="srconly" targetdir="target/modules">
+                      <regexpmapper from="^(.*)/[^/]*\.jar$$" to="\1/module.xml" handledirsep="yes" />
+                    </present>
+                  </fileset>
+                </delete>
+
+                <!-- sweep the directories left empty by the delete above -->
+                <delete includeemptydirs="true">
+                  <fileset dir="target/modules">
+                    <type type="dir" />
+                  </fileset>
+                </delete>
 
                 <!-- ai-agent fat module: generate one <resource-root> per collected
                      jar and inject it into the @resource-roots@ token of the shipped
