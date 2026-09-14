@@ -359,7 +359,8 @@
 
                 <!-- drop jars that no module.xml claims: the copies above (maven.project.dependencies)
                  mirror the whole resolved dependency tree, src/main/modules is the actual module list -->
-                <delete includeemptydirs="true">
+                <echo message="Dropping jars not required for the custom modules (no module.xml claims them):" />
+                <delete includeemptydirs="true" verbose="true">
                   <fileset dir="target/modules">
                     <include name="**/*.jar" />
                     <present present="srconly" targetdir="target/modules">
