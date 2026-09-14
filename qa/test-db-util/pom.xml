@@ -38,6 +38,24 @@
     </dependency>
   </dependencies>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <!-- This module imports cibseven-bom 1.1.0 on purpose, so it resolves whatever Spring
+               version that old engine shipped (5.3.36). 
+               cibseven-parent's Spring alignment check is switched off  -->
+          <execution>
+            <id>enforce-spring-framework-alignment</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
   <description>
     Description of CIB seven - QA - upgrade - scenario util
   </description>
