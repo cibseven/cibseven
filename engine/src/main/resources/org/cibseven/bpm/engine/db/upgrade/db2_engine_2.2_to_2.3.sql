@@ -50,8 +50,11 @@ CREATE TABLE MOD_FORMS_AUD (
 );
 
 
--- Modeler: folders for diagrams and forms, and the move of a flat installation into one of
--- them. The ids of the two folders are fixed so the statements need no UUID function.
+-- Modeler folders. Creates the folder table, gives diagrams and forms the folder they belong to,
+-- and puts the models of an installation that has none yet into a folder named General, so an
+-- upgrade leaves nothing to sort by hand.
+-- The two folder ids are written out rather than generated: the update below has to name the
+-- same id the insert used, and generating one is spelled differently on every database.
 CREATE TABLE MOD_FOLDERS (
     ID VARCHAR(36) NOT NULL PRIMARY KEY,
     PARENT_ID VARCHAR(36),
