@@ -15,9 +15,6 @@
     <version>2.3.0-SNAPSHOT</version>
   </parent>
   
-  <properties>
-    <skip-third-party-bom>false</skip-third-party-bom>
-  </properties>
 
   <name>CIB seven - tomcat Assembly</name>
 
