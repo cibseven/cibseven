@@ -332,7 +332,7 @@
                   <fileset refid="maven.project.dependencies" />
                   <mapper>
                     <regexpmapper from="^joda-time/joda-time/[^/]+/(joda-time-.*\.jar)$$"
-                                  to="org/joda/time/2.1/\1" handledirsep="yes" />
+                                  to="org/joda/time/cibseven/\1" handledirsep="yes" />
                   </mapper>
                 </copy>
 
