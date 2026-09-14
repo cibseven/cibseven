@@ -381,6 +381,7 @@
               <forceCreation>true</forceCreation>
               <excludes>
                 <exclude>org/cibseven/bpm/engine/cdi/test/CdiProcessEngineTestCase.class</exclude>
+                <exclude>org/cibseven/bpm/engine/cdi/test/impl/beans/SpecializedTestBean.class</exclude>
               </excludes>
             </configuration>
           </execution>

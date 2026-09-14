@@ -45,6 +45,12 @@ import org.eclipse.microprofile.context.ManagedExecutor;
 @Recorder
 public class CamundaEngineRecorder {
 
+  private final RuntimeValue<CamundaEngineConfig> configRuntimeValue;
+
+  public CamundaEngineRecorder(RuntimeValue<CamundaEngineConfig> configRuntimeValue) {
+    this.configRuntimeValue = configRuntimeValue;
+  }
+
   public void configureProcessEngineCdiBeans(BeanContainer beanContainer) {
 
     if (BeanManagerLookup.localInstance == null) {
@@ -52,8 +58,9 @@ public class CamundaEngineRecorder {
     }
   }
 
-  public RuntimeValue<ProcessEngineConfigurationImpl> createProcessEngineConfiguration(BeanContainer beanContainer,
-                                                                                       CamundaEngineConfig config) {
+  public RuntimeValue<ProcessEngineConfigurationImpl> createProcessEngineConfiguration(BeanContainer beanContainer) {
+
+    CamundaEngineConfig config = configRuntimeValue.getValue();
 
     QuarkusProcessEngineConfiguration configuration = getBeanFromContainer(QuarkusProcessEngineConfiguration.class,
         beanContainer);
