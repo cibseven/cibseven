@@ -53,8 +53,8 @@ CREATE TABLE MOD_FORMS_AUD (
 -- Modeler folders. Creates the folder table, gives diagrams and forms the folder they belong to,
 -- and puts the models of an installation that has none yet into a folder named General, so an
 -- upgrade leaves nothing to sort by hand.
--- The two folder ids are written out rather than generated: the update below has to name the
--- same id the insert used, and generating one is spelled differently on every database.
+-- The folder id is written out rather than generated: the update below has to name the same
+-- id the insert used, and generating one is spelled differently on every database.
 CREATE TABLE MOD_FOLDERS (
     ID VARCHAR(36) NOT NULL PRIMARY KEY,
     PARENT_ID VARCHAR(36),
@@ -67,15 +67,13 @@ CREATE TABLE MOD_FOLDERS (
     CONSTRAINT MOD_FK_FOLDERS_PARENT FOREIGN KEY (PARENT_ID) REFERENCES MOD_FOLDERS(ID)
 );
 
--- A unique constraint would need both columns NOT NULL, which a source root cannot be
-CREATE UNIQUE INDEX MOD_UK_FOLDERS_PARENT_NAME ON MOD_FOLDERS (PARENT_ID, NAME);
+-- A unique constraint would need every column NOT NULL, which a top-level folder cannot be
+CREATE UNIQUE INDEX MOD_UK_FOLDERS_PARENT_NAME ON MOD_FOLDERS (SOURCE, PARENT_ID, NAME);
 
 CREATE INDEX MOD_IDX_FOLDERS_PARENT ON MOD_FOLDERS (PARENT_ID);
 
 INSERT INTO MOD_FOLDERS (ID, PARENT_ID, SOURCE, NAME, CREATED)
-    VALUES ('00000000-0000-0000-0000-0000000000d1', NULL, 'DATABASE', 'DATABASE', CURRENT TIMESTAMP);
-INSERT INTO MOD_FOLDERS (ID, PARENT_ID, SOURCE, NAME, CREATED)
-    VALUES ('00000000-0000-0000-0000-0000000000d2', '00000000-0000-0000-0000-0000000000d1', 'DATABASE', 'General', CURRENT TIMESTAMP);
+    VALUES ('00000000-0000-0000-0000-0000000000d2', NULL, 'DATABASE', 'General', CURRENT TIMESTAMP);
 
 ALTER TABLE MOD_PROCESSES_DIAGRAMS ADD COLUMN FOLDER_ID VARCHAR(36);
 ALTER TABLE MOD_FORMS ADD COLUMN FOLDER_ID VARCHAR(36);
