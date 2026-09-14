@@ -148,6 +148,18 @@
 
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <!-- Restores META-INF/MANIFEST.MF in the shaded jar so SBOM scanners can catalog it -->
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <manifestEntries>
+                    <Implementation-Title>${project.artifactId}</Implementation-Title>
+                    <Implementation-Version>${project.version}</Implementation-Version>
+                    <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
+                    <Implementation-Vendor-Id>${project.groupId}</Implementation-Vendor-Id>
+                    <Specification-Title>${project.name}</Specification-Title>
+                    <Specification-Version>${project.version}</Specification-Version>
+                    <Specification-Vendor>${project.organization.name}</Specification-Vendor>
+                  </manifestEntries>
+                </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
                   <resource>META-INF/*.SF</resource>
                   <resource>META-INF/*.DSA</resource>
@@ -164,7 +176,6 @@
                     <exclude>META-INF/DEPENDENCIES</exclude>
                     <exclude>META-INF/NOTICE*</exclude>
                     <exclude>META-INF/LICENSE*</exclude>
-                    <exclude>META-INF/*.MF</exclude>
                     <exclude>module-info.class</exclude>
                     <exclude>META-INF/versions/**/module-info.class</exclude>
                   </excludes>

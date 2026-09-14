@@ -3,7 +3,7 @@
   <@lib.endpointInfo
       id = "getDecisionDefinitionDmnXmlById"
       tag = "Decision Definition"
-      summary = "Get XML By Id"
+      summary = "Get Decision Definition XML By Id"
       desc = "Retrieves the DMN XML of a decision definition." />
 
   "parameters" : [

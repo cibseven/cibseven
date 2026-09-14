@@ -3,7 +3,7 @@
   <@lib.endpointInfo
       id = "getProcessInstancesCount"
       tag = "Process Instance"
-      summary = "Get List Count"
+      summary = "Get Process Instance List Count"
       desc = "Queries for the number of process instances that fulfill given parameters." />
 
   "parameters": [

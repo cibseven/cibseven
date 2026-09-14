@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getUsers"
       tag = "User"
-      summary = "Get List"
+      summary = "Get User List"
       desc = "Query for a list of users using a list of parameters.
               The size of the result set can be retrieved by using the Get User Count method.
               [Get User Count](${docsUrl}/reference/rest/user/get-query-count/) method." />
