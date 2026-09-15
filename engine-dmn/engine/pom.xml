@@ -15,7 +15,6 @@
     <camunda.osgi.import.additional>
       org.junit.*;resolution:=optional
     </camunda.osgi.import.additional>
-    <version.jakarta.el>4.0.0</version.jakarta.el>
   </properties>
   <dependencies>
     <dependency>
