@@ -281,18 +281,4 @@
     <url>https://github.com/cibseven/cibseven/issues</url>
   </issueManagement>
 
-  <repositories>
-    <repository>
-      <id>central</id>
-      <name>Maven Central Repository</name>
-      <url>https://repo.maven.apache.org/maven2</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
-
 </project>
