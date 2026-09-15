@@ -32,6 +32,7 @@ import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.TaskService;
+import org.cibseven.bpm.engine.impl.test.ProcessEngineAssert;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
@@ -97,14 +98,7 @@ public class ProcessEngineTestCase implements BeforeEachCallback, AfterEachCallb
   }
 
   public void assertProcessEnded(final String processInstanceId) {
-    ProcessInstance processInstance = processEngine
-      .getRuntimeService()
-      .createProcessInstanceQuery()
-      .processInstanceId(processInstanceId)
-      .singleResult();
-    if (processInstance != null) {
-      throw new AssertionFailedError("expected finished process instance '" + processInstanceId + "' but it was still in the db");
-    }
+    ProcessEngineAssert.assertProcessEnded(processEngine, processInstanceId);
   }
 
   public void beforeEach(ExtensionContext context) throws Exception {
