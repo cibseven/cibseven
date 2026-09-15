@@ -94,9 +94,9 @@
               </execution>
             </executions>
             <configuration>
-              <!-- verbose cargo logging so the log/output files below are actually written with useful detail -->
+              <!-- verbose cargo logging so the log/output files below are actually written with useful detail
               <logLevel>high</logLevel>
-              <log>${project.build.directory}/wildfly-cargo.log</log>
+              <log>${project.build.directory}/wildfly-cargo.log</log>-->
               <!-- Container configuration -->
               <container>
                 <type>installed</type>
@@ -104,9 +104,9 @@
                 <append>false</append>
                 <home>${jboss.runtime}</home>
                 <timeout>${cargo.timeout}</timeout>
-                <!-- capture WildFly server console output and cargo lifecycle logs for diagnostics -->
+                <!-- capture WildFly server console output and cargo lifecycle logs for diagnostics
                 <output>${project.build.directory}/wildfly-server.log</output>
-                <log>${project.build.directory}/wildfly-cargo.log</log>
+                <log>${project.build.directory}/wildfly-cargo.log</log>-->
               </container>
               <configuration>
                 <!-- IMPORTANT: use an *existing* configuration instead of letting Cargo generate a
