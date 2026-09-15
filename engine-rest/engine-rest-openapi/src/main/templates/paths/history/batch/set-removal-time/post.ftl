@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "setRemovalTimeAsyncHistoricBatch"
       tag = "Historic Batch"
-      summary = "Set Removal Time Async (POST)"
+      summary = "Set Removal Time Async For Historic Batches"
       desc = "Sets the removal time to multiple historic batches asynchronously (batch).
 
               At least __historicBatchIds__ or __historicBatchQuery__ has to be

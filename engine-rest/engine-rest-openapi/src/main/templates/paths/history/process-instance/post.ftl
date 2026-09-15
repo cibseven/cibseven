@@ -3,7 +3,7 @@
   <@lib.endpointInfo
       id = "queryHistoricProcessInstances"
       tag = "Historic Process Instance"
-      summary = "Get List (POST)"
+      summary = "Get Historic Process Instance List"
       desc = "Queries for historic process instances that fulfill the given parameters.
               This method is slightly more powerful than the
               [Get Process Instance](${docsUrl}/reference/rest/history/process-instance/get-process-instance-query/)

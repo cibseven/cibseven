@@ -5,7 +5,7 @@
       id = "findCleanupJob"
       tag = "History Cleanup"
       deprecated = true
-      summary = "Find clean up history job (GET)"
+      summary = "Find History Cleanup Job"
       desc = "**Deprecated!** Use `GET /history/cleanup/jobs` instead.
 
               Finds history cleanup job (See

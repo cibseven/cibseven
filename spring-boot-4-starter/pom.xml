@@ -79,6 +79,24 @@
         <artifactId>spring-context</artifactId>
         <version>${version.spring.framework7}</version>
       </dependency>
+
+      <!-- Temporary Apache Tomcat CVE overrides (BOM pins a vulnerable version).
+           Remove these once the imported Spring Boot 4 BOM manages fixed versions. -->
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-core</artifactId>
+        <version>${version.tomcat}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-el</artifactId>
+        <version>${version.tomcat}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-websocket</artifactId>
+        <version>${version.tomcat}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 

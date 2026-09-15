@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "setJobRetriesAsyncOperation"
       tag = "Job"
-      summary = "Set Job Retries Async (POST)"
+      summary = "Set Job Retries Async"
       desc = "Create a batch to set retries of jobs asynchronously."
   />
 

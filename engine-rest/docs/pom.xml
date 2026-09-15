@@ -11,10 +11,6 @@
   <name>CIB seven - engine - REST - Docs</name>
   <packaging>pom</packaging>
 
-  <properties>
-    <skip-third-party-bom>true</skip-third-party-bom>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.cibseven.bpm</groupId>

@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getBatch"
       tag = "Batch"
-      summary = "Get"
+      summary = "Get Batch"
       desc = "Retrieves a batch by id, according to the Batch interface in the engine." />
 
   "parameters" : [
