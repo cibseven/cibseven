@@ -1003,9 +1003,7 @@
     <profile>
       <id>distro</id>
       <activation>
-        <property>
-          <name>!engine-integration</name> 
-        </property>
+        <activeByDefault>true</activeByDefault>
       </activation>
       <dependencies>
         <dependency>
