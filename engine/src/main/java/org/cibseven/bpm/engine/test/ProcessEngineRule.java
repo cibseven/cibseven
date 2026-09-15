@@ -49,7 +49,58 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * JUnit 5 compatible ProcessEngineRule as a JUnit Jupiter extension.
+ * Convenience for ProcessEngine and services initialization in the form of a
+ * JUnit Jupiter extension.
+ * <p>
+ * Usage:
+ * </p>
+ *
+ * <pre>
+ * public class YourTest {
+ *
+ *   &#64;RegisterExtension
+ *   public ProcessEngineRule processEngineRule = new ProcessEngineRule();
+ *
+ *   ...
+ * }
+ * </pre>
+ * <p>
+ * The ProcessEngine and the services will be made available to the test class
+ * through the getters of the processEngineRule. The processEngine will be
+ * initialized by default with the camunda.cfg.xml resource on the classpath. To
+ * specify a different configuration file, pass the resource location in
+ * {@link #ProcessEngineRule(String) the appropriate constructor}. Process
+ * engines will be cached statically. Right before the first time the setUp is
+ * called for a given configuration resource, the process engine will be
+ * constructed.
+ * </p>
+ * <p>
+ * You can declare a deployment with the {@link Deployment} annotation. This
+ * base class will make sure that this deployment gets deployed before the setUp
+ * and {@link RepositoryService#deleteDeployment(String, boolean) cascade
+ * deleted} after the tearDown. If you add a deployment programmatically in your
+ * test, you have to make it known to the processEngineRule by calling
+ * {@link ProcessEngineRule#manageDeployment(org.cibseven.bpm.engine.repository.Deployment)}
+ * to have it cleaned up automatically.
+ * </p>
+ * <p>
+ * The processEngineRule also lets you
+ * {@link ProcessEngineRule#setCurrentTime(Date) set the current time used by
+ * the process engine}. This can be handy to control the exact time that is used
+ * by the engine in order to verify e.g., due dates of timers. Or start, end
+ * and duration times in the history service. In the tearDown, the internal
+ * clock will automatically be reset to use the current system time rather then
+ * the time that was set during a test method. In other words, you don't have to
+ * clean up your own time messing mess ;-)
+ * </p>
+ * <p>
+ * If you need the history service for your tests then you can specify the
+ * required history level of the test method or class, using the
+ * {@link RequiredHistoryLevel} annotation. If the current history level of the
+ * process engine is lower than the specified one then the test is skipped.
+ * </p>
+ *
+ * @author Tom Baeyens
  */
 public class ProcessEngineRule implements BeforeEachCallback, AfterEachCallback, ProcessEngineServices {
 
@@ -106,9 +157,7 @@ public class ProcessEngineRule implements BeforeEachCallback, AfterEachCallback,
       initializeProcessEngine();
     }
     initializeServices();
-    // Optionally handle deployment setup if needed for JUnit 5
-    // Deployment annotation handling can be added here if required
-    //rest of apply() code:
+
     if (!context.getTestMethod().isPresent() || !context.getTestClass().isPresent()) {
       // not a regular test method (e.g. class-level lifecycle callback) - nothing more to do
       return;
