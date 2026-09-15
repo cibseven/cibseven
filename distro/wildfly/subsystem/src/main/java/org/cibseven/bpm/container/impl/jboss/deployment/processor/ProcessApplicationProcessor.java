@@ -17,8 +17,6 @@
 package org.cibseven.bpm.container.impl.jboss.deployment.processor;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -28,7 +26,6 @@ import org.cibseven.bpm.application.PostDeploy;
 import org.cibseven.bpm.application.PreUndeploy;
 import org.cibseven.bpm.application.ProcessApplication;
 import org.cibseven.bpm.application.impl.JakartaServletProcessApplication;
-import org.cibseven.bpm.application.impl.ServletProcessApplication;
 import org.cibseven.bpm.container.impl.jboss.deployment.marker.ProcessApplicationAttachments;
 import org.jboss.as.ee.component.Attachments;
 import org.jboss.as.ee.component.ComponentDescription;
@@ -107,15 +104,12 @@ public class ProcessApplicationProcessor implements DeploymentUnitProcessor {
     Set<ClassInfo> unsupportedClasses = null;
 
     if(compositeIndex != null) {
-      // ServletProcessApplication used to be the Javax-based variant, so it was excluded here and
-      // only JakartaServletProcessApplication was considered. Both are Jakarta-based now, so neither
-      // may be excluded - a deployment extending either one is a valid servlet process application.
-      unsupportedClasses = Collections.emptySet();
+      // allow coexistence of Javax- and Jakarta-based servlet process applications in deployments but only consider Jakarta-based ones here
+      unsupportedClasses = compositeIndex.getAllKnownSubclasses(DotName.createSimple("org.cibseven.bpm.application.impl.ServletProcessApplication"));
       processApplicationAnnotations = getAnnotationsFromSupportedClasses(compositeIndex, ProcessApplication.class, unsupportedClasses);
       postDeployAnnnotations = getAnnotationsFromSupportedClasses(compositeIndex, PostDeploy.class, unsupportedClasses);
       preUndeployAnnnotations = getAnnotationsFromSupportedClasses(compositeIndex, PreUndeploy.class, unsupportedClasses);
-      servletProcessApplications = new HashSet<>(compositeIndex.getAllKnownSubclasses(DotName.createSimple(JakartaServletProcessApplication.class.getName())));
-      servletProcessApplications.addAll(compositeIndex.getAllKnownSubclasses(DotName.createSimple(ServletProcessApplication.class.getName())));
+      servletProcessApplications = compositeIndex.getAllKnownSubclasses(DotName.createSimple(JakartaServletProcessApplication.class.getName()));
     } else {
       return null;
     }
