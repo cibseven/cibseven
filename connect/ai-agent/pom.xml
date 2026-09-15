@@ -155,6 +155,43 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- Spring, test only. The ad hoc tools are exercised under Spring's transaction
+         management as well as the plain command interceptor, because the two report
+         the same defect differently: completeScope deleting its own execution showed
+         up here as UnexpectedRollbackException "rollback-only" and there as an
+         optimistic locking failure. Only a Spring-managed transaction has a
+         rollback-only flag at all. See AdHocSpringTransactionTest. -->
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine-spring-6</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <version>${version.spring.framework6}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jdbc</artifactId>
+      <version>${version.spring.framework6}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-tx</artifactId>
+      <version>${version.spring.framework6}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>${version.spring.framework6}</version>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
 
   <build>
