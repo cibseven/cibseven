@@ -30,7 +30,7 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.task.TaskQuery;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
@@ -156,8 +156,7 @@ public class UpgradeTestRule extends ProcessEngineRule {
   }
 
   public void assertScenarioEnded() {
-    Assert.assertTrue("Process instance for scenario " + getBuisnessKey() + " should have ended",
-            processInstanceQuery().singleResult() == null);
+    Assertions.assertTrue(processInstanceQuery().singleResult() == null, "Process instance for scenario " + getBuisnessKey() + " should have ended");
   }
 
   // case //////////////////////////////////////////////////

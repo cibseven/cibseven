@@ -27,7 +27,7 @@ import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate.ThrowBpmnErrorDelegateException;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Disabled;
@@ -50,7 +50,7 @@ public class NestedSequentialMultiInstanceScenarioTest {
 
     for (int i = 0; i < 8; i++) {
       innerMiSubProcessTask = rule.taskQuery().taskDefinitionKey("innerSubProcessTask").singleResult();
-      Assert.assertNotNull(innerMiSubProcessTask);
+      Assertions.assertNotNull(innerMiSubProcessTask);
       rule.getTaskService().complete(innerMiSubProcessTask.getId());
     }
 
@@ -70,7 +70,7 @@ public class NestedSequentialMultiInstanceScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
       describeActivityInstanceTree(instance.getProcessDefinitionId())
         // the subprocess itself misses because it was no scope in 7.2
@@ -107,8 +107,8 @@ public class NestedSequentialMultiInstanceScenarioTest {
 
     // then
     Task escalatedTask = rule.taskQuery().singleResult();
-    Assert.assertEquals("escalatedTask", escalatedTask.getTaskDefinitionKey());
-    Assert.assertNotNull(escalatedTask);
+    Assertions.assertEquals("escalatedTask", escalatedTask.getTaskDefinitionKey());
+    Assertions.assertNotNull(escalatedTask);
 
     rule.getTaskService().complete(escalatedTask.getId());
     rule.assertScenarioEnded();
@@ -128,10 +128,10 @@ public class NestedSequentialMultiInstanceScenarioTest {
     // then
     try {
       rule.getTaskService().complete(innerMiSubProcessTask.getId());
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      Assertions.fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      Assertions.assertEquals("unhandledException", e.getMessage());
     }
   }
 
