@@ -42,7 +42,7 @@
 
     <dependencySet>
         <includes>
-            <include>org.cibseven.bpm.webapp:cibseven-webapp-tomcat-jakarta:war:*</include>
+            <include>org.cibseven.bpm.webapp:cibseven-webapp-tomcat:war:*</include>
         </includes>
         <outputDirectory>server/apache-tomcat-${version.tomcat}/webapps/camunda</outputDirectory>
         <unpack>true</unpack>

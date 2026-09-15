@@ -458,14 +458,14 @@
         </dependency>
         <dependency>
           <groupId>org.cibseven.bpm.webapp</groupId>
-          <artifactId>cibseven-webapp-tomcat-jakarta</artifactId>
+          <artifactId>cibseven-webapp-tomcat</artifactId>
           <version>${project.version}</version>
           <type>war</type>
           <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>org.cibseven.bpm</groupId>
-          <artifactId>cibseven-engine-rest-jakarta</artifactId>
+          <artifactId>cibseven-engine-rest</artifactId>
           <version>${project.version}</version>
           <type>war</type>
           <scope>test</scope>
@@ -473,7 +473,7 @@
         </dependency>
         <dependency>
           <groupId>org.cibseven.bpm.example</groupId>
-          <artifactId>cibseven-example-invoice-jakarta</artifactId>
+          <artifactId>cibseven-example-invoice</artifactId>
           <version>${project.version}</version>
           <type>war</type>
           <scope>test</scope>
@@ -521,7 +521,7 @@
               <deployables>
                 <deployable>
                   <groupId>org.cibseven.bpm</groupId>
-                  <artifactId>cibseven-engine-rest-jakarta</artifactId>
+                  <artifactId>cibseven-engine-rest</artifactId>
                   <type>war</type>
                   <classifier>tomcat</classifier>
                   <pingURL>http://localhost:${tomcat.connector.http.port}/engine-rest/engine/default/process-definition</pingURL>
@@ -532,7 +532,7 @@
                 </deployable>
                 <deployable>
                   <groupId>org.cibseven.bpm.webapp</groupId>
-                  <artifactId>cibseven-webapp-tomcat-jakarta</artifactId>
+                  <artifactId>cibseven-webapp-tomcat</artifactId>
                   <type>war</type>
                   <pingURL>http://localhost:${tomcat.connector.http.port}/camunda</pingURL>
                   <pingTimeout>${cargo.deploy.timeout}</pingTimeout>
@@ -542,7 +542,7 @@
                 </deployable>
                 <deployable>
                   <groupId>org.cibseven.bpm.example</groupId>
-                  <artifactId>cibseven-example-invoice-jakarta</artifactId>
+                  <artifactId>cibseven-example-invoice</artifactId>
                   <type>war</type>
                   <properties>
                     <context>invoice</context>
