@@ -191,11 +191,15 @@
         <artifactId>mule-tests-functional</artifactId>
         <version>${mule.version}</version>
       </dependency>
+      <!-- Import the whole Mockito BOM rather than managing mockito-core alone, so that
+           mockito-junit-jupiter cannot drift to a different version via a Spring Boot BOM
+           (spring-boot 4 supplies 5.20.0, spring-boot 3.5 supplies 5.17.0). -->
       <dependency>
         <groupId>org.mockito</groupId>
-        <artifactId>mockito-core</artifactId>
+        <artifactId>mockito-bom</artifactId>
         <version>${version.mockito}</version>
-        <scope>test</scope>
+        <scope>import</scope>
+        <type>pom</type>
       </dependency>
       <dependency>
         <groupId>org.osgi</groupId>
