@@ -16,18 +16,18 @@
  */
 package org.cibseven.spin.plugin.variables;
 
+import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.engine.variable.Variables.objectValue;
 import static org.cibseven.bpm.engine.variable.Variables.serializedObjectValue;
 import static org.cibseven.spin.plugin.variables.TypedValueAssert.assertObjectValueDeserializedNull;
 import static org.cibseven.spin.plugin.variables.TypedValueAssert.assertObjectValueSerializedNull;
 import static org.cibseven.spin.plugin.variables.TypedValueAssert.assertUntypedNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,9 +52,10 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.spin.DataFormats;
 import org.json.JSONException;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 public class JsonSerializationTest {
@@ -64,17 +65,17 @@ public class JsonSerializationTest {
 
   protected static final String JSON_FORMAT_NAME = DataFormats.JSON_DATAFORMAT_NAME;
 
-  @Rule
-  public ProcessEngineRule engineRule = new ProcessEngineRule(true);
+  @RegisterExtension
+  @Order(1) public ProcessEngineRule engineRule = new ProcessEngineRule(true);
 
-  @Rule
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(2) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
 
   protected String originalSerializationFormat;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     runtimeService = engineRule.getRuntimeService();
   }

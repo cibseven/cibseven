@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.cmmn.tasklistener;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.cibseven.bpm.engine.delegate.TaskListener;
 import org.cibseven.bpm.engine.impl.cmmn.execution.CmmnExecution;
@@ -32,7 +32,7 @@ import org.cibseven.bpm.engine.test.cmmn.tasklistener.util.MyTaskListener;
 import org.cibseven.bpm.engine.test.cmmn.tasklistener.util.NotTaskListener;
 import org.cibseven.bpm.engine.test.cmmn.tasklistener.util.TaskDeleteListener;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov

@@ -16,6 +16,10 @@
  */
 package org.cibseven.bpm.engine.spring.test.components.scope;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.TaskService;
@@ -23,14 +27,13 @@ import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.spring.test.components.ProcessInitiatingPojo;
 import org.cibseven.bpm.engine.task.Task;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
@@ -43,7 +46,7 @@ import java.util.logging.Logger;
  *
  * @author Josh Long
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:org/cibseven/bpm/engine/spring/test/components/ScopingTests-context.xml")
 public class ScopingTest {
 
@@ -58,7 +61,7 @@ public class ScopingTest {
 	private RepositoryService repositoryService;
 	private TaskService taskService;
 
-	@Before
+	@BeforeEach
 	public void before() throws Throwable {
 	  this.repositoryService = this.processEngine.getRepositoryService();
 		this.taskService = this.processEngine.getTaskService();
@@ -70,7 +73,7 @@ public class ScopingTest {
 		  .deploy();
 	}
 
-	@After
+	@AfterEach
 	public void after() {
 	  for (Deployment deployment : repositoryService.createDeploymentQuery().list()) {
 	    repositoryService.deleteDeployment(deployment.getId(), true);
@@ -98,16 +101,16 @@ public class ScopingTest {
 		vars.put(customerIdProcVarName, CUSTOMER_ID_PROC_VAR_VALUE);
 		ProcessInstance processInstance = processEngine.getRuntimeService().startProcessInstanceByKey("component-waiter", vars);
 		StatefulObject scopedObject = (StatefulObject) processEngine.getRuntimeService().getVariable(processInstance.getId(), "scopedTarget.c1");
-		Assert.assertNotNull("the scopedObject can't be null", scopedObject);
-		Assert.assertTrue("the 'name' property can't be null.", StringUtils.hasText(scopedObject.getName()));
-		Assert.assertEquals(scopedObject.getVisitedCount(), 2);
+		assertNotNull(scopedObject, "the scopedObject can't be null");
+		assertTrue(StringUtils.hasText(scopedObject.getName()), "the 'name' property can't be null.");
+		assertEquals(scopedObject.getVisitedCount(), 2);
 
 		// the process has paused
 		String procId = processInstance.getProcessInstanceId();
 
 		List<Task> tasks = taskService.createTaskQuery().executionId(procId).list();
 
-		Assert.assertEquals("there should be 1 (one) task enqueued at this point.", tasks.size(), 1);
+		assertEquals(tasks.size(), 1, "there should be 1 (one) task enqueued at this point.");
 
 		Task t = tasks.iterator().next();
 
@@ -121,11 +124,10 @@ public class ScopingTest {
 		this.taskService.complete(t.getId());
 
 		scopedObject = (StatefulObject) processEngine.getRuntimeService().getVariable(processInstance.getId(), "scopedTarget.c1");
-		Assert.assertEquals(scopedObject.getVisitedCount(), 3);
+		assertEquals(scopedObject.getVisitedCount(), 3);
 
-		Assert.assertEquals( "the customerId injected should " +
-					"be what was given as a processVariable parameter." ,
-				ScopingTest.CUSTOMER_ID_PROC_VAR_VALUE, scopedObject.getCustomerId()) ;
+		assertEquals(ScopingTest.CUSTOMER_ID_PROC_VAR_VALUE, scopedObject.getCustomerId(), "the customerId injected should " +
+            "be what was given as a processVariable parameter.") ;
 		return scopedObject;
 	}
 
@@ -134,8 +136,8 @@ public class ScopingTest {
 		logger.info("Running 'component-waiter' process instance with scoped beans.");
 		StatefulObject one = run();
 		StatefulObject two = run();
-		Assert.assertNotSame(one.getName(), two.getName());
-		Assert.assertEquals(one.getVisitedCount(), two.getVisitedCount());
+		assertNotSame(one.getName(), two.getName());
+		assertEquals(one.getVisitedCount(), two.getVisitedCount());
 	}
 
 	@Test

@@ -19,8 +19,8 @@ package org.cibseven.bpm.admin.impl.plugin.resources;
 import org.cibseven.bpm.admin.impl.plugin.AdminPlugins;
 import org.cibseven.bpm.admin.resource.AbstractAdminPluginRootResource;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 
 /**
  * @author vale

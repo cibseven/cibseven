@@ -20,7 +20,7 @@
     <version.jersey-json>1.15</version.jersey-json>
     <version.jersey-apache-client>1.15</version.jersey-apache-client>
     <version.httpcomponents>5.3.1</version.httpcomponents>
-    <version.junit>4.13.1</version.junit>
+    <version.junit4>4.13.1</version.junit4>
   </properties>
 
   <dependencyManagement>
@@ -40,14 +40,18 @@
         <version>${version.selenium}</version>
       </dependency>
 
-      <!-- using 4.13 in order to have @BeforeParam/@AfterParam for parameterized 
-        tests to correctly start and tear down the Spring Boot container before each 
-        parameter run -->
-      <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>${version.junit}</version>
-      </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
 
     </dependencies>
   </dependencyManagement>

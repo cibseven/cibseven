@@ -18,7 +18,13 @@ package org.cibseven.bpm.engine.test.api.authorization.batch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec.grant;
-import static org.junit.Assert.assertEquals;
+import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenarioWithCount.scenario;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,34 +44,23 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenarioWithCount;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 /**
  * @author Askar Akhmerov
  */
-@RunWith(Parameterized.class)
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_AUDIT)
 public class DeleteHistoricProcessInstancesBatchAuthorizationTest extends AbstractBatchAuthorizationTest {
 
   protected static final long BATCH_OPERATIONS = 3;
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
-
-  @Parameterized.Parameter
-  public AuthorizationScenarioWithCount scenario;
 
   protected HistoryService historyService;
 
-  @Before
+  @BeforeEach
   public void setupHistoricService() {
     historyService = engineRule.getHistoryService();
   }
 
+  @AfterEach
   public void cleanBatch() {
     super.cleanBatch();
     List<HistoricProcessInstance> list = historyService.createHistoricProcessInstanceQuery().list();
@@ -79,10 +74,9 @@ public class DeleteHistoricProcessInstancesBatchAuthorizationTest extends Abstra
     }
   }
 
-  @Parameterized.Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
-        AuthorizationScenarioWithCount.scenario()
+        scenario()
             .withCount(1L)
             .withAuthorizations(
                 grant(Resources.BATCH, "*", "userId", Permissions.CREATE),
@@ -92,14 +86,14 @@ public class DeleteHistoricProcessInstancesBatchAuthorizationTest extends Abstra
             .failsDueToRequired(
                 grant(Resources.PROCESS_DEFINITION, "Process_2", "userId", Permissions.DELETE_HISTORY)
             ),
-        AuthorizationScenarioWithCount.scenario()
+        scenario()
             .withCount(0L)
             .withAuthorizations(
                 grant(Resources.BATCH, "*", "userId", Permissions.CREATE),
                 grant(Resources.PROCESS_DEFINITION, "Process_1", "userId", Permissions.READ_HISTORY, Permissions.DELETE_HISTORY),
                 grant(Resources.PROCESS_DEFINITION, "Process_2", "userId", Permissions.READ_HISTORY, Permissions.DELETE_HISTORY)
             ),
-        AuthorizationScenarioWithCount.scenario()
+        scenario()
             .withCount(0L)
             .withAuthorizations(
                 grant(Resources.BATCH, "*", "userId", BatchPermissions.CREATE_BATCH_DELETE_FINISHED_PROCESS_INSTANCES),
@@ -109,25 +103,27 @@ public class DeleteHistoricProcessInstancesBatchAuthorizationTest extends Abstra
     );
   }
 
-  @Test
-  public void testWithTwoInvocationsProcessInstancesList() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testWithTwoInvocationsProcessInstancesList(AuthorizationScenarioWithCount scenario) {
     engineRule.getProcessEngineConfiguration().setInvocationsPerBatchJob(2);
-    setupAndExecuteHistoricProcessInstancesListTest();
+    setupAndExecuteHistoricProcessInstancesListTest(scenario);
 
     // then
-    assertScenario();
+    assertScenario(scenario);
 
-    assertThat(historyService.createHistoricProcessInstanceQuery().count()).isEqualTo(getScenario().getCount());
+    assertThat(historyService.createHistoricProcessInstanceQuery().count()).isEqualTo(scenario.getCount());
   }
 
-  @Test
-  public void testProcessInstancesList() {
-    setupAndExecuteHistoricProcessInstancesListTest();
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testProcessInstancesList(AuthorizationScenarioWithCount scenario) {
+    setupAndExecuteHistoricProcessInstancesListTest(scenario);
     // then
-    assertScenario();
+    assertScenario(scenario);
   }
 
-  protected void setupAndExecuteHistoricProcessInstancesListTest() {
+  protected void setupAndExecuteHistoricProcessInstancesListTest(AuthorizationScenarioWithCount scenario) {
     //given
     List<String> processInstanceIds = Arrays.asList(processInstance.getId(), processInstance2.getId());
     runtimeService.deleteProcessInstances(processInstanceIds, null, true, false);
@@ -151,17 +147,12 @@ public class DeleteHistoricProcessInstancesBatchAuthorizationTest extends Abstra
     executeSeedAndBatchJobs();
   }
 
-  @Override
-  public AuthorizationScenarioWithCount getScenario() {
-    return scenario;
-  }
-
-  protected void assertScenario() {
-    if (authRule.assertScenario(getScenario())) {
+  protected void assertScenario(AuthorizationScenarioWithCount scenario) {
+    if (authRule.assertScenario(scenario)) {
       Batch batch = engineRule.getManagementService().createBatchQuery().singleResult();
       assertEquals("userId", batch.getCreateUserId());
 
-      if (testHelper.isHistoryLevelFull()) {
+      if (testRule.isHistoryLevelFull()) {
         assertThat(engineRule.getHistoryService().createUserOperationLogQuery().entityType(EntityTypes.PROCESS_INSTANCE).count()).isEqualTo(BATCH_OPERATIONS);
         HistoricBatch historicBatch = engineRule.getHistoryService().createHistoricBatchQuery().list().get(0);
         assertEquals("userId", historicBatch.getCreateUserId());

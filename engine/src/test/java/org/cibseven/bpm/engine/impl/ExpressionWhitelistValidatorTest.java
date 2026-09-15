@@ -22,8 +22,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.context.Context;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link ExpressionWhitelistValidator}.
@@ -194,7 +194,7 @@ public class ExpressionWhitelistValidatorTest {
 
   // --- configurable whitelist (ProcessEngineConfiguration#allowedFilterExpressions) -------
 
-  @After
+  @AfterEach
   public void removeProcessEngineConfiguration() {
     if (Context.getProcessEngineConfiguration() != null) {
       Context.removeProcessEngineConfiguration();

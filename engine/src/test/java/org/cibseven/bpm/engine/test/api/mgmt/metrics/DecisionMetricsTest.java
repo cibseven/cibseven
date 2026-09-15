@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.api.mgmt.metrics;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
 import org.cibseven.bpm.dmn.engine.spi.DmnEngineMetricCollector;
@@ -29,9 +29,9 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.BusinessRuleTask;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DecisionMetricsTest extends AbstractMetricsTest {
 
@@ -43,7 +43,7 @@ public class DecisionMetricsTest extends AbstractMetricsTest {
 
   protected DecisionService decisionService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     DefaultDmnEngineConfiguration dmnEngineConfiguration = processEngineConfiguration
         .getDmnEngineConfiguration();
@@ -54,7 +54,7 @@ public class DecisionMetricsTest extends AbstractMetricsTest {
     decisionService = engineRule.getDecisionService();
   }
 
-  @After
+  @AfterEach
   public void restore() {
     DefaultDmnEngineConfiguration dmnEngineConfiguration = processEngineConfiguration
         .getDmnEngineConfiguration();

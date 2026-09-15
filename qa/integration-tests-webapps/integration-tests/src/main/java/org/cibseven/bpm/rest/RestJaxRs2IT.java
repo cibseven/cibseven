@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.rest;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,21 +34,24 @@ import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
 
 import org.cibseven.bpm.AbstractWebIntegrationTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+
 
 public class RestJaxRs2IT extends AbstractWebIntegrationTest {
 
   private static final String ENGINE_DEFAULT_PATH = "engine/default";
   private static final String FETCH_AND_LOCK_PATH = ENGINE_DEFAULT_PATH + "/external-task/fetchAndLock";
 
-  @Before
+  @BeforeEach
   public void createClient() throws Exception {
     preventRaceConditions();
     createClient(getRestCtxPath());
   }
 
-  @Test(timeout=10000)
+  @Test
+  @Timeout(10)
   public void shouldUseJaxRs2Artifact() {
     Map<String, Object> payload = new HashMap<>();
     payload.put("workerId", "aWorkerId");
@@ -60,9 +63,9 @@ public class RestJaxRs2IT extends AbstractWebIntegrationTest {
         .body(payload)
         .asJson();
 
-    assertEquals(400, response.getStatus());
+    assertThat(response.getStatus()).isEqualTo(400);
     String responseMessage = response.getBody().getObject().get("message").toString();
-    assertEquals("The asynchronous response timeout cannot be set to a value greater than 1800000 milliseconds", responseMessage);
+    assertThat(responseMessage).isEqualTo("The asynchronous response timeout cannot be set to a value greater than 1800000 milliseconds");
   }
 
   @Test
@@ -97,7 +100,7 @@ public class RestJaxRs2IT extends AbstractWebIntegrationTest {
       }
 
       for (Future<String> future : futures) {
-        assertEquals("[]", future.get());
+        assertThat(future.get().equals("[]")).isTrue();
       }
     } finally {
       if (!service.isShutdown()) {

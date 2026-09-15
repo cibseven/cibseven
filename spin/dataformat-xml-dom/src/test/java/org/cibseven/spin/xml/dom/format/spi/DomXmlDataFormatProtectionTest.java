@@ -17,6 +17,7 @@
 package org.cibseven.spin.xml.dom.format.spi;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -25,15 +26,14 @@ import org.cibseven.spin.DataFormats;
 import org.cibseven.spin.impl.xml.dom.format.DomXmlDataFormat;
 import org.cibseven.spin.xml.JdkUtil;
 import org.cibseven.spin.xml.SpinXmlDataFormatException;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class DomXmlDataFormatProtectionTest {
 
   protected static DomXmlDataFormat format;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpMocks() {
     format = (DomXmlDataFormat) DataFormats.xml();
   }
@@ -41,7 +41,7 @@ public class DomXmlDataFormatProtectionTest {
   @Test
   public void shouldThrowExceptionForTooManyAttributes() {
     // IBM JDKs do not check on attribute number limits, skip the test there
-    Assume.assumeFalse(JdkUtil.runsOnIbmJDK());
+    assumeFalse(JdkUtil.runsOnIbmJDK());
 
     // given
     String testXml = "org/cibseven/spin/xml/dom/format/spi/FeatureSecureProcessing.xml";

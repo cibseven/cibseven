@@ -19,10 +19,10 @@ package org.cibseven.bpm.engine.rest.sub.identity;
 import org.cibseven.bpm.engine.rest.dto.ResourceOptionsDto;
 import org.cibseven.bpm.engine.rest.dto.identity.GroupDto;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.UriInfo;
 
 /**
  * @author Daniel Meyer

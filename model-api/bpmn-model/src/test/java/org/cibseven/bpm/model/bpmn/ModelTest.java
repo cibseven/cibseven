@@ -20,7 +20,7 @@ import org.cibseven.bpm.model.bpmn.instance.*;
 import org.cibseven.bpm.model.xml.Model;
 import org.cibseven.bpm.model.xml.impl.util.ModelUtil;
 import org.cibseven.bpm.model.xml.type.ModelElementType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;

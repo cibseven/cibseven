@@ -20,8 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.spring.boot.starter.AbstractCamundaAutoConfigurationIT;
 import org.cibseven.bpm.spring.boot.starter.configuration.impl.DefaultJobConfiguration.JobConfiguration;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -29,7 +29,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -38,7 +38,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
  * @see <a href=
  *      "https://github.com/camunda/camunda-bpm-spring-boot-starter/issues/209">#209</a>
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = { MultipleTaskExecutorsIT.MultipleTaskExecutorsConfig.class })
 public class MultipleTaskExecutorsIT extends AbstractCamundaAutoConfigurationIT {
 

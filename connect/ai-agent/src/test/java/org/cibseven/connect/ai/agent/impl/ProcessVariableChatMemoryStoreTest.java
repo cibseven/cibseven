@@ -33,9 +33,9 @@ import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.data.message.AiMessage;
@@ -62,12 +62,12 @@ public class ProcessVariableChatMemoryStoreTest {
   private ProcessVariableChatMemoryStore store;
   private boolean pushedExecution;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     store = new ProcessVariableChatMemoryStore();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (pushedExecution) {
       try { Context.removeExecutionContext(); } catch (Exception ignored) { }

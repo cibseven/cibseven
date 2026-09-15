@@ -16,17 +16,16 @@
  */
 package org.cibseven.bpm.engine.test.util;
 
-import static org.junit.Assert.assertNotNull;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.List;
 
 import org.cibseven.bpm.engine.migration.MigrationInstructionValidationReport;
 import org.cibseven.bpm.engine.migration.MigrationPlanValidationReport;
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
-import org.junit.Assert;
 
 public class MigrationPlanValidationReportAssert {
 
@@ -37,8 +36,7 @@ public class MigrationPlanValidationReportAssert {
   }
 
   public MigrationPlanValidationReportAssert isNotNull() {
-    assertNotNull("Expected report to be not null", actual);
-
+    assertNotNull(actual, "Expected report to be not null");
     return this;
   }
 
@@ -54,10 +52,13 @@ public class MigrationPlanValidationReportAssert {
         .findFirst()
         .ifPresent(entry -> failuresFound.addAll(entry.getValue().getFailures()));
 
-    org.assertj.core.api.Assertions.assertThat(failuresFound)
-        .as("Expected failures for variable name '%s':\n%sBut found failures:\n%s",
-            name, joinFailures(expectedFailures), joinFailures(failuresFound.toArray()))
-        .containsExactlyInAnyOrder(expectedFailures);
+    List<String> expectedList = Arrays.asList(expectedFailures);
+
+    if (!failuresFound.containsAll(expectedList) || !expectedList.containsAll(failuresFound)) {
+      fail(String.format(
+          "Expected failures for variable name '%s':\n%sBut found failures:\n%s",
+          name, joinFailures(expectedFailures), joinFailures(failuresFound.toArray())));
+    }
 
     return this;
   }
@@ -65,7 +66,7 @@ public class MigrationPlanValidationReportAssert {
   public MigrationPlanValidationReportAssert hasInstructionFailures(String activityId, String... expectedFailures) {
     isNotNull();
 
-    List<String> failuresFound = new ArrayList<String>();
+    List<String> failuresFound = new ArrayList<>();
 
     for (MigrationInstructionValidationReport instructionReport : actual.getInstructionReports()) {
       String sourceActivityId = instructionReport.getMigrationInstruction().getSourceActivityId();
@@ -74,14 +75,28 @@ public class MigrationPlanValidationReportAssert {
       }
     }
 
-    Collection<Matcher<? super String>> matchers = new ArrayList<Matcher<? super String>>();
+    // Restore original partial matching logic
+    List<String> failuresFoundCopy = new ArrayList<>(failuresFound);
+    List<String> unmatchedExpected = new ArrayList<>();
     for (String expectedFailure : expectedFailures) {
-      matchers.add(Matchers.containsString(expectedFailure));
+      boolean matched = false;
+      for (String actualFailure : failuresFoundCopy) {
+        if (actualFailure.contains(expectedFailure)) {
+          failuresFoundCopy.remove(actualFailure);
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) {
+        unmatchedExpected.add(expectedFailure);
+      }
     }
 
-    Assert.assertThat("Expected failures for activity id '" + activityId + "':\n" + joinFailures(expectedFailures) +
-      "But found failures:\n" + joinFailures(failuresFound.toArray()),
-      failuresFound, Matchers.containsInAnyOrder(matchers));
+    if (!unmatchedExpected.isEmpty() || !failuresFoundCopy.isEmpty()) {
+      fail(String.format(
+          "Expected failures for activity id '%s':\n%sBut found failures:\n%s",
+          activityId, joinFailures(expectedFailures), joinFailures(failuresFound.toArray())));
+    }
 
     return this;
   }
@@ -95,8 +110,6 @@ public class MigrationPlanValidationReportAssert {
     for (Object failure : failures) {
       builder.append("\t\t").append(failure).append("\n");
     }
-
     return builder.toString();
   }
-
 }

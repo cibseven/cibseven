@@ -16,8 +16,11 @@
  */
 package org.cibseven.bpm.engine.spring.test.transaction;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 
@@ -52,7 +55,7 @@ public class SpringTransactionIntegrationTest extends SpringProcessEngineTestCas
     userBean.hello();
 
     ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().singleResult();
-    assertEquals("Hello from Printer!", runtimeService.getVariable(processInstance.getId(), "myVar"));
+    assertEquals(runtimeService.getVariable(processInstance.getId(), "myVar"), "Hello from Printer!");
   }
 
   @Deployment
@@ -93,7 +96,7 @@ public class SpringTransactionIntegrationTest extends SpringProcessEngineTestCas
       runtimeService.startProcessInstanceByKey("process");
       waitForJobExecutorToProcessAllJobs(WAIT_TIME_MILLIS);
       Incident incident = runtimeService.createIncidentQuery().activityId("servicetask").singleResult();
-      assertThat(incident.getIncidentMessage(), is("error"));
+      assertThat(incident.getIncidentMessage()).isEqualTo("error");
   }
 
   @Deployment
@@ -111,7 +114,7 @@ public class SpringTransactionIntegrationTest extends SpringProcessEngineTestCas
 
     String stacktrace = managementService.getJobExceptionStacktrace(job.getId());
     assertNotNull(stacktrace);
-    assertTrue("unexpected stacktrace, was <" + stacktrace + ">", stacktrace.contains("Transaction rolled back because it has been marked as rollback-only"));
+    assertTrue(stacktrace.contains("Transaction rolled back because it has been marked as rollback-only"), "unexpected stacktrace, was <" + stacktrace + ">");
   }
 
   @Deployment
@@ -129,7 +132,7 @@ public class SpringTransactionIntegrationTest extends SpringProcessEngineTestCas
 
     String stacktrace = managementService.getJobExceptionStacktrace(job.getId());
     assertNotNull(stacktrace);
-    assertTrue("unexpected stacktrace, was <" + stacktrace + ">", stacktrace.contains("Transaction rolled back because it has been marked as rollback-only"));
+    assertTrue(stacktrace.contains("Transaction rolled back because it has been marked as rollback-only"), "unexpected stacktrace, was <" + stacktrace + ">");
   }
 
   @Deployment
@@ -147,7 +150,7 @@ public class SpringTransactionIntegrationTest extends SpringProcessEngineTestCas
 
     String stacktrace = managementService.getJobExceptionStacktrace(job.getId());
     assertNotNull(stacktrace);
-    assertTrue("unexpected stacktrace, was <" + stacktrace + ">", stacktrace.contains("java.lang.RuntimeException: exception in transaction listener"));
+    assertTrue(stacktrace.contains("java.lang.RuntimeException: exception in transaction listener"), "unexpected stacktrace, was <" + stacktrace + ">");
   }
 
 

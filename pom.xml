@@ -32,6 +32,7 @@
     <version.license-maven-plugin>2.4.0</version.license-maven-plugin>
     <!-- Version for cibseven-webclient-web -->
     <cibseven-webapp.version>${project.version}</cibseven-webapp.version>
+    <version.junit5>5.12.2</version.junit5>
   </properties>
 
   <build>
@@ -69,7 +70,6 @@
 
         <module>javaee/ejb-service</module>
         <module>javaee/ejb-client</module>
-        <module>javaee/ejb-client-jakarta</module>
         <module>javaee/jobexecutor-ra</module>
         <module>javaee/jobexecutor-rar</module>
 
@@ -180,7 +180,6 @@
       </activation>
       <modules>
         <module>javaee/ejb-client</module>
-        <module>javaee/ejb-client-jakarta</module>
         <module>distro/license-book</module>
         <module>distro/wildfly</module>
         <module>distro/wildfly28</module>
@@ -255,7 +254,6 @@
         <module>freemarker-template-engine</module>
 
         <module>javaee/ejb-client</module>
-        <module>javaee/ejb-client-jakarta</module>
 
         <module>webapps</module>
 

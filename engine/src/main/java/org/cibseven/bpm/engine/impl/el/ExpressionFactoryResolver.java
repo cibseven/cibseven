@@ -16,8 +16,9 @@
  */
 package org.cibseven.bpm.engine.impl.el;
 
-import org.cibseven.bpm.impl.juel.jakarta.el.ExpressionFactory;
 import org.cibseven.bpm.impl.juel.ExpressionFactoryImpl;
+
+import jakarta.el.ExpressionFactory;
 
 
 

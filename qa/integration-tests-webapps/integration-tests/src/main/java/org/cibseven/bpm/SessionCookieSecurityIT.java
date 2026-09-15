@@ -18,24 +18,24 @@ package org.cibseven.bpm;
 
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SessionCookieSecurityIT extends AbstractWebIntegrationTest {
 
-  @Before
+  @BeforeEach
   public void createClient() throws Exception {
     preventRaceConditions();
     createClient(getWebappCtxPath());
   }
 
-  @Test(timeout=10000)
+  @Test
+  @Timeout(10)
   public void shouldCheckPresenceOfProperties() {
     // given
 
@@ -43,9 +43,9 @@ public class SessionCookieSecurityIT extends AbstractWebIntegrationTest {
     HttpResponse<String> response = Unirest.get(appBasePath + TASKLIST_PATH).asString();
 
     // then
-    assertEquals(200, response.getStatus());
-    assertTrue(isCookieHeaderValuePresent("HttpOnly", response));
-    assertFalse(isCookieHeaderValuePresent("Secure", response));
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(isCookieHeaderValuePresent("HttpOnly", response)).isTrue();
+    assertThat(isCookieHeaderValuePresent("Secure", response)).isFalse();
   }
 
   protected boolean isCookieHeaderValuePresent(String expectedHeaderValue, HttpResponse<String> response) {

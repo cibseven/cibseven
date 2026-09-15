@@ -13,8 +13,8 @@
   </parent>
 
   <properties>
-    <cargo.timeout>120000</cargo.timeout>
-    <cargo.deploy.timeout>60000</cargo.deploy.timeout>
+    <cargo.timeout>300000</cargo.timeout>
+    <cargo.deploy.timeout>120000</cargo.deploy.timeout>
 
     <!-- Needs to be adjusted with every WildFly update -->
     <cargo.wildfly28.container.id>wildfly28x</cargo.wildfly28.container.id>
@@ -92,7 +92,7 @@
       <scope>test</scope>
     </dependency>
 
-    <dependency>
+    <!--<dependency>
       <groupId>org.jboss.spec</groupId>
       <artifactId>jboss-javaee-6.0</artifactId>
       <type>pom</type>
@@ -103,11 +103,21 @@
           <groupId>org.apache.xalan</groupId>
         </exclusion>
       </exclusions>
-    </dependency>
+    </dependency>-->
 
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
       <scope>test</scope>
     </dependency>
     

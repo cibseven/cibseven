@@ -25,8 +25,9 @@
   <Listener className="org.apache.catalina.security.SecurityListener" />
   -->
 
-  <!--APR library loader. Documentation at /docs/apr.html -->
-  <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" />
+  <!--APR library loader. Documentation at /docs/apr.html
+       Commented out: tcnative library is not installed and not required for testing.
+  <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" /> -->
 
   <!-- Prevent memory leaks due to use of particular java/javax APIs-->
   <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />

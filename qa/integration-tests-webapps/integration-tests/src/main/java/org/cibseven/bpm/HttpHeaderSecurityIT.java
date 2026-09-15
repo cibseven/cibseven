@@ -18,26 +18,27 @@ package org.cibseven.bpm;
 
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class HttpHeaderSecurityIT extends AbstractWebIntegrationTest {
 
   public static final String CSP_VALUE = "base-uri 'self';script-src 'nonce-([-_a-zA-Z\\d]*)' 'strict-dynamic' 'unsafe-eval' https: 'self' 'unsafe-inline';style-src 'unsafe-inline' 'self';default-src 'self';img-src 'self' data:;block-all-mixed-content;form-action 'self';frame-ancestors 'none';object-src 'none';sandbox allow-forms allow-scripts allow-same-origin allow-popups allow-downloads";
 
-  @Before
+  @BeforeEach
   public void createClient() throws Exception {
     preventRaceConditions();
     createClient(getWebappCtxPath());
   }
 
-  @Test(timeout=10000)
+  @Test
+  @Timeout(10)
   public void shouldCheckPresenceOfXssProtectionHeader() {
     // given
 
@@ -45,11 +46,12 @@ public class HttpHeaderSecurityIT extends AbstractWebIntegrationTest {
     HttpResponse<String> response = Unirest.get(appBasePath + TASKLIST_PATH).asString();
 
     // then
-    assertEquals(200, response.getStatus());
+    assertThat(response.getStatus()).isEqualTo(200);
     assertHeaderPresent("X-XSS-Protection", "1; mode=block", response);
   }
 
-  @Test(timeout=10000)
+  @Test
+  @Timeout(10)
   public void shouldCheckPresenceOfContentSecurityPolicyHeader() {
     // given
 
@@ -57,11 +59,12 @@ public class HttpHeaderSecurityIT extends AbstractWebIntegrationTest {
     HttpResponse<String> response = Unirest.get(appBasePath + TASKLIST_PATH).asString();
 
     // then
-    assertEquals(200, response.getStatus());
+    assertThat(response.getStatus()).isEqualTo(200);
     assertHeaderPresent("Content-Security-Policy", CSP_VALUE, response);
   }
 
-  @Test(timeout=10000)
+  @Test
+  @Timeout(10)
   public void shouldCheckPresenceOfContentTypeOptions() {
     // given
 
@@ -69,11 +72,12 @@ public class HttpHeaderSecurityIT extends AbstractWebIntegrationTest {
     HttpResponse<String> response = Unirest.get(appBasePath + TASKLIST_PATH).asString();
 
     // then
-    assertEquals(200, response.getStatus());
+    assertThat(response.getStatus()).isEqualTo(200);
     assertHeaderPresent("X-Content-Type-Options", "nosniff", response);
   }
 
-  @Test(timeout=10000)
+  @Test
+  @Timeout(10)
   public void shouldCheckAbsenceOfHsts() {
     // given
 
@@ -81,9 +85,9 @@ public class HttpHeaderSecurityIT extends AbstractWebIntegrationTest {
     HttpResponse<String> response = Unirest.get(appBasePath + TASKLIST_PATH).asString();
 
     // then
-    assertEquals(200, response.getStatus());
+    assertThat(response.getStatus()).isEqualTo(200);
     List<String> values = response.getHeaders().get("Strict-Transport-Security");
-    assertTrue(values.isEmpty());
+    assertThat(values).isEmpty();
   }
 
   protected void assertHeaderPresent(String expectedName, String expectedValue, HttpResponse<String> response) {
@@ -97,7 +101,7 @@ public class HttpHeaderSecurityIT extends AbstractWebIntegrationTest {
       }
     }
 
-    Assert.fail(String.format("Header '%s' didn't match.\nExpected:\t%s \nActual:\t%s", expectedName, expectedValue, values));
+    fail(String.format("Header '%s' didn't match.\nExpected:\t%s \nActual:\t%s", expectedName, expectedValue, values));
   }
 
 }

@@ -27,7 +27,7 @@ import static org.cibseven.bpm.engine.test.api.runtime.migration.models.EventSub
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.EventSubProcessModels.VAR_CONDITION;
 import static org.cibseven.bpm.engine.test.util.MigrationPlanAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.MigrationPlanAssert.migrate;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.cibseven.bpm.engine.migration.MigrationInstructionsBuilder;
 import org.cibseven.bpm.engine.migration.MigrationPlan;
@@ -49,9 +49,10 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.UserTask;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 /**
  * @author Thorben Lindhauer
@@ -65,11 +66,10 @@ public class MigrationPlanGenerationTest {
   public static final String ERROR_CODE = "Error";
   public static final String ESCALATION_CODE = "Escalation";
 
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testMapEqualActivitiesInProcessDefinitionScope() {

@@ -21,8 +21,8 @@ import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION
 import static org.cibseven.bpm.engine.authorization.UserOperationLogCategoryPermissions.READ;
 import static org.cibseven.bpm.engine.history.UserOperationLogEntry.CATEGORY_ADMIN;
 import static org.cibseven.bpm.engine.history.UserOperationLogEntry.CATEGORY_OPERATOR;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.cibseven.bpm.engine.EntityTypes;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
@@ -41,7 +41,7 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.authorization.AuthorizationTest;
 import org.cibseven.bpm.engine.test.api.identity.TestPermissions;
 import org.cibseven.bpm.engine.test.api.identity.TestResource;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Tobias Metzke

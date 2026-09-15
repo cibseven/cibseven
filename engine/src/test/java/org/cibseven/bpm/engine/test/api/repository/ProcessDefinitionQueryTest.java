@@ -37,9 +37,9 @@ import org.cibseven.bpm.engine.runtime.Incident;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -63,12 +63,12 @@ public class ProcessDefinitionQueryTest extends AbstractDefinitionQueryTest {
     return "org/cibseven/bpm/engine/test/repository/three_.bpmn20.xml";
   }
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     deploymentThreeId = repositoryService.createDeployment().name(THIRD_DEPLOYMENT_NAME).addClasspathResource(getResourceThreePath()).deploy().getId();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     ClockUtil.reset();
     repositoryService.deleteDeployment(deploymentThreeId, true);

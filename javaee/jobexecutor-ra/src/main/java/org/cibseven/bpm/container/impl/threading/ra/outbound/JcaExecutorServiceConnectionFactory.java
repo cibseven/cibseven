@@ -18,8 +18,8 @@ package org.cibseven.bpm.container.impl.threading.ra.outbound;
 
 import java.io.Serializable;
 
-import javax.resource.Referenceable;
-import javax.resource.ResourceException;
+import jakarta.resource.Referenceable;
+import jakarta.resource.ResourceException;
 
 /**
  * 

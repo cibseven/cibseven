@@ -28,16 +28,16 @@ import org.cibseven.bpm.engine.rest.AbstractRestServiceTest;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 public class HistoricExternalTaskLogRestServiceInteractionTest extends AbstractRestServiceTest {
@@ -45,14 +45,14 @@ public class HistoricExternalTaskLogRestServiceInteractionTest extends AbstractR
   protected static final String HISTORIC_EXTERNAL_TASK_LOG_RESOURCE_URL = TEST_RESOURCE_ROOT_PATH + "/history/external-task-log";
   protected static final String SINGLE_HISTORIC_EXTERNAL_TASK_LOG_RESOURCE_URL = HISTORIC_EXTERNAL_TASK_LOG_RESOURCE_URL + "/{id}";
   protected static final String HISTORIC_EXTERNAL_TASK_LOG_RESOURCE_GET_ERROR_DETAILS_URL = SINGLE_HISTORIC_EXTERNAL_TASK_LOG_RESOURCE_URL + "/error-details";
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
   protected ProcessEngine namedProcessEngine;
   protected HistoryService mockHistoryService;
 
   protected HistoricExternalTaskLogQuery mockQuery;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     mockQuery = mock(HistoricExternalTaskLogQuery.class);
 

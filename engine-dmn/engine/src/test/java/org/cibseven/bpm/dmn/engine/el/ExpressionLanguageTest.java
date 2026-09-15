@@ -39,7 +39,7 @@ import org.cibseven.bpm.dmn.engine.test.DmnEngineTest;
 import org.cibseven.bpm.dmn.feel.impl.FeelException;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;

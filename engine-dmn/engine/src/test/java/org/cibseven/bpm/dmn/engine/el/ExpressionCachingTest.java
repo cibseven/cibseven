@@ -31,8 +31,8 @@ import org.cibseven.bpm.dmn.engine.impl.evaluation.ExpressionEvaluationHandler;
 import org.cibseven.bpm.dmn.engine.impl.spi.el.ElExpression;
 import org.cibseven.bpm.dmn.engine.impl.spi.el.ElProvider;
 import org.codehaus.groovy.jsr223.GroovyScriptEngineImpl;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
 /**
@@ -45,7 +45,7 @@ public class ExpressionCachingTest {
   protected ElProvider elProviderSpy;
   private GroovyScriptEngineImpl scriptEngineSpy;
 
-  @Before
+  @BeforeEach
   public void setup() throws ScriptException {
     ScriptEngineManager scriptEngineManager = mock(ScriptEngineManager.class);
 

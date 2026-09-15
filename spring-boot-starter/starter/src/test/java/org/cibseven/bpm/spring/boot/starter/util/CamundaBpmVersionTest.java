@@ -17,8 +17,8 @@
 package org.cibseven.bpm.spring.boot.starter.util;
 
 import org.cibseven.bpm.engine.ProcessEngine;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.env.PropertiesPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,7 +38,7 @@ public class CamundaBpmVersionTest {
     return new CamundaBpmVersion(pkg);
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void setUp() throws IOException {
     currentVersion = ProcessEngine.class.getPackage().getImplementationVersion();
   }

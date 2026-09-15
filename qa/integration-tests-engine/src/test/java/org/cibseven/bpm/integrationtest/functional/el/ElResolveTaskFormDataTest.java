@@ -16,22 +16,24 @@
  */
 package org.cibseven.bpm.integrationtest.functional.el;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.form.TaskFormData;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.integrationtest.functional.el.beans.ResolveFormDataBean;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Stefan Hentschel.
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class ElResolveTaskFormDataTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -49,8 +51,8 @@ public class ElResolveTaskFormDataTest extends AbstractFoxPlatformIntegrationTes
     TaskFormData formData = formService.getTaskFormData(task.getId());
     Object defaultValue = formData.getFormFields().get(0).getValue().getValue();
 
-    Assert.assertNotNull(defaultValue);
-    Assert.assertEquals("testString123", defaultValue);
+    Assertions.assertNotNull(defaultValue);
+    assertThat(defaultValue).isEqualTo("testString123");
   }
 
   @Test
@@ -61,8 +63,8 @@ public class ElResolveTaskFormDataTest extends AbstractFoxPlatformIntegrationTes
     TaskFormData formData = formService.getTaskFormData(task.getId());
 
     String label = formData.getFormFields().get(0).getLabel();
-    Assert.assertNotNull(label);
-    Assert.assertEquals("testString123", label);
+    Assertions.assertNotNull(label);
+    assertThat(label).isEqualTo("testString123");
   }
 
 }

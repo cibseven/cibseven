@@ -24,12 +24,14 @@ import java.util.function.Predicate;
 import org.assertj.core.api.Condition;
 import org.cibseven.bpm.engine.impl.history.event.HistoryEvent;
 import org.jetbrains.annotations.NotNull;
-import org.junit.rules.Verifier;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
+
 
 /**
  * @author Edoardo Patti
  */
-public class HistoryEventVerifier extends Verifier {
+public class HistoryEventVerifier implements AfterEachCallback {
 
   private final TestEventHandler eventHandler;
   private final List<Condition<HistoryEvent>> hasConditions = new ArrayList<>(50);
@@ -63,11 +65,11 @@ public class HistoryEventVerifier extends Verifier {
   }
 
   @Override
-  protected void verify() throws Throwable {
+  public void afterEach(ExtensionContext context) throws Exception {
     while (this.eventHandler.peek() != null) {
-      final HistoryEvent evt = this.eventHandler.poll();
-      hasConditions.forEach(condition -> assertThat(evt).has(condition));
-      isConditions.forEach(condition -> assertThat(evt).is(condition));
-    }
+        final HistoryEvent evt = this.eventHandler.poll();
+        hasConditions.forEach(condition -> assertThat(evt).has(condition));
+        isConditions.forEach(condition -> assertThat(evt).is(condition));
+      }
   }
 }

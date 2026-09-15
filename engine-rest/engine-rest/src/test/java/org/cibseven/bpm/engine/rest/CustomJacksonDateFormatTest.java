@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.impl.RuntimeServiceImpl;
 import org.cibseven.bpm.engine.rest.helper.variable.EqualsPrimitiveValue;
@@ -36,17 +36,25 @@ import org.cibseven.bpm.engine.rest.mapper.JacksonConfigurator;
 import org.cibseven.bpm.engine.rest.util.VariablesBuilder;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 import io.restassured.http.ContentType;
 
 public class CustomJacksonDateFormatTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
+
+  @BeforeAll
+  public static void disableJerseyAutoDiscovery() {
+    // Disable Jersey auto-discovery to prevent classloader conflicts
+    System.setProperty("jersey.config.disableAutoDiscovery", "true");
+    System.setProperty("jersey.config.server.disableAutoDiscovery", "true");
+  }
 
   protected static final String PROCESS_INSTANCE_URL = TEST_RESOURCE_ROOT_PATH + "/process-instance";
   protected static final String SINGLE_PROCESS_INSTANCE_URL = PROCESS_INSTANCE_URL + "/{id}";
@@ -59,7 +67,7 @@ public class CustomJacksonDateFormatTest extends AbstractRestServiceTest {
 
   protected RuntimeServiceImpl runtimeServiceMock;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     runtimeServiceMock = mock(RuntimeServiceImpl.class);
 
@@ -69,9 +77,12 @@ public class CustomJacksonDateFormatTest extends AbstractRestServiceTest {
     when(processEngine.getRuntimeService()).thenReturn(runtimeServiceMock);
   }
 
-  @AfterClass
+  @AfterAll
   public static void reset() {
     JacksonConfigurator.setDateFormatString(DEFAULT_DATE_FORMAT);
+    // Clean up Jersey system properties
+    System.clearProperty("jersey.config.disableAutoDiscovery");
+    System.clearProperty("jersey.config.server.disableAutoDiscovery");
   }
 
   @Test

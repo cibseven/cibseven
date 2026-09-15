@@ -16,7 +16,8 @@
  */
 package org.cibseven.bpm.spring.boot.starter.actuator;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,15 +27,15 @@ import java.util.List;
 import org.cibseven.bpm.engine.impl.ProcessEngineImpl;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
 import org.cibseven.bpm.spring.boot.starter.actuator.JobExecutorHealthIndicator.Details;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+
+@ExtendWith(MockitoExtension.class)
 public class JobExecutorHealthIndicatorTest {
 
   private static final String LOCK_OWNER = "lockowner";
@@ -54,8 +55,7 @@ public class JobExecutorHealthIndicatorTest {
   @Mock
   private JobExecutor jobExecutor;
 
-  @Before
-  public void init() {
+  private void stubJobExecutor() {
     when(jobExecutor.getLockOwner()).thenReturn(LOCK_OWNER);
     when(jobExecutor.getLockTimeInMillis()).thenReturn(LOCK_TIME_IN_MILLIS);
     when(jobExecutor.getMaxJobsPerAcquisition()).thenReturn(MAX_JOBS_PER_ACQUISITION);
@@ -64,13 +64,16 @@ public class JobExecutorHealthIndicatorTest {
     when(jobExecutor.getProcessEngines()).thenReturn(PROCESS_ENGINES);
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void nullTest() {
-    new JobExecutorHealthIndicator(null);
+    assertThrows(NullPointerException.class, () -> {
+      new JobExecutorHealthIndicator(null);
+    });
   }
 
   @Test
   public void upTest() {
+    stubJobExecutor();
     when(jobExecutor.isActive()).thenReturn(true);
     JobExecutorHealthIndicator indicator = new JobExecutorHealthIndicator(jobExecutor);
     Health health = indicator.health();
@@ -80,6 +83,7 @@ public class JobExecutorHealthIndicatorTest {
 
   @Test
   public void downTest() {
+    stubJobExecutor();
     when(jobExecutor.isActive()).thenReturn(false);
     JobExecutorHealthIndicator indicator = new JobExecutorHealthIndicator(jobExecutor);
     Health health = indicator.health();

@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.sub.history.impl;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.history.HistoricDetail;

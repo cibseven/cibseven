@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Date;
 
-import javax.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.history.HistoricIncidentQuery;

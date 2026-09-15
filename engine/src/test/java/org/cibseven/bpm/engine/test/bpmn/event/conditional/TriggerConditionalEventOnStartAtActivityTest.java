@@ -16,14 +16,14 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.event.conditional;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Christopher Zell <christopher.zell@camunda.com>
@@ -477,7 +477,7 @@ public class TriggerConditionalEventOnStartAtActivityTest extends AbstractCondit
   }
 
   @Test
-  @Ignore
+  @Disabled
   public void testTwoInstructions() {
     //given
     BpmnModelInstance modelInstance =  Bpmn.createExecutableProcess(CONDITIONAL_EVENT_PROCESS_KEY)

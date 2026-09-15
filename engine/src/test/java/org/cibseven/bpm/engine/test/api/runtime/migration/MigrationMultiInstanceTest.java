@@ -19,8 +19,8 @@ package org.cibseven.bpm.engine.test.api.runtime.migration;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
 import static org.cibseven.bpm.engine.test.util.MigrationPlanValidationReportAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.HashMap;
 import java.util.List;
@@ -36,10 +36,11 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.MultiInstanceProcessModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 /**
  * @author Thorben Lindhauer
@@ -52,11 +53,10 @@ public class MigrationMultiInstanceTest {
   public static final String NUMBER_OF_COMPLETED_INSTANCES = "nrOfCompletedInstances";
   public static final String LOOP_COUNTER = "loopCounter";
 
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testMigrateParallelMultiInstanceTask() {
@@ -95,7 +95,7 @@ public class MigrationMultiInstanceTest {
         .done());
 
     List<Task> migratedTasks = testHelper.snapshotAfterMigration.getTasks();
-    Assert.assertEquals(3, migratedTasks.size());
+    Assertions.assertEquals(3, migratedTasks.size());
     for (Task migratedTask : migratedTasks) {
       assertEquals(targetProcessDefinition.getId(), migratedTask.getProcessDefinitionId());
     }
@@ -135,14 +135,14 @@ public class MigrationMultiInstanceTest {
     // then
     List<Task> tasks = testHelper.snapshotAfterMigration.getTasks();
     Task firstTask = tasks.get(0);
-    Assert.assertEquals(3, rule.getTaskService().getVariable(firstTask.getId(), NUMBER_OF_INSTANCES));
-    Assert.assertEquals(3, rule.getTaskService().getVariable(firstTask.getId(), NUMBER_OF_ACTIVE_INSTANCES));
-    Assert.assertEquals(0, rule.getTaskService().getVariable(firstTask.getId(), NUMBER_OF_COMPLETED_INSTANCES));
+    Assertions.assertEquals(3, rule.getTaskService().getVariable(firstTask.getId(), NUMBER_OF_INSTANCES));
+    Assertions.assertEquals(3, rule.getTaskService().getVariable(firstTask.getId(), NUMBER_OF_ACTIVE_INSTANCES));
+    Assertions.assertEquals(0, rule.getTaskService().getVariable(firstTask.getId(), NUMBER_OF_COMPLETED_INSTANCES));
 
     for (Task task : tasks) {
       Integer loopCounter = (Integer) rule.getTaskService().getVariable(task.getId(), LOOP_COUNTER);
-      Assert.assertNotNull(loopCounter);
-      Assert.assertEquals(loopCounterDistribution.get(task.getId()), loopCounter);
+      Assertions.assertNotNull(loopCounter);
+      Assertions.assertEquals(loopCounterDistribution.get(task.getId()), loopCounter);
     }
   }
 
@@ -187,7 +187,7 @@ public class MigrationMultiInstanceTest {
         .done());
 
     List<Task> migratedTasks = testHelper.snapshotAfterMigration.getTasks();
-    Assert.assertEquals(2, migratedTasks.size());
+    Assertions.assertEquals(2, migratedTasks.size());
     for (Task migratedTask : migratedTasks) {
       assertEquals(targetProcessDefinition.getId(), migratedTask.getProcessDefinitionId());
     }
@@ -275,7 +275,7 @@ public class MigrationMultiInstanceTest {
         .done());
 
     Task migratedTask = testHelper.snapshotAfterMigration.getTaskForKey("userTask");
-    Assert.assertNotNull(migratedTask);
+    Assertions.assertNotNull(migratedTask);
     assertEquals(targetProcessDefinition.getId(), migratedTask.getProcessDefinitionId());
 
     // and it is possible to successfully complete the migrated instance
@@ -302,10 +302,10 @@ public class MigrationMultiInstanceTest {
 
     // then
     Task task = testHelper.snapshotAfterMigration.getTaskForKey("userTask");
-    Assert.assertEquals(3, rule.getTaskService().getVariable(task.getId(), NUMBER_OF_INSTANCES));
-    Assert.assertEquals(1, rule.getTaskService().getVariable(task.getId(), NUMBER_OF_ACTIVE_INSTANCES));
-    Assert.assertEquals(0, rule.getTaskService().getVariable(task.getId(), NUMBER_OF_COMPLETED_INSTANCES));
-    Assert.assertEquals(0, rule.getTaskService().getVariable(task.getId(), NUMBER_OF_COMPLETED_INSTANCES));
+    Assertions.assertEquals(3, rule.getTaskService().getVariable(task.getId(), NUMBER_OF_INSTANCES));
+    Assertions.assertEquals(1, rule.getTaskService().getVariable(task.getId(), NUMBER_OF_ACTIVE_INSTANCES));
+    Assertions.assertEquals(0, rule.getTaskService().getVariable(task.getId(), NUMBER_OF_COMPLETED_INSTANCES));
+    Assertions.assertEquals(0, rule.getTaskService().getVariable(task.getId(), NUMBER_OF_COMPLETED_INSTANCES));
   }
 
   @Test

@@ -18,8 +18,8 @@ package org.cibseven.spin.json;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.spin.DataFormats.json;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -41,7 +41,7 @@ import org.cibseven.spin.json.mapping.dmn.DmnDecisionResultImpl;
 import org.cibseven.spin.spi.DataFormatMapper;
 import org.cibseven.spin.spi.DataFormatReader;
 import org.cibseven.spin.spi.DataFormatWriter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class JsonSerializationTest {
 

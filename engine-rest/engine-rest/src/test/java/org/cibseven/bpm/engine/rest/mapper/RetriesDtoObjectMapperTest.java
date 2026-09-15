@@ -28,7 +28,7 @@ import org.cibseven.bpm.engine.rest.dto.runtime.ProcessInstanceQueryDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.RetriesDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.SetJobRetriesByProcessDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.SetJobRetriesDto;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class RetriesDtoObjectMapperTest {
 

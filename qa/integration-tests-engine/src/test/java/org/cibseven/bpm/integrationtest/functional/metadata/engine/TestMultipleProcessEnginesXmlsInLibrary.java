@@ -18,13 +18,13 @@ package org.cibseven.bpm.integrationtest.functional.metadata.engine;
 
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 
 /**
@@ -33,7 +33,7 @@ import org.junit.runner.RunWith;
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TestMultipleProcessEnginesXmlsInLibrary extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -50,9 +50,9 @@ public class TestMultipleProcessEnginesXmlsInLibrary extends AbstractFoxPlatform
   
   @Test
   public void testDeployProcessArchive() {
-    Assert.assertNotNull(processEngineService.getProcessEngine("engine1"));
-    Assert.assertNotNull(processEngineService.getProcessEngine("engine2"));
-    Assert.assertNotNull(processEngineService.getProcessEngine("engine3"));
+    Assertions.assertNotNull(processEngineService.getProcessEngine("engine1"));
+    Assertions.assertNotNull(processEngineService.getProcessEngine("engine2"));
+    Assertions.assertNotNull(processEngineService.getProcessEngine("engine3"));
   }
 
 }

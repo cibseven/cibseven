@@ -30,9 +30,9 @@ import static org.cibseven.bpm.engine.authorization.UserOperationLogCategoryPerm
 import static org.cibseven.bpm.engine.history.UserOperationLogEntry.CATEGORY_ADMIN;
 import static org.cibseven.bpm.engine.history.UserOperationLogEntry.CATEGORY_OPERATOR;
 import static org.cibseven.bpm.engine.history.UserOperationLogEntry.CATEGORY_TASK_WORKER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Date;
 import java.util.List;
@@ -56,10 +56,10 @@ import org.cibseven.bpm.engine.impl.persistence.entity.HistoricIncidentEntity;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.authorization.AuthorizationTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -76,7 +76,7 @@ public class UserOperationLogAuthorizationTest extends AuthorizationTest {
   protected String taskId;
 
   @Override
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     deploymentId = testRule.deploy(
         "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml",
@@ -87,7 +87,7 @@ public class UserOperationLogAuthorizationTest extends AuthorizationTest {
   }
 
   @Override
-  @After
+  @AfterEach
   public void tearDown() {
     super.tearDown();
     processEngineConfiguration.setEnableHistoricInstancePermissions(false);
@@ -987,7 +987,7 @@ public class UserOperationLogAuthorizationTest extends AuthorizationTest {
     clearDatabase();
   }
 
-  @Ignore("CAM-9888")
+  @Disabled("CAM-9888")
   @Test
   public void testQuerySetStandaloneJobRetriesUserOperationLogWithReadHistoryPermissionOnAnyProcessDefinition() {
     // given

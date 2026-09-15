@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.rest.filter;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PushbackInputStream;
@@ -39,10 +39,19 @@ public class EmptyBodyFilter extends AbstractEmptyBodyFilter {
         return new ServletInputStream() {
 
           final InputStream inputStream = getRequestBody(isBodyEmpty, requestBody);
+          boolean finished = false;
+          @Override
+          public boolean isFinished() {
+            return finished;
+          }
 
           @Override
           public int read() throws IOException {
-            return inputStream.read();
+            int data = this.inputStream.read();
+            if (data == -1) {
+              finished = true;
+            }
+            return data;
           }
 
           @Override
@@ -68,6 +77,16 @@ public class EmptyBodyFilter extends AbstractEmptyBodyFilter {
           @Override
           public boolean markSupported() {
             return inputStream.markSupported();
+          }
+
+          @Override
+          public boolean isReady() {
+            return true;
+          }
+
+          @Override
+          public void setReadListener(ReadListener readListener) {
+            throw new UnsupportedOperationException();
           }
 
         };

@@ -24,7 +24,7 @@ import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION
 import static org.cibseven.bpm.engine.authorization.Resources.TASK;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario.scenario;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec.grant;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -43,32 +43,23 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
 public class HandleTaskAuthorizationTest {
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-
-  @Rule
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
+  @RegisterExtension
+  @Order(1) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
                                                       .watch(BPMN_BEHAVIOR_LOGGER)
                                                       .level(Level.INFO);
-
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule);
-
-  @Parameter
-  public AuthorizationScenario scenario;
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected TaskService taskService;
@@ -82,7 +73,6 @@ public class HandleTaskAuthorizationTest {
   protected static final String ONE_TASK_PROCESS = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml";
   protected static final String PROCESS_KEY = "oneTaskProcess";
 
-  @Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
       scenario()
@@ -108,7 +98,7 @@ public class HandleTaskAuthorizationTest {
       );
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     taskService = engineRule.getTaskService();
@@ -118,14 +108,15 @@ public class HandleTaskAuthorizationTest {
     authRule.createUserAndGroup("userId", "groupId");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
     repositoryService.deleteDeployment(deploymentId, true);
   }
 
-  @Test
-  public void testHandleTaskBpmnError() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testHandleTaskBpmnError(AuthorizationScenario scenario) {
     // given
     deploymentId = repositoryService.createDeployment().addClasspathResource(ONE_TASK_PROCESS).deployWithResult().getId();
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
@@ -148,8 +139,9 @@ public class HandleTaskAuthorizationTest {
     }
   }
 
-  @Test
-  public void testHandleTaskEscalation() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testHandleTaskEscalation(AuthorizationScenario scenario) {
     // given
     BpmnModelInstance model = Bpmn.createExecutableProcess(PROCESS_KEY)
         .startEvent()
