@@ -50,11 +50,8 @@ CREATE TABLE MOD_FORMS_AUD (
 );
 
 
--- Modeler folders. Creates the folder table, gives diagrams and forms the folder they belong to,
--- and puts the models of an installation that has none yet into a folder named General, so an
--- upgrade leaves nothing to sort by hand.
--- The folder id is written out rather than generated: the update below has to name the same
--- id the insert used, and generating one is spelled differently on every database.
+-- Modeler folders. Models of an installation that has none yet move into General, whose id is
+-- written out because the update has to name it and generating one differs on every database.
 CREATE TABLE MOD_FOLDERS (
     ID NVARCHAR(36) NOT NULL PRIMARY KEY,
     PARENT_ID NVARCHAR(36),

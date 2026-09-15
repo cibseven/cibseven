@@ -50,11 +50,8 @@ CREATE TABLE IF NOT EXISTS MOD_FORMS_AUD (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
--- Modeler folders. Creates the folder table, gives diagrams and forms the folder they belong to,
--- and puts the models of an installation that has none yet into a folder named General, so an
--- upgrade leaves nothing to sort by hand.
--- The folder id is written out rather than generated: the update below has to name the same
--- id the insert used, and generating one is spelled differently on every database.
+-- Modeler folders. Models of an installation that has none yet move into General, whose id is
+-- written out because the update has to name it and generating one differs on every database.
 CREATE TABLE IF NOT EXISTS MOD_FOLDERS (
     ID VARCHAR(36) NOT NULL PRIMARY KEY,
     PARENT_ID VARCHAR(36),
