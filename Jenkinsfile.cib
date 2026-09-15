@@ -100,13 +100,15 @@ pipeline {
         booleanParam(name: 'JAVA_DOCS', defaultValue: false, description: "  └─ 📖 Deploy JavaDocs")
     }
 
-     environment {
-         MAVEN_LOCAL_REPO = getLocalJobRepo(env.JOB_NAME, params.USE_PRIVATE_REPO)
-         // We clean this up to strictly hold the repository path variable
-         MAVEN_LOCAL_REPO_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
-         MAVEN_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO} -Daether.connector.basic.threads=4 -Daether.metadataResolver.threads=4 -Daether.syncContext.named.time=120"
-     }
-     options {
+    environment {
+        MAVEN_LOCAL_REPO = getLocalJobRepo(env.JOB_NAME, params.USE_PRIVATE_REPO)
+        // set bigger timeout to get rid of the maven issue with file locks: https://github.com/apache/maven/issues/9049
+        MAVEN_LOCAL_REPO_OPTS = "-Dmaven.repo.local=${env.MAVEN_LOCAL_REPO} -Daether.syncContext.named.time=120"
+        // set maven options only if params.USE_PRIVATE_REPO is true, otherwise use shared repo as usual
+        MAVEN_OPTS = "${params.USE_PRIVATE_REPO == true ? env.MAVEN_LOCAL_REPO_OPTS : ""}"
+    }
+
+    options {
         buildDiscarder(
             logRotator(
                 // number of build logs to keep
@@ -170,8 +172,6 @@ pipeline {
             steps {
                 script {
                     withMaven {
-						//TODO: remove before merge
-						sh 'mvn org.apache.maven.plugins:maven-dependency-plugin:3.6.0:purge-local-repository -DmanualInclude="org.cibseven.bpm:cibseven-engine-rest-core" -DactTransitively=false -DreResolve=false'
                         sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
                     }
                 }
