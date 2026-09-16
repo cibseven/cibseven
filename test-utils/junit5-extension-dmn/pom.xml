@@ -13,9 +13,6 @@
     <relativePath>../../database</relativePath>
   </parent>
 
-  <properties>
-    <version.junit5>5.9.3</version.junit5>
-  </properties>
 
   <dependencyManagement>
     <dependencies>

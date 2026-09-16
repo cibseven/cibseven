@@ -13,12 +13,17 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- Deliberately JUnit 6 here, and deliberately declared BEFORE
+           cibseven-core-internal-dependencies so that it wins: this module builds against Spring
+           Framework 7 (${version.spring.framework7}), which aligns with JUnit 6. The rest of the
+           reactor stays on ${version.junit5}. Do not "harmonise" this without also moving the
+           Spring 7 baseline. -->
       <dependency>
-          <groupId>org.junit</groupId>
-          <artifactId>junit-bom</artifactId>
-          <version>6.0.3</version>
-          <type>pom</type>
-          <scope>import</scope>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>6.0.3</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
 
       <dependency>

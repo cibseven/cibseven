@@ -69,13 +69,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Order;
-import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.Parameter;
+import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Joram Barrez
  * @author Falko Menge
  */
+@ParameterizedClass
+@MethodSource("scenarios")
 public class JobQueryTest {
 
   @RegisterExtension
@@ -93,7 +96,8 @@ public class JobQueryTest {
   private String messageId;
   private TimerEntity timerEntity;
   private boolean defaultEnsureJobDueDateSet;
-  private boolean ensureJobDueDateSet;
+  @Parameter
+  boolean ensureJobDueDateSet;
 
   private Date testStartTime;
   private Date timerOneFireTime;
