@@ -22,6 +22,19 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- Must stay FIRST, ahead of spring-boot-dependencies: among imported BOMs the earliest
+           declaration wins. Spring Boot manages the JUnit artifacts itself, so without this the
+           Jupiter version follows ${version.junit5} (where a module pins it explicitly) while
+           junit-platform-* stays on Spring Boot's, and surefire dies with
+           "conflicting versions were detected". -->
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${version.junit5}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+
       <dependency>
         <groupId>com.fasterxml.jackson</groupId>
         <artifactId>jackson-bom</artifactId>
