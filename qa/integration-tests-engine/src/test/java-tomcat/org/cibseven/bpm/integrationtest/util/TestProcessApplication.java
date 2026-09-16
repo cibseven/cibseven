@@ -23,9 +23,9 @@ import org.cibseven.bpm.application.ProcessApplication;
  *
  */
 @ProcessApplication
-// JakartaServletProcessApplication, not ServletProcessApplication: only the former is registered
-// by the JakartaServletProcessApplicationDeployer servlet container initializer, so a subclass of
-// the latter never becomes a servlet listener and its deployment fails with a missing NO_VIEW service.
-public class TestProcessApplication extends org.cibseven.bpm.application.impl.JakartaServletProcessApplication {
+// Tomcat deliberately keeps ServletProcessApplication. Switching it to
+// JakartaServletProcessApplication, which the WildFly servlet flavour does need, breaks CDI bean
+// resolution here: CdiBeanCallActivityResolutionTest then cannot resolve ${delegateBefore}.
+public class TestProcessApplication extends org.cibseven.bpm.application.impl.ServletProcessApplication {
 
 }
