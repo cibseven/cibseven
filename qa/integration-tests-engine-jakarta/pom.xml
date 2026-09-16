@@ -28,6 +28,13 @@
     DO NOT CHANGE ordering, because we want shrinkwrap versions to be newer -->
   <dependencyManagement>
     <dependencies>
+      <!-- Explicit entry outranks every BOM import; without it shrinkwrap-resolver-bom pins slf4j-api to 1.x -->
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${version.slf4j}</version>
+      </dependency>
+
       <dependency>
         <groupId>org.jboss.shrinkwrap.resolver</groupId>
         <artifactId>shrinkwrap-resolver-bom</artifactId>
