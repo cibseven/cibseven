@@ -26,6 +26,18 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- Must stay FIRST: among imported BOMs the earliest declaration wins. distro/run4/pom.xml
+           imports spring-boot-dependencies, which manages the JUnit artifacts itself, so without
+           this import the engine and platform are pinned by Spring Boot rather than by
+           ${version.junit5}. A provider/platform mismatch makes failsafe report "No tests to run"
+           instead of failing, so the suite goes silently green. -->
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${version.junit5}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
 
       <dependency>
         <groupId>org.apache.httpcomponents.client5</groupId>
@@ -40,12 +52,6 @@
         <artifactId>selenium-java</artifactId>
         <version>${version.selenium}</version>
       </dependency>
-
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <scope>test</scope>
-    </dependency>
 
       <dependency>
         <groupId>io.rest-assured</groupId>

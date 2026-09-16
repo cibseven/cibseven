@@ -46,7 +46,9 @@
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
+      <!-- The aggregate, not -api: without junit-jupiter-engine on the test classpath failsafe
+           finds no provider and reports "No tests to run" instead of failing. -->
+      <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
 
@@ -138,6 +140,10 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-failsafe-plugin</artifactId>
+            <!-- No version: inherit ${version.surefire} from the parent. This was pinned to
+                 failsafe 2.16, which predates the JUnit Platform and can only run JUnit 4; after
+                 the JUnit 5 migration it discovered nothing and reported "Tests run: 0" while the
+                 build passed. Do not re-pin it. -->
             <configuration>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <!-- Exclude all selenium-related tests, since they don't work in Jenkins pipeline -->
