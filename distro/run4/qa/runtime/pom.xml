@@ -138,7 +138,6 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-failsafe-plugin</artifactId>
-            <version>2.16</version>
             <configuration>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <!-- Exclude all selenium-related tests, since they don't work in Jenkins pipeline -->

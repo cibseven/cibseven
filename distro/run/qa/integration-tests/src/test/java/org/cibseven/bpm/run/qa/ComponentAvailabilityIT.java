@@ -18,8 +18,7 @@ package org.cibseven.bpm.run.qa;
 
 import io.restassured.response.Response;
 import org.cibseven.bpm.run.qa.util.SpringBootManagedContainer;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import java.util.Arrays;
@@ -48,10 +47,9 @@ public class ComponentAvailabilityIT {
     });
   }
 
-  private static SpringBootManagedContainer container;
+  private SpringBootManagedContainer container;
 
-  @BeforeAll
-  public static void runStartScript(String[] commands, boolean restAvailable, boolean webappsAvailable, boolean exampleAvailable) {
+  public void runStartScript(String[] commands) {
     container = new SpringBootManagedContainer(commands);
     try {
       container.start();
@@ -60,8 +58,8 @@ public class ComponentAvailabilityIT {
     }
   }
 
-  @AfterAll
-  public static void stopApp() {
+  @AfterEach
+  public void stopApp() {
     try {
       if (container != null) {
         container.stop();
@@ -76,6 +74,7 @@ public class ComponentAvailabilityIT {
   @ParameterizedTest
   @MethodSource("commands")
   public void shouldFindEngineViaRestApiRequest(String[] commands, boolean restAvailable, boolean webappsAvailable, boolean exampleAvailable) {
+    runStartScript(commands);
     Response response = when().get(container.getBaseUrl() + "/engine-rest/engine");
     if (restAvailable) {
       response.then()
@@ -90,6 +89,7 @@ public class ComponentAvailabilityIT {
   @ParameterizedTest
   @MethodSource("commands")
   public void shouldFindWelcomeApp(String[] commands, boolean restAvailable, boolean webappsAvailable, boolean exampleAvailable) {
+    runStartScript(commands);
     Response response = when().get(container.getBaseUrl() + "/camunda/app/welcome/default");
     if (webappsAvailable) {
       response.then()
@@ -104,6 +104,7 @@ public class ComponentAvailabilityIT {
   @ParameterizedTest
   @MethodSource("commands")
   public void shouldFindExample(String[] commands, boolean restAvailable, boolean webappsAvailable, boolean exampleAvailable) {
+    runStartScript(commands);
     Response response = when().get(container.getBaseUrl() + "/engine-rest/process-definition");
     if (exampleAvailable && restAvailable) {
       response.then()
