@@ -36,11 +36,12 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 /**
  * @author Askar Akhmerov
@@ -51,23 +52,23 @@ public class TaskListenerDelegateCompletionTest {
   protected static final String TASK_LISTENER_PROCESS = "taskListenerProcess";
   protected static final String ACTIVITY_ID = "UT";
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected TaskService taskService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     taskService = engineRule.getTaskService();
     runtimeService = engineRule.getRuntimeService();
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     if (runtimeService.createProcessInstanceQuery().count() > 0) {
       runtimeService.deleteProcessInstance(runtimeService.createProcessInstanceQuery().singleResult().getId(),null,true);
@@ -155,7 +156,7 @@ public class TaskListenerDelegateCompletionTest {
 
     // when
     ClockUtil.offset(TimeUnit.MINUTES.toMillis(70L));
-    testHelper.waitForJobExecutorToProcessAllJobs(5000L);
+    testRule.waitForJobExecutorToProcessAllJobs(5000L);
 
     // then
     assertThat(taskQuery.count()).isEqualTo(0L);
@@ -190,7 +191,7 @@ public class TaskListenerDelegateCompletionTest {
 
   protected void createProcessWithListener(String eventName) {
     BpmnModelInstance bpmnModelInstance = setupProcess(eventName);
-    testHelper.deploy(bpmnModelInstance);
+    testRule.deploy(bpmnModelInstance);
   }
 
 }

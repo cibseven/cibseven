@@ -22,7 +22,7 @@ import static org.cibseven.bpm.engine.authorization.Permissions.READ_HISTORY;
 import static org.cibseven.bpm.engine.authorization.Resources.HISTORIC_PROCESS_INSTANCE;
 import static org.cibseven.bpm.engine.authorization.Resources.HISTORIC_TASK;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
@@ -34,9 +34,9 @@ import org.cibseven.bpm.engine.history.HistoricIdentityLinkLogQuery;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.authorization.AuthorizationTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class HistoricIdentityLinkLogAuthorizationTest extends AuthorizationTest {
@@ -45,7 +45,7 @@ public class HistoricIdentityLinkLogAuthorizationTest extends AuthorizationTest 
   protected static final String CASE_KEY = "oneTaskCase";
 
   @Override
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     testRule.deploy( "org/cibseven/bpm/engine/test/api/authorization/oneTaskProcess.bpmn20.xml",
     "org/cibseven/bpm/engine/test/api/authorization/oneTaskCase.cmmn");
@@ -53,7 +53,7 @@ public class HistoricIdentityLinkLogAuthorizationTest extends AuthorizationTest 
   }
 
   @Override
-  @After
+  @AfterEach
   public void tearDown() {
     super.tearDown();
     processEngineConfiguration.setEnableHistoricInstancePermissions(false);

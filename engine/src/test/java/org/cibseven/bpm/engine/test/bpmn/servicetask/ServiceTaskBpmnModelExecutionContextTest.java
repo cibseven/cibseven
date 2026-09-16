@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.servicetask;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 
@@ -31,8 +31,8 @@ import org.cibseven.bpm.model.bpmn.instance.ServiceTask;
 import org.cibseven.bpm.model.bpmn.instance.Task;
 import org.cibseven.bpm.model.xml.Model;
 import org.cibseven.bpm.model.xml.instance.ModelElementInstance;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -78,7 +78,7 @@ public class ServiceTaskBpmnModelExecutionContextTest extends PluggableProcessEn
     deploymentId = repositoryService.createDeployment().addModelInstance("process.bpmn", modelInstance).deploy().getId();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ModelExecutionContextServiceTask.clear();
     repositoryService.deleteDeployment(deploymentId, true);

@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.cockpit.plugin.base;
 
-import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -38,10 +38,9 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.ActivityInstance;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author roman.smirnov
@@ -55,7 +54,7 @@ public class ProcessInstanceResourceTest extends AbstractCockpitPluginTest {
   private RepositoryService repositoryService;
   protected IdentityService identityService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     super.before();
 
@@ -67,12 +66,12 @@ public class ProcessInstanceResourceTest extends AbstractCockpitPluginTest {
     identityService = processEngine.getIdentityService();
   }
 
-  @After
+  @AfterEach
   public void clearAuthentication() {
     identityService.clearAuthentication();
   }
 
-  @After
+  @AfterEach
   public void resetQueryMaxResultsLimit() {
     processEngineConfiguration.setQueryMaxResultsLimit(Integer.MAX_VALUE);
   }
@@ -116,7 +115,7 @@ public class ProcessInstanceResourceTest extends AbstractCockpitPluginTest {
         compareWith = anotherUserTaskProcess;
         assertThat(dto.getCallActivityId()).isEqualTo("secondCallActivity");
       } else {
-        Assert.fail("Unexpected called process instance: " + dto.getId());
+        fail("Unexpected called process instance: " + dto.getId());
       }
 
       assertThat(dto.getCallActivityInstanceId()).isNotNull();
@@ -171,7 +170,7 @@ public class ProcessInstanceResourceTest extends AbstractCockpitPluginTest {
       } else if (child.getActivityId().equals("secondCallActivity")) {
         secondActivityInstanceId = child.getId();
       } else {
-        Assert.fail("Unexpected activity instance with activity id: " + child.getActivityId() + " and instance id: " + child.getId());
+        fail("Unexpected activity instance with activity id: " + child.getActivityId() + " and instance id: " + child.getId());
       }
     }
 

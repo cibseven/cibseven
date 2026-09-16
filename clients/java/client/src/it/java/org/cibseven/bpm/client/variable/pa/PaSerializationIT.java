@@ -19,7 +19,7 @@ package org.cibseven.bpm.client.variable.pa;
 import org.cibseven.bpm.client.ExternalTaskClient;
 import org.cibseven.bpm.client.dto.HistoricProcessInstanceDto;
 import org.cibseven.bpm.client.dto.ProcessInstanceDto;
-import org.cibseven.bpm.client.rule.ClientRule;
+import org.cibseven.bpm.client.rule.ClientExtension;
 import org.cibseven.bpm.client.rule.EngineRule;
 import org.cibseven.bpm.client.task.ExternalTask;
 import org.cibseven.bpm.client.task.ExternalTaskService;
@@ -29,11 +29,9 @@ import org.cibseven.bpm.client.util.RecordingInvocationHandler.RecordedInvocatio
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.qa.Bean;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.Properties;
@@ -62,7 +60,7 @@ public class PaSerializationIT {
   private static final String EXTERNAL_TASK_TOPIC_NAME = "qYeiKGuhqXGx3ate";
   private static final String PROCESS_DEFINITION_KEY = "KYsKNUbyVawGRt6H";
 
-  protected ClientRule clientRule = new ClientRule(() -> {
+  protected ClientExtension clientRule = new ClientExtension(() -> {
     Properties properties = loadProperties(DEFAULT_PROPERTIES_PATH);
     String baseUrl = properties.getProperty(CAMUNDA_ENGINE_REST) + ENGINE_NAME;
     return ExternalTaskClient.create()
@@ -76,9 +74,6 @@ public class PaSerializationIT {
     return properties;
   });
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule);
-
   protected ExternalTaskClient client;
 
   protected ProcessInstanceDto processInstance;
@@ -86,7 +81,7 @@ public class PaSerializationIT {
   protected RecordingExternalTaskHandler handler = new RecordingExternalTaskHandler();
   protected RecordingInvocationHandler invocationHandler = new RecordingInvocationHandler();
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     client = clientRule.client();
 
@@ -96,7 +91,7 @@ public class PaSerializationIT {
     invocationHandler.clear();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     HistoricProcessInstanceDto historicProcessInstance = engineRule.getHistoricProcessInstanceById(processInstance.getId());
     if (historicProcessInstance.getEndTime() == null) {

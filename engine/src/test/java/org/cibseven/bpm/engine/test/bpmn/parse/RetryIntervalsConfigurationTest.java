@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.parse;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -37,11 +37,12 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 public class RetryIntervalsConfigurationTest extends AbstractAsyncOperationsTest {
 
@@ -49,17 +50,17 @@ public class RetryIntervalsConfigurationTest extends AbstractAsyncOperationsTest
   private static final String PROCESS_ID = "process";
   private static final String FAILING_CLASS = "this.class.does.not.Exist";
 
-  protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
+  @Order(1) protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
     configuration.setFailedJobRetryTimeCycle("PT5M,PT20M, PT3M");
     configuration.setEnableExceptionsAfterUnhandledBpmnError(true);
   });
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(1) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(2) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule).around(testRule);
 
-  @Before
+  @BeforeEach
   public void setUp() {
     initDefaults(engineRule);
   }
@@ -246,7 +247,7 @@ public class RetryIntervalsConfigurationTest extends AbstractAsyncOperationsTest
 
     // then
     job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(8, job.getRetries());
+    Assertions.assertEquals(8, job.getRetries());
   }
 
   @Test

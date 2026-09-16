@@ -16,18 +16,17 @@
  */
 package org.cibseven.bpm.integrationtest.functional.transactions;
 
-import org.junit.Assert;
-
 import org.cibseven.bpm.engine.impl.cfg.TransactionListener;
 import org.cibseven.bpm.engine.impl.cfg.TransactionState;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 /**
@@ -35,7 +34,7 @@ import org.junit.runner.RunWith;
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TransactionListenerTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -48,8 +47,8 @@ public class TransactionListenerTest extends AbstractFoxPlatformIntegrationTest 
     
     final TestTransactionListener rolledBackListener = new TestTransactionListener();
     final TestTransactionListener committedListener = new TestTransactionListener();
-    Assert.assertFalse(rolledBackListener.isInvoked());
-    Assert.assertFalse(committedListener.isInvoked());
+    assertThat(rolledBackListener.isInvoked()).isFalse();
+    assertThat(committedListener.isInvoked()).isFalse();
     
     try {
       
@@ -65,11 +64,11 @@ public class TransactionListenerTest extends AbstractFoxPlatformIntegrationTest 
       });
       
     }catch(Exception e) {
-      Assert.assertTrue(e.getMessage().contains("Rollback!"));
+      assertThat(e.getMessage().contains("Rollback!")).isTrue();
     }
     
-    Assert.assertTrue(rolledBackListener.isInvoked());
-    Assert.assertFalse(committedListener.isInvoked());
+    assertThat(rolledBackListener.isInvoked()).isTrue();
+    assertThat(committedListener.isInvoked()).isFalse();
     
   }
   
@@ -79,8 +78,8 @@ public class TransactionListenerTest extends AbstractFoxPlatformIntegrationTest 
     final TestTransactionListener rolledBackListener = new TestTransactionListener();
     final TestTransactionListener committedListener = new TestTransactionListener();
     
-    Assert.assertFalse(rolledBackListener.isInvoked());
-    Assert.assertFalse(committedListener.isInvoked());
+    assertThat(rolledBackListener.isInvoked()).isFalse();
+    assertThat(committedListener.isInvoked()).isFalse();
     
     try {
       
@@ -95,11 +94,11 @@ public class TransactionListenerTest extends AbstractFoxPlatformIntegrationTest 
       });
       
     }catch(Exception e) {
-      Assert.assertTrue(e.getMessage().contains("Rollback!"));
+      assertThat(e.getMessage().contains("Rollback!")).isTrue();
     }
     
-    Assert.assertFalse(rolledBackListener.isInvoked());
-    Assert.assertTrue(committedListener.isInvoked());
+    assertThat(rolledBackListener.isInvoked()).isFalse();
+    assertThat(committedListener.isInvoked()).isTrue();
     
   }
   

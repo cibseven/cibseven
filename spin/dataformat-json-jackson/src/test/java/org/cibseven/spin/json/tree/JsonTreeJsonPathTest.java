@@ -17,6 +17,7 @@
 package org.cibseven.spin.json.tree;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.spin.Spin.JSON;
 import static org.cibseven.spin.json.JsonTestConstants.EXAMPLE_JSON;
@@ -25,8 +26,9 @@ import org.cibseven.spin.SpinList;
 import org.cibseven.spin.json.SpinJsonDataFormatException;
 import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.json.SpinJsonPathException;
-import org.junit.Before;
-import org.junit.Test;
+import org.cibseven.spin.json.SpinJsonPropertyException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Stefan Hentschel
@@ -35,7 +37,7 @@ public class JsonTreeJsonPathTest {
 
   protected SpinJsonNode jsonNode;
 
-  @Before
+  @BeforeEach
   public void readJson() {
     jsonNode = JSON(EXAMPLE_JSON);
   }
@@ -275,10 +277,10 @@ public class JsonTreeJsonPathTest {
     }
   }
 
-  @Test(expected = SpinJsonPathException.class)
+  @Test
   public void failOnNonExistingJsonPath() {
     SpinJsonNode json = JSON("{\"a\": {\"id\": \"a\"}, \"b\": {\"id\": \"b\"}}");
-    json.jsonPath("$.c?(@.id)").element();
+    assertThatExceptionOfType(SpinJsonPathException.class).isThrownBy(() -> json.jsonPath("$.c?(@.id)").element());
   }
 
 }

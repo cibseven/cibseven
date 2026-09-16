@@ -15,19 +15,21 @@
  * limitations under the License.
  */
 package org.cibseven.bpm.integrationtest.deployment.war;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 
 
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TestWarDeploymentDuplicateFiltering extends AbstractFoxPlatformIntegrationTest {
 
   private static final String PA1 = "PA1";
@@ -49,13 +51,13 @@ public class TestWarDeploymentDuplicateFiltering extends AbstractFoxPlatformInte
   @Test
   @OperateOnDeployment(value=PA2)
   public void testDeployProcessArchive() {
-    Assert.assertNotNull(processEngine);
+    Assertions.assertNotNull(processEngine);
     RepositoryService repositoryService = processEngine.getRepositoryService();
     long count = repositoryService.createProcessDefinitionQuery()
       .processDefinitionKey("testDeployProcessArchive")
       .count();
 
-    Assert.assertEquals(1, count);
+    assertThat(count).isEqualTo(1);
   }
 
 }

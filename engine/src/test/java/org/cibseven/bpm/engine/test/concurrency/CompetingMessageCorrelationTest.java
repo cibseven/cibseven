@@ -16,10 +16,10 @@
  */
 package org.cibseven.bpm.engine.test.concurrency;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -43,9 +43,9 @@ import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.junit.After;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -53,7 +53,7 @@ import org.junit.Test;
  */
 public class CompetingMessageCorrelationTest extends ConcurrencyTestCase {
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     ((ProcessEngineConfigurationImpl)processEngine.getProcessEngineConfiguration()).getCommandExecutorTxRequiresNew().execute(new Command<Void>() {
       public Void execute(CommandContext commandContext) {
@@ -216,7 +216,7 @@ public class CompetingMessageCorrelationTest extends ConcurrencyTestCase {
    * Fails at least on mssql; mssql appears to lock more than the actual event subscription row
    */
   @Deployment(resources = "org/cibseven/bpm/engine/test/concurrency/CompetingMessageCorrelationTest.catchMessageProcess.bpmn20.xml")
-  @Ignore
+  @Disabled
   @Test
   public void testConcurrentExclusiveCorrelationToDifferentExecutionsCase2() throws InterruptedException {
     InvocationLogListener.reset();
@@ -315,7 +315,7 @@ public class CompetingMessageCorrelationTest extends ConcurrencyTestCase {
    * @throws InterruptedException
    */
   @Deployment(resources = "org/cibseven/bpm/engine/test/concurrency/CompetingMessageCorrelationTest.catchMessageProcess.bpmn20.xml")
-  @Ignore("CAM-3636")
+  @Disabled("CAM-3636")
   @Test
   public void testConcurrentMixedCorrelationCase2() throws InterruptedException {
     InvocationLogListener.reset();

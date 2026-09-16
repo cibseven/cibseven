@@ -19,7 +19,7 @@ package org.cibseven.bpm.webapp.impl.util;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.rest.exception.RestException;

@@ -28,9 +28,9 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -41,7 +41,7 @@ public class FallbackSerializerFactoryTest {
   protected ProcessEngine processEngine;
   protected String deployment;
 
-  @After
+  @AfterEach
   public void tearDown() {
 
     if (processEngine != null) {
@@ -75,9 +75,9 @@ public class FallbackSerializerFactoryTest {
      ObjectValue fetchedValue = processEngine.getRuntimeService().getVariableTyped(pi.getId(), "var", true);
 
      // then the fallback serializer is used
-     Assert.assertNotNull(fetchedValue);
-     Assert.assertEquals(ExampleSerializer.FORMAT, fetchedValue.getSerializationDataFormat());
-     Assert.assertEquals("foo", fetchedValue.getValue());
+     Assertions.assertNotNull(fetchedValue);
+     Assertions.assertEquals(ExampleSerializer.FORMAT, fetchedValue.getSerializationDataFormat());
+     Assertions.assertEquals("foo", fetchedValue.getValue());
   }
 
   @Test
@@ -104,9 +104,9 @@ public class FallbackSerializerFactoryTest {
      ObjectValue fetchedValue = processEngine.getRuntimeService().getVariableTyped(pi.getId(), "var", true);
 
      // then the fallback serializer is used
-     Assert.assertNotNull(fetchedValue);
-     Assert.assertEquals(ExampleSerializer.FORMAT, fetchedValue.getSerializationDataFormat());
-     Assert.assertEquals(ExampleConstantSerializer.DESERIALIZED_VALUE, fetchedValue.getValue());
+     Assertions.assertNotNull(fetchedValue);
+     Assertions.assertEquals(ExampleSerializer.FORMAT, fetchedValue.getSerializationDataFormat());
+     Assertions.assertEquals(ExampleConstantSerializer.DESERIALIZED_VALUE, fetchedValue.getValue());
   }
 
   public static class ExampleSerializerFactory implements VariableSerializerFactory {

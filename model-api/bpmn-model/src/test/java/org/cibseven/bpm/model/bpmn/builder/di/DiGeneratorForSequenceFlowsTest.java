@@ -20,8 +20,8 @@ import static org.cibseven.bpm.model.bpmn.BpmnTestConstants.END_EVENT_ID;
 import static org.cibseven.bpm.model.bpmn.BpmnTestConstants.SEQUENCE_FLOW_ID;
 import static org.cibseven.bpm.model.bpmn.BpmnTestConstants.START_EVENT_ID;
 import static org.cibseven.bpm.model.bpmn.BpmnTestConstants.USER_TASK_ID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -31,14 +31,14 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.builder.ProcessBuilder;
 import org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnEdge;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class DiGeneratorForSequenceFlowsTest {
 
   private BpmnModelInstance instance;
 
-  @After
+  @AfterEach
   public void validateModel() throws IOException {
     if (instance != null) {
       Bpmn.validateModel(instance);

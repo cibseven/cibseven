@@ -27,7 +27,7 @@ import org.cibseven.bpm.model.xml.validation.ModelElementValidator;
 import org.cibseven.bpm.model.xml.validation.ValidationResult;
 import org.cibseven.bpm.model.xml.validation.ValidationResultType;
 import org.cibseven.bpm.model.xml.validation.ValidationResults;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.cibseven.bpm.model.bpmn.instance.Process;
 
 import static org.assertj.core.api.Assertions.*;

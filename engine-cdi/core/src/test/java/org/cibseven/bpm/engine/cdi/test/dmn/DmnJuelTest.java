@@ -19,16 +19,13 @@ package org.cibseven.bpm.engine.cdi.test.dmn;
 import org.cibseven.bpm.dmn.engine.DmnDecisionResult;
 import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
-import javax.enterprise.context.Dependent;
-import javax.inject.Named;
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Named;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(Arquillian.class)
 public class DmnJuelTest extends CdiProcessEngineTestCase {
 
   @Named

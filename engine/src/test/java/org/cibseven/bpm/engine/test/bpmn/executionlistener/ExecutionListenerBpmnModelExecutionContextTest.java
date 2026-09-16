@@ -17,10 +17,10 @@
 package org.cibseven.bpm.engine.test.bpmn.executionlistener;
 
 import static org.cibseven.bpm.model.bpmn.impl.BpmnModelConstants.CAMUNDA_NS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 
@@ -45,8 +45,8 @@ import org.cibseven.bpm.model.bpmn.instance.Task;
 import org.cibseven.bpm.model.bpmn.instance.UserTask;
 import org.cibseven.bpm.model.xml.Model;
 import org.cibseven.bpm.model.xml.instance.ModelElementInstance;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Sebastian Menski
@@ -230,7 +230,7 @@ public class ExecutionListenerBpmnModelExecutionContextTest extends PluggablePro
     runtimeService.startProcessInstanceByKey(PROCESS_ID);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ModelExecutionContextExecutionListener.clear();
     repositoryService.deleteDeployment(deploymentId, true);

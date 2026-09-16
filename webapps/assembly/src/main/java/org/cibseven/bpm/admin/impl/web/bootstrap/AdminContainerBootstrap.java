@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.admin.impl.web.bootstrap;
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
 
 import org.cibseven.bpm.admin.Admin;
 import org.cibseven.bpm.admin.impl.DefaultAdminRuntimeDelegate;

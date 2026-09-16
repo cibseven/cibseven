@@ -17,26 +17,26 @@
 package org.cibseven.bpm.engine.test.concurrency;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.cibseven.bpm.engine.OptimisticLockingException;
 import org.cibseven.bpm.engine.impl.cmd.SetLicenseKeyCmd;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.ResourceEntity;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class CompetingLicenseKeyAccessTest extends ConcurrencyTestCase {
 
   private ThreadControl asyncThread;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     managementService.setLicenseKey("{\"customer\":\"testCompany\"}");
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     managementService.deleteLicenseKey();
   }
@@ -100,7 +100,7 @@ public class CompetingLicenseKeyAccessTest extends ConcurrencyTestCase {
     @Override
     public Long execute(CommandContext commandContext) {
       ResourceEntity licenseKey = commandContext.getResourceManager().findLicenseKeyResource();
-      assertNotNull("license key is expected to be not null", licenseKey);
+      assertNotNull(licenseKey, "license key is expected to be not null");
 
       monitor.sync();
 

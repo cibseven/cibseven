@@ -16,6 +16,9 @@
  */
 package org.cibseven.bpm.engine.spring.test.expression;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.fail;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.spring.test.SpringProcessEngineTestCase;
@@ -50,7 +53,7 @@ public class SpringLimitedExpressionsTest extends SpringProcessEngineTestCase {
       taskService.complete(task.getId());
       fail("Exception should have been thrown");
     } catch(ProcessEngineException ae) {
-      assertTextPresent("Unknown property used in expression", ae.getMessage());
+      assertTextPresent(ae.getMessage(), "Unknown property used in expression");
     }
   }
 }

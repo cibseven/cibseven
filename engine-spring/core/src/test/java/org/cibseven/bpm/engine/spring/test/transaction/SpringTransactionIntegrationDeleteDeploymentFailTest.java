@@ -16,12 +16,14 @@
  */
 package org.cibseven.bpm.engine.spring.test.transaction;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.spring.test.SpringProcessEngineTestCase;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.springframework.test.context.ContextConfiguration;
+import org.junit.jupiter.api.AfterEach;
 
 /**
  * @author Svetlana Dorokhova
@@ -32,7 +34,7 @@ public class SpringTransactionIntegrationDeleteDeploymentFailTest extends Spring
 
   private String deploymentId;
 
-  @Override
+  @AfterEach
   protected void tearDown() throws Exception {
     processEngineConfiguration.getCommandExecutorTxRequired().execute(new Command<Void>() {
       public Void execute(CommandContext commandContext) {
@@ -43,8 +45,6 @@ public class SpringTransactionIntegrationDeleteDeploymentFailTest extends Spring
       }
     });
 
-
-    super.tearDown();
   }
 
   public void testFailingAfterDeleteDeployment() {

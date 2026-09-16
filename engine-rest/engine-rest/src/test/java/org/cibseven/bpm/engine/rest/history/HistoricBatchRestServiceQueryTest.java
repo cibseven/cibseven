@@ -19,8 +19,8 @@ package org.cibseven.bpm.engine.rest.history;
 import static io.restassured.RestAssured.given;
 import static org.cibseven.bpm.engine.rest.util.JsonPathUtil.from;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.batch.history.HistoricBatch;
 import org.cibseven.bpm.engine.batch.history.HistoricBatchQuery;
@@ -43,9 +43,9 @@ import org.cibseven.bpm.engine.rest.dto.history.batch.HistoricBatchDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -54,7 +54,7 @@ import io.restassured.response.Response;
 
 public class HistoricBatchRestServiceQueryTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String HISTORIC_BATCH_RESOURCE_URL = TEST_RESOURCE_ROOT_PATH + "/history/batch";
@@ -62,7 +62,7 @@ public class HistoricBatchRestServiceQueryTest extends AbstractRestServiceTest {
 
   protected HistoricBatchQuery queryMock;
 
-  @Before
+  @BeforeEach
   public void setUpHistoricBatchQueryMock() {
     List<HistoricBatch> mockHistoricBatches = MockProvider.createMockHistoricBatches();
     queryMock = mock(HistoricBatchQuery.class);
@@ -300,10 +300,10 @@ public class HistoricBatchRestServiceQueryTest extends AbstractRestServiceTest {
 
   protected void verifyHistoricBatchListJson(String historicBatchListJson) {
     List<Object> batches = from(historicBatchListJson).get();
-    assertEquals("There should be one historic batch returned.", 1, batches.size());
+    assertEquals(1, batches.size(), "There should be one historic batch returned.");
 
     HistoricBatchDto historicBatch = from(historicBatchListJson).getObject("[0]", HistoricBatchDto.class);
-    assertNotNull("The returned historic batch should not be null.", historicBatch);
+    assertNotNull(historicBatch, "The returned historic batch should not be null.");
     assertEquals(MockProvider.EXAMPLE_BATCH_ID, historicBatch.getId());
     assertEquals(MockProvider.EXAMPLE_BATCH_TYPE, historicBatch.getType());
     assertEquals(MockProvider.EXAMPLE_BATCH_TOTAL_JOBS, historicBatch.getTotalJobs());

@@ -33,12 +33,13 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
+import org.junit.jupiter.api.Test;
+
+import org.junit.jupiter.api.AfterEach;
 
 import java.sql.SQLException;
 
@@ -50,8 +51,8 @@ public class CustomErrorCodeProviderTest {
 
   protected static int PROVIDED_CUSTOM_CODE = 33_333;
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(c -> {
+  @RegisterExtension
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(c -> {
     c.setCustomExceptionCodeProvider(new ExceptionCodeProvider() {
 
       @Override
@@ -67,27 +68,25 @@ public class CustomErrorCodeProviderTest {
     });
   });
 
-  @Rule
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
+  @RegisterExtension
+  @Order(5) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch("org.cibseven.bpm.engine.cmd")
       .level(Level.WARN);
-
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(7) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected IdentityService identityService;
 
-  @Before
+  @BeforeEach
   public void assignServices() {
     runtimeService = engineRule.getRuntimeService();
     identityService = engineRule.getIdentityService();
   }
 
-  @After
+  @AfterEach
   public void clear() {
     engineRule.getIdentityService().deleteUser("kermit");
   }
@@ -177,8 +176,8 @@ public class CustomErrorCodeProviderTest {
 
     // then
     assertThatThrownBy(callable)
-        .extracting("code")
-        .contains(BuiltinExceptionCode.OPTIMISTIC_LOCKING.getCode());
+    .satisfies(ex -> assertThat(ex)
+            .hasFieldOrPropertyWithValue("code", BuiltinExceptionCode.OPTIMISTIC_LOCKING.getCode()));
     assertThat(loggingRule.getLog().get(0).getMessage())
         .contains("Falling back to built-in code");
   }
@@ -202,8 +201,8 @@ public class CustomErrorCodeProviderTest {
 
     // then
     assertThatThrownBy(callable)
-        .extracting("code")
-        .contains(PROVIDED_CUSTOM_CODE);
+    .satisfies(ex -> assertThat(ex)
+            .hasFieldOrPropertyWithValue("code", PROVIDED_CUSTOM_CODE));
   }
 
   @Test
@@ -225,8 +224,8 @@ public class CustomErrorCodeProviderTest {
 
     // then
     assertThatThrownBy(callable)
-        .extracting("code")
-        .contains(BuiltinExceptionCode.FALLBACK.getCode());
+    .satisfies(ex -> assertThat(ex)
+            .hasFieldOrPropertyWithValue("code", BuiltinExceptionCode.FALLBACK.getCode()));
     assertThat(loggingRule.getLog().get(0).getMessage())
         .contains("Falling back to default error code 0.");
   }
@@ -250,8 +249,8 @@ public class CustomErrorCodeProviderTest {
 
     // then
     assertThatThrownBy(callable)
-        .extracting("code")
-        .contains(BuiltinExceptionCode.FALLBACK.getCode());
+    .satisfies(ex -> assertThat(ex)
+            .hasFieldOrPropertyWithValue("code", BuiltinExceptionCode.FALLBACK.getCode()));
     assertThat(loggingRule.getLog().get(0).getMessage())
         .contains("Falling back to default error code 0.");
   }
@@ -275,8 +274,8 @@ public class CustomErrorCodeProviderTest {
 
     // then
     assertThatThrownBy(callable)
-        .extracting("code")
-        .contains(BuiltinExceptionCode.FALLBACK.getCode());
+    .satisfies(ex -> assertThat(ex)
+            .hasFieldOrPropertyWithValue("code", BuiltinExceptionCode.FALLBACK.getCode()));
     assertThat(loggingRule.getLog().get(0).getMessage())
         .contains("Falling back to default error code 0.");
   }
@@ -300,8 +299,8 @@ public class CustomErrorCodeProviderTest {
 
     // then
     assertThatThrownBy(callable)
-        .extracting("code")
-        .contains(22_222);
+    .satisfies(ex -> assertThat(ex)
+            .hasFieldOrPropertyWithValue("code", 22_222));
   }
 
   @Test
@@ -319,8 +318,8 @@ public class CustomErrorCodeProviderTest {
     // when/then
     assertThatThrownBy(() -> runtimeService.startProcessInstanceByKey("process", businessKey))
         .isInstanceOf(ProcessEngineException.class)
-        .extracting("code")
-        .contains(BuiltinExceptionCode.COLUMN_SIZE_TOO_SMALL.getCode());
+        .satisfies(ex -> assertThat(ex)
+                .hasFieldOrPropertyWithValue("code",BuiltinExceptionCode.COLUMN_SIZE_TOO_SMALL.getCode()));
   }
 
   // helper ////////////////////////////////////////////////////////////////////////////////////////

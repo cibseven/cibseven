@@ -24,14 +24,14 @@ import org.cibseven.connect.httpclient.soap.impl.SoapHttpConnectorImpl;
 import org.cibseven.connect.impl.DebugRequestInterceptor;
 import org.cibseven.connect.spi.Connector;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class SoapHttpConnectorTest {
 
   public SoapHttpConnector connector;
 
-  @Before
+  @BeforeEach
   public void createConnector() {
     connector = new SoapHttpConnectorImpl();
   }

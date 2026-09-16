@@ -17,12 +17,13 @@
 package org.cibseven.spin.javascript.xml.dom;
 
 import static org.cibseven.spin.xml.XmlTestConstants.EXAMPLE_XML_FILE_NAME;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import org.cibseven.spin.impl.test.Script;
 import org.cibseven.spin.impl.test.ScriptEngine;
 import org.cibseven.spin.impl.test.ScriptVariable;
 import org.cibseven.spin.xml.dom.XmlDomElementScriptTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Sebastian Menski
@@ -35,7 +36,7 @@ public class XmlDomElementJavascriptTest extends XmlDomElementScriptTest {
    * parameter is null.
    */
 
-  @Test(expected = RuntimeException.class)
+  @Test
   @Script(
     name = "XmlDomElementScriptTest.appendChildElement",
     variables = {
@@ -45,14 +46,16 @@ public class XmlDomElementJavascriptTest extends XmlDomElementScriptTest {
     execute = false
   )
   public void cannotAppendNullChildElement() throws Throwable {
-    failingWithException();
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> 
+      failingWithException()
+    );
   }
 
   /**
    * The Graal.js scripting engine cannot determine the method to call if the
    * parameter is null.
    */
-  @Test(expected = RuntimeException.class)
+  @Test
   @Script(
     name = "XmlDomElementScriptTest.removeChildElement",
     variables = {
@@ -63,7 +66,9 @@ public class XmlDomElementJavascriptTest extends XmlDomElementScriptTest {
     execute = false
   )
   public void cannotRemoveANullChildElement() throws Throwable {
-    failingWithException();
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> 
+      failingWithException()
+    );
   }
 
 }

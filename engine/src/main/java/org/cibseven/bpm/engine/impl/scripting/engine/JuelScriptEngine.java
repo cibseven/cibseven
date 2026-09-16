@@ -32,20 +32,21 @@ import javax.script.SimpleBindings;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.el.ExpressionFactoryResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ArrayELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.BeanELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.CompositeELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELException;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ExpressionFactory;
-import org.cibseven.bpm.impl.juel.jakarta.el.FunctionMapper;
-import org.cibseven.bpm.impl.juel.jakarta.el.ListELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.MapELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ResourceBundleELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ValueExpression;
-import org.cibseven.bpm.impl.juel.jakarta.el.VariableMapper;
 import org.cibseven.bpm.impl.juel.SimpleResolver;
+
+import jakarta.el.ArrayELResolver;
+import jakarta.el.BeanELResolver;
+import jakarta.el.CompositeELResolver;
+import jakarta.el.ELException;
+import jakarta.el.ELResolver;
+import jakarta.el.ELContext;
+import jakarta.el.ExpressionFactory;
+import jakarta.el.ListELResolver;
+import jakarta.el.MapELResolver;
+import jakarta.el.ResourceBundleELResolver;
+import jakarta.el.ValueExpression;
+import jakarta.el.VariableMapper;
+import jakarta.el.FunctionMapper;
 import org.cibseven.bpm.engine.impl.util.ReflectUtil;
 
 
@@ -70,6 +71,8 @@ public class JuelScriptEngine extends AbstractScriptEngine {
 
   public JuelScriptEngine() {
     this(null);
+    SimpleResolver x = new SimpleResolver(false);
+    x.hashCode();
   }
 
   public Object eval(String script, ScriptContext scriptContext) throws ScriptException {

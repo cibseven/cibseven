@@ -23,14 +23,14 @@ import org.cibseven.bpm.engine.history.HistoricProcessInstance;
 import org.cibseven.bpm.engine.impl.HistoricProcessInstanceQueryImpl;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_AUDIT)
 @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
 public class HistoricProcessInstanceQueryVariableIgnoreCaseTest
     extends AbstractVariableIgnoreCaseTest<HistoricProcessInstanceQueryImpl, HistoricProcessInstance> {
 
-  @Before
+  @BeforeEach
   public void init() {
     engineRule.getRuntimeService().startProcessInstanceByKey("oneTaskProcess", VARIABLES);
     instance = engineRule.getHistoryService().createHistoricProcessInstanceQuery().singleResult();

@@ -23,9 +23,9 @@ import static org.cibseven.bpm.engine.test.api.runtime.migration.models.Conditio
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.ConditionalModels.USER_TASK_ID;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.ConditionalModels.VARIABLE_NAME;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.ConditionalModels.VAR_CONDITION;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.File;
 import java.net.URISyntaxException;
@@ -61,26 +61,26 @@ import org.cibseven.bpm.engine.variable.value.StringValue;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_AUDIT)
 public class TransientVariableTest {
 
   private static final int OUTPUT_VALUE = 2;
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
   protected TaskService taskService;
 
-  @Before
+  @BeforeEach
   public void init() {
     this.runtimeService = engineRule.getRuntimeService();
     this.historyService = engineRule.getHistoryService();

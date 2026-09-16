@@ -22,8 +22,8 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.impl.type.PrimitiveValueTypeImpl;
 import org.cibseven.bpm.engine.variable.impl.value.UntypedValueImpl;
 import org.cibseven.bpm.engine.variable.value.DateValue;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Date;
 import java.util.Calendar;
@@ -40,7 +40,7 @@ public class DateValueMapperTest {
 
   protected DateValueMapper dateValueMapper;
 
-  @Before
+  @BeforeEach
   public void setup() {
     dateValueMapper = new DateValueMapper(DATE_FORMAT);
   }
@@ -85,7 +85,7 @@ public class DateValueMapperTest {
 
     // then
     assertThat(dateValue.getType()).isInstanceOf(PrimitiveValueTypeImpl.DateTypeImpl.class);
-    assertThat(dateValue.getValue()).isEqualTo(null);
+    assertThat(dateValue.getValue()).isNull();
   }
 
   @Test

@@ -16,10 +16,10 @@
  */
 package org.cibseven.bpm.engine.impl.cfg.jta;
 
-import javax.transaction.Status;
-import javax.transaction.Synchronization;
-import javax.transaction.Transaction;
-import javax.transaction.TransactionManager;
+import jakarta.transaction.Status;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.Transaction;
+import jakarta.transaction.TransactionManager;
 import org.cibseven.bpm.engine.impl.cfg.TransactionListener;
 import org.cibseven.bpm.engine.impl.cfg.TransactionState;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;

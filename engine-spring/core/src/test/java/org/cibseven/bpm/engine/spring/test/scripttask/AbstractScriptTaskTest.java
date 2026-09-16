@@ -17,8 +17,8 @@
 package org.cibseven.bpm.engine.spring.test.scripttask;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class AbstractScriptTaskTest {
@@ -45,7 +45,7 @@ public abstract class AbstractScriptTaskTest {
 
   private List<String> deploymentIds = new ArrayList<>();
 
-  @After
+  @AfterEach
   public void after() {
     for (String deploymentId : deploymentIds) {
       repositoryService.deleteDeployment(deploymentId, true);

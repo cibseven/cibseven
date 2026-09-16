@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.war;
 
-import org.junit.Assert;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.repository.DeploymentQuery;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
@@ -25,13 +25,13 @@ import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.cibseven.bpm.integrationtest.util.TestHelper;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 
 /**
@@ -64,7 +64,7 @@ import org.junit.runner.RunWith;
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TestWarDeploymentWithMultiplePasAsSubdeployment1 extends AbstractFoxPlatformIntegrationTest {
   
   public final static String PROCESSES_XML = 
@@ -157,7 +157,7 @@ public class TestWarDeploymentWithMultiplePasAsSubdeployment1 extends AbstractFo
         .createDeploymentQuery()
         .deploymentId(processDefinition.getDeploymentId());
     
-    Assert.assertEquals(expectedDeploymentName, deploymentQuery.singleResult().getName());
+    assertThat(deploymentQuery.singleResult().getName()).isEqualTo(expectedDeploymentName);
     
   }
 

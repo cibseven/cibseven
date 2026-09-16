@@ -39,7 +39,7 @@ import org.cibseven.bpm.engine.impl.scripting.engine.ResolverFactory;
 import org.cibseven.bpm.engine.impl.scripting.engine.ScriptBindings;
 import org.cibseven.bpm.engine.impl.scripting.engine.ScriptBindingsFactory;
 import org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link ScriptingEngines}, covering the non-cachable engine

@@ -18,11 +18,11 @@ package org.cibseven.bpm.dmn.feel.impl.juel.el;
 
 import java.lang.reflect.Method;
 
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ExpressionFactory;
-import org.cibseven.bpm.impl.juel.jakarta.el.FunctionMapper;
-import org.cibseven.bpm.impl.juel.jakarta.el.VariableMapper;
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
+import jakarta.el.ExpressionFactory;
+import jakarta.el.FunctionMapper;
+import jakarta.el.VariableMapper;
 
 import org.cibseven.bpm.dmn.feel.impl.juel.FeelEngineLogger;
 import org.cibseven.bpm.dmn.feel.impl.juel.FeelLogger;
