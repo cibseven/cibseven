@@ -33,6 +33,9 @@
     <!-- Version for cibseven-webclient-web -->
     <cibseven-webapp.version>${project.version}</cibseven-webapp.version>
     <version.junit5>5.13.4</version.junit5>
+    <!-- The Spring Framework 7 / Spring Boot 4 trees run on JUnit 6; spring-test 7 is
+         compiled against it and calls ExtensionContext.Store.computeIfAbsent, absent from JUnit 5. -->
+    <version.junit6>6.0.3</version.junit6>
   </properties>
 
   <build>

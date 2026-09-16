@@ -17,8 +17,11 @@
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
+      <!-- No version: run4 follows Spring Boot 4, which manages JUnit 6. Pinning this to
+           ${version.junit5} put Jupiter 5 next to spring-test 7 on the same classpath, which
+           fails with NoSuchMethodError on Store.computeIfAbsent as soon as a test uses
+           SpringExtension. -->
       <artifactId>junit-jupiter</artifactId>
-      <version>${version.junit5}</version>
       <scope>test</scope>
     </dependency>
 

@@ -55,6 +55,9 @@
     <version.log4j2>2.25.5</version.log4j2>
     <version.mockito>5.20.0</version.mockito>
     <version.junit5>5.13.4</version.junit5>
+    <!-- The Spring Framework 7 / Spring Boot 4 trees run on JUnit 6; spring-test 7 is
+         compiled against it and calls ExtensionContext.Store.computeIfAbsent, absent from JUnit 5. -->
+    <version.junit6>6.0.3</version.junit6>
     <version.assertj>3.27.7</version.assertj>
     <version.wiremock>3.0.1</version.wiremock>
 
