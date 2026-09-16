@@ -26,11 +26,19 @@
 
   <dependencyManagement>
     <dependencies>
-      <!-- Must stay FIRST: among imported BOMs the earliest declaration wins. distro/run4/pom.xml
-           imports spring-boot-dependencies, which manages the JUnit artifacts itself, so without
-           this import the engine and platform are pinned by Spring Boot rather than by
-           ${version.junit5}. A provider/platform mismatch makes failsafe report "No tests to run"
-           instead of failing, so the suite goes silently green. -->
+      <!-- Must stay FIRST: among imported BOMs the earliest declaration wins.
+
+           This deliberately holds the QA subtree on JUnit ${version.junit5} while the rest of
+           run4 follows Spring Boot 4, which manages JUnit 6. The QA tests pin the Jupiter
+           artifacts to ${version.junit5} and drive the distro as an external process, so they
+           never touch SpringExtension and do not need the JUnit 6 API; without this import they
+           would get Jupiter from the pin and junit-platform-* from Spring Boot, and a
+           provider/platform mismatch makes failsafe report "No tests to run" instead of failing,
+           so the suite goes silently green.
+
+           Do not add a junit-bom import to distro/run4/pom.xml itself: that downgrades Jupiter
+           for run4/core, whose tests use SpringExtension from spring-test 7, which requires
+           JUnit 6 and fails with NoSuchMethodError on Store.computeIfAbsent. -->
       <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
