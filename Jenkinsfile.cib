@@ -747,29 +747,25 @@ pipeline {
     }
 }
 
-// Split in two on purpose: "Collect alignment facts" pays the one Maven start-up
+// Split in two on purpose: collecting the facts pays the one Maven start-up
 // that resolves the effective pom and warms the local repository, and the branches
 // that follow are pure shell reading those facts.
 //
 // Adding a library: drop a check-<name>-alignment.sh next to the collector. It is
-// picked up by both stages on its own -- the collector pre-fetches whatever the
+// picked up by both halves on its own -- the collector pre-fetches whatever the
 // script declares via --requires, and the branch map below discovers it by name.
 def checkDepVersionAlignment() {
     boolean factsCollected = false
 
-    // Its own stage so a collector failure is visible as itself, and does not
-    // read as the whole alignment check going wrong.
-    stage('Collect alignment facts') {
-        withMaven(options: []) {
-            catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                sh 'bash .ci/scripts/alignment/collect-alignment-facts.sh'
-                factsCollected = true
-            }
+    withMaven(options: []) {
+        catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+            sh 'bash .ci/scripts/alignment/collect-alignment-facts.sh'
+            factsCollected = true
         }
     }
 
     // Without the facts every branch would only report the same collector
-    // failure, so stay quiet and let that stage speak.
+    // failure, so stay quiet and let the collector's own error speak.
     if (!factsCollected) {
         return
     }
