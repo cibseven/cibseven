@@ -165,51 +165,57 @@ pipeline {
         // Compares the third-party versions pinned in parent/pom.xml against the Spring Boot
         // BOMs we import, and against each other where two of our pins have to agree.
         //
-        // Split in two on purpose: the "Collect alignment facts" stage pays the one Maven
-        // start-up that resolves the effective pom and warms the local repository, 
-        // and the matrix cells that follow are pure shell reading those facts. 
+        // Split in two on purpose: "Collect alignment facts" pays the one Maven start-up
+        // that resolves the effective pom and warms the local repository, and the branches
+        // that follow are pure shell reading those facts.
         //
-        // Adding a library: The collector picks the new script up by itself 
-        // and pre-fetches whatever it declares via --requires.
-        stage('Dependency Version Alignment Check') {
-            stages {
-                stage('Collect alignment facts') {
-                    steps {
-                        script {
-                            withMaven(options: []) {
-                                catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                                    sh 'bash .ci/scripts/alignment/collect-alignment-facts.sh'
-                                    alignmentFactsCollected = true
-                                }
-                            }
+        // Adding a library: drop a check-<name>-alignment.sh next to the collector. It is
+        // picked up by both stages on its own -- the collector pre-fetches whatever the
+        // script declares via --requires, and the branch map below discovers it by name.
+        stage('Collect alignment facts') {
+            steps {
+                script {
+                    withMaven(options: []) {
+                        catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                            sh 'bash .ci/scripts/alignment/collect-alignment-facts.sh'
+                            alignmentFactsCollected = true
                         }
                     }
                 }
+            }
+        }
 
-                stage('Alignment checks') {
-                    matrix {
-                        axes {
-                            axis {
-                                name 'ALIGNMENT_CHECK'
-                                values 'spring'
-                            }
-                        }
-                        stages {
-                            stage('Check') {
-                                // Without the facts every cell would only report the same
-                                // collector failure, so stay quiet and let that stage speak.
-                                when {
-                                    expression { alignmentFactsCollected }
-                                }
-                                steps {
-                                    // No withMaven: the checks invoke no Maven at all.
-                                    catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                                        sh 'bash .ci/scripts/alignment/check-${ALIGNMENT_CHECK}-alignment.sh'
-                                    }
+        stage('Alignment checks') {
+            // Without the facts every branch would only report the same collector
+            // failure, so stay quiet and let that stage speak.
+            when {
+                expression { alignmentFactsCollected }
+            }
+            steps {
+                script {
+                    def paths = sh(
+                        script: 'ls .ci/scripts/alignment/check-*-alignment.sh',
+                        returnStdout: true
+                    ).trim().split('\n')
+
+                    def branches = [:]
+                    for (String path : paths) {
+                        // Copied into per-iteration locals: a closure capturing the loop
+                        // variable would run the last script in every branch.
+                        String file = path
+                        String name = file.substring(file.lastIndexOf('/') + 1)
+                                          .replace('check-', '')
+                                          .replace('-alignment.sh', '')
+                        branches[name] = {
+                            stage(name) {
+                                // No withMaven: the checks invoke no Maven at all.
+                                catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                                    sh "bash ${file}"
                                 }
                             }
                         }
                     }
+                    parallel branches
                 }
             }
             post {
