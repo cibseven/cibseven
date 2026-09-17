@@ -163,7 +163,7 @@ pipeline {
 
         // Compares the third-party versions pinned in parent/pom.xml against the Spring Boot
         // BOMs we import, and against each other where two of our pins have to agree.
-        // The steps it runs are in checkDepVersionAlignment() at the bottom of this file.
+        // Further info in CIB7-1990
         stage('Dependency version alignment check') {
             steps {
                 script {
