@@ -786,8 +786,22 @@ def checkDepVersionAlignment() {
         branches[name] = {
             stage(name) {
                 // No withMaven: the checks invoke no Maven at all.
-                catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                    sh "bash ${file}"
+                //
+                // 0 = aligned, 1 = a version does not match its reference, anything
+                // else = the check could not run and says nothing about alignment.
+                // The last two mean opposite things, so they are told apart by stage
+                // result: yellow is a finding to act on in parent/pom.xml, red is a
+                // broken check. A broken check rendering yellow would read as "we
+                // looked and it is nearly fine" when nothing was looked at.
+                int rc = sh(script: "bash ${file}", returnStatus: true)
+                if (rc == 1) {
+                    unstable("${name}: versions are misaligned")
+                } else if (rc != 0) {
+                    // buildResult UNSTABLE, stageResult FAILURE: the node goes red
+                    // without failing the build.
+                    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                        error("${name}: check could not run (exit ${rc})")
+                    }
                 }
             }
         }
