@@ -59,6 +59,7 @@ public class BpmPlatformSubsystemWithExpressionsTest extends AbstractSubsystemBa
     }
   }
   
+
   @Override
   protected String getSubsystemXml() throws IOException {
     try {

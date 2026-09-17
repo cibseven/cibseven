@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.api.runtime;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.db.entitymanager.DbEntityManager;
@@ -29,7 +29,7 @@ import org.cibseven.bpm.engine.impl.persistence.entity.ByteArrayEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  *

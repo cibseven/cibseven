@@ -18,8 +18,8 @@ package org.cibseven.bpm.identity.impl.scim;
 
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.identity.impl.scim.plugin.ScimIdentityProviderPlugin;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -34,7 +34,7 @@ public class ScimIdentityProviderPluginTest {
   private ScimIdentityProviderPlugin plugin;
   private ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void setup() {
     plugin = new ScimIdentityProviderPlugin();
     processEngineConfiguration = mock(ProcessEngineConfigurationImpl.class);

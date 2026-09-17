@@ -17,13 +17,15 @@
 package org.cibseven.spin.json.tree;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.cibseven.spin.json.JsonTestConstants.EXAMPLE_JSON_FILE_NAME;
 
 import org.cibseven.spin.impl.test.Script;
 import org.cibseven.spin.impl.test.ScriptTest;
 import org.cibseven.spin.impl.test.ScriptVariable;
+import org.cibseven.spin.json.SpinJsonDataFormatException;
 import org.cibseven.spin.json.SpinJsonPropertyException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -51,18 +53,22 @@ public abstract class JsonTreeRemovePropertyScriptTest extends ScriptTest {
     assertThat(value2).isFalse();
   }
 
-  @Test(expected = SpinJsonPropertyException.class)
+  @Test
   @Script(execute = false)
   @ScriptVariable(name = "input", file = EXAMPLE_JSON_FILE_NAME)
   public void shouldFailWhileRemovingPropertyByName() throws Throwable{
-    failingWithException();
+    assertThatExceptionOfType(SpinJsonPropertyException.class).isThrownBy(() -> 
+      failingWithException()
+    );
   }
 
-  @Test(expected = SpinJsonPropertyException.class)
+  @Test
   @Script(execute = false)
   @ScriptVariable(name = "input", file = EXAMPLE_JSON_FILE_NAME)
   public void shouldFailWhileRemovingPropertyByList() throws Throwable{
-    failingWithException();
+    assertThatExceptionOfType(SpinJsonPropertyException.class).isThrownBy(() -> 
+    failingWithException()
+  );
   }
 
 }

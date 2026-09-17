@@ -22,7 +22,7 @@ import org.cibseven.bpm.engine.impl.identity.Authentication;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.rest.dto.externaltask.FetchExternalTasksExtendedDto;
 
-import javax.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.container.AsyncResponse;
 
 /**
  * @author Tassilo Weidner

@@ -39,13 +39,12 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Authorization tests for {@code RepositoryService#deleteDeploymentsAsync} (CIB7-1597).
@@ -60,18 +59,17 @@ import org.junit.runners.Parameterized;
  * selection would silently drop the deployment before any DELETE check ever runs, rather than
  * exercising the permission gap under test.
  */
-@RunWith(Parameterized.class)
 public class DeleteDeploymentsBatchAuthorizationTest {
 
+  @RegisterExtension
+  @Order(1)
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2)
   protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3)
   protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
-
-  @Parameterized.Parameter
-  public AuthorizationScenario scenario;
 
   protected RepositoryService repositoryService;
   protected ManagementService managementService;
@@ -80,7 +78,6 @@ public class DeleteDeploymentsBatchAuthorizationTest {
   protected Deployment deployment2;
   protected Batch batch;
 
-  @Parameterized.Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
         // no right to create the batch at all - deployment-level rights are irrelevant,
@@ -132,30 +129,22 @@ public class DeleteDeploymentsBatchAuthorizationTest {
     );
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     batch = null;
     authRule.createUserAndGroup("userId", "groupId");
     repositoryService = engineRule.getRepositoryService();
     managementService = engineRule.getManagementService();
-  }
-
-  @Before
-  public void deployDeployments() {
     deployment1 = deploy("process1");
     deployment2 = deploy("process2");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (batch != null) {
       managementService.deleteBatch(batch.getId(), true);
     }
     authRule.deleteUsersAndGroups();
-  }
-
-  @After
-  public void deleteRemainingDeployments() {
     for (Deployment deployment : repositoryService.createDeploymentQuery().list()) {
       repositoryService.deleteDeployment(deployment.getId(), true);
     }
@@ -169,8 +158,9 @@ public class DeleteDeploymentsBatchAuthorizationTest {
         .deploy();
   }
 
-  @Test
-  public void testDeploymentIdsList() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testDeploymentIdsList(AuthorizationScenario scenario) {
     // given
     authRule
         .init(scenario)
@@ -189,8 +179,9 @@ public class DeleteDeploymentsBatchAuthorizationTest {
     }
   }
 
-  @Test
-  public void testDeploymentIdsListReversed() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testDeploymentIdsListReversed(AuthorizationScenario scenario) {
     // same as testDeploymentIdsList but with the ids in reverse order [d2, d1]:
     // the per-deployment DELETE check must not depend on the position in the list
     authRule
@@ -210,8 +201,9 @@ public class DeleteDeploymentsBatchAuthorizationTest {
     }
   }
 
-  @Test
-  public void testWithQuery() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testWithQuery(AuthorizationScenario scenario) {
     // given
     DeploymentQuery query = repositoryService.createDeploymentQuery();
 
@@ -231,8 +223,9 @@ public class DeleteDeploymentsBatchAuthorizationTest {
     }
   }
 
-  @Test
-  public void testMixedIdsAndQuery() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testMixedIdsAndQuery(AuthorizationScenario scenario) {
     // given: deployment1 is selected explicitly, deployment2 comes in only via the query
     DeploymentQuery query = repositoryService.createDeploymentQuery().deploymentId(deployment2.getId());
 

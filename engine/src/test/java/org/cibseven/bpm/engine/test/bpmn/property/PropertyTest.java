@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.test.bpmn.property;
 
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Joram Barrez

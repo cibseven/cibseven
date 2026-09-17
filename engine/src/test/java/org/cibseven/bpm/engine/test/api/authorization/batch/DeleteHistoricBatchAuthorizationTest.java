@@ -20,8 +20,14 @@ import static org.cibseven.bpm.engine.history.UserOperationLogEntry.CATEGORY_OPE
 import static org.cibseven.bpm.engine.history.UserOperationLogEntry.OPERATION_TYPE_DELETE_HISTORY;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario.scenario;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec.grant;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,36 +48,18 @@ import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
 
-/**
- * @author Thorben Lindhauer
- *
- */
-@RunWith(Parameterized.class)
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class DeleteHistoricBatchAuthorizationTest {
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(1) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
-
-  @Parameter
-  public AuthorizationScenario scenario;
-
-  @Parameters(name = "Scenario {index}")
-  public static Collection<AuthorizationScenario[]> scenarios() {
+  static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
       scenario()
         .withoutAuthorizations()
@@ -87,12 +75,12 @@ public class DeleteHistoricBatchAuthorizationTest {
   protected MigrationPlan migrationPlan;
   protected Batch batch;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     authRule.createUserAndGroup("userId", "groupId");
   }
 
-  @Before
+  @BeforeEach
   public void deployProcessesAndCreateMigrationPlan() {
     ProcessDefinition sourceDefinition = testHelper.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
     ProcessDefinition targetDefinition = testHelper.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
@@ -103,18 +91,19 @@ public class DeleteHistoricBatchAuthorizationTest {
         .build();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
   }
 
-  @After
+  @AfterEach
   public void deleteBatch() {
     engineRule.getManagementService().deleteBatch(batch.getId(), true);
   }
 
-  @Test
-  public void testDeleteBatch() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testDeleteBatch(AuthorizationScenario scenario) {
 
     // given
     ProcessInstance processInstance = engineRule.getRuntimeService().startProcessInstanceById(migrationPlan.getSourceProcessDefinitionId());

@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.impl.cfg.jta;
 
-import javax.transaction.TransactionManager;
+import jakarta.transaction.TransactionManager;
 
 import org.cibseven.bpm.engine.impl.cfg.TransactionContext;
 import org.cibseven.bpm.engine.impl.cfg.TransactionContextFactory;

@@ -16,10 +16,10 @@
  */
 package org.cibseven.bpm.dmn.feel.impl.juel.el;
 
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.FunctionMapper;
-import org.cibseven.bpm.impl.juel.jakarta.el.VariableMapper;
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
+import jakarta.el.FunctionMapper;
+import jakarta.el.VariableMapper;
 
 public class FeelElContext extends ELContext {
 

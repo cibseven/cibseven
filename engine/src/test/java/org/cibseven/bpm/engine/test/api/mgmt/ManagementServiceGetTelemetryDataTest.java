@@ -38,16 +38,17 @@ import org.cibseven.bpm.engine.telemetry.Metric;
 import org.cibseven.bpm.engine.telemetry.TelemetryData;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class ManagementServiceGetTelemetryDataTest {
 
   protected static final String IS_TELEMETRY_ENABLED_CMD_NAME = "IsTelemetryEnabledCmd";
 
-  @Rule
+  @RegisterExtension
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected ProcessEngineConfigurationImpl configuration;
@@ -57,7 +58,7 @@ public class ManagementServiceGetTelemetryDataTest {
 
   protected TelemetryDataImpl defaultTelemetryData;
 
-  @Before
+  @BeforeEach
   public void setup() {
     configuration = engineRule.getProcessEngineConfiguration();
     managementService = (ManagementServiceImpl) engineRule.getManagementService();
@@ -68,7 +69,7 @@ public class ManagementServiceGetTelemetryDataTest {
     clearTelemetry();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     clearTelemetry();
 

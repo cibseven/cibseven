@@ -19,8 +19,8 @@ package org.cibseven.bpm.spring.boot.starter.webapp;
 import org.cibseven.bpm.spring.boot.starter.CamundaBpmAutoConfiguration;
 import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
 import org.cibseven.bpm.spring.boot.starter.property.WebappProperty;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
@@ -45,7 +45,7 @@ public class CamundaBpmWebappAutoConfigurationIntegrationTest {
 
   private WebApplicationContextRunner contextRunner;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     AutoConfigurations autoConfigurationsUnderTest = AutoConfigurations.of(CamundaBpmAutoConfiguration.class, CamundaBpmWebappAutoConfiguration.class);
     AutoConfigurations additionalAutoConfigurations = AutoConfigurations.of(DataSourceAutoConfiguration.class, DataSourceTransactionManagerAutoConfiguration.class);

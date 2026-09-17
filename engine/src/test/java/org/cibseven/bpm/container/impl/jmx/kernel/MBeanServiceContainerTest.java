@@ -16,11 +16,11 @@
  */
 package org.cibseven.bpm.container.impl.jmx.kernel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -35,9 +35,10 @@ import org.cibseven.bpm.container.impl.jmx.kernel.util.StopServiceDeploymentOper
 import org.cibseven.bpm.container.impl.jmx.kernel.util.TestService;
 import org.cibseven.bpm.container.impl.jmx.kernel.util.TestServiceType;
 import org.cibseven.bpm.container.impl.spi.PlatformService;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * Testcases for the {@link MBeanServiceContainer} Kernel.
@@ -64,12 +65,12 @@ public class MBeanServiceContainerTest {
   private TestService service3 = new TestService();
   private TestService service4 = new TestService();
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     serviceContainer = new MBeanServiceContainer();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     // make sure all MBeans are removed after each test
     MBeanServer mBeanServer = serviceContainer.getmBeanServer();

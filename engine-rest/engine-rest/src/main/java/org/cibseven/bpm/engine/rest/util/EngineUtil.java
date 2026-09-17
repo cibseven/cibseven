@@ -20,7 +20,7 @@ import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.rest.exception.RestException;
 import org.cibseven.bpm.engine.rest.spi.ProcessEngineProvider;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 

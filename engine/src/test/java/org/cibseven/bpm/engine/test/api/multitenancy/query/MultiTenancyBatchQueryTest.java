@@ -21,6 +21,7 @@ import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.batchByT
 import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.batchStatisticsByTenantId;
 import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.inverted;
 import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.verifySorting;
+import org.junit.jupiter.api.Assertions;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -33,16 +34,16 @@ import org.cibseven.bpm.engine.batch.Batch;
 import org.cibseven.bpm.engine.batch.BatchStatistics;
 import org.cibseven.bpm.engine.exception.NullValueException;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
+import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.batch.BatchMigrationHelper;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 /**
  * @author Thorben Lindhauer
@@ -53,13 +54,12 @@ public class MultiTenancyBatchQueryTest {
   protected static final String TENANT_ONE = "tenant1";
   protected static final String TENANT_TWO = "tenant2";
 
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain defaultRuleChin = RuleChain.outerRule(engineRule).around(testHelper);
-
-  protected BatchMigrationHelper batchHelper = new BatchMigrationHelper(engineRule);
+  protected BatchMigrationHelper batchHelper;
 
   protected ManagementService managementService;
   protected IdentityService identityService;
@@ -68,24 +68,25 @@ public class MultiTenancyBatchQueryTest {
   protected Batch tenant1Batch;
   protected Batch tenant2Batch;
 
-  @Before
+  @BeforeEach
   public void initServices() {
+	batchHelper = new BatchMigrationHelper(engineRule);
     managementService= engineRule.getManagementService();
     identityService = engineRule.getIdentityService();
   }
 
-  @Before
+  @BeforeEach
   public void deployProcesses() {
-    ProcessDefinition sharedDefinition = testHelper.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
-    ProcessDefinition tenant1Definition = testHelper.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
-    ProcessDefinition tenant2Definition = testHelper.deployForTenantAndGetDefinition(TENANT_TWO, ProcessModels.ONE_TASK_PROCESS);
+    ProcessDefinition sharedDefinition = testRule.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
+    ProcessDefinition tenant1Definition = testRule.deployForTenantAndGetDefinition(TENANT_ONE, ProcessModels.ONE_TASK_PROCESS);
+    ProcessDefinition tenant2Definition = testRule.deployForTenantAndGetDefinition(TENANT_TWO, ProcessModels.ONE_TASK_PROCESS);
 
     sharedBatch = batchHelper.migrateProcessInstanceAsync(sharedDefinition, sharedDefinition);
     tenant1Batch = batchHelper.migrateProcessInstanceAsync(tenant1Definition, tenant1Definition);
     tenant2Batch = batchHelper.migrateProcessInstanceAsync(tenant2Definition, tenant2Definition);
   }
 
-  @After
+  @AfterEach
   public void removeBatches() {
     batchHelper.removeAllRunningAndHistoricBatches();
   }
@@ -97,10 +98,10 @@ public class MultiTenancyBatchQueryTest {
 
     // then
     List<Batch> batches = managementService.createBatchQuery().list();
-    Assert.assertEquals(1, batches.size());
-    Assert.assertEquals(sharedBatch.getId(), batches.get(0).getId());
+    Assertions.assertEquals(1, batches.size());
+    Assertions.assertEquals(sharedBatch.getId(), batches.get(0).getId());
 
-    Assert.assertEquals(1, managementService.createBatchQuery().count());
+    Assertions.assertEquals(1, managementService.createBatchQuery().count());
 
     identityService.clearAuthentication();
   }
@@ -114,10 +115,10 @@ public class MultiTenancyBatchQueryTest {
     List<Batch> batches = managementService.createBatchQuery().list();
 
     // then
-    Assert.assertEquals(2, batches.size());
+    Assertions.assertEquals(2, batches.size());
     assertBatches(batches, tenant1Batch.getId(), sharedBatch.getId());
 
-    Assert.assertEquals(2, managementService.createBatchQuery().count());
+    Assertions.assertEquals(2, managementService.createBatchQuery().count());
 
     identityService.clearAuthentication();
   }
@@ -131,8 +132,8 @@ public class MultiTenancyBatchQueryTest {
     List<Batch> batches = managementService.createBatchQuery().list();
 
     // then
-    Assert.assertEquals(3, batches.size());
-    Assert.assertEquals(3, managementService.createBatchQuery().count());
+    Assertions.assertEquals(3, batches.size());
+    Assertions.assertEquals(3, managementService.createBatchQuery().count());
 
     identityService.clearAuthentication();
   }
@@ -146,10 +147,10 @@ public class MultiTenancyBatchQueryTest {
     List<BatchStatistics> statistics = managementService.createBatchStatisticsQuery().list();
 
     // then
-    Assert.assertEquals(1, statistics.size());
-    Assert.assertEquals(sharedBatch.getId(), statistics.get(0).getId());
+    Assertions.assertEquals(1, statistics.size());
+    Assertions.assertEquals(sharedBatch.getId(), statistics.get(0).getId());
 
-    Assert.assertEquals(1, managementService.createBatchStatisticsQuery().count());
+    Assertions.assertEquals(1, managementService.createBatchStatisticsQuery().count());
 
     identityService.clearAuthentication();
   }
@@ -163,9 +164,9 @@ public class MultiTenancyBatchQueryTest {
     List<BatchStatistics> statistics = managementService.createBatchStatisticsQuery().list();
 
     // then
-    Assert.assertEquals(2, statistics.size());
+    Assertions.assertEquals(2, statistics.size());
 
-    Assert.assertEquals(2, managementService.createBatchStatisticsQuery().count());
+    Assertions.assertEquals(2, managementService.createBatchStatisticsQuery().count());
 
     identityService.clearAuthentication();
   }
@@ -177,9 +178,9 @@ public class MultiTenancyBatchQueryTest {
 
     // then
     List<BatchStatistics> statistics = managementService.createBatchStatisticsQuery().list();
-    Assert.assertEquals(3, statistics.size());
+    Assertions.assertEquals(3, statistics.size());
 
-    Assert.assertEquals(3, managementService.createBatchStatisticsQuery().count());
+    Assertions.assertEquals(3, managementService.createBatchStatisticsQuery().count());
 
     identityService.clearAuthentication();
   }
@@ -190,8 +191,8 @@ public class MultiTenancyBatchQueryTest {
     Batch returnedBatch = managementService.createBatchQuery().tenantIdIn(TENANT_ONE).singleResult();
 
     // then
-    Assert.assertNotNull(returnedBatch);
-    Assert.assertEquals(tenant1Batch.getId(), returnedBatch.getId());
+    Assertions.assertNotNull(returnedBatch);
+    Assertions.assertEquals(tenant1Batch.getId(), returnedBatch.getId());
   }
 
   @Test
@@ -204,9 +205,9 @@ public class MultiTenancyBatchQueryTest {
       .list();
 
     // then
-    Assert.assertEquals(2, returnedBatches.size());
-    Assert.assertEquals(tenant1Batch.getId(), returnedBatches.get(0).getId());
-    Assert.assertEquals(tenant2Batch.getId(), returnedBatches.get(1).getId());
+    Assertions.assertEquals(2, returnedBatches.size());
+    Assertions.assertEquals(tenant1Batch.getId(), returnedBatches.get(0).getId());
+    Assertions.assertEquals(tenant2Batch.getId(), returnedBatches.get(1).getId());
   }
 
   @Test
@@ -215,8 +216,8 @@ public class MultiTenancyBatchQueryTest {
     Batch returnedBatch = managementService.createBatchQuery().withoutTenantId().singleResult();
 
     // then
-    Assert.assertNotNull(returnedBatch);
-    Assert.assertEquals(sharedBatch.getId(), returnedBatch.getId());
+    Assertions.assertNotNull(returnedBatch);
+    Assertions.assertEquals(sharedBatch.getId(), returnedBatch.getId());
   }
 
   @Test
@@ -225,7 +226,7 @@ public class MultiTenancyBatchQueryTest {
     String[] tenantIds = null;
     try {
       managementService.createBatchQuery().tenantIdIn(tenantIds);
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     }
     catch (NullValueException e) {
       // happy path
@@ -238,7 +239,7 @@ public class MultiTenancyBatchQueryTest {
     String[] tenantIds = new String[]{ null };
     try {
       managementService.createBatchQuery().tenantIdIn(tenantIds);
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     }
     catch (NullValueException e) {
       // happy path
@@ -271,8 +272,8 @@ public class MultiTenancyBatchQueryTest {
     BatchStatistics returnedBatch = managementService.createBatchStatisticsQuery().tenantIdIn(TENANT_ONE).singleResult();
 
     // then
-    Assert.assertNotNull(returnedBatch);
-    Assert.assertEquals(tenant1Batch.getId(), returnedBatch.getId());
+    Assertions.assertNotNull(returnedBatch);
+    Assertions.assertEquals(tenant1Batch.getId(), returnedBatch.getId());
   }
 
   @Test
@@ -285,9 +286,9 @@ public class MultiTenancyBatchQueryTest {
       .list();
 
     // then
-    Assert.assertEquals(2, returnedBatches.size());
-    Assert.assertEquals(tenant1Batch.getId(), returnedBatches.get(0).getId());
-    Assert.assertEquals(tenant2Batch.getId(), returnedBatches.get(1).getId());
+    Assertions.assertEquals(2, returnedBatches.size());
+    Assertions.assertEquals(tenant1Batch.getId(), returnedBatches.get(0).getId());
+    Assertions.assertEquals(tenant2Batch.getId(), returnedBatches.get(1).getId());
   }
 
   @Test
@@ -296,8 +297,8 @@ public class MultiTenancyBatchQueryTest {
     BatchStatistics returnedBatch = managementService.createBatchStatisticsQuery().withoutTenantId().singleResult();
 
     // then
-    Assert.assertNotNull(returnedBatch);
-    Assert.assertEquals(sharedBatch.getId(), returnedBatch.getId());
+    Assertions.assertNotNull(returnedBatch);
+    Assertions.assertEquals(sharedBatch.getId(), returnedBatch.getId());
   }
 
   @Test
@@ -306,7 +307,7 @@ public class MultiTenancyBatchQueryTest {
     String[] tenantIds = null;
     try {
       managementService.createBatchStatisticsQuery().tenantIdIn(tenantIds);
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     }
     catch (NullValueException e) {
       // happy path
@@ -319,7 +320,7 @@ public class MultiTenancyBatchQueryTest {
     String[] tenantIds = new String[]{ null };
     try {
       managementService.createBatchStatisticsQuery().tenantIdIn(tenantIds);
-      Assert.fail("exception expected");
+      Assertions.fail("exception expected");
     }
     catch (NullValueException e) {
       // happy path
@@ -345,7 +346,7 @@ public class MultiTenancyBatchQueryTest {
   }
 
   protected void assertBatches(List<? extends Batch> actualBatches, String... expectedIds) {
-    Assert.assertEquals(expectedIds.length, actualBatches.size());
+    Assertions.assertEquals(expectedIds.length, actualBatches.size());
 
     Set<String> actualIds = new HashSet<String>();
     for (Batch batch : actualBatches) {
@@ -353,7 +354,7 @@ public class MultiTenancyBatchQueryTest {
     }
 
     for (String expectedId : expectedIds) {
-      Assert.assertTrue(actualIds.contains(expectedId));
+      Assertions.assertTrue(actualIds.contains(expectedId));
     }
   }
 }

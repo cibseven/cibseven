@@ -18,8 +18,8 @@ package org.cibseven.bpm.model.bpmn;
 
 import org.cibseven.bpm.model.bpmn.instance.ConditionExpression;
 import org.cibseven.bpm.model.bpmn.instance.SequenceFlow;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -36,7 +36,7 @@ public class ConditionalSequenceFlowTest {
   protected ConditionExpression conditionExpression2;
   protected ConditionExpression conditionExpression3;
 
-  @Before
+  @BeforeEach
   public void parseModel() {
     modelInstance = Bpmn.readModelFromStream(getClass().getResourceAsStream(getClass().getSimpleName() + ".xml"));
     flow1 = modelInstance.getModelElementById("flow1");

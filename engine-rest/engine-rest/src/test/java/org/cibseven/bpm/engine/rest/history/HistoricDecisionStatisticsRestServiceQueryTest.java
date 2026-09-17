@@ -22,13 +22,13 @@ import org.cibseven.bpm.engine.impl.HistoricDecisionInstanceStatisticsQueryImpl;
 import org.cibseven.bpm.engine.rest.AbstractRestServiceTest;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
@@ -44,7 +44,7 @@ import static org.mockito.Mockito.when;
  */
 public class HistoricDecisionStatisticsRestServiceQueryTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String HISTORY_URL = TEST_RESOURCE_ROOT_PATH + "/history";
@@ -52,12 +52,12 @@ public class HistoricDecisionStatisticsRestServiceQueryTest extends AbstractRest
 
   private HistoricDecisionInstanceStatisticsQuery historicDecisionInstanceStatisticsQuery;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     setupHistoricDecisionStatisticsMock();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     Mockito.reset(processEngine.getHistoryService(), historicDecisionInstanceStatisticsQuery);
   }

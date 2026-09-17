@@ -31,21 +31,22 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class UserOperationLogProcessInstanceTest {
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule rule = new ProvidedProcessEngineRule();
 
   protected RuntimeService runtimeService;
   protected FormService formService;
   protected HistoryService historyService;
 
-  @Before
+  @BeforeEach
   public void setup() {
     runtimeService = rule.getRuntimeService();
     formService = rule.getFormService();

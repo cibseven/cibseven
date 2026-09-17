@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.event.escalation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,8 +25,8 @@ import java.util.Map;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Philipp Ossler
@@ -164,7 +164,7 @@ public class EscalationEventTest extends PluggableProcessEngineTest {
    * current bug: default value of 'cancelActivity' is 'true'
    */
   @Deployment
-  @Ignore("CAM-4403")
+  @Disabled("CAM-4403")
   @Test
   public void testImplicitNonInterruptingEscalationBoundaryEvent() {
     runtimeService.startProcessInstanceByKey("escalationProcess");

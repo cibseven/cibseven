@@ -16,11 +16,11 @@
  */
 package org.cibseven.bpm.engine.test.standalone.interceptor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.context.Context;
@@ -31,7 +31,7 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Tom Baeyens
@@ -94,8 +94,7 @@ public class CommandContextInterceptorTest extends PluggableProcessEngineTest {
           fail("exception expected to pop up during execution of inner command");
         } catch (IdentifiableRuntimeException e) {
           // happy path
-          assertNull("the exception should not have been propagated to this command's context",
-              Context.getCommandInvocationContext().getThrowable());
+          assertNull(Context.getCommandInvocationContext().getThrowable(), "the exception should not have been propagated to this command's context");
         }
 
         return null;

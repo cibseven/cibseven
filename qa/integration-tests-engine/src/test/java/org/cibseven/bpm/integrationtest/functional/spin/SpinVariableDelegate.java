@@ -16,9 +16,10 @@
  */
 package org.cibseven.bpm.integrationtest.functional.spin;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
-import org.junit.Assert;
 
 /**
  * @author Daniel Meyer
@@ -29,7 +30,7 @@ public class SpinVariableDelegate implements JavaDelegate {
   public void execute(DelegateExecution execution) throws Exception {
 
     XmlSerializable xmlSerializable = (XmlSerializable) execution.getVariable("xmlSerializable");
-    Assert.assertEquals("value", xmlSerializable.getProperty());
+    assertThat(xmlSerializable.getProperty()).isEqualTo("value");
 
   }
 

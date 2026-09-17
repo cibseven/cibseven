@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.dmn.beans;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 @Named
 public class VersionTagBean {

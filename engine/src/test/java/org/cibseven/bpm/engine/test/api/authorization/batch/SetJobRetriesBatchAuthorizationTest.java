@@ -18,7 +18,12 @@ package org.cibseven.bpm.engine.test.api.authorization.batch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec.grant;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,18 +45,11 @@ import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenarioWithCount;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 
 /**
  * @author Askar Akhmerov
  */
-@RunWith(Parameterized.class)
 public class SetJobRetriesBatchAuthorizationTest extends AbstractBatchAuthorizationTest {
 
   protected static final String DEFINITION_XML = "org/cibseven/bpm/engine/test/api/mgmt/ManagementServiceTest.testGetJobExceptionStacktrace.bpmn20.xml";
@@ -74,16 +72,10 @@ public class SetJobRetriesBatchAuthorizationTest extends AbstractBatchAuthorizat
     return result;
   }
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
-
-  @Parameterized.Parameter
-  public AuthorizationScenarioWithCount scenario;
-
   @Override
-  @Before
+  @BeforeEach
   public void deployProcesses() {
-    Deployment deploy = testHelper.deploy(DEFINITION_XML);
+    Deployment deploy = testRule.deploy(DEFINITION_XML);
     sourceDefinition = engineRule.getRepositoryService()
         .createProcessDefinitionQuery().deploymentId(deploy.getId()).singleResult();
     processInstance = engineRule.getRuntimeService().startProcessInstanceById(sourceDefinition.getId());
@@ -91,7 +83,6 @@ public class SetJobRetriesBatchAuthorizationTest extends AbstractBatchAuthorizat
   }
 
 
-  @Parameterized.Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
         AuthorizationScenarioWithCount.scenario()
@@ -129,65 +120,71 @@ public class SetJobRetriesBatchAuthorizationTest extends AbstractBatchAuthorizat
     );
   }
 
-  @Test
-  public void testWithTwoInvocationsJobsListBased() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testWithTwoInvocationsJobsListBased(AuthorizationScenarioWithCount scenario) {
     engineRule.getProcessEngineConfiguration().setInvocationsPerBatchJob(2);
-    setupAndExecuteJobsListBasedTest();
+    setupAndExecuteJobsListBasedTest(scenario);
 
     // then
-    assertScenario();
+    assertScenario(scenario);
 
-    assertRetries(getAllJobIds(), Long.valueOf(getScenario().getCount()).intValue());
+    assertRetries(getAllJobIds(), Long.valueOf(scenario.getCount()).intValue());
   }
 
-  @Test
-  public void testWithTwoInvocationsJobsQueryBased() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testWithTwoInvocationsJobsQueryBased(AuthorizationScenarioWithCount scenario) {
     engineRule.getProcessEngineConfiguration().setInvocationsPerBatchJob(2);
-    setupAndExecuteJobsQueryBasedTest();
+    setupAndExecuteJobsQueryBasedTest(scenario);
 
     // then
-    assertScenario();
+    assertScenario(scenario);
 
-    assertRetries(getAllJobIds(), Long.valueOf(getScenario().getCount()).intValue());
+    assertRetries(getAllJobIds(), Long.valueOf(scenario.getCount()).intValue());
   }
 
-  @Test
-  public void testJobsListBased() {
-    setupAndExecuteJobsListBasedTest();
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testJobsListBased(AuthorizationScenarioWithCount scenario) {
+    setupAndExecuteJobsListBasedTest(scenario);
     // then
-    assertScenario();
+    assertScenario(scenario);
   }
 
-  @Test
-  public void testJobsListQueryBased() {
-    setupAndExecuteJobsQueryBasedTest();
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testJobsListQueryBased(AuthorizationScenarioWithCount scenario) {
+    setupAndExecuteJobsQueryBasedTest(scenario);
     // then
-    assertScenario();
+    assertScenario(scenario);
   }
 
-  @Test
-  public void testWithTwoInvocationsProcessListBased() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testWithTwoInvocationsProcessListBased(AuthorizationScenarioWithCount scenario) {
     engineRule.getProcessEngineConfiguration().setInvocationsPerBatchJob(2);
-    setupAndExecuteProcessListBasedTest();
+    setupAndExecuteProcessListBasedTest(scenario);
 
     // then
-    assertScenario();
+    assertScenario(scenario);
 
-    assertRetries(getAllJobIds(), Long.valueOf(getScenario().getCount()).intValue());
+    assertRetries(getAllJobIds(), Long.valueOf(scenario.getCount()).intValue());
   }
 
-  @Test
-  public void testWithTwoInvocationsProcessQueryBased() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testWithTwoInvocationsProcessQueryBased(AuthorizationScenarioWithCount scenario) {
     engineRule.getProcessEngineConfiguration().setInvocationsPerBatchJob(2);
-    setupAndExecuteJobsQueryBasedTest();
+    setupAndExecuteJobsQueryBasedTest(scenario);
 
     // then
-    assertScenario();
+    assertScenario(scenario);
 
-    assertRetries(getAllJobIds(), Long.valueOf(getScenario().getCount()).intValue());
+    assertRetries(getAllJobIds(), Long.valueOf(scenario.getCount()).intValue());
   }
 
-  private void setupAndExecuteProcessListBasedTest() {
+  private void setupAndExecuteProcessListBasedTest(AuthorizationScenarioWithCount scenario) {
     //given
     List<String> processInstances = Arrays.asList(new String[]{processInstance.getId(), processInstance2.getId()});
     authRule
@@ -205,14 +202,15 @@ public class SetJobRetriesBatchAuthorizationTest extends AbstractBatchAuthorizat
     executeSeedAndBatchJobs();
   }
 
-  @Test
-  public void testProcessList() {
-    setupAndExecuteProcessListBasedTest();
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testProcessList(AuthorizationScenarioWithCount scenario) {
+    setupAndExecuteProcessListBasedTest(scenario);
     // then
-    assertScenario();
+    assertScenario(scenario);
   }
 
-  protected void setupAndExecuteJobsListBasedTest() {
+  protected void setupAndExecuteJobsListBasedTest(AuthorizationScenarioWithCount scenario) {
     //given
     List<String> allJobIds = getAllJobIds();
     authRule
@@ -230,7 +228,7 @@ public class SetJobRetriesBatchAuthorizationTest extends AbstractBatchAuthorizat
     executeSeedAndBatchJobs();
   }
 
-  protected void setupAndExecuteJobsQueryBasedTest() {
+  protected void setupAndExecuteJobsQueryBasedTest(AuthorizationScenarioWithCount scenario) {
     //given
     JobQuery jobQuery = managementService.createJobQuery();
     authRule
@@ -249,17 +247,12 @@ public class SetJobRetriesBatchAuthorizationTest extends AbstractBatchAuthorizat
     executeSeedAndBatchJobs();
   }
 
-  @Override
-  public AuthorizationScenarioWithCount getScenario() {
-    return scenario;
-  }
-
-  protected void assertScenario() {
-    if (authRule.assertScenario(getScenario())) {
+  protected void assertScenario(AuthorizationScenarioWithCount scenario) {
+    if (authRule.assertScenario(scenario)) {
       Batch batch = engineRule.getManagementService().createBatchQuery().singleResult();
       assertEquals("userId", batch.getCreateUserId());
 
-      if (testHelper.isHistoryLevelFull()) {
+      if (testRule.isHistoryLevelFull()) {
         assertThat(engineRule.getHistoryService().createUserOperationLogQuery().operationType(UserOperationLogEntry.OPERATION_TYPE_SET_JOB_RETRIES).count())
           .isEqualTo(BATCH_OPERATIONS);
         HistoricBatch historicBatch = engineRule.getHistoryService().createHistoricBatchQuery().list().get(0);

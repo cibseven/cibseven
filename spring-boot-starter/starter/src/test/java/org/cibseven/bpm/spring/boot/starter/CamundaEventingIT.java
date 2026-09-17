@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.spring.boot.starter;
 
-import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
 import java.util.Collections;
@@ -39,17 +39,17 @@ import org.cibseven.bpm.spring.boot.starter.event.TaskEvent;
 import org.cibseven.bpm.spring.boot.starter.test.nonpa.BoundaryEventServiceTask;
 import org.cibseven.bpm.spring.boot.starter.test.nonpa.TestApplication;
 import org.cibseven.bpm.spring.boot.starter.test.nonpa.TestEventCaptor;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(
   classes = {TestApplication.class},
   webEnvironment = WebEnvironment.NONE
@@ -68,12 +68,12 @@ public class CamundaEventingIT extends AbstractCamundaAutoConfigurationIT {
 
   private ProcessInstance instance;
 
-  @Before
+  @BeforeEach
   public void init() {
     eventCaptor.clear();
   }
 
-  @After
+  @AfterEach
   public void stop() {
     if (instance != null) {
       // update stale instance

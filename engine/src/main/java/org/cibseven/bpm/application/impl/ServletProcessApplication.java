@@ -17,9 +17,9 @@
 package org.cibseven.bpm.application.impl;
 
 import java.lang.ref.WeakReference;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
 import org.cibseven.bpm.application.AbstractProcessApplication;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
 import org.cibseven.bpm.engine.impl.util.ClassLoaderUtil;

@@ -32,6 +32,10 @@
     <version.license-maven-plugin>2.4.0</version.license-maven-plugin>
     <!-- Version for cibseven-webclient-web -->
     <cibseven-webapp.version>${project.version}</cibseven-webapp.version>
+    <version.junit5>5.13.4</version.junit5>
+    <!-- The Spring Framework 7 / Spring Boot 4 trees run on JUnit 6; spring-test 7 is
+         compiled against it and calls ExtensionContext.Store.computeIfAbsent, absent from JUnit 5. -->
+    <version.junit6>6.0.3</version.junit6>
   </properties>
 
   <build>
@@ -69,7 +73,6 @@
 
         <module>javaee/ejb-service</module>
         <module>javaee/ejb-client</module>
-        <module>javaee/ejb-client-jakarta</module>
         <module>javaee/jobexecutor-ra</module>
         <module>javaee/jobexecutor-rar</module>
 
@@ -180,7 +183,6 @@
       </activation>
       <modules>
         <module>javaee/ejb-client</module>
-        <module>javaee/ejb-client-jakarta</module>
         <module>distro/license-book</module>
         <module>distro/wildfly</module>
         <module>distro/wildfly28</module>
@@ -255,7 +257,6 @@
         <module>freemarker-template-engine</module>
 
         <module>javaee/ejb-client</module>
-        <module>javaee/ejb-client-jakarta</module>
 
         <module>webapps</module>
 

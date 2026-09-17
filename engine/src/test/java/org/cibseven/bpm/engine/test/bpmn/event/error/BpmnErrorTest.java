@@ -19,7 +19,7 @@ package org.cibseven.bpm.engine.test.bpmn.event.error;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.delegate.BpmnError;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * This test asserts the constructors of the {@link BpmnError} class as this

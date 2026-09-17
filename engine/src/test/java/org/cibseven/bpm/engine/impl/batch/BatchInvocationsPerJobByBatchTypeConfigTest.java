@@ -27,10 +27,11 @@ import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.batch.Batch;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class BatchInvocationsPerJobByBatchTypeConfigTest {
 
@@ -39,7 +40,7 @@ public class BatchInvocationsPerJobByBatchTypeConfigTest {
 
   protected static final String CONFIG_LOGGER = "org.cibseven.bpm.engine.cfg";
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch(CONFIG_LOGGER)
       .level(Level.WARN);
@@ -47,7 +48,7 @@ public class BatchInvocationsPerJobByBatchTypeConfigTest {
   protected ProcessEngine processEngine;
   protected ProcessEngineConfigurationImpl engineConfiguration;
 
-  @Before
+  @BeforeEach
   public void setup() {
     processEngine = ProcessEngineConfiguration
         .createProcessEngineConfigurationFromResource(PROCESS_ENGINE_CONFIG)
@@ -57,7 +58,7 @@ public class BatchInvocationsPerJobByBatchTypeConfigTest {
         (ProcessEngineConfigurationImpl) processEngine.getProcessEngineConfiguration();
   }
 
-  @After
+  @AfterEach
   public void teardown() {
     processEngine.close();
   }

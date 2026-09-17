@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.test.concurrency;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assumptions.assumeThat;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.sql.Connection;
 
@@ -28,8 +28,8 @@ import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.test.RequiredDatabase;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
 import org.cibseven.bpm.engine.test.util.DatabaseHelper;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * <p>Tests cluster scenario with two nodes trying to write the installation id property in parallel.</p>
@@ -40,7 +40,7 @@ import org.junit.Test;
  */
 public class ConcurrentInstallationIdInitializationTest extends ConcurrencyTestCase {
 
-  @Before
+  @BeforeEach
   public void setUp() {
     TestHelper.deleteInstallationId(processEngineConfiguration);
   }

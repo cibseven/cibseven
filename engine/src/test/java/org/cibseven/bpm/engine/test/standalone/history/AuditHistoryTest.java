@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.standalone.history;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 
@@ -29,10 +29,11 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -40,17 +41,17 @@ import org.junit.Test;
  */
 public class AuditHistoryTest {
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
+  @RegisterExtension
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
       "org/cibseven/bpm/engine/test/standalone/history/audithistory.camunda.cfg.xml");
 
-  @Rule
-  public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension  
+  @Order(5) public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     runtimeService = engineRule.getRuntimeService();
     historyService = engineRule.getHistoryService();

@@ -32,16 +32,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.bpm.engine.runtime.EventSubscription;
 import org.cibseven.bpm.engine.runtime.EventSubscriptionQuery;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -49,7 +49,7 @@ import io.restassured.response.Response;
 
 public class EventSubscriptionRestServiceQueryTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String EVENT_SUBSCRIPTION_URL = TEST_RESOURCE_ROOT_PATH + "/event-subscription";
@@ -57,7 +57,7 @@ public class EventSubscriptionRestServiceQueryTest extends AbstractRestServiceTe
 
   private EventSubscriptionQuery mockedEventSubscriptionQuery;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     mockedEventSubscriptionQuery = setUpMockEventSubscriptionQuery(createMockEventSubscriptionList());
   }
@@ -99,8 +99,8 @@ public class EventSubscriptionRestServiceQueryTest extends AbstractRestServiceTe
 
     String content = response.asString();
     List<String> instances = from(content).getList("");
-    Assert.assertEquals("There should be one event subscription returned.", 1, instances.size());
-    Assert.assertNotNull("There should be one event subscription returned", instances.get(0));
+    Assertions.assertEquals( 1, instances.size(), "There should be one event subscription returned.");
+    Assertions.assertNotNull(instances.get(0), "There should be one event subscription returned");
 
     String returnedEventSubscriptionId = from(content).getString("[0].id");
     String returnedEventType = from(content).getString("[0].eventType");
@@ -111,14 +111,14 @@ public class EventSubscriptionRestServiceQueryTest extends AbstractRestServiceTe
     String returnedCreatedDate = from(content).getString("[0].createdDate");
     String returnedTenantId = from(content).getString("[0].tenantId");
 
-    Assert.assertEquals(MockProvider.EXAMPLE_EVENT_SUBSCRIPTION_ID, returnedEventSubscriptionId);
-    Assert.assertEquals(MockProvider.EXAMPLE_EVENT_SUBSCRIPTION_TYPE, returnedEventType);
-    Assert.assertEquals(MockProvider.EXAMPLE_EVENT_SUBSCRIPTION_NAME, returnedEventName);
-    Assert.assertEquals(MockProvider.EXAMPLE_EXECUTION_ID, returnedExecutionId);
-    Assert.assertEquals(MockProvider.EXAMPLE_PROCESS_INSTANCE_ID, returnedProcessInstanceId);
-    Assert.assertEquals(MockProvider.EXAMPLE_ACTIVITY_ID, returnedActivityId);
-    Assert.assertEquals(MockProvider.EXAMPLE_EVENT_SUBSCRIPTION_CREATION_DATE, returnedCreatedDate);
-    Assert.assertEquals(MockProvider.EXAMPLE_TENANT_ID, returnedTenantId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_EVENT_SUBSCRIPTION_ID, returnedEventSubscriptionId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_EVENT_SUBSCRIPTION_TYPE, returnedEventType);
+    Assertions.assertEquals(MockProvider.EXAMPLE_EVENT_SUBSCRIPTION_NAME, returnedEventName);
+    Assertions.assertEquals(MockProvider.EXAMPLE_EXECUTION_ID, returnedExecutionId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_PROCESS_INSTANCE_ID, returnedProcessInstanceId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_ACTIVITY_ID, returnedActivityId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_EVENT_SUBSCRIPTION_CREATION_DATE, returnedCreatedDate);
+    Assertions.assertEquals(MockProvider.EXAMPLE_TENANT_ID, returnedTenantId);
   }
 
   @Test

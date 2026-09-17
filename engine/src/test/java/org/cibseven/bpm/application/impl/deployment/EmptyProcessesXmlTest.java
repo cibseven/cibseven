@@ -17,16 +17,16 @@
 package org.cibseven.bpm.application.impl.deployment;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Map;
 
 import org.cibseven.bpm.application.impl.metadata.spi.ProcessArchiveXml;
 import org.cibseven.bpm.application.impl.metadata.spi.ProcessesXml;
 import org.cibseven.bpm.engine.repository.ResumePreviousBy;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * <p>Testcase verifying the default properties in the empty processes.xml</p>

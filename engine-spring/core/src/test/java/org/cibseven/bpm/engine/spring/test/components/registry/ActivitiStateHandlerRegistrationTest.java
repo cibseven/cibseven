@@ -16,14 +16,14 @@
  */
 package org.cibseven.bpm.engine.spring.test.components.registry;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
 
 import org.cibseven.bpm.engine.spring.components.registry.ActivitiStateHandlerRegistration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Tobias Metzke

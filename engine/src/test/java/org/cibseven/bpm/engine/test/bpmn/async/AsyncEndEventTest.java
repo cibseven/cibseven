@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.async;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -28,8 +28,8 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Stefan Hentschel
@@ -42,14 +42,14 @@ public class AsyncEndEventTest extends PluggableProcessEngineTest {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("asyncEndEvent");
     long count = runtimeService.createProcessInstanceQuery().processInstanceId(pi.getId()).active().count();
 
-    Assert.assertEquals(1, runtimeService.createExecutionQuery().activityId("endEvent").count());
-    Assert.assertEquals(1, count);
+    Assertions.assertEquals(1, runtimeService.createExecutionQuery().activityId("endEvent").count());
+    Assertions.assertEquals(1, count);
 
     testRule.executeAvailableJobs();
     count = runtimeService.createProcessInstanceQuery().processInstanceId(pi.getId()).count();
 
-    Assert.assertEquals(0, runtimeService.createExecutionQuery().activityId("endEvent").active().count());
-    Assert.assertEquals(0, count);
+    Assertions.assertEquals(0, runtimeService.createExecutionQuery().activityId("endEvent").active().count());
+    Assertions.assertEquals(0, count);
   }
 
   @Deployment
@@ -58,15 +58,15 @@ public class AsyncEndEventTest extends PluggableProcessEngineTest {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("asyncEndEvent");
     long count = runtimeService.createProcessInstanceQuery().processInstanceId(pi.getId()).active().count();
 
-    Assert.assertNull(runtimeService.getVariable(pi.getId(), "listener"));
-    Assert.assertEquals(1, runtimeService.createExecutionQuery().activityId("endEvent").count());
-    Assert.assertEquals(1, count);
+    Assertions.assertNull(runtimeService.getVariable(pi.getId(), "listener"));
+    Assertions.assertEquals(1, runtimeService.createExecutionQuery().activityId("endEvent").count());
+    Assertions.assertEquals(1, count);
 
     // as we are standing at the end event, we execute it.
     testRule.executeAvailableJobs();
 
     count = runtimeService.createProcessInstanceQuery().processInstanceId(pi.getId()).active().count();
-    Assert.assertEquals(0, count);
+    Assertions.assertEquals(0, count);
 
     if(processEngineConfiguration.getHistoryLevel().getId() > ProcessEngineConfigurationImpl.HISTORYLEVEL_ACTIVITY) {
 
@@ -74,8 +74,8 @@ public class AsyncEndEventTest extends PluggableProcessEngineTest {
       HistoricVariableInstanceQuery name = historyService.createHistoricVariableInstanceQuery()
                                                           .processInstanceId(pi.getId())
                                                           .variableName("listener");
-      Assert.assertNotNull(name);
-      Assert.assertEquals("listener invoked", name.singleResult().getValue());
+      Assertions.assertNotNull(name);
+      Assertions.assertEquals("listener invoked", name.singleResult().getValue());
     }
   }
 
@@ -105,8 +105,8 @@ public class AsyncEndEventTest extends PluggableProcessEngineTest {
       HistoricVariableInstanceQuery name = historyService.createHistoricVariableInstanceQuery()
         .processInstanceId(pi.getId())
         .variableName("message");
-      Assert.assertNotNull(name);
-      Assert.assertEquals(true, name.singleResult().getValue());
+      Assertions.assertNotNull(name);
+      Assertions.assertEquals(true, name.singleResult().getValue());
 
     }
   }

@@ -30,11 +30,6 @@
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-engine-cdi-jakarta</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-engine-spring</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -51,11 +46,6 @@
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-engine-rest-core</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-engine-rest-core-jakarta</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -81,11 +71,6 @@
       <dependency>
         <groupId>org.cibseven.bpm.javaee</groupId>
         <artifactId>cibseven-ejb-client</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.cibseven.bpm.javaee</groupId>
-        <artifactId>cibseven-ejb-client-jakarta</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -120,12 +105,6 @@
         <classifier>classes</classifier>
       </dependency>
       <dependency>
-        <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-engine-rest-jakarta</artifactId>
-        <version>${project.version}</version>
-        <classifier>classes</classifier>
-      </dependency>
-      <dependency>
         <groupId>org.cibseven.bpm.webapp</groupId>
         <artifactId>cibseven-webapp-webjar</artifactId>
         <version>${project.version}</version>
@@ -138,20 +117,7 @@
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm.webapp</groupId>
-        <artifactId>cibseven-webapp-jakarta</artifactId>
-        <version>${project.version}</version>
-        <type>war</type>
-      </dependency>
-      <dependency>
-        <groupId>org.cibseven.bpm.webapp</groupId>
         <artifactId>cibseven-webapp</artifactId>
-        <version>${project.version}</version>
-        <type>jar</type>
-        <classifier>classes</classifier>
-      </dependency>
-      <dependency>
-        <groupId>org.cibseven.bpm.webapp</groupId>
-        <artifactId>cibseven-webapp-jakarta</artifactId>
         <version>${project.version}</version>
         <type>jar</type>
         <classifier>classes</classifier>

@@ -20,15 +20,15 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Map;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.util.Timeout;
@@ -36,10 +36,11 @@ import org.cibseven.connect.ConnectorRequestException;
 import org.cibseven.connect.httpclient.impl.HttpConnectorImpl;
 import org.cibseven.connect.httpclient.impl.RequestConfigOption;
 import org.cibseven.connect.httpclient.impl.util.ParseUtil;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.internal.util.reflection.Whitebox;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 
 public class HttpRequestConfigTest {
 
@@ -47,13 +48,14 @@ public class HttpRequestConfigTest {
 
   public static final int PORT = 51234;
 
-  @Rule
-  public WireMockRule wireMockRule = new WireMockRule(
-          WireMockConfiguration.wireMockConfig().port(PORT));
+  @RegisterExtension
+  static WireMockExtension wireMockExtension = WireMockExtension.newInstance()
+      .options(WireMockConfiguration.wireMockConfig().port(PORT))
+      .build();
 
   protected HttpConnector connector;
 
-  @Before
+  @BeforeEach
   public void createConnector() {
     connector = new HttpConnectorImpl();
   }
@@ -341,7 +343,7 @@ public class HttpRequestConfigTest {
   public void shouldThrowTimeoutException() {
     try {
       // given
-      wireMockRule.stubFor(get(urlEqualTo("/")).willReturn(aResponse().withFixedDelay(1000).withStatus(200)));
+      wireMockExtension.stubFor(get(urlEqualTo("/")).willReturn(aResponse().withFixedDelay(1000).withStatus(200)));
 
       // when
       connector.createRequest().url("http://localhost:" + PORT).get()

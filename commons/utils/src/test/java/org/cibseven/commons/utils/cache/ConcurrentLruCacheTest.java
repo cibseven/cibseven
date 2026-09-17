@@ -16,21 +16,17 @@
  */
 package org.cibseven.commons.utils.cache;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ConcurrentLruCacheTest {
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   private ConcurrentLruCache<String, String> cache;
 
-  @Before
+  @BeforeEach
   public void createCache() {
     cache = new ConcurrentLruCache<String, String>(3);
   }
@@ -100,23 +96,23 @@ public class ConcurrentLruCacheTest {
 
   @Test
   public void failToInsertInvalidKey() {
-    thrown.expect(NullPointerException.class);
-
-    cache.put(null, "1");
+	assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
+    	cache.put(null, "1")
+    );
   }
 
   @Test
   public void failToInsertInvalidValue() {
-    thrown.expect(NullPointerException.class);
-
-    cache.put("a", null);
+    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
+      cache.put("a", null)
+    );
   }
 
   @Test
   public void failToCreateCacheWithInvalidCapacity() {
-    thrown.expect(IllegalArgumentException.class);
-
-    new ConcurrentLruCache<String, String>(-1);
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
+      new ConcurrentLruCache<String, String>(-1)
+    );
   }
 
   @Test

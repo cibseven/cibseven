@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.spring.test.components;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.logging.Logger;
 
@@ -25,18 +25,18 @@ import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * @author Josh Long
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:org/cibseven/bpm/engine/spring/test/components/ProcessStartingBeanPostProcessorTest-context.xml")
 public class ProcessStartingBeanPostProcessorTest {
 
@@ -51,7 +51,7 @@ public class ProcessStartingBeanPostProcessorTest {
 	@Autowired
 	private RepositoryService repositoryService;
 
-	@Before
+	@BeforeEach
 	public void before() {
 	  repositoryService.createDeployment()
 	    .addClasspathResource("org/cibseven/bpm/engine/spring/test/autodeployment/autodeploy.b.bpmn20.xml")
@@ -59,7 +59,7 @@ public class ProcessStartingBeanPostProcessorTest {
 	    .deploy();
 	}
 
-	@After
+	@AfterEach
   public void after() {
     for (Deployment deployment : repositoryService.createDeploymentQuery().list()) {
       repositoryService.deleteDeployment(deployment.getId(), true);
@@ -73,12 +73,12 @@ public class ProcessStartingBeanPostProcessorTest {
 	@Test
 	public void testReturnedProcessInstance() throws Throwable {
 		String processInstanceId = this.processInitiatingPojo.startProcessA(22);
-		assertNotNull("the process instance id should not be null", processInstanceId);
+		assertNotNull(processInstanceId, "the process instance id should not be null");
 	}
 
 	@Test
 	public void testReflectingSideEffects() throws Throwable {
-		assertNotNull("the processInitiatingPojo mustn't be null.", this.processInitiatingPojo);
+		assertNotNull(this.processInitiatingPojo, "the processInitiatingPojo mustn't be null.");
 
 		this.processInitiatingPojo.reset();
 
@@ -94,8 +94,8 @@ public class ProcessStartingBeanPostProcessorTest {
 		long id = 5;
 		String businessKey = "usersKey" + System.currentTimeMillis();
 		ProcessInstance pi = processInitiatingPojo.enrollCustomer(businessKey, id);
-		assertEquals("the business key of the resultant ProcessInstance should match " +
-				"the one specified through the AOP-intercepted method" ,businessKey, pi.getBusinessKey());
+		assertEquals(businessKey, pi.getBusinessKey(), "the business key of the resultant ProcessInstance should match " +
+            "the one specified through the AOP-intercepted method" );
 
 	}
 
@@ -104,9 +104,9 @@ public class ProcessStartingBeanPostProcessorTest {
 		long id = 343;
 		String processInstance = processInitiatingPojo.startProcessA(id);
 		Long customerId = (Long) processEngine.getRuntimeService().getVariable(processInstance, "customerId");
-		assertEquals("the process variable should both exist and be equal to the value given, " + id, customerId, (Long) id);
+		assertEquals(customerId, (Long) id, "the process variable should both exist and be equal to the value given, " + id);
 		log.info("the customerId from the ProcessInstance is " + customerId);
-		assertNotNull("processInstanc can't be null", processInstance);
-		assertNotNull("the variable should be non-null", customerId);
+		assertNotNull(processInstance, "processInstanc can't be null");
+		assertNotNull(customerId, "the variable should be non-null");
 	}
 }

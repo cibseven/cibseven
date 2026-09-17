@@ -18,8 +18,9 @@ package org.cibseven.bpm.engine.test.api.authorization.batch;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.authorization.Authorization.ANY;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -46,12 +47,11 @@ import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestBase
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 /**
  * @author Thorben Lindhauer
@@ -60,24 +60,20 @@ import org.junit.rules.RuleChain;
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class HistoricBatchQueryAuthorizationTest {
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestBaseRule authRule = new AuthorizationTestBaseRule(engineRule);
-  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(7) public AuthorizationTestBaseRule authRule = new AuthorizationTestBaseRule(engineRule);
+  @RegisterExtension
+  @Order(9) public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   protected MigrationPlan migrationPlan;
   protected Batch batch1;
   protected Batch batch2;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     authRule.createUserAndGroup("user", "group");
-  }
-
-  @Before
-  public void deployProcessesAndCreateMigrationPlan() {
     ProcessDefinition sourceDefinition = testHelper.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
     ProcessDefinition targetDefinition = testHelper.deployAndGetDefinition(ProcessModels.ONE_TASK_PROCESS);
 
@@ -98,7 +94,7 @@ public class HistoricBatchQueryAuthorizationTest {
         .executeAsync();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
     removeAllRunningAndHistoricBatches();
@@ -131,8 +127,8 @@ public class HistoricBatchQueryAuthorizationTest {
     authRule.disableAuthorization();
 
     // then
-    Assert.assertEquals(1, batches.size());
-    Assert.assertEquals(batch1.getId(), batches.get(0).getId());
+    assertEquals(1, batches.size());
+    assertEquals(batch1.getId(), batches.get(0).getId());
   }
 
   @Test
@@ -146,7 +142,7 @@ public class HistoricBatchQueryAuthorizationTest {
     authRule.disableAuthorization();
 
     // then
-    Assert.assertEquals(1, count);
+    assertEquals(1, count);
   }
 
   @Test
@@ -157,7 +153,7 @@ public class HistoricBatchQueryAuthorizationTest {
     authRule.disableAuthorization();
 
     // then
-    Assert.assertEquals(0, count);
+    assertEquals(0, count);
   }
 
   @Test
@@ -171,7 +167,7 @@ public class HistoricBatchQueryAuthorizationTest {
     authRule.disableAuthorization();
 
     // then
-    Assert.assertEquals(2, batches.size());
+    assertEquals(2, batches.size());
   }
 
   @Test
@@ -186,7 +182,7 @@ public class HistoricBatchQueryAuthorizationTest {
     authRule.disableAuthorization();
 
     // then
-    Assert.assertEquals(2, batches.size());
+    assertEquals(2, batches.size());
   }
 
   @Test
@@ -201,7 +197,7 @@ public class HistoricBatchQueryAuthorizationTest {
     authRule.disableAuthorization();
 
     // then
-    Assert.assertTrue(batches.isEmpty());
+    assertTrue(batches.isEmpty());
   }
 
   @Test
@@ -216,7 +212,7 @@ public class HistoricBatchQueryAuthorizationTest {
     authRule.disableAuthorization();
 
     // then
-    Assert.assertEquals(0L, batchCount);
+    assertEquals(0L, batchCount);
   }
 
   @Test

@@ -62,11 +62,13 @@ import org.cibseven.bpm.engine.test.api.runtime.BatchHelper;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 /**
  * @author Tassilo Weidner
@@ -75,13 +77,13 @@ import org.junit.rules.RuleChain;
 @RequiredHistoryLevel(HISTORY_FULL)
 public class BatchSetRemovalTimeTest {
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
-  protected BatchSetRemovalTimeRule testRule = new BatchSetRemovalTimeRule(engineRule, engineTestRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(11) protected BatchSetRemovalTimeRule testRule = new BatchSetRemovalTimeRule(engineRule, engineTestRule);
   protected BatchHelper helper = new BatchHelper(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule).around(testRule);
 
   protected final Date CURRENT_DATE = testRule.CURRENT_DATE;
   protected final Date REMOVAL_TIME = testRule.REMOVAL_TIME;
@@ -91,7 +93,7 @@ public class BatchSetRemovalTimeTest {
   protected HistoryService historyService;
   protected ManagementService managementService;
 
-  @Before
+  @BeforeEach
   public void assignServices() {
     runtimeService = engineRule.getRuntimeService();
     decisionService = engineRule.getDecisionService();
@@ -99,7 +101,7 @@ public class BatchSetRemovalTimeTest {
     managementService = engineRule.getManagementService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ClockUtil.reset();
     managementService.createBatchQuery().list().forEach(b -> managementService.deleteBatch(b.getId(), true));
@@ -1589,7 +1591,7 @@ public class BatchSetRemovalTimeTest {
       .singleResult();
 
     // then
-    assertThat(historicDecisionInstance.getRemovalTime()).isEqualTo(null);
+    assertThat(historicDecisionInstance.getRemovalTime()).isNull();
   }
 
   @Test
@@ -1700,7 +1702,7 @@ public class BatchSetRemovalTimeTest {
       .singleResult();
 
     // then
-    assertThat(historicDecisionInstance.getRemovalTime()).isEqualTo(null);
+    assertThat(historicDecisionInstance.getRemovalTime()).isNull();
   }
 
   @Test
