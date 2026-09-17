@@ -27,6 +27,7 @@ import groovy.transform.Field
     ]
 ]
 @Field Boolean isAnyCustomTest = false
+@Field Boolean alignmentFactsCollected = false
 
 pipeline {
     agent {
@@ -161,18 +162,62 @@ pipeline {
             }
         }
 
-        stage('Spring Alignment Check') {
-            steps {
-                script {
-                    withMaven(options: []) {
-                        // Compares the pinned version.spring.frameworkN properties against the
-                        // <spring-framework.version> declared by the matching Spring Boot BOM.
-                        // Non-fatal for now: marks the stage UNSTABLE instead of failing the build.
-                        // Drop the catchError wrapper to make a mismatch break the build.
-                        catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                            sh 'bash .ci/scripts/check-spring-alignment.sh'
+        // Compares the third-party versions pinned in parent/pom.xml against the Spring Boot
+        // BOMs we import, and against each other where two of our pins have to agree.
+        //
+        // Split in two on purpose: the "Collect alignment facts" stage pays the one Maven
+        // start-up that resolves the effective pom and warms the local repository, 
+        // and the matrix cells that follow are pure shell reading those facts. 
+        //
+        // Adding a library: The collector picks the new script up by itself 
+        // and pre-fetches whatever it declares via --requires.
+        stage('Dependency Version Alignment Check') {
+            stages {
+                stage('Collect alignment facts') {
+                    steps {
+                        script {
+                            withMaven(options: []) {
+                                catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                                    sh 'bash .ci/scripts/alignment/collect-alignment-facts.sh'
+                                    alignmentFactsCollected = true
+                                }
+                            }
                         }
                     }
+                }
+
+                stage('Alignment checks') {
+                    matrix {
+                        axes {
+                            axis {
+                                name 'ALIGNMENT_CHECK'
+                                values 'spring'
+                            }
+                        }
+                        stages {
+                            stage('Check') {
+                                // Without the facts every cell would only report the same
+                                // collector failure, so stay quiet and let that stage speak.
+                                when {
+                                    expression { alignmentFactsCollected }
+                                }
+                                steps {
+                                    // No withMaven: the checks invoke no Maven at all.
+                                    catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                                        sh 'bash .ci/scripts/alignment/check-${ALIGNMENT_CHECK}-alignment.sh'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts(
+                        artifacts: 'target/alignment/reports/*.txt',
+                        allowEmptyArchive: true
+                    )
                 }
             }
         }
