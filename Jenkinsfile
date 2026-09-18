@@ -527,52 +527,6 @@ pipeline {
             ])
           }
         }
-        stage('engine-IT-wildfly-domain') {
-          when {
-            expression {
-              cambpmIsNotFailedStageType(failedStageTypes, 'engine-IT-wildfly') && cambpmWithLabels('all', 'wildfly')
-            }
-          }
-          steps {
-            cambpmConditionalRetry([
-              agentLabel: 'h2',
-              runSteps: {
-                cambpmRunMaven('qa/', 
-                  'clean install -Pwildfly-domain,h2,engine-integration',
-                  runtimeStash: true,
-                  archiveStash: true,
-                  // we need to use JDK 17 for Spring 6
-                  jdkVersion: 'jdk-17-latest')
-              },
-              postFailure: {
-                cambpmPublishTestResult()
-              }
-            ])
-          }
-        }
-        stage('engine-IT-wildfly-servlet') {
-          when {
-            expression {
-              cambpmIsNotFailedStageType(failedStageTypes, 'engine-IT-wildfly') && cambpmWithLabels('all', 'all-as', 'wildfly')
-            }
-          }
-          steps {
-            cambpmConditionalRetry([
-              agentLabel: 'h2',
-              runSteps: {
-                cambpmRunMaven('qa/',
-                  'clean install -Pwildfly,wildfly-servlet,h2,engine-integration',
-                  runtimeStash: true,
-                  archiveStash: true,
-                  // we need to use JDK 17 for Spring 6
-                  jdkVersion: 'jdk-17-latest')
-              },
-              postFailure: {
-                cambpmPublishTestResult()
-              }
-            ])
-          }
-        }
       }
     }
   }
