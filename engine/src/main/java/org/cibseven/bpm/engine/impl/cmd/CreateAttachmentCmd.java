@@ -72,10 +72,12 @@ public class CreateAttachmentCmd implements Command<Attachment> {
       task = commandContext
           .getTaskManager()
           .findTaskById(taskId);
+      AttachmentAuthChecks.checkModifyTaskIfExists(taskId, commandContext);
     } else {
       ensureNotNull("taskId or processInstanceId has to be provided", this.processInstanceId);
       List<ExecutionEntity> executionsByProcessInstanceId = commandContext.getExecutionManager().findExecutionsByProcessInstanceId(processInstanceId);
       processInstance = executionsByProcessInstanceId.get(0);
+      AttachmentAuthChecks.checkModifyProcessInstanceIfExists(processInstanceId, commandContext);
     }
 
     AttachmentEntity attachment = new AttachmentEntity();
