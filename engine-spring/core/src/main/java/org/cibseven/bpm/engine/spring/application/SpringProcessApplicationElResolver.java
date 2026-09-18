@@ -21,7 +21,7 @@ import java.util.logging.Logger;
 import jakarta.servlet.ServletContext;
 import org.cibseven.bpm.application.AbstractProcessApplication;
 import org.cibseven.bpm.application.ProcessApplicationElResolver;
-import org.cibseven.bpm.application.impl.EjbProcessApplication;
+import org.cibseven.bpm.application.impl.JakartaEjbProcessApplication;
 import org.cibseven.bpm.engine.spring.ApplicationContextElResolver;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.context.WebApplicationContext;
@@ -42,7 +42,7 @@ import jakarta.el.ELResolver;
  *  </ul>
  * </p>
  *
- * <p><strong>Limitation</strong>: The {@link EjbProcessApplication} is currently unsupported.</p>
+ * <p><strong>Limitation</strong>: The {@link JakartaEjbProcessApplication} is currently unsupported.</p>
  *
  * @author Daniel Meyer
  *
