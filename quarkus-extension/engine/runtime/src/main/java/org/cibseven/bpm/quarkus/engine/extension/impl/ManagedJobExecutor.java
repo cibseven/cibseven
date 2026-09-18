@@ -33,11 +33,29 @@ public class ManagedJobExecutor extends JobExecutor {
   protected ManagedExecutor taskExecutor;
 
   /**
+   * CIB7-1959 Quarkus job executor creates threads without the Quarkus TCCL (SRCFG00015)
+   *
+   * <p>The Quarkus class loader, used as thread context class loader while jobs are executed.
+   *
+   * @see QuarkusExecuteJobsRunnable
+   */
+  protected ClassLoader contextClassLoader;
+
+  /**
    * Constructs a new QuarkusJobExecutor with the provided
    * {@link ManagedExecutor} instance.
    */
   public ManagedJobExecutor(ManagedExecutor taskExecutor) {
+    this(taskExecutor, null);
+  }
+
+  /**
+   * CIB7-1959: constructs a new QuarkusJobExecutor with the provided {@link ManagedExecutor}
+   * instance, executing jobs with {@code contextClassLoader} as thread context class loader.
+   */
+  public ManagedJobExecutor(ManagedExecutor taskExecutor, ClassLoader contextClassLoader) {
     this.taskExecutor = taskExecutor;
+    this.contextClassLoader = contextClassLoader;
   }
 
   @Override
@@ -53,6 +71,15 @@ public class ManagedJobExecutor extends JobExecutor {
   protected void stopExecutingJobs() {
     // nothing to do, the AcquireJobsRunnable instance will
     // be stopped when the ManagedExecutor instance is shut down.
+  }
+
+  /**
+   * CIB7-1959: executes jobs with the Quarkus class loader instead of the process engine's,
+   * so that configuration stays resolvable from job executor threads.
+   */
+  @Override
+  public Runnable getExecuteJobsRunnable(List<String> jobIds, ProcessEngineImpl processEngine) {
+    return new QuarkusExecuteJobsRunnable(jobIds, processEngine, contextClassLoader);
   }
 
   @Override
