@@ -35,6 +35,11 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${version.slf4j}</version>
+      </dependency>
 
       <dependency>
         <groupId>org.apache.httpcomponents.client5</groupId>

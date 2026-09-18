@@ -38,6 +38,12 @@
         <scope>import</scope>
         <type>pom</type>
       </dependency>
+      <!-- Override the Slf4j version managed by Spring Boot 4 -->
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${version.slf4j}</version>
+      </dependency>
       <dependency>
         <!-- Use Spring Framework to 7.x  -->
         <groupId>org.springframework</groupId>
