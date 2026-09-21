@@ -238,12 +238,6 @@ pipeline {
                         stage('engine-IT-wildfly-servlet') {
                             steps { script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean verify -Pwildfly,wildfly-servlet,h2,engine-integration" }}}
                         }
-                        stage('engine-IT-wildfly26-domain') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean verify -Pwildfly26-domain,h2,engine-integration" }}}
-                        }
-                        stage('engine-IT-wildfly26-servlet') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml -Dengine-integration clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
-                        }
                     }
                 }
                 stage("quarkus") {
