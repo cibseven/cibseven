@@ -77,9 +77,6 @@
          which is flagged for CVE-2026-59949. -->
     <version.lz4-java>1.11.1</version.lz4-java>
 
-    <version.wildfly28>28.0.1.Final</version.wildfly28>
-    <version.wildfly28.core>20.0.2.Final</version.wildfly28.core>
-
     <version.tomcat9>9.0.121</version.tomcat9>
     <version.tomcat10>10.1.59</version.tomcat10>
     <version.tomcat>11.0.25</version.tomcat>

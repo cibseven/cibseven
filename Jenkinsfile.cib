@@ -275,8 +275,6 @@ pipeline {
                         script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Ptomcat,h2,engine-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly,h2,engine-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly-domain,h2,engine-integration" }}
-                        // fails since junit 5 migration script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly28,h2,engine-integration" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly28-domain,h2,engine-integration" }}
                     }
                 }
                 stage('Web Integration') {
@@ -286,7 +284,6 @@ pipeline {
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat10,h2,webapps-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,webapps-integration" }}
                     }
                 }
                 stage('Run Integration') {
@@ -659,7 +656,7 @@ pipeline {
                                 javadoc:javadoc \
                                 javadoc:aggregate \
                                 -Pdistro,distro-wildfly,distro-webjar,javadocs \
-                                -pl !org.cibseven.bpm.wildfly:cibseven-wildfly,!org.cibseven.bpm.wildfly:cibseven-wildfly28 \
+                                -pl !org.cibseven.bpm.wildfly:cibseven-wildfly \
                                 -DskipTests=true \
                                 -Dskip.frontend.build=true \
                                 -T4 -U
@@ -757,7 +754,7 @@ def isSNAPSHOTVersion() {
 def deployDistroSboms(String deploymentArgs) {
     Map sbomDeployRepository = getSbomDeployRepository(deploymentArgs)
 
-    def distroSbomProjects = ['distro/run', 'distro/run4', 'distro/tomcat', 'distro/wildfly', 'distro/wildfly28']
+    def distroSbomProjects = ['distro/run', 'distro/run4', 'distro/tomcat', 'distro/wildfly']
 
     // Each invocation uses a distinct -f path and -DoutputName, so they can
     // run concurrently without conflicting on the shared output directory.
