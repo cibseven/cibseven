@@ -19,8 +19,8 @@ package org.cibseven.bpm.engine.test.history.useroperationlog;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author Roman Smirnov
@@ -31,12 +31,13 @@ public abstract class AbstractUserOperationLogTest extends PluggableProcessEngin
 
   public static final String USER_ID = "demo";
 
-  @Before
+
+  @BeforeEach
   public void abstractSetUp() throws Exception {
     identityService.setAuthenticatedUserId(USER_ID);
   }
 
-  @After
+  @AfterEach
   public void abstractTearDown() throws Exception {
     identityService.clearAuthentication();
   }

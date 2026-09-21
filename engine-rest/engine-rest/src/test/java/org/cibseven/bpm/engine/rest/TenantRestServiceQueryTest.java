@@ -20,7 +20,7 @@ import static io.restassured.RestAssured.expect;
 import static io.restassured.RestAssured.given;
 import static io.restassured.path.json.JsonPath.from;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -34,16 +34,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.identity.Tenant;
 import org.cibseven.bpm.engine.identity.TenantQuery;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -53,7 +53,7 @@ import io.restassured.specification.RequestSpecification;
 
 public class TenantRestServiceQueryTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String QUERY_URL = TEST_RESOURCE_ROOT_PATH + "/tenant";
@@ -61,7 +61,7 @@ public class TenantRestServiceQueryTest extends AbstractRestServiceTest {
 
   private TenantQuery mockQuery;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     List<Tenant> tenants = Collections.singletonList(MockProvider.createMockTenant());
     mockQuery = setUpMockQuery(tenants);
@@ -108,13 +108,13 @@ public class TenantRestServiceQueryTest extends AbstractRestServiceTest {
 
     String content = response.asString();
     List<String> instances = from(content).getList("");
-    assertThat(instances.size(), is(1));
+    assertThat(instances.size()).isEqualTo(1);
 
     String returnedId = from(content).getString("[0].id");
     String returnedName = from(content).getString("[0].name");
 
-    assertThat(returnedId, is(MockProvider.EXAMPLE_TENANT_ID));
-    assertThat(returnedName, is(MockProvider.EXAMPLE_TENANT_NAME));
+    assertThat(returnedId).isEqualTo(MockProvider.EXAMPLE_TENANT_ID);
+    assertThat(returnedName).isEqualTo(MockProvider.EXAMPLE_TENANT_NAME);
   }
 
   @Test

@@ -16,22 +16,22 @@
  */
 package org.cibseven.bpm.engine.test.cmmn.sentry;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.cibseven.bpm.engine.impl.cmmn.entity.runtime.CaseExecutionEntity;
 import org.cibseven.bpm.engine.impl.cmmn.execution.CaseExecutionState;
 import org.cibseven.bpm.engine.runtime.CaseExecution;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.cmmn.CmmnTest;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 
 /**
  * @author Roman Smirnov
  *
  */
-@Ignore
+@Disabled
 public class SentryCombinedEntryAndExitCriteriaTest extends CmmnTest {
 
   @Deployment(resources = {"org/cibseven/bpm/engine/test/cmmn/sentry/SentryCombinedEntryAndExitCriteriaTest.testParentResumeInsideStage.cmmn"})

@@ -36,14 +36,14 @@ import org.cibseven.bpm.dmn.engine.impl.transform.DefaultDmnTransformer;
 import org.cibseven.bpm.dmn.feel.impl.FeelEngineFactory;
 import org.cibseven.bpm.dmn.feel.impl.juel.FeelEngineFactoryImpl;
 import org.cibseven.bpm.dmn.feel.impl.juel.FeelEngineImpl;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DefaultDmnEngineConfigurationApiTest {
 
   protected DefaultDmnEngineConfiguration configuration;
 
-  @Before
+  @BeforeEach
   public void initConfiguration() {
     configuration = new DefaultDmnEngineConfiguration();
   }

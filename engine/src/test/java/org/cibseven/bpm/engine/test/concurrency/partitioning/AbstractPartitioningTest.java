@@ -25,7 +25,7 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.concurrency.ConcurrencyTestCase;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author Tassilo Weidner
@@ -36,7 +36,7 @@ public abstract class AbstractPartitioningTest extends ConcurrencyTestCase {
 
   protected CommandExecutor commandExecutor;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     this.commandExecutor = processEngineConfiguration.getCommandExecutorTxRequired();
     processEngine.getProcessEngineConfiguration().setSkipHistoryOptimisticLockingExceptions(true);

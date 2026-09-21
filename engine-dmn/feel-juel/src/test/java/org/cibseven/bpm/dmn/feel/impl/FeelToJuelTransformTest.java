@@ -20,14 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.dmn.feel.impl.juel.transform.FeelToJuelTransform;
 import org.cibseven.bpm.dmn.feel.impl.juel.transform.FeelToJuelTransformImpl;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class FeelToJuelTransformTest {
 
   public static FeelToJuelTransform feelToJuelTransform;
 
-  @BeforeClass
+  @BeforeAll
   public static void initTransform() {
     feelToJuelTransform = new FeelToJuelTransformImpl();
   }

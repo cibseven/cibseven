@@ -20,7 +20,7 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.GatewayDirection;
 import org.cibseven.bpm.model.xml.impl.util.ReflectUtil;
 import org.cibseven.bpm.model.xml.instance.ModelElementInstance;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.io.InputStream;
 import java.util.Arrays;
@@ -51,7 +51,7 @@ public abstract class AbstractGatewayTest<G extends Gateway> extends BpmnModelEl
     );
   }
 
-  @Before
+  @BeforeEach
   @SuppressWarnings("unchecked")
   public void getGateway() {
     InputStream inputStream = ReflectUtil.getResourceAsStream("org/cibseven/bpm/model/bpmn/GatewaysTest.xml");

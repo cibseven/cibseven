@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getHistoricJobLog"
       tag = "Historic Job Log"
-      summary = "Get Job Log"
+      summary = "Get Historic Job Log"
       desc = "Retrieves a historic job log by id."
   />
 

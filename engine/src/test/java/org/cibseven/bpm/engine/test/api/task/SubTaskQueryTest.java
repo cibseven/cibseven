@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.api.task;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -27,9 +27,9 @@ import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.task.TaskQuery;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for cub-tasks querying
@@ -40,7 +40,7 @@ public class SubTaskQueryTest extends PluggableProcessEngineTest {
 
   private List<String> taskIds;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
 
     identityService.saveUser(identityService.newUser("kermit"));
@@ -55,7 +55,7 @@ public class SubTaskQueryTest extends PluggableProcessEngineTest {
     taskIds = generateTestSubTasks();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     identityService.deleteGroup("accountancy");
     identityService.deleteGroup("management");

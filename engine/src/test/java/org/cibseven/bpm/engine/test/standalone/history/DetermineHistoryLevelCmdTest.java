@@ -31,8 +31,8 @@ import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguratio
 import org.cibseven.bpm.engine.impl.cmd.DetermineHistoryLevelCmd;
 import org.cibseven.bpm.engine.impl.history.HistoryLevel;
 import org.cibseven.bpm.engine.impl.history.event.HistoryEventType;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class DetermineHistoryLevelCmdTest {
 
@@ -108,7 +108,7 @@ public class DetermineHistoryLevelCmdTest {
       .hasMessageContaining("The configured history level with id='99' is not registered in this config.");
   }
 
-  @After
+  @AfterEach
   public void after() {
     processEngineImpl.close();
     processEngineImpl = null;

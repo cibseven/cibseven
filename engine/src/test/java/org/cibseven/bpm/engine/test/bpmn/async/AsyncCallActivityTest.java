@@ -16,13 +16,13 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.async;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer

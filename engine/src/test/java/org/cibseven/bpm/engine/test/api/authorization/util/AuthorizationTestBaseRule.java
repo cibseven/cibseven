@@ -24,15 +24,15 @@ import org.cibseven.bpm.engine.authorization.Resource;
 import org.cibseven.bpm.engine.identity.Group;
 import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.Assert;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-public class AuthorizationTestBaseRule extends TestWatcher {
+public class AuthorizationTestBaseRule implements AfterEachCallback {
 
   protected ProcessEngineRule engineRule;
 
@@ -57,15 +57,13 @@ public class AuthorizationTestBaseRule extends TestWatcher {
   }
 
   @Override
-  protected void finished(Description description) {
+  public void afterEach(ExtensionContext context) throws Exception {
     engineRule.getIdentityService().clearAuthentication();
 
     deleteManagedAuthorizations();
 
-    super.finished(description);
-
-    Assert.assertTrue("Users have been created but not deleted", users.isEmpty());
-    Assert.assertTrue("Groups have been created but not deleted", groups.isEmpty());
+    Assertions.assertTrue(users.isEmpty(), "Users have been created but not deleted");
+    Assertions.assertTrue(groups.isEmpty(), "Groups have been created but not deleted");
   }
 
   public void manageAuthorization(Authorization authorization) {

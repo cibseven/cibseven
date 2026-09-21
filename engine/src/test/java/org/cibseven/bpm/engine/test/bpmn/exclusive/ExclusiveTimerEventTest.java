@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.exclusive;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 
@@ -25,7 +25,7 @@ import org.cibseven.bpm.engine.runtime.JobQuery;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 
 public class ExclusiveTimerEventTest extends PluggableProcessEngineTest {

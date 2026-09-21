@@ -16,7 +16,6 @@
  */
 package org.cibseven.bpm.cockpit.plugin.base;
 
-import static junit.framework.TestCase.fail;
 import static org.cibseven.bpm.engine.rest.dto.ConditionQueryParameterDto.EQUALS_OPERATOR_NAME;
 import static org.cibseven.bpm.engine.rest.dto.ConditionQueryParameterDto.GREATER_THAN_OPERATOR_NAME;
 import static org.cibseven.bpm.engine.rest.dto.ConditionQueryParameterDto.GREATER_THAN_OR_EQUALS_OPERATOR_NAME;
@@ -25,6 +24,7 @@ import static org.cibseven.bpm.engine.rest.dto.ConditionQueryParameterDto.LESS_T
 import static org.cibseven.bpm.engine.rest.dto.ConditionQueryParameterDto.LIKE_OPERATOR_NAME;
 import static org.cibseven.bpm.engine.rest.dto.ConditionQueryParameterDto.NOT_EQUALS_OPERATOR_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,11 +56,10 @@ import org.cibseven.bpm.engine.rest.dto.VariableQueryParameterDto;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author roman.smirnov
@@ -77,7 +76,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
 
   private ProcessInstanceRestService resource;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     super.before();
 
@@ -91,12 +90,12 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
     resource = new ProcessInstanceRestService(processEngine.getName());
   }
 
-  @After
+  @AfterEach
   public void clearAuthentication() {
     identityService.clearAuthentication();
   }
 
-  @After
+  @AfterEach
   public void resetQueryMaxResultsLimit() {
     processEngineConfiguration.setQueryMaxResultsLimit(Integer.MAX_VALUE);
   }
@@ -413,7 +412,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
       } else if (incidentType.equals("anotherIncident")) {
         assertThat(incident.getIncidentCount()).isEqualTo(5);
       } else {
-        Assert.fail(incidentType + " not expected.");
+        fail(incidentType + " not expected.");
       }
 
     }
@@ -1420,7 +1419,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   @Deployment(resources = {
       "processes/user-task-process.bpmn"
     })
@@ -1445,7 +1444,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   @Deployment(resources = {
       "processes/user-task-process.bpmn"
     })
@@ -1470,7 +1469,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   @Deployment(resources = {
       "processes/user-task-process.bpmn"
     })
@@ -1495,7 +1494,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   @Deployment(resources = {
       "processes/user-task-process.bpmn"
     })
@@ -1520,7 +1519,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   @Deployment(resources = {
       "processes/user-task-process.bpmn"
     })
@@ -1545,7 +1544,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   @Deployment(resources = {
       "processes/user-task-process.bpmn"
     })
@@ -2002,7 +2001,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   @Deployment(resources = {
       "processes/user-task-process.bpmn"
     })
@@ -2027,7 +2026,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   @Deployment(resources = {
       "processes/user-task-process.bpmn"
     })
@@ -2052,7 +2051,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   @Deployment(resources = {
       "processes/user-task-process.bpmn"
     })
@@ -2077,7 +2076,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   @Deployment(resources = {
       "processes/user-task-process.bpmn"
     })
@@ -2102,7 +2101,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   @Deployment(resources = {
       "processes/user-task-process.bpmn"
     })
@@ -2127,7 +2126,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   @Deployment(resources = {
       "processes/user-task-process.bpmn"
     })
@@ -2584,7 +2583,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   @Deployment(resources = {
       "processes/user-task-process.bpmn"
     })
@@ -2609,7 +2608,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   @Deployment(resources = {
       "processes/user-task-process.bpmn"
     })
@@ -2634,7 +2633,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   @Deployment(resources = {
       "processes/user-task-process.bpmn"
     })
@@ -2659,7 +2658,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   @Deployment(resources = {
       "processes/user-task-process.bpmn"
     })
@@ -2684,7 +2683,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   @Deployment(resources = {
       "processes/user-task-process.bpmn"
     })
@@ -2709,7 +2708,7 @@ public class ProcessInstanceRestServiceTest extends AbstractCockpitPluginTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   @Deployment(resources = {
       "processes/user-task-process.bpmn"
     })

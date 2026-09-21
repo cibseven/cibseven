@@ -33,9 +33,10 @@ import org.cibseven.bpm.engine.test.api.runtime.migration.models.TimerCatchModel
 import org.cibseven.bpm.engine.test.util.ClockTestUtil;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.joda.time.DateTime;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 /**
  * @author Thorben Lindhauer
@@ -43,11 +44,10 @@ import org.junit.rules.RuleChain;
  */
 public class MigrationTimerCatchEventTest {
 
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testMigrateJob() {

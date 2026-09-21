@@ -36,7 +36,7 @@
         <module>ai-agent</module>
         <module>assembly</module>
         <module>distro</module>
-        <module>webapp-jakarta</module>
+        <module>webapp</module>
       </modules>
     </profile>
   </profiles>

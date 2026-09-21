@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "queryVariableInstances"
       tag = "Variable Instance"
-      summary = "Get Variable Instances (POST)"
+      summary = "Get Variable Instances"
       desc = "Query for variable instances that fulfill given parameters through a JSON object.
               This method is slightly more powerful than the
               [Get Variable Instances](${docsUrl}/reference/rest/variable-

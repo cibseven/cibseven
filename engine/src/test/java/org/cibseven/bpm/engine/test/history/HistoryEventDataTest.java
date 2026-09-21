@@ -25,10 +25,11 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Edoardo Patti
@@ -38,19 +39,19 @@ public class HistoryEventDataTest {
 
   private static final TestEventHandler HANDLER = new TestEventHandler();
 
-  @Rule
+  @RegisterExtension
   public HistoryEventVerifier verifier = new HistoryEventVerifier(HANDLER);
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
+  @RegisterExtension
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(
       c -> c.setHistoryEventHandler(HANDLER));
 
   private RuntimeService runtimeService;
 
-  @Rule
-  public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(5) public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
-  @Before
+  @BeforeEach
   public void initServices() {
     runtimeService = engineRule.getRuntimeService();
 

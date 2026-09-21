@@ -18,8 +18,8 @@ package org.cibseven.bpm.engine.test.bpmn.el;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -38,8 +38,8 @@ import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Frederik Heremans
@@ -48,7 +48,7 @@ public class ExpressionManagerTest extends PluggableProcessEngineTest {
 
   protected String deploymentId;
 
-  @After
+  @AfterEach
   public void clear() {
     Mocks.reset();
 

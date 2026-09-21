@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getTasks"
       tag = "Task"
-      summary = "Get List"
+      summary = "Get Task List"
       desc = "Queries for tasks that fulfill a given filter. The size of the result set can be
               retrieved by using the Get Task Count method.
 

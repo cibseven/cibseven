@@ -21,20 +21,20 @@ import static org.cibseven.bpm.engine.authorization.Permissions.READ;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ_INSTANCE;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_INSTANCE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.management.ActivityStatistics;
 import org.cibseven.bpm.engine.management.ActivityStatisticsQuery;
 import org.cibseven.bpm.engine.management.IncidentStatistics;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -45,7 +45,7 @@ public class ActivityStatisticsAuthorizationTest extends AuthorizationTest {
   protected static final String ONE_INCIDENT_PROCESS_KEY = "process";
 
   @Override
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     testRule.deploy("org/cibseven/bpm/engine/test/api/authorization/oneIncidentProcess.bpmn20.xml");
     startProcessAndExecuteJob(ONE_INCIDENT_PROCESS_KEY);

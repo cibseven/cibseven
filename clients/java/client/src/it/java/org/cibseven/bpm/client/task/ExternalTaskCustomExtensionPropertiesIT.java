@@ -22,26 +22,24 @@ import static org.assertj.core.api.Assertions.entry;
 import org.cibseven.bpm.client.ExternalTaskClient;
 import org.cibseven.bpm.client.dto.ProcessDefinitionDto;
 import org.cibseven.bpm.client.dto.ProcessInstanceDto;
-import org.cibseven.bpm.client.rule.ClientRule;
+import org.cibseven.bpm.client.rule.ClientExtension;
 import org.cibseven.bpm.client.rule.EngineRule;
 import org.cibseven.bpm.client.util.ProcessModels;
 import org.cibseven.bpm.client.util.RecordingExternalTaskHandler;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class ExternalTaskCustomExtensionPropertiesIT {
 
   protected BpmnModelInstance externalTaskProcess;
 
-  protected ClientRule clientRule = new ClientRule();
+  @RegisterExtension
+  protected ClientExtension clientRule = new ClientExtension();
+  @RegisterExtension
   protected EngineRule engineRule = new EngineRule();
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule);
 
   protected ExternalTaskClient client;
 
@@ -50,7 +48,7 @@ public class ExternalTaskCustomExtensionPropertiesIT {
 
   protected RecordingExternalTaskHandler handler = new RecordingExternalTaskHandler();
 
-  @Before
+  @BeforeEach
   public void setup() {
     client = clientRule.client();
     handler.clear();

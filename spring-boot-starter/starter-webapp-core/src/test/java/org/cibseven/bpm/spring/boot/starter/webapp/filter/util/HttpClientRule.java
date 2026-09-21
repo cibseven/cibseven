@@ -18,7 +18,8 @@ package org.cibseven.bpm.spring.boot.starter.webapp.filter.util;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -31,7 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class HttpClientRule extends ExternalResource {
+public class HttpClientRule implements AfterEachCallback {
 
   public static final String PORT_PLACEHOLDER_WEBAPP_URL = "{PORT}";
   public static final String WEBAPP_URL = "http://localhost:" + PORT_PLACEHOLDER_WEBAPP_URL +
@@ -49,7 +50,7 @@ public class HttpClientRule extends ExternalResource {
   }
 
   @Override
-  protected void after() {
+  public void afterEach(ExtensionContext context) throws Exception {
     port = null;
     connection = null;
   }
@@ -243,4 +244,5 @@ public class HttpClientRule extends ExternalResource {
     this.followRedirects = followRedirects;
     return this;
   }
+
 }

@@ -19,9 +19,10 @@ package org.cibseven.bpm.engine.spring;
 import java.beans.FeatureDescriptor;
 import java.util.Iterator;
 import org.cibseven.bpm.engine.ProcessEngineException;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
 import org.springframework.context.ApplicationContext;
+
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
 
 /**
  * @author Tom Baeyens
@@ -69,11 +70,6 @@ public class ApplicationContextElResolver extends ELResolver {
   @Override
   public Class< ? > getCommonPropertyType(ELContext context, Object arg) {
     return Object.class;
-  }
-
-  @Override
-  public Iterator<FeatureDescriptor> getFeatureDescriptors(ELContext context, Object arg) {
-    return null;
   }
 
   @Override

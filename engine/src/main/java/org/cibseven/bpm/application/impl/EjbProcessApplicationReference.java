@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.application.impl;
 
-import javax.ejb.EJBException;
+import jakarta.ejb.EJBException;
 import org.cibseven.bpm.application.ProcessApplicationInterface;
 import org.cibseven.bpm.application.ProcessApplicationReference;
 import org.cibseven.bpm.application.ProcessApplicationUnavailableException;

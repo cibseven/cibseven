@@ -12,7 +12,7 @@
       <package-name>com.fasterxml.jackson.*</package-name>
       <package-name>org.apache.commons.fileupload.*</package-name>
 
-      <package-name>javax.ws.rs.*</package-name>
+      <package-name>jakarta.ws.rs.*</package-name>
       <package-name>org.glassfish.jersey.*</package-name>
       <package-name>org.glassfish.hk2.*</package-name>
       <package-name>org.jvnet.hk2.*</package-name>
@@ -21,8 +21,8 @@
     </prefer-application-packages>
 
     <prefer-application-resources>
-        <resource-name>META-INF/services/javax.servlet.ServletContainerInitializer</resource-name>
-        <resource-name>META-INF/services/javax.ws.rs.ext.RuntimeDelegate</resource-name>
+        <resource-name>META-INF/services/jakarta.servlet.ServletContainerInitializer</resource-name>
+        <resource-name>META-INF/services/jakarta.ws.rs.ext.RuntimeDelegate</resource-name>
         <resource-name>META-INF/services/org.glassfish.jersey.*</resource-name>
         <resource-name>org.glassfish.jersey.*</resource-name>
         <resource-name>jersey.repackaged.*</resource-name>

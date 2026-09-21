@@ -26,8 +26,7 @@ import org.cibseven.bpm.engine.repository.DeploymentBuilder;
  * Process Application exposing this application's resources the process engine.
  */
 @ProcessApplication(name = "InvoiceProcessApplication")
-// Using fully-qualified class name instead of import statement to allow for automatic Jakarta transformation
-public class InvoiceProcessApplication extends org.cibseven.bpm.application.impl.ServletProcessApplication {
+public class InvoiceProcessApplication extends org.cibseven.bpm.application.impl.JakartaServletProcessApplication {
 
   /**
    * In a @PostDeploy Hook you can interact with the process engine and access

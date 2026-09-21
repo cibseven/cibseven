@@ -27,14 +27,14 @@ import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.management.Metrics;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.joda.time.DateTime;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -52,7 +52,7 @@ public class MetricsRestServiceTest extends AbstractAdminPluginTest {
   private DbMetricsReporter dbMetricsReporter;
   private MetricsRegistry metricsRegistry;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     super.before();
 
@@ -68,7 +68,7 @@ public class MetricsRestServiceTest extends AbstractAdminPluginTest {
     Mockito.doReturn(queryParameters).when(uriInfo).getQueryParameters();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     queryParameters.clear();
     managementService.deleteMetrics(null);

@@ -3,7 +3,7 @@
   <@lib.endpointInfo
       id = "getMetrics"
       tag = "Metrics"
-      summary = "Get Sum"
+      summary = "Get Metrics Sum"
       desc = "Retrieves the `sum` (count) for a given metric." />
 
   "parameters" : [

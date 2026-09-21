@@ -59,6 +59,24 @@
         <scope>import</scope>
         <type>pom</type>
       </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-api</artifactId>
+        <version>${version.junit5}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-params</artifactId>
+        <version>${version.junit5}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-engine</artifactId>
+        <version>${version.junit5}</version>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -87,7 +105,6 @@
         <module>test-old-engine</module>
         <module>performance-tests-engine</module>
         <module>large-data-tests</module>
-        <module>integration-tests-engine-jakarta</module>
       </modules>
     </profile>
 
@@ -156,13 +173,6 @@
       </modules>
     </profile>
     
-    <profile>
-      <id>engine-integration-jakarta</id>
-      <modules>
-        <module>integration-tests-engine-jakarta</module>
-      </modules>
-    </profile>
-
     <profile>
       <id>instance-migration</id>
       <modules>

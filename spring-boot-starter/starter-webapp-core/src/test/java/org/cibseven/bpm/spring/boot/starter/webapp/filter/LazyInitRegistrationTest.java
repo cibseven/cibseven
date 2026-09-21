@@ -16,10 +16,11 @@
  */
 package org.cibseven.bpm.spring.boot.starter.webapp.filter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,17 +30,18 @@ import java.util.Set;
 
 import jakarta.servlet.Filter;
 
+import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.LazyDelegateFilter.InitHook;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class LazyInitRegistrationTest {
 
   @Mock
@@ -51,7 +53,7 @@ public class LazyInitRegistrationTest {
   @Mock
   private InitHook<ResourceLoaderDependingFilter> initHookMock;
 
-  @Before
+  @BeforeEach
   public void init() {
     LazyInitRegistration.APPLICATION_CONTEXT = null;
     LazyInitRegistration.REGISTRATION.clear();
@@ -133,9 +135,12 @@ public class LazyInitRegistrationTest {
     assertFalse(LazyInitRegistration.getRegistrations().contains(lazyDelegateFilterMock));
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void getRegistrationsTest() {
-    LazyInitRegistration.getRegistrations().add(lazyDelegateFilterMock);
+    assertThatThrownBy(() -> {
+      LazyInitRegistration.getRegistrations().add(lazyDelegateFilterMock);
+    })
+    .isInstanceOf(UnsupportedOperationException.class);
   }
 
   @Test

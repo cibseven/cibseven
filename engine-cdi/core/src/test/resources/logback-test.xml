@@ -14,6 +14,7 @@
   <logger name="org.jboss.weld" level="info" />
 
   <logger name="org.cibseven" level="info" />
+  <logger name="org.cibseven.bpm.engine.test" level="debug" />
   <logger name="org.cibseven.bpm.engine.impl.bpmn" level="debug" />
   <logger name="org.cibseven.bpm.engine.impl.cfg" level="debug" />
   <logger name="org.cibseven.bpm.engine.impl.cmd" level="debug" />

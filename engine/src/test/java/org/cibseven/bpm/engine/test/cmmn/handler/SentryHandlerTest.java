@@ -17,11 +17,11 @@
 package org.cibseven.bpm.engine.test.cmmn.handler;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -48,8 +48,8 @@ import org.cibseven.bpm.model.cmmn.instance.Sentry;
 import org.cibseven.bpm.model.cmmn.instance.Task;
 import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaVariableOnPart;
 import org.cibseven.bpm.model.cmmn.instance.cibseven.CamundaVariableTransitionEvent;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -66,7 +66,7 @@ public class SentryHandlerTest extends CmmnElementHandlerTest {
   protected TaskItemHandler taskItemHandler = new TaskItemHandler();
   protected SentryHandler sentryHandler = new SentryHandler();
 
-  @Before
+  @BeforeEach
   public void setUp() {
     task = createElement(casePlanModel, "aTask", Task.class);
 

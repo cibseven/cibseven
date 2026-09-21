@@ -17,12 +17,6 @@
     The assembly is installed to maven later in the reactor, if the integration tests pass successfully
   </description>
   
-  <properties>
-    <!-- generate a bom of compile time dependencies for the license book.
-    Note: Every compile time dependency will end up in the license book. Please
-    declare only dependencies that are actually needed -->
-    <skip-third-party-bom>false</skip-third-party-bom>
-  </properties>
 
   <dependencies>
     <dependency>
@@ -34,7 +28,7 @@
 
     <dependency>
       <groupId>org.cibseven.bpm.javaee</groupId>
-      <artifactId>cibseven-ejb-client-jakarta</artifactId>
+      <artifactId>cibseven-ejb-client</artifactId>
     </dependency>
     
     <dependency>
@@ -54,7 +48,7 @@
 
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-cdi-jakarta</artifactId>
+      <artifactId>cibseven-engine-cdi</artifactId>
     </dependency>
     
     <dependency>
@@ -64,7 +58,7 @@
     
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-rest-jakarta</artifactId>
+      <artifactId>cibseven-engine-rest</artifactId>
       <classifier>classes</classifier>
       <version>${project.version}</version>
     </dependency>

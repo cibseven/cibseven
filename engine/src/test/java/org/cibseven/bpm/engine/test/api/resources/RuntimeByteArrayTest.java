@@ -17,9 +17,9 @@
 package org.cibseven.bpm.engine.test.api.resources;
 
 import static org.cibseven.bpm.engine.repository.ResourceTypes.RUNTIME;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -52,25 +52,26 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.FileValue;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 public class RuntimeByteArrayTest {
   protected static final String WORKER_ID = "aWorkerId";
   protected static final long LOCK_TIME = 10000L;
   protected static final String TOPIC_NAME = "externalTaskTopic";
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
   protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
   protected BatchMigrationHelper helper = new BatchMigrationHelper(engineRule, migrationRule);
 
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(migrationRule).around(testRule);
 
   protected ProcessEngineConfigurationImpl configuration;
   protected RuntimeService runtimeService;
@@ -81,7 +82,7 @@ public class RuntimeByteArrayTest {
 
   protected String id;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     configuration = engineRule.getProcessEngineConfiguration();
     runtimeService = engineRule.getRuntimeService();
@@ -91,12 +92,12 @@ public class RuntimeByteArrayTest {
     externalTaskService = engineRule.getExternalTaskService();
   }
 
-  @After
+  @AfterEach
   public void removeBatches() {
     helper.removeAllRunningAndHistoricBatches();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (id != null) {
       // delete task

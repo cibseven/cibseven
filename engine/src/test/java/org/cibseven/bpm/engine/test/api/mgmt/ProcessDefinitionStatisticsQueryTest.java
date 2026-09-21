@@ -17,11 +17,11 @@
 package org.cibseven.bpm.engine.test.api.mgmt;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.HashMap;
 import java.util.List;
@@ -33,8 +33,8 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.Incident;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class ProcessDefinitionStatisticsQueryTest extends PluggableProcessEngineTest {
 
@@ -55,11 +55,11 @@ public class ProcessDefinitionStatisticsQueryTest extends PluggableProcessEngine
         .includeFailedJobs()
         .list();
 
-    Assert.assertEquals(1, statistics.size());
+    Assertions.assertEquals(1, statistics.size());
 
     ProcessDefinitionStatistics definitionResult = statistics.get(0);
-    Assert.assertEquals(2, definitionResult.getInstances());
-    Assert.assertEquals(1, definitionResult.getFailedJobs());
+    Assertions.assertEquals(2, definitionResult.getInstances());
+    Assertions.assertEquals(1, definitionResult.getFailedJobs());
   }
 
   @Test
@@ -79,17 +79,17 @@ public class ProcessDefinitionStatisticsQueryTest extends PluggableProcessEngine
         .includeIncidents()
         .list();
 
-    Assert.assertEquals(1, statistics.size());
+    Assertions.assertEquals(1, statistics.size());
 
     ProcessDefinitionStatistics definitionResult = statistics.get(0);
-    Assert.assertEquals(2, definitionResult.getInstances());
+    Assertions.assertEquals(2, definitionResult.getInstances());
 
     assertFalse(definitionResult.getIncidentStatistics().isEmpty());
     assertEquals(1, definitionResult.getIncidentStatistics().size());
 
     IncidentStatistics incidentStatistics = definitionResult.getIncidentStatistics().get(0);
-    Assert.assertEquals(Incident.FAILED_JOB_HANDLER_TYPE, incidentStatistics.getIncidentType());
-    Assert.assertEquals(1, incidentStatistics.getIncidentCount());
+    Assertions.assertEquals(Incident.FAILED_JOB_HANDLER_TYPE, incidentStatistics.getIncidentType());
+    Assertions.assertEquals(1, incidentStatistics.getIncidentCount());
   }
 
   @Test
@@ -109,17 +109,17 @@ public class ProcessDefinitionStatisticsQueryTest extends PluggableProcessEngine
         .includeIncidentsForType("failedJob")
         .list();
 
-    Assert.assertEquals(1, statistics.size());
+    Assertions.assertEquals(1, statistics.size());
 
     ProcessDefinitionStatistics definitionResult = statistics.get(0);
-    Assert.assertEquals(2, definitionResult.getInstances());
+    Assertions.assertEquals(2, definitionResult.getInstances());
 
     assertFalse(definitionResult.getIncidentStatistics().isEmpty());
     assertEquals(1, definitionResult.getIncidentStatistics().size());
 
     IncidentStatistics incidentStatistics = definitionResult.getIncidentStatistics().get(0);
-    Assert.assertEquals(Incident.FAILED_JOB_HANDLER_TYPE, incidentStatistics.getIncidentType());
-    Assert.assertEquals(1, incidentStatistics.getIncidentCount());
+    Assertions.assertEquals(Incident.FAILED_JOB_HANDLER_TYPE, incidentStatistics.getIncidentType());
+    Assertions.assertEquals(1, incidentStatistics.getIncidentCount());
   }
 
   @Test
@@ -139,10 +139,10 @@ public class ProcessDefinitionStatisticsQueryTest extends PluggableProcessEngine
         .includeIncidentsForType("invalid")
         .list();
 
-    Assert.assertEquals(1, statistics.size());
+    Assertions.assertEquals(1, statistics.size());
 
     ProcessDefinitionStatistics definitionResult = statistics.get(0);
-    Assert.assertEquals(2, definitionResult.getInstances());
+    Assertions.assertEquals(2, definitionResult.getInstances());
 
     assertTrue(definitionResult.getIncidentStatistics().isEmpty());
   }
@@ -165,18 +165,18 @@ public class ProcessDefinitionStatisticsQueryTest extends PluggableProcessEngine
         .includeFailedJobs()
         .list();
 
-    Assert.assertEquals(1, statistics.size());
+    Assertions.assertEquals(1, statistics.size());
 
     ProcessDefinitionStatistics definitionResult = statistics.get(0);
-    Assert.assertEquals(2, definitionResult.getInstances());
-    Assert.assertEquals(1, definitionResult.getFailedJobs());
+    Assertions.assertEquals(2, definitionResult.getInstances());
+    Assertions.assertEquals(1, definitionResult.getFailedJobs());
 
     assertFalse(definitionResult.getIncidentStatistics().isEmpty());
     assertEquals(1, definitionResult.getIncidentStatistics().size());
 
     IncidentStatistics incidentStatistics = definitionResult.getIncidentStatistics().get(0);
-    Assert.assertEquals(Incident.FAILED_JOB_HANDLER_TYPE, incidentStatistics.getIncidentType());
-    Assert.assertEquals(1, incidentStatistics.getIncidentCount());
+    Assertions.assertEquals(Incident.FAILED_JOB_HANDLER_TYPE, incidentStatistics.getIncidentType());
+    Assertions.assertEquals(1, incidentStatistics.getIncidentCount());
   }
 
   @Test
@@ -189,11 +189,11 @@ public class ProcessDefinitionStatisticsQueryTest extends PluggableProcessEngine
         .includeIncidents()
         .list();
 
-    Assert.assertEquals(1, statistics.size());
+    Assertions.assertEquals(1, statistics.size());
 
     ProcessDefinitionStatistics definitionResult = statistics.get(0);
-    Assert.assertEquals(0, definitionResult.getInstances());
-    Assert.assertEquals(0, definitionResult.getFailedJobs());
+    Assertions.assertEquals(0, definitionResult.getInstances());
+    Assertions.assertEquals(0, definitionResult.getFailedJobs());
 
     statistics =
         managementService.createProcessDefinitionStatisticsQuery().includeIncidents().list();
@@ -215,7 +215,7 @@ public class ProcessDefinitionStatisticsQueryTest extends PluggableProcessEngine
         .includeIncidents()
         .count();
 
-    Assert.assertEquals(1, count);
+    Assertions.assertEquals(1, count);
   }
 
   @Test
@@ -228,10 +228,10 @@ public class ProcessDefinitionStatisticsQueryTest extends PluggableProcessEngine
         .createProcessDefinitionStatisticsQuery()
         .list();
 
-    Assert.assertEquals(1, statistics.size());
+    Assertions.assertEquals(1, statistics.size());
 
     ProcessDefinitionStatistics result = statistics.get(0);
-    Assert.assertEquals(1, result.getInstances());
+    Assertions.assertEquals(1, result.getInstances());
   }
 
   @Test
@@ -244,10 +244,10 @@ public class ProcessDefinitionStatisticsQueryTest extends PluggableProcessEngine
         .createProcessDefinitionStatisticsQuery()
         .list();
 
-    Assert.assertEquals(1, statistics.size());
+    Assertions.assertEquals(1, statistics.size());
 
     ProcessDefinitionStatistics result = statistics.get(0);
-    Assert.assertEquals(1, result.getInstances());
+    Assertions.assertEquals(1, result.getInstances());
   }
 
   @Test
@@ -263,15 +263,15 @@ public class ProcessDefinitionStatisticsQueryTest extends PluggableProcessEngine
         .includeFailedJobs()
         .list();
 
-    Assert.assertEquals(2, statistics.size());
+    Assertions.assertEquals(2, statistics.size());
 
     for (ProcessDefinitionStatistics result : statistics) {
       if (result.getKey().equals("ExampleProcess")) {
-        Assert.assertEquals(1, result.getInstances());
-        Assert.assertEquals(1, result.getFailedJobs());
+        Assertions.assertEquals(1, result.getInstances());
+        Assertions.assertEquals(1, result.getFailedJobs());
       } else if (result.getKey().equals("callExampleSubProcess")) {
-        Assert.assertEquals(1, result.getInstances());
-        Assert.assertEquals(0, result.getFailedJobs());
+        Assertions.assertEquals(1, result.getInstances());
+        Assertions.assertEquals(0, result.getFailedJobs());
       } else {
         fail(result + " was not expected.");
       }
@@ -305,17 +305,17 @@ public class ProcessDefinitionStatisticsQueryTest extends PluggableProcessEngine
         .includeIncidents()
         .list();
 
-    Assert.assertEquals(2, statistics.size());
+    Assertions.assertEquals(2, statistics.size());
 
     ProcessDefinitionStatistics definitionResult = statistics.get(0);
-    Assert.assertEquals(1, definitionResult.getInstances());
-    Assert.assertEquals(0, definitionResult.getFailedJobs());
+    Assertions.assertEquals(1, definitionResult.getInstances());
+    Assertions.assertEquals(0, definitionResult.getFailedJobs());
 
     assertTrue(definitionResult.getIncidentStatistics().isEmpty());
 
     definitionResult = statistics.get(1);
-    Assert.assertEquals(1, definitionResult.getInstances());
-    Assert.assertEquals(0, definitionResult.getFailedJobs());
+    Assertions.assertEquals(1, definitionResult.getInstances());
+    Assertions.assertEquals(0, definitionResult.getFailedJobs());
 
     assertTrue(definitionResult.getIncidentStatistics().isEmpty());
 
@@ -352,11 +352,11 @@ public class ProcessDefinitionStatisticsQueryTest extends PluggableProcessEngine
         .includeIncidents()
         .list();
 
-    Assert.assertEquals(2, statistics.size());
+    Assertions.assertEquals(2, statistics.size());
 
     ProcessDefinitionStatistics definitionResult = statistics.get(0);
-    Assert.assertEquals(1, definitionResult.getInstances());
-    Assert.assertEquals(1, definitionResult.getFailedJobs());
+    Assertions.assertEquals(1, definitionResult.getInstances());
+    Assertions.assertEquals(1, definitionResult.getFailedJobs());
 
     List<IncidentStatistics> incidentStatistics = definitionResult.getIncidentStatistics();
     assertFalse(incidentStatistics.isEmpty());
@@ -368,8 +368,8 @@ public class ProcessDefinitionStatisticsQueryTest extends PluggableProcessEngine
     assertEquals(1, incident.getIncidentCount());
 
     definitionResult = statistics.get(1);
-    Assert.assertEquals(1, definitionResult.getInstances());
-    Assert.assertEquals(1, definitionResult.getFailedJobs());
+    Assertions.assertEquals(1, definitionResult.getInstances());
+    Assertions.assertEquals(1, definitionResult.getFailedJobs());
 
     incidentStatistics = definitionResult.getIncidentStatistics();
     assertFalse(incidentStatistics.isEmpty());
@@ -410,17 +410,17 @@ public class ProcessDefinitionStatisticsQueryTest extends PluggableProcessEngine
         .includeIncidentsForType("failedJob")
         .list();
 
-    Assert.assertEquals(2, statistics.size());
+    Assertions.assertEquals(2, statistics.size());
 
     ProcessDefinitionStatistics definitionResult = statistics.get(0);
-    Assert.assertEquals(1, definitionResult.getInstances());
-    Assert.assertEquals(0, definitionResult.getFailedJobs());
+    Assertions.assertEquals(1, definitionResult.getInstances());
+    Assertions.assertEquals(0, definitionResult.getFailedJobs());
 
     assertTrue(definitionResult.getIncidentStatistics().isEmpty());
 
     definitionResult = statistics.get(1);
-    Assert.assertEquals(1, definitionResult.getInstances());
-    Assert.assertEquals(0, definitionResult.getFailedJobs());
+    Assertions.assertEquals(1, definitionResult.getInstances());
+    Assertions.assertEquals(0, definitionResult.getFailedJobs());
 
     assertTrue(definitionResult.getIncidentStatistics().isEmpty());
 
@@ -448,7 +448,7 @@ public class ProcessDefinitionStatisticsQueryTest extends PluggableProcessEngine
     List<ProcessDefinitionStatistics> statistics =
         managementService.createProcessDefinitionStatisticsQuery().includeFailedJobs().listPage(0, 1);
 
-    Assert.assertEquals(1, statistics.size());
+    Assertions.assertEquals(1, statistics.size());
 
     repositoryService.deleteDeployment(deployment.getId(), true);
   }
@@ -467,7 +467,7 @@ public class ProcessDefinitionStatisticsQueryTest extends PluggableProcessEngine
         .includeFailedJobs()
         .list();
 
-    Assert.assertEquals(2, statistics.size());
+    Assertions.assertEquals(2, statistics.size());
 
     ProcessDefinitionStatistics callExampleSubProcessStaticstics = null;
     ProcessDefinitionStatistics exampleSubProcessStaticstics = null;

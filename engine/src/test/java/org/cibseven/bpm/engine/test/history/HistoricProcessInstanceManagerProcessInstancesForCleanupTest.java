@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.history;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,60 +43,36 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Svetlana Dorokhova
  */
-@RunWith(Parameterized.class)
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class HistoricProcessInstanceManagerProcessInstancesForCleanupTest {
 
   protected static final String ONE_TASK_PROCESS = "oneTaskProcess";
   protected static final String TWO_TASKS_PROCESS = "twoTasksProcess";
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   private HistoryService historyService;
   private RuntimeService runtimeService;
 
-  @Before
+  @BeforeEach
   public void init() {
     runtimeService = engineRule.getRuntimeService();
     historyService = engineRule.getHistoryService();
   }
 
-  @Parameterized.Parameter(0)
-  public int processDefiniotion1TTL;
 
-  @Parameterized.Parameter(1)
-  public int processDefiniotion2TTL;
-
-  @Parameterized.Parameter(2)
-  public int processInstancesOfProcess1Count;
-
-  @Parameterized.Parameter(3)
-  public int processInstancesOfProcess2Count;
-
-  @Parameterized.Parameter(4)
-  public int daysPassedAfterProcessEnd;
-
-  @Parameterized.Parameter(5)
-  public int batchSize;
-
-  @Parameterized.Parameter(6)
-  public int resultCount;
-
-  @Parameterized.Parameters
   public static Collection<Object[]> scenarios() {
     return Arrays.asList(new Object[][] {
         { 3, 5, 3, 7, 4, 50, 3 },
@@ -109,9 +85,12 @@ public class HistoricProcessInstanceManagerProcessInstancesForCleanupTest {
     });
   }
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = { "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml", "org/cibseven/bpm/engine/test/api/twoTasksProcess.bpmn20.xml" })
-  public void testFindHistoricProcessInstanceIdsForCleanup() {
+  public void testFindHistoricProcessInstanceIdsForCleanup(int processDefiniotion1TTL, int processDefiniotion2TTL, 
+    int processInstancesOfProcess1Count, int processInstancesOfProcess2Count, 
+    int daysPassedAfterProcessEnd, int batchSize, int resultCount) {
 
     engineRule.getProcessEngineConfiguration().getCommandExecutorTxRequired().execute(new Command<Object>() {
       @Override

@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.api.repository;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Collection;
 
@@ -28,7 +28,7 @@ import org.cibseven.bpm.model.cmmn.instance.Case;
 import org.cibseven.bpm.model.cmmn.instance.HumanTask;
 import org.cibseven.bpm.model.cmmn.instance.PlanItem;
 import org.cibseven.bpm.model.xml.instance.ModelElementInstance;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov

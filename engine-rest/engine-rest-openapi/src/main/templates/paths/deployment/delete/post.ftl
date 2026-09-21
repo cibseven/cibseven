@@ -3,7 +3,7 @@
   <@lib.endpointInfo
       id = "deleteDeploymentsAsyncOperation"
       tag = "Deployment"
-      summary = "Delete Async (POST)"
+      summary = "Delete Deployments Async"
       desc = "Deletes multiple deployments asynchronously (batch)." />
 
   <@lib.requestBody
