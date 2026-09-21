@@ -514,8 +514,11 @@
             <filtering>true</filtering>
           </testResource>
           <testResource>
-            <directory>src/test/resources-wildfly</directory>
+            <directory>src/test/resources-wildfly28</directory>
             <filtering>true</filtering>
+            <excludes>
+              <exclude>arquillian.xml</exclude>
+            </excludes>
           </testResource>
         </testResources>
         <plugins>
@@ -531,7 +534,7 @@
                 </goals>
                 <configuration>
                   <sources>
-                    <source>src/test/java-wildfly</source>
+                    <source>src/test/java-wildfly28</source>
                   </sources>
                 </configuration>
               </execution>
@@ -715,6 +718,9 @@
           </testResource>
           <testResource>
             <directory>src/test/resources-wildfly28</directory>
+            <excludes>
+              <exclude>arquillian.xml</exclude>
+            </excludes>
             <filtering>true</filtering>
           </testResource>
         </testResources>
