@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-1882. A gateway inside the scope is permitted by section 10.3.5 and is reached along an
+     inner flow, then routes along one of its own. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="adHocGatewayRoutes" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc" name="Ad Hoc Scope">
+      <userTask id="triage" name="Triage" />
+      <sequenceFlow id="toGateway" sourceRef="triage" targetRef="gw" />
+      <exclusiveGateway id="gw" default="toStandard" />
+      <sequenceFlow id="toEscalated" sourceRef="gw" targetRef="escalated">
+        <conditionExpression xsi:type="tFormalExpression">${urgent}</conditionExpression>
+      </sequenceFlow>
+      <sequenceFlow id="toStandard" sourceRef="gw" targetRef="standard" />
+      <userTask id="escalated" name="Escalated" />
+      <userTask id="standard" name="Standard" />
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

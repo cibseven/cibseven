@@ -23,6 +23,10 @@ import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;
+import org.cibseven.bpm.engine.delegate.ExecutionListener;
+import org.cibseven.bpm.engine.delegate.DelegateExecution;
+import org.cibseven.bpm.engine.impl.pvm.PvmScope;
+import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityBehavior;
 import org.cibseven.bpm.engine.impl.pvm.delegate.CompositeActivityBehavior;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ModificationObserverBehavior;
 import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
@@ -366,6 +370,61 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     leave(scopeExecution);
   }
 
+
+  /**
+   * A child has completed an activity and is taking a sequence flow to the next one (CIB7-1882).
+   *
+   * <p>This is the fourth point at which the completion condition is consulted, and it exists
+   * because taking a flow is not an end: without it, a condition satisfied by the very completion
+   * that takes the flow would go unnoticed and the target would be performed regardless.
+   *
+   * <p>What happens then is decided by {@code cancelRemainingInstances}, which is already the
+   * attribute that answers "what becomes of work in progress when the condition fires", rather than
+   * by a new rule. With the default {@code true} the target is not performed, which is what the
+   * latch from CIB7-1850 implies -- once the condition holds the scope starts nothing further. With
+   * {@code false} the scope waits for its survivors, and the target is performed, which is the
+   * guarantee BPMN 2.0.0 section 10.3.5 p.182 attaches to an inner flow.
+   *
+   * <p>Without a completion condition there is nothing to consult: the no-condition rule ends the
+   * scope when nothing is active, and a child in mid-transition is active.
+   */
+  public void childTransitioned(ActivityExecution scopeExecution, ActivityExecution transitioning) {
+    if (completionCondition == null || !isCompleted(scopeExecution, transitioning)) {
+      return;
+    }
+    if (!cancelRemainingInstances) {
+      return;
+    }
+    completeScopeOnRequest(scopeExecution);
+  }
+
+  /**
+   * Consults the ad hoc scope when one of its children takes an inner sequence flow.
+   *
+   * <p>Attached by the parser to the outgoing transitions of the scope's children, which is the
+   * seam the engine already provides: {@code TransitionImpl} accepts execution listeners, so this
+   * needs no new process-virtual-machine interface.
+   */
+  public static class InnerTransitionListener implements ExecutionListener {
+
+    @Override
+    public void notify(DelegateExecution execution) {
+      ActivityExecution transitioning = (ActivityExecution) execution;
+      PvmActivity source = (PvmActivity) transitioning.getActivity();
+      if (source == null) {
+        return;
+      }
+      PvmScope flowScope = source.getFlowScope();
+      if (!(flowScope instanceof PvmActivity)) {
+        return;
+      }
+      ActivityBehavior behavior = ((PvmActivity) flowScope).getActivityBehavior();
+      if (behavior instanceof AdHocSubProcessActivityBehavior) {
+        ((AdHocSubProcessActivityBehavior) behavior)
+            .childTransitioned(transitioning.getParent(), transitioning);
+      }
+    }
+  }
 
   protected ActivityExecution createConcurrentExecution(ActivityExecution scopeExecution) {
     ActivityExecution concurrentChild = scopeExecution.createExecution();

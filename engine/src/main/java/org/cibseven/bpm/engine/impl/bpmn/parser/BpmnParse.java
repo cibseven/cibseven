@@ -4048,6 +4048,17 @@ public class BpmnParse extends Parse {
     activity.setActivityBehavior(behavior);
     parseScope(adHocElement, activity);
 
+    // CIB7-1882: a child taking an inner flow must let the scope consult its completion condition,
+    // because taking a flow is not an end and nothing else would notify the scope. TransitionImpl
+    // accepts execution listeners, so this needs no process-virtual-machine change.
+    AdHocSubProcessActivityBehavior.InnerTransitionListener innerTransitionListener =
+        new AdHocSubProcessActivityBehavior.InnerTransitionListener();
+    for (ActivityImpl child : activity.getActivities()) {
+      for (PvmTransition transition : child.getOutgoingTransitions()) {
+        ((TransitionImpl) transition).addExecutionListener(innerTransitionListener);
+      }
+    }
+
     parseAdHocStartableActivities(adHocElement, activity);
 
     // BPMN 2.0.0 section 10.3.5 lists the elements that MUST be used inside an ad hoc sub process,

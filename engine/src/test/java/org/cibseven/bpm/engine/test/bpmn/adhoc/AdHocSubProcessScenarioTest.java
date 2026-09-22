@@ -868,4 +868,93 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
     }
   }
 
+  /**
+   * CIB7-1882. BPMN 2.0.0 section 10.3.5 p.182: the performance of the first task must be followed
+   * by a performance of the second, though not necessarily immediately. The rest of the scope stays
+   * ad hoc while one pair is ordered.
+   */
+  @org.cibseven.bpm.engine.test.Deployment
+  @Test
+  public void testInnerSequenceFlowIsPerformedInOrder() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocInnerFlow");
+
+    // The target of an inner flow is reached from its predecessor, so it is not directly startable.
+    assertThat(startableOf(pi)).containsExactly("first", "independent");
+
+    activate(pi.getId(), "first");
+    assertThat(task("second")).as("the target must not start with its predecessor").isNull();
+
+    taskService.complete(task("first").getId());
+    assertThat(task("second"))
+        .as("completing the source must be followed by a performance of the target")
+        .isNotNull();
+
+    taskService.complete(task("second").getId());
+    testRule.assertProcessEnded(pi.getId());
+  }
+
+  /**
+   * CIB7-1882. The completion condition is satisfied by the very completion that takes an inner
+   * flow, under the default {@code cancelRemainingInstances="true"}: the scope is done, so the
+   * target is not performed. That is what the CIB7-1850 latch implies -- once the condition holds
+   * the scope starts nothing further.
+   */
+  @org.cibseven.bpm.engine.test.Deployment
+  @Test
+  public void testConditionSatisfiedAtAnInnerTransition() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocInnerFlowCondition");
+
+    activate(pi.getId(), "first");
+    Map<String, Object> vars = new HashMap<String, Object>();
+    vars.put("done", true);
+    taskService.complete(task("first").getId(), vars);
+
+    assertThat(task("second"))
+        .as("the condition held as the flow was taken, so the target must not be performed")
+        .isNull();
+    testRule.assertProcessEnded(pi.getId());
+  }
+
+  /**
+   * The same moment with {@code cancelRemainingInstances="false"}: the scope waits for what is in
+   * flight, so the target of the flow is performed. This is the guarantee BPMN 2.0.0 section 10.3.5
+   * p.182 attaches to an inner flow, and the attribute is what chooses between the two readings.
+   */
+  @org.cibseven.bpm.engine.test.Deployment
+  @Test
+  public void testConditionAtAnInnerTransitionAwaitsWhenNotCancelling() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocInnerFlowConditionAwaits");
+
+    activate(pi.getId(), "first");
+    Map<String, Object> vars = new HashMap<String, Object>();
+    vars.put("done", true);
+    taskService.complete(task("first").getId(), vars);
+
+    assertThat(task("second"))
+        .as("cancelRemainingInstances=false must let the flow's obligation be discharged")
+        .isNotNull();
+
+    taskService.complete(task("second").getId());
+    testRule.assertProcessEnded(pi.getId());
+  }
+
+  /** CIB7-1882. A gateway is reached along an inner flow and routes along one of its own. */
+  @org.cibseven.bpm.engine.test.Deployment
+  @Test
+  public void testGatewayInsideScopeRoutes() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocGatewayRoutes");
+
+    activate(pi.getId(), "triage");
+    Map<String, Object> vars = new HashMap<String, Object>();
+    vars.put("urgent", true);
+    taskService.complete(task("triage").getId(), vars);
+
+    assertThat(task("escalated")).as("the gateway must route along the satisfied condition").isNotNull();
+    assertThat(task("standard")).isNull();
+
+    taskService.complete(task("escalated").getId());
+    testRule.assertProcessEnded(pi.getId());
+  }
+
+
 }
