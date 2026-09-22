@@ -46,20 +46,19 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 public class BoundedNumberOfMaxResultsTest {
-
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   protected HistoryService historyService;
   protected RuntimeService runtimeService;
@@ -79,7 +78,7 @@ public class BoundedNumberOfMaxResultsTest {
       .endEvent()
       .done();
 
-  @Before
+  @BeforeEach
   public void assignServices() {
     historyService = engineRule.getHistoryService();
     runtimeService = engineRule.getRuntimeService();
@@ -87,25 +86,25 @@ public class BoundedNumberOfMaxResultsTest {
     identityService = engineRule.getIdentityService();
   }
 
-  @Before
+  @BeforeEach
   public void enableMaxResultsLimit() {
     engineRule.getProcessEngineConfiguration()
         .setQueryMaxResultsLimit(10);
   }
 
-  @Before
+  @BeforeEach
   public void authenticate() {
     engineRule.getIdentityService()
         .setAuthenticatedUserId("foo");
   }
 
-  @After
+  @AfterEach
   public void clearAuthentication() {
     engineRule.getIdentityService()
         .clearAuthentication();
   }
 
-  @After
+  @AfterEach
   public void resetQueryMaxResultsLimit() {
     engineRule.getProcessEngineConfiguration()
         .setQueryMaxResultsLimit(Integer.MAX_VALUE);

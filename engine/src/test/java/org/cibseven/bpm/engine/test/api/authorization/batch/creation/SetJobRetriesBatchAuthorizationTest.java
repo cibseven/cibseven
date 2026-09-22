@@ -33,12 +33,11 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
-import org.junit.Test;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class SetJobRetriesBatchAuthorizationTest extends BatchCreationAuthorizationTest {
 
-  @Parameterized.Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
         scenario()
@@ -58,8 +57,9 @@ public class SetJobRetriesBatchAuthorizationTest extends BatchCreationAuthorizat
     );
   }
 
-  @Test
-  public void testBatchSetJobRetriesByJobs() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testBatchSetJobRetriesByJobs(AuthorizationScenario scenario) {
     //given
     List<String> jobIds = setupFailedJobs();
     authRule
@@ -76,8 +76,9 @@ public class SetJobRetriesBatchAuthorizationTest extends BatchCreationAuthorizat
     authRule.assertScenario(scenario);
   }
 
-  @Test
-  public void testBatchSetJobRetriesByProcesses() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testBatchSetJobRetriesByProcesses(AuthorizationScenario scenario) {
     //given
     setupFailedJobs();
     List<String> processInstanceIds = Collections.singletonList(processInstance.getId());
@@ -98,7 +99,7 @@ public class SetJobRetriesBatchAuthorizationTest extends BatchCreationAuthorizat
   protected List<String> setupFailedJobs() {
     List<String> jobIds = new ArrayList<>();
 
-    Deployment deploy = testHelper.deploy(JOB_EXCEPTION_DEFINITION_XML);
+    Deployment deploy = testRule.deploy(JOB_EXCEPTION_DEFINITION_XML);
     ProcessDefinition sourceDefinition = engineRule.getRepositoryService()
         .createProcessDefinitionQuery().deploymentId(deploy.getId()).singleResult();
     processInstance = engineRule.getRuntimeService().startProcessInstanceById(sourceDefinition.getId());

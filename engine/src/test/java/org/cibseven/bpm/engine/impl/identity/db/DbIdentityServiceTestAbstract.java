@@ -1,15 +1,15 @@
 package org.cibseven.bpm.engine.impl.identity.db;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.impl.persistence.entity.UserEntity;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public abstract class DbIdentityServiceTestAbstract {
 

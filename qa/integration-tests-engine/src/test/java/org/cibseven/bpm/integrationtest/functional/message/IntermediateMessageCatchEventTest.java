@@ -16,18 +16,19 @@
  */
 package org.cibseven.bpm.integrationtest.functional.message;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class IntermediateMessageCatchEventTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -41,7 +42,7 @@ public class IntermediateMessageCatchEventTest extends AbstractFoxPlatformIntegr
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testProcess");
 
     long eventSubscriptionCount = runtimeService.createEventSubscriptionQuery().count();
-    assertEquals(1, eventSubscriptionCount);
+    assertThat(eventSubscriptionCount).isEqualTo(1);
 
     Execution execution = runtimeService.createExecutionQuery().messageEventSubscriptionName("Test Message").singleResult();
 
@@ -51,9 +52,9 @@ public class IntermediateMessageCatchEventTest extends AbstractFoxPlatformIntegr
     runtimeService.createMessageCorrelation("Test Message").correlate();
 
     eventSubscriptionCount = runtimeService.createEventSubscriptionQuery().count();
-    assertEquals(0, eventSubscriptionCount);
+    assertThat(eventSubscriptionCount).isEqualTo(0);
 
-    assertEquals(0, runtimeService.createExecutionQuery().count());
+    assertThat(runtimeService.createExecutionQuery().count()).isEqualTo(0);
   }
 
 }

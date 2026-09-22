@@ -19,6 +19,10 @@ package org.cibseven.spin.plugin.el;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.cibseven.bpm.engine.delegate.Expression;
 import org.cibseven.bpm.engine.impl.test.PluggableProcessEngineTestCase;
 import org.cibseven.bpm.engine.repository.Deployment;

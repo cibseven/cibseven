@@ -21,23 +21,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
-import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 public class InstallationCfgTest {
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected ProcessEngineConfigurationImpl configuration;
 
-  @Before
+  @BeforeEach
   public void setup() {
     configuration = engineRule.getProcessEngineConfiguration();
   }
@@ -46,7 +45,7 @@ public class InstallationCfgTest {
   public void shouldInitializeInstallationId() {
     // given default configuration
 
-    // when enigne is spun
+    // when engine is spun
 
     // then
     String installationId = configuration.getInstallationId();

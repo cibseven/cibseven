@@ -30,16 +30,21 @@ import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.engine.test.api.runtime.TestOrderingUtil.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Thorben Lindhauer
@@ -55,12 +60,12 @@ public class ExternalTaskQueryTest extends PluggableProcessEngineTest {
   // max value
   protected static final double MAX_DOUBLE_VALUE = 10E+124;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     ClockUtil.setCurrentTime(new Date());
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     ClockUtil.reset();
   }

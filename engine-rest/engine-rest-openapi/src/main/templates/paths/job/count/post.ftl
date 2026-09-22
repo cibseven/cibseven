@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "queryJobsCount"
       tag = "Job"
-      summary = "Get Job Count (POST)"
+      summary = "Get Job Count"
       desc = "Queries for jobs that fulfill given parameters. This method takes the same message
               body as the [Get Jobs POST](${docsUrl}/reference/rest/job/post-
               query/) method and therefore it is slightly more powerful than the

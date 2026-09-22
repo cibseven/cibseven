@@ -18,15 +18,16 @@ package org.cibseven.bpm.engine.spring.application;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 import org.cibseven.bpm.application.AbstractProcessApplication;
 import org.cibseven.bpm.application.ProcessApplicationElResolver;
 import org.cibseven.bpm.application.impl.EjbProcessApplication;
 import org.cibseven.bpm.engine.spring.ApplicationContextElResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+
+import jakarta.el.ELResolver;
 
 /**
  * <p>ProcessApplicationElResolver implementation providing support for the Spring Framework.</p>

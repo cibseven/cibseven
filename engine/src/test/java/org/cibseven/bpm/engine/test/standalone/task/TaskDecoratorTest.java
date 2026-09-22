@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.standalone.task;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -35,9 +35,9 @@ import org.cibseven.bpm.engine.impl.task.TaskDefinition;
 import org.cibseven.bpm.engine.task.IdentityLink;
 import org.cibseven.bpm.engine.task.IdentityLinkType;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -50,7 +50,7 @@ public class TaskDecoratorTest extends PluggableProcessEngineTest {
   protected TaskDecorator taskDecorator;
   protected ExpressionManager expressionManager;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     task = (TaskEntity) taskService.newTask();
     taskService.saveTask(task);
@@ -62,7 +62,7 @@ public class TaskDecoratorTest extends PluggableProcessEngineTest {
     taskDecorator = new TaskDecorator(taskDefinition, expressionManager);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws InterruptedException {
     taskService.deleteTask(task.getId(), true);
   }

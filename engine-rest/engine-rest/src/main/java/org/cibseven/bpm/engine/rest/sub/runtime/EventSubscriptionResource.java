@@ -19,8 +19,8 @@ package org.cibseven.bpm.engine.rest.sub.runtime;
 import org.cibseven.bpm.engine.rest.dto.runtime.EventSubscriptionDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.ExecutionTriggerDto;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 
 public interface EventSubscriptionResource {
 

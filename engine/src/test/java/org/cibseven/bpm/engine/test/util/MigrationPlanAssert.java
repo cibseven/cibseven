@@ -16,11 +16,11 @@
  */
 package org.cibseven.bpm.engine.test.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,7 +45,7 @@ public class MigrationPlanAssert {
   }
 
   public MigrationPlanAssert isNotNull() {
-    assertNotNull("The migration plan is null", actual);
+    assertNotNull(actual, "The migration plan is null");
 
     return this;
   }
@@ -56,7 +56,7 @@ public class MigrationPlanAssert {
 
   public MigrationPlanAssert hasSourceProcessDefinitionId(String sourceProcessDefinitionId) {
     isNotNull();
-    assertEquals("The source process definition id does not match", sourceProcessDefinitionId, actual.getSourceProcessDefinitionId());
+    assertEquals(sourceProcessDefinitionId, actual.getSourceProcessDefinitionId(), "The source process definition id does not match");
 
     return this;
   }
@@ -67,7 +67,7 @@ public class MigrationPlanAssert {
 
   public MigrationPlanAssert hasTargetProcessDefinitionId(String targetProcessDefinitionId) {
     isNotNull();
-    assertEquals("The target process definition id does not match", targetProcessDefinitionId, actual.getTargetProcessDefinitionId());
+    assertEquals(targetProcessDefinitionId, actual.getTargetProcessDefinitionId(), "The target process definition id does not match");
 
     return this;
   }
@@ -138,11 +138,9 @@ public class MigrationPlanAssert {
         if (instructionAssert.sourceActivityId.equals(instruction.getSourceActivityId())) {
           notFound.remove(instructionAssert);
           notExpected.remove(instruction);
-          assertEquals("Target activity ids do not match for instruction " + instruction,
-            instructionAssert.targetActivityId, instruction.getTargetActivityId());
+          assertEquals(instructionAssert.targetActivityId, instruction.getTargetActivityId(), "Target activity ids do not match for instruction " + instruction);
           if (instructionAssert.updateEventTrigger != null) {
-            assertEquals("Expected instruction to update event trigger: " + instructionAssert.updateEventTrigger + " but is: " + instruction.isUpdateEventTrigger(),
-              instructionAssert.updateEventTrigger, instruction.isUpdateEventTrigger());
+            assertEquals(instructionAssert.updateEventTrigger, instruction.isUpdateEventTrigger(), "Expected instruction to update event trigger: " + instructionAssert.updateEventTrigger + " but is: " + instruction.isUpdateEventTrigger());
           }
         }
       }
@@ -167,7 +165,7 @@ public class MigrationPlanAssert {
     isNotNull();
 
     List<MigrationInstruction> instructions = actual.getInstructions();
-    assertTrue("Expected migration plan has no instructions but has: " + instructions, instructions.isEmpty());
+    assertTrue(instructions.isEmpty(), "Expected migration plan has no instructions but has: " + instructions);
 
     return this;
   }

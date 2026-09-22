@@ -19,7 +19,7 @@ package org.cibseven.connect.ai.agent;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.connect.ai.agent.impl.AgentConnectorProviderImpl;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class AgentConnectorProviderTest {
 

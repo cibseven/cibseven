@@ -16,6 +16,9 @@
  */
 package org.cibseven.bpm.engine.spring.test;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.cibseven.bpm.engine.impl.ProcessEngineImpl;
 import org.springframework.test.context.ContextConfiguration;
 

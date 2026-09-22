@@ -16,10 +16,13 @@
  */
 package org.cibseven.bpm.engine.rest.util.container;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.core.Application;
 
 import org.cibseven.bpm.engine.rest.CustomJacksonDateFormatTest;
 import org.cibseven.bpm.engine.rest.ExceptionHandlerTest;
@@ -28,10 +31,7 @@ import org.cibseven.bpm.engine.rest.standalone.NoServletAuthenticationFilterTest
 import org.cibseven.bpm.engine.rest.standalone.NoServletEmptyBodyFilterTest;
 import org.cibseven.bpm.engine.rest.standalone.ServletAuthenticationFilterTest;
 import org.cibseven.bpm.engine.rest.standalone.ServletEmptyBodyFilterTest;
-import org.junit.rules.ExternalResource;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TemporaryFolder;
-import org.junit.rules.TestRule;
+import org.junit.jupiter.api.extension.Extension;
 
 /**
  * @author Thorben Lindhauer
@@ -40,7 +40,7 @@ import org.junit.rules.TestRule;
 public class ResteasySpecifics implements ContainerSpecifics {
 
   protected static final TestRuleFactory DEFAULT_RULE_FACTORY =
-      new EmbeddedServerRuleFactory(new JaxrsApplication());
+      new EmbeddedServerRuleFactory(new JakartarsApplication());
 
   protected static final Map<Class<?>, TestRuleFactory> TEST_RULE_FACTORIES =
       new HashMap<Class<?>, TestRuleFactory>();
@@ -54,7 +54,7 @@ public class ResteasySpecifics implements ContainerSpecifics {
     TEST_RULE_FACTORIES.put(CustomJacksonDateFormatTest.class, new ServletContainerRuleFactory("custom-date-format-web.xml"));
   }
 
-  public TestRule getTestRule(Class<?> testClass) {
+  public Extension getTestRule(Class<?> testClass) {
     TestRuleFactory ruleFactory = DEFAULT_RULE_FACTORY;
 
     if (TEST_RULE_FACTORIES.containsKey(testClass)) {
@@ -72,16 +72,14 @@ public class ResteasySpecifics implements ContainerSpecifics {
       this.jaxRsApplication = jaxRsApplication;
     }
 
-    public TestRule createTestRule() {
-      return new ExternalResource() {
-
+    public Extension createTestRule() {
+      return new Extension() {
         ResteasyServerBootstrap bootstrap = new ResteasyServerBootstrap(jaxRsApplication);
-
-        protected void before() throws Throwable {
+        // Use BeforeAllCallback/AfterAllCallback for server lifecycle
+        public void beforeAll(ExtensionContext context) throws Exception {
           bootstrap.start();
         }
-
-        protected void after() {
+        public void afterAll(ExtensionContext context) throws Exception {
           bootstrap.stop();
         }
       };
@@ -96,27 +94,27 @@ public class ResteasySpecifics implements ContainerSpecifics {
       this.webXmlResource = webXmlResource;
     }
 
-    public TestRule createTestRule() {
-      final TemporaryFolder tempFolder = new TemporaryFolder();
-
-      return RuleChain
-        .outerRule(tempFolder)
-        .around(new ExternalResource() {
-
-          ResteasyTomcatServerBootstrap bootstrap = new ResteasyTomcatServerBootstrap(webXmlResource);
-
-          protected void before() throws Throwable {
-            bootstrap.setWorkingDir(tempFolder.getRoot().getAbsolutePath());
-            bootstrap.start();
-          }
-
-          protected void after() {
+    public Extension createTestRule() {
+      return new Extension() {
+        Path tempDir;
+        ResteasyTomcatServerBootstrap bootstrap;
+        // Use BeforeAllCallback/AfterAllCallback for server lifecycle
+        public void beforeAll(ExtensionContext context) throws Exception {
+          tempDir = Files.createTempDirectory("resteasy-tomcat-test");
+          bootstrap = new ResteasyTomcatServerBootstrap(webXmlResource);
+          bootstrap.setWorkingDir(tempDir.toFile().getAbsolutePath());
+          bootstrap.start();
+        }
+        public void afterAll(ExtensionContext context) throws Exception {
+          if (bootstrap != null) {
             bootstrap.stop();
           }
-        });
+          if (tempDir != null) {
+            try { Files.walk(tempDir).sorted(java.util.Comparator.reverseOrder()).map(Path::toFile).forEach(java.io.File::delete); } catch (IOException ignored) {}
+          }
+        }
+      };
     }
-
   }
-
 
 }

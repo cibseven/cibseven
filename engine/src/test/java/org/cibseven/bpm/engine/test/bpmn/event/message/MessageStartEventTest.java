@@ -17,11 +17,11 @@
 package org.cibseven.bpm.engine.test.bpmn.event.message;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 
@@ -34,7 +34,7 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -258,7 +258,7 @@ public class MessageStartEventTest extends PluggableProcessEngineTest {
       runtimeService.startProcessInstanceByKey("testProcess");
       fail("exception expected");
     } catch (ProcessEngineException e) {
-      assertTrue("different exception expected, not " + e.getMessage(), e.getMessage().contains("has no default start activity"));
+      assertTrue(e.getMessage().contains("has no default start activity"), "different exception expected, not " + e.getMessage());
     }
 
   }

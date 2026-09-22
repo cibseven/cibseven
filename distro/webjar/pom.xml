@@ -35,10 +35,11 @@
   <dependencies>
     <dependency>
       <groupId>org.cibseven.bpm.webapp</groupId>
-      <artifactId>cibseven-webapp-jakarta</artifactId>
+      <artifactId>cibseven-webapp</artifactId>
       <version>${project.parent.version}</version>
       <type>jar</type>
       <classifier>classes</classifier>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.cibseven.webapp</groupId>
@@ -46,6 +47,8 @@
       <version>${cibseven-webapp.version}</version>
       <type>jar</type>
       <classifier>classes</classifier>
+      <!-- optional prevents the dependency from being transitive to dependents -->
+      <optional>true</optional>
     </dependency>
   </dependencies>
 
@@ -65,7 +68,7 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>org.cibseven.bpm.webapp</groupId>
-                  <artifactId>cibseven-webapp-jakarta</artifactId>
+                  <artifactId>cibseven-webapp</artifactId>
                   <version>${project.parent.version}</version>
                   <type>war</type>
                   <overWrite>true</overWrite>

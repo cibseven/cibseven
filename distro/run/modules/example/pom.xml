@@ -11,12 +11,6 @@
   <artifactId>cibseven-bpm-run-modules-example-invoice</artifactId>
   <name>CIB seven - Run - Module Example Invoice</name>
   
-  <properties>
-    <!-- generate a bom of compile time dependencies for the license book.
-    Note: Every compile time dependency will end up in the license book. Please
-    declare only dependencies that are actually needed -->
-    <skip-third-party-bom>false</skip-third-party-bom>
-  </properties>
 
   <dependencies>
 
@@ -28,7 +22,7 @@
 
     <dependency>
       <groupId>org.cibseven.bpm.example</groupId>
-      <artifactId>cibseven-example-invoice-jakarta</artifactId>
+      <artifactId>cibseven-example-invoice</artifactId>
       <version>${project.version}</version>
       <classifier>classes</classifier>
       <scope>provided</scope>
@@ -41,8 +35,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
-        <!-- override version to use fileMappers -->
-        <version>3.2.0</version>
         <executions>
           <execution>
             <id>unpack-invoice</id>
@@ -54,7 +46,7 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>org.cibseven.bpm.example</groupId>
-                  <artifactId>cibseven-example-invoice-jakarta</artifactId>
+                  <artifactId>cibseven-example-invoice</artifactId>
                   <version>${project.version}</version>
                   <type>war</type>
                   <outputDirectory>${project.build.directory}/classes</outputDirectory>

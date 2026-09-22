@@ -18,8 +18,8 @@ package org.cibseven.spin.javascript.nashorn.json.tree;
 
 import org.cibseven.spin.impl.test.ScriptEngine;
 import org.cibseven.spin.json.tree.JsonTreeEditListPropertyScriptTest;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 @ScriptEngine("nashorn")
 public class JsonTreeEditListPropertyJavascriptTest extends JsonTreeEditListPropertyScriptTest {
@@ -29,7 +29,7 @@ public class JsonTreeEditListPropertyJavascriptTest extends JsonTreeEditListProp
    * see: https://app.camunda.com/jira/browse/CAM-3612
    */
   @Test
-  @Ignore
+  @Disabled
   public void shouldFailInsertAtWithWrongObject() throws Throwable {
   }
 
@@ -38,7 +38,7 @@ public class JsonTreeEditListPropertyJavascriptTest extends JsonTreeEditListProp
    * see: https://app.camunda.com/jira/browse/CAM-3612
    */
   @Test
-  @Ignore
+  @Disabled
   public void shouldFailInsertWrongObjectAfterSearchObject() throws Throwable {
   }
 
@@ -47,7 +47,7 @@ public class JsonTreeEditListPropertyJavascriptTest extends JsonTreeEditListProp
    * see: https://app.camunda.com/jira/browse/CAM-3612
    */
   @Test
-  @Ignore
+  @Disabled
   public void shouldFailAppendWrongNode() throws Throwable {
   }
 
@@ -56,7 +56,7 @@ public class JsonTreeEditListPropertyJavascriptTest extends JsonTreeEditListProp
    * see: https://app.camunda.com/jira/browse/CAM-3612
    */
   @Test
-  @Ignore
+  @Disabled
   public void shouldFailInsertWrongObjectBeforeSearchObject() throws Throwable {
   }
 }

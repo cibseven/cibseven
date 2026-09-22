@@ -1,19 +1,24 @@
 name: Renovate auto-merge
 on:
-  pull_request:
-    types: [ opened, synchronize, reopened ]
+  # TEMPORARY: automatic pull-request triggering is disabled; run manually when merge is intended.
+  # pull_request:
+  #   types: [ opened, synchronize, reopened, labeled ]
+  workflow_dispatch:
 jobs:
   all-checks-passed:
-    # TEMPORARILY DISABLED: auto-merge is paused for the initial Renovate rollout (PRs only, no
-    # auto-merge yet). To re-enable: remove the "false &&" below, AND first update the actor
-    # check - 'renovate[bot]' is the Mend-hosted GitHub App's identity; this repo's self-hosted
-    # setup uses a different bot/PAT account, so this condition must match that account's actual
-    # GitHub username instead.
+    # TEMPORARY: disabled while automatic pull-request triggering and real auto-merge are paused.
     if: false && contains(github.event.pull_request.labels.*.name, 'automerge') && github.actor == 'renovate[bot]'
     name: All checks passed
     runs-on: ubuntu-latest
     permissions:
       checks: read
-      contents: read
+      contents: write
+      pull-requests: write
     steps:
-      - uses: wechuli/allcheckspassed@v1.2.0
+      - uses: wechuli/allcheckspassed@v2.4.0
+      # TEMPORARY: real auto-merge is disabled while this workflow uses manual dispatch.
+      # - name: Enable pull request auto-merge
+      #   env:
+      #     GH_TOKEN: ${{ github.token }}
+      #     PR_NUMBER: ${{ github.event.pull_request.number }}
+      #   run: gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --auto --squash --delete-branch

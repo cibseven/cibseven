@@ -17,24 +17,21 @@
 package org.cibseven.bpm.model.xml.type.attribute;
 
 import org.cibseven.bpm.model.xml.ModelInstance;
-import org.cibseven.bpm.model.xml.impl.parser.AbstractModelParser;
 import org.cibseven.bpm.model.xml.impl.type.attribute.AttributeImpl;
 import org.cibseven.bpm.model.xml.testmodel.Gender;
 import org.cibseven.bpm.model.xml.testmodel.TestModelParser;
 import org.cibseven.bpm.model.xml.testmodel.TestModelTest;
 import org.cibseven.bpm.model.xml.testmodel.instance.Animal;
-import org.cibseven.bpm.model.xml.testmodel.instance.AnimalTest;
 import org.cibseven.bpm.model.xml.testmodel.instance.Animals;
 import org.cibseven.bpm.model.xml.testmodel.instance.Bird;
 import org.cibseven.bpm.model.xml.type.ModelElementType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.Arguments;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.stream.Stream;
 
 import static org.cibseven.bpm.model.xml.test.assertions.ModelAssertions.assertThat;
-import static org.junit.runners.Parameterized.Parameters;
 
 /**
  * @author Sebastian Menski
@@ -46,17 +43,11 @@ public class AttributeTest extends TestModelTest {
   private Attribute<String> nameAttribute;
   private Attribute<String> fatherAttribute;
 
-  public AttributeTest(String testName, ModelInstance testModelInstance, AbstractModelParser modelParser) {
-    super(testName, testModelInstance, modelParser);
+  public static Stream<Arguments> models() {
+    return Stream.of(createModel(), parseModel(AttributeTest.class)).map(Arguments::of);
   }
 
-  @Parameters(name="Model {0}")
-  public static Collection<Object[]> models() {
-    Object[][] models = {createModel(), parseModel(AnimalTest.class)};
-    return Arrays.asList(models);
-  }
-
-  public static Object[] createModel() {
+  public static ParsedModel createModel() {
     TestModelParser modelParser = new TestModelParser();
     ModelInstance modelInstance = modelParser.getEmptyModel();
 
@@ -65,120 +56,131 @@ public class AttributeTest extends TestModelTest {
 
     createBird(modelInstance, "tweety", Gender.Female);
 
-    return new Object[]{"created", modelInstance, modelParser};
+    return new ParsedModel("model", modelInstance, modelParser);
   }
 
-  @Before
   @SuppressWarnings("unchecked")
-  public void copyModelInstance() {
-    modelInstance = cloneModelInstance();
-
+  public void setUp(ParsedModel parsedModel) {
+    initializeTestModelTest(parsedModel);
+    this.modelInstance = (ModelInstance) parsedModel.modelInstance;
     tweety = modelInstance.getModelElementById("tweety");
-
     ModelElementType animalType = modelInstance.getModel().getType(Animal.class);
     idAttribute = (Attribute<String>) animalType.getAttribute("id");
     nameAttribute = (Attribute<String>) animalType.getAttribute("name");
     fatherAttribute = (Attribute<String>) animalType.getAttribute("father");
   }
 
-  @Test
-  public void testOwningElementType() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testOwningElementType(ParsedModel parsedModel) {
+    setUp(parsedModel);
     ModelElementType animalType = modelInstance.getModel().getType(Animal.class);
-
     assertThat(idAttribute).hasOwningElementType(animalType);
     assertThat(nameAttribute).hasOwningElementType(animalType);
     assertThat(fatherAttribute).hasOwningElementType(animalType);
   }
 
-  @Test
-  public void testSetAttributeValue() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetAttributeValue(ParsedModel parsedModel) {
+    setUp(parsedModel);
     String identifier = "new-" + tweety.getId();
     idAttribute.setValue(tweety, identifier);
     assertThat(idAttribute).hasValue(tweety, identifier);
   }
 
-  @Test
-  public void testSetAttributeValueWithoutUpdateReference() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetAttributeValueWithoutUpdateReference(ParsedModel parsedModel) {
+    setUp(parsedModel);
     String identifier = "new-" + tweety.getId();
     idAttribute.setValue(tweety, identifier, false);
     assertThat(idAttribute).hasValue(tweety, identifier);
   }
 
-  @Test
-  public void testSetDefaultValue() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetDefaultValue(ParsedModel parsedModel) {
+    setUp(parsedModel);
     String defaultName = "default-name";
     assertThat(tweety.getName()).isNull();
     assertThat(nameAttribute).hasNoDefaultValue();
-
     ((AttributeImpl<String>) nameAttribute).setDefaultValue(defaultName);
     assertThat(nameAttribute).hasDefaultValue(defaultName);
     assertThat(tweety.getName()).isEqualTo(defaultName);
-
     tweety.setName("not-" + defaultName);
     assertThat(tweety.getName()).isNotEqualTo(defaultName);
-
     tweety.removeAttribute("name");
     assertThat(tweety.getName()).isEqualTo(defaultName);
     ((AttributeImpl<String>) nameAttribute).setDefaultValue(null);
     assertThat(nameAttribute).hasNoDefaultValue();
   }
 
-  @Test
-  public void testRequired() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testRequired(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.removeAttribute("name");
     assertThat(nameAttribute).isOptional();
-
     ((AttributeImpl<String>) nameAttribute).setRequired(true);
     assertThat(nameAttribute).isRequired();
-
     ((AttributeImpl<String>) nameAttribute).setRequired(false);
   }
 
-  @Test
-  public void testSetNamespaceUri() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetNamespaceUri(ParsedModel parsedModel) {
+    setUp(parsedModel);
     String testNamespace = "http://camunda.org/test";
-
     ((AttributeImpl<String>) idAttribute).setNamespaceUri(testNamespace);
     assertThat(idAttribute).hasNamespaceUri(testNamespace);
-
     ((AttributeImpl<String>) idAttribute).setNamespaceUri(null);
     assertThat(idAttribute).hasNoNamespaceUri();
   }
 
-  @Test
-  public void testIdAttribute() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testIdAttribute(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(idAttribute).isIdAttribute();
     assertThat(nameAttribute).isNotIdAttribute();
     assertThat(fatherAttribute).isNotIdAttribute();
   }
 
-  @Test
-  public void testAttributeName() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testAttributeName(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(idAttribute).hasAttributeName("id");
     assertThat(nameAttribute).hasAttributeName("name");
     assertThat(fatherAttribute).hasAttributeName("father");
   }
 
-  @Test
-  public void testRemoveAttribute() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testRemoveAttribute(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setName("test");
     assertThat(tweety.getName()).isNotNull();
     assertThat(nameAttribute).hasValue(tweety);
-
     ((AttributeImpl<String>) nameAttribute).removeAttribute(tweety);
     assertThat(tweety.getName()).isNull();
     assertThat(nameAttribute).hasNoValue(tweety);
   }
 
-  @Test
-  public void testIncomingReferences() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testIncomingReferences(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(idAttribute).hasIncomingReferences();
     assertThat(nameAttribute).hasNoIncomingReferences();
     assertThat(fatherAttribute).hasNoIncomingReferences();
   }
 
-  @Test
-  public void testOutgoingReferences() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testOutgoingReferences(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(idAttribute).hasNoOutgoingReferences();
     assertThat(nameAttribute).hasNoOutgoingReferences();
     assertThat(fatherAttribute).hasOutgoingReferences();

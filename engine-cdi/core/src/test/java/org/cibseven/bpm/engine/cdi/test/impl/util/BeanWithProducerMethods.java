@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.cdi.test.impl.util;
 
-import javax.enterprise.inject.Produces;
-import javax.inject.Named;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Named;
 
 public class BeanWithProducerMethods {
 

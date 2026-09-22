@@ -31,8 +31,8 @@ import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.identity.Authentication;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
@@ -57,7 +57,7 @@ public class AgentChatListenerTest {
   /** Tracks BpmnExecutionContext pushed onto the engine's per-thread stack so {@link #tearDown()} drains it. */
   private boolean pushedExecution;
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (pushedExecution) {
       try { Context.removeExecutionContext(); } catch (Exception ignored) {}
@@ -69,7 +69,7 @@ public class AgentChatListenerTest {
     System.clearProperty(AgentChatListener.REDACT_CONTENT_PROPERTY);
     System.clearProperty(AgentChatListener.CHAT_LOG_VARIABLE_PROPERTY);
     // Restore the env-var lookup seam in case a test replaced it.
-    AgentChatListener.ENV_READER = System::getenv;
+    ConnectorSettings.ENV_READER = System::getenv;
   }
 
   @Test
@@ -472,7 +472,7 @@ public class AgentChatListenerTest {
   @Test
   public void isChatLogVariableEnabledShouldFallBackToEnvVarWhenPropertyUnset() {
     System.clearProperty(AgentChatListener.CHAT_LOG_VARIABLE_PROPERTY);
-    AgentChatListener.ENV_READER = name ->
+    ConnectorSettings.ENV_READER = name ->
         AgentChatListener.CHAT_LOG_VARIABLE_ENV_VAR.equals(name) ? "false" : null;
     assertThat(AgentChatListener.isChatLogVariableEnabled()).isFalse();
   }
@@ -481,7 +481,7 @@ public class AgentChatListenerTest {
   public void isChatLogVariableEnabledShouldPreferSystemPropertyOverEnvVar() {
     // System property says true, env var says false → system property wins.
     System.setProperty(AgentChatListener.CHAT_LOG_VARIABLE_PROPERTY, "true");
-    AgentChatListener.ENV_READER = name ->
+    ConnectorSettings.ENV_READER = name ->
         AgentChatListener.CHAT_LOG_VARIABLE_ENV_VAR.equals(name) ? "false" : null;
     assertThat(AgentChatListener.isChatLogVariableEnabled()).isTrue();
   }
@@ -558,7 +558,7 @@ public class AgentChatListenerTest {
   @Test
   public void isRedactContentEnabledShouldFallBackToEnvVar() {
     System.clearProperty(AgentChatListener.REDACT_CONTENT_PROPERTY);
-    AgentChatListener.ENV_READER = name ->
+    ConnectorSettings.ENV_READER = name ->
         AgentChatListener.REDACT_CONTENT_ENV_VAR.equals(name) ? "true" : null;
     assertThat(AgentChatListener.isRedactContentEnabled()).isTrue();
   }
@@ -566,7 +566,7 @@ public class AgentChatListenerTest {
   @Test
   public void isRedactContentEnabledShouldPreferSystemPropertyOverEnvVar() {
     System.setProperty(AgentChatListener.REDACT_CONTENT_PROPERTY, "false");
-    AgentChatListener.ENV_READER = name ->
+    ConnectorSettings.ENV_READER = name ->
         AgentChatListener.REDACT_CONTENT_ENV_VAR.equals(name) ? "true" : null;
     assertThat(AgentChatListener.isRedactContentEnabled()).isFalse();
   }

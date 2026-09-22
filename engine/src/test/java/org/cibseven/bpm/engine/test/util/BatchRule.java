@@ -27,10 +27,10 @@ import org.cibseven.bpm.engine.batch.history.HistoricBatch;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
-public class BatchRule extends TestWatcher {
+public class BatchRule implements AfterEachCallback {
 
   public static final String SEED_JOB = "seed-job";
   public static final String MONITOR_JOB = "monitor-job";
@@ -45,7 +45,7 @@ public class BatchRule extends TestWatcher {
   }
 
   @Override
-  protected void finished(Description description) {
+  public void afterEach(ExtensionContext context) {
     engineRule.getProcessEngineConfiguration()
         .setInvocationsPerBatchJob(DEFAULT_INVOCATIONS_PER_BATCH_JOB);
     ClockUtil.reset();

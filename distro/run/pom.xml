@@ -17,6 +17,19 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- Must stay FIRST, ahead of spring-boot-dependencies: among imported BOMs the earliest
+           declaration wins. Spring Boot manages the JUnit artifacts itself, so without this the
+           Jupiter version follows ${version.junit5} (where a module pins it explicitly) while
+           junit-platform-* stays on Spring Boot's, and surefire dies with
+           "conflicting versions were detected". -->
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${version.junit5}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+
       <!-- Override the Jackson version managed by Spring Boot -->
       <dependency>
         <groupId>com.fasterxml.jackson</groupId>
@@ -32,6 +45,42 @@
         <version>${version.spring-boot}</version>
         <scope>import</scope>
         <type>pom</type>
+      </dependency>
+
+      <!-- Temporary Apache HttpComponents CVE overrides.
+           Remove these once the imported Spring Boot BOM manages fixed versions. -->
+      <dependency>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5</artifactId>
+        <version>${version.httpclient5}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5</artifactId>
+        <version>${version.httpcore5}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5-h2</artifactId>
+        <version>${version.httpcore5}</version>
+      </dependency>
+
+      <!-- Temporary Apache Tomcat CVE overrides (BOM pins a vulnerable version).
+           Remove these once the imported Spring Boot BOM manages fixed versions. -->
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-core</artifactId>
+        <version>${version.tomcat10}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-el</artifactId>
+        <version>${version.tomcat10}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-websocket</artifactId>
+        <version>${version.tomcat10}</version>
       </dependency>
 
       <dependency>

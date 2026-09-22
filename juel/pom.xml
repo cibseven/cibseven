@@ -17,9 +17,6 @@
     <!-- We only wrap and maintain external code in here that has
     its own license header already -->
     <license.skip>true</license.skip>
-    <!-- We shade artifacts into the jar, so we need to generate
-    a dependency BOM for the license book -->
-    <skip-third-party-bom>false</skip-third-party-bom>
     <!-- Using Jakarta Expression Language 4.0 for Java 8 compatibility -->
     <version.jakarta.el>4.0.0</version.jakarta.el>
   </properties>
@@ -45,33 +42,6 @@
             <goals>
               <goal>jar-no-fork</goal>
             </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
-              <shadeSourcesContent>true</shadeSourcesContent>
-              <artifactSet>
-                <includes>
-                  <include>jakarta.el:jakarta.el-api</include>
-                </includes>
-              </artifactSet>
-              <relocations>
-                <relocation>
-                  <pattern>jakarta.el</pattern>
-                  <shadedPattern>org.cibseven.bpm.impl.juel.jakarta.el</shadedPattern>
-                </relocation>
-              </relocations>
-            </configuration>
           </execution>
         </executions>
       </plugin>

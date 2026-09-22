@@ -18,14 +18,14 @@ package org.cibseven.bpm;
 
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ExceptionLoggerIT extends AbstractWebIntegrationTest {
 
-  @Before
+  @BeforeEach
   public void createClient() throws Exception {
     createClient(getWebappCtxPath());
   }
@@ -36,7 +36,7 @@ public class ExceptionLoggerIT extends AbstractWebIntegrationTest {
     HttpResponse<String> response = Unirest.get(appBasePath + "app/admin/default/#/users/undefined?tab=profile").asString();
 
     // then
-    assertEquals(200, response.getStatus());
+    assertThat(response.getStatus()).isEqualTo(200);
   }
 
 }

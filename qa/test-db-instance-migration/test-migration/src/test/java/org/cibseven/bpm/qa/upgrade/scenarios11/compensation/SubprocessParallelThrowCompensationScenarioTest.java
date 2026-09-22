@@ -25,10 +25,10 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 
 /**
  * @author Thorben Lindhauer
@@ -38,7 +38,7 @@ import org.junit.Ignore;
 @Origin("1.1.0")
 public class SubprocessParallelThrowCompensationScenarioTest {
 
-  @Rule
+  @RegisterExtension
   public UpgradeTestRule rule = new UpgradeTestRule();
 
   @Test
@@ -53,13 +53,13 @@ public class SubprocessParallelThrowCompensationScenarioTest {
 
     // then there is an active compensation handler task
     Task compensationHandlerTask = rule.taskQuery().taskDefinitionKey("undoTask").singleResult();
-    Assert.assertNotNull(compensationHandlerTask);
+    Assertions.assertNotNull(compensationHandlerTask);
 
     // and it can be completed such that the process instance ends successfully
     rule.getTaskService().complete(compensationHandlerTask.getId());
 
     Task afterCompensateTask = rule.taskQuery().taskDefinitionKey("afterCompensate").singleResult();
-    Assert.assertNotNull(afterCompensateTask);
+    Assertions.assertNotNull(afterCompensateTask);
 
     rule.getTaskService().complete(afterCompensateTask.getId());
     rule.getTaskService().complete(concurrentTask.getId());
@@ -95,7 +95,7 @@ public class SubprocessParallelThrowCompensationScenarioTest {
 
     // then the activity instance tree is meaningful
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
       describeActivityInstanceTree(instance.getProcessDefinitionId())
         .activity("concurrentTask")
@@ -116,7 +116,7 @@ public class SubprocessParallelThrowCompensationScenarioTest {
     rule.getTaskService().complete(compensationHandlerTask.getId());
 
     Task afterCompensateTask = rule.taskQuery().taskDefinitionKey("afterCompensate").singleResult();
-    Assert.assertNotNull(afterCompensateTask);
+    Assertions.assertNotNull(afterCompensateTask);
 
     rule.getTaskService().complete(afterCompensateTask.getId());
     rule.getTaskService().complete(concurrentTask.getId());
@@ -138,7 +138,7 @@ public class SubprocessParallelThrowCompensationScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("init.triggerCompensation.3")
   public void testInitTriggerCompensationActivityInstanceTree() {
@@ -147,7 +147,7 @@ public class SubprocessParallelThrowCompensationScenarioTest {
 
     // then the activity instance tree is meaningful
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
       describeActivityInstanceTree(instance.getProcessDefinitionId())
         .activity("concurrentTask")

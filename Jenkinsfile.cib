@@ -161,6 +161,25 @@ pipeline {
             }
         }
 
+        // Compares the third-party versions pinned in parent/pom.xml against the Spring Boot
+        // BOMs we import, and against each other where two of our pins have to agree.
+        // Further info in CIB7-1990
+        stage('Dependency version alignment check') {
+            steps {
+                script {
+                    checkDepVersionAlignment()
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts(
+                        artifacts: 'target/alignment/reports/*.txt',
+                        allowEmptyArchive: true
+                    )
+                }
+            }
+        }
+
         stage('Build') {
             when {
                 anyOf {
@@ -171,7 +190,7 @@ pipeline {
             }
             steps {
                 script {
-                    withMaven(options: []) {
+                    withMaven {
                         sh "mvn -V -U -T4 -Dbuild.number=${BUILD_NUMBER} -f ${pipelineParams.pom} clean install -DskipTests -Pwebapps-integration"
                     }
                 }
@@ -184,14 +203,14 @@ pipeline {
             }
             steps {
                 script {
-                    withMaven(options: []) {
+                    withMaven {
                         sh """
                             mvn -f ${pipelineParams.pom} \
                                 -Dbuild.number=${BUILD_NUMBER} \
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
                                 -DOPTIONAL_PGTEST_EXCLUDE=org/cibseven/bpm/engine/impl/identity/db/DbIdentityServicePGTest.java \
-                                -pl !org.cibseven.bpm:cibseven-engine-spring-6,!:cibseven-spin-core,!:cibseven-engine-rest-core-jakarta,!:cibseven-webapp-jakarta,!:cibseven-engine-cdi-jakarta,!:cibseven-example-invoice-jakarta,!:cibseven-ejb-client-jakarta,!:cibseven-sql-scripts
+                                -pl !org.cibseven.bpm:cibseven-engine-spring-6,!:cibseven-spin-core,!:cibseven-engine-rest-core,!:cibseven-webapp,!:cibseven-engine-cdi,!:cibseven-example-invoice,!:cibseven-ejb-client,!:cibseven-sql-scripts
                         """
 
                         sh """
@@ -200,7 +219,7 @@ pipeline {
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
                                 -DOPTIONAL_PGTEST_EXCLUDE=org/cibseven/bpm/engine/impl/identity/db/DbIdentityServicePGTest.java \
-                                -pl org.cibseven.bpm:cibseven-engine-spring-6,:cibseven-spin-core,:cibseven-engine-rest-core-jakarta,:cibseven-webapp-jakarta,:cibseven-engine-cdi-jakarta,:cibseven-example-invoice-jakarta,:cibseven-ejb-client-jakarta,:cibseven-sql-scripts \
+                                -pl org.cibseven.bpm:cibseven-engine-spring-6,:cibseven-spin-core,:cibseven-engine-rest-core,:cibseven-webapp,:cibseven-engine-cdi,:cibseven-example-invoice,:cibseven-ejb-client,:cibseven-sql-scripts \
                                 -fn
                         """
                     }
@@ -233,16 +252,16 @@ pipeline {
                     }
                     stages {
                         stage('engine-IT-wildfly-domain') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly-domain,h2,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean verify -Pwildfly-domain,h2,engine-integration" }}}
                         }
                         stage('engine-IT-wildfly-servlet') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly,wildfly-servlet,h2,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean verify -Pwildfly,wildfly-servlet,h2,engine-integration" }}}
                         }
                         stage('engine-IT-wildfly26-domain') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml clean verify -Pwildfly26-domain,h2,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean verify -Pwildfly26-domain,h2,engine-integration" }}}
                         }
                         stage('engine-IT-wildfly26-servlet') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml -Dengine-integration clean verify -Pwildfly26,wildfly26-servlet,h2,engine-integration" }}}
                         }
                     }
                 }
@@ -272,12 +291,11 @@ pipeline {
                 stage('Engine Integration') {
                     when { expression { params.QA_ENG_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,engine-integration-jakarta" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat10,h2,engine-integration-jakarta" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,engine-integration-jakarta" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly-domain,h2,engine-integration-jakarta" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28,h2,engine-integration-jakarta" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly28-domain,h2,engine-integration-jakarta" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Ptomcat,h2,engine-integration" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly,h2,engine-integration" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly-domain,h2,engine-integration" }}
+                        // fails since junit 5 migration script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly28,h2,engine-integration" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly28-domain,h2,engine-integration" }}
                     }
                 }
                 stage('Web Integration') {
@@ -383,19 +401,19 @@ pipeline {
                 stage('qa') {
                     stages {
                         stage('engine-IT-tomcat-9-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat9,postgresql,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml -Dengine-integration clean install -Ptomcat9,postgresql,engine-integration" }}}
                         }
                         stage('engine-IT-tomcat-10-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat,postgresql,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml -Dengine-integration clean install -Ptomcat,postgresql,engine-integration" }}}
                         }
                         stage('engine-IT-tomcat-11-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat10,postgresql,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml -Dengine-integration clean install -Ptomcat10,postgresql,engine-integration" }}}
                         }
                         stage('engine-IT-wildfly-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml -Dengine-integration clean install -Pwildfly,postgresql,engine-integration" }}}
                         }
                         stage('engine-IT-XA-wildfly-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,postgresql,postgresql-xa,engine-integration-jakarta" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml -Dengine-integration clean install -Pwildfly,postgresql,postgresql-xa,engine-integration" }}}
                         }
                         stage('webapp-IT-tomcat-9-h2') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat9,h2,webapps-integration" }}}
@@ -407,7 +425,7 @@ pipeline {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat10,h2,webapps-integration" }}}
                         }
                         stage('webapp-IT-wildfly-h2') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration -pl '!integration-tests-engine-jakarta'" }}}
+                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration -pl '!integration-tests-engine'" }}}
                         }
                     }
                 }
@@ -456,27 +474,34 @@ pipeline {
                     String deployment = ""
                     if (isPatchVersion()) {
                         if (isSNAPSHOTVersion()) {
-                            deployment = "-Dnexus.snapshot.repository.id=mvn-cibseven-private -Dnexus.snapshot.repository=https://artifacts.cibseven.de/repository/private-snapshots"
+                            deployment = "-Dnexus.snapshot.repository.id=mvn-cibseven-private -Dnexus.snapshot.repository=https://artifacts.cibseven.org/repository/private-snapshots"
                         } else {
-                            deployment = "-Dnexus.release.repository.id=mvn-cibseven-private -Dnexus.release.repository=https://artifacts.cibseven.de/repository/private"
+                            deployment = "-Dnexus.release.repository.id=mvn-cibseven-private -Dnexus.release.repository=https://artifacts.cibseven.org/repository/private"
                         }
                     }
 
                     // Call cyclonedx directly from the mvn command to avoid adding a new profile to the root pom.xml.
                     // Placed after "clean" to keep the generated files in the target, allowing to deploy them in one step.
                     // Do not add cyclonedx options, like -DoutputDirectory/-DoutputName, as global -D CLI flags, since
-                    // they can silently override parameters of unrelated plugins: if specific cyclonedx options are needed, 
+                    // they can silently override parameters of unrelated plugins: if specific cyclonedx options are needed,
                     // then add (or update) a pluginManagement entry for cyclonedx-maven-plugin in the root pom.xml instead.
                     String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
-                        "org.cyclonedx:cyclonedx-maven-plugin:makeBom org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
+                        "org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
 
-                    withMaven(options: []) {
+                    withMaven {
                         sh """
                             mvn -T4 -U \
                                 -DskipTests \
                                 -Pwebapps-integration ${deployment} \
                                 clean ${sbomGenerate} deploy
                         """
+                    }
+
+                    // Generate and deploy additional aggregate SBOMs for shipped distro modules.
+                    if (!params.DEPLOY_WITHOUT_SBOM) {
+                        stage('Deploy distro aggregate SBOMs') {
+                            deployDistroSboms(deployment)
+                        }
                     }
                 }
             }
@@ -494,9 +519,9 @@ pipeline {
                 script {
                     // See "Deploy to artifacts.cibseven.org" above for details about the sbom generation.
                     String sbomGenerate = params.DEPLOY_WITHOUT_SBOM ? "" :
-                        "org.cyclonedx:cyclonedx-maven-plugin:makeBom org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
+                        "org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom"
 
-                    withMaven(options: []) {
+                    withMaven {
                         withCredentials([file(credentialsId: 'credential-cibseven-gpg-private-key', variable: 'GPG_KEY_FILE'), string(credentialsId: 'credential-cibseven-gpg-passphrase', variable: 'GPG_KEY_PASS')]) {
                             sh "gpg --batch --import ${GPG_KEY_FILE}"
 
@@ -728,6 +753,68 @@ pipeline {
     }
 }
 
+// Split in two on purpose: collecting the facts pays the one Maven start-up
+// that resolves the effective pom and warms the local repository, and the branches
+// that follow are pure shell reading those facts.
+//
+// Adding a library: drop a check-<name>-alignment.sh next to the collector. It is
+// picked up by both halves on its own -- the collector pre-fetches whatever the
+// script declares via --requires, and the branch map below discovers it by name.
+def checkDepVersionAlignment() {
+    boolean factsCollected = false
+
+    withMaven(options: []) {
+        catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+            sh 'bash .ci/scripts/alignment/collect-alignment-facts.sh'
+            factsCollected = true
+        }
+    }
+
+    // Without the facts every branch would only report the same collector
+    // failure, so stay quiet and let the collector's own error speak.
+    if (!factsCollected) {
+        return
+    }
+
+    def paths = sh(
+        script: 'ls .ci/scripts/alignment/check-*-alignment.sh',
+        returnStdout: true
+    ).trim().split('\n')
+
+    def branches = [:]
+    for (String path : paths) {
+        // Copied into per-iteration locals: a closure capturing the loop
+        // variable would run the last script in every branch.
+        String file = path
+        String name = file.substring(file.lastIndexOf('/') + 1)
+                          .replace('check-', '')
+                          .replace('-alignment.sh', '')
+        branches[name] = {
+            stage(name) {
+                // No withMaven: the checks invoke no Maven at all.
+                //
+                // 0 = aligned, 1 = a version does not match its reference, anything
+                // else = the check could not run and says nothing about alignment.
+                // The last two mean opposite things, so they are told apart by stage
+                // result: yellow is a finding to act on in parent/pom.xml, red is a
+                // broken check. A broken check rendering yellow would read as "we
+                // looked and it is nearly fine" when nothing was looked at.
+                int rc = sh(script: "bash ${file}", returnStatus: true)
+                if (rc == 1) {
+                    unstable("${name}: versions are misaligned")
+                } else if (rc != 0) {
+                    // buildResult UNSTABLE, stageResult FAILURE: the node goes red
+                    // without failing the build.
+                    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                        error("${name}: check could not run (exit ${rc})")
+                    }
+                }
+            }
+        }
+    }
+    parallel branches
+}
+
 // - "1.2.0" -> no
 // - "1.2.0-SNAPSHOT" -> no
 // - "1.2.3" -> yes
@@ -744,6 +831,102 @@ def isPatchVersion() {
 
 def isSNAPSHOTVersion() {
     return mavenProjectInformation.version.endsWith("-SNAPSHOT")
+}
+
+// Generates and deploys aggregate SBOMs for every shipped distro.
+// Independent distro reactors run in parallel to reduce deployment time.
+def deployDistroSboms(String deploymentArgs) {
+    Map sbomDeployRepository = getSbomDeployRepository(deploymentArgs)
+
+    def distroSbomProjects = ['distro/run', 'distro/run4', 'distro/tomcat', 'distro/wildfly', 'distro/wildfly28']
+
+    // Each invocation uses a distinct -f path and -DoutputName, so they can
+    // run concurrently without conflicting on the shared output directory.
+    // Variables are captured per-iteration to avoid Groovy closure-capture issues.
+    def parallelScans = [:]
+    distroSbomProjects.each { relPath ->
+        def capturedRelPath = relPath
+        def capturedSbomBaseName = "${capturedRelPath.replace('/', '_')}_sbom"
+        def capturedRepositoryId = sbomDeployRepository.id
+        def capturedRepositoryUrl = sbomDeployRepository.url
+        parallelScans[capturedRelPath] = {
+            generateAndDeployDistroSbom(capturedRelPath, capturedSbomBaseName, capturedRepositoryId, capturedRepositoryUrl)
+        }
+    }
+    parallel parallelScans
+}
+
+// Resolves the Maven repository receiving distro SBOMs.
+// "deploymentArgs" is the -Dnexus... argument string already built by the caller for the
+// patch-version case (if any); release-parent's distributionManagement is parameterized by
+// those same nexus.* properties, so passing deploymentArgs straight into help:evaluate makes
+// it resolve to the private repository when set, and to the regular distributionManagement
+// defaults otherwise.
+def getSbomDeployRepository(String deploymentArgs) {
+    String repository = isSNAPSHOTVersion() ? "snapshotRepository" : "repository"
+    String sbomDeployRepositoryId
+    String sbomDeployRepositoryUrl
+
+    withMaven(options: []) {
+        sbomDeployRepositoryId = sh(script: "mvn -q -f ${pipelineParams.pom} help:evaluate ${deploymentArgs} -Dexpression=project.distributionManagement.${repository}.id -DforceStdout", returnStdout: true).trim()
+        sbomDeployRepositoryUrl = sh(script: "mvn -q -f ${pipelineParams.pom} help:evaluate ${deploymentArgs} -Dexpression=project.distributionManagement.${repository}.url -DforceStdout", returnStdout: true).trim()
+    }
+
+    if (!sbomDeployRepositoryId || !sbomDeployRepositoryUrl ||
+        sbomDeployRepositoryId.startsWith("project.") || sbomDeployRepositoryUrl.startsWith("project.")) {
+        error "Cannot determine SBOM deploy repository"
+    }
+
+    return [id: sbomDeployRepositoryId, url: sbomDeployRepositoryUrl]
+}
+
+// Generates one distro-wide aggregate SBOM and deploys its JSON and XML attachments.
+// Snapshot attachments use the timestamped version of the already deployed distro artifact.
+def generateAndDeployDistroSbom(String relPath, String sbomBaseName, String repositoryId, String repositoryUrl) {
+    withMaven(options: []) {
+        sh "mvn -V -f ${relPath}/pom.xml org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom -DexcludeTestProject -DskipTests -DoutputName=${sbomBaseName}"
+
+        def groupId = sh(script: "mvn -q -f ${relPath}/pom.xml help:evaluate -Dexpression=project.groupId -DforceStdout", returnStdout: true).trim()
+        def artifactId = sh(script: "mvn -q -f ${relPath}/pom.xml help:evaluate -Dexpression=project.artifactId -DforceStdout", returnStdout: true).trim()
+        def version = sh(script: "mvn -q -f ${relPath}/pom.xml help:evaluate -Dexpression=project.version -DforceStdout", returnStdout: true).trim()
+        def deployVersion = getSbomDeployVersion(groupId, artifactId, version, repositoryId)
+
+        ['json', 'xml'].each { format ->
+            sh """
+                mvn -V deploy:deploy-file \
+                    -DgeneratePom=false \
+                    -DgroupId=${groupId} \
+                    -DartifactId=${artifactId} \
+                    -Dversion=${deployVersion} \
+                    -Dclassifier=aggregate-sbom \
+                    -Dpackaging=${format} \
+                    -Dfile=${relPath}/target/${sbomBaseName}.${format} \
+                    -DrepositoryId=${repositoryId} \
+                    -Durl=${repositoryUrl}
+            """
+        }
+    }
+}
+
+// Resolves the timestamped Maven version needed to attach SBOMs to an existing snapshot.
+// Release versions are used unchanged.
+def getSbomDeployVersion(String groupId, String artifactId, String version, String repositoryId) {
+    if (!version.endsWith("-SNAPSHOT")) {
+        return version
+    }
+
+    String localRepo = getMavenRepository()
+    String groupPath = groupId.replace('.', '/')
+    String metadataPath = "${localRepo}/${groupPath}/${artifactId}/${version}/maven-metadata-${repositoryId}.xml"
+
+    String timestamp = sh(script: "grep -oP '(?<=<timestamp>).*?(?=</timestamp>)' '${metadataPath}' | tail -n 1", returnStdout: true).trim()
+    String buildNumber = sh(script: "grep -oP '(?<=<buildNumber>).*?(?=</buildNumber>)' '${metadataPath}' | tail -n 1", returnStdout: true).trim()
+
+    if (!timestamp || !buildNumber) {
+        error "Cannot determine timestamped snapshot version from ${metadataPath}"
+    }
+
+    return "${version - '-SNAPSHOT'}-${timestamp}-${buildNumber}"
 }
 
 // returns "1.2" for versions

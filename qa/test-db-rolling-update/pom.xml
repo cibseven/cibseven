@@ -16,6 +16,9 @@
   <!-- centralized previous version for old-engine BOMs; update only on release or override via -Dcibseven.version.previous -->
   <properties>
     <cibseven.version.previous>2.2.0</cibseven.version.previous>
+    <!-- Skip enforcer rules: this module tests rolling updates across versions,
+         which intentionally use mismatched dependency versions between old and new engines -->
+    <enforcer.skip>true</enforcer.skip>
   </properties>
 
   <modules>

@@ -23,9 +23,9 @@ import org.cibseven.bpm.model.bpmn.instance.dc.Bounds;
 import org.cibseven.bpm.model.bpmn.instance.dc.Font;
 import org.cibseven.bpm.model.bpmn.instance.di.DiagramElement;
 import org.cibseven.bpm.model.bpmn.instance.di.Waypoint;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 
@@ -50,7 +50,7 @@ public class BpmnDiTest {
   private Association association;
   private EndEvent endEvent;
 
-  @Before
+  @BeforeEach
   public void parseModel() {
     modelInstance = Bpmn.readModelFromStream(getClass().getResourceAsStream(getClass().getSimpleName() + ".xml"));
     collaboration = modelInstance.getModelElementById(COLLABORATION_ID);
@@ -245,7 +245,7 @@ public class BpmnDiTest {
     flowEdge.getWaypoints().add(endWaypoint);
   }
 
-  @After
+  @AfterEach
   public void validateModel() {
     Bpmn.validateModel(modelInstance);
   }

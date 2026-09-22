@@ -25,10 +25,10 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 
 /**
  * @author Thorben Lindhauer
@@ -38,7 +38,7 @@ import org.junit.Ignore;
 @Origin("1.1.0")
 public class InterruptingEventSubprocessCompensationScenarioTest {
 
-  @Rule
+  @RegisterExtension
   public UpgradeTestRule rule = new UpgradeTestRule();
 
   @Test
@@ -50,15 +50,15 @@ public class InterruptingEventSubprocessCompensationScenarioTest {
 
     // then there is an active compensation handler task
     Task compensationHandlerTask = rule.taskQuery().singleResult();
-    Assert.assertNotNull(compensationHandlerTask);
-    Assert.assertEquals("undoTask", compensationHandlerTask.getTaskDefinitionKey());
+    Assertions.assertNotNull(compensationHandlerTask);
+    Assertions.assertEquals("undoTask", compensationHandlerTask.getTaskDefinitionKey());
 
     // and it can be completed such that the process instance ends successfully
     rule.getTaskService().complete(compensationHandlerTask.getId());
 
     Task afterCompensateTask = rule.taskQuery().singleResult();
-    Assert.assertNotNull(afterCompensateTask);
-    Assert.assertEquals("afterCompensate", afterCompensateTask.getTaskDefinitionKey());
+    Assertions.assertNotNull(afterCompensateTask);
+    Assertions.assertEquals("afterCompensate", afterCompensateTask.getTaskDefinitionKey());
 
     rule.getTaskService().complete(afterCompensateTask.getId());
 
@@ -80,7 +80,7 @@ public class InterruptingEventSubprocessCompensationScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("init.3")
   public void testInitActivityInstanceTree() {
@@ -93,7 +93,7 @@ public class InterruptingEventSubprocessCompensationScenarioTest {
 
     // then the activity instance tree is meaningful
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
       describeActivityInstanceTree(instance.getProcessDefinitionId())
         .beginScope("subProcess")
@@ -115,8 +115,8 @@ public class InterruptingEventSubprocessCompensationScenarioTest {
     rule.getTaskService().complete(compensationHandlerTask.getId());
 
     Task afterCompensateTask = rule.taskQuery().singleResult();
-    Assert.assertNotNull(afterCompensateTask);
-    Assert.assertEquals("afterCompensate", afterCompensateTask.getTaskDefinitionKey());
+    Assertions.assertNotNull(afterCompensateTask);
+    Assertions.assertEquals("afterCompensate", afterCompensateTask.getTaskDefinitionKey());
 
     rule.getTaskService().complete(afterCompensateTask.getId());
 
@@ -136,7 +136,7 @@ public class InterruptingEventSubprocessCompensationScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("init.triggerCompensation.3")
   public void testInitTriggerCompensationActivityInstanceTree() {
@@ -145,7 +145,7 @@ public class InterruptingEventSubprocessCompensationScenarioTest {
 
     // then the activity instance tree is meaningful
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
       describeActivityInstanceTree(instance.getProcessDefinitionId())
         .beginScope("subProcess")

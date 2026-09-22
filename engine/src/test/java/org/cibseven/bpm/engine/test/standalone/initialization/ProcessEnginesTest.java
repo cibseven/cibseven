@@ -16,31 +16,31 @@
  */
 package org.cibseven.bpm.engine.test.standalone.initialization;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineInfo;
 import org.cibseven.bpm.engine.ProcessEngines;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Tom Baeyens
  */
 public class ProcessEnginesTest {
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     ProcessEngines.destroy();
     ProcessEngines.init();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     ProcessEngines.destroy();
   }

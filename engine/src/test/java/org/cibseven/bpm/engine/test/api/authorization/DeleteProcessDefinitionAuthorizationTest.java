@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.test.api.authorization;
 
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario.scenario;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationSpec.grant;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,44 +33,40 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.history.HistoryLevel;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
+
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  *
  * @author Christopher Zell <christopher.zell@camunda.com>
  */
-@RunWith(Parameterized.class)
 public class DeleteProcessDefinitionAuthorizationTest {
 
   public static final String PROCESS_DEFINITION_KEY = "one";
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(1) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) public AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+
   protected RepositoryService repositoryService;
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
-
-  @Parameterized.Parameter
-  public AuthorizationScenario scenario;
-
-  @Parameterized.Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
       scenario()
@@ -88,7 +84,7 @@ public class DeleteProcessDefinitionAuthorizationTest {
       );
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     authRule.createUserAndGroup("userId", "groupId");
     repositoryService = engineRule.getRepositoryService();
@@ -97,7 +93,7 @@ public class DeleteProcessDefinitionAuthorizationTest {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
     repositoryService = null;
@@ -105,8 +101,9 @@ public class DeleteProcessDefinitionAuthorizationTest {
     processEngineConfiguration = null;
   }
 
-  @Test
-  public void testDeleteProcessDefinition() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testDeleteProcessDefinition(AuthorizationScenario scenario) {
     testHelper.deploy("org/cibseven/bpm/engine/test/repository/twoProcesses.bpmn20.xml");
     List<ProcessDefinition> processDefinitions = repositoryService.createProcessDefinitionQuery().list();
 
@@ -124,8 +121,9 @@ public class DeleteProcessDefinitionAuthorizationTest {
   }
 
 
-  @Test
-  public void testDeleteProcessDefinitionCascade() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testDeleteProcessDefinitionCascade(AuthorizationScenario scenario) {
     // given process definition and a process instance
     BpmnModelInstance bpmnModel = Bpmn.createExecutableProcess(PROCESS_DEFINITION_KEY).startEvent().userTask().endEvent().done();
     testHelper.deploy(bpmnModel);
@@ -150,8 +148,9 @@ public class DeleteProcessDefinitionAuthorizationTest {
     }
   }
 
-  @Test
-  public void testDeleteProcessDefinitionsByKey() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testDeleteProcessDefinitionsByKey(AuthorizationScenario scenario) {
     // given
     for (int i = 0; i < 3; i++) {
       deployProcessDefinition();
@@ -173,8 +172,9 @@ public class DeleteProcessDefinitionAuthorizationTest {
     }
   }
 
-  @Test
-  public void testDeleteProcessDefinitionsByKeyCascade() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testDeleteProcessDefinitionsByKeyCascade(AuthorizationScenario scenario) {
     // given
     for (int i = 0; i < 3; i++) {
       deployProcessDefinition();
@@ -204,8 +204,9 @@ public class DeleteProcessDefinitionAuthorizationTest {
     }
   }
 
-  @Test
-  public void testDeleteProcessDefinitionsByIds() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testDeleteProcessDefinitionsByIds(AuthorizationScenario scenario) {
     // given
     for (int i = 0; i < 3; i++) {
       deployProcessDefinition();
@@ -228,8 +229,9 @@ public class DeleteProcessDefinitionAuthorizationTest {
     }
   }
 
-  @Test
-  public void testDeleteProcessDefinitionsByIdsCascade() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testDeleteProcessDefinitionsByIdsCascade(AuthorizationScenario scenario) {
     // given
     for (int i = 0; i < 3; i++) {
       deployProcessDefinition();

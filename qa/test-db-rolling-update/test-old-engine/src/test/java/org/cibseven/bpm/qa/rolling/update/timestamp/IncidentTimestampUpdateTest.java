@@ -19,10 +19,10 @@ package org.cibseven.bpm.qa.rolling.update.timestamp;
 import org.cibseven.bpm.engine.runtime.Incident;
 import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Nikola Koevski
@@ -32,8 +32,10 @@ import static org.junit.Assert.assertThat;
 public class IncidentTimestampUpdateTest extends AbstractTimestampUpdateTest {
 
   @ScenarioUnderTest("initIncidentTimestamp.1")
-  @Test
-  public void testIncidentTimestampConversion() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
+  public void testIncidentTimestampConversion(String tag) {
+    init(tag);
     // given
     String processInstanceId = rule.jobQuery().singleResult().getProcessInstanceId();
 
@@ -43,13 +45,13 @@ public class IncidentTimestampUpdateTest extends AbstractTimestampUpdateTest {
       .singleResult();
 
     // assume
-    assertNotNull(incident);
+    assertThat(incident).isNotNull();
 
     long incidentCount = runtimeService.createIncidentQuery()
       .processInstanceId(processInstanceId)
       .count();
 
     // then
-    assertThat(incident.getIncidentTimestamp(), is(TIMESTAMP));
+    assertThat(incident.getIncidentTimestamp()).isEqualTo(TIMESTAMP);
   }
 }

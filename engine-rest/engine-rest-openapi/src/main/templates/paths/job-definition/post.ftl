@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "queryJobDefinitions"
       tag = "Job Definition"
-      summary = "Get Job Definitions (POST)"
+      summary = "Get Job Definitions"
       desc = "Queries for job definitions that fulfill given parameters. This method is slightly
               more powerful than the
               [Get Job Definitions](${docsUrl}/reference/rest/job-definition/get-query/)

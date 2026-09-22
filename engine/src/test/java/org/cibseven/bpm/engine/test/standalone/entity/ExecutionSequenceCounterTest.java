@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.standalone.entity;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -26,8 +26,8 @@ import org.cibseven.bpm.engine.runtime.JobQuery;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.standalone.entity.ExecutionOrderListener.ActivitySequenceCounterMap;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -35,7 +35,7 @@ import org.junit.Test;
  */
 public class ExecutionSequenceCounterTest extends PluggableProcessEngineTest {
 
-  @Before
+  @BeforeEach
   public void setUp() {
     ExecutionOrderListener.clearActivityExecutionOrder();
   }

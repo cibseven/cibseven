@@ -92,9 +92,21 @@
 
     <!-- Test dependencies -->
 
+    <!-- JUnit 5 Jupiter API for unit testing -->
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${version.junit5}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${version.junit5}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${version.junit5}</version>
       <scope>test</scope>
     </dependency>
 
@@ -117,7 +129,7 @@
     </dependency>
 
     <!--
-      In-memory database for the engine-backed process-context test. The engine
+      In-memory database for the engine-backed tests in this module. The engine
       itself is already on the test classpath via the provided-scope
       cibseven-engine dependency; only a JDBC driver is missing.
 

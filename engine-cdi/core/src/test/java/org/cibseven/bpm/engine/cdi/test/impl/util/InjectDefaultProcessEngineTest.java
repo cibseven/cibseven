@@ -16,6 +16,10 @@
  */
 package org.cibseven.bpm.engine.cdi.test.impl.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.cibseven.bpm.BpmPlatform;
 import org.cibseven.bpm.container.RuntimeContainerDelegate;
 import org.cibseven.bpm.engine.ProcessEngine;
@@ -23,55 +27,37 @@ import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
 import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.InjectedProcessEngineBean;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
-import org.cibseven.bpm.engine.test.ProcessEngineRule;
-import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.*;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Christopher Zell <christopher.zell@camunda.com>
+ *
+ * Engine registration/unregistration is done inside the test method with try/finally
+ * so it does not interfere with the Quarkus-managed engine lifecycle (Arc container).
  */
-@RunWith(Arquillian.class)
 public class InjectDefaultProcessEngineTest extends CdiProcessEngineTestCase {
-
-  protected ProcessEngine defaultProcessEngine = null;
-  protected ProcessEngine processEngine = null;
-
-  @Before
-  public void init() {
-    processEngine = TestHelper.getProcessEngine("activiti.cfg.xml");
-    defaultProcessEngine = BpmPlatform.getProcessEngineService().getDefaultProcessEngine();
-
-    if (defaultProcessEngine != null) {
-      RuntimeContainerDelegate.INSTANCE.get().unregisterProcessEngine(defaultProcessEngine);
-    }
-
-    RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(processEngine);
-  }
-
-  @After
-  public void tearDownCdiProcessEngineTestCase() {
-    RuntimeContainerDelegate.INSTANCE.get().unregisterProcessEngine(processEngine);
-
-    if (defaultProcessEngine != null) {
-      RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(defaultProcessEngine);
-    }
-  }
 
   @Test
   public void testProcessEngineInject() {
-    //given only default engine exist
+    ProcessEngine previousDefault = BpmPlatform.getProcessEngineService().getDefaultProcessEngine();
+    ProcessEngine defaultEngine = TestHelper.getProcessEngine("activiti.cfg.xml");
 
-    //when TestClass is created
-    InjectedProcessEngineBean testClass = ProgrammaticBeanLookup.lookup(InjectedProcessEngineBean.class);
-    Assert.assertNotNull(testClass);
+    try {
+      if (previousDefault != null) {
+        RuntimeContainerDelegate.INSTANCE.get().unregisterProcessEngine(previousDefault);
+      }
+      RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(defaultEngine);
 
-    //then default engine is injected
-    Assert.assertEquals("default", testClass.processEngine.getName());
-    Assert.assertTrue(testClass.processEngine.getProcessEngineConfiguration().getJdbcUrl()
-        .contains("default-process-engine"));
+      InjectedProcessEngineBean testClass = ProgrammaticBeanLookup.lookup(InjectedProcessEngineBean.class);
+      assertNotNull(testClass);
+      assertEquals("default", testClass.processEngine.getName());
+      assertTrue(testClass.processEngine.getProcessEngineConfiguration().getJdbcUrl()
+          .contains("default-process-engine"));
+    } finally {
+      RuntimeContainerDelegate.INSTANCE.get().unregisterProcessEngine(defaultEngine);
+      if (previousDefault != null) {
+        RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(previousDefault);
+      }
+    }
   }
 }

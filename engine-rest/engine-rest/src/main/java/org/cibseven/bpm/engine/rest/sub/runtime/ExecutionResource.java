@@ -22,8 +22,8 @@ import org.cibseven.bpm.engine.rest.dto.runtime.ExecutionTriggerDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.IncidentDto;
 import org.cibseven.bpm.engine.rest.sub.VariableResource;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 
 public interface ExecutionResource {
 

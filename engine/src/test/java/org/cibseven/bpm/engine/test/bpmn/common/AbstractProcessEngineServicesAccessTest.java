@@ -16,8 +16,11 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,9 +32,6 @@ import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.Task;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * @author Daniel Meyer
@@ -47,7 +47,7 @@ public abstract class AbstractProcessEngineServicesAccessTest extends PluggableP
 
   protected List<String> deploymentIds = new ArrayList<String>();
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     for (String deploymentId : deploymentIds) {
       repositoryService.deleteDeployment(deploymentId, true);
@@ -182,14 +182,14 @@ public abstract class AbstractProcessEngineServicesAccessTest extends PluggableP
   }
 
   public static void assertCanAccessServices(ProcessEngineServices services) {
-    Assert.assertNotNull(services.getAuthorizationService());
-    Assert.assertNotNull(services.getFormService());
-    Assert.assertNotNull(services.getHistoryService());
-    Assert.assertNotNull(services.getIdentityService());
-    Assert.assertNotNull(services.getManagementService());
-    Assert.assertNotNull(services.getRepositoryService());
-    Assert.assertNotNull(services.getRuntimeService());
-    Assert.assertNotNull(services.getTaskService());
+    assertNotNull(services.getAuthorizationService());
+    assertNotNull(services.getFormService());
+    assertNotNull(services.getHistoryService());
+    assertNotNull(services.getIdentityService());
+    assertNotNull(services.getManagementService());
+    assertNotNull(services.getRepositoryService());
+    assertNotNull(services.getRuntimeService());
+    assertNotNull(services.getTaskService());
   }
 
   public static void assertCanPerformQuery(ProcessEngineServices services) {

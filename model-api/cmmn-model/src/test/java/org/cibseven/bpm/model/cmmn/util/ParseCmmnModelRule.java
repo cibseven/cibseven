@@ -21,25 +21,26 @@ import java.io.InputStream;
 import org.cibseven.bpm.model.cmmn.Cmmn;
 import org.cibseven.bpm.model.cmmn.CmmnModelInstance;
 import org.cibseven.bpm.model.xml.impl.util.IoUtil;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * @author Daniel Meyer
  * @author Roman Smirnov
  *
  */
-public class ParseCmmnModelRule extends TestWatcher {
+public class ParseCmmnModelRule implements BeforeEachCallback {
 
   protected CmmnModelInstance CmmnModelInstance;
 
   @Override
-  protected void starting(Description description) {
+  public void beforeEach(ExtensionContext context) throws Exception {
 
-    if(description.getAnnotation(CmmnModelResource.class) != null) {
+    if(context.getTestMethod().get().getAnnotation(CmmnModelResource.class) != null) {
 
-      Class<?> testClass = description.getTestClass();
-      String methodName = description.getMethodName();
+      Class<?> testClass = context.getTestClass().get();
+      String methodName = context.getTestMethod().get().getName();
 
       String resourceFolderName = testClass.getName().replaceAll("\\.", "/");
       String cmmnResourceName = resourceFolderName + "." + methodName + ".cmmn";

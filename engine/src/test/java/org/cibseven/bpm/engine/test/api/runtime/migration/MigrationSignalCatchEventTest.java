@@ -30,10 +30,11 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.SignalCatchModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 /**
  * @author Thorben Lindhauer
@@ -41,11 +42,10 @@ import org.junit.rules.RuleChain;
  */
 public class MigrationSignalCatchEventTest {
 
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   @Test
   public void testMigrateEventSubscription() {
@@ -237,7 +237,7 @@ public class MigrationSignalCatchEventTest {
 
     // then there should be a variable
     VariableInstance beforeMigration = testHelper.snapshotBeforeMigration.getSingleVariable("var");
-    Assert.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
+    Assertions.assertEquals(1, testHelper.snapshotAfterMigration.getVariables().size());
     testHelper.assertVariableMigratedToExecution(beforeMigration, beforeMigration.getExecutionId());
 
     // and the signal event subscription's event name has changed

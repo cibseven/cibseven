@@ -16,17 +16,16 @@
  */
 package org.cibseven.bpm;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ErrorPageIT extends AbstractWebIntegrationTest {
 
-  @Before
+  @BeforeEach
   public void createClient() throws Exception {
     createClient(getWebappCtxPath());
   }
@@ -37,11 +36,11 @@ public class ErrorPageIT extends AbstractWebIntegrationTest {
     HttpResponse<String> response = Unirest.get(appBasePath + "nonexisting").asString();
 
     // then
-    assertEquals(404, response.getStatus());
-    assertTrue(response.getHeaders().get("Content-Type").get(0).startsWith("text/html"));
+    assertThat(response.getStatus()).isEqualTo(404);
+    assertThat(response.getHeaders().get("Content-Type").get(0)).startsWith("text/html");
     String responseEntity = response.getBody();
-    assertTrue(responseEntity.contains("CIB seven"));
-    assertTrue(responseEntity.contains("Not Found"));
+    assertThat(responseEntity).contains("CIB seven");
+    assertThat(responseEntity).contains("Not Found");
   }
 
 }

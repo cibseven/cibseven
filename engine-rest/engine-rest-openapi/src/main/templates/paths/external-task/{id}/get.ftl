@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getExternalTask"
       tag = "External Task"
-      summary = "Get"
+      summary = "Get External Task"
       desc = "Retrieves an external task by id, corresponding to the `ExternalTask` interface in the engine." />
 
   "parameters" : [

@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.classloading.beans;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import org.cibseven.bpm.engine.delegate.CaseExecutionListener;
 import org.cibseven.bpm.engine.delegate.DelegateCaseExecution;

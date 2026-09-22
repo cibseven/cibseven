@@ -19,9 +19,10 @@ package org.cibseven.bpm.identity.ldap.util;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.identity.Group;
 import org.cibseven.bpm.engine.identity.User;
