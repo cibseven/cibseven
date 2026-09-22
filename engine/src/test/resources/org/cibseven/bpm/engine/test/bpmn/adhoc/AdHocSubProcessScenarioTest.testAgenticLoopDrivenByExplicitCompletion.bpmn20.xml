@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc">
+
+  <process id="adHocAgentLoop" isExecutable="true">
+
+    <startEvent id="start" />
+    <sequenceFlow id="toAdHoc" sourceRef="start" targetRef="adHoc" />
+
+    <!-- The agentic shape. A never-true completion condition keeps the scope parked so the caller
+         stays in charge of when it ends: without one, "nothing active and something ran" would
+         complete the scope after the very first tool. This is the pure-BPMN equivalent of the
+         autoComplete="false" vendor extension we chose not to add. -->
+    <adHocSubProcess id="adHoc">
+      <userTask id="toolA" name="Tool A" />
+      <userTask id="toolB" name="Tool B" />
+      <completionCondition xsi:type="tFormalExpression">${false}</completionCondition>
+    </adHocSubProcess>
+
+    <sequenceFlow id="toEnd" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+
+  </process>
+</definitions>
