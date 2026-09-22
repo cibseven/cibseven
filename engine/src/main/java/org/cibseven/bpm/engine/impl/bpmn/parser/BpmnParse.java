@@ -188,6 +188,9 @@ public class BpmnParse extends Parse {
 
   protected static final BpmnParseLogger LOG = ProcessEngineLogger.BPMN_PARSE_LOGGER;
 
+  /** Extension property naming the activities to start on entry. See CIB7-1891. */
+  public static final String AD_HOC_ENTRY_ACTIVITIES_PROPERTY = "activeElementsCollection";
+
   /** Extension property naming the variable each performance's result is appended to. CIB7-1892. */
   public static final String AD_HOC_OUTPUT_COLLECTION_PROPERTY = "outputCollection";
 
@@ -4050,6 +4053,7 @@ public class BpmnParse extends Parse {
     }
 
 
+    parseAdHocEntryActivation(adHocElement, activity, behavior);
     parseAdHocOutputAggregation(adHocElement, activity, behavior);
 
     activity.setActivityBehavior(behavior);
@@ -4169,6 +4173,51 @@ public class BpmnParse extends Parse {
    * <p>Carried as extension properties rather than new attributes, per CIB7-1890, and read at parse
    * time so a child of the scope cannot rewrite where its own scope gathers results.
    */
+  /**
+   * Declarative entry activation (CIB7-1891): {@code camunda:property activeElementsCollection} names the
+   * activities to start when the scope is entered.
+   *
+   * <p>Carried as an extension property rather than a new namespace, per CIB7-1890. Extension
+   * properties are read here at parse time and never become process variables, so a child of the
+   * scope cannot rewrite which activities its own scope starts.
+   *
+   * <p>A value with no expression syntax is a literal list, and is therefore validated <em>now</em>
+   * against the startable set — neither reference does this, both only find a bad id at runtime. A
+   * value containing an expression can only be checked when it is evaluated.
+   */
+  protected void parseAdHocEntryActivation(Element adHocElement, ActivityImpl activity,
+      AdHocSubProcessActivityBehavior behavior) {
+
+    Map<String, String> extensionProperties = parseCamundaExtensionProperties(adHocElement);
+    if (extensionProperties == null) {
+      return;
+    }
+    String raw = extensionProperties.get(AD_HOC_ENTRY_ACTIVITIES_PROPERTY);
+    if (raw == null || raw.trim().isEmpty()) {
+      return;
+    }
+
+    if (!raw.contains("${") && !raw.contains("#{")) {
+      List<String> startable = startableActivityIds(adHocElement);
+      List<String> unknown = new ArrayList<String>();
+      for (String part : raw.split(",")) {
+        String id = part.trim();
+        if (!id.isEmpty() && !startable.contains(id)) {
+          unknown.add(id);
+        }
+      }
+      if (!unknown.isEmpty()) {
+        addError("Ad hoc sub process '" + activity.getId() + "': " + AD_HOC_ENTRY_ACTIVITIES_PROPERTY
+            + " names " + unknown + ", which " + (unknown.size() == 1 ? "is" : "are")
+            + " not directly startable here. The startable activities are " + startable + ".",
+            adHocElement);
+        return;
+      }
+    }
+
+    behavior.setEntryActivityIds(expressionManager.createExpression(raw));
+  }
+
   protected void parseAdHocOutputAggregation(Element adHocElement, ActivityImpl activity,
       AdHocSubProcessActivityBehavior behavior) {
 

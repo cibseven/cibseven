@@ -327,4 +327,20 @@ public class AdHocSubProcessMultiInstanceTest extends PluggableProcessEngineTest
         Collections.singletonList("archive"), null);
     assertThat(tasks(pi)).as("an untouched workspace still accepts work").hasSize(3);
   }
+  /** The entry list is declared once and applies to every instance of the scope. */
+  @Deployment(resources = ENTRY)
+  @Test
+  public void entryActivationOpensEveryWorkspace() {
+    ProcessInstance pi = startWithItems("adHocMiEntry", "a", "b", "c");
+
+    List<Task> started = tasks(pi);
+    assertThat(started).as("every workspace opened with its first activity running").hasSize(3);
+    assertThat(started).extracting(Task::getTaskDefinitionKey).containsOnly("triage");
+    assertThat(started)
+        .extracting(t -> runtimeService.getVariable(t.getExecutionId(), "item"))
+        .as("one per item, not three in one workspace")
+        .containsExactlyInAnyOrder("a", "b", "c");
+  }
+
+
 }

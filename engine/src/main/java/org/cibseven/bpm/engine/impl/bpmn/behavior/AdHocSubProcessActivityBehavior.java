@@ -81,6 +81,12 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   public static final String COMPLETION_CONDITION_SATISFIED = "adHocCompletionConditionSatisfied";
 
   protected Condition completionCondition;
+
+  /**
+   * Activities to start when the scope is entered, from CIB7-1891. Null means the historical
+   * behaviour: entering starts nothing and every activity arrives through the activation API.
+   */
+  protected Expression entryActivityIds;
   protected boolean cancelRemainingInstances = true;
 
 
@@ -103,8 +109,131 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     // flowScopeExecutions.iterator().next(). Multi-instance survives this only because it always
     // has concurrent children to resolve through; an empty ad-hoc scope has none.
     execution.inactivate();
+
+    startEntryActivities(execution);
   }
 
+
+  /**
+   * Starts the activities named by {@code camunda:property activeElementsCollection}, the declarative entry
+   * activation of CIB7-1891. Does nothing when the property is absent, which is every model written
+   * before it existed.
+   *
+   * <p>Two behaviours here are deliberate and easy to get wrong.
+   *
+   * <p>It runs <em>after</em> {@code inactivate()}, so the scope is in exactly the state the
+   * activation API finds it in. Anything else would make entry activation a second code path with its
+   * own bugs.
+   *
+   * <p>And if the completion condition already holds, it starts nothing rather than refusing. The
+   * refusal that CIB7-1850 added throws, and throwing here would fail the process start outright — a
+   * model whose condition happens to be true on entry would become undeployable in practice. Starting
+   * nothing leaves the scope waiting, which is what CIB7-1851 decided such a scope does anyway.
+   */
+  protected void startEntryActivities(ActivityExecution scopeExecution) {
+    if (entryActivityIds == null) {
+      return;
+    }
+    if (isConditionSatisfied(scopeExecution) || conditionHoldsNow(scopeExecution)) {
+      return;
+    }
+
+    List<String> requested = resolveEntryActivityIds(scopeExecution);
+    if (requested.isEmpty()) {
+      return;
+    }
+
+    ScopeImpl scope = (ScopeImpl) scopeExecution.getActivity();
+    List<String> startable = scope.getProperties().get(BpmnProperties.AD_HOC_STARTABLE_ACTIVITIES);
+    List<String> unknown = new ArrayList<String>();
+    for (String id : requested) {
+      if (startable == null || !startable.contains(id)) {
+        unknown.add(id);
+      }
+    }
+    if (!unknown.isEmpty()) {
+      throw new ProcessEngineException("Ad hoc sub process '" + scope.getId()
+          + "': activeElementsCollection names " + unknown + ", which " + (unknown.size() == 1 ? "is" : "are")
+          + " not directly startable here. The startable activities are " + startable + ".");
+    }
+
+    // Two passes, for the same reason ActivateAdHocSubProcessActivitiesCmd splits its loop: starting a child can
+    // run it to completion, and a child completing while nothing else is active completes the whole
+    // scope, so the next create would operate on an execution that has already ended.
+    List<PvmExecutionImpl> children = new ArrayList<PvmExecutionImpl>();
+    for (int i = 0; i < requested.size(); i++) {
+      children.add((PvmExecutionImpl) createInnerInstance(scopeExecution));
+    }
+    for (int i = 0; i < requested.size(); i++) {
+      PvmExecutionImpl childExecution = children.get(i);
+      // A child started earlier in this loop can satisfy the completion condition, and completeScope
+      // then deletes the ones not yet started. Starting a deleted execution fails on flush.
+      if (childExecution.isEnded() || childExecution.isRemoved()) {
+        continue;
+      }
+      childExecution.executeActivities(Collections.<PvmActivity>emptyList(),
+          findEntryChild(scope, requested.get(i)), null, null, null, false, false);
+    }
+  }
+
+  /**
+   * The activity to execute, which is not always the one carrying the requested id.
+   *
+   * <p>Loop characteristics make the parser wrap the activity: the direct child of the scope is a
+   * generated multi-instance body with the requested activity nested inside it. A recursive lookup
+   * would find the nested one and executing that bypasses the body that owns the loop, so only direct
+   * children are considered and the generated body is resolved by name — the same resolution
+   * {@code ActivateAdHocSubProcessActivitiesCmd} makes for the activation API.
+   */
+  protected ActivityImpl findEntryChild(ScopeImpl scope, String activityId) {
+    for (ActivityImpl child : scope.getActivities()) {
+      if (activityId.equals(child.getId())) {
+        return child;
+      }
+    }
+    String bodyId = activityId + "#multiInstanceBody";
+    for (ActivityImpl child : scope.getActivities()) {
+      if (bodyId.equals(child.getId())) {
+        return child;
+      }
+    }
+    throw new ProcessEngineException("Ad hoc sub process '" + scope.getId() + "': activeElementsCollection"
+        + " names '" + activityId + "', which is startable but has no such child activity.");
+  }
+
+  /**
+   * Evaluates the entry expression to a list of activity ids.
+   *
+   * <p>A collection is taken as-is. A plain string is split on commas, which is what makes the static
+   * authoring form work: {@code <camunda:property name="activeElementsCollection" value="taskA,taskB"/>} is
+   * a literal to the expression manager, so one runtime path serves both a literal list and a real
+   * expression over process data.
+   */
+  protected List<String> resolveEntryActivityIds(ActivityExecution scopeExecution) {
+    Object value = entryActivityIds.getValue(scopeExecution);
+    List<String> ids = new ArrayList<String>();
+    if (value == null) {
+      return ids;
+    }
+    if (value instanceof Collection) {
+      for (Object item : (Collection<?>) value) {
+        if (item != null && !String.valueOf(item).trim().isEmpty()) {
+          ids.add(String.valueOf(item).trim());
+        }
+      }
+      return ids;
+    }
+    for (String part : String.valueOf(value).split(",")) {
+      if (!part.trim().isEmpty()) {
+        ids.add(part.trim());
+      }
+    }
+    return ids;
+  }
+
+  public void setEntryActivityIds(Expression entryActivityIds) {
+    this.entryActivityIds = entryActivityIds;
+  }
   @Override
   public List<ActivityExecution> initializeScope(ActivityExecution scopeExecution, int numberOfInstances) {
     // Called on the instantiation-stack path (process instance modification), never on normal entry.
