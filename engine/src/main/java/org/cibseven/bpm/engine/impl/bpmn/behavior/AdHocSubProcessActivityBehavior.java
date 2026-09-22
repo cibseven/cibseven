@@ -83,6 +83,12 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   protected Condition completionCondition;
   protected boolean cancelRemainingInstances = true;
 
+
+  /** CIB7-1892. The variable each performance's result is appended to, or null when not gathering. */
+  protected String outputCollectionName;
+
+  /** CIB7-1892. Evaluated once per completed child; its value is what gets appended. */
+  protected Expression outputElement;
   @Override
   public void execute(ActivityExecution execution) throws Exception {
     // Entering an ad-hoc scope starts nothing, and deliberately records nothing: writing a zero
@@ -129,6 +135,8 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
 
   @Override
   public void concurrentChildExecutionEnded(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
+    gatherResult(scopeExecution, endedExecution);
+
     // Decide before disposing of anything: a completion condition normally reads a variable the
     // ended child just wrote, and completeScope needs the ended execution's activity to find the
     // flow scope to return to.
@@ -179,6 +187,12 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
 
   @Override
   public void complete(ActivityExecution scopeExecution) {
+    // No gatherResult here, and no completion condition either. Both omissions have one cause,
+    // measured across the ad hoc suites rather than assumed: the only thing that reaches this
+    // callback is an interrupting event sub process finishing, with no children left under the
+    // scope. That is an event handler rather than a performance, so there is nothing to gather --
+    // gathering here would evaluate the element expression against whatever the last real
+    // performance left behind and append it a second time.
     // CIB7-2074. The completion condition is not consulted here, and that is the point. An
     // interruption has already cancelled the discretionary work, so there is nothing left for a
     // rule about discretionary work to decide. Asking it anyway is what the defect was: a scope
@@ -205,6 +219,65 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    * Without one: complete when nothing is active AND at least one child was activated
    * (PRD FR-16a — the second clause stops an empty scope completing on entry).
    */
+
+  /**
+   * Appends this performance's result to the gathering variable, if the scope gathers (CIB7-1892).
+   *
+   * <p>Called as a child ends, and <em>before</em> the completion condition is consulted -- so a
+   * condition can be written against what has been gathered so far, which is the natural way to say
+   * "enough". One call site, not two: see {@link #complete(ActivityExecution)} for why the other
+   * callback a child can end through is not one of them.
+   *
+   * <p>Timing is the whole of it. The child's own output mapping has already run by now: an ad hoc
+   * child that carries one is a scope, and a scope executes its output parameters as it is
+   * destroyed, which happens before the flow scope's behaviour is notified. So the expression reads
+   * the value this performance produced, in the one moment it is still the current one -- the next
+   * performance of the same child overwrites it, and that is precisely the defect being answered.
+   *
+   * <p>The list is rebuilt and written back rather than mutated in place, because a mutation of the
+   * value an entity already holds is not reliably detected as a change.
+   *
+   * <p>Two rules make one expression serve every child of the scope: it is evaluated against the
+   * child that ended, so {@code execution} names that child, and a null result adds nothing. Between
+   * them a model can gather selectively -- {@code ${execution.currentActivityId == 'tool' ? result :
+   * null}} -- and record which performance produced an entry.
+   */
+  protected void gatherResult(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
+    if (outputCollectionName == null) {
+      return;
+    }
+
+    // Evaluated against the child that just ended, not against the scope. Both resolve the same
+    // variables -- the child has none of its own and the lookup walks up to the scope -- but only
+    // this one puts the ending child in reach of the expression, as {@code execution}. Without that
+    // the expression cannot tell which performance it is being asked about, and a child that wrote
+    // nothing appends whatever the previous one left. Measured before it was fixed: a scope with a
+    // child that writes nothing gathered the same value twice.
+    Object value = outputElement.getValue(endedExecution);
+
+    // Null means this performance contributed nothing, and is how an expression declines. It is the
+    // only way a model can say "gather this child and not that one", because one expression serves
+    // every child of the scope.
+    if (value == null) {
+      return;
+    }
+
+    Object current = scopeExecution.getVariable(outputCollectionName);
+    List<Object> gathered = new ArrayList<Object>();
+    if (current instanceof Collection) {
+      gathered.addAll((Collection<?>) current);
+    } else if (current != null) {
+      throw new ProcessEngineException("Ad hoc sub process '" + scopeExecution.getActivity().getId()
+          + "' gathers results into '" + outputCollectionName + "', but that variable already holds"
+          + " a " + current.getClass().getSimpleName() + " rather than a collection. Choose a name"
+          + " nothing else writes to.");
+    }
+    gathered.add(value);
+
+    // Deliberately setVariable, not setVariableLocal: a variable local to the scope execution dies
+    // with the scope, and results are wanted after it has left.
+    scopeExecution.setVariable(outputCollectionName, gathered);
+  }
   protected boolean isCompleted(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
     if (completionCondition != null) {
       // Latched, and it has to be: "once the condition holds" must survive the condition going
@@ -513,6 +586,14 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     this.completionCondition = completionCondition;
   }
 
+
+  public void setOutputCollectionName(String outputCollectionName) {
+    this.outputCollectionName = outputCollectionName;
+  }
+
+  public void setOutputElement(Expression outputElement) {
+    this.outputElement = outputElement;
+  }
   public void setCancelRemainingInstances(boolean cancelRemainingInstances) {
     this.cancelRemainingInstances = cancelRemainingInstances;
   }

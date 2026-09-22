@@ -188,6 +188,11 @@ public class BpmnParse extends Parse {
 
   protected static final BpmnParseLogger LOG = ProcessEngineLogger.BPMN_PARSE_LOGGER;
 
+  /** Extension property naming the variable each performance's result is appended to. CIB7-1892. */
+  public static final String AD_HOC_OUTPUT_COLLECTION_PROPERTY = "outputCollection";
+
+  /** Extension property holding the expression evaluated once per completed child. CIB7-1892. */
+  public static final String AD_HOC_OUTPUT_ELEMENT_PROPERTY = "outputElement";
   /**
    * The element names of every BPMN Activity, i.e. the concrete subtypes of {@code tActivity} that
    * can appear as a flow element. Gateways and events are deliberately absent: they are flow nodes
@@ -4045,6 +4050,8 @@ public class BpmnParse extends Parse {
     }
 
 
+    parseAdHocOutputAggregation(adHocElement, activity, behavior);
+
     activity.setActivityBehavior(behavior);
     parseScope(adHocElement, activity);
 
@@ -4144,6 +4151,60 @@ public class BpmnParse extends Parse {
    * storing; this decides.
    */
 
+  /**
+   * Gathering each performance's result (CIB7-1892): {@code camunda:property outputCollection} names
+   * a variable, {@code outputElement} an expression evaluated once per completed child, and the
+   * value is appended to that variable.
+   *
+   * <p>It exists because the alternative loses data silently. An ad hoc child is deliberately not a
+   * variable scope, so its output mapping lands above the scope and the specification's own
+   * "an activity may be performed more than once" then means the second performance overwrites the
+   * first. A scalar variable has one slot; repeated performance needs more than one.
+   *
+   * <p>Both properties or neither. One alone is always a mistake -- a collection with nothing to put
+   * in it, or an expression with nowhere to put it -- and a mistake that would otherwise be silent,
+   * because the aggregation simply would not happen. So it is refused at deployment, as other
+   * half-declared ad hoc configuration is.
+   *
+   * <p>Carried as extension properties rather than new attributes, per CIB7-1890, and read at parse
+   * time so a child of the scope cannot rewrite where its own scope gathers results.
+   */
+  protected void parseAdHocOutputAggregation(Element adHocElement, ActivityImpl activity,
+      AdHocSubProcessActivityBehavior behavior) {
+
+    Map<String, String> extensionProperties = parseCamundaExtensionProperties(adHocElement);
+    if (extensionProperties == null) {
+      return;
+    }
+    String collection = trimToNull(extensionProperties.get(AD_HOC_OUTPUT_COLLECTION_PROPERTY));
+    String element = trimToNull(extensionProperties.get(AD_HOC_OUTPUT_ELEMENT_PROPERTY));
+
+    if (collection == null && element == null) {
+      return;
+    }
+    if (collection == null || element == null) {
+      String given = (collection == null) ? AD_HOC_OUTPUT_ELEMENT_PROPERTY
+          : AD_HOC_OUTPUT_COLLECTION_PROPERTY;
+      String missing = (collection == null) ? AD_HOC_OUTPUT_COLLECTION_PROPERTY
+          : AD_HOC_OUTPUT_ELEMENT_PROPERTY;
+      addError("Ad hoc sub process '" + activity.getId() + "': '" + given + "' is set without '"
+          + missing + "'. Gathering results needs both -- a variable to gather into and an"
+          + " expression saying what to gather -- so one alone would silently gather nothing.",
+          adHocElement);
+      return;
+    }
+
+    behavior.setOutputCollectionName(collection);
+    behavior.setOutputElement(expressionManager.createExpression(element));
+  }
+
+  protected static String trimToNull(String value) {
+    if (value == null) {
+      return null;
+    }
+    String trimmed = value.trim();
+    return trimmed.isEmpty() ? null : trimmed;
+  }
   protected static List<String> startableActivityIds(Element adHocElement) {
     Set<String> flowTargets = new HashSet<>();
     for (Element flow : adHocElement.elements("sequenceFlow")) {

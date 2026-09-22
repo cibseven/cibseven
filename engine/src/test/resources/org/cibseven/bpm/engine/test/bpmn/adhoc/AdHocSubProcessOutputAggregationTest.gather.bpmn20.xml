@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Gathering each performance's result: outputCollection + outputElement. CIB7-1892. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="adHocGather" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <extensionElements>
+        <camunda:properties>
+          <camunda:property name="outputCollection" value="results" />
+          <camunda:property name="outputElement" value="${result}" />
+        </camunda:properties>
+      </extensionElements>
+
+      <!-- an io mapping makes this child a scope, which is the common case -->
+      <userTask id="tool">
+        <extensionElements>
+          <camunda:inputOutput>
+            <camunda:outputParameter name="result">${in}</camunda:outputParameter>
+          </camunda:inputOutput>
+        </extensionElements>
+      </userTask>
+
+      <!-- an embedded sub process child: the other way a child can end -->
+      <subProcess id="sub">
+        <extensionElements>
+          <camunda:inputOutput>
+            <camunda:outputParameter name="result">${in}</camunda:outputParameter>
+          </camunda:inputOutput>
+        </extensionElements>
+        <startEvent id="subStart" />
+        <sequenceFlow id="s1" sourceRef="subStart" targetRef="subEnd" />
+        <endEvent id="subEnd" />
+      </subProcess>
+
+      <completionCondition xsi:type="tFormalExpression">${false}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>
