@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             targetNamespace="http://cibseven.org/adhoc-multi-instance">
+  <process id="adHocMiCondition" isExecutable="true">
+    <startEvent id="start" /><sequenceFlow id="f1" sourceRef="start" targetRef="scope" />
+    <adHocSubProcess id="scope" cancelRemainingInstances="true">
+      <multiInstanceLoopCharacteristics isSequential="false"
+          camunda:collection="items" camunda:elementVariable="item" />
+      <userTask id="review" name="Review" />
+      <userTask id="archive" name="Archive" />
+      <completionCondition xsi:type="tFormalExpression">${settled == true}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="scope" targetRef="end" /><endEvent id="end" />
+  </process>
+</definitions>
