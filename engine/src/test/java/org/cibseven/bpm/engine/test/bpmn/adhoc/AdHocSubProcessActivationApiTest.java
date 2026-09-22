@@ -294,6 +294,33 @@ public class AdHocSubProcessActivationApiTest extends PluggableProcessEngineTest
 
   // ---------------------------------------------------------------- one call, many performances
 
+  /**
+   * CIB7-1892, the input half: two performances of one activity, each with its own arguments.
+   *
+   * <p>The older method cannot express this. Its variables are keyed by activity id, so two
+   * performances of one activity collapse onto one entry and both take it -- which the test below
+   * pins, because it is still what that method does.
+   */
+  @Deployment(resources = RESOURCE)
+  @Test
+  public void theSameChildTwiceCarriesItsOwnVariables() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocActivationApi");
+
+    List<String> ids = runtimeService.createAdHocSubProcessActivation(scopeExecutionId(pi.getId()))
+        .startActivity("taskA").setVariable("assignedTo", "alice")
+        .startActivity("taskA").setVariable("assignedTo", "bob")
+        .execute();
+
+    assertThat(ids).as("one id per performance").hasSize(2);
+    assertThat(ids).doesNotHaveDuplicates();
+
+    List<Object> assignees = new java.util.ArrayList<>();
+    for (Task task : taskService.createTaskQuery().processInstanceId(pi.getId()).list()) {
+      assignees.add(runtimeService.getVariable(task.getExecutionId(), "assignedTo"));
+    }
+    assertThat(assignees).as("each performance kept the arguments it was given")
+        .containsExactlyInAnyOrder("alice", "bob");
+  }
 
   /**
    * The older method's documented behaviour, pinned so the difference between the two is visible
@@ -314,7 +341,36 @@ public class AdHocSubProcessActivationApiTest extends PluggableProcessEngineTest
     }
   }
 
+  /**
+   * Variables belong to the performance named before them, so there is nothing for them to belong to
+   * before the first one. The two other readings -- apply to all, apply to the next -- are equally
+   * defensible, which is why this refuses rather than choosing one silently.
+   */
+  @Deployment(resources = RESOURCE)
+  @Test
+  public void aVariableBeforeAnyActivityIsRefused() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocActivationApi");
 
+    try {
+      runtimeService.createAdHocSubProcessActivation(scopeExecutionId(pi.getId()))
+          .setVariable("assignedTo", "alice");
+      fail("expected a refusal");
+    } catch (BadUserRequestException e) {
+      assertThat(e.getMessage()).contains("startActivity first");
+    }
+  }
+
+  /** Nothing is started until execute, so a builder that is never executed changes nothing. */
+  @Deployment(resources = RESOURCE)
+  @Test
+  public void aBuilderThatIsNotExecutedStartsNothing() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocActivationApi");
+
+    runtimeService.createAdHocSubProcessActivation(scopeExecutionId(pi.getId()))
+        .startActivity("taskA");
+
+    assertThat(taskService.createTaskQuery().processInstanceId(pi.getId()).count()).isZero();
+  }
 
   // ---------------------------------------------------------------- per-activation variables
 

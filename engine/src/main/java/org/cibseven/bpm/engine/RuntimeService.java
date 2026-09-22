@@ -36,6 +36,7 @@ import org.cibseven.bpm.engine.migration.MigrationPlanBuilder;
 import org.cibseven.bpm.engine.migration.MigrationPlanExecutionBuilder;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
+import org.cibseven.bpm.engine.runtime.AdHocSubProcessActivationBuilder;
 import org.cibseven.bpm.engine.runtime.ActivityInstance;
 import org.cibseven.bpm.engine.runtime.ConditionEvaluationBuilder;
 import org.cibseven.bpm.engine.runtime.EventSubscriptionQuery;
@@ -2473,6 +2474,26 @@ public interface RuntimeService {
   List<String> activateAdHocSubProcessActivities(String executionId, Collection<String> activityIds,
       Map<String, Map<String, Object>> activityVariables);
 
+  /**
+   * Starts activities of an ad hoc sub process, with variables belonging to each performance.
+   *
+   * <p>Use this rather than
+   * {@link #activateAdHocSubProcessActivities(String, Collection, java.util.Map)} when one activity
+   * is to be performed more than once in a single call with different arguments. There the variables
+   * are keyed by activity id, so two performances of one activity share a single entry and both take
+   * the last one given; here each performance carries its own.
+   *
+   * <pre>
+   * runtimeService.createAdHocSubProcessActivation(scopeExecutionId)
+   *     .startActivity("search").setVariable("query", "invoices 2026")
+   *     .startActivity("search").setVariable("query", "credit notes 2026")
+   *     .execute();
+   * </pre>
+   *
+   * @param executionId the execution of the ad hoc sub process scope
+   * @return a builder; nothing is started until its {@code execute} is called
+   */
+  AdHocSubProcessActivationBuilder createAdHocSubProcessActivation(String executionId);
 
   /**
    * Ends an ad hoc sub process, cancelling whatever is still running inside it.

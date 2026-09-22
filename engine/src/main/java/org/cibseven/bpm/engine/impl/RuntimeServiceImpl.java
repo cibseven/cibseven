@@ -56,6 +56,7 @@ import org.cibseven.bpm.engine.impl.util.ExceptionUtil;
 import org.cibseven.bpm.engine.migration.MigrationPlan;
 import org.cibseven.bpm.engine.migration.MigrationPlanBuilder;
 import org.cibseven.bpm.engine.migration.MigrationPlanExecutionBuilder;
+import org.cibseven.bpm.engine.runtime.AdHocSubProcessActivationBuilder;
 import org.cibseven.bpm.engine.runtime.ActivityInstance;
 import org.cibseven.bpm.engine.runtime.ConditionEvaluationBuilder;
 import org.cibseven.bpm.engine.runtime.EventSubscriptionQuery;
@@ -838,6 +839,11 @@ public class RuntimeServiceImpl extends ServiceImpl implements RuntimeService {
       Map<String, Map<String, Object>> activityVariables) {
     return commandExecutor.execute(
         new ActivateAdHocSubProcessActivitiesCmd(executionId, activityIds, activityVariables));
+  }
+
+  @Override
+  public AdHocSubProcessActivationBuilder createAdHocSubProcessActivation(String executionId) {
+    return new AdHocSubProcessActivationBuilderImpl(commandExecutor, executionId);
   }
 
   @Override
