@@ -957,4 +957,221 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
   }
 
 
+  /**
+   * An error raised by an ad hoc child must reach a boundary error event on the scope, and taking
+   * that boundary event must cancel the scope, including a child that is still active. Only an
+   * interrupting timer on the scope was covered before, so error propagation out of the scope was
+   * untested, and that is the path where a live sibling is most likely to be stranded.
+   */
+  @org.cibseven.bpm.engine.test.Deployment
+  @Test
+  public void testBoundaryErrorFromChild() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocBoundaryError");
+
+    activate(pi.getId(), "taskA");
+    assertThat(task("taskA")).as("taskA must be active before the error").isNotNull();
+
+    // Synchronous: it runs and throws BpmnError("23") during activation.
+    activate(pi.getId(), "boom");
+
+    System.out.println("[BOUNDARY-ERROR] tasks=" + taskService.createTaskQuery().count()
+        + " handled=" + (task("handled") != null));
+
+    assertThat(task("handled"))
+        .as("an error from an ad hoc child must be caught by a boundary event on the scope")
+        .isNotNull();
+    assertThat(task("taskA"))
+        .as("taking the boundary event must cancel the child that was still active")
+        .isNull();
+
+    taskService.complete(task("handled").getId());
+    testRule.assertProcessEnded(pi.getId());
+  }
+
+  @org.cibseven.bpm.engine.test.Deployment
+  @Test
+  public void testBoundaryTimerOnScope() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocBoundary");
+
+    activate(pi.getId(), "taskA");
+    assertThat(task("taskA")).isNotNull();
+
+    Job timer = managementService.createJobQuery().processInstanceId(pi.getId()).singleResult();
+    assertThat(timer).as("a boundary timer on an ad hoc scope must create a job").isNotNull();
+
+    managementService.executeJob(timer.getId());
+
+    assertThat(task("taskA"))
+        .as("an interrupting boundary event must cancel the children")
+        .isNull();
+    assertThat(task("escalated"))
+        .as("the boundary event's outgoing flow must be taken")
+        .isNotNull();
+
+    taskService.complete(task("escalated").getId());
+    testRule.assertProcessEnded(pi.getId());
+  }
+
+  /**
+   * A boundary event on a CHILD of the scope is neither rejected at deployment nor covered by any
+   * design decision. This records what the engine actually does with it.
+   */
+  @org.cibseven.bpm.engine.test.Deployment
+  @Test
+  public void testBoundaryEventOnChild() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocChildBoundary");
+    activate(pi.getId(), "taskA");
+
+    assertThat(task("taskA")).isNotNull();
+    Job timer = managementService.createJobQuery().processInstanceId(pi.getId()).singleResult();
+    assertThat(timer).as("a boundary timer on an ad hoc child must create a job").isNotNull();
+
+    // The boundary event has no outgoing flow inside the scope, and inner flows are rejected,
+    // so firing it can only end the child.
+    managementService.executeJob(timer.getId());
+    System.out.println("[CHILD-BOUNDARY] tasks=" + taskService.createTaskQuery().count()
+        + " instances=" + activeInstances(pi.getId()));
+    assertThat(activeInstances(pi.getId()))
+        .as("firing a child boundary event must not strand the instance")
+        .isZero();
+  }
+
+  /**
+   * Compensation reaching a completed child of an ad hoc scope.
+   *
+   * <p>Two halves of the parser meet here and neither had ever been executed: the scope is marked
+   * as consuming compensation, and a child carrying {@code isForCompensation} is excluded from the
+   * startable set because it is reached by compensation being thrown rather than by being started.
+   */
+  @org.cibseven.bpm.engine.test.Deployment
+  @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
+  @Test
+  public void testCompensationOfAdHocChild() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocCompensation");
+
+    activate(pi.getId(), "taskA");
+    taskService.complete(task("taskA").getId());
+
+    // No completion condition: the scope leaves once something ran and nothing is active, and the
+    // outgoing flow parks at a user task so the compensation handler can be seen registered.
+    assertThat(task("wait")).as("the scope must have completed and moved on").isNotNull();
+    // The exact number is the engine's business -- an embedded sub process with the identical model
+    // registers two as well. What matters is that the scope handed them up rather than losing them.
+    assertThat(runtimeService.createEventSubscriptionQuery()
+        .processInstanceId(pi.getId()).eventType("compensate").count())
+        .as("completing an ad hoc child with a compensation boundary event must register a handler")
+        .isPositive();
+
+    taskService.complete(task("wait").getId());
+    testRule.assertProcessEnded(pi.getId());
+
+    HistoricVariableInstance compensated = historyService.createHistoricVariableInstanceQuery()
+        .processInstanceId(pi.getId()).variableName("compensated").singleResult();
+    assertThat(compensated)
+        .as("throwing compensation must reach the handler inside the ad hoc scope")
+        .isNotNull();
+    assertThat(compensated.getValue()).isEqualTo(true);
+  }
+
+  /**
+   * A non-interrupting event sub process inside the scope is refused at deployment (CIB7-1967).
+   *
+   * <p>It is refused rather than documented because the failure depends on the order in which the
+   * two finish. Completing the scope's own activity first works; completing the event sub process
+   * first fails in the persistence layer and leaves a task that can never be completed. A model
+   * therefore passes a test run and fails in production, and nothing a modeller can write enforces
+   * the order.
+   *
+   * <p>The runtime cause is that the engine expands concurrency for a non-interrupting event sub
+   * process — it inserts a branch execution at scope level and moves the scope's activity onto it —
+   * while this behaviour reads the unexpanded shape. Fixing that is the remaining half of
+   * CIB7-1967; when it lands, this refusal goes and the behaviour test it replaced comes back. Its
+   * assertions are preserved in that ticket.
+   */
+  @Test
+  public void testNonInterruptingEventSubProcessIsRejected() {
+    try {
+      deploy("nonInterruptingEventSubProcess.bpmn20.xml");
+      fail("a non-interrupting event sub process inside an ad hoc sub process must be rejected");
+    } catch (ParseException e) {
+      testRule.assertTextPresent("is non-interrupting, which is not supported", e.getMessage());
+      testRule.assertTextPresent("Make it interrupting", e.getMessage());
+    }
+  }
+
+  /**
+   * A non-interrupting boundary event on one of the scope's activities is refused for the same
+   * reason as a non-interrupting event sub process (CIB7-1967).
+   *
+   * <p>Found by looking for other ways into the same failure after the event sub process was
+   * refused. Measured on a distribution before this refusal existed: the handler starts alongside
+   * the activity it is attached to, and completing it while that activity is still running answers
+   * 500 from the persistence layer, leaving a task that can never be completed. Identical symptom,
+   * different element.
+   *
+   * <p>An interrupting boundary event is unaffected -- it cancels the activity instead of running
+   * beside it -- and a boundary event on the ad hoc sub process itself is outside the scope
+   * entirely, so neither is touched.
+   */
+  @Test
+  public void testNonInterruptingBoundaryEventIsRejected() {
+    try {
+      deploy("nonInterruptingBoundaryEvent.bpmn20.xml");
+      fail("a non-interrupting boundary event inside an ad hoc sub process must be rejected");
+    } catch (ParseException e) {
+      testRule.assertTextPresent("is non-interrupting, which is not supported", e.getMessage());
+      testRule.assertTextPresent("the boundary event", e.getMessage());
+    }
+  }
+
+  /** The same, interrupting: firing it must cancel what the scope has running. */
+  @org.cibseven.bpm.engine.test.Deployment
+  @Test
+  public void testInterruptingEventSubProcessInsideScope() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocInterruptingEventSubProcess");
+
+    activate(pi.getId(), "taskA", "taskB");
+    assertThat(taskService.createTaskQuery().count()).isEqualTo(2);
+
+    runtimeService.createMessageCorrelation("theMessage")
+        .processInstanceId(pi.getId()).correlate();
+
+    assertThat(task("handled")).isNotNull();
+    assertThat(task("taskA"))
+        .as("an interrupting event sub process must cancel the scope's running children")
+        .isNull();
+    assertThat(task("taskB")).isNull();
+
+    taskService.complete(task("handled").getId());
+    testRule.assertProcessEnded(pi.getId());
+  }
+
+  /**
+   * CIB7-2074. The same interruption, on a scope parked by a never-true completion condition.
+   *
+   * <p>It used to go back to waiting: the interruption cancelled the children and the scope then
+   * asked its completion condition whether it might leave, which said no. Nothing was left running
+   * and nothing could recover it from inside the model -- in the agentic shape the caller that would
+   * have completed it is the driver, which the interruption had just cancelled.
+   *
+   * <p>An interruption is not a question about discretionary work. There is none left to ask about.
+   */
+  @org.cibseven.bpm.engine.test.Deployment
+  @Test
+  public void testInterruptingEventSubProcessLeavesAParkedScope() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocInterruptingParked");
+
+    activate(pi.getId(), "taskA");
+    assertThat(task("taskA")).isNotNull();
+
+    runtimeService.createMessageCorrelation("theMessage")
+        .processInstanceId(pi.getId()).correlate();
+    assertThat(task("taskA")).as("the interruption cancels the scope's work").isNull();
+
+    taskService.complete(task("handled").getId());
+
+    testRule.assertProcessEnded(pi.getId());
+  }
+
+
 }

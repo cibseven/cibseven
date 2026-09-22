@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A non-interrupting event sub process inside the scope. It is excluded from the startable set
+     because it has its own activation mechanism; this exercises that mechanism. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="adHocEventSubProcess" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc" name="Ad Hoc Scope">
+      <userTask id="taskA" name="Task A" />
+      <subProcess id="anEventSubProcess" triggeredByEvent="true">
+        <startEvent id="eventStart" isInterrupting="false">
+          <messageEventDefinition messageRef="theMessage" />
+        </startEvent>
+        <sequenceFlow id="ef1" sourceRef="eventStart" targetRef="handled" />
+        <userTask id="handled" name="Handled" />
+        <sequenceFlow id="ef2" sourceRef="handled" targetRef="eventEnd" />
+        <endEvent id="eventEnd" />
+      </subProcess>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+  <message id="theMessage" name="theMessage" />
+</definitions>
