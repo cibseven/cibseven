@@ -196,6 +196,7 @@ public class BpmnParse extends Parse {
 
   /** Extension property holding the expression evaluated once per completed child. CIB7-1892. */
   public static final String AD_HOC_OUTPUT_ELEMENT_PROPERTY = "outputElement";
+
   /**
    * The element names of every BPMN Activity, i.e. the concrete subtypes of {@code tActivity} that
    * can appear as a flow element. Gateways and events are deliberately absent: they are flow nodes
@@ -4039,7 +4040,6 @@ public class BpmnParse extends Parse {
       behavior.setCompletionCondition(parseConditionExpression(completionConditionElement, activity.getId()));
     }
 
-
     parseAdHocEntryActivation(adHocElement, activity, behavior);
     parseAdHocOutputAggregation(adHocElement, activity, behavior);
 
@@ -4120,47 +4120,6 @@ public class BpmnParse extends Parse {
   }
 
   /**
-   * The ids of the children of an ad hoc sub process that may be started directly, in document order.
-   *
-   * <p>A child is directly startable if it is an Activity and has no incoming sequence flow from
-   * within the scope. Both clauses come from BPMN 2.0.0 section 10.3.5 rather than from a list
-   * someone wrote down.
-   *
-   * <p>The first: the section's list of what MUST be used inside an ad hoc sub process has exactly
-   * one entry, Activity. Gateway and Intermediate Event appear on the MAY-be-used list precisely
-   * because they are not Activities, so they are reachable by sequence flow and never by direct
-   * activation. Deriving the rule this way rather than enumerating types means it cannot drift as
-   * activity types are added to the engine, and it keeps a nested ad hoc scope startable, which is
-   * correct because such a scope is itself an Activity.
-   *
-   * <p>The second: a flow target is reached from its predecessor, so it cannot also be a starting
-   * point. That clause is unreachable through a deployment while inner sequence flows are rejected,
-   * which is why this method is separate and static: it is the seam the parser-level test uses to
-   * exercise the clause without a deployable model.
-   *
-   * <p>Static and side-effect free on purpose. {@link #parseAdHocStartableActivities} does the
-   * storing; this decides.
-   */
-
-  /**
-   * Gathering each performance's result (CIB7-1892): {@code camunda:property outputCollection} names
-   * a variable, {@code outputElement} an expression evaluated once per completed child, and the
-   * value is appended to that variable.
-   *
-   * <p>It exists because the alternative loses data silently. An ad hoc child is deliberately not a
-   * variable scope, so its output mapping lands above the scope and the specification's own
-   * "an activity may be performed more than once" then means the second performance overwrites the
-   * first. A scalar variable has one slot; repeated performance needs more than one.
-   *
-   * <p>Both properties or neither. One alone is always a mistake -- a collection with nothing to put
-   * in it, or an expression with nowhere to put it -- and a mistake that would otherwise be silent,
-   * because the aggregation simply would not happen. So it is refused at deployment, as other
-   * half-declared ad hoc configuration is.
-   *
-   * <p>Carried as extension properties rather than new attributes, per CIB7-1890, and read at parse
-   * time so a child of the scope cannot rewrite where its own scope gathers results.
-   */
-  /**
    * Declarative entry activation (CIB7-1891): {@code camunda:property activeElementsCollection} names the
    * activities to start when the scope is entered.
    *
@@ -4205,6 +4164,24 @@ public class BpmnParse extends Parse {
     behavior.setEntryActivityIds(expressionManager.createExpression(raw));
   }
 
+  /**
+   * Gathering each performance's result (CIB7-1892): {@code camunda:property outputCollection} names
+   * a variable, {@code outputElement} an expression evaluated once per completed child, and the
+   * value is appended to that variable.
+   *
+   * <p>It exists because the alternative loses data silently. An ad hoc child is deliberately not a
+   * variable scope, so its output mapping lands above the scope and the specification's own
+   * "an activity may be performed more than once" then means the second performance overwrites the
+   * first. A scalar variable has one slot; repeated performance needs more than one.
+   *
+   * <p>Both properties or neither. One alone is always a mistake -- a collection with nothing to put
+   * in it, or an expression with nowhere to put it -- and a mistake that would otherwise be silent,
+   * because the aggregation simply would not happen. So it is refused at deployment, as other
+   * half-declared ad hoc configuration is.
+   *
+   * <p>Carried as extension properties rather than new attributes, per CIB7-1890, and read at parse
+   * time so a child of the scope cannot rewrite where its own scope gathers results.
+   */
   protected void parseAdHocOutputAggregation(Element adHocElement, ActivityImpl activity,
       AdHocSubProcessActivityBehavior behavior) {
 
@@ -4241,6 +4218,29 @@ public class BpmnParse extends Parse {
     String trimmed = value.trim();
     return trimmed.isEmpty() ? null : trimmed;
   }
+
+  /**
+   * The ids of the children of an ad hoc sub process that may be started directly, in document order.
+   *
+   * <p>A child is directly startable if it is an Activity and has no incoming sequence flow from
+   * within the scope. Both clauses come from BPMN 2.0.0 section 10.3.5 rather than from a list
+   * someone wrote down.
+   *
+   * <p>The first: the section's list of what MUST be used inside an ad hoc sub process has exactly
+   * one entry, Activity. Gateway and Intermediate Event appear on the MAY-be-used list precisely
+   * because they are not Activities, so they are reachable by sequence flow and never by direct
+   * activation. Deriving the rule this way rather than enumerating types means it cannot drift as
+   * activity types are added to the engine, and it keeps a nested ad hoc scope startable, which is
+   * correct because such a scope is itself an Activity.
+   *
+   * <p>The second: a flow target is reached from its predecessor, so it cannot also be a starting
+   * point. That clause is unreachable through a deployment while inner sequence flows are rejected,
+   * which is why this method is separate and static: it is the seam the parser-level test uses to
+   * exercise the clause without a deployable model.
+   *
+   * <p>Static and side-effect free on purpose. {@link #parseAdHocStartableActivities} does the
+   * storing; this decides.
+   */
   protected static List<String> startableActivityIds(Element adHocElement) {
     Set<String> flowTargets = new HashSet<>();
     for (Element flow : adHocElement.elements("sequenceFlow")) {

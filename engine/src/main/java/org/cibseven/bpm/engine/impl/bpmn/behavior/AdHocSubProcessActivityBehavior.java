@@ -34,7 +34,6 @@ import org.cibseven.bpm.engine.impl.pvm.runtime.operation.PvmAtomicOperation;
 import org.cibseven.bpm.engine.impl.Condition;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.delegate.Expression;
-import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.cibseven.bpm.engine.impl.bpmn.helper.CompensationUtil;
@@ -90,12 +89,12 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   protected Expression entryActivityIds;
   protected boolean cancelRemainingInstances = true;
 
-
   /** CIB7-1892. The variable each performance's result is appended to, or null when not gathering. */
   protected String outputCollectionName;
 
   /** CIB7-1892. Evaluated once per completed child; its value is what gets appended. */
   protected Expression outputElement;
+
   @Override
   public void execute(ActivityExecution execution) throws Exception {
     // Entering an ad-hoc scope starts nothing, and deliberately records nothing: writing a zero
@@ -113,7 +112,6 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
 
     startEntryActivities(execution);
   }
-
 
   /**
    * Starts the activities named by {@code camunda:property activeElementsCollection}, the declarative entry
@@ -283,6 +281,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   public void setEntryActivityIds(Expression entryActivityIds) {
     this.entryActivityIds = entryActivityIds;
   }
+
   @Override
   public List<ActivityExecution> initializeScope(ActivityExecution scopeExecution, int numberOfInstances) {
     // Called on the instantiation-stack path (process instance modification), never on normal entry.
@@ -343,11 +342,6 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   }
 
   /**
-   * Reached when the ending child is not a plain concurrent execution, which in practice means a
-   * child that is itself a scope, such as an embedded sub-process. A non-scope child routes to
-   * {@link #concurrentChildExecutionEnded} instead.
-   */
-  /**
    * CIB7-1967. Hands the children's compensation subscriptions to the parent scope on the way out.
    *
    * <p>The parser marks an ad hoc scope as consuming compensation, and a child may carry a
@@ -363,6 +357,11 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     super.doLeave(execution);
   }
 
+  /**
+   * Reached when the ending child is not a plain concurrent execution, which in practice means a
+   * child that is itself a scope, such as an embedded sub-process. A non-scope child routes to
+   * {@link #concurrentChildExecutionEnded} instead.
+   */
   @Override
   public void complete(ActivityExecution scopeExecution) {
     // No gatherResult here, and no completion condition either. Both omissions have one cause,
@@ -391,12 +390,6 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
       leave(scopeExecution);
     }
   }
-
-  /**
-   * With a completion condition: the condition decides.
-   * Without one: complete when nothing is active AND at least one child was activated
-   * (PRD FR-16a — the second clause stops an empty scope completing on entry).
-   */
 
   /**
    * Appends this performance's result to the gathering variable, if the scope gathers (CIB7-1892).
@@ -456,6 +449,12 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     // with the scope, and results are wanted after it has left.
     scopeExecution.setVariable(outputCollectionName, gathered);
   }
+
+  /**
+   * With a completion condition: the condition decides.
+   * Without one: complete when nothing is active AND at least one child was activated
+   * (PRD FR-16a — the second clause stops an empty scope completing on entry).
+   */
   protected boolean isCompleted(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
     if (completionCondition != null) {
       // Latched, and it has to be: "once the condition holds" must survive the condition going
@@ -627,7 +626,6 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     leave(scopeExecution);
   }
 
-
   /**
    * A child has completed an activity and is taking a sequence flow to the next one (CIB7-1882).
    *
@@ -770,7 +768,6 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     this.completionCondition = completionCondition;
   }
 
-
   public void setOutputCollectionName(String outputCollectionName) {
     this.outputCollectionName = outputCollectionName;
   }
@@ -778,6 +775,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   public void setOutputElement(Expression outputElement) {
     this.outputElement = outputElement;
   }
+
   public void setCancelRemainingInstances(boolean cancelRemainingInstances) {
     this.cancelRemainingInstances = cancelRemainingInstances;
   }
