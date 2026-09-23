@@ -30,6 +30,7 @@ import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityBehavior;
 import org.cibseven.bpm.engine.impl.pvm.delegate.CompositeActivityBehavior;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ModificationObserverBehavior;
 import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
+import org.cibseven.bpm.engine.impl.pvm.runtime.operation.PvmAtomicOperation;
 import org.cibseven.bpm.engine.impl.Condition;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.delegate.Expression;
@@ -159,20 +160,68 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
 
     // Two passes, for the same reason ActivateAdHocSubProcessActivitiesCmd splits its loop: starting a child can
     // run it to completion, and a child completing while nothing else is active completes the whole
-    // scope, so the next create would operate on an execution that has already ended.
+    // scope, so the next create would operate on an execution that has already ended. Creating every
+    // child first is also what keeps the scope open for the batch when it has no completion condition.
     List<PvmExecutionImpl> children = new ArrayList<PvmExecutionImpl>();
     for (int i = 0; i < requested.size(); i++) {
       children.add((PvmExecutionImpl) createInnerInstance(scopeExecution));
     }
-    for (int i = 0; i < requested.size(); i++) {
-      PvmExecutionImpl childExecution = children.get(i);
-      // A child started earlier in this loop can satisfy the completion condition, and completeScope
-      // then deletes the ones not yet started. Starting a deleted execution fails on flush.
+
+    // The second pass cannot start the children here, and that is the difference from the command.
+    // This runs inside the scope's own execute, i.e. inside an atomic operation, where executeActivities
+    // does not run anything: it only pushes an operation, and the operations run afterwards off a stack,
+    // last pushed first. Starting them in a loop therefore reversed the order, and asked "was this child
+    // removed?" before any child had run -- so a child that should have been skipped because an earlier
+    // one completed the scope was started anyway and then cancelled.
+    //
+    // So each start is pushed as an operation of its own, in reverse, and it decides when its turn
+    // comes. The stack unwinds them in the requested order, and each one runs only after the previous
+    // child has gone as far as it can -- which is exactly when the question has an answer.
+    for (int i = requested.size() - 1; i >= 0; i--) {
+      children.get(i).performOperation(new StartEntryChild(findEntryChild(scope, requested.get(i))));
+    }
+  }
+
+  /**
+   * Starts one entry activity when its turn comes on the operation stack, and only if its execution is
+   * still there. Pushed rather than run, so that it sees what the children before it have done.
+   *
+   * <p>Deliberately never asynchronous: it creates no job and is never serialised. It is async
+   * <em>capable</em> only so that, pushed from inside a running operation, it waits its turn rather
+   * than running on the spot, which is the whole point.
+   */
+  protected static class StartEntryChild implements PvmAtomicOperation {
+
+    protected final PvmActivity activity;
+
+    protected StartEntryChild(PvmActivity activity) {
+      this.activity = activity;
+    }
+
+    @Override
+    public void execute(PvmExecutionImpl childExecution) {
+      // An earlier child can have satisfied the completion condition, and completeScope then deletes
+      // the children not yet started. Starting a deleted execution fails on flush.
       if (childExecution.isEnded() || childExecution.isRemoved()) {
-        continue;
+        return;
       }
-      childExecution.executeActivities(Collections.<PvmActivity>emptyList(),
-          findEntryChild(scope, requested.get(i)), null, null, null, false, false);
+      childExecution.executeActivities(Collections.<PvmActivity>emptyList(), activity, null, null, null,
+          false, false);
+    }
+
+    @Override
+    public boolean isAsync(PvmExecutionImpl execution) {
+      return false;
+    }
+
+    @Override
+    public boolean isAsyncCapable() {
+      return true;
+    }
+
+    @Override
+    public String getCanonicalName() {
+      return "ad-hoc-start-entry-child";
     }
   }
 

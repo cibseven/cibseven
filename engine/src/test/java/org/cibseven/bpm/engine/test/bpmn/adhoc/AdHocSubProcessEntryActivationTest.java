@@ -24,10 +24,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.cibseven.bpm.engine.ParseException;
+import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
+import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.junit.jupiter.api.Test;
 
@@ -160,6 +162,7 @@ public class AdHocSubProcessEntryActivationTest extends PluggableProcessEngineTe
    * in the activation API and is fixed there too, in the same commit.
    */
   @Deployment
+  @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
   @Test
   public void entryActivationStopsWhenAnEarlierChildEndsTheScope() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocBatchCond");
@@ -168,6 +171,30 @@ public class AdHocSubProcessEntryActivationTest extends PluggableProcessEngineTe
     // task it had already cancelled.
     testRule.assertProcessEnded(pi.getId());
     assertThat(task("taskA")).isNull();
+
+    // The runtime alone cannot tell "never started" from "started and then cancelled": a cancelled task
+    // is not there either. History can, and it has to say never -- that is the difference from the
+    // activation API, which this path must match, and which it did not while entry activation started
+    // its children in reverse and checked for removal before any of them had run.
+    assertThat(historyService.createHistoricActivityInstanceQuery()
+        .processInstanceId(pi.getId()).activityId("taskA").count())
+        .as("taskA must never have been started, not started and then cancelled")
+        .isZero();
+  }
+
+  /**
+   * Entry activation starts the named activities in the order they are named, as the activation API
+   * does. It used to reverse them: this runs inside the scope's own execute, where each start is only
+   * pushed onto the operation stack, and the stack runs last pushed first.
+   */
+  @Deployment
+  @Test
+  public void entryActivationStartsInTheOrderNamed() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocEntryOrder");
+
+    assertThat(runtimeService.getVariable(pi.getId(), "order"))
+        .as("entry activation must start the activities in the order it names them")
+        .isEqualTo("first,second,third,");
   }
 
   /**
