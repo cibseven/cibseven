@@ -486,8 +486,14 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   }
 
   protected boolean hasActiveChildren(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
-    for (ActivityExecution child : scopeExecution.getExecutions()) {
-      if (child != endedExecution && child.isActive()) {
+    // The same question disposeOfRemainingChildren asks, asked the same way. A child that is itself a
+    // scope -- an embedded sub process, or any task that becomes one through a boundary event or an io
+    // mapping -- leaves its concurrent execution inactive with a null activity while its work runs one
+    // level below. isActive() alone reads that as idle, so the scope completed and cancelled work that
+    // was still running. The event-scope marker is inactive with a null activity too, which is why the
+    // walk is over the non-event-scope children: counting the marker would park every scope forever.
+    for (ActivityExecution child : ((PvmExecutionImpl) scopeExecution).getNonEventScopeExecutions()) {
+      if (child != endedExecution && (child.isActive() || child.getActivity() == null)) {
         return true;
       }
     }

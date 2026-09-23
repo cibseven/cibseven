@@ -472,6 +472,54 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
     testRule.assertProcessEnded(pi.getId());
   }
 
+  // ---------------------------------------------------------------- a scope child beside a sibling
+  //
+  // Without a completion condition the scope leaves once something was activated and nothing is
+  // active. A child that is itself a scope runs one level below an inactive concurrent execution, so
+  // "nothing is active" has to count that execution as running. The three shapes below are the ways
+  // a child becomes a scope; the second and third are ordinary tasks, which is what made this common.
+
+  @org.cibseven.bpm.engine.test.Deployment
+  @Test
+  public void testScopeChildWithSiblingKeepsTheScopeOpen() {
+    assertSiblingDoesNotEndTheScope("adHocScopeChildWithSibling", "inner", "innerTask");
+  }
+
+  @org.cibseven.bpm.engine.test.Deployment
+  @Test
+  public void testChildWithBoundaryEventKeepsTheScopeOpen() {
+    assertSiblingDoesNotEndTheScope("adHocChildWithBoundary", "guarded", "guarded");
+  }
+
+  @org.cibseven.bpm.engine.test.Deployment
+  @Test
+  public void testChildWithIoMappingKeepsTheScopeOpen() {
+    assertSiblingDoesNotEndTheScope("adHocChildWithIoMapping", "mapped", "mapped");
+  }
+
+  /**
+   * Activates a scope child and a plain sibling, completes the sibling, and asserts the scope is still
+   * open with the child's work running -- then that completing the child is what finally lets it go.
+   */
+  protected void assertSiblingDoesNotEndTheScope(String processKey, String child, String childTask) {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey(processKey);
+    activate(pi.getId(), child, "quick");
+
+    taskService.complete(task("quick").getId());
+
+    assertThat(task(childTask))
+        .as("completing the sibling must not cancel the scope child's running work")
+        .isNotNull();
+    assertThat(task("after"))
+        .as("and the scope must not have been left while that work runs")
+        .isNull();
+
+    taskService.complete(task(childTask).getId());
+    assertThat(task("after"))
+        .as("once the child's work is done, nothing is active and the scope leaves")
+        .isNotNull();
+  }
+
   // ---------------------------------------------------------------- FR-13, history
 
   // Asserts on historic activity and process instances, so it needs activity-level history.
