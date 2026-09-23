@@ -23,7 +23,7 @@ import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
-
+import org.cibseven.bpm.application.impl.JakartaEjbProcessApplication;
 import org.cibseven.bpm.application.PostDeploy;
 import org.cibseven.bpm.application.PreUndeploy;
 import org.cibseven.bpm.application.ProcessApplication;
@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Assertions;
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
 @ProcessApplication
 @Local(ProcessApplicationInterface.class)
-public class CustomEjbProcessApplication extends org.cibseven.bpm.application.impl.JakartaEjbProcessApplication {
+public class CustomEjbProcessApplication extends JakartaEjbProcessApplication {
 
   @PostDeploy
   public void postDeploy(ProcessEngine processEngine) {

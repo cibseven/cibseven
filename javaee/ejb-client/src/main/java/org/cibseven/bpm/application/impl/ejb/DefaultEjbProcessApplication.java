@@ -25,6 +25,7 @@ import jakarta.ejb.*;
 
 import org.cibseven.bpm.application.ProcessApplication;
 import org.cibseven.bpm.application.ProcessApplicationInterface;
+import org.cibseven.bpm.application.impl.JakartaEjbProcessApplication;
 
 
 /**
@@ -39,7 +40,7 @@ import org.cibseven.bpm.application.ProcessApplicationInterface;
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
 @ProcessApplication
 @Local(ProcessApplicationInterface.class)
-public class DefaultEjbProcessApplication extends org.cibseven.bpm.application.impl.JakartaEjbProcessApplication {
+public class DefaultEjbProcessApplication extends JakartaEjbProcessApplication {
   
   protected Map<String, String> properties = new HashMap<String, String>();
   
