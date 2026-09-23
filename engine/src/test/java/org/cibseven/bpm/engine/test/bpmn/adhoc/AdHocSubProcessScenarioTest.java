@@ -215,7 +215,6 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
         .isEqualTo(1);
   }
 
-
   // ---------------------------------------------------------------- FR-15
 
   @org.cibseven.bpm.engine.test.Deployment
@@ -392,10 +391,6 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
     ActivityInstance scope = tree.getChildActivityInstances()[0];
     int phantomChildren = scope.getChildActivityInstances().length;
 
-    System.out.println("[LEAK] executions: onEntry=" + onEntry + " after 1 turn=" + afterFirstTurn
-        + " after 5 turns=" + afterFiveTurns
-        + ", phantom children in activity instance tree=" + phantomChildren);
-
     // Both facts are asserted, so neither hides the other.
     assertThat(phantomChildren)
         .as("the activity instance tree must show no children once every turn has ended")
@@ -418,7 +413,6 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
   }
 
   // ---------------------------------------------------------------- FR-17
-
 
   // ---------------------------------------------------------------- async continuation
 
@@ -770,10 +764,6 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
     activate(pi.getId(), "sync");
 
     ActivityInstance scope = runtimeService.getActivityInstance(pi.getId()).getChildActivityInstances()[0];
-    System.out.println("[TREE] scope instance id=" + scope.getId()
-        + " activityId=" + scope.getActivityId()
-        + " activityType=" + scope.getActivityType()
-        + " activityName=" + scope.getActivityName());
 
     assertThat(scope.getActivityId())
         .as("the ad hoc scope's activity instance must report the scope, not the last child that ran")
@@ -782,12 +772,6 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
   }
 
   // ------------------------------------------------- constructs the parser does not reject
-
-
-
-
-
-
 
   /** Ad hoc inside ad hoc: no design decision covers it. */
   @org.cibseven.bpm.engine.test.Deployment
@@ -801,8 +785,6 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
         .isNotNull();
 
     taskService.complete(task("innerTask").getId());
-    System.out.println("[NESTED] instances=" + activeInstances(pi.getId())
-        + " tasks=" + taskService.createTaskQuery().count());
     testRule.assertProcessEnded(pi.getId());
   }
 
@@ -819,7 +801,6 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
 
     runtimeService.createMessageCorrelation("theMessage")
         .processInstanceId(pi.getId()).correlate();
-    System.out.println("[CATCH-CHILD] instances=" + activeInstances(pi.getId()));
     testRule.assertProcessEnded(pi.getId());
   }
 
@@ -871,10 +852,6 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
     assertThat(repositoryService.createProcessDefinitionQuery()
         .processDefinitionKey("okOrdering").count()).isEqualTo(1);
   }
-
-
-
-
 
   @Test
   public void testInnerStartEventIsRejected() {
@@ -1032,7 +1009,6 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
     testRule.assertProcessEnded(pi.getId());
   }
 
-
   /**
    * An error raised by an ad hoc child must reach a boundary error event on the scope, and taking
    * that boundary event must cancel the scope, including a child that is still active. Only an
@@ -1049,9 +1025,6 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
 
     // Synchronous: it runs and throws BpmnError("23") during activation.
     activate(pi.getId(), "boom");
-
-    System.out.println("[BOUNDARY-ERROR] tasks=" + taskService.createTaskQuery().count()
-        + " handled=" + (task("handled") != null));
 
     assertThat(task("handled"))
         .as("an error from an ad hoc child must be caught by a boundary event on the scope")
@@ -1102,11 +1075,8 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
     Job timer = managementService.createJobQuery().processInstanceId(pi.getId()).singleResult();
     assertThat(timer).as("a boundary timer on an ad hoc child must create a job").isNotNull();
 
-    // The boundary event has no outgoing flow inside the scope, and inner flows are rejected,
-    // so firing it can only end the child.
+    // The boundary event has no outgoing flow, so firing it can only end the child.
     managementService.executeJob(timer.getId());
-    System.out.println("[CHILD-BOUNDARY] tasks=" + taskService.createTaskQuery().count()
-        + " instances=" + activeInstances(pi.getId()));
     assertThat(activeInstances(pi.getId()))
         .as("firing a child boundary event must not strand the instance")
         .isZero();
@@ -1248,6 +1218,5 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
 
     testRule.assertProcessEnded(pi.getId());
   }
-
 
 }

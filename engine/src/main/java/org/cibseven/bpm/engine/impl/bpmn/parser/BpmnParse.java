@@ -221,15 +221,6 @@ public class BpmnParse extends Parse {
       ActivityTypes.CALL_ACTIVITY,
       ActivityTypes.TRANSACTION)));
 
-  /** The element names of every BPMN Gateway. */
-  protected static final String[] GATEWAY_ELEMENT_NAMES = {
-      ActivityTypes.GATEWAY_EXCLUSIVE,
-      ActivityTypes.GATEWAY_INCLUSIVE,
-      ActivityTypes.GATEWAY_PARALLEL,
-      ActivityTypes.GATEWAY_COMPLEX,
-      ActivityTypes.GATEWAY_EVENT_BASED
-  };
-
   public static final String PROPERTYNAME_DOCUMENTATION = "documentation";
   public static final String PROPERTYNAME_INITIATOR_VARIABLE_NAME = "initiatorVariableName";
   public static final String PROPERTYNAME_HAS_CONDITIONAL_EVENTS = "hasConditionalEvents";
@@ -4091,27 +4082,12 @@ public class BpmnParse extends Parse {
   }
 
   /**
-   * Records which children of an ad hoc sub process may be started directly.
+   * Records which children of an ad hoc sub process may be started directly, as decided by
+   * {@link #startableActivityIds}.
    *
-   * <p>A child is directly startable if it is an Activity and has no incoming sequence flow from
-   * within the scope. Both clauses come from BPMN 2.0.0 section 10.3.5 rather than from a list
-   * someone wrote down.
-   *
-   * <p>The first: the section's list of what MUST be used inside an ad hoc sub process has exactly
-   * one entry, Activity. Gateway and Intermediate Event appear on the MAY-be-used list precisely
-   * because they are not Activities, so they are reachable by sequence flow and never by direct
-   * activation. Deriving the rule this way rather than enumerating types means it cannot drift as
-   * activity types are added to the engine, and it keeps a nested ad hoc scope startable, which is
-   * correct because such a scope is itself an Activity.
-   *
-   * <p>The second: a flow target is reached from its predecessor, so it cannot also be a starting
-   * point. This clause is a no-op while sequence flows between children are rejected at parse time,
-   * and becomes load-bearing if that changes, so it costs nothing now and is right later.
-   *
-   * <p>Computed here and stored on the activity so that a command validating an activation request
-   * has something to check against. Nothing enforces it yet: whether existing process instance
-   * modification should honour it too, or only a future activation command, is still open, and
-   * computing the set changes no behaviour either way.
+   * <p>Stored on the activity so that what starts a child has something to check against: the
+   * activation API and the entry list both refuse an id outside the set. Process instance
+   * modification does not consult it.
    */
   protected void parseAdHocStartableActivities(Element adHocElement, ActivityImpl activity) {
     for (String activityId : startableActivityIds(adHocElement)) {
@@ -4234,12 +4210,12 @@ public class BpmnParse extends Parse {
    * correct because such a scope is itself an Activity.
    *
    * <p>The second: a flow target is reached from its predecessor, so it cannot also be a starting
-   * point. That clause is unreachable through a deployment while inner sequence flows are rejected,
-   * which is why this method is separate and static: it is the seam the parser-level test uses to
-   * exercise the clause without a deployable model.
+   * point. Since CIB7-1882 allows sequence flows between children, this is what keeps the target of
+   * one from being started on its own.
    *
-   * <p>Static and side-effect free on purpose. {@link #parseAdHocStartableActivities} does the
-   * storing; this decides.
+   * <p>Static and side-effect free on purpose, so the parser-level test can exercise both clauses on
+   * an element without a deployment. {@link #parseAdHocStartableActivities} does the storing; this
+   * decides.
    */
   protected static List<String> startableActivityIds(Element adHocElement) {
     Set<String> flowTargets = new HashSet<>();

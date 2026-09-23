@@ -38,6 +38,7 @@ import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.cibseven.bpm.engine.impl.bpmn.helper.CompensationUtil;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
+import org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParse;
 import java.util.Collection;
 import java.util.Collections;
 import org.cibseven.bpm.engine.impl.pvm.runtime.Callback;
@@ -45,25 +46,27 @@ import org.cibseven.bpm.engine.impl.pvm.runtime.Callback;
 /**
  * Runtime behavior of a BPMN adHocSubProcess.
  *
- * <p>The scope is entered without children: nothing inside it is reached by an incoming flow, and
- * every child is created by the activation API or by the entry list from CIB7-1891.
+ * <p>No child is reached from the scope's own start. A child is started directly, by the activation
+ * API or by the entry list from CIB7-1891, and may reach others from there along the sequence flows
+ * between children that CIB7-1882 allows.
  *
  * <p>Notes on the parts that are not obvious from the code:
  *
  * <ul>
- * <li><b>Entry creates no children.</b> {@link #execute(ActivityExecution)} leaves the scope waiting.
- *     This is where "the scope starts empty" belongs.</li>
+ * <li><b>Entry starts only the entry list.</b> {@link #execute(ActivityExecution)} starts what
+ *     {@code activeElementsCollection} names, if anything, and otherwise leaves the scope waiting.</li>
  * <li><b>{@link #initializeScope} must honour {@code numberOfInstances}.</b> Its caller,
  *     {@code PvmAtomicOperationActivityInitStackNotifyListenerStart}, passes 1 and immediately does
  *     {@code get(0)}. That path is process-instance modification instantiating a dormant scope, not
  *     normal entry, so returning an empty list there would throw.</li>
- * <li><b>Both completion callbacks are reachable</b>, but not for the reason first recorded here.
- *     {@code tryPruneLastConcurrentChild} is not involved: it runs only where the flow scope is the
- *     process definition, and an ad hoc child's flow scope is the ad hoc scope. What decides is
- *     {@code PvmAtomicOperationActivityEnd}, which routes a plain concurrent child to
- *     {@link #concurrentChildExecutionEnded} whatever the child count, and a child that is itself a
- *     scope to {@link #complete}. Unlike parallel multi-instance, {@code complete} here is NOT
- *     "can't happen".</li>
+ * <li><b>Both completion callbacks are reachable.</b> {@code tryPruneLastConcurrentChild} is not
+ *     involved: it runs only where the flow scope is the process definition, and an ad hoc child's
+ *     flow scope is the ad hoc scope. What decides is {@code PvmAtomicOperationActivityEnd}. Every
+ *     child runs on a concurrent execution, and one that is itself a scope hands its end to that
+ *     concurrent execution as its own is removed, so every child ends through
+ *     {@link #concurrentChildExecutionEnded}. {@link #complete} is reached by work running on the
+ *     scope execution itself, which is an interrupting event sub process. Unlike parallel
+ *     multi-instance, {@code complete} here is NOT "can't happen".</li>
  * </ul>
  */
 public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavior
@@ -238,7 +241,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
         return child;
       }
     }
-    String bodyId = activityId + "#multiInstanceBody";
+    String bodyId = activityId + BpmnParse.MULTI_INSTANCE_BODY_ID_SUFFIX;
     for (ActivityImpl child : scope.getActivities()) {
       if (bodyId.equals(child.getId())) {
         return child;
@@ -358,9 +361,9 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   }
 
   /**
-   * Reached when the ending child is not a plain concurrent execution, which in practice means a
-   * child that is itself a scope, such as an embedded sub-process. A non-scope child routes to
-   * {@link #concurrentChildExecutionEnded} instead.
+   * Reached when work running on the scope execution itself ends, which in practice means an
+   * interrupting event sub process that has already cancelled the children. A child, whether or not
+   * it is a scope, ends through {@link #concurrentChildExecutionEnded} instead.
    */
   @Override
   public void complete(ActivityExecution scopeExecution) {
@@ -640,8 +643,8 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    * {@code false} the scope waits for its survivors, and the target is performed, which is the
    * guarantee BPMN 2.0.0 section 10.3.5 p.182 attaches to an inner flow.
    *
-   * <p>Without a completion condition there is nothing to consult: the no-condition rule ends the
-   * scope when nothing is active, and a child in mid-transition is active.
+   * <p>Without a completion condition there is nothing to consult: the no-condition rule is asked
+   * when a child ends, and taking a flow is not an end.
    */
   public void childTransitioned(ActivityExecution scopeExecution, ActivityExecution transitioning) {
     if (completionCondition == null || !isCompleted(scopeExecution, transitioning)) {

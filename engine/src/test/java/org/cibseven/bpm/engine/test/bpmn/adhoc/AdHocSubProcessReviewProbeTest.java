@@ -37,7 +37,6 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.AdHocSubProcess;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -103,16 +102,9 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("probeD1");
 
     activate(pi.getId(), "taskA");
-    ActivityInstance before = runtimeService.getActivityInstance(pi.getId()).getChildActivityInstances()[0];
-    System.out.println("[S4] after activating taskA  : activityId=" + before.getActivityId()
-        + " type=" + before.getActivityType());
 
     activate(pi.getId(), "sync");
     ActivityInstance after = runtimeService.getActivityInstance(pi.getId()).getChildActivityInstances()[0];
-    System.out.println("[S4] after sync ran and ended: activityId=" + after.getActivityId()
-        + " type=" + after.getActivityType());
-    System.out.println("[S4] executions now          : "
-        + runtimeService.createExecutionQuery().processInstanceId(pi.getId()).count());
 
     assertThat(after.getActivityId())
         .as("the ad hoc scope must keep describing itself after a child ends")
@@ -126,7 +118,6 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
   @Test
   public void probeConditionNotEvaluatedOnEntry() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("probeAlwaysTrue");
-    System.out.println("[S5] condition ${true}, running instances after entry = " + running(pi.getId()));
     // DECIDED (CIB7-1851): no evaluation on entry. Evaluating on entry moves an
     // unresolvable-condition failure all the way to process start -- measured on another
     // implementation that does evaluate there. The scope waits instead; a performer ends it with
@@ -146,10 +137,6 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
 
     // Satisfy the condition from outside the scope, with a child still active.
     runtimeService.setVariable(pi.getId(), "enough", true);
-
-    System.out.println("[S5] condition satisfied externally; tasks still active = "
-        + taskService.createTaskQuery().processInstanceId(pi.getId()).count()
-        + ", running = " + running(pi.getId()));
 
     // DECIDED (CIB7-1851): the condition is polled when a child ends, never watched. Registering a
     // variable listener on every ad hoc scope was judged not worth its cost now that the case is
@@ -172,15 +159,7 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
     activate(pi.getId(), "survivor", "trigger");
     assertThat(taskService.createTaskQuery().processInstanceId(pi.getId()).count()).isEqualTo(2);
 
-    try {
-      taskService.complete(task("trigger").getId(), vars("enough", true));
-      System.out.println("[S6] io-mapped cancellation OK; running = " + running(pi.getId())
-          + ", tasks = " + taskService.createTaskQuery().processInstanceId(pi.getId()).count());
-    } catch (ProcessEngineException e) {
-      System.out.println("[S6] io-mapped cancellation FAILED: " + e.getClass().getSimpleName()
-          + ": " + e.getMessage());
-      throw e;
-    }
+    taskService.complete(task("trigger").getId(), vars("enough", true));
 
     assertThat(running(pi.getId()))
         .as("the scope must leave after cancelling io-mapped survivors")
@@ -201,10 +180,7 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
       activated = task("extra") != null;
     } catch (ProcessEngineException e) {
       activated = false;
-      System.out.println("[S6] further activation refused: " + e.getMessage());
     }
-    System.out.println("[S6] cancelRemainingInstances=false, condition true -> further activation "
-        + (activated ? "ALLOWED" : "refused"));
 
     // FR-15 holds even here, where no child has ended and nothing recorded the condition: activation
     // evaluates it on the spot, purely to refuse. That is not a completion point -- the scope is not
@@ -226,10 +202,6 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
     activate(pi.getId(), "taskA");
     taskService.complete(task("taskA").getId());
 
-    System.out.println("[S24] running=" + running(pi.getId())
-        + " approved visible on the instance=" + runtimeService.createVariableInstanceQuery()
-            .processInstanceIdIn(pi.getId()).variableName("approved").count());
-
     assertThat(running(pi.getId()))
         .as("a completion condition reading a child's output parameter must be able to fire")
         .isZero();
@@ -241,7 +213,6 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
   @Test
   public void probeGatewayInsideScopeDeploys() {
     deploySpec("gatewayInside.bpmn20.xml");
-    System.out.println("[S7] gateway inside scope: DEPLOYED");
     assertThat(repositoryService.createProcessDefinitionQuery()
         .processDefinitionKey("specGateway").count()).isEqualTo(1);
   }
@@ -250,7 +221,6 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
   @Test
   public void probeIntermediateEventInsideScopeDeploys() {
     deploySpec("intermediateEventInside.bpmn20.xml");
-    System.out.println("[S7] intermediate catch event inside scope: DEPLOYED");
     assertThat(repositoryService.createProcessDefinitionQuery()
         .processDefinitionKey("specIntermediate").count()).isEqualTo(1);
   }
@@ -259,7 +229,6 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
   @Test
   public void probeDataObjectInsideScopeDeploys() {
     deploySpec("dataObjectInside.bpmn20.xml");
-    System.out.println("[S7] data object inside scope: DEPLOYED");
     assertThat(repositoryService.createProcessDefinitionQuery()
         .processDefinitionKey("specDataObject").count()).isEqualTo(1);
   }
@@ -271,7 +240,6 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
       deploySpec("childlessScope.bpmn20.xml");
       fail("spec p.181 — Activity MUST be used in an ad hoc sub-process, so this must be rejected");
     } catch (ProcessEngineException e) {
-      System.out.println("[S7] childless scope rejected: " + e.getMessage());
       // Asserting the diagnostic, not merely that something was thrown. Accepting any
       // ProcessEngineException would let this probe pass on an unrelated parse error and report
       // the childless rule as covered when it is not.
@@ -295,8 +263,6 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
     AdHocSubProcess adHoc = (AdHocSubProcess) Bpmn
         .readModelFromStream(new ByteArrayInputStream(xml.getBytes("UTF-8")))
         .getModelElementById("adHoc");
-
-    System.out.println("[S8] ordering absent -> getOrdering() = " + adHoc.getOrdering());
 
     assertThat(adHoc.getOrdering())
         .as("spec Table 10.33: ordering has default=\"Parallel\"")
@@ -326,7 +292,6 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
         .readModelFromStream(new ByteArrayInputStream(out.toByteArray()))
         .getModelElementById("adHoc");
 
-    System.out.println("[S8] ordering='Sequential' survived a write and re-read -> " + reread.getOrdering());
     assertThat(reread.getOrdering())
         .as("an explicit Sequential must survive being written out and read back")
         .isEqualTo(AdHocOrdering.Sequential);
