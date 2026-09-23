@@ -906,6 +906,34 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
     }
   }
 
+  /**
+   * The generic exclusive-gateway check runs inside an ad hoc scope as it does everywhere else. It used
+   * to be switched off there, correctly, while gateways inside a scope were refused by name -- its
+   * message would only have sent a modeller to add a flow that was refused too. Once CIB7-1882 made
+   * gateways and inner flows legal, the switch was protecting nothing and hiding everything: a gateway
+   * with nowhere to go deployed inside a scope and failed only when a token reached it.
+   */
+  @Test
+  public void testGatewayWithoutOutgoingFlowIsRejected() {
+    try {
+      deploy("gatewayWithoutOutgoingFlow.bpmn20.xml");
+      fail("an exclusive gateway with no outgoing flow must be rejected inside a scope, as outside one");
+    } catch (ParseException e) {
+      testRule.assertTextPresent("Exclusive Gateway 'gw' has no outgoing sequence flows", e.getMessage());
+    }
+  }
+
+  /** The rest of the same check comes back with it, not only the dead-end case. */
+  @Test
+  public void testGatewayWithSingleConditionalFlowIsRejected() {
+    try {
+      deploy("gatewaySingleConditionalFlow.bpmn20.xml");
+      fail("a single outgoing flow carrying a condition must be rejected inside a scope, as outside one");
+    } catch (ParseException e) {
+      testRule.assertTextPresent("has only one outgoing sequence flow", e.getMessage());
+    }
+  }
+
   @Test
   public void testTriggeredByEventIsRejected() {
     try {

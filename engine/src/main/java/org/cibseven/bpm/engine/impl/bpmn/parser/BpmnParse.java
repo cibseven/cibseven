@@ -1488,23 +1488,10 @@ public class BpmnParse extends Parse {
   }
 
   protected void validateActivity(ActivityImpl activity) {
-    if (activity.getActivityBehavior() instanceof ExclusiveGatewayActivityBehavior
-        && !isInsideAdHocSubProcess(activity)) {
-      // A gateway inside an ad hoc scope has already been rejected by name in
-      // parseAdHocSubProcess, and it can never have an outgoing flow there because inner sequence
-      // flows are refused too. Running the generic check as well would append "Exclusive Gateway
-      // 'gw' has no outgoing sequence flows", which is what sent modellers to add a flow that is
-      // then also refused. One accurate message is better than an accurate one plus a misleading one.
+    if (activity.getActivityBehavior() instanceof ExclusiveGatewayActivityBehavior) {
       validateExclusiveGateway(activity);
     }
     validateOutgoingFlows(activity);
-  }
-
-  /** Whether the activity's immediately enclosing flow scope is an ad hoc sub process. */
-  protected boolean isInsideAdHocSubProcess(ActivityImpl activity) {
-    ScopeImpl flowScope = activity.getFlowScope();
-    return flowScope != null
-        && flowScope.getActivityBehavior() instanceof AdHocSubProcessActivityBehavior;
   }
 
   protected void validateOutgoingFlows(ActivityImpl activity) {
