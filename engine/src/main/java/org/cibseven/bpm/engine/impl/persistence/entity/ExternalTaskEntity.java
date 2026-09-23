@@ -27,12 +27,16 @@ import java.util.Map;
 import java.util.Set;
 
 import org.cibseven.bpm.engine.EntityTypes;
+import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.delegate.BpmnError;
 import org.cibseven.bpm.engine.externaltask.ExternalTask;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnExceptionHandler;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
 import org.cibseven.bpm.engine.impl.bpmn.parser.CamundaErrorEventDefinition;
+import org.cibseven.bpm.engine.impl.bpmn.parser.FailedJobRetryConfiguration;
+import org.cibseven.bpm.engine.impl.bpmn.parser.DefaultFailedJobParseListener;
+import org.cibseven.bpm.engine.impl.calendar.DurationHelper;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.db.DbEntity;
 import org.cibseven.bpm.engine.impl.db.EnginePersistenceLogger;
@@ -42,9 +46,11 @@ import org.cibseven.bpm.engine.impl.incident.IncidentContext;
 import org.cibseven.bpm.engine.impl.incident.IncidentHandling;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;
+import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.impl.util.EnsureUtil;
 import org.cibseven.bpm.engine.impl.util.ExceptionUtil;
+import org.cibseven.bpm.engine.impl.util.ParseUtil;
 import org.cibseven.bpm.engine.repository.ResourceTypes;
 import org.cibseven.bpm.engine.runtime.Incident;
 
@@ -416,7 +422,8 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
       return;
     }
 
-    this.lockExpirationTime = new Date(ClockUtil.getCurrentTime().getTime() + retryDuration);
+    Long configured = getConfiguredRetryDelay();
+    this.lockExpirationTime = new Date(ClockUtil.getCurrentTime().getTime() + (configured != null ? configured : retryDuration));
     produceHistoricExternalTaskFailedEvent();
     setRetriesAndManageIncidents(retries);
   }
@@ -471,7 +478,10 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
 
   public void lock(String workerId, long lockDuration) {
     this.workerId = workerId;
-    this.lockExpirationTime = new Date(ClockUtil.getCurrentTime().getTime() + lockDuration);
+    long now = ClockUtil.getCurrentTime().getTime();
+    Long configured = getConfiguredRetryDelay();   // retries already decremented by consumeAttempt()
+    long hold = configured != null ? Math.max(lockDuration, configured) : lockDuration;
+    this.lockExpirationTime = new Date(now + hold);
   }
 
   public ExecutionEntity getExecution() {
@@ -578,6 +588,14 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
     externalTask.setPriority(priority);
     externalTask.setCreateTime(ClockUtil.getCurrentTime());
 
+    ActivityImpl activity = (ActivityImpl) execution.getActivity();
+    FailedJobRetryConfiguration retryConfiguration =
+        activity.getProperties().get(DefaultFailedJobParseListener.FAILED_JOB_CONFIGURATION);
+
+    if (retryConfiguration != null) {
+      externalTask.setRetries(retryConfiguration.getRetries());
+    }
+
     ProcessDefinitionEntity processDefinition = execution.getProcessDefinition();
     externalTask.setProcessDefinitionKey(processDefinition.getKey());
 
@@ -641,4 +659,50 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
     this.lastFailureLogId = lastFailureLogId;
   }
 
+  public void consumeAttempt() {
+    if (retries != null && hasRetryConfiguration()) {
+      setRetriesAndManageIncidents(retries - 1);
+    }
+  }
+
+  protected boolean hasRetryConfiguration() {
+    ExecutionEntity execution = getExecution(false);
+    if (execution == null || execution.getActivity() == null) {
+      return false;
+    }
+    return execution.getActivity().getProperties().get(DefaultFailedJobParseListener.FAILED_JOB_CONFIGURATION) != null;
+  }
+
+  protected FailedJobRetryConfiguration getRetryConfiguration() {
+    ExecutionEntity execution = getExecution();
+    if (execution == null || execution.getActivity() == null) {
+      return null;
+    }
+    ActivityImpl activity = execution.getActivity();
+    FailedJobRetryConfiguration config = activity.getProperties().get(DefaultFailedJobParseListener.FAILED_JOB_CONFIGURATION);
+    // same expression resolution as DefaultJobRetryCmd#getFailedJobRetryConfiguration
+    while (config != null && config.getExpression() != null) {
+      Object value = config.getExpression().getValue(execution);
+      config = ParseUtil.parseRetryIntervals(value == null ? null : value.toString());
+    }
+    return config;
+  }
+
+  /** Wait time in ms before the next attempt, or null if not configured / no retries left. */
+  protected Long getConfiguredRetryDelay() {
+    FailedJobRetryConfiguration config = getRetryConfiguration();
+    if (config == null || retries == null || retries <= 0) {
+      return null;
+    }
+    List<String> intervals = config.getRetryIntervals();
+    int n = intervals.size();
+    // retries is already decremented at fetch: first wait -> intervals[0], second -> intervals[1], ...
+    int index = Math.max(0, Math.min(n - 1, n - retries));
+    try {
+      long now = ClockUtil.getCurrentTime().getTime();
+      return new DurationHelper(intervals.get(index)).getDateAfter().getTime() - now;
+    } catch (Exception e) {
+      throw new ProcessEngineException("Invalid retry interval '" + intervals.get(index) + "'", e);
+    }
+  }
 }

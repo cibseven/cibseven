@@ -17,6 +17,7 @@
 package org.cibseven.bpm.engine.impl.bpmn.parser;
 
 import org.cibseven.bpm.engine.impl.bpmn.behavior.MultiInstanceActivityBehavior;
+import org.cibseven.bpm.engine.impl.bpmn.behavior.ExternalTaskActivityBehavior;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.core.model.PropertyKey;
@@ -155,7 +156,8 @@ public class DefaultFailedJobParseListener extends AbstractBpmnParseListener {
   }
 
   protected boolean isAsync(ActivityImpl activity) {
-    return activity.isAsyncBefore() || activity.isAsyncAfter();
+    return activity.isAsyncBefore() || activity.isAsyncAfter() ||
+        activity.getActivityBehavior() instanceof ExternalTaskActivityBehavior;
   }
 
   protected void parseActivity(Element element, ActivityImpl activity) {
@@ -180,7 +182,6 @@ public class DefaultFailedJobParseListener extends AbstractBpmnParseListener {
 
   protected void setFailedJobRetryTimeCycleValue(Element element, ActivityImpl activity) {
     String failedJobRetryTimeCycleConfiguration = null;
-
     Element extensionElements = element.element(EXTENSION_ELEMENTS);
     if (extensionElements != null) {
       Element failedJobRetryTimeCycleElement = extensionElements.elementNS(FOX_ENGINE_NS, FAILED_JOB_RETRY_TIME_CYCLE);
