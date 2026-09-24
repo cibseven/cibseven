@@ -1120,6 +1120,38 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
   }
 
   /**
+   * The activation counter does not outlive a scope whose child registered compensation.
+   *
+   * <p>Leaving the scope hands its compensation up to an event scope execution, and every event-scope
+   * child of the scope goes along. The counter's marker is one of them, so it stayed -- with its
+   * variable -- until the process ended (review finding 6). It belongs to the running scope only, and
+   * compensation must still reach the completed child without it.
+   */
+  @org.cibseven.bpm.engine.test.Deployment(resources =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessScenarioTest.testCompensationOfAdHocChild.bpmn20.xml")
+  @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
+  @Test
+  public void testCounterDoesNotOutliveTheScopeWithCompensation() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocCompensation");
+
+    activate(pi.getId(), "taskA");
+    taskService.complete(task("taskA").getId());
+    assertThat(task("wait")).as("the scope must have completed and moved on").isNotNull();
+
+    assertThat(runtimeService.createVariableInstanceQuery().processInstanceIdIn(pi.getId())
+        .variableName("nrOfActivatedInstances").count())
+        .as("the counter must leave with the scope it counts")
+        .isZero();
+
+    taskService.complete(task("wait").getId());
+    testRule.assertProcessEnded(pi.getId());
+    assertThat(historyService.createHistoricVariableInstanceQuery()
+        .processInstanceId(pi.getId()).variableName("compensated").singleResult().getValue())
+        .as("compensation must still reach the completed child")
+        .isEqualTo(true);
+  }
+
+  /**
    * A non-interrupting event sub process inside the scope is refused at deployment (CIB7-1967).
    *
    * <p>It is refused rather than documented because the failure depends on the order in which the

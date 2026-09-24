@@ -353,9 +353,18 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    * execution under the parent first. {@code SubProcessActivityBehavior} does exactly this, and an
    * ad hoc scope has the same obligation for the same reason: without it, throwing compensation at
    * the scope afterwards finds nothing and silently does nothing.
+   *
+   * <p>The activation counter's marker is removed first. It is an event-scope child as well, and
+   * {@code createEventScopeExecution} moves every event-scope child into the compensation event
+   * scope, where the marker outlived the scope with its variables until the process ended (review
+   * finding 6). It belongs to the running scope, and the scope is leaving.
    */
   @Override
   public void doLeave(ActivityExecution execution) {
+    PvmExecutionImpl marker = findStateExecution(execution);
+    if (marker != null) {
+      marker.remove();
+    }
     CompensationUtil.createEventScopeExecution((ExecutionEntity) execution);
     super.doLeave(execution);
   }
