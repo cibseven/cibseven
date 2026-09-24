@@ -338,4 +338,92 @@ public class AdHocSubProcessEntryActivationTest extends PluggableProcessEngineTe
     }
   }
 
+  // ------------------------------------------------ what an entry list may evaluate to
+
+  protected static final String FROM_AN_EXPRESSION =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessEntryActivationTest.entryActivationFromAnExpression.bpmn20.xml";
+
+  protected Map<String, Object> starters(Object value) {
+    Map<String, Object> vars = new HashMap<String, Object>();
+    vars.put("starters", value);
+    return vars;
+  }
+
+  /**
+   * A JSON array, which is what a Json variable holds and what a list sent over REST naturally is.
+   * It used to be read as a comma-separated string and fail on ids like {@code ["taskA"}. Given here
+   * as the text a Json value is, since these tests run without Spin.
+   */
+  @Deployment(resources = FROM_AN_EXPRESSION)
+  @Test
+  public void entryActivationFromAJsonArray() {
+    runtimeService.startProcessInstanceByKey("adHocEntryExpr", starters("[\"taskA\", \"taskB\"]"));
+
+    assertThat(task("taskA")).isNotNull();
+    assertThat(task("taskB")).isNotNull();
+  }
+
+  /** A Java array, such as {@code String.split} returns, gives its elements like a collection does. */
+  @Deployment
+  @Test
+  public void entryActivationFromAnArray() {
+    runtimeService.startProcessInstanceByKey("adHocEntryArray", starters("taskA,taskB"));
+
+    assertThat(task("taskA")).isNotNull();
+    assertThat(task("taskB")).isNotNull();
+    assertThat(task("taskC")).isNull();
+  }
+
+  /** A literal written as a JSON array deploys and starts what it names, as a comma list does. */
+  @Deployment
+  @Test
+  public void entryActivationFromAJsonLiteral() {
+    runtimeService.startProcessInstanceByKey("adHocEntryJsonLiteral");
+
+    assertThat(task("taskA")).isNotNull();
+    assertThat(task("taskB")).isNotNull();
+    assertThat(task("taskC")).isNull();
+  }
+
+  /** And it is checked at deployment the same way, naming the id rather than a fragment of JSON. */
+  @Test
+  public void entryActivationRejectsAnUnstartableIdInAJsonLiteral() {
+    try {
+      testRule.deploy("org/cibseven/bpm/engine/test/bpmn/adhoc/"
+          + "AdHocSubProcessEntryActivationTest.entryActivationRejectsAnUnstartableIdInAJsonLiteral.bpmn20.xml");
+      fail("a literal JSON array naming an unstartable activity must be rejected at deployment");
+    } catch (ParseException e) {
+      testRule.assertTextPresent("activeElementsCollection names [nosuch]", e.getMessage());
+    }
+  }
+
+  /** Text that opens like a JSON array but is not one of strings is refused as what it is. */
+  @Deployment(resources = FROM_AN_EXPRESSION)
+  @Test
+  public void aJsonArrayOfSomethingElseIsRefusedAsSuch() {
+    try {
+      runtimeService.startProcessInstanceByKey("adHocEntryExpr", starters("[1]"));
+      fail("a JSON array of numbers is not a list of activity ids");
+    } catch (ProcessEngineException e) {
+      testRule.assertTextPresent("gives [1], which is not a JSON array of activity ids", e.getMessage());
+    }
+  }
+
+  /**
+   * A value of any other type is still read through its string form, as before, so nothing that
+   * worked stops working -- but the refusal now says what the expression evaluated to, without which
+   * the ids it quotes make no sense.
+   */
+  @Deployment(resources = FROM_AN_EXPRESSION)
+  @Test
+  public void theRefusalNamesAValueOfAnotherType() {
+    try {
+      runtimeService.startProcessInstanceByKey("adHocEntryExpr", starters(new java.util.Date()));
+      fail("a date is not a list of activity ids");
+    } catch (ProcessEngineException e) {
+      testRule.assertTextPresent("not directly startable here", e.getMessage());
+      testRule.assertTextPresent("The expression evaluated to a java.util.Date", e.getMessage());
+    }
+  }
+
 }

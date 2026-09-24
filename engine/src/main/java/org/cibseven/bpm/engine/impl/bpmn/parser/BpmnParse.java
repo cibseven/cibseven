@@ -4120,11 +4120,19 @@ public class BpmnParse extends Parse {
     }
 
     if (!raw.contains("${") && !raw.contains("#{")) {
+      // Read the way entry activation reads it at runtime -- a comma-separated list or a JSON array --
+      // so that what deploys is what runs.
+      List<String> named;
+      try {
+        named = AdHocSubProcessActivityBehavior.activityIdsOf(raw, activity.getId());
+      } catch (ProcessEngineException e) {
+        addError(e.getMessage(), adHocElement);
+        return;
+      }
       List<String> startable = startableActivityIds(adHocElement);
       List<String> unknown = new ArrayList<String>();
-      for (String part : raw.split(",")) {
-        String id = part.trim();
-        if (!id.isEmpty() && !startable.contains(id)) {
+      for (String id : named) {
+        if (!startable.contains(id)) {
           unknown.add(id);
         }
       }

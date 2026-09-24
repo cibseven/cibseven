@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.impl.bpmn.behavior;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,6 +43,10 @@ import org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParse;
 import java.util.Collection;
 import java.util.Collections;
 import org.cibseven.bpm.engine.impl.pvm.runtime.Callback;
+import org.cibseven.bpm.engine.impl.util.JsonUtil;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 
 /**
  * Runtime behavior of a BPMN adHocSubProcess.
@@ -140,18 +145,20 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
       return;
     }
 
-    List<String> requested = resolveEntryActivityIds(scopeExecution);
+    ScopeImpl scope = (ScopeImpl) scopeExecution.getActivity();
+    Object value = entryActivityIds.getValue(scopeExecution);
+    List<String> requested = activityIdsOf(value, scope.getId());
     if (requested.isEmpty()) {
       return;
     }
 
-    ScopeImpl scope = (ScopeImpl) scopeExecution.getActivity();
     List<String> unknown = new ArrayList<String>();
     List<ActivityImpl> targets = resolveStartableChildren(scope, requested, unknown);
     if (!unknown.isEmpty()) {
       throw new ProcessEngineException("Ad hoc sub process '" + scope.getId()
           + "': activeElementsCollection names " + unknown + ", which " + (unknown.size() == 1 ? "is" : "are")
-          + " not directly startable here. The startable activities are " + startableActivityIds(scope) + ".");
+          + " not directly startable here. The startable activities are " + startableActivityIds(scope) + "."
+          + evaluatedTo(value));
     }
 
     // Two passes, for the same reason ActivateAdHocSubProcessActivitiesCmd splits its loop: starting a child can
@@ -281,33 +288,86 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   }
 
   /**
-   * Evaluates the entry expression to a list of activity ids.
+   * The activity ids an entry list names. Shared by the parser, which checks a literal list at
+   * deployment, and by entry activation, which evaluates the expression when the scope is entered.
    *
-   * <p>A collection is taken as-is. A plain string is split on commas, which is what makes the static
-   * authoring form work: {@code <camunda:property name="activeElementsCollection" value="taskA,taskB"/>} is
-   * a literal to the expression manager, so one runtime path serves both a literal list and a real
-   * expression over process data.
+   * <p>A collection or an array gives its elements. Anything else is read as text. Text that starts
+   * with {@code [} is a JSON array of ids -- which is what a Json variable holds, and an id, being an
+   * NCName, never starts with {@code [}. Any other text is a comma-separated list, which is what makes
+   * the static authoring form work: {@code value="taskA,taskB"} is a literal to the expression
+   * manager, so one path serves a literal list and an expression over process data alike.
    */
-  protected List<String> resolveEntryActivityIds(ActivityExecution scopeExecution) {
-    Object value = entryActivityIds.getValue(scopeExecution);
+  public static List<String> activityIdsOf(Object value, String scopeId) {
     List<String> ids = new ArrayList<String>();
     if (value == null) {
       return ids;
     }
     if (value instanceof Collection) {
       for (Object item : (Collection<?>) value) {
-        if (item != null && !String.valueOf(item).trim().isEmpty()) {
-          ids.add(String.valueOf(item).trim());
-        }
+        addActivityId(ids, item);
       }
       return ids;
     }
-    for (String part : String.valueOf(value).split(",")) {
-      if (!part.trim().isEmpty()) {
-        ids.add(part.trim());
+    if (value.getClass().isArray()) {
+      for (int i = 0; i < Array.getLength(value); i++) {
+        addActivityId(ids, Array.get(value, i));
       }
+      return ids;
+    }
+    String text = String.valueOf(value).trim();
+    if (text.startsWith("[")) {
+      for (JsonElement element : jsonArrayOfIds(text, scopeId)) {
+        addActivityId(ids, element.getAsString());
+      }
+      return ids;
+    }
+    for (String part : text.split(",")) {
+      addActivityId(ids, part);
     }
     return ids;
+  }
+
+  protected static void addActivityId(List<String> ids, Object item) {
+    if (item != null && !String.valueOf(item).trim().isEmpty()) {
+      ids.add(String.valueOf(item).trim());
+    }
+  }
+
+  /** Parses a JSON array whose every element is a string, or refuses it by name. */
+  protected static JsonArray jsonArrayOfIds(String text, String scopeId) {
+    JsonArray array = null;
+    try {
+      array = JsonUtil.getGsonMapper().fromJson(text, JsonArray.class);
+    } catch (RuntimeException e) {
+      // not JSON at all: refused below, with the text that was given
+    }
+    boolean ofStrings = array != null;
+    if (ofStrings) {
+      for (JsonElement element : array) {
+        if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) {
+          ofStrings = false;
+          break;
+        }
+      }
+    }
+    if (!ofStrings) {
+      throw new ProcessEngineException("Ad hoc sub process '" + scopeId + "': activeElementsCollection gives "
+          + text + ", which is not a JSON array of activity ids.");
+    }
+    return array;
+  }
+
+  /**
+   * Names the type of an entry list that was neither text, a collection nor an array, for a refusal:
+   * such a value is read through its string form, and without the type the ids it produced make no
+   * sense to whoever reads the message.
+   */
+  protected static String evaluatedTo(Object value) {
+    if (value == null || value instanceof String || value instanceof Collection
+        || value.getClass().isArray()) {
+      return "";
+    }
+    return " The expression evaluated to a " + value.getClass().getName() + ".";
   }
 
   public void setEntryActivityIds(Expression entryActivityIds) {
