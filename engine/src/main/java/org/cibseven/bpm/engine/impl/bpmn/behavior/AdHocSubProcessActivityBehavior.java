@@ -643,6 +643,11 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    * {@code false} the scope waits for its survivors, and the target is performed, which is the
    * guarantee BPMN 2.0.0 section 10.3.5 p.182 attaches to an inner flow.
    *
+   * <p>With {@code true} the path is also gathered here (CIB7-1892), because it never reaches the
+   * end where a path is otherwise gathered. What it has done is finished work, not remaining work:
+   * without this, a completed step was kept when no flow followed it and lost when one did. With
+   * {@code false} the path goes on and is gathered at its end, once.
+   *
    * <p>Without a completion condition there is nothing to consult: the no-condition rule is asked
    * when a child ends, and taking a flow is not an end.
    */
@@ -653,6 +658,9 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     if (!cancelRemainingInstances) {
       return;
     }
+    // Before completing: completing deletes the transitioning execution, and with it the only
+    // execution the element expression can be evaluated against.
+    gatherResult(scopeExecution, transitioning);
     completeScopeOnRequest(scopeExecution);
   }
 

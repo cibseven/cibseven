@@ -22,11 +22,13 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.util.Collections;
 import java.util.List;
 
+import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParse;
 import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
+import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.junit.jupiter.api.Test;
 
@@ -54,6 +56,10 @@ public class AdHocSubProcessOutputAggregationTest extends PluggableProcessEngine
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessOutputAggregationTest.attribution.bpmn20.xml";
   protected static final String CONDITION =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessOutputAggregationTest.condition.bpmn20.xml";
+  protected static final String INNER_FLOW_CONDITION =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessOutputAggregationTest.innerFlowCondition.bpmn20.xml";
+  protected static final String INNER_FLOW_CONDITION_WAITS =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessOutputAggregationTest.innerFlowConditionWaits.bpmn20.xml";
 
   protected String scopeExecutionId(String processInstanceId) {
     for (Execution execution : runtimeService.createExecutionQuery()
@@ -236,6 +242,54 @@ public class AdHocSubProcessOutputAggregationTest extends PluggableProcessEngine
 
     assertThat(gathered(pi)).as("only the child the expression selects")
         .containsExactly("A", "B");
+  }
+
+  // ---------------------------------------------------------------- inner flows
+
+  /**
+   * A path stopped by the completion condition on an inner flow is gathered where it stops.
+   *
+   * <p>A path is gathered at its end, and this one never reaches it: the condition, met by what
+   * {@code step} wrote, ends the scope on the flow out of it. What the path had done is finished
+   * work; only {@code next}, which it was about to start, is remaining work. Before this was fixed
+   * nothing was gathered -- the same completed step was kept when no flow followed it and lost when
+   * one did.
+   */
+  @Deployment(resources = INNER_FLOW_CONDITION)
+  @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
+  @Test
+  public void aPathStoppedByTheConditionIsGatheredWhereItStops() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocGatherInnerFlowCondition");
+
+    assertThat(taskService.createTaskQuery().processInstanceId(pi.getId()).singleResult()
+        .getTaskDefinitionKey()).as("the condition ended the scope").isEqualTo("afterScope");
+    assertThat(gathered(pi)).as("the step that met the condition").containsExactly("A");
+    assertThat(historyService.createHistoricActivityInstanceQuery().processInstanceId(pi.getId())
+        .activityId("next").count()).as("the flow's target is not performed").isZero();
+    assertThat(historyService.createHistoricActivityInstanceQuery().processInstanceId(pi.getId())
+        .activityId("other").canceled().count()).as("the survivor is cancelled").isEqualTo(1L);
+  }
+
+  /**
+   * With {@code cancelRemainingInstances="false"} the same path goes on to its end and is gathered
+   * there, once: the flow on which the condition was met adds nothing of its own.
+   */
+  @Deployment(resources = INNER_FLOW_CONDITION_WAITS)
+  @Test
+  public void aPathTheConditionLetsFinishIsGatheredOnceAtItsEnd() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocGatherInnerFlowConditionWaits");
+
+    assertThat(gathered(pi)).as("taking a flow is not an end").isNull();
+
+    taskService.complete(taskService.createTaskQuery().processInstanceId(pi.getId())
+        .taskDefinitionKey("next").singleResult().getId());
+    assertThat(gathered(pi)).as("once, where the path ended").containsExactly("A");
+
+    taskService.complete(taskService.createTaskQuery().processInstanceId(pi.getId())
+        .taskDefinitionKey("other").singleResult().getId());
+    assertThat(taskService.createTaskQuery().processInstanceId(pi.getId()).singleResult()
+        .getTaskDefinitionKey()).isEqualTo("afterScope");
+    assertThat(gathered(pi)).as("the survivor declines").containsExactly("A");
   }
 
   // ---------------------------------------------------------------- what it refuses
