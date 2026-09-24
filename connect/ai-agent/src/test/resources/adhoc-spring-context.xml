@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  A process engine under Spring's transaction management, for AdHocSpringTransactionTest.
+
+  Modelled on engine-spring's own SpringTransactionIntegrationTest-context.xml. Three
+  deliberate differences from that one:
+
+  - jobExecutorActivate stays false. The driver is asyncBefore, and a running executor
+    would pick its job up on its own thread; the test runs the turn by hand so a failure
+    is a step rather than a race.
+  - ConnectProcessEnginePlugin is registered, or camunda:connector does not parse.
+  - historyTimeToLive is set globally rather than enforceHistoryTimeToLive being switched
+    off, which the engine itself advises against.
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="dataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
+    <property name="driverClass" value="org.h2.Driver" />
+    <property name="url" value="jdbc:h2:mem:adhoc-spring-tx;DB_CLOSE_DELAY=-1" />
+    <property name="username" value="sa" />
+    <property name="password" value="" />
+  </bean>
+
+  <!-- This is the whole point of the file: with a Spring transaction manager the engine
+       joins Spring's transaction, which is the only place a rollback-only flag exists. -->
+  <bean id="transactionManager"
+        class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    <property name="dataSource" ref="dataSource" />
+  </bean>
+
+  <bean id="processEngineConfiguration"
+        class="org.cibseven.bpm.engine.spring.SpringProcessEngineConfiguration">
+    <property name="dataSource" ref="dataSource" />
+    <property name="transactionManager" ref="transactionManager" />
+    <property name="databaseSchemaUpdate" value="true" />
+    <property name="jobExecutorActivate" value="false" />
+    <property name="dbMetricsReporterActivate" value="false" />
+    <property name="taskMetricsEnabled" value="false" />
+    <property name="history" value="full" />
+    <property name="historyTimeToLive" value="P30D" />
+    <property name="processEnginePlugins">
+      <list>
+        <bean class="org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin" />
+      </list>
+    </property>
+  </bean>
+
+  <bean id="processEngine" class="org.cibseven.bpm.engine.spring.ProcessEngineFactoryBean">
+    <property name="processEngineConfiguration" ref="processEngineConfiguration" />
+  </bean>
+
+</beans>
