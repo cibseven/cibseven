@@ -411,7 +411,7 @@
 
     <plugins>
       <!-- Catches a Spring Boot BOM bump that moves the framework
-           version without the matching version.spring.frameworkN update -->
+          version without the matching version.spring.frameworkN update -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
@@ -431,18 +431,22 @@
             <bannedDependencies>
               <searchTransitive>true</searchTransitive>
               <excludes>
-                <exclude>org.springframework:*</exclude>
+                <exclude>org.springframework:spring-core</exclude>
               </excludes>
               <includes>
-                <include>org.springframework:*:[${version.spring.framework}]</include>
-                <include>org.springframework:*:[${version.spring.framework6}]</include>
-                <include>org.springframework:*:[${version.spring.framework7}]</include>
+                <include>org.springframework:spring-core:[${version.spring.framework}]</include>
+                <include>org.springframework:spring-core:[${version.spring.framework6}]</include>
+                <include>org.springframework:spring-core:[${version.spring.framework7}]</include>
               </includes>
               <message>
-                The resolved Spring Framework version must be one of the pinned lines:
+                Spring Framework must appear in the dependency graph only at a pinned line:
                 ${version.spring.framework} / ${version.spring.framework6} / ${version.spring.framework7}.
-                A failure here usually means a Spring Boot BOM bump moved the framework version
-                without updating the matching version.spring.frameworkN property.
+                Note this checks the whole graph, including versions that lose mediation and
+                never reach the classpath. Two usual causes:
+                  1. a Spring Boot BOM bump moved the framework line without the matching
+                    version.spring.frameworkN update;
+                  2. a third-party dependency declares its own framework version in a module
+                    that does not manage Spring — manage it there, or exclude it at the source.
               </message>
             </bannedDependencies>
           </rules>
