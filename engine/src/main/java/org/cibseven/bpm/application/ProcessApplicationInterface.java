@@ -22,7 +22,7 @@ import jakarta.el.BeanELResolver;
 import jakarta.el.ELResolver;
 
 import org.cibseven.bpm.ProcessApplicationService;
-import org.cibseven.bpm.application.impl.EjbProcessApplication;
+import org.cibseven.bpm.application.impl.JakartaEjbProcessApplication;
 import org.cibseven.bpm.application.impl.EmbeddedProcessApplication;
 import org.cibseven.bpm.application.impl.ServletProcessApplication;
 import org.cibseven.bpm.engine.delegate.ExecutionListener;
@@ -67,8 +67,7 @@ import org.cibseven.bpm.engine.repository.DeploymentBuilder;
  * <ul>
  *  <li> {@link ServletProcessApplication}: To be used for Process Applications in a Servlet Container like Apache Tomcat.
  *  Use the JakartaServletProcessApplication in a Jakarta Servlet 5+ Container.</li>
- *  <li> {@link EjbProcessApplication}: To be used in a Java EE application server.
- *  Use the JakartaEjbProcessApplication in a Jakarta EE 9+ application server.</li>
+ *  <li> {@link JakartaEjbProcessApplication}: To be used in a Jakarta EE 9+ application server.</li>
  *  <li> {@link EmbeddedProcessApplication}: To be used when embedding the process engine is an ordinary Java SE application.</li>
  *  <li> org.cibseven.bpm.engine.spring.application.SpringProcessApplication: To be used for bootstrapping the process application from a Spring Application Context.</li>
  * </ul>

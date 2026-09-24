@@ -293,10 +293,7 @@
           with "Cannot resolve identifier '...'" across the cdi/context/dmn test packages.
           weld-servlet-shaded 6.0.3.Final is Weld's CDI 4.1 / Jakarta EE 10-11 servlet build
           (matches the jakarta.enterprise.cdi-api 4.1.0 already used by this reactor).
-          CAVEAT: this makes the dependency Jakarta-only. If the legacy `tomcat9` profile
-          (javax-based Java EE 6/8) is still built from this pom, move this dependency into
-          the tomcat/wildfly/wildfly28/wildfly-domain profile <dependencies> blocks instead of
-          leaving it here at top level, so tomcat9 keeps resolving the old javax weld-servlet. -->
+-->
     <dependency>
       <groupId>org.jboss.weld.servlet</groupId>
       <artifactId>weld-servlet-shaded</artifactId>
@@ -517,11 +514,11 @@
             <filtering>true</filtering>
           </testResource>
           <testResource>
-            <!-- resources-wildfly26 pairs with the java-wildfly26 test sources added
-                 below: process application descriptors, jboss-deployment-structure.xml,
-                 persistence.xml, etc. -->
-            <directory>src/test/resources-wildfly26</directory>
+            <directory>src/test/resources-wildfly28</directory>
             <filtering>true</filtering>
+            <excludes>
+              <exclude>arquillian.xml</exclude>
+            </excludes>
           </testResource>
         </testResources>
         <plugins>
@@ -537,7 +534,7 @@
                 </goals>
                 <configuration>
                   <sources>
-                    <source>src/test/java-wildfly26</source>
+                    <source>src/test/java-wildfly28</source>
                   </sources>
                 </configuration>
               </execution>
@@ -628,10 +625,7 @@
             <filtering>true</filtering>
           </testResource>
           <testResource>
-            <!-- resources-wildfly26 pairs with the java-wildfly26 test sources added
-                 below: process application descriptors, jboss-deployment-structure.xml,
-                 persistence.xml, etc. -->
-            <directory>src/test/resources-wildfly26</directory>
+            <directory>src/test/resources-wildfly28</directory>
             <filtering>true</filtering>
           </testResource>
           </testResources>
@@ -648,7 +642,7 @@
                 </goals>
                 <configuration>
                   <sources>
-                    <source>src/test/java-wildfly26</source>
+                    <source>src/test/java-wildfly28</source>
                   </sources>
                 </configuration>
               </execution>
@@ -723,10 +717,10 @@
             <filtering>true</filtering>
           </testResource>
           <testResource>
-            <!-- resources-wildfly26 pairs with the java-wildfly26 test sources added
-                 below: process application descriptors, jboss-deployment-structure.xml,
-                 persistence.xml, etc. -->
-            <directory>src/test/resources-wildfly26</directory>
+            <directory>src/test/resources-wildfly28</directory>
+            <excludes>
+              <exclude>arquillian.xml</exclude>
+            </excludes>
             <filtering>true</filtering>
           </testResource>
         </testResources>
@@ -743,7 +737,7 @@
                 </goals>
                 <configuration>
                   <sources>
-                    <source>src/test/java-wildfly26</source>
+                    <source>src/test/java-wildfly28</source>
                   </sources>
                 </configuration>
               </execution>
@@ -810,7 +804,7 @@
                 </goals>
                 <configuration>
                   <sources>
-                    <source>src/test/java-wildfly26</source>
+                    <source>src/test/java-wildfly28</source>
                   </sources>
                 </configuration>
               </execution>
@@ -853,7 +847,7 @@
                 </goals>
                 <configuration>
                   <sources>
-                    <source>src/test/java-wildfly26-servlet</source>
+                    <source>src/test/java-wildfly-servlet</source>
                   </sources>
                 </configuration>
               </execution>
@@ -893,107 +887,6 @@
               <!-- Restrict to a single JVM fork -->
               <forkCount>1</forkCount>
               <reuseForks>true</reuseForks>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>tomcat9</id>
-        <dependencyManagement>
-        <dependencies>
-          <!-- import internal dependencies before JBoss to preserve internal versions, e.g. for JUnit -->
-          <dependency>
-            <groupId>org.cibseven.bpm</groupId>
-            <artifactId>cibseven-core-internal-dependencies</artifactId>
-            <version>${project.version}</version>
-            <scope>import</scope>
-            <type>pom</type>
-          </dependency>
-          <dependency>
-            <groupId>org.jboss.bom</groupId>
-            <artifactId>jboss-javaee-6.0-with-tools</artifactId>
-            <version>1.0.4.Final</version>
-            <scope>import</scope>
-            <type>pom</type>
-          </dependency>
-        </dependencies>
-      </dependencyManagement>
-      <dependencies>
-        <dependency>
-          <!-- make sure this comes after runtime in the reactor build -->
-          <groupId>org.cibseven.bpm.qa</groupId>
-          <artifactId>cibseven-qa-tomcat9-runtime</artifactId>
-          <version>${project.version}</version>
-          <scope>provided</scope>
-          <type>pom</type>
-        </dependency>
-
-        <dependency>
-          <groupId>org.jboss.arquillian.container</groupId>
-          <artifactId>arquillian-tomcat-managed-8</artifactId>
-          <version>1.1.0.Final</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-      <build>
-        <testResources>
-          <testResource>
-            <directory>src/test/resources-tomcat</directory>
-            <filtering>true</filtering>
-          </testResource>
-        </testResources>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>add-test-source</id>
-                <phase>generate-test-sources</phase>
-                <goals>
-                  <goal>add-test-source</goal>
-                </goals>
-                <configuration>
-                  <sources>
-                    <source>src/test/java-tomcat9</source>
-                  </sources>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <excludes>
-                <!-- no EE stuff on tomcat :) -->
-                <exclude>**/ear/**</exclude>
-                <exclude>**/ejb/**</exclude>
-                <exclude>**/jar/**</exclude>
-                <exclude>**/transactions/**</exclude>
-                <exclude>**/jpa/**</exclude>
-                <!-- No EJB RequestContext available -->
-                <exclude>**/JobExecutorRequestContextTest.java</exclude>
-                <!-- Not supported by arquillian tomcat container -->
-                <exclude>**/TestWarDeploymentWithBrokenBpmnXml.java</exclude>
-                <exclude>**/TestDeploymentWithDroolsTaskFails.java</exclude>
-                <exclude>**/TestProcessEnginesXmlFails.java</exclude>
-
-                <exclude>**/TestWarDeploymentWithProcessEnginePlugin.java</exclude>
-
-                <exclude>**/*_JBOSS.java</exclude>
-                <exclude>**/EjbPALifecycleCallbacksTest.java</exclude>
-
-                <exclude>**/PythonPaClassImportTest.java</exclude>
-
-                <exclude>**/MigrationContextSwitchBeansTest.java</exclude>
-
-                <exclude>**/ManagedJobExecutorTest.java</exclude>
-              </excludes>
-              <redirectTestOutputToFile>${redirect.test.output}</redirectTestOutputToFile>
-              <forkCount>1</forkCount>
             </configuration>
           </plugin>
         </plugins>
@@ -1066,7 +959,7 @@
                 </goals>
                 <configuration>
                   <sources>
-                    <source>src/test/java-wildfly26</source>
+                    <source>src/test/java-wildfly28</source>
                   </sources>
                 </configuration>
               </execution>
@@ -1079,7 +972,7 @@
                 <configuration>
                   <resources>
                     <resource>
-                      <directory>src/test/resources-wildfly26</directory>
+                      <directory>src/test/resources-wildfly28</directory>
                       <filtering>true</filtering>
                     </resource>
                   </resources>
