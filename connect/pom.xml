@@ -35,6 +35,12 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- managed explicitly so transitive versions (e.g. from httpclient5) don't pin slf4j-api -->
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${version.slf4j}</version>
+      </dependency>
 
       <dependency>
         <groupId>org.apache.httpcomponents.client5</groupId>

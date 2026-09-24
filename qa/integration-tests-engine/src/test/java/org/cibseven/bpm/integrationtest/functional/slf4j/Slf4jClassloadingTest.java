@@ -29,12 +29,11 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.NOPLoggerFactory;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @ExtendWith(ArquillianExtension.class)
 public class Slf4jClassloadingTest extends AbstractFoxPlatformIntegrationTest {
 
-  public static final String JDK14_LOGGER_FACTORY = "org.slf4j.impl.JDK14LoggerFactory";
+  // SLF4j 2.x moved slf4j-jdk14 out of org.slf4j.impl; slf4j-jboss-logmanager kept its own classes there
+  public static final String JDK14_LOGGER_FACTORY = "org.slf4j.jul.JDK14LoggerFactory";
   public static final String JBOSS_SLF4J_LOGGER_FACTORY = "org.slf4j.impl.Slf4jLoggerFactory";
 
   @Deployment
@@ -60,7 +59,7 @@ public class Slf4jClassloadingTest extends AbstractFoxPlatformIntegrationTest {
     // should either use slf4j-jdk14 or slf4j-jboss-logmanager
     String loggerFactoryClassName = loggerFactory.getClass().getCanonicalName();
     Assertions.assertTrue(JDK14_LOGGER_FACTORY.equals(loggerFactoryClassName) || JBOSS_SLF4J_LOGGER_FACTORY.equals(loggerFactoryClassName),
-    		"Should use slf4j-jdk14 or slf4j-jboss-logmanager");
+        "Should use slf4j-jdk14 or slf4j-jboss-logmanager, but was: " + loggerFactoryClassName);
   }
 
   @Test
