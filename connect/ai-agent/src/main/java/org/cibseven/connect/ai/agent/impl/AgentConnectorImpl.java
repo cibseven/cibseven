@@ -37,6 +37,7 @@ import org.cibseven.bpm.BpmPlatform;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.history.HistoricProcessInstance;
 import org.cibseven.bpm.engine.identity.Group;
+import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocAgentState;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
 import org.cibseven.bpm.engine.impl.context.Context;
@@ -97,6 +98,30 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     implements AgentConnector {
 
   private static final Logger LOG = LoggerFactory.getLogger(AgentConnectorImpl.class);
+
+  /**
+   * Round trips granted on top of the ad hoc scope's per-turn call cap.
+   *
+   * <p>The cap refuses the call; the model still needs a turn or two to read that
+   * refusal and stop. Without the margin the loop would be cut at the same call the
+   * refusal was written in, and a model that would have stopped never gets to.
+   */
+  private static final int ROUND_TRIP_GRACE = 5;
+
+  /**
+   * What LangChain4j says when its own tool-loop brake trips (1.16.3:
+   * {@code "Something is wrong, exceeded %s tool calling round trips
+   * (maxToolCallingRoundTrips)"}).
+   *
+   * <p>Matched on the text because the library throws a plain {@code RuntimeException}
+   * for it. Should the wording change, the match fails and the exception propagates —
+   * the job fails, as it did before this was handled at all.
+   */
+  private static final String ROUND_TRIP_MARKER = "tool calling round trips";
+
+  /** Output of a turn the round-trip limit ended, so the process has something to read. */
+  static final String TURN_ENDED_WITHOUT_ANSWER = "The agent gave no answer: it kept calling "
+      + "tools until the limit for a single turn was reached, and its turn was ended.";
 
   /**
    * Internal AI service interface used for stateless invocations.
@@ -218,13 +243,36 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         builder.contentRetriever(contentRetriever);
       }
 
+      // In an agentic ad hoc scope the tool loop is bounded by our own number
+      // rather than LangChain4j's default. See adHocRoundTripLimit.
+      Integer roundTripLimit = adHocRoundTripLimit(tools);
+      if (roundTripLimit != null) {
+        builder.maxToolCallingRoundTrips(roundTripLimit);
+      }
+
       Result<String> result;
-      if (memoryId != null) {
-        LangChainMemoryAgent agent = (LangChainMemoryAgent) builder.build();
-        result = agent.chat(memoryId, request.getMessage());
-      } else {
-        LangChainAgent agent = (LangChainAgent) builder.build();
-        result = agent.chat(request.getMessage());
+      try {
+        if (memoryId != null) {
+          LangChainMemoryAgent agent = (LangChainMemoryAgent) builder.build();
+          result = agent.chat(memoryId, request.getMessage());
+        } else {
+          LangChainAgent agent = (LangChainAgent) builder.build();
+          result = agent.chat(request.getMessage());
+        }
+      } catch (RuntimeException e) {
+        if (roundTripLimit == null || !isRoundTripLimitReached(e)) {
+          throw e;
+        }
+        // Only the limit we set above lands here, and only inside an ad hoc scope.
+        // Returning normally ends the agent's turn without an answer and commits
+        // what its tools already did, which is what lets the process go on: the
+        // driver's execution ends, the scope falls idle and completes. Rethrowing
+        // would fail the job and park the instance instead.
+        LOG.warn("Agent '{}' kept calling tools for {} round trips without answering; "
+            + "its turn is ended without an answer so the process continues. The "
+            + "per-turn call limit of the ad hoc sub process is what bounds this.",
+            request.getAgentName(), roundTripLimit);
+        return new AgentResponseImpl(TURN_ENDED_WITHOUT_ANSWER, memoryId, buildOutputAiMeta());
       }
       String output = result.content();
 
@@ -240,6 +288,45 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       closeMcpClients(mcpClients);
       ProcessStarterToolContext.clear();
     }
+  }
+
+  /**
+   * How many tool-calling round trips this run may take, or {@code null} to leave
+   * LangChain4j's default in place.
+   *
+   * <p>A number only for an agent driving an ad hoc sub process, because only there is
+   * an unended tool loop a normal outcome rather than a fault. Such an agent is offered
+   * {@code startActivity}, and a model can call it again and again without ever
+   * answering; the scope's per-turn call cap refuses to start anything further, but a
+   * refusal is an answer to the model, not a stop signal. Bounding the loop here turns
+   * that cap into a real limit and keeps the number the modeller's.
+   *
+   * <p>Both conditions are required: the tool must be configured <em>and</em> the
+   * connector must be running inside a scope. Either alone would change the loop for an
+   * agent that has no cap to enforce.
+   */
+  private static Integer adHocRoundTripLimit(List<Object> tools) {
+    for (Object tool : tools) {
+      if (tool instanceof AdHocSubProcessTool) {
+        Integer callLimit = AdHocSubProcessTool.callLimitForCurrentScope();
+        return (callLimit == null) ? null : Integer.valueOf(callLimit.intValue() + ROUND_TRIP_GRACE);
+      }
+    }
+    return null;
+  }
+
+  /** Whether {@code failure} is LangChain4j's tool-loop brake. @see #ROUND_TRIP_MARKER */
+  private static boolean isRoundTripLimitReached(Throwable failure) {
+    for (Throwable current = failure; current != null; current = current.getCause()) {
+      String message = current.getMessage();
+      if (message != null && message.contains(ROUND_TRIP_MARKER)) {
+        return true;
+      }
+      if (current.getCause() == current) {
+        break;
+      }
+    }
+    return false;
   }
 
   /**
@@ -460,9 +547,37 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     if (id != null && !id.isEmpty()) {
       return id;
     }
+    String scoped = adHocScopeMemoryId();
+    if (scoped != null) {
+      LOG.debug("Using ad hoc scope memory id: {}", scoped);
+      return scoped;
+    }
     String generated = UUID.randomUUID().toString();
     LOG.debug("Generated new chat memory id: {}", generated);
     return generated;
+  }
+  /**
+   * A memory id derived from the enclosing ad hoc sub process, or {@code null} when
+   * there is none.
+   *
+   * <p>Without this, a turn-by-turn agent gets a fresh random id on every turn, so
+   * every turn writes a new memory variable, the agent remembers nothing, and the
+   * number of variables grows with the number of turns. The scope execution is the
+   * right anchor rather than the process instance, because two ad hoc scopes in one
+   * instance are two separate conversations.
+   *
+   * <p>An explicit {@code memoryId} from the model still wins, so a deployment that
+   * wants one conversation across several scopes can still say so.
+   */
+  private static String adHocScopeMemoryId() {
+    BpmnExecutionContext executionContext = Context.getBpmnExecutionContext();
+    ExecutionEntity execution =
+        (executionContext == null) ? null : executionContext.getExecution();
+    if (execution == null) {
+      return null;
+    }
+    ExecutionEntity scope = AdHocAgentState.findAdHocScope(execution);
+    return (scope == null) ? null : "adhoc-" + scope.getId();
   }
 
   /**

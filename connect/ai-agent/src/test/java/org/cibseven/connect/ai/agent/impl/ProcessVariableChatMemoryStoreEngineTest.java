@@ -29,7 +29,7 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
-import org.cibseven.bpm.engine.test.ProcessEngineRule;
+import org.cibseven.bpm.engine.test.junit5.ProcessEngineExtension;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,7 +76,7 @@ public class ProcessVariableChatMemoryStoreEngineTest {
   private static final ProcessEngine ENGINE = buildInMemoryEngine();
 
   @RegisterExtension
-  public ProcessEngineRule engineRule = new ProcessEngineRule(ENGINE);
+  public ProcessEngineExtension engineRule = ProcessEngineExtension.builder().useProcessEngine(ENGINE).build();
 
   private static ProcessEngine buildInMemoryEngine() {
     StandaloneInMemProcessEngineConfiguration configuration =
