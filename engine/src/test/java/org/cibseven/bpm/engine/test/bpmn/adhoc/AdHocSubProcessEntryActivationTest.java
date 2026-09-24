@@ -226,6 +226,83 @@ public class AdHocSubProcessEntryActivationTest extends PluggableProcessEngineTe
     assertThat(task("taskA")).isNull();
   }
 
+  // ------------------------------------------------ a child created but never started
+
+  protected static final String SCOPE_END_LISTENER =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessEntryActivationTest.scopeEndListener.bpmn20.xml";
+
+  protected void activateInScope(ProcessInstance pi, String... activityIds) {
+    String scope = runtimeService.createExecutionQuery()
+        .processInstanceId(pi.getId()).activityId("adHoc").singleResult().getId();
+    runtimeService.activateAdHocSubProcessActivities(scope, Arrays.asList(activityIds));
+  }
+
+  protected Object scopeEndListenerCalls(ProcessInstance pi) {
+    return runtimeService.getVariable(pi.getId(), "scopeEnded");
+  }
+
+  /**
+   * A child the scope ends before it starts does not run the scope's END listeners.
+   *
+   * <p>A batch creates all its children before it starts any, and each is created on the scope's own
+   * activity. When {@code sync} ends the scope, {@code taskA} is still standing there, and cancelling
+   * it fired END on the scope itself -- which the scope then fired again as it left. Anything with a
+   * side effect on the scope's END listener happened twice (review finding 2).
+   */
+  @Deployment
+  @Test
+  public void entryActivationFiresTheScopeEndListenerOnce() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocEntryEndListener");
+
+    assertThat(task("after")).as("sync ended the scope").isNotNull();
+    assertThat(scopeEndListenerCalls(pi)).as("the scope ended once").isEqualTo(1L);
+  }
+
+  /** The same through the activation API. */
+  @Deployment(resources = SCOPE_END_LISTENER)
+  @Test
+  public void theActivationApiFiresTheScopeEndListenerOnce() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocApiEndListener");
+
+    activateInScope(pi, "sync", "taskA");
+
+    assertThat(task("after")).as("sync ended the scope").isNotNull();
+    assertThat(scopeEndListenerCalls(pi)).as("the scope ended once").isEqualTo(1L);
+  }
+
+  /**
+   * The same when the condition is met on an inner flow, which ends the scope through the other exit:
+   * {@code a} meets it on the flow to {@code b}, while {@code c} is created and not yet started.
+   */
+  @Deployment(resources = SCOPE_END_LISTENER)
+  @Test
+  public void aConditionMetOnAnInnerFlowFiresTheScopeEndListenerOnce() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocApiEndListener");
+
+    activateInScope(pi, "a", "c");
+
+    assertThat(task("after")).as("a ended the scope on its flow").isNotNull();
+    assertThat(scopeEndListenerCalls(pi)).as("the scope ended once").isEqualTo(1L);
+  }
+
+  /**
+   * A child that has started is still cancelled, not removed: its own END runs and history records
+   * it as cancelled. Only a child that never started is spared the cancellation.
+   */
+  @Deployment(resources = SCOPE_END_LISTENER)
+  @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
+  @Test
+  public void aStartedChildIsStillCancelled() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocApiEndListener");
+
+    activateInScope(pi, "taskA", "sync");
+
+    assertThat(task("after")).as("sync ended the scope").isNotNull();
+    assertThat(scopeEndListenerCalls(pi)).as("the scope ended once").isEqualTo(1L);
+    assertThat(historyService.createHistoricActivityInstanceQuery().processInstanceId(pi.getId())
+        .activityId("taskA").canceled().count()).as("taskA had started, and is cancelled").isEqualTo(1L);
+  }
+
   /** A model with no entry property behaves exactly as before: entering starts nothing. */
   @Deployment(resources =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessScenarioTest.testTwoConcurrentChildren.bpmn20.xml")

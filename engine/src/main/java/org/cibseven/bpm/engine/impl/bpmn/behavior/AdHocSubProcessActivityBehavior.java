@@ -589,12 +589,29 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
         if (!cancelRemainingInstances) {
           return false;
         }
-        ((PvmExecutionImpl) child).deleteCascade("Ad hoc sub process completion condition satisfied.");
+        cancelChild(scopeExecution, child, "Ad hoc sub process completion condition satisfied.");
       } else {
         child.remove();
       }
     }
     return true;
+  }
+
+  /**
+   * Cancels one child of a scope that is leaving, unless the child never started.
+   *
+   * <p>A batch creates every child before it starts any, and {@code createExecution()} gives each the
+   * scope's own activity. If an earlier child ends the scope, the later ones are still standing on
+   * it, and cancelling them fires END on the scope itself -- which the scope fires again as it leaves
+   * (review finding 2). Nothing has run on such a child: its variables are set only when it starts,
+   * and it has no task and no activity instance of its own. So it is removed rather than cancelled.
+   */
+  protected void cancelChild(ActivityExecution scopeExecution, ActivityExecution child, String reason) {
+    if (child.getActivity() == scopeExecution.getActivity()) {
+      child.remove();
+    } else {
+      ((PvmExecutionImpl) child).deleteCascade(reason);
+    }
   }
 
   /**
@@ -619,7 +636,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
 
     for (ActivityExecution child : children) {
       if (child.isActive() || child.getActivity() == null) {
-        ((PvmExecutionImpl) child).deleteCascade("Ad hoc sub process completed on request.");
+        cancelChild(scopeExecution, child, "Ad hoc sub process completed on request.");
       } else {
         child.remove();
       }
