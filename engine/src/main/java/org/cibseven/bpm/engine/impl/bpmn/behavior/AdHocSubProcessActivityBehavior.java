@@ -146,17 +146,12 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     }
 
     ScopeImpl scope = (ScopeImpl) scopeExecution.getActivity();
-    List<String> startable = scope.getProperties().get(BpmnProperties.AD_HOC_STARTABLE_ACTIVITIES);
     List<String> unknown = new ArrayList<String>();
-    for (String id : requested) {
-      if (startable == null || !startable.contains(id)) {
-        unknown.add(id);
-      }
-    }
+    List<ActivityImpl> targets = resolveStartableChildren(scope, requested, unknown);
     if (!unknown.isEmpty()) {
       throw new ProcessEngineException("Ad hoc sub process '" + scope.getId()
           + "': activeElementsCollection names " + unknown + ", which " + (unknown.size() == 1 ? "is" : "are")
-          + " not directly startable here. The startable activities are " + startable + ".");
+          + " not directly startable here. The startable activities are " + startableActivityIds(scope) + ".");
     }
 
     // Two passes, for the same reason ActivateAdHocSubProcessActivitiesCmd splits its loop: starting a child can
@@ -179,7 +174,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     // comes. The stack unwinds them in the requested order, and each one runs only after the previous
     // child has gone as far as it can -- which is exactly when the question has an answer.
     for (int i = requested.size() - 1; i >= 0; i--) {
-      children.get(i).performOperation(new StartEntryChild(findEntryChild(scope, requested.get(i))));
+      children.get(i).performOperation(new StartEntryChild(targets.get(i)));
     }
   }
 
@@ -227,15 +222,47 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   }
 
   /**
-   * The activity to execute, which is not always the one carrying the requested id.
+   * The ids of the activities that can be started directly in this scope, computed at parse time
+   * (CIB7-1853). Never null.
+   */
+  public List<String> startableActivityIds(ScopeImpl scope) {
+    List<String> startable = scope.getProperties().get(BpmnProperties.AD_HOC_STARTABLE_ACTIVITIES);
+    return startable == null ? Collections.<String>emptyList() : startable;
+  }
+
+  /**
+   * The children to start for the given ids, one per id and in the order given, so an id named twice
+   * is started twice. This is the one place both ways in -- the activation API and entry activation
+   * -- decide what a request means, which is why they cannot drift apart again (review finding 3 was
+   * the two copies disagreeing).
+   *
+   * <p>An id that is not directly startable gets no child and is added to {@code rejected} instead,
+   * so that each caller refuses in its own terms: the API answers its caller, entry activation fails
+   * the start of the process.
+   */
+  public List<ActivityImpl> resolveStartableChildren(ScopeImpl scope, Collection<String> activityIds,
+      List<String> rejected) {
+    List<String> startable = startableActivityIds(scope);
+    List<ActivityImpl> children = new ArrayList<ActivityImpl>();
+    for (String activityId : activityIds) {
+      if (activityId != null && startable.contains(activityId)) {
+        children.add(findStartableChild(scope, activityId));
+      } else {
+        rejected.add(String.valueOf(activityId));
+      }
+    }
+    return children;
+  }
+
+  /**
+   * The child to execute, which is not always the activity carrying the requested id.
    *
    * <p>Loop characteristics make the parser wrap the activity: the direct child of the scope is a
    * generated multi-instance body with the requested activity nested inside it. A recursive lookup
-   * would find the nested one and executing that bypasses the body that owns the loop, so only direct
-   * children are considered and the generated body is resolved by name — the same resolution
-   * {@code ActivateAdHocSubProcessActivitiesCmd} makes for the activation API.
+   * would find the nested one, and executing that bypasses the body that owns the loop, so only
+   * direct children are considered and the generated body is resolved by name.
    */
-  protected ActivityImpl findEntryChild(ScopeImpl scope, String activityId) {
+  public ActivityImpl findStartableChild(ScopeImpl scope, String activityId) {
     for (ActivityImpl child : scope.getActivities()) {
       if (activityId.equals(child.getId())) {
         return child;
@@ -247,8 +274,10 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
         return child;
       }
     }
-    throw new ProcessEngineException("Ad hoc sub process '" + scope.getId() + "': activeElementsCollection"
-        + " names '" + activityId + "', which is startable but has no such child activity.");
+    // The startable set is derived from the same element at parse time, so this cannot happen
+    // unless the two fall out of step -- an engine fault, not a bad request.
+    throw new ProcessEngineException("Ad hoc sub process '" + scope.getId() + "' reports '"
+        + activityId + "' as startable but has no such child activity.");
   }
 
   /**
@@ -590,15 +619,27 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    *         them ends and this is reached again
    */
   protected boolean disposeOfRemainingChildren(ActivityExecution scopeExecution) {
+    return disposeOfRemainingChildren(scopeExecution, cancelRemainingInstances,
+        "Ad hoc sub process completion condition satisfied.");
+  }
+
+  /**
+   * Removes the children that are done and cancels the ones still running -- or, with
+   * {@code cancelRunning} false, stops at the first one still running and reports it.
+   *
+   * @param reason recorded as the delete reason of each cancelled activity instance
+   */
+  protected boolean disposeOfRemainingChildren(ActivityExecution scopeExecution, boolean cancelRunning,
+      String reason) {
     List<ActivityExecution> children = new ArrayList<ActivityExecution>(
         ((PvmExecutionImpl) scopeExecution).getNonEventScopeExecutions());
 
     for (ActivityExecution child : children) {
       if (child.isActive() || child.getActivity() == null) {
-        if (!cancelRemainingInstances) {
+        if (!cancelRunning) {
           return false;
         }
-        cancelChild(scopeExecution, child, "Ad hoc sub process completion condition satisfied.");
+        cancelChild(scopeExecution, child, reason);
       } else {
         child.remove();
       }
@@ -640,16 +681,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    * its own activity.
    */
   public void completeScopeOnRequest(ActivityExecution scopeExecution) {
-    List<ActivityExecution> children = new ArrayList<ActivityExecution>(
-        ((PvmExecutionImpl) scopeExecution).getNonEventScopeExecutions());
-
-    for (ActivityExecution child : children) {
-      if (child.isActive() || child.getActivity() == null) {
-        cancelChild(scopeExecution, child, "Ad hoc sub process completed on request.");
-      } else {
-        child.remove();
-      }
-    }
+    disposeOfRemainingChildren(scopeExecution, true, "Ad hoc sub process completed on request.");
 
     scopeExecution.setActive(true);
     leave(scopeExecution);

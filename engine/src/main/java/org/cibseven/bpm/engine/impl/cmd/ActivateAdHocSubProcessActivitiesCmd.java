@@ -23,7 +23,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -31,8 +30,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.history.UserOperationLogEntry;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessActivityBehavior;
-import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
-import org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParse;
 import org.cibseven.bpm.engine.impl.cfg.CommandChecker;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
@@ -108,7 +105,7 @@ public class ActivateAdHocSubProcessActivitiesCmd implements Command<List<String
     // so the execution they can find is resolved to it here.
     scopeExecution = AdHocSubProcessScopeResolver.resolve(scopeExecution, executionId);
     ActivityImpl scope = (ActivityImpl) scopeExecution.getActivity();
-    Map<String, ActivityImpl> resolved = resolveStartableActivities(scope);
+    List<ActivityImpl> resolved = resolveStartableActivities(scope);
 
     // Everything is validated and resolved before anything is created, so a batch with one bad id
     // starts nothing at all.
@@ -122,7 +119,7 @@ public class ActivateAdHocSubProcessActivitiesCmd implements Command<List<String
     List<PvmExecutionImpl> children = new ArrayList<>();
     List<AtomicReference<String>> sinks = new ArrayList<>();
     for (int i = 0; i < requested.size(); i++) {
-      PvmExecutionImpl child = createChildExecution(scopeExecution, resolved.get(requested.get(i)));
+      PvmExecutionImpl child = createChildExecution(scopeExecution, resolved.get(i));
       AtomicReference<String> sink = new AtomicReference<>();
       child.setEnteredActivityInstanceIdSink(sink);
       children.add(child);
@@ -139,7 +136,7 @@ public class ActivateAdHocSubProcessActivitiesCmd implements Command<List<String
       if (child.isEnded() || child.isRemoved()) {
         continue;
       }
-      startChild(child, resolved.get(requested.get(i)), variablesFor(i, requested.get(i)));
+      startChild(child, resolved.get(i), variablesFor(i, requested.get(i)));
     }
 
     List<String> activityInstanceIds = new ArrayList<>();
@@ -152,59 +149,24 @@ public class ActivateAdHocSubProcessActivitiesCmd implements Command<List<String
   }
 
   /**
-   * The execution must be the ad hoc scope's own execution, identified by its behaviour rather than
-   * by element name, so the check cannot drift from what the runtime actually does.
+   * The children to start, one per requested id and in the order requested, resolved by the
+   * behaviour, the one place both ways in -- this API and entry activation -- decide what a request
+   * means. A request naming anything that is not directly startable is refused as a whole.
    */
-  protected Map<String, ActivityImpl> resolveStartableActivities(ActivityImpl scope) {
-    List<String> startable = scope.getProperties().get(BpmnProperties.AD_HOC_STARTABLE_ACTIVITIES);
-    if (startable == null) {
-      startable = Collections.emptyList();
-    }
-
-    Map<String, ActivityImpl> resolved = new LinkedHashMap<>();
+  protected List<ActivityImpl> resolveStartableActivities(ActivityImpl scope) {
+    AdHocSubProcessActivityBehavior behavior = (AdHocSubProcessActivityBehavior) scope.getActivityBehavior();
     List<String> rejected = new ArrayList<>();
-    for (String activityId : activityIds) {
-      if (activityId != null && startable.contains(activityId)) {
-        resolved.put(activityId, findChild(scope, activityId));
-      } else if (!resolved.containsKey(activityId)) {
-        rejected.add(String.valueOf(activityId));
-      }
-    }
+    List<ActivityImpl> resolved = behavior.resolveStartableChildren(scope, activityIds, rejected);
 
     if (!rejected.isEmpty()) {
       throw new BadUserRequestException("Cannot start " + rejected + " in ad hoc sub process '"
-          + scope.getId() + "'. Its directly startable activities are " + startable
+          + scope.getId() + "'. Its directly startable activities are "
+          + behavior.startableActivityIds(scope)
           + ". An element is directly startable if it is an activity and has no incoming sequence"
           + " flow from within the scope, so a gateway or an intermediate event is reachable by flow"
           + " but never started directly.");
     }
     return resolved;
-  }
-
-  /**
-   * Finds the child to start, which is not always the activity that carries the requested id.
-   *
-   * <p>An activity with loop characteristics is wrapped at parse time: the direct child of the scope
-   * is a generated multi-instance body and the requested activity is nested inside it. Starting the
-   * nested activity directly would bypass the body that owns the loop, so the body is what gets
-   * started.
-   */
-  protected ActivityImpl findChild(ActivityImpl scope, String activityId) {
-    for (ActivityImpl child : scope.getActivities()) {
-      if (activityId.equals(child.getId())) {
-        return child;
-      }
-    }
-    String multiInstanceBodyId = activityId + BpmnParse.MULTI_INSTANCE_BODY_ID_SUFFIX;
-    for (ActivityImpl child : scope.getActivities()) {
-      if (multiInstanceBodyId.equals(child.getId())) {
-        return child;
-      }
-    }
-    // The startable set is derived from the same element at parse time, so this cannot happen
-    // unless the two fall out of step.
-    throw new BadUserRequestException("Ad hoc sub process '" + scope.getId()
-        + "' reports '" + activityId + "' as startable but has no such child activity.");
   }
 
   /**
