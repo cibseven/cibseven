@@ -514,6 +514,112 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
         .isNotNull();
   }
 
+  // ---------------------------------------------------------------- a multi-instance child
+  //
+  // A child with loop characteristics is started through its generated multi-instance body, and the
+  // body is the scope's direct child: one activation, however many instances it then creates. The
+  // instances run one level below, and an instance ending is the body's business, not the scope's:
+  // a sequential body starts its next iteration in the same transaction, and the scope is not
+  // consulted at all. The scope decides only when a direct child ends, so the case that matters is a
+  // sibling ending while the body still runs -- the body's inactive concurrent execution with a null
+  // activity must count as running then, exactly as for any other scope child above.
+
+  @org.cibseven.bpm.engine.test.Deployment
+  @Test
+  public void testParallelMultiInstanceChildKeepsTheScopeOpen() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocParallelMiChild");
+    activateThroughApi(pi, "looped", "quick");
+    assertThat(taskService.createTaskQuery().taskDefinitionKey("looped").count()).isEqualTo(2);
+
+    taskService.complete(task("quick").getId());
+    assertThat(task("after"))
+        .as("completing the sibling must not end the scope while the body's instances run")
+        .isNull();
+
+    List<Task> instances = taskService.createTaskQuery().taskDefinitionKey("looped").list();
+    taskService.complete(instances.get(0).getId());
+    assertThat(task("after"))
+        .as("one instance ending is not the body ending, so the scope must stay open")
+        .isNull();
+    assertThat(taskService.createTaskQuery().taskDefinitionKey("looped").count())
+        .as("and the other instance must not have been cancelled")
+        .isEqualTo(1);
+
+    taskService.complete(instances.get(1).getId());
+    assertThat(task("after"))
+        .as("once the body's last instance is done, nothing is active and the scope leaves")
+        .isNotNull();
+  }
+
+  @org.cibseven.bpm.engine.test.Deployment
+  @Test
+  public void testSequentialMultiInstanceChildKeepsTheScopeOpen() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocSequentialMiChild");
+    activateThroughApi(pi, "looped", "quick");
+
+    taskService.complete(task("quick").getId());
+    assertThat(task("after"))
+        .as("completing the sibling must not end the scope while the body is mid-loop")
+        .isNull();
+
+    for (int iteration = 1; iteration <= 3; iteration++) {
+      assertThat(task("after"))
+          .as("the scope must still be open before iteration " + iteration)
+          .isNull();
+      Task instance = task("looped");
+      assertThat(instance)
+          .as("a sequential body runs exactly one instance at a time, iteration " + iteration)
+          .isNotNull();
+      taskService.complete(instance.getId());
+    }
+
+    assertThat(task("after"))
+        .as("once the last iteration is done, nothing is active and the scope leaves")
+        .isNotNull();
+  }
+
+  // Asserts on historic activity instances for the cancelled inner instances.
+  @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
+  @org.cibseven.bpm.engine.test.Deployment
+  @Test
+  public void testCompletionConditionCancelsAMultiInstanceChild() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocCancelMiChild");
+    activateThroughApi(pi, "looped", "taskA");
+    assertThat(taskService.createTaskQuery().taskDefinitionKey("looped").count()).isEqualTo(3);
+
+    Map<String, Object> vars = new HashMap<String, Object>();
+    vars.put("enough", true);
+    taskService.complete(task("taskA").getId(), vars);
+
+    // cancelRemainingInstances = true -> the body is cancelled as a whole, every instance with it.
+    assertThat(taskService.createTaskQuery().count())
+        .as("no instance of the multi-instance child may survive the cancellation")
+        .isZero();
+    testRule.assertProcessEnded(pi.getId());
+    assertThat(historyService.createHistoricActivityInstanceQuery()
+        .processInstanceId(pi.getId()).activityId("looped").canceled().count())
+        .as("each cancelled instance must still be recorded in history, as cancelled")
+        .isEqualTo(3);
+  }
+
+  /**
+   * Starts children through the activation API. Process instance modification is not used here
+   * because it addresses a multi-instance child's inner activity, not its body; the API resolves the
+   * model id to the body, which is how a caller actually starts such a child.
+   */
+  protected void activateThroughApi(ProcessInstance pi, String... activityIds) {
+    for (org.cibseven.bpm.engine.runtime.Execution execution : runtimeService.createExecutionQuery()
+        .processInstanceId(pi.getId()).list()) {
+      if ("adHoc".equals(((org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity) execution)
+          .getActivityId())) {
+        runtimeService.activateAdHocSubProcessActivities(execution.getId(),
+            java.util.Arrays.asList(activityIds));
+        return;
+      }
+    }
+    throw new AssertionError("no execution sitting on the ad hoc scope");
+  }
+
   // ---------------------------------------------------------------- FR-13, history
 
   // Asserts on historic activity and process instances, so it needs activity-level history.
