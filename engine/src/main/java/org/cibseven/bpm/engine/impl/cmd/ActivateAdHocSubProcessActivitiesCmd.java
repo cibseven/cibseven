@@ -213,7 +213,7 @@ public class ActivateAdHocSubProcessActivitiesCmd implements Command<List<String
         UserOperationLogEntry.OPERATION_TYPE_MODIFY_PROCESS_INSTANCE,
         scopeExecution.getProcessInstanceId(),
         scopeExecution.getProcessDefinitionId(),
-        null,
+        scopeExecution.getProcessDefinitionKey(),
         propertyChanges);
   }
 
