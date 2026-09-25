@@ -39,6 +39,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -65,6 +66,7 @@ import org.cibseven.bpm.engine.rest.helper.variable.EqualsPrimitiveValue;
 import org.cibseven.bpm.engine.rest.helper.variable.EqualsUntypedValue;
 import org.cibseven.bpm.engine.rest.util.VariablesBuilder;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
+import org.cibseven.bpm.engine.runtime.AdHocSubProcessActivationBuilder;
 import org.cibseven.bpm.engine.runtime.DeserializationTypeValidator;
 import org.cibseven.bpm.engine.runtime.EventSubscription;
 import org.cibseven.bpm.engine.runtime.EventSubscriptionQuery;
@@ -100,6 +102,8 @@ public class ExecutionRestServiceInteractionTest extends AbstractRestServiceTest
   protected static final String MESSAGE_SUBSCRIPTION_URL = EXECUTION_URL + "/messageSubscriptions/{messageName}";
   protected static final String TRIGGER_MESSAGE_SUBSCRIPTION_URL = EXECUTION_URL + "/messageSubscriptions/{messageName}/trigger";
   protected static final String CREATE_INCIDENT_URL = EXECUTION_URL + "/create-incident";
+  protected static final String ACTIVATE_AD_HOC_ACTIVITIES_URL = EXECUTION_URL + "/ad-hoc-activities/activate";
+  protected static final String COMPLETE_AD_HOC_SUB_PROCESS_URL = EXECUTION_URL + "/ad-hoc-activities/complete";
 
   private RuntimeServiceImpl runtimeServiceMock;
 
@@ -1652,4 +1656,194 @@ public class ExecutionRestServiceInteractionTest extends AbstractRestServiceTest
     given().pathParam("id", MockProvider.EXAMPLE_EXECUTION_ID).contentType(ContentType.JSON).body(json).then().expect()
         .statusCode(Status.BAD_REQUEST.getStatusCode()).when().post(CREATE_INCIDENT_URL);
   }
+  protected AdHocSubProcessActivationBuilder recordingActivation(
+      final List<String> startedIds, final List<Map<String, Object>> perPerformance,
+      final List<String> result) {
+    return new AdHocSubProcessActivationBuilder() {
+      @Override
+      public AdHocSubProcessActivationBuilder startActivity(String activityId) {
+        startedIds.add(activityId);
+        perPerformance.add(null);
+        return this;
+      }
+      @Override
+      public AdHocSubProcessActivationBuilder setVariable(String name, Object value) {
+        return setVariables(Collections.singletonMap(name, value));
+      }
+      @Override
+      public AdHocSubProcessActivationBuilder setVariables(Map<String, Object> variables) {
+        Map<String, Object> current = perPerformance.get(perPerformance.size() - 1);
+        if (current == null) {
+          current = new HashMap<>();
+          perPerformance.set(perPerformance.size() - 1, current);
+        }
+        current.putAll(variables);
+        return this;
+      }
+      @Override
+      public List<String> execute() {
+        if (result == null) {
+          throw new BadUserRequestException("Cannot start [waitForMsg]");
+        }
+        return result;
+      }
+    };
+  }
+
+  @Test
+  public void testActivateAdHocSubProcessActivities() {
+    List<String> started = new ArrayList<>();
+    List<Map<String, Object>> perPerformance = new ArrayList<>();
+    when(runtimeServiceMock.createAdHocSubProcessActivation(anyString())).thenReturn(
+        recordingActivation(started, perPerformance,
+            Arrays.asList("taskA:anInstanceId", "taskB:anotherInstanceId")));
+
+    Map<String, Object> json = new HashMap<>();
+    json.put("elements", Arrays.asList(
+        Collections.singletonMap("elementId", "taskA"),
+        Collections.singletonMap("elementId", "taskB")));
+
+    given().pathParam("id", MockProvider.EXAMPLE_EXECUTION_ID).contentType(ContentType.JSON).body(json)
+        .then().expect().statusCode(Status.OK.getStatusCode())
+        // The created ids are the reason this returns a body rather than 204: a caller starting
+        // elements inside a running instance needs them to join an audit record against.
+        .body("size()", equalTo(2))
+        .body("[0].elementId", equalTo("taskA"))
+        .body("[0].elementInstanceId", equalTo("taskA:anInstanceId"))
+        .body("[1].elementId", equalTo("taskB"))
+        .body("[1].elementInstanceId", equalTo("taskB:anotherInstanceId"))
+        .when().post(ACTIVATE_AD_HOC_ACTIVITIES_URL);
+
+    verify(runtimeServiceMock).createAdHocSubProcessActivation(MockProvider.EXAMPLE_EXECUTION_ID);
+    assertThat(started).isEqualTo(Arrays.asList("taskA", "taskB"));
+  }
+
+  @Test
+  public void testActivateAdHocSubProcessActivitiesWithVariables() {
+    List<String> started = new ArrayList<>();
+    List<Map<String, Object>> perPerformance = new ArrayList<>();
+    when(runtimeServiceMock.createAdHocSubProcessActivation(anyString())).thenReturn(
+        recordingActivation(started, perPerformance, Collections.singletonList("taskA:anInstanceId")));
+
+    Map<String, Object> variableValue = new HashMap<>();
+    variableValue.put("value", "alice");
+    variableValue.put("type", "String");
+    Map<String, Object> element = new HashMap<>();
+    element.put("elementId", "taskA");
+    element.put("variables", Collections.singletonMap("assignedTo", variableValue));
+    Map<String, Object> json = new HashMap<>();
+    json.put("elements", Collections.singletonList(element));
+
+    given().pathParam("id", MockProvider.EXAMPLE_EXECUTION_ID).contentType(ContentType.JSON).body(json)
+        .then().expect().statusCode(Status.OK.getStatusCode())
+        .when().post(ACTIVATE_AD_HOC_ACTIVITIES_URL);
+
+    assertThat(started).isEqualTo(Collections.singletonList("taskA"));
+    assertThat(perPerformance.get(0).get("assignedTo")).isEqualTo("alice");
+  }
+
+  /**
+   * CIB7-1892, the input half. The wire format has always been a list of instructions, and the
+   * resource used to narrow it to a map keyed by element id -- so naming one element twice with
+   * different variables started it twice and gave both the last entry's. Each entry now stands.
+   */
+  @Test
+  public void testTheSameElementTwiceKeepsItsOwnVariables() {
+    List<String> started = new ArrayList<>();
+    List<Map<String, Object>> perPerformance = new ArrayList<>();
+    when(runtimeServiceMock.createAdHocSubProcessActivation(anyString())).thenReturn(
+        recordingActivation(started, perPerformance,
+            Arrays.asList("search:one", "search:two")));
+
+    Map<String, Object> json = new HashMap<>();
+    json.put("elements", Arrays.asList(
+        elementWithVariable("search", "query", "invoices"),
+        elementWithVariable("search", "query", "credit notes")));
+
+    given().pathParam("id", MockProvider.EXAMPLE_EXECUTION_ID).contentType(ContentType.JSON).body(json)
+        .then().expect().statusCode(Status.OK.getStatusCode())
+        .when().post(ACTIVATE_AD_HOC_ACTIVITIES_URL);
+
+    assertThat(started).isEqualTo(Arrays.asList("search", "search"));
+    assertThat(perPerformance.get(0).get("query")).isEqualTo("invoices");
+    assertThat(perPerformance.get(1).get("query")).isEqualTo("credit notes");
+  }
+
+  protected Map<String, Object> elementWithVariable(String elementId, String name, String value) {
+    Map<String, Object> variableValue = new HashMap<>();
+    variableValue.put("value", value);
+    variableValue.put("type", "String");
+    Map<String, Object> element = new HashMap<>();
+    element.put("elementId", elementId);
+    element.put("variables", Collections.singletonMap(name, variableValue));
+    return element;
+  }
+
+  /**
+   * The specific bug this endpoint exists not to repeat. Everything the engine command refuses is the
+   * caller's mistake, so it has to be a 400. Uncaught it would surface as a 500, because
+   * BadUserRequestException is a ProcessEngineException.
+   */
+  @Test
+  public void testActivateAdHocSubProcessActivitiesRefusalIsBadRequestNotServerError() {
+    when(runtimeServiceMock.createAdHocSubProcessActivation(anyString())).thenReturn(
+        recordingActivation(new ArrayList<String>(), new ArrayList<Map<String, Object>>(), null));
+
+    Map<String, Object> json = new HashMap<>();
+    json.put("elements", Collections.singletonList(
+        Collections.singletonMap("elementId", "waitForMsg")));
+
+    given().pathParam("id", MockProvider.EXAMPLE_EXECUTION_ID).contentType(ContentType.JSON).body(json)
+        .then().expect().statusCode(Status.BAD_REQUEST.getStatusCode())
+        .body("message", containsString("waitForMsg"))
+        .when().post(ACTIVATE_AD_HOC_ACTIVITIES_URL);
+  }
+
+  @Test
+  public void testCompleteAdHocSubProcess() {
+    given().pathParam("id", MockProvider.EXAMPLE_EXECUTION_ID).contentType(ContentType.JSON).body("{}")
+        .then().expect().statusCode(Status.NO_CONTENT.getStatusCode())
+        .when().post(COMPLETE_AD_HOC_SUB_PROCESS_URL);
+
+    verify(runtimeServiceMock).completeAdHocSubProcess(eq(MockProvider.EXAMPLE_EXECUTION_ID), any());
+  }
+
+  /**
+   * The endpoint documents that variables sent with a completion are set on the scope, so the typed
+   * value has to survive the conversion. Asserting only that some map arrived would pass for an
+   * implementation that dropped or mangled it.
+   */
+  @Test
+  public void testCompleteAdHocSubProcessWithVariables() {
+    Map<String, Object> variableValue = new HashMap<>();
+    variableValue.put("value", "approved");
+    variableValue.put("type", "String");
+    Map<String, Object> json = new HashMap<>();
+    json.put("variables", Collections.singletonMap("outcome", variableValue));
+
+    given().pathParam("id", MockProvider.EXAMPLE_EXECUTION_ID).contentType(ContentType.JSON).body(json)
+        .then().expect().statusCode(Status.NO_CONTENT.getStatusCode())
+        .when().post(COMPLETE_AD_HOC_SUB_PROCESS_URL);
+
+    ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
+    verify(runtimeServiceMock).completeAdHocSubProcess(
+        eq(MockProvider.EXAMPLE_EXECUTION_ID), captor.capture());
+    assertThat(captor.getValue().get("outcome")).isEqualTo("approved");
+  }
+
+  /**
+   * Caught on this endpoint too, so the pair behaves consistently. The reference implementation
+   * catches it on one and not the other, which is harder to work with than either choice made twice.
+   */
+  @Test
+  public void testCompleteAdHocSubProcessRefusalIsBadRequestNotServerError() {
+    doThrow(new BadUserRequestException("not an ad hoc sub process"))
+        .when(runtimeServiceMock).completeAdHocSubProcess(anyString(), any());
+
+    given().pathParam("id", MockProvider.EXAMPLE_EXECUTION_ID).contentType(ContentType.JSON).body("{}")
+        .then().expect().statusCode(Status.BAD_REQUEST.getStatusCode())
+        .body("message", containsString("not an ad hoc sub process"))
+        .when().post(COMPLETE_AD_HOC_SUB_PROCESS_URL);
+  }
+
 }

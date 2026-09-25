@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc">
+  <!-- Each task appends its id as it starts, so the variable records the order they were started in. -->
+  <process id="adHocEntryOrder" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="toAdHoc" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <extensionElements>
+        <camunda:properties>
+          <camunda:property name="activeElementsCollection" value="first,second,third" />
+        </camunda:properties>
+      </extensionElements>
+      <userTask id="first">
+        <extensionElements>
+          <camunda:executionListener event="start"
+              expression="${execution.setVariable('order', (execution.hasVariable('order') ? order : '').concat('first,'))}" />
+        </extensionElements>
+      </userTask>
+      <userTask id="second">
+        <extensionElements>
+          <camunda:executionListener event="start"
+              expression="${execution.setVariable('order', (execution.hasVariable('order') ? order : '').concat('second,'))}" />
+        </extensionElements>
+      </userTask>
+      <userTask id="third">
+        <extensionElements>
+          <camunda:executionListener event="start"
+              expression="${execution.setVariable('order', (execution.hasVariable('order') ? order : '').concat('third,'))}" />
+        </extensionElements>
+      </userTask>
+      <completionCondition xsi:type="tFormalExpression">${false}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="toEnd" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

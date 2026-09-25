@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +79,7 @@ import org.cibseven.bpm.engine.impl.bpmn.behavior.SequentialMultiInstanceActivit
 import org.cibseven.bpm.engine.impl.bpmn.behavior.ServiceTaskDelegateExpressionActivityBehavior;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.ServiceTaskExpressionActivityBehavior;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.ShellActivityBehavior;
+import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessActivityBehavior;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.SubProcessActivityBehavior;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.TaskActivityBehavior;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.TerminateEndEventActivityBehavior;
@@ -185,6 +187,39 @@ public class BpmnParse extends Parse {
   public static final String MULTI_INSTANCE_BODY_ID_SUFFIX = "#multiInstanceBody";
 
   protected static final BpmnParseLogger LOG = ProcessEngineLogger.BPMN_PARSE_LOGGER;
+
+  /** Extension property naming the activities to start on entry. See CIB7-1891. */
+  public static final String AD_HOC_ENTRY_ACTIVITIES_PROPERTY = "activeElementsCollection";
+
+  /** Extension property naming the variable each performance's result is appended to. CIB7-1892. */
+  public static final String AD_HOC_OUTPUT_COLLECTION_PROPERTY = "outputCollection";
+
+  /** Extension property holding the expression evaluated once per completed child. CIB7-1892. */
+  public static final String AD_HOC_OUTPUT_ELEMENT_PROPERTY = "outputElement";
+
+  /**
+   * The element names of every BPMN Activity, i.e. the concrete subtypes of {@code tActivity} that
+   * can appear as a flow element. Gateways and events are deliberately absent: they are flow nodes
+   * but they are not Activities.
+   *
+   * <p>A set rather than a list, because both callers ask "is this child an Activity" while walking
+   * the children in document order. Iterating these names in the outer loop instead would group the
+   * result by activity type and lose that order.
+   */
+  protected static final Set<String> ACTIVITY_ELEMENT_NAMES = Collections.unmodifiableSet(
+      new HashSet<>(Arrays.asList(
+      ActivityTypes.TASK,
+      ActivityTypes.TASK_USER_TASK,
+      ActivityTypes.TASK_SERVICE,
+      ActivityTypes.TASK_SCRIPT,
+      ActivityTypes.TASK_BUSINESS_RULE,
+      ActivityTypes.TASK_MANUAL_TASK,
+      ActivityTypes.TASK_SEND_TASK,
+      ActivityTypes.TASK_RECEIVE_TASK,
+      ActivityTypes.SUB_PROCESS,
+      ActivityTypes.SUB_PROCESS_AD_HOC,
+      ActivityTypes.CALL_ACTIVITY,
+      ActivityTypes.TRANSACTION)));
 
   public static final String PROPERTYNAME_DOCUMENTATION = "documentation";
   public static final String PROPERTYNAME_INITIATOR_VARIABLE_NAME = "initiatorVariableName";
@@ -1413,11 +1448,16 @@ public class BpmnParse extends Parse {
       activity = parseEventBasedGateway(activityElement, parentElement, scopeElement);
     } else if (activityElement.getTagName().equals(ActivityTypes.TRANSACTION)) {
       activity = parseTransaction(activityElement, scopeElement);
-    } else if (activityElement.getTagName().equals(ActivityTypes.SUB_PROCESS_AD_HOC) || activityElement.getTagName().equals(ActivityTypes.GATEWAY_COMPLEX)) {
+    } else if (activityElement.getTagName().equals(ActivityTypes.SUB_PROCESS_AD_HOC)) {
+      activity = parseAdHocSubProcess(activityElement, scopeElement);
+    } else if (activityElement.getTagName().equals(ActivityTypes.GATEWAY_COMPLEX)) {
       addWarning("Ignoring unsupported activity type", activityElement);
     }
 
-    if (isMultiInstance) {
+    // Guard ordering fix: this block previously dereferenced 'activity' before the null check
+    // below, so an unsupported activity type carrying loop characteristics threw a
+    // NullPointerException at deployment instead of reporting a diagnostic.
+    if (isMultiInstance && activity != null) {
       activity.setProperty(PROPERTYNAME_IS_MULTI_INSTANCE, true);
     }
 
@@ -3899,6 +3939,344 @@ public class BpmnParse extends Parse {
     return subProcessActivity;
   }
 
+  /**
+   * Parses a BPMN adHocSubProcess.
+   *
+   * <p>Fires the existing {@code parseSubProcess} listener hook rather than a new one: an ad-hoc
+   * sub-process IS-A sub-process ({@code tAdHocSubProcess extends tSubProcess}), and four types
+   * implement {@code BpmnParseListener} directly and would not compile against a new abstract method.
+   */
+  public ActivityImpl parseAdHocSubProcess(Element adHocElement, ScopeImpl scope) {
+    ActivityImpl activity = createActivityOnScope(adHocElement, scope);
+    activity.setSubProcessScope(true);
+    activity.setScope(true);
+    activity.getProperties().set(BpmnProperties.TRIGGERED_BY_EVENT, false);
+    activity.setProperty(PROPERTYNAME_CONSUMES_COMPENSATION, true);
+
+    parseAsynchronousContinuationForActivity(adHocElement, activity);
+
+    // An event sub-process is entered by a start event inside it, and BPMN 2.0.0 section 10.3.5
+    // forbids a start event inside an ad hoc scope. The combination is therefore unreachable by
+    // construction: it would deploy and then never be triggerable. Refuse it at the model.
+    if (parseBooleanAttribute(adHocElement.attribute("triggeredByEvent"), false)) {
+      addError("Ad hoc sub process '" + activity.getId()
+          + "': triggeredByEvent='true' is not allowed, because an event sub process is started by"
+          + " a start event and a start event is not permitted inside an ad hoc sub process",
+          adHocElement);
+    }
+
+    // CIB7-1967. A non-interrupting event sub process inside the scope makes the process virtual
+    // machine expand concurrency: it inserts a branch execution at scope level and moves the
+    // scope's activity down onto it. This behaviour reads the unexpanded shape, so completing the
+    // task inside such an event sub process while an activity of the scope is still running fails
+    // in the persistence layer and is rolled back, leaving a task that can never be completed.
+    //
+    // Refused rather than documented because the failure depends on the order in which the two
+    // finish. Completing the scope's own activity first works, so the model passes a test run and
+    // fails in production, and no modelling choice can enforce that order. A deployment error is
+    // the one outcome a modeller can act on.
+    //
+    // An interrupting event sub process stays permitted and is the documented alternative: it
+    // cancels the scope's running children instead of running beside them, which leaves the tree
+    // unexpanded. The runtime fix that would lift this refusal is the remaining half of CIB7-1967.
+    for (Element eventSubProcess : adHocElement.elements("subProcess")) {
+      if (!parseBooleanAttribute(eventSubProcess.attribute("triggeredByEvent"), false)) {
+        continue;
+      }
+      for (Element startEvent : eventSubProcess.elements("startEvent")) {
+        if (!parseBooleanAttribute(startEvent.attribute(INTERRUPTING), true)) {
+          addError("Ad hoc sub process '" + activity.getId() + "': the event sub process '"
+              + eventSubProcess.attribute("id") + "' is non-interrupting, which is not supported"
+              + " inside an ad hoc sub process. Make it interrupting, or handle the event outside"
+              + " the scope.", adHocElement);
+        }
+      }
+    }
+
+    // The same failure, reached by the other element that starts work beside a running child: a
+    // non-interrupting boundary event on one of the scope's activities. Measured on a distribution,
+    // it behaves exactly as the event sub process did -- the handler starts alongside, and
+    // completing it while the activity it is attached to is still running fails in the persistence
+    // layer and is rolled back. An interrupting boundary event is unaffected, because it cancels the
+    // activity rather than running beside it, and has a green test.
+    for (Element boundaryEvent : adHocElement.elements("boundaryEvent")) {
+      if (parseBooleanAttribute(boundaryEvent.attribute("cancelActivity"), true)) {
+        continue;
+      }
+      addError("Ad hoc sub process '" + activity.getId() + "': the boundary event '"
+          + boundaryEvent.attribute("id") + "' is non-interrupting, which is not supported inside an"
+          + " ad hoc sub process. Make it interrupting, or attach it to the ad hoc sub process"
+          + " itself rather than to one of its activities.", adHocElement);
+    }
+
+    AdHocSubProcessActivityBehavior behavior = new AdHocSubProcessActivityBehavior();
+
+    // The XSD declares default="Parallel", so an absent attribute means Parallel rather than
+    // "unspecified". Reject only the known-bad value: whitelisting 'Parallel' would refuse the
+    // very models that rely on that default.
+    String ordering = adHocElement.attribute("ordering");
+    if (ordering != null && "Sequential".equals(ordering.trim())) {
+      addError("Ad hoc sub process '" + activity.getId()
+          + "': ordering='Sequential' is not supported; only 'Parallel' is implemented."
+          + " To order particular activities, connect them with a sequence flow inside the scope.",
+          adHocElement);
+    }
+
+    // The XSD declares default="true"; a Java primitive would default to false.
+    behavior.setCancelRemainingInstances(
+        parseBooleanAttribute(adHocElement.attribute("cancelRemainingInstances"), true));
+
+    Element completionConditionElement = adHocElement.element("completionCondition");
+    if (completionConditionElement != null) {
+      behavior.setCompletionCondition(parseConditionExpression(completionConditionElement, activity.getId()));
+    }
+
+    parseAdHocEntryActivation(adHocElement, activity, behavior);
+    parseAdHocOutputAggregation(adHocElement, activity, behavior);
+
+    activity.setActivityBehavior(behavior);
+    parseScope(adHocElement, activity);
+
+    // CIB7-1882: a child taking an inner flow must let the scope consult its completion condition,
+    // because taking a flow is not an end and nothing else would notify the scope. TransitionImpl
+    // accepts execution listeners, so this needs no process-virtual-machine change.
+    AdHocSubProcessActivityBehavior.InnerTransitionListener innerTransitionListener =
+        new AdHocSubProcessActivityBehavior.InnerTransitionListener();
+    for (ActivityImpl child : activity.getActivities()) {
+      for (PvmTransition transition : child.getOutgoingTransitions()) {
+        ((TransitionImpl) transition).addExecutionListener(innerTransitionListener);
+      }
+    }
+
+    parseAdHocStartableActivities(adHocElement, activity);
+
+    // BPMN 2.0.0 section 10.3.5 lists the elements that MUST be used inside an ad hoc sub process,
+    // and that list is exactly "Activity". A scope with no Activity is therefore not a valid model.
+    // It also cannot work: with nothing to activate the scope waits on entry and never completes, so
+    // accepting it trades a deployment error for a process instance stuck forever.
+    if (!containsActivityElement(adHocElement)) {
+      addError("Ad hoc sub process '" + activity.getId()
+          + "': at least one activity is required inside an ad hoc sub process", adHocElement);
+    }
+
+    // CIB7-1882: sequence flows between children, and the gateways that route along them, are
+    // permitted by BPMN 2.0.0 section 10.3.5 and are no longer rejected. parseScope above has
+    // already parsed both; what makes them work at runtime is the completion condition being
+    // re-evaluated when a child transitions rather than only when one ends.
+    //
+    // A child that is the target of an inner flow is reached from its predecessor and is therefore
+    // not directly startable -- that clause has always been in startableActivityIds and becomes
+    // load-bearing here.
+
+    for (String eventTag : new String[] { "startEvent", "endEvent" }) {
+      for (Element event : adHocElement.elements(eventTag)) {
+        addError("Ad hoc sub process '" + activity.getId() + "': " + eventTag
+            + " is not supported inside an ad hoc sub process", event);
+      }
+    }
+
+    for (BpmnParseListener parseListener : parseListeners) {
+      parseListener.parseSubProcess(adHocElement, scope, activity);
+    }
+    return activity;
+  }
+
+  /**
+   * Records which children of an ad hoc sub process may be started directly, as decided by
+   * {@link #startableActivityIds}.
+   *
+   * <p>Stored on the activity so that what starts a child has something to check against: the
+   * activation API and the entry list both refuse an id outside the set. Process instance
+   * modification does not consult it.
+   */
+  protected void parseAdHocStartableActivities(Element adHocElement, ActivityImpl activity) {
+    for (String activityId : startableActivityIds(adHocElement)) {
+      activity.getProperties().addListItem(BpmnProperties.AD_HOC_STARTABLE_ACTIVITIES, activityId);
+    }
+  }
+
+  /**
+   * Declarative entry activation (CIB7-1891): {@code camunda:property activeElementsCollection} names the
+   * activities to start when the scope is entered.
+   *
+   * <p>Carried as an extension property rather than a new namespace, per CIB7-1890. Extension
+   * properties are read here at parse time and never become process variables, so a child of the
+   * scope cannot rewrite which activities its own scope starts.
+   *
+   * <p>A value with no expression syntax is a literal list, and is therefore validated <em>now</em>
+   * against the startable set — neither reference does this, both only find a bad id at runtime. A
+   * value containing an expression can only be checked when it is evaluated.
+   */
+  protected void parseAdHocEntryActivation(Element adHocElement, ActivityImpl activity,
+      AdHocSubProcessActivityBehavior behavior) {
+
+    Map<String, String> extensionProperties = parseCamundaExtensionProperties(adHocElement);
+    if (extensionProperties == null) {
+      return;
+    }
+    String raw = extensionProperties.get(AD_HOC_ENTRY_ACTIVITIES_PROPERTY);
+    if (raw == null || raw.trim().isEmpty()) {
+      return;
+    }
+
+    if (!raw.contains("${") && !raw.contains("#{")) {
+      // Read the way entry activation reads it at runtime -- a comma-separated list or a JSON array --
+      // so that what deploys is what runs.
+      List<String> named;
+      try {
+        named = AdHocSubProcessActivityBehavior.activityIdsOf(raw, activity.getId());
+      } catch (ProcessEngineException e) {
+        addError(e.getMessage(), adHocElement);
+        return;
+      }
+      List<String> startable = startableActivityIds(adHocElement);
+      List<String> unknown = new ArrayList<String>();
+      for (String id : named) {
+        if (!startable.contains(id)) {
+          unknown.add(id);
+        }
+      }
+      if (!unknown.isEmpty()) {
+        addError("Ad hoc sub process '" + activity.getId() + "': " + AD_HOC_ENTRY_ACTIVITIES_PROPERTY
+            + " names " + unknown + ", which " + (unknown.size() == 1 ? "is" : "are")
+            + " not directly startable here. The startable activities are " + startable + ".",
+            adHocElement);
+        return;
+      }
+    }
+
+    behavior.setEntryActivityIds(expressionManager.createExpression(raw));
+  }
+
+  /**
+   * Gathering each performance's result (CIB7-1892): {@code camunda:property outputCollection} names
+   * a variable, {@code outputElement} an expression evaluated once per completed child, and the
+   * value is appended to that variable.
+   *
+   * <p>It exists because the alternative loses data silently. An ad hoc child is deliberately not a
+   * variable scope, so its output mapping lands above the scope and the specification's own
+   * "an activity may be performed more than once" then means the second performance overwrites the
+   * first. A scalar variable has one slot; repeated performance needs more than one.
+   *
+   * <p>Both properties or neither. One alone is always a mistake -- a collection with nothing to put
+   * in it, or an expression with nowhere to put it -- and a mistake that would otherwise be silent,
+   * because the aggregation simply would not happen. So it is refused at deployment, as other
+   * half-declared ad hoc configuration is.
+   *
+   * <p>Carried as extension properties rather than new attributes, per CIB7-1890, and read at parse
+   * time so a child of the scope cannot rewrite where its own scope gathers results.
+   */
+  protected void parseAdHocOutputAggregation(Element adHocElement, ActivityImpl activity,
+      AdHocSubProcessActivityBehavior behavior) {
+
+    Map<String, String> extensionProperties = parseCamundaExtensionProperties(adHocElement);
+    if (extensionProperties == null) {
+      return;
+    }
+    String collection = trimToNull(extensionProperties.get(AD_HOC_OUTPUT_COLLECTION_PROPERTY));
+    String element = trimToNull(extensionProperties.get(AD_HOC_OUTPUT_ELEMENT_PROPERTY));
+
+    if (collection == null && element == null) {
+      return;
+    }
+    if (collection == null || element == null) {
+      String given = (collection == null) ? AD_HOC_OUTPUT_ELEMENT_PROPERTY
+          : AD_HOC_OUTPUT_COLLECTION_PROPERTY;
+      String missing = (collection == null) ? AD_HOC_OUTPUT_COLLECTION_PROPERTY
+          : AD_HOC_OUTPUT_ELEMENT_PROPERTY;
+      addError("Ad hoc sub process '" + activity.getId() + "': '" + given + "' is set without '"
+          + missing + "'. Gathering results needs both -- a variable to gather into and an"
+          + " expression saying what to gather -- so one alone would silently gather nothing.",
+          adHocElement);
+      return;
+    }
+
+    behavior.setOutputCollectionName(collection);
+    behavior.setOutputElement(expressionManager.createExpression(element));
+  }
+
+  protected static String trimToNull(String value) {
+    if (value == null) {
+      return null;
+    }
+    String trimmed = value.trim();
+    return trimmed.isEmpty() ? null : trimmed;
+  }
+
+  /**
+   * The ids of the children of an ad hoc sub process that may be started directly, in document order.
+   *
+   * <p>A child is directly startable if it is an Activity and has no incoming sequence flow from
+   * within the scope. Both clauses come from BPMN 2.0.0 section 10.3.5 rather than from a list
+   * someone wrote down.
+   *
+   * <p>The first: the section's list of what MUST be used inside an ad hoc sub process has exactly
+   * one entry, Activity. Gateway and Intermediate Event appear on the MAY-be-used list precisely
+   * because they are not Activities, so they are reachable by sequence flow and never by direct
+   * activation. Deriving the rule this way rather than enumerating types means it cannot drift as
+   * activity types are added to the engine, and it keeps a nested ad hoc scope startable, which is
+   * correct because such a scope is itself an Activity.
+   *
+   * <p>The second: a flow target is reached from its predecessor, so it cannot also be a starting
+   * point. Since CIB7-1882 allows sequence flows between children, this is what keeps the target of
+   * one from being started on its own.
+   *
+   * <p>Static and side-effect free on purpose, so the parser-level test can exercise both clauses on
+   * an element without a deployment. {@link #parseAdHocStartableActivities} does the storing; this
+   * decides.
+   */
+  protected static List<String> startableActivityIds(Element adHocElement) {
+    Set<String> flowTargets = new HashSet<>();
+    for (Element flow : adHocElement.elements("sequenceFlow")) {
+      String target = flow.attribute("targetRef");
+      if (target != null) {
+        flowTargets.add(target);
+      }
+    }
+
+    List<String> startable = new ArrayList<>();
+    for (Element child : adHocElement.elements()) {
+      if (!ACTIVITY_ELEMENT_NAMES.contains(child.getTagName())) {
+        continue;
+      }
+      String id = child.attribute("id");
+      if (id == null || flowTargets.contains(id) || hasItsOwnActivationMechanism(child)) {
+        continue;
+      }
+      startable.add(id);
+    }
+    return startable;
+  }
+
+  /**
+   * Whether the activity is reached by a dedicated BPMN mechanism rather than by being started.
+   *
+   * <p>Both of these are Activities with no incoming sequence flow, so the rule above would other-
+   * wise call them startable, and both would be wrong. A compensation handler is reached by
+   * compensation being thrown, and an event sub process by its own start event firing. Starting
+   * either directly would bypass the very thing that defines it.
+   */
+  protected static boolean hasItsOwnActivationMechanism(Element activityElement) {
+    return Boolean.parseBoolean(activityElement.attribute("isForCompensation"))
+        || Boolean.parseBoolean(activityElement.attribute("triggeredByEvent"));
+  }
+
+  /**
+   * Whether the element has at least one direct child that is a BPMN Activity.
+   *
+   * <p>Read from the XML rather than from the parsed scope on purpose. The parsed scope holds an
+   * {@link ActivityImpl} for gateways and events too, so counting it cannot tell "contains an
+   * Activity" from "contains a gateway", and the specification requirement is about Activities.
+   */
+  protected boolean containsActivityElement(Element element) {
+    for (Element child : element.elements()) {
+      if (ACTIVITY_ELEMENT_NAMES.contains(child.getTagName())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   protected ActivityImpl parseTransaction(Element transactionElement, ScopeImpl scope) {
     ActivityImpl activity = createActivityOnScope(transactionElement, scope);
 
@@ -4829,6 +5207,7 @@ public class BpmnParse extends Parse {
         || tagName.contains("Event")
         || tagName.equals("transaction")
         || tagName.equals("subProcess")
+        || tagName.equals(ActivityTypes.SUB_PROCESS_AD_HOC)
         || tagName.equals("callActivity"))) {
       addError("camunda:inputOutput mapping unsupported for element type '" + tagName + "'.", activityElement);
       return false;

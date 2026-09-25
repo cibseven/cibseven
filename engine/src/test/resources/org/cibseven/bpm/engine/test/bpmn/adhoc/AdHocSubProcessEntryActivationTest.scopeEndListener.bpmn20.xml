@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- An END listener on the scope that counts its calls, for batches through the activation API.
+     'sync' ends the scope as it runs; 'a' ends it on the flow to 'b'; 'taskA' and 'c' wait. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc">
+  <process id="adHocApiEndListener" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="toAdHoc" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <extensionElements>
+        <camunda:executionListener event="end"
+            expression="${execution.setVariable('scopeEnded', execution.getVariable('scopeEnded') == null ? 1 : execution.getVariable('scopeEnded') + 1)}" />
+      </extensionElements>
+      <serviceTask id="sync" camunda:expression="${execution.setVariable('enough', true)}" />
+      <userTask id="taskA" />
+      <serviceTask id="a" camunda:expression="${execution.setVariable('enough', true)}" />
+      <sequenceFlow id="aToB" sourceRef="a" targetRef="b" />
+      <userTask id="b" />
+      <userTask id="c" />
+      <completionCondition xsi:type="tFormalExpression">${execution.hasVariable('enough') and enough}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="toAfter" sourceRef="adHoc" targetRef="after" />
+    <userTask id="after" />
+    <sequenceFlow id="toEnd" sourceRef="after" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

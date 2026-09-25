@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- entryActivationStopsWhenAnEarlierChildEndsTheScope with an END listener on the scope that counts
+     its calls: 'sync' ends the scope while 'taskA' is created and not yet started. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc">
+  <process id="adHocEntryEndListener" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="toAdHoc" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <extensionElements>
+        <camunda:executionListener event="end"
+            expression="${execution.setVariable('scopeEnded', execution.getVariable('scopeEnded') == null ? 1 : execution.getVariable('scopeEnded') + 1)}" />
+        <camunda:properties>
+          <camunda:property name="activeElementsCollection" value="sync,taskA" />
+        </camunda:properties>
+      </extensionElements>
+      <serviceTask id="sync" camunda:expression="${execution.setVariable('enough', true)}" />
+      <userTask id="taskA" />
+      <completionCondition xsi:type="tFormalExpression">${execution.hasVariable('enough') and enough}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="toAfter" sourceRef="adHoc" targetRef="after" />
+    <userTask id="after" />
+    <sequenceFlow id="toEnd" sourceRef="after" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

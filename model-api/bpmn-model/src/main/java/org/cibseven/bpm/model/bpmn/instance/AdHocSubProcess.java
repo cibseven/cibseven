@@ -1,0 +1,60 @@
+/*
+ * Copyright CIB software GmbH and/or licensed to CIB software GmbH
+ * under one or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information regarding copyright
+ * ownership. CIB software licenses this file to you under the Apache License,
+ * Version 2.0; you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.cibseven.bpm.model.bpmn.instance;
+
+import org.cibseven.bpm.model.bpmn.AdHocOrdering;
+
+/**
+ * The BPMN 2.0 adHocSubProcess element.
+ *
+ * <p>An Ad-Hoc Sub-Process is a specialized type of Sub-Process that has a set
+ * of Activities that can be performed in any order, and some of which may not
+ * be performed at all. It is intended to be used in cases where the sequence
+ * and number of performances are determined by the performers of the Activities.
+ */
+public interface AdHocSubProcess extends SubProcess {
+
+  /**
+   * Returns the BPMN {@code ordering} attribute of the ad-hoc activities,
+   * {@link AdHocOrdering#Parallel} when the attribute is absent.
+   *
+   * <p>The engine implements {@link AdHocOrdering#Parallel} only. A model declaring
+   * {@link AdHocOrdering#Sequential} is rejected at deployment naming the attribute, rather than
+   * being accepted and executed in parallel.
+   */
+  AdHocOrdering getOrdering();
+
+  void setOrdering(AdHocOrdering ordering);
+
+  /**
+   * If true, which is the default, then when the completionCondition is met
+   * any remaining running Activity instances within the Ad-Hoc Sub-Process
+   * are cancelled.
+   */
+  boolean isCancelRemainingInstances();
+
+  void setCancelRemainingInstances(boolean cancelRemainingInstances);
+
+  /**
+   * The Expression that, when it evaluates to true, signals that the Ad-Hoc
+   * Sub-Process should complete.
+   */
+  CompletionCondition getCompletionCondition();
+
+  void setCompletionCondition(CompletionCondition completionCondition);
+
+}

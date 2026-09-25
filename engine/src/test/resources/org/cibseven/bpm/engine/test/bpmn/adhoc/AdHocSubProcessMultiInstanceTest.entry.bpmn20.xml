@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             targetNamespace="http://cibseven.org/adhoc-multi-instance">
+  <process id="adHocMiEntry" isExecutable="true">
+    <startEvent id="start" /><sequenceFlow id="f1" sourceRef="start" targetRef="scope" />
+    <adHocSubProcess id="scope">
+      <extensionElements><camunda:properties>
+        <camunda:property name="activeElementsCollection" value="triage" />
+      </camunda:properties></extensionElements>
+      <multiInstanceLoopCharacteristics isSequential="false"
+          camunda:collection="items" camunda:elementVariable="item" />
+      <userTask id="triage" name="Triage" />
+      <userTask id="followUp" name="Follow Up" />
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="scope" targetRef="end" /><endEvent id="end" />
+  </process>
+</definitions>

@@ -1,0 +1,431 @@
+/*
+ * Copyright CIB software GmbH and/or licensed to CIB software GmbH
+ * under one or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information regarding copyright
+ * ownership. CIB software licenses this file to you under the Apache License,
+ * Version 2.0; you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+package org.cibseven.bpm.engine.test.bpmn.adhoc;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.cibseven.bpm.engine.ParseException;
+import org.cibseven.bpm.engine.ProcessEngineConfiguration;
+import org.cibseven.bpm.engine.ProcessEngineException;
+import org.cibseven.bpm.engine.runtime.ProcessInstance;
+import org.cibseven.bpm.engine.task.Task;
+import org.cibseven.bpm.engine.test.Deployment;
+import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
+import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
+import org.junit.jupiter.api.Test;
+
+/**
+ * Declarative activation on entry — CIB7-1891.
+ *
+ * <p>Until this existed, entering an ad hoc scope started nothing and every activity had to arrive
+ * through the activation API. Other implementations of this element can name the activities to start
+ * on entry, and the gap was invisible to the conformance suite because it is a vendor capability the
+ * specification does not mention at all.
+ *
+ * <p>Carried as {@code camunda:property activeElementsCollection} rather than a new namespace, per
+ * CIB7-1890. Extension properties are read at parse time and never become process variables, so a
+ * child of the scope cannot rewrite which activities its own scope starts.
+ */
+public class AdHocSubProcessEntryActivationTest extends PluggableProcessEngineTest {
+
+  protected Task task(String key) {
+    return taskService.createTaskQuery().taskDefinitionKey(key).singleResult();
+  }
+
+  @Deployment
+  @Test
+  public void entryActivationStartsTheNamedActivities() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocEntry");
+
+    assertThat(task("taskA")).as("named on entry").isNotNull();
+    assertThat(task("taskB")).as("named on entry").isNotNull();
+    assertThat(task("taskC")).as("not named, so not started").isNull();
+
+    // The scope is still an ad hoc scope: the API can add more on top of the entry list.
+    runtimeService.createProcessInstanceModification(pi.getId())
+        .startBeforeActivity("taskC").execute();
+    assertThat(task("taskC")).as("entry activation and the API compose").isNotNull();
+  }
+
+  @Deployment
+  @Test
+  public void entryActivationFromAnExpression() {
+    Map<String, Object> vars = new HashMap<String, Object>();
+    vars.put("starters", Arrays.asList("taskB"));
+    runtimeService.startProcessInstanceByKey("adHocEntryExpr", vars);
+
+    // A collection from process data, not a literal — which is the reason this is an expression and
+    // not a static attribute.
+    assertThat(task("taskB")).isNotNull();
+    assertThat(task("taskA")).isNull();
+  }
+
+  /**
+   * A literal list is checked when the model deploys, not when it runs. Neither reference does this —
+   * both find a bad id only at runtime, per instance.
+   */
+  @Test
+  public void entryActivationRejectsAnUnstartableId() {
+    try {
+      testRule.deploy("org/cibseven/bpm/engine/test/bpmn/adhoc/"
+          + "AdHocSubProcessEntryActivationTest.entryActivationRejectsAnUnstartableId.bpmn20.xml");
+      fail("a literal entry list naming an unstartable activity must be rejected at deployment");
+    } catch (ParseException e) {
+      testRule.assertTextPresent("activeElementsCollection names [nosuch]", e.getMessage());
+      testRule.assertTextPresent("not directly startable here", e.getMessage());
+    }
+  }
+
+  /**
+   * Two synchronous children named on entry: the scope enters, runs both, finds nothing active with
+   * something activated, and leaves — all within the start call. Correct under the no-condition
+   * completion rule, and worth pinning because it is the one shape where entry activation makes a
+   * scope invisible at runtime.
+   */
+  @Deployment
+  @Test
+  public void entryActivationCompletesImmediatelyWithSynchronousChildren() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocEntrySync");
+
+    assertThat(task("afterAdHoc")).as("the scope entered, ran both, and left").isNotNull();
+    taskService.complete(task("afterAdHoc").getId());
+    testRule.assertProcessEnded(pi.getId());
+  }
+
+  /**
+   * A completion condition already true on entry starts nothing, and does not throw.
+   *
+   * <p>The refusal CIB7-1850 added throws, and throwing from scope entry would fail the process start
+   * outright — a model whose condition happens to be true on entry would be undeployable in practice.
+   * Starting nothing leaves the scope waiting, which is what CIB7-1851 decided such a scope does.
+   */
+  @Deployment
+  @Test
+  public void entryActivationSkippedWhenTheConditionAlreadyHolds() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocEntryTrue");
+
+    assertThat(task("taskA")).as("nothing started while the condition already holds").isNull();
+    assertThat(runtimeService.createProcessInstanceQuery().processInstanceId(pi.getId()).count())
+        .as("and the start did not fail: the scope is waiting")
+        .isEqualTo(1);
+
+    // Recoverable exactly as CIB7-1851 describes.
+    runtimeService.completeAdHocSubProcess(
+        runtimeService.createExecutionQuery().processInstanceId(pi.getId())
+            .activityId("adHoc").singleResult().getId());
+    testRule.assertProcessEnded(pi.getId());
+  }
+
+  /**
+   * A multi-instance child is started through its generated body, not through the nested activity.
+   *
+   * <p>Loop characteristics make the parser wrap the activity, so a recursive lookup finds the nested
+   * one and executing that bypasses the body that owns the loop — the cardinality would be ignored
+   * and one instance would run instead of two. Only direct children are considered and the body is
+   * resolved by name, the same resolution the activation API makes.
+   */
+  @Deployment
+  @Test
+  public void aMultiInstanceChildIsStartedThroughItsBody() {
+    runtimeService.startProcessInstanceByKey("adHocEntryMi");
+
+    assertThat(taskService.createTaskQuery().taskDefinitionKey("looped").count())
+        .as("the loop ran, so its cardinality was honoured")
+        .isEqualTo(2);
+  }
+
+  /**
+   * An earlier child in the entry list can run synchronously and satisfy the completion condition,
+   * which ends the scope and cancels the children created but not yet started.
+   *
+   * <p>Starting one of those afterwards fails on flush with an OptimisticLockingException, which
+   * reads as a transient concurrency problem and is not — it is deterministic. The same hole existed
+   * in the activation API and is fixed there too, in the same commit.
+   */
+  @Deployment
+  @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
+  @Test
+  public void entryActivationStopsWhenAnEarlierChildEndsTheScope() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocBatchCond");
+
+    // The scope entered, ran 'sync', the condition fired, and it left — without trying to start the
+    // task it had already cancelled.
+    testRule.assertProcessEnded(pi.getId());
+    assertThat(task("taskA")).isNull();
+
+    // The runtime alone cannot tell "never started" from "started and then cancelled": a cancelled task
+    // is not there either. History can, and it has to say never -- that is the difference from the
+    // activation API, which this path must match, and which it did not while entry activation started
+    // its children in reverse and checked for removal before any of them had run.
+    assertThat(historyService.createHistoricActivityInstanceQuery()
+        .processInstanceId(pi.getId()).activityId("taskA").count())
+        .as("taskA must never have been started, not started and then cancelled")
+        .isZero();
+  }
+
+  /**
+   * Entry activation starts the named activities in the order they are named, as the activation API
+   * does. It used to reverse them: this runs inside the scope's own execute, where each start is only
+   * pushed onto the operation stack, and the stack runs last pushed first.
+   */
+  @Deployment
+  @Test
+  public void entryActivationStartsInTheOrderNamed() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocEntryOrder");
+
+    assertThat(runtimeService.getVariable(pi.getId(), "order"))
+        .as("entry activation must start the activities in the order it names them")
+        .isEqualTo("first,second,third,");
+  }
+
+  /**
+   * The same hole through the activation API, which had it before entry activation existed and which
+   * this commit fixes there too.
+   *
+   * <p>Requesting a synchronous child and a user task in one batch: the synchronous one runs during
+   * the call, satisfies the completion condition, and the scope leaves — cancelling the user task it
+   * had created but not yet started. Before the fix the loop then started that cancelled execution
+   * and the call failed on flush with {@code OptimisticLockingException: Execution of 'INSERT
+   * TaskEntity' failed}, which reads as transient and is not.
+   */
+  @Deployment
+  @Test
+  public void theActivationApiAlsoStopsWhenAnEarlierChildEndsTheScope() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocApiBatchCond");
+    String scope = runtimeService.createExecutionQuery()
+        .processInstanceId(pi.getId()).activityId("adHoc").singleResult().getId();
+
+    List<String> ids =
+        runtimeService.activateAdHocSubProcessActivities(scope, Arrays.asList("sync", "taskA"));
+
+    // Contract: an entry is null exactly where the activity was not started.
+    assertThat(ids).hasSize(2);
+    assertThat(ids.get(0)).as("the synchronous child ran and has an id").isNotNull();
+    assertThat(ids.get(1)).as("the second was cancelled before it could start").isNull();
+
+    testRule.assertProcessEnded(pi.getId());
+    assertThat(task("taskA")).isNull();
+  }
+
+  // ------------------------------------------------ a child created but never started
+
+  protected static final String SCOPE_END_LISTENER =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessEntryActivationTest.scopeEndListener.bpmn20.xml";
+
+  protected void activateInScope(ProcessInstance pi, String... activityIds) {
+    String scope = runtimeService.createExecutionQuery()
+        .processInstanceId(pi.getId()).activityId("adHoc").singleResult().getId();
+    runtimeService.activateAdHocSubProcessActivities(scope, Arrays.asList(activityIds));
+  }
+
+  protected Object scopeEndListenerCalls(ProcessInstance pi) {
+    return runtimeService.getVariable(pi.getId(), "scopeEnded");
+  }
+
+  /**
+   * A child the scope ends before it starts does not run the scope's END listeners.
+   *
+   * <p>A batch creates all its children before it starts any, and each is created on the scope's own
+   * activity. When {@code sync} ends the scope, {@code taskA} is still standing there, and cancelling
+   * it fired END on the scope itself -- which the scope then fired again as it left. Anything with a
+   * side effect on the scope's END listener happened twice (review finding 2).
+   */
+  @Deployment
+  @Test
+  public void entryActivationFiresTheScopeEndListenerOnce() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocEntryEndListener");
+
+    assertThat(task("after")).as("sync ended the scope").isNotNull();
+    assertThat(scopeEndListenerCalls(pi)).as("the scope ended once").isEqualTo(1L);
+  }
+
+  /** The same through the activation API. */
+  @Deployment(resources = SCOPE_END_LISTENER)
+  @Test
+  public void theActivationApiFiresTheScopeEndListenerOnce() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocApiEndListener");
+
+    activateInScope(pi, "sync", "taskA");
+
+    assertThat(task("after")).as("sync ended the scope").isNotNull();
+    assertThat(scopeEndListenerCalls(pi)).as("the scope ended once").isEqualTo(1L);
+  }
+
+  /**
+   * The same when the condition is met on an inner flow, which ends the scope through the other exit:
+   * {@code a} meets it on the flow to {@code b}, while {@code c} is created and not yet started.
+   */
+  @Deployment(resources = SCOPE_END_LISTENER)
+  @Test
+  public void aConditionMetOnAnInnerFlowFiresTheScopeEndListenerOnce() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocApiEndListener");
+
+    activateInScope(pi, "a", "c");
+
+    assertThat(task("after")).as("a ended the scope on its flow").isNotNull();
+    assertThat(scopeEndListenerCalls(pi)).as("the scope ended once").isEqualTo(1L);
+  }
+
+  /**
+   * A child that has started is still cancelled, not removed: its own END runs and history records
+   * it as cancelled. Only a child that never started is spared the cancellation.
+   */
+  @Deployment(resources = SCOPE_END_LISTENER)
+  @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
+  @Test
+  public void aStartedChildIsStillCancelled() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocApiEndListener");
+
+    activateInScope(pi, "taskA", "sync");
+
+    assertThat(task("after")).as("sync ended the scope").isNotNull();
+    assertThat(scopeEndListenerCalls(pi)).as("the scope ended once").isEqualTo(1L);
+    assertThat(historyService.createHistoricActivityInstanceQuery().processInstanceId(pi.getId())
+        .activityId("taskA").canceled().count()).as("taskA had started, and is cancelled").isEqualTo(1L);
+  }
+
+  /** A model with no entry property behaves exactly as before: entering starts nothing. */
+  @Deployment(resources =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessScenarioTest.testTwoConcurrentChildren.bpmn20.xml")
+  @Test
+  public void withoutThePropertyEnteringStartsNothing() {
+    runtimeService.startProcessInstanceByKey("adHocConcurrent");
+    assertThat(taskService.createTaskQuery().count()).isZero();
+  }
+
+  /** An expression resolving to nothing starts nothing, rather than failing. */
+  @Deployment(resources =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessEntryActivationTest.entryActivationFromAnExpression.bpmn20.xml")
+  @Test
+  public void anEmptyEntryListStartsNothing() {
+    Map<String, Object> vars = new HashMap<String, Object>();
+    vars.put("starters", Arrays.asList());
+    runtimeService.startProcessInstanceByKey("adHocEntryExpr", vars);
+    assertThat(taskService.createTaskQuery().count()).isZero();
+  }
+
+  /** An expression naming an unstartable activity can only be caught when it is evaluated. */
+  @Deployment(resources =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessEntryActivationTest.entryActivationFromAnExpression.bpmn20.xml")
+  @Test
+  public void anExpressionNamingAnUnstartableIdFailsAtRuntime() {
+    Map<String, Object> vars = new HashMap<String, Object>();
+    vars.put("starters", Arrays.asList("nosuch"));
+    try {
+      runtimeService.startProcessInstanceByKey("adHocEntryExpr", vars);
+      fail("an expression naming an unstartable activity must fail");
+    } catch (ProcessEngineException e) {
+      testRule.assertTextPresent("activeElementsCollection names [nosuch]", e.getMessage());
+    }
+  }
+
+  // ------------------------------------------------ what an entry list may evaluate to
+
+  protected static final String FROM_AN_EXPRESSION =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessEntryActivationTest.entryActivationFromAnExpression.bpmn20.xml";
+
+  protected Map<String, Object> starters(Object value) {
+    Map<String, Object> vars = new HashMap<String, Object>();
+    vars.put("starters", value);
+    return vars;
+  }
+
+  /**
+   * A JSON array, which is what a Json variable holds and what a list sent over REST naturally is.
+   * It used to be read as a comma-separated string and fail on ids like {@code ["taskA"}. Given here
+   * as the text a Json value is, since these tests run without Spin.
+   */
+  @Deployment(resources = FROM_AN_EXPRESSION)
+  @Test
+  public void entryActivationFromAJsonArray() {
+    runtimeService.startProcessInstanceByKey("adHocEntryExpr", starters("[\"taskA\", \"taskB\"]"));
+
+    assertThat(task("taskA")).isNotNull();
+    assertThat(task("taskB")).isNotNull();
+  }
+
+  /** A Java array, such as {@code String.split} returns, gives its elements like a collection does. */
+  @Deployment
+  @Test
+  public void entryActivationFromAnArray() {
+    runtimeService.startProcessInstanceByKey("adHocEntryArray", starters("taskA,taskB"));
+
+    assertThat(task("taskA")).isNotNull();
+    assertThat(task("taskB")).isNotNull();
+    assertThat(task("taskC")).isNull();
+  }
+
+  /** A literal written as a JSON array deploys and starts what it names, as a comma list does. */
+  @Deployment
+  @Test
+  public void entryActivationFromAJsonLiteral() {
+    runtimeService.startProcessInstanceByKey("adHocEntryJsonLiteral");
+
+    assertThat(task("taskA")).isNotNull();
+    assertThat(task("taskB")).isNotNull();
+    assertThat(task("taskC")).isNull();
+  }
+
+  /** And it is checked at deployment the same way, naming the id rather than a fragment of JSON. */
+  @Test
+  public void entryActivationRejectsAnUnstartableIdInAJsonLiteral() {
+    try {
+      testRule.deploy("org/cibseven/bpm/engine/test/bpmn/adhoc/"
+          + "AdHocSubProcessEntryActivationTest.entryActivationRejectsAnUnstartableIdInAJsonLiteral.bpmn20.xml");
+      fail("a literal JSON array naming an unstartable activity must be rejected at deployment");
+    } catch (ParseException e) {
+      testRule.assertTextPresent("activeElementsCollection names [nosuch]", e.getMessage());
+    }
+  }
+
+  /** Text that opens like a JSON array but is not one of strings is refused as what it is. */
+  @Deployment(resources = FROM_AN_EXPRESSION)
+  @Test
+  public void aJsonArrayOfSomethingElseIsRefusedAsSuch() {
+    try {
+      runtimeService.startProcessInstanceByKey("adHocEntryExpr", starters("[1]"));
+      fail("a JSON array of numbers is not a list of activity ids");
+    } catch (ProcessEngineException e) {
+      testRule.assertTextPresent("gives [1], which is not a JSON array of activity ids", e.getMessage());
+    }
+  }
+
+  /**
+   * A value of any other type is still read through its string form, as before, so nothing that
+   * worked stops working -- but the refusal now says what the expression evaluated to, without which
+   * the ids it quotes make no sense.
+   */
+  @Deployment(resources = FROM_AN_EXPRESSION)
+  @Test
+  public void theRefusalNamesAValueOfAnotherType() {
+    try {
+      runtimeService.startProcessInstanceByKey("adHocEntryExpr", starters(new Date()));
+      fail("a date is not a list of activity ids");
+    } catch (ProcessEngineException e) {
+      testRule.assertTextPresent("not directly startable here", e.getMessage());
+      testRule.assertTextPresent("The expression evaluated to a java.util.Date", e.getMessage());
+    }
+  }
+
+}

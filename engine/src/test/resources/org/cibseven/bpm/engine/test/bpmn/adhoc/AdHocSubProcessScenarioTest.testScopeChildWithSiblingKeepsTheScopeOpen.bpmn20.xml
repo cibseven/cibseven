@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <!-- No completion condition. 'inner' is an embedded sub process, so while it runs its concurrent
+       execution is inactive with a null activity. Completing the sibling must not read that as idle. -->
+  <process id="adHocScopeChildWithSibling" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <subProcess id="inner">
+        <startEvent id="innerStart" />
+        <sequenceFlow id="if1" sourceRef="innerStart" targetRef="innerTask" />
+        <userTask id="innerTask" />
+        <sequenceFlow id="if2" sourceRef="innerTask" targetRef="innerEnd" />
+        <endEvent id="innerEnd" />
+      </subProcess>
+      <userTask id="quick" />
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="after" />
+    <userTask id="after" />
+    <sequenceFlow id="f3" sourceRef="after" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>
