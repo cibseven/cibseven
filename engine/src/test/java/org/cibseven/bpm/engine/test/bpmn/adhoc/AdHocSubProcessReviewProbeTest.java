@@ -27,10 +27,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
-import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.runtime.ActivityInstance;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
+import org.cibseven.bpm.engine.runtime.ProcessInstanceModificationBuilder;
 import org.cibseven.bpm.engine.task.Task;
+import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.model.bpmn.AdHocOrdering;
 import org.cibseven.bpm.model.bpmn.Bpmn;
@@ -65,7 +66,7 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
   }
 
   protected void activate(String pi, String... ids) {
-    org.cibseven.bpm.engine.runtime.ProcessInstanceModificationBuilder b =
+    ProcessInstanceModificationBuilder b =
         runtimeService.createProcessInstanceModification(pi);
     for (String id : ids) {
       b.startBeforeActivity(id);
@@ -82,7 +83,7 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
   }
 
   protected String deploySpec(String resource) {
-    Deployment d = repositoryService.createDeployment().addClasspathResource(SPEC + resource).deploy();
+    org.cibseven.bpm.engine.repository.Deployment d = repositoryService.createDeployment().addClasspathResource(SPEC + resource).deploy();
     toClean.add(d.getId());
     return d.getId();
   }
@@ -96,7 +97,7 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
   // ============================================================ STEP 4
 
   /** D1: after a synchronous child ends, does the scope still describe itself? */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void probeD1Mechanism() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("probeD1");
@@ -114,7 +115,7 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
   // ============================================================ STEP 5
 
   /** D6a: a completion condition already true on entry. */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void probeConditionNotEvaluatedOnEntry() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("probeAlwaysTrue");
@@ -128,7 +129,7 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
   }
 
   /** D6b: is the condition watched, or only polled when a child ends? */
-  @org.cibseven.bpm.engine.test.Deployment(resources =
+  @Deployment(resources =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessReviewProbeTest.probeD1Mechanism.bpmn20.xml")
   @Test
   public void probeConditionNotWatchedOnExternalVariableSet() {
@@ -152,7 +153,7 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
    * A known trap: cancelling survivors that carry io-mappings.
    * Interrupt alone leaves variables pointing at a scope execution being deleted.
    */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void probeCancelRemainingWithIoMappedChildren() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("probeIoCancel");
@@ -167,7 +168,7 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
   }
 
   /** FR-15 / N25: with cancelRemainingInstances=false, may further children still be activated? */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void probeCancelFalseFurtherActivation() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("probeCancelFalse");
@@ -195,7 +196,7 @@ public class AdHocSubProcessReviewProbeTest extends PluggableProcessEngineTest {
    * reach the ad hoc scope execution, or a condition written the way the specification describes
    * completion can never become true.
    */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void probeChildOutputReachesTheCondition() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("probeChildOutput");

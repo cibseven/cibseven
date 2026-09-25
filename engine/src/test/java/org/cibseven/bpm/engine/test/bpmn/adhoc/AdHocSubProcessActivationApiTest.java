@@ -19,6 +19,7 @@ package org.cibseven.bpm.engine.test.bpmn.adhoc;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -60,7 +61,7 @@ public class AdHocSubProcessActivationApiTest extends PluggableProcessEngineTest
   protected String scopeExecutionId(String processInstanceId) {
     for (Execution execution : runtimeService.createExecutionQuery()
         .processInstanceId(processInstanceId).list()) {
-      if ("adHoc".equals(((org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity) execution)
+      if ("adHoc".equals(((ExecutionEntity) execution)
           .getActivityId())) {
         return execution.getId();
       }
@@ -318,7 +319,7 @@ public class AdHocSubProcessActivationApiTest extends PluggableProcessEngineTest
     assertThat(ids).as("one id per performance").hasSize(2);
     assertThat(ids).doesNotHaveDuplicates();
 
-    List<Object> assignees = new java.util.ArrayList<>();
+    List<Object> assignees = new ArrayList<>();
     for (Task task : taskService.createTaskQuery().processInstanceId(pi.getId()).list()) {
       assignees.add(runtimeService.getVariable(task.getExecutionId(), "assignedTo"));
     }
@@ -698,7 +699,7 @@ public class AdHocSubProcessActivationApiTest extends PluggableProcessEngineTest
       identityService.clearAuthentication();
     }
 
-    List<org.cibseven.bpm.engine.history.UserOperationLogEntry> entries =
+    List<UserOperationLogEntry> entries =
         historyService.createUserOperationLogQuery()
             .processInstanceId(pi.getId()).userId("alice").property("adHocActivityId").list();
     assertThat(entries).hasSize(1);

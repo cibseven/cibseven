@@ -19,11 +19,14 @@ package org.cibseven.bpm.engine.test.bpmn.adhoc;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
+import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParse;
+import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
@@ -64,7 +67,7 @@ public class AdHocSubProcessOutputAggregationTest extends PluggableProcessEngine
   protected String scopeExecutionId(String processInstanceId) {
     for (Execution execution : runtimeService.createExecutionQuery()
         .processInstanceId(processInstanceId).list()) {
-      if ("adHoc".equals(((org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity) execution)
+      if ("adHoc".equals(((ExecutionEntity) execution)
           .getActivityId())) {
         return execution.getId();
       }
@@ -152,7 +155,7 @@ public class AdHocSubProcessOutputAggregationTest extends PluggableProcessEngine
     testRule.assertProcessEnded(pi.getId());
     assertThat(historyService.createHistoricVariableInstanceQuery()
         .processInstanceId(pi.getId()).variableName("results").singleResult().getValue())
-        .isEqualTo(java.util.Arrays.asList("A", "B"));
+        .isEqualTo(Arrays.asList("A", "B"));
   }
 
   /**
@@ -200,7 +203,7 @@ public class AdHocSubProcessOutputAggregationTest extends PluggableProcessEngine
     assertThat(historyService.createHistoricVariableInstanceQuery()
         .processInstanceId(pi.getId()).variableName("results").singleResult().getValue())
         .as("still one entry: the handler added nothing")
-        .isEqualTo(java.util.Collections.singletonList("A"));
+        .isEqualTo(Collections.singletonList("A"));
   }
 
   // ------------------------------------------------- one expression, many children
@@ -311,7 +314,7 @@ public class AdHocSubProcessOutputAggregationTest extends PluggableProcessEngine
               + fixture + ".bpmn20.xml")
           .deploy();
       fail("expected the deployment to be refused");
-    } catch (org.cibseven.bpm.engine.ProcessEngineException e) {
+    } catch (ProcessEngineException e) {
       assertThat(e.getMessage()).contains(missing);
       assertThat(e.getMessage()).as("the message must say why one alone is useless")
           .contains("silently gather nothing");

@@ -20,19 +20,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.cibseven.bpm.engine.ParseException;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
-import org.cibseven.bpm.engine.repository.Deployment;
+import org.cibseven.bpm.engine.ProcessEngineException;
+import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
+import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.cibseven.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
+import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.cibseven.bpm.engine.runtime.ActivityInstance;
+import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.history.HistoricVariableInstance;
+import org.cibseven.bpm.engine.runtime.ProcessInstanceModificationBuilder;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.task.Task;
+import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.junit.jupiter.api.AfterEach;
@@ -65,7 +73,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
   }
 
   protected void activate(String processInstanceId, String... activityIds) {
-    org.cibseven.bpm.engine.runtime.ProcessInstanceModificationBuilder builder =
+    ProcessInstanceModificationBuilder builder =
         runtimeService.createProcessInstanceModification(processInstanceId);
     for (String activityId : activityIds) {
       builder.startBeforeActivity(activityId);
@@ -74,11 +82,11 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
   }
 
   protected List<String> startableOf(ProcessInstance pi) {
-    org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl scope =
-        ((org.cibseven.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity) repositoryService
+    ActivityImpl scope =
+        ((ProcessDefinitionEntity) repositoryService
             .getProcessDefinition(pi.getProcessDefinitionId())).findActivity("adHoc");
     return scope.getProperties().get(
-        org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties.AD_HOC_STARTABLE_ACTIVITIES);
+        BpmnProperties.AD_HOC_STARTABLE_ACTIVITIES);
   }
 
   protected Task task(String taskDefinitionKey) {
@@ -90,7 +98,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
   }
 
   protected String deploy(String resource) {
-    Deployment deployment = repositoryService.createDeployment()
+    org.cibseven.bpm.engine.repository.Deployment deployment = repositoryService.createDeployment()
         .addClasspathResource(INVALID + resource)
         .deploy();
     deploymentsToClean.add(deployment.getId());
@@ -99,7 +107,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
 
   // ---------------------------------------------------------------- FR-11, FR-16a
 
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testEnterWaitActivateComplete() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocBaseline");
@@ -123,7 +131,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
 
   // ---------------------------------------------------------------- FR-12
 
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testTwoConcurrentChildren() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocConcurrent");
@@ -149,7 +157,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
     testRule.assertProcessEnded(pi.getId());
   }
 
-  @org.cibseven.bpm.engine.test.Deployment(resources =
+  @Deployment(resources =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessScenarioTest.testTwoConcurrentChildren.bpmn20.xml")
   @Test
   public void testSeparateActivationCalls() {
@@ -166,7 +174,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
     testRule.assertProcessEnded(pi.getId());
   }
 
-  @org.cibseven.bpm.engine.test.Deployment(resources =
+  @Deployment(resources =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessScenarioTest.testTwoConcurrentChildren.bpmn20.xml")
   @Test
   public void testSameChildActivatedTwice() {
@@ -188,7 +196,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
 
   // Asserts on a historic activity instance for the cancelled child.
   @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testCompletionConditionCancelsRemaining() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocCancelTrue");
@@ -217,7 +225,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
 
   // ---------------------------------------------------------------- FR-15
 
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testCompletionConditionWaitsForRemaining() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocCancelFalse");
@@ -248,7 +256,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * alive and deleting its execution then violated ACT_FK_EXE_PARENT -- taking down the very
    * operation that satisfied the condition and leaving the instance unfinishable.
    */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testCancelFalseWithScopeChildren() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocCancelFalseScopeChildren");
@@ -284,7 +292,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
 
   // ---------------------------------------------------------------- re-activation after a lull
 
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testConditionFalseKeepsWaiting() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocNeverDone");
@@ -315,7 +323,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * atomic operation, and the whole {@code complete task} command rolls back — the child cannot be
    * completed at all until the variable exists.
    */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testNaiveConditionBlocksChildCompletion() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocNaiveCondition");
@@ -325,7 +333,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
     try {
       taskService.complete(taskId);
       fail("expected the unresolvable completion condition to fail the command");
-    } catch (org.cibseven.bpm.engine.ProcessEngineException e) {
+    } catch (ProcessEngineException e) {
       // The expression has to appear in the message: it is the only thing connecting the failure
       // back to the completion condition, since this fires on completing a task and not on deploy.
       testRule.assertTextPresent("Unknown property used in expression: ${enough}", e.getMessage());
@@ -347,7 +355,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * completing the task in Tasklist with no such form field, or a REST call with no variables, brings
    * the failure straight back.
    */
-  @org.cibseven.bpm.engine.test.Deployment(resources =
+  @Deployment(resources =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessScenarioTest.testNaiveConditionBlocksChildCompletion.bpmn20.xml")
   @Test
   public void testNaiveConditionResolvesWhenTheCompletionSuppliesTheVariable() {
@@ -370,7 +378,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * agentic loop activates a child per turn, so anything left behind per turn accumulates for the
    * lifetime of the instance.
    */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testRepeatedActivationDoesNotAccumulateExecutions() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocRepeat");
@@ -416,7 +424,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
 
   // ---------------------------------------------------------------- async continuation
 
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testAsyncBeforeScope() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocAsync");
@@ -435,7 +443,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
   // Asserts on a historic variable instance, which exists only at full history. Without this the
   // test fails on a lower-history configuration instead of being skipped.
   @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testSynchronousChildActivation() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocSyncChild");
@@ -452,7 +460,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
 
   // ---------------------------------------------------------------- nested scope child
 
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testEmbeddedSubProcessChild() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocNested");
@@ -473,19 +481,19 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
   // "nothing is active" has to count that execution as running. The three shapes below are the ways
   // a child becomes a scope; the second and third are ordinary tasks, which is what made this common.
 
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testScopeChildWithSiblingKeepsTheScopeOpen() {
     assertSiblingDoesNotEndTheScope("adHocScopeChildWithSibling", "inner", "innerTask");
   }
 
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testChildWithBoundaryEventKeepsTheScopeOpen() {
     assertSiblingDoesNotEndTheScope("adHocChildWithBoundary", "guarded", "guarded");
   }
 
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testChildWithIoMappingKeepsTheScopeOpen() {
     assertSiblingDoesNotEndTheScope("adHocChildWithIoMapping", "mapped", "mapped");
@@ -524,7 +532,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
   // sibling ending while the body still runs -- the body's inactive concurrent execution with a null
   // activity must count as running then, exactly as for any other scope child above.
 
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testParallelMultiInstanceChildKeepsTheScopeOpen() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocParallelMiChild");
@@ -551,7 +559,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
         .isNotNull();
   }
 
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testSequentialMultiInstanceChildKeepsTheScopeOpen() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocSequentialMiChild");
@@ -580,7 +588,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
 
   // Asserts on historic activity instances for the cancelled inner instances.
   @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testCompletionConditionCancelsAMultiInstanceChild() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocCancelMiChild");
@@ -608,12 +616,12 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * model id to the body, which is how a caller actually starts such a child.
    */
   protected void activateThroughApi(ProcessInstance pi, String... activityIds) {
-    for (org.cibseven.bpm.engine.runtime.Execution execution : runtimeService.createExecutionQuery()
+    for (Execution execution : runtimeService.createExecutionQuery()
         .processInstanceId(pi.getId()).list()) {
-      if ("adHoc".equals(((org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity) execution)
+      if ("adHoc".equals(((ExecutionEntity) execution)
           .getActivityId())) {
         runtimeService.activateAdHocSubProcessActivities(execution.getId(),
-            java.util.Arrays.asList(activityIds));
+            Arrays.asList(activityIds));
         return;
       }
     }
@@ -623,7 +631,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
   // ---------------------------------------------------------------- FR-13, history
 
   // Asserts on historic activity and process instances, so it needs activity-level history.
-  @org.cibseven.bpm.engine.test.Deployment(resources =
+  @Deployment(resources =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessScenarioTest.testTwoConcurrentChildren.bpmn20.xml")
   @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
   @Test
@@ -650,7 +658,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
 
   // ---------------------------------------------------------------- internal state leakage
 
-  @org.cibseven.bpm.engine.test.Deployment(resources =
+  @Deployment(resources =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessScenarioTest.testTwoConcurrentChildren.bpmn20.xml")
   @Test
   public void testActivationCounterIsVisibleByDecision() {
@@ -682,7 +690,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * atomic operation — out through the activation call, with the transaction already dirty. It pins
    * the defensive {@code Number} read in {@code AdHocSubProcessActivityBehavior.getActivatedCount}.
    */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testCounterTamperingDoesNotCrashTheEngine() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocTamper");
@@ -722,7 +730,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * activation genuinely happened, so once nothing is active the scope must leave — even though a
    * child reset the count that records it.
    */
-  @org.cibseven.bpm.engine.test.Deployment(resources =
+  @Deployment(resources =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessScenarioTest.testCounterTamperingDoesNotCrashTheEngine.bpmn20.xml")
   @Test
   public void testCounterTamperingCannotStallTheScope() {
@@ -749,7 +757,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * process instance modification is refused too. This test drives modification for exactly that
    * reason.
    */
-  @org.cibseven.bpm.engine.test.Deployment(resources =
+  @Deployment(resources =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessReviewProbeTest.probeCancelFalseFurtherActivation.bpmn20.xml")
   @Test
   public void testActivationRefusedOnceTheConditionWasObserved() {
@@ -768,7 +776,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
     try {
       activate(pi.getId(), "extra");
       fail("the scope must refuse activation once its completion condition has been observed");
-    } catch (org.cibseven.bpm.engine.ProcessEngineException e) {
+    } catch (ProcessEngineException e) {
       testRule.assertTextPresent("has already satisfied its completion condition", e.getMessage());
     }
 
@@ -789,7 +797,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * is false, so turn after turn is allowed. A refusal that triggered on a parked scope would make
    * this pattern unusable.
    */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testAgenticLoopDrivenByExplicitCompletion() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocAgentLoop");
@@ -824,7 +832,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * variable it reads may have changed back. Re-deciding at that point would park the scope forever
    * on a completion that had already been determined.
    */
-  @org.cibseven.bpm.engine.test.Deployment(resources =
+  @Deployment(resources =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessReviewProbeTest.probeCancelFalseFurtherActivation.bpmn20.xml")
   @Test
   public void testCompletionIsLatchedWhenTheConditionGoesFalseAgain() {
@@ -846,7 +854,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
 
   // ---------------------------------------------------------------- deletion / cleanup
 
-  @org.cibseven.bpm.engine.test.Deployment(resources =
+  @Deployment(resources =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessScenarioTest.testTwoConcurrentChildren.bpmn20.xml")
   @Test
   public void testDeleteInstanceWithWaitingScope() {
@@ -861,7 +869,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * means the runtime tree reports the scope as the child activity that last ran — which is what
    * Cockpit and every {@code getActivityInstance} caller reads.
    */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testScopeKeepsItsOwnActivityIdentity() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocIdentity");
@@ -880,7 +888,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
   // ------------------------------------------------- constructs the parser does not reject
 
   /** Ad hoc inside ad hoc: no design decision covers it. */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testNestedAdHocScope() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocNestedAdHoc");
@@ -895,7 +903,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
   }
 
   /** An intermediate catch event as an ad hoc child. */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testIntermediateCatchEventChild() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocCatchChild");
@@ -916,7 +924,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * missing from it, so this was rejected at deployment even though subProcess is allowed and
    * tAdHocSubProcess extends tSubProcess.
    */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testIoMappingOnTheScopeItself() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocScopeIoMapping");
@@ -1032,7 +1040,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * by a performance of the second, though not necessarily immediately. The rest of the scope stays
    * ad hoc while one pair is ordered.
    */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testInnerSequenceFlowIsPerformedInOrder() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocInnerFlow");
@@ -1058,7 +1066,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * target is not performed. That is what the CIB7-1850 latch implies -- once the condition holds
    * the scope starts nothing further.
    */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testConditionSatisfiedAtAnInnerTransition() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocInnerFlowCondition");
@@ -1079,7 +1087,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * flight, so the target of the flow is performed. This is the guarantee BPMN 2.0.0 section 10.3.5
    * p.182 attaches to an inner flow, and the attribute is what chooses between the two readings.
    */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testConditionAtAnInnerTransitionAwaitsWhenNotCancelling() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocInnerFlowConditionAwaits");
@@ -1098,7 +1106,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
   }
 
   /** CIB7-1882. A gateway is reached along an inner flow and routes along one of its own. */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testGatewayInsideScopeRoutes() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocGatewayRoutes");
@@ -1121,7 +1129,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * interrupting timer on the scope was covered before, so error propagation out of the scope was
    * untested, and that is the path where a live sibling is most likely to be stranded.
    */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testBoundaryErrorFromChild() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocBoundaryError");
@@ -1143,7 +1151,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
     testRule.assertProcessEnded(pi.getId());
   }
 
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testBoundaryTimerOnScope() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocBoundary");
@@ -1171,7 +1179,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * A boundary event on a CHILD of the scope is neither rejected at deployment nor covered by any
    * design decision. This records what the engine actually does with it.
    */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testBoundaryEventOnChild() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocChildBoundary");
@@ -1195,7 +1203,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * as consuming compensation, and a child carrying {@code isForCompensation} is excluded from the
    * startable set because it is reached by compensation being thrown rather than by being started.
    */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
   @Test
   public void testCompensationOfAdHocChild() {
@@ -1233,7 +1241,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    * variable -- until the process ended (review finding 6). It belongs to the running scope only, and
    * compensation must still reach the completed child without it.
    */
-  @org.cibseven.bpm.engine.test.Deployment(resources =
+  @Deployment(resources =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessScenarioTest.testCompensationOfAdHocChild.bpmn20.xml")
   @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
   @Test
@@ -1309,7 +1317,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
   }
 
   /** The same, interrupting: firing it must cancel what the scope has running. */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testInterruptingEventSubProcessInsideScope() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocInterruptingEventSubProcess");
@@ -1340,7 +1348,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
    *
    * <p>An interruption is not a question about discretionary work. There is none left to ask about.
    */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void testInterruptingEventSubProcessLeavesAParkedScope() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocInterruptingParked");

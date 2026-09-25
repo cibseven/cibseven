@@ -20,7 +20,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.cibseven.bpm.engine.ParseException;
@@ -214,7 +216,7 @@ public class AdHocSubProcessEntryActivationTest extends PluggableProcessEngineTe
     String scope = runtimeService.createExecutionQuery()
         .processInstanceId(pi.getId()).activityId("adHoc").singleResult().getId();
 
-    java.util.List<String> ids =
+    List<String> ids =
         runtimeService.activateAdHocSubProcessActivities(scope, Arrays.asList("sync", "taskA"));
 
     // Contract: an entry is null exactly where the activity was not started.
@@ -418,7 +420,7 @@ public class AdHocSubProcessEntryActivationTest extends PluggableProcessEngineTe
   @Test
   public void theRefusalNamesAValueOfAnotherType() {
     try {
-      runtimeService.startProcessInstanceByKey("adHocEntryExpr", starters(new java.util.Date()));
+      runtimeService.startProcessInstanceByKey("adHocEntryExpr", starters(new Date()));
       fail("a date is not a list of activity ids");
     } catch (ProcessEngineException e) {
       testRule.assertTextPresent("not directly startable here", e.getMessage());

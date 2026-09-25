@@ -22,11 +22,14 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Collection;
 
+import org.cibseven.bpm.model.bpmn.builder.AdHocSubProcessBuilder;
 import org.cibseven.bpm.model.bpmn.instance.AdHocSubProcess;
 import org.cibseven.bpm.model.bpmn.instance.BaseElement;
 import org.cibseven.bpm.model.bpmn.instance.CompletionCondition;
+import org.cibseven.bpm.model.bpmn.instance.Expression;
 import org.cibseven.bpm.model.bpmn.instance.SequenceFlow;
 import org.cibseven.bpm.model.bpmn.instance.ServiceTask;
+import org.cibseven.bpm.model.bpmn.instance.SubProcess;
 import org.cibseven.bpm.model.bpmn.instance.UserTask;
 import org.cibseven.bpm.model.bpmn.instance.bpmndi.BpmnShape;
 import org.cibseven.bpm.model.bpmn.instance.dc.Bounds;
@@ -166,7 +169,7 @@ public class AdHocSubProcessTest {
   }
 
   protected BpmnModelInstance build(AdHocSubProcessBuilderHolder holder) {
-    org.cibseven.bpm.model.bpmn.builder.AdHocSubProcessBuilder adHoc =
+    AdHocSubProcessBuilder adHoc =
         Bpmn.createProcess("p").startEvent().adHocSubProcess("adHoc");
 
     holder.userTask = adHoc.child(UserTask.class, "taskA");
@@ -254,7 +257,7 @@ public class AdHocSubProcessTest {
     // element. A completionCondition written before them fails XSD validation with
     // cvc-complex-type.2.4.d, which is easy to produce by hand and has cost time before.
     AdHocSubProcessBuilderHolder holder = new AdHocSubProcessBuilderHolder();
-    org.cibseven.bpm.model.bpmn.builder.AdHocSubProcessBuilder adHoc =
+    AdHocSubProcessBuilder adHoc =
         Bpmn.createProcess("p").startEvent().adHocSubProcess("adHoc");
     holder.userTask = adHoc.child(UserTask.class, "taskA");
     BpmnModelInstance model = adHoc.completionCondition("${done}").endEvent().done();
@@ -275,7 +278,7 @@ public class AdHocSubProcessTest {
   public void isASubProcess() {
     // tAdHocSubProcess extends tSubProcess, and code that walks sub processes must see it.
     AdHocSubProcess adHoc = read("<adHocSubProcess id='adHoc'><userTask id='a'/></adHocSubProcess>");
-    assertThat(adHoc).isInstanceOf(org.cibseven.bpm.model.bpmn.instance.SubProcess.class);
+    assertThat(adHoc).isInstanceOf(SubProcess.class);
     assertThat(adHoc.triggeredByEvent()).isFalse();
   }
 
@@ -295,7 +298,7 @@ public class AdHocSubProcessTest {
     AdHocSubProcess adHoc = read("<adHocSubProcess id='adHoc'><userTask id='a'/>"
         + "<completionCondition>${done}</completionCondition></adHocSubProcess>");
     CompletionCondition condition = adHoc.getCompletionCondition();
-    assertThat(condition).isInstanceOf(org.cibseven.bpm.model.bpmn.instance.Expression.class);
+    assertThat(condition).isInstanceOf(Expression.class);
   }
 
 }

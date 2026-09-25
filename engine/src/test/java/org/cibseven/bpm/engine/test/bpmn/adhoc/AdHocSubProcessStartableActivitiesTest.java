@@ -24,6 +24,7 @@ import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
 import org.cibseven.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
+import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -50,7 +51,7 @@ public class AdHocSubProcessStartableActivitiesTest extends PluggableProcessEngi
    * Activities are startable; a data object and an intermediate catch event are not, because the
    * specification lists them as MAY-be-used precisely because they are not Activities.
    */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void mixedChildren() {
     assertThat(startableActivitiesOf("adHocMixedChildren", "adHoc"))
@@ -66,7 +67,7 @@ public class AdHocSubProcessStartableActivitiesTest extends PluggableProcessEngi
    * being thrown, the other by its own start event firing, and starting either directly would bypass
    * the mechanism that defines it.
    */
-  @org.cibseven.bpm.engine.test.Deployment(resources =
+  @Deployment(resources =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessStartableActivitiesTest.mixedChildren.bpmn20.xml")
   @Test
   public void activitiesWithTheirOwnActivationMechanismAreNotStartable() {
@@ -80,7 +81,7 @@ public class AdHocSubProcessStartableActivitiesTest extends PluggableProcessEngi
    * in a generated multi-instance body, which is what the command has to start, but the id a caller
    * knows is the one in the model.
    */
-  @org.cibseven.bpm.engine.test.Deployment(resources =
+  @Deployment(resources =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessStartableActivitiesTest.mixedChildren.bpmn20.xml")
   @Test
   public void aMultiInstanceChildIsStartableUnderItsOwnId() {
@@ -94,7 +95,7 @@ public class AdHocSubProcessStartableActivitiesTest extends PluggableProcessEngi
    * A nested ad hoc scope computes its own set independently, and a grandchild belongs to the inner
    * scope rather than to the outer one.
    */
-  @org.cibseven.bpm.engine.test.Deployment(resources =
+  @Deployment(resources =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessStartableActivitiesTest.mixedChildren.bpmn20.xml")
   @Test
   public void nestedScopeHasItsOwnSet() {
@@ -111,7 +112,7 @@ public class AdHocSubProcessStartableActivitiesTest extends PluggableProcessEngi
    * either. Only direct children count, which is what makes the embedded sub process itself the
    * startable unit.
    */
-  @org.cibseven.bpm.engine.test.Deployment(resources =
+  @Deployment(resources =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessStartableActivitiesTest.mixedChildren.bpmn20.xml")
   @Test
   public void grandchildrenOfAnEmbeddedSubProcessAreNotStartable() {
@@ -129,7 +130,7 @@ public class AdHocSubProcessStartableActivitiesTest extends PluggableProcessEngi
    * that rejection is lifted, so the test is written now and waits with its fixture rather than
    * being remembered later.
    */
-  @org.cibseven.bpm.engine.test.Deployment
+  @Deployment
   @Test
   public void innerFlowTarget() {
     assertThat(startableActivitiesOf("adHocInnerFlowTarget", "adHoc"))

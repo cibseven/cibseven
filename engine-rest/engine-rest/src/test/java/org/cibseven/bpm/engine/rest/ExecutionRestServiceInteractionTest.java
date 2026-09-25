@@ -66,6 +66,7 @@ import org.cibseven.bpm.engine.rest.helper.variable.EqualsPrimitiveValue;
 import org.cibseven.bpm.engine.rest.helper.variable.EqualsUntypedValue;
 import org.cibseven.bpm.engine.rest.util.VariablesBuilder;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
+import org.cibseven.bpm.engine.runtime.AdHocSubProcessActivationBuilder;
 import org.cibseven.bpm.engine.runtime.DeserializationTypeValidator;
 import org.cibseven.bpm.engine.runtime.EventSubscription;
 import org.cibseven.bpm.engine.runtime.EventSubscriptionQuery;
@@ -1655,22 +1656,22 @@ public class ExecutionRestServiceInteractionTest extends AbstractRestServiceTest
     given().pathParam("id", MockProvider.EXAMPLE_EXECUTION_ID).contentType(ContentType.JSON).body(json).then().expect()
         .statusCode(Status.BAD_REQUEST.getStatusCode()).when().post(CREATE_INCIDENT_URL);
   }
-  protected org.cibseven.bpm.engine.runtime.AdHocSubProcessActivationBuilder recordingActivation(
+  protected AdHocSubProcessActivationBuilder recordingActivation(
       final List<String> startedIds, final List<Map<String, Object>> perPerformance,
       final List<String> result) {
-    return new org.cibseven.bpm.engine.runtime.AdHocSubProcessActivationBuilder() {
+    return new AdHocSubProcessActivationBuilder() {
       @Override
-      public org.cibseven.bpm.engine.runtime.AdHocSubProcessActivationBuilder startActivity(String activityId) {
+      public AdHocSubProcessActivationBuilder startActivity(String activityId) {
         startedIds.add(activityId);
         perPerformance.add(null);
         return this;
       }
       @Override
-      public org.cibseven.bpm.engine.runtime.AdHocSubProcessActivationBuilder setVariable(String name, Object value) {
+      public AdHocSubProcessActivationBuilder setVariable(String name, Object value) {
         return setVariables(Collections.singletonMap(name, value));
       }
       @Override
-      public org.cibseven.bpm.engine.runtime.AdHocSubProcessActivationBuilder setVariables(Map<String, Object> variables) {
+      public AdHocSubProcessActivationBuilder setVariables(Map<String, Object> variables) {
         Map<String, Object> current = perPerformance.get(perPerformance.size() - 1);
         if (current == null) {
           current = new HashMap<>();
