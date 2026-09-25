@@ -24,14 +24,13 @@ import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
  *
  * <p>An ad hoc scope completes one of two ways. With a {@code completionCondition} the condition
  * decides. Without one it completes once nothing is active and at least one child has been
- * activated, which the engine tracks in a counter on the scope execution.
+ * activated, which the engine records in a flag on a marker execution of the scope.
  *
- * <p>No migration instruction describes that counter, so mapping between the two rules changes
- * silently when the instance ends. A scope that has activated three children and is waiting for a
- * fourth, migrated to a target with a completion condition, stops being governed by the count that
- * was accumulated for it; a scope governed by a condition, migrated to a target without one, starts
- * being governed by a count that was never meant to control anything and completes the moment its
- * last child ends.
+ * <p>No migration instruction describes that flag, so mapping between the two rules changes
+ * silently when the instance ends. A scope that has activated children and is waiting for more,
+ * migrated to a target with a completion condition, stops being governed by the record kept for
+ * it; a scope governed by a condition, migrated to a target without one, starts being governed by
+ * a flag that was never meant to control anything and completes the moment its last child ends.
  *
  * <p>Changing only the condition's <em>expression</em> is allowed. Re-reading an expression from the
  * target definition is ordinary migration behaviour, and the rule that decides completion is

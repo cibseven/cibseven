@@ -36,7 +36,9 @@ import org.cibseven.bpm.engine.runtime.ActivityInstance;
 import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
+import org.cibseven.bpm.engine.history.HistoricDetail;
 import org.cibseven.bpm.engine.history.HistoricVariableInstance;
+import org.cibseven.bpm.engine.history.HistoricVariableUpdate;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceModificationBuilder;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.task.Task;
@@ -661,65 +663,94 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
   @Deployment(resources =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessScenarioTest.testTwoConcurrentChildren.bpmn20.xml")
   @Test
-  public void testActivationCounterIsVisibleByDecision() {
+  public void testActivationFlagIsVisibleByDecision() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocConcurrent");
     activate(pi.getId(), "taskA");
 
-    // DECIDED (CIB7-1850): the counter stays in the variable store and stays visible. Hiding it
+    // DECIDED (CIB7-1850): the flag stays in the variable store and stays visible. Hiding it
     // needs a schema change, which is out under the no-breaking-changes constraint, and the engine's
-    // own multi-instance exposes nrOfInstances / nrOfActiveInstances the same way. It is no longer
-    // writable by a child -- see testCounterTamperingCannotStallTheScope -- and its visibility is
-    // disclosed in the release notes. Asserted so the decision is pinned rather than assumed.
+    // own multi-instance exposes nrOfInstances / nrOfActiveInstances the same way. It is not
+    // writable by a child -- see testActivationFlagTamperingCannotStallTheScope -- and its visibility
+    // is disclosed in the release notes. Asserted so the decision is pinned rather than assumed.
     assertThat(runtimeService.createVariableInstanceQuery()
         .processInstanceIdIn(pi.getId())
-        .variableName("nrOfActivatedInstances")
+        .variableName("adHocActivated")
         .count())
-        .as("the activation counter is visible, by decision, as multi-instance's counters are")
+        .as("the activation flag is visible, by decision, as multi-instance's counters are")
         .isEqualTo(1);
   }
 
   /**
-   * A child of the scope can overwrite the activation counter: {@code execution.setVariable} walks up
-   * the execution hierarchy and finds it on the scope execution. Whether the counter should be
-   * reachable at all is {@code CIB7-1850}'s decision, and
-   * {@link #testCounterTamperingCannotStallTheScope} pins the consequence.
+   * The flag records <em>that</em> the scope activated something, not how often, so it is written
+   * on the first activation and never again. A scope that is activated all day long must not
+   * rewrite its state, and with full history leave a history row, on every call.
+   */
+  @Deployment(resources =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessScenarioTest.testTwoConcurrentChildren.bpmn20.xml")
+  @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
+  @Test
+  public void testActivationFlagIsWrittenOnce() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocConcurrent");
+
+    // Four activations in three calls, one of them activating two at once.
+    activate(pi.getId(), "taskA");
+    activate(pi.getId(), "taskB", "taskC");
+    activate(pi.getId(), "taskA");
+
+    int writes = 0;
+    for (HistoricDetail detail : historyService.createHistoricDetailQuery()
+        .processInstanceId(pi.getId()).variableUpdates().list()) {
+      if ("adHocActivated".equals(((HistoricVariableUpdate) detail).getVariableName())) {
+        writes++;
+      }
+    }
+    assertThat(writes).as("the flag is written by the first activation only").isEqualTo(1);
+
+    VariableInstance flag = runtimeService.createVariableInstanceQuery()
+        .processInstanceIdIn(pi.getId()).variableName("adHocActivated").singleResult();
+    assertThat(flag.getValue()).isEqualTo(true);
+  }
+
+  /**
+   * A child of the scope writes the activation flag's name: {@code execution.setVariable} walks up
+   * the execution hierarchy looking for it. Whether the flag should be reachable at all is
+   * {@code CIB7-1850}'s decision, and {@link #testActivationFlagTamperingCannotStallTheScope} pins
+   * the consequence.
    *
-   * <p>Independent of that decision, the tamper must not crash the engine, and this is the only test
-   * that holds that line. The write arrives from a JUEL expression as a {@code Long}, so reading the
-   * counter with a plain {@code (Integer)} cast throws {@code ClassCastException} from inside a PVM
-   * atomic operation — out through the activation call, with the transaction already dirty. It pins
-   * the defensive {@code Number} read in {@code AdHocSubProcessActivityBehavior.getActivatedCount}.
+   * <p>Independent of that decision, the tamper must not crash the engine or reach the engine's
+   * copy. The scope reads the flag back to decide completion while the tampering child is still
+   * ending, inside the activation call.
    */
   @Deployment
   @Test
-  public void testCounterTamperingDoesNotCrashTheEngine() {
+  public void testActivationFlagTamperingDoesNotCrashTheEngine() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocTamper");
 
     activate(pi.getId(), "taskA");
     assertThat(task("taskA")).isNotNull();
 
-    // The tamper is synchronous, so it writes the counter and ends -- and the scope reads the counter
-    // back to decide completion -- while this call is still on the stack. A non-defensive read
-    // surfaces right here.
+    // The tamper is synchronous, so it writes the flag and ends -- and the scope reads the flag
+    // back to decide completion -- while this call is still on the stack. A read that trusted the
+    // variable's type surfaces right here.
     activate(pi.getId(), "tamper");
 
-    // CIB7-1850: the child's write no longer reaches the engine's copy. setVariable walks
-    // up the parent chain, the counter now lives on a marker execution that is a *sibling* of the
+    // CIB7-1850: the child's write does not reach the engine's copy. setVariable walks
+    // up the parent chain, the flag lives on a marker execution that is a *sibling* of the
     // children, so the write falls through to the process instance and creates a second variable
     // of the same name. Two of them existing is the proof that ours was not overwritten.
-    List<VariableInstance> counters = runtimeService.createVariableInstanceQuery()
+    List<VariableInstance> flags = runtimeService.createVariableInstanceQuery()
         .processInstanceIdIn(pi.getId())
-        .variableName("nrOfActivatedInstances")
+        .variableName("adHocActivated")
         .list();
-    assertThat(counters).as("the child's write landed beside the engine's copy, not on it").hasSize(2);
+    assertThat(flags).as("the child's write landed beside the engine's copy, not on it").hasSize(2);
 
     List<Object> values = new ArrayList<Object>();
-    for (VariableInstance counter : counters) {
-      values.add(counter.getValue());
+    for (VariableInstance flag : flags) {
+      values.add(flag.getValue());
     }
-    // 0L is the child's own copy, written from JUEL and therefore a Long. 2 is the engine's,
-    // still an Integer and still counting both activations -- i.e. the tamper missed it.
-    assertThat(values).containsExactlyInAnyOrder(0L, 2);
+    // false is the child's own copy; true is the engine's, still recording that the scope
+    // activated something -- i.e. the tamper missed it.
+    assertThat(values).containsExactlyInAnyOrder(false, true);
 
     // ... and the scope came through it intact.
     assertThat(task("taskA")).isNotNull();
@@ -728,12 +759,12 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
   /**
    * The other half of the tamper: surviving it is not the same as being unaffected by it. One
    * activation genuinely happened, so once nothing is active the scope must leave — even though a
-   * child reset the count that records it.
+   * child reset the flag that records it.
    */
   @Deployment(resources =
-      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessScenarioTest.testCounterTamperingDoesNotCrashTheEngine.bpmn20.xml")
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessScenarioTest.testActivationFlagTamperingDoesNotCrashTheEngine.bpmn20.xml")
   @Test
-  public void testCounterTamperingCannotStallTheScope() {
+  public void testActivationFlagTamperingCannotStallTheScope() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocTamper");
 
     activate(pi.getId(), "taskA");
@@ -1234,10 +1265,10 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
   }
 
   /**
-   * The activation counter does not outlive a scope whose child registered compensation.
+   * The activation flag does not outlive a scope whose child registered compensation.
    *
    * <p>Leaving the scope hands its compensation up to an event scope execution, and every event-scope
-   * child of the scope goes along. The counter's marker is one of them, so it stayed -- with its
+   * child of the scope goes along. The flag's marker is one of them, so it stayed -- with its
    * variable -- until the process ended (review finding 6). It belongs to the running scope only, and
    * compensation must still reach the completed child without it.
    */
@@ -1245,7 +1276,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessScenarioTest.testCompensationOfAdHocChild.bpmn20.xml")
   @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
   @Test
-  public void testCounterDoesNotOutliveTheScopeWithCompensation() {
+  public void testActivationFlagDoesNotOutliveTheScopeWithCompensation() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocCompensation");
 
     activate(pi.getId(), "taskA");
@@ -1253,8 +1284,8 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
     assertThat(task("wait")).as("the scope must have completed and moved on").isNotNull();
 
     assertThat(runtimeService.createVariableInstanceQuery().processInstanceIdIn(pi.getId())
-        .variableName("nrOfActivatedInstances").count())
-        .as("the counter must leave with the scope it counts")
+        .variableName("adHocActivated").count())
+        .as("the flag must leave with the scope it belongs to")
         .isZero();
 
     taskService.complete(task("wait").getId());

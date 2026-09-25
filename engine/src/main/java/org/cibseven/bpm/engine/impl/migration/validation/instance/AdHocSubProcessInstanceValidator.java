@@ -39,9 +39,10 @@ import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
  * under a plan that happens to map the scope -- and tightening a refusal is a breaking change where
  * relaxing one is additive.
  *
- * <p>Why the refusal exists at all: the scope carries an activation count on a marker execution, and
- * migration has no handling for it. Supporting migration means first deciding what happens to that
- * count, which is why adding the behaviour to the supported list would quietly lose it.
+ * <p>Why the refusal exists at all: the scope carries its state -- whether it has activated
+ * anything, and whether its condition has held -- on a marker execution, and migration has no
+ * handling for it. Supporting migration means first deciding what happens to that state, which is
+ * why adding the behaviour to the supported list would quietly lose it.
  */
 public class AdHocSubProcessInstanceValidator implements MigratingActivityInstanceValidator {
 

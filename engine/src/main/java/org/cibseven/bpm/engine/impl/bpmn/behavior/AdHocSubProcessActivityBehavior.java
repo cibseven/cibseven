@@ -77,8 +77,11 @@ import com.google.gson.JsonElement;
 public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavior
     implements CompositeActivityBehavior, ModificationObserverBehavior {
 
-  /** Counts children activated during this scope instance; drives the no-condition completion rule. */
-  public static final String NUMBER_OF_ACTIVATED_INSTANCES = "nrOfActivatedInstances";
+  /**
+   * Records that this scope instance has activated something; drives the no-condition completion
+   * rule. Written on the first activation and never again.
+   */
+  public static final String ACTIVATED = "adHocActivated";
 
   /**
    * Records that the completion condition has held. Needed because
@@ -105,9 +108,9 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
 
   @Override
   public void execute(ActivityExecution execution) throws Exception {
-    // Entering an ad-hoc scope starts nothing, and deliberately records nothing: writing a zero
-    // counter here put a variable — and, with the counter relocated, an execution — into every ad
-    // hoc instance from birth, including scopes that never activate anything. The count is created
+    // Entering an ad-hoc scope starts nothing, and deliberately records nothing: writing the flag
+    // here would put a variable — and, since the flag lives on a marker, an execution — into every
+    // ad hoc instance from birth, including scopes that never activate anything. The flag is written
     // on first activation instead, so a never-activated scope carries neither.
 
     // Do NOT null the activity here, even though parallel multi-instance does.
@@ -379,7 +382,9 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     // Called on the instantiation-stack path (process instance modification), never on normal entry.
     // The caller dereferences get(0), so numberOfInstances must be honoured.
     ensureFurtherActivationAllowed(scopeExecution);
-    setActivatedCount(scopeExecution, getActivatedCount(scopeExecution) + numberOfInstances);
+    if (numberOfInstances > 0) {
+      markActivated(scopeExecution);
+    }
 
     List<ActivityExecution> executions = new ArrayList<ActivityExecution>();
     for (int i = 0; i < numberOfInstances; i++) {
@@ -391,7 +396,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   @Override
   public ActivityExecution createInnerInstance(ActivityExecution scopeExecution) {
     ensureFurtherActivationAllowed(scopeExecution);
-    setActivatedCount(scopeExecution, getActivatedCount(scopeExecution) + 1);
+    markActivated(scopeExecution);
     return createConcurrentExecution(scopeExecution);
   }
 
@@ -443,7 +448,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    * ad hoc scope has the same obligation for the same reason: without it, throwing compensation at
    * the scope afterwards finds nothing and silently does nothing.
    *
-   * <p>The activation counter's marker is removed first. It is an event-scope child as well, and
+   * <p>The marker holding the scope's state is removed first. It is an event-scope child as well, and
    * {@code createEventScopeExecution} moves every event-scope child into the compensation event
    * scope, where the marker outlived the scope with its variables until the process ended (review
    * finding 6). It belongs to the running scope, and the scope is leaving.
@@ -571,7 +576,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
       setConditionSatisfied(scopeExecution);
       return true;
     }
-    return getActivatedCount(scopeExecution) > 0 && !hasActiveChildren(scopeExecution, endedExecution);
+    return isActivated(scopeExecution) && !hasActiveChildren(scopeExecution, endedExecution);
   }
 
   /**
@@ -818,41 +823,40 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     return concurrentChild;
   }
 
-  protected int getActivatedCount(ActivityExecution scopeExecution) {
-    // CIB7-1850: read the count from a marker execution held off the children's
-    // ancestor path, instead of from the scope execution itself.
+  /**
+   * Whether this scope instance has activated anything yet. The no-condition completion rule needs
+   * that and nothing more: with nothing active, a scope that has run something is done, and one
+   * that has not is still waiting for its first activation.
+   */
+  protected boolean isActivated(ActivityExecution scopeExecution) {
+    // CIB7-1850: read from a marker execution held off the children's ancestor path, instead of
+    // from the scope execution itself. Compared rather than cast, so whatever else reaches this
+    // name cannot throw from inside a PVM atomic operation.
     PvmExecutionImpl marker = findStateExecution(scopeExecution);
-    // No marker can mean two things: nothing has been activated yet, or the instance was started by
-    // a build that still kept the counter on the scope execution itself. Reading the old location as
-    // a fallback keeps such an instance completing instead of parking forever. It is safe against the
-    // tamper this relocation fixed, because a child's setVariable only reaches the scope's locals if
-    // the name is already there -- which, with the lazy write, it never is for a new instance.
-    Object value = (marker == null)
-        ? scopeExecution.getVariableLocal(NUMBER_OF_ACTIVATED_INSTANCES)
-        : marker.getVariableLocal(NUMBER_OF_ACTIVATED_INSTANCES);
-    // A child of the scope writing this name via a JUEL expression produces a Long, not an
-    // Integer, so a plain cast throws ClassCastException from inside a PVM atomic operation.
-    if (value instanceof Number) {
-      return ((Number) value).intValue();
-    }
-    return 0;
+    return marker != null && Boolean.TRUE.equals(marker.getVariableLocal(ACTIVATED));
   }
 
-  protected void setActivatedCount(ActivityExecution scopeExecution, int count) {
+  /**
+   * Written once, on the first activation. Every later activation finds it set and writes nothing,
+   * so activating again costs no variable update and, with full history, no history row.
+   */
+  protected void markActivated(ActivityExecution scopeExecution) {
     PvmExecutionImpl marker = findStateExecution(scopeExecution);
     if (marker == null) {
       marker = createStateExecution(scopeExecution);
     }
-    marker.setVariableLocal(NUMBER_OF_ACTIVATED_INSTANCES, count);
+    if (!Boolean.TRUE.equals(marker.getVariableLocal(ACTIVATED))) {
+      marker.setVariableLocal(ACTIVATED, true);
+    }
   }
 
   /**
-   * CIB7-1850. The completion counter lives on a dedicated event-scope child of the ad hoc
-   * scope rather than on the scope execution.
+   * CIB7-1850. The scope's state — the activation flag and the condition latch — lives on a
+   * dedicated event-scope child of the ad hoc scope rather than on the scope execution.
    *
    * <p>The point is the variable resolution order. {@code setVariable} walks strictly up the parent
    * chain and writes to the first ancestor that already holds the name; the scope execution is an
-   * ancestor of every ad hoc child, which is exactly why a child can overwrite the counter today. A
+   * ancestor of every ad hoc child, which is why a child could overwrite a variable kept there. A
    * marker execution is a <em>sibling</em> of those children, so it is never on their walk-up path:
    * a child writing this name creates its own variable at the process instance instead, and the
    * engine's copy is untouched.
@@ -863,7 +867,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    */
   protected PvmExecutionImpl findStateExecution(ActivityExecution scopeExecution) {
     for (PvmExecutionImpl candidate : ((PvmExecutionImpl) scopeExecution).getEventScopeExecutions()) {
-      if (candidate.hasVariableLocal(NUMBER_OF_ACTIVATED_INSTANCES)
+      if (candidate.hasVariableLocal(ACTIVATED)
           || candidate.hasVariableLocal(COMPLETION_CONDITION_SATISFIED)) {
         return candidate;
       }
@@ -886,7 +890,8 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   }
 
   /**
-   * Whether this scope's completion is decided by a condition rather than by the activation count.
+   * Whether this scope's completion is decided by a condition rather than by whether anything was
+   * activated.
    * Read by the migration validator, which has to refuse a mapping that would change the rule.
    */
   public boolean hasCompletionCondition() {

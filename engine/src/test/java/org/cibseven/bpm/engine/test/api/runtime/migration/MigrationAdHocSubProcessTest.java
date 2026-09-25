@@ -105,7 +105,7 @@ public class MigrationAdHocSubProcessTest {
   @Test
   public void cannotMigrateAdHocScopeWhenTheCompletionRuleChanges() {
     // Source completes when nothing is active and at least one child has been activated. Target
-    // completes when its condition says so. The activation count that the source scope was relying
+    // completes when its condition says so. The activation flag that the source scope was relying
     // on has no meaning in the target, and nothing in the plan says what should happen to it.
     ProcessDefinition source = testHelper.deployAndGetDefinition(adHocProcess(null));
     ProcessDefinition target = testHelper.deployAndGetDefinition(adHocProcess("${approved}"));
@@ -160,9 +160,9 @@ public class MigrationAdHocSubProcessTest {
    *
    * <p>This test pins the current behaviour so that the refusal cannot disappear unnoticed. It is
    * NOT an endorsement of it: whether to support migrating an active ad hoc scope is an open
-   * decision, because it requires deciding what happens to the activation count the scope has
-   * accumulated. Adding AdHocSubProcessActivityBehavior to that list without answering that
-   * question would migrate the instance and silently lose the count.
+   * decision, because it requires deciding what happens to the state the scope carries on its
+   * marker execution. Adding AdHocSubProcessActivityBehavior to that list without answering that
+   * question would migrate the instance and silently lose that state.
    */
   @Test
   public void migratingAnActiveAdHocScopeIsRefusedAtExecutionTime() {

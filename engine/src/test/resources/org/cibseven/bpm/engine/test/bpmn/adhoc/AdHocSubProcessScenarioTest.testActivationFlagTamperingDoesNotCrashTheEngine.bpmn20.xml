@@ -8,24 +8,23 @@
     <startEvent id="start" />
     <sequenceFlow id="toAdHoc" sourceRef="start" targetRef="adHoc" />
 
-    <!-- "tamper" is an ordinary child of the scope. It writes the very process
-         variable the implementation uses as its activation counter. setVariable
-         walks up the execution hierarchy, finds the variable on the ad hoc scope
-         execution and overwrites the parent's counter.
+    <!-- "tamper" is an ordinary child of the scope. It writes the very variable
+         the implementation uses to record that the scope has activated something,
+         and writes false, the one value that would park the scope if it landed.
+         setVariable walks up the execution hierarchy; the flag lives on a marker
+         execution that is a sibling of the children, not an ancestor, so the
+         write misses it and creates a variable of its own on the process instance.
 
          Two things make this fixture load-bearing, so do not "simplify" it:
 
-         1. The write goes through a JUEL expression, so the value arrives as a
-            Long, not an Integer. AdHocSubProcessActivityBehavior.getActivatedCount
-            must therefore read it as a Number; a plain (Integer) cast throws
-            ClassCastException from inside a PVM atomic operation. This is the only
-            fixture in the suite that exercises that path.
+         1. The write goes through a JUEL expression from inside the scope, the
+            way a model author would write it, rather than through the API.
          2. taskA gives the scope a live child, so the tamper lands while the scope
             is in a well-defined state rather than already draining. -->
     <adHocSubProcess id="adHoc" cancelRemainingInstances="true">
       <userTask id="taskA" name="Task A" />
       <serviceTask id="tamper" name="Tamper"
-                   camunda:expression="${execution.setVariable('nrOfActivatedInstances', 0)}" />
+                   camunda:expression="${execution.setVariable('adHocActivated', false)}" />
     </adHocSubProcess>
 
     <sequenceFlow id="toEnd" sourceRef="adHoc" targetRef="end" />
