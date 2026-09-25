@@ -28,6 +28,8 @@ import java.util.Map;
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.history.UserOperationLogEntry;
+import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.cibseven.bpm.engine.runtime.ActivityInstance;
 import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
@@ -52,6 +54,8 @@ public class AdHocSubProcessActivationApiTest extends PluggableProcessEngineTest
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessActivationApiTest.scopeChildren.bpmn20.xml";
   protected static final String CALLED =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessActivationApiTest.called.bpmn20.xml";
+  protected static final String PARALLEL_TOKENS =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessActivationApiTest.parallelTokens.bpmn20.xml";
 
   protected String scopeExecutionId(String processInstanceId) {
     for (Execution execution : runtimeService.createExecutionQuery()
@@ -454,6 +458,123 @@ public class AdHocSubProcessActivationApiTest extends PluggableProcessEngineTest
     } catch (BadUserRequestException e) {
       assertThat(e.getMessage()).contains("not an ad hoc sub process");
     }
+  }
+
+  // ---------------------------------------------------------------- which instance is meant
+
+  /** The instances of the ad hoc scope, in the order the activity instance tree lists them. */
+  protected List<ActivityInstance> adHocInstances(ProcessInstance pi) {
+    return Arrays.asList(runtimeService.getActivityInstance(pi.getId()).getActivityInstances("adHoc"));
+  }
+
+  protected String scopeExecutionOf(ActivityInstance adHocInstance) {
+    assertThat(adHocInstance.getExecutionIds()).as("a scope instance has its own execution").hasSize(1);
+    return adHocInstance.getExecutionIds()[0];
+  }
+
+  protected int childrenOf(ProcessInstance pi, String adHocInstanceId) {
+    for (ActivityInstance instance : adHocInstances(pi)) {
+      if (instance.getId().equals(adHocInstanceId)) {
+        return instance.getChildActivityInstances().length;
+      }
+    }
+    throw new AssertionError("no ad hoc instance " + adHocInstanceId);
+  }
+
+  /**
+   * Two tokens in the same ad hoc sub process share its activity id, which is why the API takes an
+   * execution: each instance has its own scope execution, and an activation lands in that one only.
+   */
+  @Deployment(resources = PARALLEL_TOKENS)
+  @Test
+  public void twoTokensInTheSameAdHocAreAddressedByTheirOwnExecution() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocParallelTokens");
+    List<ActivityInstance> instances = adHocInstances(pi);
+    assertThat(instances).as("each token entered its own instance").hasSize(2);
+    String first = instances.get(0).getId();
+    String second = instances.get(1).getId();
+    assertThat(scopeExecutionOf(instances.get(0))).isNotEqualTo(scopeExecutionOf(instances.get(1)));
+
+    runtimeService.activateAdHocSubProcessActivities(scopeExecutionOf(instances.get(0)),
+        Collections.singletonList("taskA"));
+
+    assertThat(childrenOf(pi, first)).as("the named instance got the child").isEqualTo(1);
+    assertThat(childrenOf(pi, second)).as("the other instance is untouched").isZero();
+  }
+
+  /** The concurrent token a parallel gateway made stands above exactly one instance, so it names it. */
+  @Deployment(resources = PARALLEL_TOKENS)
+  @Test
+  public void theConcurrentTokenAboveAnInstanceNamesThatInstance() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocParallelTokens");
+    List<ActivityInstance> instances = adHocInstances(pi);
+    String second = instances.get(1).getId();
+    String token = ((ExecutionEntity) runtimeService.createExecutionQuery()
+        .executionId(scopeExecutionOf(instances.get(1))).singleResult()).getParentId();
+    assertThat(token).as("the concurrent execution, not the process instance").isNotEqualTo(pi.getId());
+
+    runtimeService.activateAdHocSubProcessActivities(token, Collections.singletonList("taskA"));
+
+    assertThat(childrenOf(pi, second)).isEqualTo(1);
+    assertThat(childrenOf(pi, instances.get(0).getId())).isZero();
+  }
+
+  /** A token that is not in the ad hoc sub process at all is refused, and nothing is started. */
+  @Deployment(resources = PARALLEL_TOKENS)
+  @Test
+  public void refusesATokenThatIsOnAnActivityOutsideTheAdHoc() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocParallelTokens");
+    String outside = task("outside").getExecutionId();
+
+    try {
+      runtimeService.activateAdHocSubProcessActivities(outside, Collections.singletonList("taskA"));
+      fail("a token outside the ad hoc sub process names no instance of it");
+    } catch (BadUserRequestException e) {
+      assertThat(e.getMessage()).contains("is not an ad hoc sub process instance");
+    }
+    assertThat(taskService.createTaskQuery().processInstanceId(pi.getId()).count())
+        .as("only the outside task").isEqualTo(1);
+  }
+
+  /** The execution of a child inside the scope runs an activity of its own; it is not the scope. */
+  @Deployment(resources = RESOURCE)
+  @Test
+  public void refusesTheExecutionOfAChildInsideTheAdHoc() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocActivationApi");
+    runtimeService.activateAdHocSubProcessActivities(scopeExecutionId(pi.getId()),
+        Collections.singletonList("taskA"));
+
+    try {
+      runtimeService.activateAdHocSubProcessActivities(task("taskA").getExecutionId(),
+          Collections.singletonList("taskB"));
+      fail("a child's execution is not the ad hoc scope");
+    } catch (BadUserRequestException e) {
+      assertThat(e.getMessage()).contains("is not an ad hoc sub process instance");
+    }
+    assertThat(task("taskB")).as("nothing started").isNull();
+  }
+
+  /**
+   * An instance that has completed takes its scope execution with it; the token has moved on and the
+   * id names nothing. The other instance is not affected.
+   */
+  @Deployment(resources = PARALLEL_TOKENS)
+  @Test
+  public void refusesAnInstanceThatHasAlreadyCompleted() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocParallelTokens");
+    List<ActivityInstance> instances = adHocInstances(pi);
+    String closed = scopeExecutionOf(instances.get(0));
+    runtimeService.activateAdHocSubProcessActivities(closed, Collections.singletonList("taskA"));
+    taskService.complete(task("taskA").getId());
+    assertThat(adHocInstances(pi)).as("the first instance has left").hasSize(1);
+
+    try {
+      runtimeService.activateAdHocSubProcessActivities(closed, Collections.singletonList("taskB"));
+      fail("a completed instance must be refused");
+    } catch (BadUserRequestException e) {
+      assertThat(e.getMessage()).contains("doesn't exist");
+    }
+    assertThat(childrenOf(pi, instances.get(1).getId())).isZero();
   }
 
   @Test
