@@ -32,6 +32,7 @@
 					<xsd:element name="completionCondition" type="tExpression" minOccurs="0" maxOccurs="1"/>
 				</xsd:sequence>
 				<xsd:attribute name="cancelRemainingInstances" type="xsd:boolean" default="true"/>
+				<!-- default="Parallel" per BPMN 2.0.2 Table 10.22/10.33; OMG's published Semantic.xsd omits it (CIB7-1846) -->
 				<xsd:attribute name="ordering" type="tAdHocOrdering" default="Parallel"/>
 			</xsd:extension>
 		</xsd:complexContent>
