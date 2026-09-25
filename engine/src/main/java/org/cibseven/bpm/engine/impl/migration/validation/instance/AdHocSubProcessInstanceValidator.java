@@ -57,9 +57,9 @@ public class AdHocSubProcessInstanceValidator implements MigratingActivityInstan
     ActivityImpl sourceActivity = (ActivityImpl) sourceScope;
     if (sourceActivity.getActivityBehavior() instanceof AdHocSubProcessActivityBehavior) {
       instanceReport.addFailure("Ad hoc sub process '" + sourceActivity.getId()
-          + "' cannot be migrated while it is active, because the number of activations it has"
-          + " accumulated has no defined migration. Complete or cancel the scope before migrating"
-          + " the instance.");
+          + "' cannot be migrated while it is active, because the state it keeps about what it has"
+          + " started has no defined migration. Complete or cancel the scope before migrating the"
+          + " instance.");
     }
   }
 }
