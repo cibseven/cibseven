@@ -27,6 +27,7 @@ import org.cibseven.bpm.engine.delegate.ExecutionListener;
 import org.cibseven.bpm.engine.delegate.VariableScope;
 import org.cibseven.bpm.engine.impl.Condition;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessActivityBehavior;
+import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocToolDescriptor;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
 import org.cibseven.bpm.engine.impl.bpmn.parser.AbstractBpmnParseListener;
 import org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParseUtil;
@@ -89,6 +90,11 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     // camunda:property at runtime finds it. The parser sets this key only for an external
     // service task, and the tool's caps sit on the scope.
     activity.getProperties().set(BpmnProperties.EXTENSION_PROPERTIES, properties);
+
+    // The tool catalogue: one descriptor per startable child, built here so a broken
+    // declaration refuses the deployment rather than a turn.
+    activity.getProperties().set(AdHocToolDescriptor.CATALOG,
+        AgenticToolCatalogParser.parse(scopeElement, startable));
 
     activity.addListener(ExecutionListener.EVENTNAME_START, new AgenticAdHocStartListener());
 

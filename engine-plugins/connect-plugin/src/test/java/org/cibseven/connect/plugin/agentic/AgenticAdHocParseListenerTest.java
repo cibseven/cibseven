@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineException;
+import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocToolDescriptor;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
@@ -173,6 +174,121 @@ public class AgenticAdHocParseListenerTest {
     // No agentic property: no parking, no listeners, no job.
     assertThat(engine.getManagementService().createJobQuery().list()).isEmpty();
     assertThat(listenerCount("worker")).isZero();
+  }
+
+  // --- the parse-time catalogue ----------------------------------------------
+
+  @Test
+  public void theCatalogueIsBuiltAtParseTimeAndSitsOnTheScope() {
+    deploy(agentic(
+        "<serviceTask id='quick' name='Quick' camunda:expression='${1}'"
+        + "    camunda:resultVariable='amount'>"
+        + "  <documentation>Computes the amount.</documentation>"
+        + "</serviceTask>"
+        + "<userTask id='approve' name='Approve'>"
+        + "  <extensionElements><camunda:formData>"
+        + "    <camunda:formField id='decision' label='Decision' type='string' />"
+        + "  </camunda:formData></extensionElements>"
+        + "</userTask>"
+        + "<userTask id='behind' />"
+        + "<sequenceFlow id='inner' sourceRef='approve' targetRef='behind' />"));
+
+    List<AdHocToolDescriptor> catalog = catalogOf("adHoc");
+
+    assertThat(catalog).extracting(AdHocToolDescriptor::getActivityId)
+        .as("startable children only, in document order")
+        .containsExactly("quick", "approve");
+    AdHocToolDescriptor quick = catalog.get(0);
+    assertThat(quick.getName()).isEqualTo("Quick");
+    assertThat(quick.getDocumentation()).isEqualTo("Computes the amount.");
+    assertThat(quick.getResultVariables()).containsExactly("amount");
+    AdHocToolDescriptor approve = catalog.get(1);
+    assertThat(approve.getResultVariables())
+        .as("form fields become the declared result").containsExactly("decision");
+  }
+
+  @Test
+  public void aDeclaredParameterCarriesTypeAndDescription() {
+    deploy(agentic(
+        "<serviceTask id='fetch' name='Fetch' camunda:expression='${1}'>"
+        + "  <extensionElements><camunda:properties>"
+        + "    <camunda:property name='adHocToolParameter.stadt'"
+        + "        value='string|Die Stadt, deren Temperatur gesucht ist' />"
+        + "    <camunda:property name='adHocToolParameter.limit' value='integer' />"
+        + "  </camunda:properties></extensionElements>"
+        + "</serviceTask>"));
+
+    List<AdHocToolDescriptor.Parameter> parameters = catalogOf("adHoc").get(0).getParameters();
+
+    assertThat(parameters).hasSize(2);
+    assertThat(parameters.get(0).getName()).isEqualTo("limit");
+    assertThat(parameters.get(0).getType()).isEqualTo("integer");
+    assertThat(parameters.get(0).getDescription()).isEmpty();
+    assertThat(parameters.get(1).getName()).isEqualTo("stadt");
+    assertThat(parameters.get(1).getType()).isEqualTo("string");
+    assertThat(parameters.get(1).getDescription())
+        .isEqualTo("Die Stadt, deren Temperatur gesucht ist");
+  }
+
+  @Test
+  public void refusesAParameterWithAnUnknownType() {
+    String model = agentic("<serviceTask id='fetch' camunda:expression='${1}'>"
+        + "  <extensionElements><camunda:properties>"
+        + "    <camunda:property name='adHocToolParameter.stadt' value='text|kaputt' />"
+        + "  </camunda:properties></extensionElements>"
+        + "</serviceTask>");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("'text' is not supported");
+  }
+
+  @Test
+  public void refusesAChildIdThatCannotBeAToolName() {
+    String model = agentic("<userTask id='mit.punkt' />");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("cannot be a tool name");
+  }
+
+  @Test
+  public void refusesAChildCollidingWithTheBuiltInTool() {
+    String model = agentic("<userTask id='completeScope' />");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("collides with the built-in tool");
+  }
+
+  @Test
+  public void refusesAnUnparseableBlockingMark() {
+    String model = agentic("<userTask id='gated'>"
+        + "  <extensionElements><camunda:properties>"
+        + "    <camunda:property name='adHocBlockedWhileOthersRun' value='yes' />"
+        + "  </camunda:properties></extensionElements>"
+        + "</userTask>");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("must be 'true' or 'false'");
+  }
+
+  /** The catalogue of the latest deployed definition's scope. Needs a command context. */
+  protected List<AdHocToolDescriptor> catalogOf(final String activityId) {
+    final String definitionId = engine.getRepositoryService()
+        .createProcessDefinitionQuery().latestVersion().singleResult().getId();
+    return config.getCommandExecutorTxRequired().execute(
+        new org.cibseven.bpm.engine.impl.interceptor.Command<List<AdHocToolDescriptor>>() {
+          @Override
+          public List<AdHocToolDescriptor> execute(
+              org.cibseven.bpm.engine.impl.interceptor.CommandContext ctx) {
+            ProcessDefinitionEntity entity = ctx.getProcessEngineConfiguration()
+                .getDeploymentCache().findDeployedProcessDefinitionById(definitionId);
+            return entity.findActivity(activityId).getProperties()
+                .get(AdHocToolDescriptor.CATALOG);
+          }
+        });
   }
 
   /**
