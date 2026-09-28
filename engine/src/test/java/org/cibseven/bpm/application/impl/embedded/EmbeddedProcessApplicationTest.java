@@ -17,7 +17,7 @@
 package org.cibseven.bpm.application.impl.embedded;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import java.util.Set;
@@ -34,10 +34,11 @@ import org.cibseven.bpm.engine.repository.ProcessApplicationDeployment;
 import org.cibseven.bpm.engine.repository.Resource;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Daniel Meyer
@@ -46,7 +47,7 @@ import org.junit.Test;
 public class EmbeddedProcessApplicationTest extends PluggableProcessEngineTest {
 
   protected static final String CONFIG_LOGGER = "org.cibseven.bpm.application";
-  @Rule
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
                                                     .watch(CONFIG_LOGGER)
                                                     .level(Level.WARN);
@@ -59,12 +60,12 @@ public class EmbeddedProcessApplicationTest extends PluggableProcessEngineTest {
     defaultEngineRegistered = true;
   }
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     defaultEngineRegistered = false;
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (defaultEngineRegistered) {
       runtimeContainerDelegate.unregisterProcessEngine(processEngine);

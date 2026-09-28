@@ -17,37 +17,32 @@
 package org.cibseven.bpm.engine.test.bpmn.event.escalation;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import junit.framework.AssertionFailedError;
+import org.opentest4j.AssertionFailedError;
 import org.cibseven.bpm.engine.ParseException;
 import org.cibseven.bpm.engine.Problem;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Parse an invalid process definition and assert the error message.
  *
  * @author Philipp Ossler
  */
-@RunWith(Parameterized.class)
 public class EscalationEventParseInvalidProcessTest {
 
   private static final String PROCESS_DEFINITION_DIRECTORY = "org/cibseven/bpm/engine/test/bpmn/event/escalation/";
 
-  @Parameters(name = "{index}: process definition = {0}, expected error message = {1}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
         { "EscalationEventParseInvalidProcessTest.missingIdOnEscalation.bpmn20.xml", "escalation must have an id", new String[] {} },
@@ -70,27 +65,19 @@ public class EscalationEventParseInvalidProcessTest {
     });
   }
 
-  @Parameter(0)
-  public String processDefinitionResource;
-
-  @Parameter(1)
-  public String expectedErrorMessage;
-
-  @Parameter(2)
-  public String[] bpmnElementIds;
-
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule rule = new ProvidedProcessEngineRule();
 
   protected RepositoryService repositoryService;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     repositoryService = rule.getRepositoryService();
   }
 
-  @Test
-  public void testParseInvalidProcessDefinition() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testParseInvalidProcessDefinition(String processDefinitionResource, String expectedErrorMessage, String[] bpmnElementIds) {
     try {
       String deploymentId = repositoryService.createDeployment()
         .addClasspathResource(PROCESS_DEFINITION_DIRECTORY + processDefinitionResource)

@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.standalone.pvm;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 
@@ -29,7 +29,7 @@ import org.cibseven.bpm.engine.impl.pvm.PvmProcessInstance;
 import org.cibseven.bpm.engine.test.standalone.pvm.activities.Automatic;
 import org.cibseven.bpm.engine.test.standalone.pvm.activities.End;
 import org.cibseven.bpm.engine.test.standalone.pvm.activities.WaitState;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 
 /**

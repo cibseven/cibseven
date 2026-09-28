@@ -28,8 +28,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import org.cibseven.bpm.run.qa.util.SpringBootManagedContainer;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class CockpitPluginAutoDeploymentIT {
 
@@ -41,7 +41,7 @@ public class CockpitPluginAutoDeploymentIT {
 
   protected List<String> deployedPlugins = new ArrayList<>();
 
-  @After
+  @AfterEach
   public void teardown() {
     stopApp();
     undeployPlugins();
@@ -73,7 +73,7 @@ public class CockpitPluginAutoDeploymentIT {
   @Test
   public void shouldAutoDeployCockpitPlugin() throws IOException {
     // given
-    deployPlugin("cibseven-bpm-run-example-plugin.jar");
+    deployPlugin("cibseven-bpm-run4-example-plugin.jar");
     runStartScript();
 
     // when

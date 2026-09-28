@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getCleanableHistoricDecisionInstanceReportCount"
       tag = "Historic Decision Definition"
-      summary = "Get Cleanable Decision Instance Report Count"
+      summary = "Get Cleanable Historic Decision Instance Report Count"
       desc = "Queries for the number of report results about a decision definition and finished
               decision instances relevant to history cleanup (see
               [History cleanup](${docsUrl}/user-guide/process-engine/history/#history-cleanup)).

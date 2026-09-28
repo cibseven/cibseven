@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.error;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import org.cibseven.bpm.engine.delegate.BpmnError;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AbstractBpmnActivityBehavior;

@@ -19,8 +19,13 @@ package org.cibseven.bpm.engine.rest.security.auth.impl.jwt;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.logging.Logger;
+
+import org.cibseven.bpm.engine.rest.security.auth.impl.JwtTokenAuthenticationProvider;
 
 public class Configuration {
+  
+  private static final Logger LOGGER = Logger.getLogger(Configuration.class.getName());
 
   public static final String PROPERTIES_FILE = "cibseven-webclient.properties";
   public static final String PROPERTY_JWTSECRET = "cibseven.webclient.authentication.jwtSecret";
@@ -67,7 +72,17 @@ public class Configuration {
   }
 
   String readEnvironment() {
-    return System.getenv(PROPERTY_JWTSECRET.replace('.','_').toUpperCase());
+    try {
+      String secretVariableName = PROPERTY_JWTSECRET.replace('.','_').toUpperCase();
+      if (System.getProperty(PROPERTY_JWTSECRET) != null) {
+        return System.getProperty(PROPERTY_JWTSECRET);
+      }
+      return System.getenv(secretVariableName);
+    } catch (SecurityException e) {
+      LOGGER.warning("Unable to access environment variables due to security restrictions: " + e.getMessage());
+      // In case of a security manager that doesn't allow access to environment variables, we just return null
+      return null;
+    }
   }
 
 }

@@ -30,8 +30,8 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpPut;
 import org.apache.hc.client5.http.classic.methods.HttpTrace;
 import org.cibseven.connect.Connectors;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class HttpRequestTest {
 
@@ -41,7 +41,7 @@ public class HttpRequestTest {
 
   protected HttpConnector connector;
 
-  @Before
+  @BeforeEach
   public void createRequest() {
     connector = Connectors.getConnector(HttpConnector.ID);
   }

@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.container.impl.jmx.deployment.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -29,61 +29,47 @@ import java.util.List;
 import java.util.Map;
 
 import org.cibseven.bpm.container.impl.deployment.scanning.ClassPathProcessApplicationScanner;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 
 /**
  * @author Falko Menge
  * @author Daniel Meyer
  */
-@RunWith(Parameterized.class)
 public class ClassPathScannerTest {
 
-  private final String url;
   private static ClassPathProcessApplicationScanner scanner;
 
-  @Parameters
-  public static List<Object[]> data() {
-    return Arrays.asList(new Object[][] {
-            { "file:src/test/resources/org/cibseven/bpm/container/impl/jmx/deployment/util/ClassPathScannerTest.testScanClassPathWithFiles/" },
-            { "file:src/test/resources/org/cibseven/bpm/container/impl/jmx/deployment/util/ClassPathScannerTest.testScanClassPathWithFilesRecursive/" },
-            { "file:src/test/resources/org/cibseven/bpm/container/impl/jmx/deployment/util/ClassPathScannerTest.testScanClassPathWithFilesRecursiveTwoDirectories/" },
-            { "file:src/test/resources/org/cibseven/bpm/container/impl/jmx/deployment/util/ClassPathScannerTest.testScanClassPathWithAdditionalResourceSuffixes/" },
-            { "file:src/test/resources/org/cibseven/bpm/container/impl/jmx/deployment/util/ClassPathScannerTest.testScanClassPath.jar" },
-            { "file:src/test/resources/org/cibseven/bpm/container/impl/jmx/deployment/util/ClassPathScannerTest.testScanClassPathRecursive.jar" },
-            { "file:src/test/resources/org/cibseven/bpm/container/impl/jmx/deployment/util/ClassPathScannerTest.testScanClassPathRecursiveTwoDirectories.jar" },
-    });
-  }
-  
-  
-  public ClassPathScannerTest(String url) {
-    this.url = url;
-  }
-  
-  @BeforeClass
+  @BeforeAll
   public static void setup() {
     scanner = new ClassPathProcessApplicationScanner();
   }
-  
-  /**
-   * Test method for {@link org.cibseven.bpm.container.impl.deployment.scanning.ClassPathProcessApplicationScanner#scanClassPath(java.lang.ClassLoader)}.
-   * @throws MalformedURLException 
-   */
-  @Test
-  public void testScanClassPath() throws MalformedURLException {
-    
-    URLClassLoader classLoader = getClassloader();
+
+  public static List<String> data() {
+    return Arrays.asList(
+            "file:src/test/resources/org/cibseven/bpm/container/impl/jmx/deployment/util/ClassPathScannerTest.testScanClassPathWithFiles/",
+            "file:src/test/resources/org/cibseven/bpm/container/impl/jmx/deployment/util/ClassPathScannerTest.testScanClassPathWithFilesRecursive/",
+            "file:src/test/resources/org/cibseven/bpm/container/impl/jmx/deployment/util/ClassPathScannerTest.testScanClassPathWithFilesRecursiveTwoDirectories/",
+            "file:src/test/resources/org/cibseven/bpm/container/impl/jmx/deployment/util/ClassPathScannerTest.testScanClassPathWithAdditionalResourceSuffixes/",
+            "file:src/test/resources/org/cibseven/bpm/container/impl/jmx/deployment/util/ClassPathScannerTest.testScanClassPath.jar",
+            "file:src/test/resources/org/cibseven/bpm/container/impl/jmx/deployment/util/ClassPathScannerTest.testScanClassPathRecursive.jar",
+            "file:src/test/resources/org/cibseven/bpm/container/impl/jmx/deployment/util/ClassPathScannerTest.testScanClassPathRecursiveTwoDirectories.jar"
+    );
+  }
+
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testScanClassPath(String url) throws MalformedURLException {
+    URLClassLoader classLoader = getClassloader(url);
     
     Map<String, byte[]> scanResult = new HashMap<String, byte[]>();
     
     scanner.scanPaResourceRootPath(classLoader, new URL(url+"/META-INF/processes.xml"), null, scanResult);
 
-    assertTrue("'testDeployProcessArchive.bpmn20.xml' not found", contains(scanResult, "testDeployProcessArchive.bpmn20.xml"));
-    assertTrue("'testDeployProcessArchive.png' not found", contains(scanResult, "testDeployProcessArchive.png"));
+    assertTrue(contains(scanResult, "testDeployProcessArchive.bpmn20.xml"), "'testDeployProcessArchive.bpmn20.xml' not found");
+    assertTrue(contains(scanResult, "testDeployProcessArchive.png"), "'testDeployProcessArchive.png' not found");
     if(url.contains("TwoDirectories")) {
       assertEquals(4, scanResult.size());
     } else {
@@ -91,73 +77,78 @@ public class ClassPathScannerTest {
     }
   }
   
-  @Test
-  public void testScanClassPathWithNonExistingRootPath_relativeToPa() throws MalformedURLException {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testScanClassPathWithNonExistingRootPath_relativeToPa(String url) throws MalformedURLException {
 
-    URLClassLoader classLoader = getClassloader();
+    URLClassLoader classLoader = getClassloader(url);
     
     Map<String, byte[]> scanResult = new HashMap<String, byte[]>();
     scanner.scanPaResourceRootPath(classLoader, new URL(url+"/META-INF/processes.xml"), "pa:nonexisting", scanResult);
 
-    assertFalse("'testDeployProcessArchive.bpmn20.xml' found", contains(scanResult, "testDeployProcessArchive.bpmn20.xml"));
-    assertFalse("'testDeployProcessArchive.png' found", contains(scanResult, "testDeployProcessArchive.png"));
+    assertFalse(contains(scanResult, "testDeployProcessArchive.bpmn20.xml"), "'testDeployProcessArchive.bpmn20.xml' found");
+    assertFalse(contains(scanResult, "testDeployProcessArchive.png"), "'testDeployProcessArchive.png' found");
     assertEquals(0, scanResult.size());
   }
   
-  @Test
-  public void testScanClassPathWithNonExistingRootPath_nonRelativeToPa() throws MalformedURLException {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testScanClassPathWithNonExistingRootPath_nonRelativeToPa(String url) throws MalformedURLException {
     
-    URLClassLoader classLoader = getClassloader();
+    URLClassLoader classLoader = getClassloader(url);
     
     Map<String, byte[]> scanResult = new HashMap<String, byte[]>();
     scanner.scanPaResourceRootPath(classLoader, null, "nonexisting", scanResult);
     
-    assertFalse("'testDeployProcessArchive.bpmn20.xml' found", contains(scanResult, "testDeployProcessArchive.bpmn20.xml"));
-    assertFalse("'testDeployProcessArchive.png' found", contains(scanResult, "testDeployProcessArchive.png"));
+    assertFalse(contains(scanResult, "testDeployProcessArchive.bpmn20.xml"), "'testDeployProcessArchive.bpmn20.xml' found");
+    assertFalse(contains(scanResult, "testDeployProcessArchive.png"), "'testDeployProcessArchive.png' found");
     assertEquals(0, scanResult.size());
   }
 
-  @Test
-  public void testScanClassPathWithExistingRootPath_relativeToPa() throws MalformedURLException {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testScanClassPathWithExistingRootPath_relativeToPa(String url) throws MalformedURLException {
 
-    URLClassLoader classLoader = getClassloader();
+    URLClassLoader classLoader = getClassloader(url);
     
     Map<String, byte[]> scanResult = new HashMap<String, byte[]>();
     scanner.scanPaResourceRootPath(classLoader, new URL(url+"/META-INF/processes.xml"), "pa:directory/", scanResult);
 
     if(url.contains("Recursive")) {
-      assertTrue("'testDeployProcessArchive.bpmn20.xml' not found", contains(scanResult, "testDeployProcessArchive.bpmn20.xml"));
-      assertTrue("'testDeployProcessArchive.png' not found", contains(scanResult, "testDeployProcessArchive.png"));
+      assertTrue(contains(scanResult, "testDeployProcessArchive.bpmn20.xml"), "'testDeployProcessArchive.bpmn20.xml' not found");
+      assertTrue(contains(scanResult, "testDeployProcessArchive.png"), "'testDeployProcessArchive.png' not found");
       assertEquals(2, scanResult.size());      
     } else {
-      assertFalse("'testDeployProcessArchive.bpmn20.xml' found", contains(scanResult, "testDeployProcessArchive.bpmn20.xml"));
-      assertFalse("'testDeployProcessArchive.png' found", contains(scanResult, "testDeployProcessArchive.png"));
+      assertFalse(contains(scanResult, "testDeployProcessArchive.bpmn20.xml"), "'testDeployProcessArchive.bpmn20.xml' found");
+      assertFalse(contains(scanResult, "testDeployProcessArchive.png"), "'testDeployProcessArchive.png' found");
       assertEquals(0, scanResult.size());
     }
   }
   
-  @Test
-  public void testScanClassPathWithExistingRootPath_nonRelativeToPa() throws MalformedURLException {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testScanClassPathWithExistingRootPath_nonRelativeToPa(String url) throws MalformedURLException {
     
-    URLClassLoader classLoader = getClassloader();
+    URLClassLoader classLoader = getClassloader(url);
     
     Map<String, byte[]> scanResult = new HashMap<String, byte[]>();
     scanner.scanPaResourceRootPath(classLoader, null, "directory/", scanResult);
         
     if(url.contains("Recursive")) {
-      assertTrue("'testDeployProcessArchive.bpmn20.xml' not found", contains(scanResult, "testDeployProcessArchive.bpmn20.xml"));
-      assertTrue("'testDeployProcessArchive.png' not found", contains(scanResult, "testDeployProcessArchive.png"));
+      assertTrue(contains(scanResult, "testDeployProcessArchive.bpmn20.xml"), "'testDeployProcessArchive.bpmn20.xml' not found");
+      assertTrue(contains(scanResult, "testDeployProcessArchive.png"), "'testDeployProcessArchive.png' not found");
       assertEquals(2, scanResult.size());      
     } else {
-      assertFalse("'testDeployProcessArchive.bpmn20.xml' found", contains(scanResult, "testDeployProcessArchive.bpmn20.xml"));
-      assertFalse("'testDeployProcessArchive.png' found", contains(scanResult, "testDeployProcessArchive.png"));
+      assertFalse(contains(scanResult, "testDeployProcessArchive.bpmn20.xml"), "'testDeployProcessArchive.bpmn20.xml' found");
+      assertFalse(contains(scanResult, "testDeployProcessArchive.png"), "'testDeployProcessArchive.png' found");
       assertEquals(0, scanResult.size());
     }
   }
 
-  @Test
-  public void testScanClassPathWithAdditionalResourceSuffixes() throws MalformedURLException {
-    URLClassLoader classLoader = getClassloader();
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testScanClassPathWithAdditionalResourceSuffixes(String url) throws MalformedURLException {
+    URLClassLoader classLoader = getClassloader(url);
 
     String[] additionalResourceSuffixes = new String[] {"py", "rb", "groovy"};
 
@@ -169,7 +160,7 @@ public class ClassPathScannerTest {
   }
   
 
-  private URLClassLoader getClassloader() throws MalformedURLException {
+  private URLClassLoader getClassloader(String url) throws MalformedURLException {
     return new URLClassLoader(new URL[]{new URL(url)});
   }
   
@@ -181,5 +172,4 @@ public class ClassPathScannerTest {
     }
     return false;
   }
-
 }

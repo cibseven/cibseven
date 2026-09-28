@@ -8,6 +8,8 @@
     <module name="java.base" />
     <module name="java.naming" />
     <module name="java.security.jgss" />
+    <!-- required for extended TCP socket options (TCP_KEEPIDLE/INTERVAL/COUNT) used by the I/O reactor -->
+    <module name="jdk.net" />
 
     <module name="org.slf4j" />
     <module name="org.apache.httpcomponents.core5.httpcore5" export="true" />

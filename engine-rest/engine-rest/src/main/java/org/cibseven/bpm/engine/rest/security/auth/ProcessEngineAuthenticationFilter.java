@@ -70,10 +70,19 @@ public class ProcessEngineAuthenticationFilter implements Filter {
   // regexes for urls that may be accessed unauthorized
   protected static final Pattern[] WHITE_LISTED_URL_PATTERNS = new Pattern[] {
     Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/?"),
+    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/setup/status$"),
+    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/setup/user/create$"),
     Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/identity/verify$"),
     Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/identity/password-policy$"),
+<<<<<<< HEAD
     Pattern.compile("^\\/setup\\/status$"),
     Pattern.compile("^\\/setup\\/user\\/create$"),
+=======
+    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/configuration$"),
+    Pattern.compile("^/configuration$"),
+    Pattern.compile("^/setup/status$"),
+    Pattern.compile("^/setup/user/create$"),
+>>>>>>> branch 'main' of git@github.com:cibseven/cibseven.git
     Pattern.compile("^/identity/verify$"),
     Pattern.compile("^/identity/password-policy$")
   };

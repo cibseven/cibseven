@@ -31,7 +31,7 @@ import java.util.Map;
 import org.cibseven.spin.SpinList;
 import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.json.mapping.Order;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class JsonTreeMapJavaToJsonTest {
 

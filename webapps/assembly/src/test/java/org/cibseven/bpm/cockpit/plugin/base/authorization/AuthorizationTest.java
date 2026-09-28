@@ -40,8 +40,8 @@ import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.repository.DeploymentBuilder;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author Roman Smirnov
@@ -63,7 +63,7 @@ public abstract class AuthorizationTest extends AbstractCockpitPluginTest {
   protected User user;
   protected Group group;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     super.before();
 
@@ -85,7 +85,7 @@ public abstract class AuthorizationTest extends AbstractCockpitPluginTest {
     enableAuthorization();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     disableAuthorization();
     for (User user : identityService.createUserQuery().list()) {

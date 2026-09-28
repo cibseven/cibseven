@@ -17,8 +17,6 @@
 package org.cibseven.bpm.dmn.feel.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.util.Collections;
 import java.util.Date;
@@ -35,9 +33,9 @@ import org.cibseven.bpm.dmn.feel.impl.juel.el.FeelFunctionMapper;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.DateValue;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class FeelEngineTest {
 
@@ -47,12 +45,12 @@ public class FeelEngineTest {
 
   public VariableMap variables;
 
-  @BeforeClass
+  @BeforeAll
   public static void initFeelEngine() {
     feelEngine = new FeelEngineFactoryImpl().createInstance();
   }
 
-  @Before
+  @BeforeEach
   public void initVariables() {
     variables = Variables.createVariables();
   }

@@ -29,17 +29,14 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.run.CamundaBpmRun;
 import org.cibseven.bpm.run.property.CamundaBpmRunProcessEnginePluginProperty;
 import org.cibseven.bpm.run.property.CamundaBpmRunProperties;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = { CamundaBpmRun.class })
 @ActiveProfiles(profiles = { "test-new-plugins" }, inheritProfiles = true)
 public class CamundaRunProcessEnginePluginsRegistrationTest {
@@ -52,7 +49,7 @@ public class CamundaRunProcessEnginePluginsRegistrationTest {
 
   protected List<ProcessEnginePlugin> plugins;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     this.plugins = processEngineConfiguration.getProcessEnginePlugins();
   }

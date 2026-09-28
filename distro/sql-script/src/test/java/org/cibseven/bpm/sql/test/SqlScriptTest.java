@@ -50,9 +50,9 @@ import liquibase.snapshot.SnapshotGeneratorFactory;
 import liquibase.structure.DatabaseObject;
 import liquibase.structure.core.UniqueConstraint;
 import org.cibseven.commons.utils.IoUtil;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class SqlScriptTest {
 
@@ -76,7 +76,7 @@ public class SqlScriptTest {
   protected Liquibase liquibase;
   protected DiffGeneratorFactory databaseDiffer;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     InputStream is = getClass().getClassLoader().getResourceAsStream("properties-from-pom.properties");
     properties = new Properties();
@@ -91,7 +91,7 @@ public class SqlScriptTest {
     cleanUpDatabaseTables();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     cleanUpDatabaseTables();
     liquibase.close();
@@ -204,6 +204,16 @@ public class SqlScriptTest {
     String databaseUser = properties.getProperty("database.username");
     String databasePassword = properties.getProperty("database.password");
     String databaseClass = properties.getProperty("database.driver");
+    // Properties files don't decode XML entities, but database URLs from
+    // database/pom.xml use &amp; encoding (intended for XML resource filtering).
+    // Unescape so the JDBC URL contains proper '&' characters.
+    if (databaseUrl != null) {
+      databaseUrl = databaseUrl.replace("&amp;", "&");
+    }
+    // Testcontainers jdbc:tc: URLs require the Testcontainers JDBC driver
+    if (databaseUrl != null && databaseUrl.startsWith("jdbc:tc:")) {
+      databaseClass = "org.testcontainers.jdbc.ContainerDatabaseDriver";
+    }
     return DatabaseFactory.getInstance().openDatabase(databaseUrl, databaseUser, databasePassword, databaseClass, null,
         null, null, new ClassLoaderResourceAccessor());
   }

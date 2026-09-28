@@ -17,7 +17,7 @@
 package org.cibseven.bpm.spring.boot.starter.property.webapppath;
 
 import org.cibseven.bpm.spring.boot.starter.property.ParsePropertiesHelper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;

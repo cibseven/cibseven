@@ -25,7 +25,7 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.impl.VariableMapImpl;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 public class ScopedAssociation {
 

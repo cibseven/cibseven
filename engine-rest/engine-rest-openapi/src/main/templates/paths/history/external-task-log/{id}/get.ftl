@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getHistoricExternalTaskLog"
       tag = "Historic External Task Log"
-      summary = "Get External Task Log"
+      summary = "Get Historic External Task Log"
       desc = "Retrieves a historic external task log by id."
   />
 

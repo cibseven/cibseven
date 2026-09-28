@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.cibseven.bpm.qa.upgrade</groupId>
     <artifactId>cibseven-qa-db-instance-migration</artifactId>
-    <version>2.2.0-SNAPSHOT</version>
+    <version>2.3.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cibseven-qa-upgrade-test-fixture-21</artifactId>
@@ -12,23 +12,20 @@
   <name>CIB seven BPM - QA - upgrade - instance migration - test fixture - 2.1.0</name>
 
   <properties>
-    <!-- delete when 2.1.0 is released -->
-    <cibseven.version.current>${project.version}</cibseven.version.current>
     <cibseven.version.previous>2.0.0</cibseven.version.previous>
   </properties>
 
-  <!-- uncomment when 2.1.0 is released -->
-<!--   <dependencyManagement> -->
-<!--     <dependencies> -->
-<!--       <dependency> -->
-<!--         <groupId>org.cibseven.bpm</groupId> -->
-<!--         <artifactId>cibseven-bom</artifactId> -->
-<!--         <version>2.1.0</version> -->
-<!--         <scope>import</scope> -->
-<!--         <type>pom</type> -->
-<!--       </dependency> -->
-<!--     </dependencies> -->
-<!--   </dependencyManagement> -->
+   <dependencyManagement>
+     <dependencies>
+       <dependency>
+         <groupId>org.cibseven.bpm</groupId>
+         <artifactId>cibseven-bom</artifactId>
+         <version>2.1.0</version>
+         <scope>import</scope>
+         <type>pom</type>
+       </dependency>
+     </dependencies>
+   </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -126,10 +123,9 @@
                     <artifactItem>
                       <groupId>org.cibseven.bpm.distro</groupId>
                       <artifactId>cibseven-sql-scripts</artifactId>
-                      <!-- Replace after 2.1.0 release -->
-                      <version>${cibseven.version.current}</version>
-                      <!--<version>2.1.0</version>-->
-                      <type>test-jar</type>
+                      <!-- <version>2.1.0</version> SHOULD BE THIS ONE FOR fixture-2.1, BUT ABSENT ON NEXUS, so temporary use 2.1.5 -->
+                      <version>2.1.5</version>
+                      <type>jar</type>
                       <outputDirectory>${project.build.directory}/scripts-current</outputDirectory>
                       <overWrite>true</overWrite>
                     </artifactItem>

@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.history.useroperationlog;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Date;
 
@@ -28,7 +28,7 @@ import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.management.JobDefinition;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -174,18 +174,16 @@ public class UserOperationLogJobDefinitionTest extends AbstractUserOperationLogT
         .entityType(EntityTypes.JOB).singleResult();
     assertNotNull(jobOpLogEntry);
 
-    assertEquals("the two job related entries should be part of the same operation",
-        jobDefOpLogEntry.getOperationId(), jobOpLogEntry.getOperationId());
+    assertEquals(jobDefOpLogEntry.getOperationId(), jobOpLogEntry.getOperationId(), "the two job related entries should be part of the same operation");
 
     assertEquals(EntityTypes.JOB, jobOpLogEntry.getEntityType());
-    assertNull("id should null because it is a bulk update operation", jobOpLogEntry.getJobId());
+    assertNull(jobOpLogEntry.getJobId(), "id should null because it is a bulk update operation");
 
     assertEquals(UserOperationLogEntry.OPERATION_TYPE_SET_PRIORITY, jobOpLogEntry.getOperationType());
 
     assertEquals("priority", jobOpLogEntry.getProperty());
     assertEquals("42", jobOpLogEntry.getNewValue());
-    assertNull("Original Value should be null because it is not known for bulk operations",
-        jobOpLogEntry.getOrgValue());
+    assertNull(jobOpLogEntry.getOrgValue(), "Original Value should be null because it is not known for bulk operations");
 
     assertEquals(USER_ID, jobOpLogEntry.getUserId());
     
@@ -193,8 +191,7 @@ public class UserOperationLogJobDefinitionTest extends AbstractUserOperationLogT
 
     // these properties should be there to narrow down the bulk update (like a SQL WHERE clasue)
     assertEquals(job.getJobDefinitionId(), jobOpLogEntry.getJobDefinitionId());
-    assertNull("an unspecified set of process instances was affected by the operation",
-        jobOpLogEntry.getProcessInstanceId());
+    assertNull(jobOpLogEntry.getProcessInstanceId(), "an unspecified set of process instances was affected by the operation");
     assertEquals(job.getProcessDefinitionId(), jobOpLogEntry.getProcessDefinitionId());
     assertEquals(job.getProcessDefinitionKey(), jobOpLogEntry.getProcessDefinitionKey());
     assertEquals(deploymentId, jobOpLogEntry.getDeploymentId());

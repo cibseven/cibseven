@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getHistoricVariableInstancesCount"
       tag = "Historic Variable Instance"
-      summary = "Get Variable Instance Count"
+      summary = "Get Historic Variable Instance Count"
       desc = "Queries for the number of historic variable instances that fulfill the given
               parameters.
               Takes the same parameters as the

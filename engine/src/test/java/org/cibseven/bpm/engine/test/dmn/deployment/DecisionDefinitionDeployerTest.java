@@ -17,12 +17,12 @@
 package org.cibseven.bpm.engine.test.dmn.deployment;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.InputStream;
 import java.util.List;
@@ -52,10 +52,12 @@ import org.cibseven.bpm.model.dmn.instance.Input;
 import org.cibseven.bpm.model.dmn.instance.InputExpression;
 import org.cibseven.bpm.model.dmn.instance.Output;
 import org.cibseven.bpm.model.dmn.instance.Text;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 public class DecisionDefinitionDeployerTest {
 
@@ -69,15 +71,14 @@ public class DecisionDefinitionDeployerTest {
   protected static final String DRD_SCORE_V2_RESOURCE = "org/cibseven/bpm/engine/test/dmn/deployment/drdScore_v2.dmn11.xml";
   protected static final String DRD_DISH_RESOURCE = "org/cibseven/bpm/engine/test/dmn/deployment/drdDish.dmn11.xml";
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RepositoryService repositoryService;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     repositoryService = engineRule.getRepositoryService();
   }

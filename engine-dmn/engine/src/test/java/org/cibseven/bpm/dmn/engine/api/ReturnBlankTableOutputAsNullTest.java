@@ -21,9 +21,10 @@ import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
 import org.cibseven.bpm.dmn.engine.test.DecisionResource;
 import org.cibseven.bpm.dmn.engine.test.DmnEngineTest;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
@@ -32,13 +33,13 @@ public class ReturnBlankTableOutputAsNullTest extends DmnEngineTest {
 
   public static final String RESULT_TEST_DMN = "ReturnBlankTableOutputAsNull.dmn";
 
-  @Before
+  @BeforeEach
   public void configure() {
     DefaultDmnEngineConfiguration configuration = (DefaultDmnEngineConfiguration) dmnEngine.getConfiguration();
     configuration.setReturnBlankTableOutputAsNull(true);
   }
 
-  @After
+  @AfterEach
   public void reset() {
     DefaultDmnEngineConfiguration configuration = (DefaultDmnEngineConfiguration) dmnEngine.getConfiguration();
     configuration.setReturnBlankTableOutputAsNull(false);

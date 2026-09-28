@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getHistoricVariableInstance"
       tag = "Historic Variable Instance"
-      summary = "Get Variable Instance"
+      summary = "Get Historic Variable Instance"
       desc = "Retrieves a historic variable by id."
   />
 

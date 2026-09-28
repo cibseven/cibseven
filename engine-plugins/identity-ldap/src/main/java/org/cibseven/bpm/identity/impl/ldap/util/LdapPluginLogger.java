@@ -58,4 +58,8 @@ public class LdapPluginLogger extends BaseLogger {
     // log sensitive data only on FINE
     logDebug("005", summary);
   }
+
+  public void cacheStats(String summary) {
+    logInfo("006", summary);
+  }
 }

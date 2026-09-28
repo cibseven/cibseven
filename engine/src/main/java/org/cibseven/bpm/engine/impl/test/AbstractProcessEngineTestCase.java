@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.impl.test;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -52,9 +53,11 @@ import org.cibseven.bpm.engine.runtime.CaseInstance;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.TestInfo;
+import org.opentest4j.AssertionFailedError;
 import org.slf4j.Logger;
-
-import junit.framework.AssertionFailedError;
 
 
 /**
@@ -106,59 +109,6 @@ public abstract class AbstractProcessEngineTestCase extends PvmTestCase {
   protected void closeDownProcessEngine() {
   }
 
-  @Override
-  public void runBare() throws Throwable {
-    initializeProcessEngine();
-    if (repositoryService==null) {
-      initializeServices();
-    }
-
-    try {
-
-      boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine, getClass(), getName());
-      boolean runsWithRequiredDatabase = TestHelper.annotationRequiredDatabaseCheck(processEngine, getClass(), getName());
-      // ignore test case when current history level is too low or database doesn't match
-      if (hasRequiredHistoryLevel && runsWithRequiredDatabase) {
-
-        deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, getClass(), getName());
-
-        super.runBare();
-      }
-
-    }
-    catch (AssertionFailedError e) {
-      LOG.error("ASSERTION FAILED: " + e, e);
-      exception = e;
-      throw e;
-
-    }
-    catch (Throwable e) {
-      LOG.error("EXCEPTION: " + e, e);
-      exception = e;
-      throw e;
-
-    }
-    finally {
-
-      identityService.clearAuthentication();
-      processEngineConfiguration.setTenantCheckEnabled(true);
-
-      deleteDeployments();
-
-      deleteHistoryCleanupJobs();
-
-      // only fail if no test failure was recorded
-      TestHelper.assertAndEnsureCleanDbAndCache(processEngine, exception == null);
-      TestHelper.resetIdGenerator(processEngineConfiguration);
-      ClockUtil.reset();
-
-      // Can't do this in the teardown, as the teardown will be called as part
-      // of the super.runBare
-      closeDownProcessEngine();
-      clearServiceReferences();
-    }
-  }
-
   protected void deleteHistoryCleanupJobs() {
     final List<Job> jobs = historyService.findHistoryCleanupJobs();
     for (final Job job: jobs) {
@@ -177,7 +127,7 @@ public abstract class AbstractProcessEngineTestCase extends PvmTestCase {
     }
 
     for(String deploymentId : deploymentIds) {
-      TestHelper.annotationDeploymentTearDown(processEngine, deploymentId, getClass(), getName());
+      TestHelper.annotationDeploymentTearDown(processEngine, deploymentId, getClass(), getClass().getSimpleName());
     }
 
     deploymentId = null;
@@ -362,8 +312,8 @@ public abstract class AbstractProcessEngineTestCase extends PvmTestCase {
     List<Job> jobs = managementService.createJobQuery().withRetriesLeft().list();
 
     if (jobs.isEmpty()) {
-      assertTrue("executed less jobs than expected. expected <" + expectedExecutions + "> actual <" + jobsExecuted + ">",
-          jobsExecuted == expectedExecutions || ignoreLessExecutions);
+      Assertions.assertTrue(jobsExecuted == expectedExecutions || ignoreLessExecutions,
+          "executed less jobs than expected. expected <" + expectedExecutions + "> actual <" + jobsExecuted + ">");
       return;
     }
 
@@ -374,8 +324,8 @@ public abstract class AbstractProcessEngineTestCase extends PvmTestCase {
       } catch (Exception e) {}
     }
 
-    assertTrue("executed more jobs than expected. expected <" + expectedExecutions + "> actual <" + jobsExecuted + ">",
-        jobsExecuted <= expectedExecutions);
+    Assertions.assertTrue(jobsExecuted <= expectedExecutions,
+        "executed more jobs than expected. expected <" + expectedExecutions + "> actual <" + jobsExecuted + ">");
 
     if (recursive) {
       executeAvailableJobs(jobsExecuted, expectedExecutions, ignoreLessExecutions, recursive);
@@ -489,6 +439,51 @@ public abstract class AbstractProcessEngineTestCase extends PvmTestCase {
     deploymentIds.add(deploymentId);
 
     return deploymentId;
+  }
+
+  public void setUpAbstractProcessEngineTestCase(TestInfo testInfo) {
+    initializeProcessEngine();
+    initializeServices();
+    String testMethodName = testInfo.getTestMethod().map(Method::getName).orElse(null);
+    try {
+      boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine, getClass(), testMethodName);
+      boolean runsWithRequiredDatabase = TestHelper.annotationRequiredDatabaseCheck(processEngine, getClass(), testMethodName);
+      // ignore test case when current history level is too low or database doesn't match
+      if (hasRequiredHistoryLevel && runsWithRequiredDatabase) {
+        deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, getClass(), testMethodName);
+        // super.runBare(); // Remove this, as JUnit 5 manages test execution
+      }
+    }
+    catch (AssertionFailedError e) {
+      LOG.error("ASSERTION FAILED: " + e, e);
+      exception = e;
+      throw e;
+    }
+    catch (Throwable e) {
+      LOG.error("EXCEPTION: " + e, e);
+      exception = e;
+      throw e;
+    }
+  }
+
+  
+  @AfterEach
+  public void tearDownAbstractProcessEngineTestCase() {
+    identityService.clearAuthentication();
+    processEngineConfiguration.setTenantCheckEnabled(true);
+    deleteDeployments();
+    deleteHistoryCleanupJobs();
+    // only fail if no test failure was recorded
+    TestHelper.assertAndEnsureCleanDbAndCache(processEngine, exception == null);
+    TestHelper.resetIdGenerator(processEngineConfiguration);
+    ClockUtil.reset();
+    closeDownProcessEngine();
+    clearServiceReferences();
+
+    deleteDeployments();
+    clearServiceReferences();
+    closeDownProcessEngine();
+    // Add any additional cleanup logic here if needed
   }
 
 }

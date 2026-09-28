@@ -23,10 +23,10 @@ import org.cibseven.bpm.engine.rest.sub.VariableResource;
 import org.cibseven.bpm.engine.rest.sub.runtime.VariableInstanceResource;
 import org.cibseven.bpm.engine.runtime.VariableInstanceQuery;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.UriInfo;
 import java.util.List;
 
 /**

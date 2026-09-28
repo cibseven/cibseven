@@ -19,7 +19,7 @@ package org.cibseven.bpm.webapp.impl.engine;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.core.Application;
 
 import org.cibseven.bpm.engine.rest.impl.CamundaRestResources;
 import org.cibseven.bpm.engine.rest.impl.NamedProcessEngineRestServiceImpl;

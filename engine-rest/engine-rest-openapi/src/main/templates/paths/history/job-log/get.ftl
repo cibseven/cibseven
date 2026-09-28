@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getHistoricJobLogs"
       tag = "Historic Job Log"
-      summary = "Get Job Logs"
+      summary = "Get Historic Job Logs"
       desc = "Queries for historic job logs that fulfill the given parameters.
               The size of the result set can be retrieved by using the
               [Get Job Log Count](${docsUrl}/reference/rest/history/job-log/get-job-log-query-count/)

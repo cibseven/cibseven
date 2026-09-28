@@ -1,0 +1,222 @@
+{
+  "$schema": "https://unpkg.com/@camunda/element-templates-json-schema/resources/schema.json",
+  "name": "CIB seven - Knowledge Ingestor",
+  "id": "org.cibseven.connect.ai.agent.knowledge-ingestor",
+  "version": 1,
+  "description": "Element template for the cibseven-knowledge-ingestor connector. Embeds text content into a pgvector knowledge base for later RAG retrieval by the AI Agent.",
+  "icon": {
+    "contents": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIgMjFWMTBMMTEgMTJWMjNMMiAyMVoiIGZpbGw9IiMwRjIxMzMiLz4KPHBhdGggZD0iTTIyIDIxVjEwTDEzIDEyVjIzTDIyIDIxWiIgZmlsbD0iIzBGMjEzMyIvPgo8cGF0aCBkPSJNMTAuNDI1IDQuNDI1TDEyIDFMMTMuNTYyNSA0LjQyNUwxNyA2TDEzLjU2MjUgNy41NjI1TDEyIDExTDEwLjQyNSA3LjU2MjVMNyA2TDEwLjQyNSA0LjQyNVoiIGZpbGw9IiNFMTFFMTkiLz4KPC9zdmc+Cg=="
+  },
+  "keywords": ["ai", "rag", "knowledge", "ingest", "pgvector", "embedding", "langchain4j"],
+  "appliesTo": [
+    "bpmn:ServiceTask"
+  ],
+  "groups": [
+    { "id": "input",     "label": "Input"      },
+    { "id": "chunking",  "label": "Chunking"   },
+    { "id": "embedding", "label": "Embedding"  },
+    { "id": "pgvector",  "label": "PostgreSQL" }
+  ],
+  "properties": [],
+  "scopes": [
+    {
+      "type": "camunda:Connector",
+      "properties": [
+        {
+          "type": "Hidden",
+          "value": "cibseven-knowledge-ingestor",
+          "binding": {
+            "type": "property",
+            "name": "connectorId"
+          }
+        },
+        {
+          "label": "Content",
+          "type": "Text",
+          "group": "input",
+          "description": "Text content to embed and store. Use an expression to reference a process variable, e.g. ${documentText}.",
+          "placeholder": "${documentText}",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "content"
+          },
+          "constraints": {
+            "notEmpty": true
+          }
+        },
+        {
+          "label": "Source",
+          "type": "String",
+          "group": "input",
+          "description": "Source identifier (e.g. file name, URL, process instance ID). Stored as metadata on each embedded segment for traceability.",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "source"
+          }
+        },
+        {
+          "label": "Metadata",
+          "type": "Text",
+          "group": "input",
+          "description": "Additional metadata as comma-separated key=value pairs, stored on each segment. Example: category=legal,author=john.doe",
+          "placeholder": "category=legal,author=john.doe",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "metadata"
+          }
+        },
+        {
+          "label": "Chunk size",
+          "type": "String",
+          "group": "chunking",
+          "description": "Maximum characters per text chunk before splitting. Default: 500.",
+          "placeholder": "500",
+          "constraints": {
+            "pattern": {
+              "value": "^(\\d+)?$",
+              "message": "Must be a positive integer"
+            }
+          },
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "chunkSize"
+          }
+        },
+        {
+          "label": "Chunk overlap",
+          "type": "String",
+          "group": "chunking",
+          "description": "Character overlap between consecutive chunks. Default: 50.",
+          "placeholder": "50",
+          "constraints": {
+            "pattern": {
+              "value": "^(\\d+)?$",
+              "message": "Must be a non-negative integer"
+            }
+          },
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "chunkOverlap"
+          }
+        },
+        {
+          "label": "Embedding model name",
+          "type": "String",
+          "group": "embedding",
+          "description": "Name of the embedding model used to encode content. Leave empty to use the local AllMiniLmL6V2 (384-dim). Set e.g. text-embedding-ada-002 to use OpenAI.",
+          "placeholder": "AllMiniLmL6V2",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "embeddingModelName"
+          }
+        },
+        {
+          "label": "API key",
+          "type": "String",
+          "group": "embedding",
+          "description": "API key for the embedding provider when using a remote model (e.g. OpenAI). Use an expression to reference a process variable, e.g. ${apiKey}. Falls back to the OPENAI_API_KEY env var.",
+          "placeholder": "${apiKey}",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "apiKey"
+          }
+        },
+        {
+          "label": "Embedding dimension",
+          "type": "String",
+          "group": "embedding",
+          "description": "Dimension of the embedding vectors. Must match the model in use. Default: 384 (AllMiniLmL6V2), 1536 for text-embedding-ada-002.",
+          "placeholder": "384",
+          "constraints": {
+            "pattern": {
+              "value": "^(\\d+)?$",
+              "message": "Must be a positive integer"
+            }
+          },
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "embeddingDimension"
+          }
+        },
+        {
+          "label": "PostgreSQL host",
+          "type": "String",
+          "group": "pgvector",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "pgHost"
+          },
+          "constraints": {
+            "notEmpty": true
+          }
+        },
+        {
+          "label": "PostgreSQL port",
+          "type": "String",
+          "group": "pgvector",
+          "placeholder": "5432",
+          "constraints": {
+            "pattern": {
+              "value": "^(\\d+)?$",
+              "message": "Must be a numeric port number"
+            }
+          },
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "pgPort"
+          }
+        },
+        {
+          "label": "PostgreSQL database",
+          "type": "String",
+          "group": "pgvector",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "pgDatabase"
+          }
+        },
+        {
+          "label": "PostgreSQL user",
+          "type": "String",
+          "group": "pgvector",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "pgUser"
+          }
+        },
+        {
+          "label": "PostgreSQL password",
+          "type": "String",
+          "group": "pgvector",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "pgPassword"
+          }
+        },
+        {
+          "label": "PostgreSQL table",
+          "type": "String",
+          "group": "pgvector",
+          "placeholder": "langchain4j_embeddings",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "pgTable"
+          }
+        },
+        {
+          "label": "Output variable for ingested chunk count",
+          "description": "Process variable that will receive the number of chunks successfully embedded and stored (${chunksIngested}).",
+          "type": "String",
+          "value": "ingestedChunks",
+          "binding": {
+            "type": "camunda:outputParameter",
+            "source": "${chunksIngested}"
+          },
+          "constraints": {
+            "notEmpty": true
+          }
+        }
+      ]
+    }
+  ]
+}

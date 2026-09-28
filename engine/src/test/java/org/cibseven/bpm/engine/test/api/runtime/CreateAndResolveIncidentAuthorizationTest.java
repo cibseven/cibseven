@@ -32,27 +32,21 @@ import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
 public class CreateAndResolveIncidentAuthorizationTest {
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testRule);
-
-  @Parameterized.Parameter
-  public AuthorizationScenario scenario;
-
-  @Parameterized.Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
       scenario()
@@ -74,13 +68,14 @@ public class CreateAndResolveIncidentAuthorizationTest {
     );
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     authRule.deleteUsersAndGroups();
   }
 
-  @Test
-  public void createIncident() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void createIncident(AuthorizationScenario scenario) {
     //given
     testRule.deployAndGetDefinition(ProcessModels.TWO_TASKS_PROCESS);
 
@@ -101,8 +96,9 @@ public class CreateAndResolveIncidentAuthorizationTest {
     authRule.assertScenario(scenario);
   }
 
-  @Test
-  public void resolveIncident() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void resolveIncident(AuthorizationScenario scenario) {
     testRule.deployAndGetDefinition(ProcessModels.TWO_TASKS_PROCESS);
 
     ProcessInstance processInstance = engineRule.getRuntimeService().startProcessInstanceByKey("Process");

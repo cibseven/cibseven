@@ -16,11 +16,11 @@
  */
 package org.cibseven.bpm.engine.test.api.identity;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 
@@ -29,9 +29,9 @@ import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.identity.UserQuery;
 import org.cibseven.bpm.engine.impl.persistence.entity.UserEntity;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -39,7 +39,7 @@ import org.junit.Test;
  */
 public class UserQueryTest extends PluggableProcessEngineTest {
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
 
 
@@ -69,7 +69,7 @@ public class UserQueryTest extends PluggableProcessEngineTest {
     return user;
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     identityService.deleteUser("kermit");
     identityService.deleteUser("fozzie");
@@ -93,6 +93,35 @@ public class UserQueryTest extends PluggableProcessEngineTest {
   public void testQueryById() {
     UserQuery query = identityService.createUserQuery().userId("kermit");
     verifyQueryResults(query, 1);
+  }
+
+  @Test
+  public void testQueryByIdCaseInsensitive() {
+    verifyQueryResults(identityService.createUserQuery().userId("KERMIT"), 1);
+    verifyQueryResults(identityService.createUserQuery().userId("Kermit"), 1);
+  }
+
+  /**
+   * The user id criterion matches case-insensitively, i.e. it consists of two conditions
+   * combined with OR. Those have to be bracketed, otherwise the AND of every subsequent
+   * criterion (including the authorization check) binds tighter than the OR and is
+   * short-circuited by an exact id match.
+   */
+  @Test
+  public void testQueryByIdCombinedWithOtherCriteria() {
+    // kermit matches the id but not the remaining criterion
+    verifyQueryResults(identityService.createUserQuery().userId("kermit").userFirstName("Fozzie"), 0);
+    verifyQueryResults(identityService.createUserQuery().userId("kermit").userLastName("Bear"), 0);
+    verifyQueryResults(identityService.createUserQuery().userId("kermit").userEmail("fozzie@muppetshow.com"), 0);
+    verifyQueryResults(identityService.createUserQuery().userId("kermit").memberOfGroup("nonExisting"), 0);
+    verifyQueryResults(identityService.createUserQuery().userId("kermit").memberOfTenant("nonExisting"), 0);
+
+    // same for a case-insensitive id match
+    verifyQueryResults(identityService.createUserQuery().userId("KERMIT").userFirstName("Fozzie"), 0);
+
+    // both criteria match
+    verifyQueryResults(identityService.createUserQuery().userId("kermit").userFirstName("Kermit_"), 1);
+    verifyQueryResults(identityService.createUserQuery().userId("KERMIT").userFirstName("Kermit_"), 1);
   }
 
   @Test

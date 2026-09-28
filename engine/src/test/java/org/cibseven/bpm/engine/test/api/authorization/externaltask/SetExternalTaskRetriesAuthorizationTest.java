@@ -19,21 +19,21 @@ package org.cibseven.bpm.engine.test.api.authorization.externaltask;
 import org.cibseven.bpm.engine.externaltask.ExternalTask;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-@RunWith(Parameterized.class)
 public class SetExternalTaskRetriesAuthorizationTest extends HandleExternalTaskAuthorizationTest {
 
-  @Test
+  @ParameterizedTest
+  @MethodSource("scenarios")
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/externaltask/oneExternalTaskProcess.bpmn20.xml")
-  public void testSetRetries() {
+  public void testSetRetries(AuthorizationScenario scenario) {
 
     // given
     ProcessInstance processInstance = engineRule.getRuntimeService().startProcessInstanceByKey("oneExternalTaskProcess");
@@ -52,7 +52,7 @@ public class SetExternalTaskRetriesAuthorizationTest extends HandleExternalTaskA
     // then
     if (authRule.assertScenario(scenario)) {
       task = engineRule.getExternalTaskService().createExternalTaskQuery().singleResult();
-      Assert.assertEquals(5, (int) task.getRetries());
+      Assertions.assertEquals(5, (int) task.getRetries());
     }
 
   }

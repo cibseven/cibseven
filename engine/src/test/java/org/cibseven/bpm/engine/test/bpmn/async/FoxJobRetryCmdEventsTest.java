@@ -31,31 +31,23 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Askar Akhmerov
  */
-@RunWith(Parameterized.class)
 public class FoxJobRetryCmdEventsTest {
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
-
-
-  @Parameterized.Parameter
-  public RetryCmdDeployment deployment;
-
-  @Parameterized.Parameters(name = "deployment {index}")
   public static Collection<RetryCmdDeployment[]> scenarios() {
     return RetryCmdDeployment.asParameters(
         deployment()
@@ -71,18 +63,15 @@ public class FoxJobRetryCmdEventsTest {
 
   private Deployment currentDeployment;
 
-  @Before
-  public void setUp () {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testFailedIntermediateThrowingSignalEventAsync(RetryCmdDeployment deployment) {
     currentDeployment = testRule.deploy(deployment.getBpmnModelInstances());
-  }
-
-  @Test
-  public void testFailedIntermediateThrowingSignalEventAsync () {
     ProcessInstance pi = engineRule.getRuntimeService().startProcessInstanceByKey(RetryCmdDeployment.PROCESS_ID);
     assertJobRetries(pi);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     engineRule.getRepositoryService().deleteDeployment(currentDeployment.getId(),true,true);
   }

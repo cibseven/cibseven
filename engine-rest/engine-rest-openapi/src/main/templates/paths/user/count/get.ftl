@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getUserCount"
       tag = "User"
-      summary = "Get List Count"
+      summary = "Get User List Count"
       desc = "Queries for the number of deployments that fulfill given parameters. Takes the same parameters as the
               [Get Users](${docsUrl}/reference/rest/user/get-query/) method." />
 

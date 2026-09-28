@@ -18,9 +18,9 @@ package org.cibseven.bpm.engine.rest.impl;
 
 import java.net.URI;
 
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.Providers;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.ext.Providers;
 
 import org.cibseven.bpm.engine.rest.AuthorizationRestService;
 import org.cibseven.bpm.engine.rest.BatchRestService;
@@ -291,6 +291,13 @@ public abstract class AbstractProcessEngineRestServiceImpl {
   public VersionRestService getVersionRestService(String engineName) {
     String rootResourcePath = getRelativeEngineUri(engineName).toASCIIString();
     VersionRestService subResource = new VersionRestService(engineName, getObjectMapper());
+    subResource.setRelativeRootResourceUri(rootResourcePath);
+    return subResource;
+  }
+
+  public ConfigurationRestService getConfigurationRestService(String engineName) {
+    String rootResourcePath = getRelativeEngineUri(engineName).toASCIIString();
+    ConfigurationRestService subResource = new ConfigurationRestService(engineName, getObjectMapper());
     subResource.setRelativeRootResourceUri(rootResourcePath);
     return subResource;
   }

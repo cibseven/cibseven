@@ -41,6 +41,8 @@ public class LdapIdentityProviderPlugin extends LdapConfiguration implements Pro
 
   protected boolean acceptUntrustedCertificates = false;
 
+  protected LdapIdentityProviderFactory identityProviderFactory;
+
   public void preInit(ProcessEngineConfigurationImpl processEngineConfiguration) {
 
     LdapPluginLogger.INSTANCE.pluginActivated(getClass().getSimpleName(), processEngineConfiguration.getProcessEngineName());
@@ -50,10 +52,14 @@ public class LdapIdentityProviderPlugin extends LdapConfiguration implements Pro
       LdapPluginLogger.INSTANCE.acceptingUntrustedCertificates();
     }
 
-    LdapIdentityProviderFactory ldapIdentityProviderFactory = new LdapIdentityProviderFactory();
-    ldapIdentityProviderFactory.setLdapConfiguration(this);
-    processEngineConfiguration.setIdentityProviderSessionFactory(ldapIdentityProviderFactory);
+    identityProviderFactory = new LdapIdentityProviderFactory();
+    identityProviderFactory.setLdapConfiguration(this);
+    processEngineConfiguration.setIdentityProviderSessionFactory(identityProviderFactory);
 
+  }
+
+  public LdapIdentityProviderFactory getIdentityProviderFactory() {
+    return identityProviderFactory;
   }
 
   public void postInit(ProcessEngineConfigurationImpl processEngineConfiguration) {

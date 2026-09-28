@@ -7,6 +7,8 @@
   <dependencies>
 
     <module name="java.base" />
+    <!-- required for extended TCP socket options (TCP_KEEPIDLE/INTERVAL/COUNT) used by the I/O reactor -->
+    <module name="jdk.net" />
     <module name="org.slf4j" />
 
   </dependencies>

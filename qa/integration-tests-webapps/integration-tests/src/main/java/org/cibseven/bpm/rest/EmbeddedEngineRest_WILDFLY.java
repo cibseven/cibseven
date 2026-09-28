@@ -21,21 +21,44 @@ import org.cibseven.bpm.rest.beans.CustomRestApplication;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.assertj.core.api.Assertions.fail;
+import org.jboss.arquillian.junit5.ArquillianExtension;
+
 
 import java.io.IOException;
 
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class EmbeddedEngineRest_WILDFLY {
+
+  /**
+   * On CI (Jenkins), the local Maven repository is redirected via -Dmaven.repo.local in MAVEN_OPTS.
+   * Surefire forks a new JVM that inherits MAVEN_OPTS as an environment variable but does NOT
+   * parse it into JVM system properties. ShrinkWrap's resolver checks the system property,
+   * so it falls back to ~/.m2/repository and can't find artifacts from the custom local repo.
+   */
+  static {
+    String mavenOpts = System.getenv("MAVEN_OPTS");
+    if (mavenOpts != null) {
+      String prefix = "-Dmaven.repo.local=";
+      int idx = mavenOpts.indexOf(prefix);
+      if (idx >= 0) {
+        String rest = mavenOpts.substring(idx + prefix.length());
+        int end = rest.indexOf(' ');
+        String repoPath = (end >= 0) ? rest.substring(0, end) : rest;
+        if (!repoPath.isEmpty()) {
+          System.setProperty("maven.repo.local", repoPath);
+        }
+      }
+    }
+  }
 
   private static final String EMBEDDED_ENGINE_REST = "embedded-engine-rest";
 
@@ -62,7 +85,7 @@ public class EmbeddedEngineRest_WILDFLY {
       deployer.deploy(EMBEDDED_ENGINE_REST);
       deployer.undeploy(EMBEDDED_ENGINE_REST);
     } catch(Exception e) {
-      Assert.fail("Embedded engine-rest deployment failed because of " + e);
+      fail("Embedded engine-rest deployment failed because of " + e);
     }
   }
 

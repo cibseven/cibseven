@@ -31,7 +31,7 @@ import static org.cibseven.bpm.model.dmn.HitPolicy.UNIQUE;
 import org.cibseven.bpm.model.dmn.impl.instance.InputDataImpl;
 import org.cibseven.bpm.model.dmn.instance.*;
 import org.cibseven.bpm.model.dmn.util.DmnModelResource;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 

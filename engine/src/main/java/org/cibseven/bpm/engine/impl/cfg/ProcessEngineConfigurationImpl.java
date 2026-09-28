@@ -29,17 +29,20 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.stream.Collectors;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 import org.apache.ibatis.builder.xml.XMLConfigBuilder;
@@ -79,6 +82,7 @@ import org.cibseven.bpm.engine.authorization.Permissions;
 import org.cibseven.bpm.engine.impl.AuthorizationServiceImpl;
 import org.cibseven.bpm.engine.impl.DecisionServiceImpl;
 import org.cibseven.bpm.engine.impl.DefaultArtifactFactory;
+import org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator;
 import org.cibseven.bpm.engine.impl.ExternalTaskServiceImpl;
 import org.cibseven.bpm.engine.impl.FilterServiceImpl;
 import org.cibseven.bpm.engine.impl.FormServiceImpl;
@@ -99,6 +103,7 @@ import org.cibseven.bpm.engine.impl.application.ProcessApplicationManager;
 import org.cibseven.bpm.engine.impl.batch.BatchJobHandler;
 import org.cibseven.bpm.engine.impl.batch.BatchMonitorJobHandler;
 import org.cibseven.bpm.engine.impl.batch.BatchSeedJobHandler;
+import org.cibseven.bpm.engine.impl.batch.deletion.DeleteDeploymentsJobHandler;
 import org.cibseven.bpm.engine.impl.batch.deletion.DeleteHistoricProcessInstancesJobHandler;
 import org.cibseven.bpm.engine.impl.batch.deletion.DeleteProcessInstancesJobHandler;
 import org.cibseven.bpm.engine.impl.batch.externaltask.SetExternalTaskRetriesJobHandler;
@@ -639,6 +644,13 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
    */
   protected boolean standaloneTasksEnabled = true;
 
+  /**
+   * When set to true, the engine will validate that the TASK_ID_ referenced
+   * by a variable exists in ACT_RU_TASK before inserting the variable into ACT_RU_VARIABLE.
+   * This prevents orphaned task variable references.
+   */
+  protected boolean checkVariableTaskId = false;
+
   protected boolean enableGracefulDegradationOnContextSwitchFailure = true;
 
   protected BusinessCalendarManager businessCalendarManager;
@@ -699,7 +711,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   protected boolean isDbIdentityUsed = true;
   protected boolean isDbHistoryUsed = true;
-  protected boolean modelerEnabled = false;
+  protected boolean modelerEnabled = true;
 
   protected DelegateInterceptor delegateInterceptor;
 
@@ -850,6 +862,22 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
    */
   protected boolean enableExpressionsInAdhocQueries = false;
   protected boolean enableExpressionsInStoredQueries = true;
+
+  /**
+   * Whitelist for task query expressions (see {@link org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator}),
+   * applied to both stored filter criteria and adhoc task queries (e.g. REST /task, /task/count).
+   * Replaces the whole whitelist when set, does not extend the defaults. Configured via
+   * {@link #setAllowedFilterExpressions(String)}, a single String rather than a
+   * {@code Set<String>}, so it can be set the same way on every distro.
+   */
+  protected Set<String> allowedFilterExpressions = new HashSet<>(ExpressionWhitelistValidator.DEFAULT_ALLOWED_EXPRESSIONS);
+
+  /**
+   * If false (default), disables the {@link org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator}
+   * entirely, so any expression is allowed in task filter criteria and adhoc task queries. Set to
+   * true to restrict them to {@link #allowedFilterExpressions}.
+   */
+  protected boolean enableFilterExpressionWhitelist = false;
 
   /**
    * If false, disables XML eXternal Entity (XXE) Processing. This provides protection against XXE Processing attacks.
@@ -1538,6 +1566,9 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
       MessageCorrelationBatchJobHandler messageCorrelationJobHandler = new MessageCorrelationBatchJobHandler();
       batchHandlers.put(messageCorrelationJobHandler.getType(), messageCorrelationJobHandler);
+
+      DeleteDeploymentsJobHandler deleteDeploymentsJobHandler = new DeleteDeploymentsJobHandler();
+      batchHandlers.put(deleteDeploymentsJobHandler.getType(), deleteDeploymentsJobHandler);
     }
 
     if (customBatchJobHandlers != null) {
@@ -4326,6 +4357,15 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     return this;
   }
 
+  public boolean isCheckVariableTaskId() {
+    return checkVariableTaskId;
+  }
+
+  public ProcessEngineConfigurationImpl setCheckVariableTaskId(boolean checkVariableTaskId) {
+    this.checkVariableTaskId = checkVariableTaskId;
+    return this;
+  }
+
   public boolean isCompositeIncidentHandlersEnabled() {
     return isCompositeIncidentHandlersEnabled;
   }
@@ -4608,6 +4648,33 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public void setEnableExpressionsInStoredQueries(boolean enableExpressionsInStoredQueries) {
     this.enableExpressionsInStoredQueries = enableExpressionsInStoredQueries;
+  }
+
+  public Set<String> getAllowedFilterExpressions() {
+    return allowedFilterExpressions;
+  }
+
+  /**
+   * @param allowedFilterExpressions semicolon-separated JUEL expressions, e.g. {@code "${currentUser()};${businessCalendar()}"}.
+   *        Entries are stored normalized (see {@link ExpressionWhitelistValidator#normalize(String)}), so numeric
+   *        arguments act as a wildcard: {@code ${dateTime().plusDays()}}, {@code ${dateTime().plusDays(2)}} and
+   *        {@code ${dateTime().plusDays(5)}} are equivalent and each permits any day count.
+   */
+  public ProcessEngineConfigurationImpl setAllowedFilterExpressions(String allowedFilterExpressions) {
+    this.allowedFilterExpressions = Arrays.stream(allowedFilterExpressions.split(";"))
+        .map(String::trim)
+        .filter(expression -> !expression.isEmpty())
+        .map(ExpressionWhitelistValidator::normalize)
+        .collect(Collectors.toSet());
+    return this;
+  }
+
+  public boolean isEnableFilterExpressionWhitelist() {
+    return enableFilterExpressionWhitelist;
+  }
+
+  public void setEnableFilterExpressionWhitelist(boolean enableFilterExpressionWhitelist) {
+    this.enableFilterExpressionWhitelist = enableFilterExpressionWhitelist;
   }
 
   public boolean isEnableXxeProcessing() {

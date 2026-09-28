@@ -16,20 +16,18 @@
  */
 package org.cibseven.bpm.engine.test.api.form;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.cibseven.bpm.engine.form.FormField;
-import org.cibseven.bpm.engine.form.TaskFormData;
+import org.cibseven.bpm.engine.impl.form.FormFieldImpl;
+import org.cibseven.bpm.engine.impl.form.TaskFormDataImpl;
 import org.cibseven.bpm.engine.impl.form.engine.FormEngine;
 import org.cibseven.bpm.engine.impl.form.engine.HtmlDocumentBuilder;
 import org.cibseven.bpm.engine.impl.form.engine.HtmlElementWriter;
@@ -41,7 +39,7 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
@@ -326,17 +324,17 @@ public class HtmlFormEngineTest extends PluggableProcessEngineTest {
   @Test
   public void testRenderFormFieldEscapesXssInLabel() {
 
-    FormField formField = mock(FormField.class);
-    when(formField.getId()).thenReturn("someField");
-    when(formField.getLabel()).thenReturn("<img src=x onerror=alert(1)>");
-    when(formField.getTypeName()).thenReturn(StringFormType.TYPE_NAME);
-    when(formField.isBusinessKey()).thenReturn(false);
-    when(formField.getValidationConstraints()).thenReturn(Collections.emptyList());
-    when(formField.getDefaultValue()).thenReturn(null);
+    FormFieldImpl formField = new FormFieldImpl();
+    formField.setId("someField");
+    formField.setLabel("<img src=x onerror=alert(1)>");
+    formField.setType(new StringFormType());
+    formField.setBusinessKey(false);
+    formField.setValidationConstraints(Collections.emptyList());
+    formField.setDefaultValue(null);
 
-    TaskFormData taskFormData = mock(TaskFormData.class);
-    when(taskFormData.getFormFields()).thenReturn(Collections.singletonList(formField));
-    when(taskFormData.getFormProperties()).thenReturn(Collections.emptyList());
+    TaskFormDataImpl taskFormData = new TaskFormDataImpl();
+    taskFormData.setFormFields(Collections.singletonList(formField));
+    taskFormData.setFormProperties(Collections.emptyList());
 
     String renderedForm = (String) new HtmlFormEngine().renderTaskForm(taskFormData);
 
@@ -351,18 +349,17 @@ public class HtmlFormEngineTest extends PluggableProcessEngineTest {
     Map<String, String> enumValues = new LinkedHashMap<String, String>();
     enumValues.put("someKey", "<script>alert(1)</script>");
 
-    FormField formField = mock(FormField.class);
-    when(formField.getId()).thenReturn("someField");
-    when(formField.getLabel()).thenReturn(null);
-    when(formField.getTypeName()).thenReturn(EnumFormType.TYPE_NAME);
-    when(formField.getType()).thenReturn(new EnumFormType(enumValues));
-    when(formField.isBusinessKey()).thenReturn(false);
-    when(formField.getValidationConstraints()).thenReturn(Collections.emptyList());
-    when(formField.getDefaultValue()).thenReturn(null);
+    FormFieldImpl formField = new FormFieldImpl();
+    formField.setId("someField");
+    formField.setLabel(null);
+    formField.setType(new EnumFormType(enumValues));
+    formField.setBusinessKey(false);
+    formField.setValidationConstraints(Collections.emptyList());
+    formField.setDefaultValue(null);
 
-    TaskFormData taskFormData = mock(TaskFormData.class);
-    when(taskFormData.getFormFields()).thenReturn(Collections.singletonList(formField));
-    when(taskFormData.getFormProperties()).thenReturn(Collections.emptyList());
+    TaskFormDataImpl taskFormData = new TaskFormDataImpl();
+    taskFormData.setFormFields(Collections.singletonList(formField));
+    taskFormData.setFormProperties(Collections.emptyList());
 
     String renderedForm = (String) new HtmlFormEngine().renderTaskForm(taskFormData);
 

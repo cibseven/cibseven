@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.cmmn.listener;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.cibseven.bpm.engine.delegate.DelegateCaseVariableInstance;
 import org.cibseven.bpm.engine.runtime.CaseExecution;

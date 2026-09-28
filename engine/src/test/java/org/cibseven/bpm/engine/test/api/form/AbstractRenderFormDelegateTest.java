@@ -16,23 +16,21 @@
  */
 package org.cibseven.bpm.engine.test.api.form;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.cibseven.bpm.engine.form.FormData;
-import org.cibseven.bpm.engine.form.FormField;
-import org.cibseven.bpm.engine.form.TaskFormData;
+import org.cibseven.bpm.engine.impl.form.FormFieldImpl;
+import org.cibseven.bpm.engine.impl.form.TaskFormDataImpl;
 import org.cibseven.bpm.engine.impl.form.engine.AbstractRenderFormDelegate;
 import org.cibseven.bpm.engine.impl.form.type.EnumFormType;
 import org.cibseven.bpm.engine.impl.form.type.StringFormType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * <p>AbstractRenderFormDelegate has no registered subclass and is never
@@ -56,16 +54,16 @@ public class AbstractRenderFormDelegateTest {
   @Test
   public void testRenderFormFieldEscapesXssInLabel() {
 
-    FormField formField = mock(FormField.class);
-    when(formField.getId()).thenReturn("someField");
-    when(formField.getLabel()).thenReturn("<img src=x onerror=alert(1)>");
-    when(formField.getTypeName()).thenReturn(StringFormType.TYPE_NAME);
-    when(formField.getValidationConstraints()).thenReturn(Collections.emptyList());
-    when(formField.getDefaultValue()).thenReturn(null);
+    FormFieldImpl formField = new FormFieldImpl();
+    formField.setId("someField");
+    formField.setLabel("<img src=x onerror=alert(1)>");
+    formField.setType(new StringFormType());
+    formField.setValidationConstraints(Collections.emptyList());
+    formField.setDefaultValue(null);
 
-    TaskFormData taskFormData = mock(TaskFormData.class);
-    when(taskFormData.getFormFields()).thenReturn(Collections.singletonList(formField));
-    when(taskFormData.getFormProperties()).thenReturn(Collections.emptyList());
+    TaskFormDataImpl taskFormData = new TaskFormDataImpl();
+    taskFormData.setFormFields(Collections.singletonList(formField));
+    taskFormData.setFormProperties(Collections.emptyList());
 
     String renderedForm = new RenderFormDelegate().render(taskFormData);
 
@@ -80,17 +78,16 @@ public class AbstractRenderFormDelegateTest {
     Map<String, String> enumValues = new LinkedHashMap<String, String>();
     enumValues.put("someKey", "<script>alert(1)</script>");
 
-    FormField formField = mock(FormField.class);
-    when(formField.getId()).thenReturn("someField");
-    when(formField.getLabel()).thenReturn(null);
-    when(formField.getTypeName()).thenReturn(EnumFormType.TYPE_NAME);
-    when(formField.getType()).thenReturn(new EnumFormType(enumValues));
-    when(formField.getValidationConstraints()).thenReturn(Collections.emptyList());
-    when(formField.getDefaultValue()).thenReturn(null);
+    FormFieldImpl formField = new FormFieldImpl();
+    formField.setId("someField");
+    formField.setLabel(null);
+    formField.setType(new EnumFormType(enumValues));
+    formField.setValidationConstraints(Collections.emptyList());
+    formField.setDefaultValue(null);
 
-    TaskFormData taskFormData = mock(TaskFormData.class);
-    when(taskFormData.getFormFields()).thenReturn(Collections.singletonList(formField));
-    when(taskFormData.getFormProperties()).thenReturn(Collections.emptyList());
+    TaskFormDataImpl taskFormData = new TaskFormDataImpl();
+    taskFormData.setFormFields(Collections.singletonList(formField));
+    taskFormData.setFormProperties(Collections.emptyList());
 
     String renderedForm = new RenderFormDelegate().render(taskFormData);
 
@@ -102,16 +99,16 @@ public class AbstractRenderFormDelegateTest {
   @Test
   public void testRenderFormFieldKeepsAngularExpressionsUnescaped() {
 
-    FormField formField = mock(FormField.class);
-    when(formField.getId()).thenReturn("someField");
-    when(formField.getLabel()).thenReturn(null);
-    when(formField.getTypeName()).thenReturn(StringFormType.TYPE_NAME);
-    when(formField.getValidationConstraints()).thenReturn(Collections.emptyList());
-    when(formField.getDefaultValue()).thenReturn(null);
+    FormFieldImpl formField = new FormFieldImpl();
+    formField.setId("someField");
+    formField.setLabel(null);
+    formField.setType(new StringFormType());
+    formField.setValidationConstraints(Collections.emptyList());
+    formField.setDefaultValue(null);
 
-    TaskFormData taskFormData = mock(TaskFormData.class);
-    when(taskFormData.getFormFields()).thenReturn(Collections.singletonList(formField));
-    when(taskFormData.getFormProperties()).thenReturn(Collections.emptyList());
+    TaskFormDataImpl taskFormData = new TaskFormDataImpl();
+    taskFormData.setFormFields(Collections.singletonList(formField));
+    taskFormData.setFormProperties(Collections.emptyList());
 
     String renderedForm = new RenderFormDelegate().render(taskFormData);
 

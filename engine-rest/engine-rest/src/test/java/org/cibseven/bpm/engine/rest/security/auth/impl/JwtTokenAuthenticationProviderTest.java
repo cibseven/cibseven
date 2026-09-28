@@ -19,15 +19,16 @@ package org.cibseven.bpm.engine.rest.security.auth.impl;
 import java.util.Base64;
 import java.util.Date;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.security.auth.AuthenticationResult;
 import org.cibseven.bpm.engine.rest.security.auth.impl.jwt.Configuration;
 import org.cibseven.bpm.engine.rest.security.auth.impl.jwt.JwtUser;
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.mock.web.MockHttpServletRequest;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,19 +44,19 @@ public class JwtTokenAuthenticationProviderTest {
   @Test
   public void testJwtAuthentication()
       throws IOException, ServletException, WeakKeyException, InvalidKeyException, JsonProcessingException {
-    MockHttpServletRequest request = new MockHttpServletRequest();
+    HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 
     applyFilter(request, MockProvider.EXAMPLE_USER_ID);
 
     JwtTokenAuthenticationProvider authenticationProvider = new JwtTokenAuthenticationProvider();
     AuthenticationResult authenticatedUser = authenticationProvider.extractAuthenticatedUser(request, null);
 
-    Assert.assertTrue(authenticatedUser.isAuthenticated());
-    Assert.assertEquals(MockProvider.EXAMPLE_USER_ID, authenticatedUser.getAuthenticatedUser());
+    Assertions.assertTrue(authenticatedUser.isAuthenticated());
+    Assertions.assertEquals(MockProvider.EXAMPLE_USER_ID, authenticatedUser.getAuthenticatedUser());
 
   }
 
-  protected void applyFilter(MockHttpServletRequest request, String username)
+  protected void applyFilter(HttpServletRequest request, String username)
       throws IOException, ServletException, WeakKeyException, InvalidKeyException, JsonProcessingException {
 
     JwtUser user = new JwtUser(username);
@@ -65,8 +66,9 @@ public class JwtTokenAuthenticationProviderTest {
 
     String token = createToken(jwtSecret, validInMillis, user);
 
-    request.addHeader(JwtTokenAuthenticationProvider.AUTHORIZATION_HEADER,
-        JwtTokenAuthenticationProvider.BEARER_PREFIX + token);
+    String headerValue = JwtTokenAuthenticationProvider.BEARER_PREFIX + token;
+    Mockito.when(request.getHeader(JwtTokenAuthenticationProvider.AUTHORIZATION_HEADER)).thenReturn(headerValue);
+    Mockito.when(request.getHeaders(JwtTokenAuthenticationProvider.AUTHORIZATION_HEADER)).thenReturn(java.util.Collections.enumeration(java.util.Collections.singletonList(headerValue)));
 
   }
 

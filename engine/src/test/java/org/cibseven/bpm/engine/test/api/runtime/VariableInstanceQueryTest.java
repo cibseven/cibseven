@@ -18,12 +18,12 @@ package org.cibseven.bpm.engine.test.api.runtime;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,7 +54,7 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.engine.variable.value.FileValue;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author roman.smirnov
@@ -464,7 +465,7 @@ public class VariableInstanceQueryTest extends PluggableProcessEngineTest {
     for (VariableInstance var : result) {
       assertEquals("stringVar", var.getName());
       assertEquals("string", var.getTypeName());
-      assertTrue("Unexpected value found: " + var.getValue(), expected.contains(var.getValue()));
+      assertTrue(expected.contains(var.getValue()), "Unexpected value found: " + var.getValue());
     }
   }
 
@@ -1929,6 +1930,209 @@ public class VariableInstanceQueryTest extends PluggableProcessEngineTest {
     assertEquals("string", first.getTypeName());
     assertEquals("myVar", second.getName());
     assertEquals("string", second.getTypeName());
+  }
+
+  @Test
+  @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
+  public void testQueryOrderByVariableId_Asc() {
+    // given
+    Map<String, Object> variables = new HashMap<>();
+    variables.put("stringVar", "test");
+    variables.put("myVar", "test123");
+    runtimeService.startProcessInstanceByKey(PROC_DEF_KEY, variables);
+
+    // when
+    List<VariableInstance> result = runtimeService.createVariableInstanceQuery()
+        .orderByVariableId().asc().list();
+
+    // then
+    assertEquals(2, result.size());
+
+    List<String> expectedIds = new ArrayList<>();
+    for (VariableInstance variableInstance : result) {
+      expectedIds.add(variableInstance.getId());
+    }
+    Collections.sort(expectedIds);
+
+    assertEquals(expectedIds.get(0), result.get(0).getId());
+    assertEquals(expectedIds.get(1), result.get(1).getId());
+  }
+
+  @Test
+  @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
+  public void testQueryOrderByVariableId_Desc() {
+    // given
+    Map<String, Object> variables = new HashMap<>();
+    variables.put("stringVar", "test");
+    variables.put("myVar", "test123");
+    runtimeService.startProcessInstanceByKey(PROC_DEF_KEY, variables);
+
+    // when
+    List<VariableInstance> result = runtimeService.createVariableInstanceQuery()
+        .orderByVariableId().desc().list();
+
+    // then
+    assertEquals(2, result.size());
+
+    List<String> expectedIds = new ArrayList<>();
+    for (VariableInstance variableInstance : result) {
+      expectedIds.add(variableInstance.getId());
+    }
+    Collections.sort(expectedIds, Collections.reverseOrder());
+
+    assertEquals(expectedIds.get(0), result.get(0).getId());
+    assertEquals(expectedIds.get(1), result.get(1).getId());
+  }
+
+  @Test
+  @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
+  public void testQueryOrderByVariableIdStablePagination() {
+    // given
+    Map<String, Object> variables = new HashMap<>();
+    for (int i = 0; i < 10; i++) {
+      variables.put("var" + i, "value" + i);
+    }
+    runtimeService.startProcessInstanceByKey(PROC_DEF_KEY, variables);
+
+    long count = runtimeService.createVariableInstanceQuery().count();
+    assertEquals(10, count);
+
+    // when
+    Set<String> collectedIds = new HashSet<>();
+    int pageSize = 3;
+    for (int firstResult = 0; firstResult < count; firstResult += pageSize) {
+      List<VariableInstance> page = runtimeService.createVariableInstanceQuery()
+          .orderByVariableId().asc()
+          .listPage(firstResult, pageSize);
+
+      for (VariableInstance variableInstance : page) {
+        assertTrue(collectedIds.add(variableInstance.getId()), 
+            "variable instance " + variableInstance.getId() + " was returned on more than one page");
+      }
+    }
+
+    // then
+    assertEquals(10, collectedIds.size());
+  }
+
+  @Test
+  @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
+  public void testStreamMatchesList() {
+    // given
+    Map<String, Object> variables = new HashMap<>();
+    variables.put("stringVar", "test");
+    variables.put("myVar", "test123");
+    runtimeService.startProcessInstanceByKey(PROC_DEF_KEY, variables);
+
+    // when
+    List<String> streamedIds = new ArrayList<>();
+    runtimeService.createVariableInstanceQuery()
+        .orderByVariableId().asc()
+        .stream()
+        .forEach(variableInstance -> streamedIds.add(variableInstance.getId()));
+
+    List<String> listedIds = new ArrayList<>();
+    for (VariableInstance variableInstance : runtimeService.createVariableInstanceQuery()
+        .orderByVariableId().asc().list()) {
+      listedIds.add(variableInstance.getId());
+    }
+
+    // then
+    assertEquals(listedIds, streamedIds);
+  }
+
+  @Test
+  @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
+  public void testStreamPaginatesAcrossPages() {
+    // given
+    int variableCount = 250;
+    Map<String, Object> variables = new HashMap<>();
+    for (int i = 0; i < variableCount; i++) {
+      variables.put("var" + i, "value" + i);
+    }
+    runtimeService.startProcessInstanceByKey(PROC_DEF_KEY, variables);
+
+    assertEquals(variableCount, runtimeService.createVariableInstanceQuery().count());
+
+    // when
+    Set<String> streamedIds = new HashSet<>();
+    runtimeService.createVariableInstanceQuery()
+        .orderByVariableId().asc()
+        .stream()
+        .forEach(variableInstance ->
+            assertTrue(streamedIds.add(variableInstance.getId()),
+            "variable instance " + variableInstance.getId() + " was streamed more than once"));
+
+    // then
+    assertEquals(variableCount, streamedIds.size());
+  }
+
+  @Test
+  @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
+  public void testStreamIsRobustAgainstConcurrentModifications() {
+    // given
+    int variableCount = 250;
+    Map<String, Object> variables = new HashMap<>();
+    for (int i = 0; i < variableCount; i++) {
+      variables.put("var" + i, "value" + i);
+    }
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(PROC_DEF_KEY, variables);
+
+    List<VariableInstance> before = runtimeService.createVariableInstanceQuery()
+        .orderByVariableId().asc().list();
+    assertEquals(variableCount, before.size());
+
+    // when
+    Iterator<VariableInstance> iterator = runtimeService.createVariableInstanceQuery().streamStable().iterator();
+
+    Set<String> streamedIds = new HashSet<>();
+    int firstBatchSize = 100;
+    for (int i = 0; i < firstBatchSize; i++) {
+      assertTrue(iterator.hasNext());
+      streamedIds.add(iterator.next().getId());
+    }
+    assertEquals(firstBatchSize, streamedIds.size());
+
+    String notYetStreamedVariableName = null;
+    for (VariableInstance variableInstance : before) {
+      if (!streamedIds.contains(variableInstance.getId())) {
+        notYetStreamedVariableName = variableInstance.getName();
+        break;
+      }
+    }
+    assertNotNull(notYetStreamedVariableName);
+    runtimeService.removeVariable(processInstance.getId(), notYetStreamedVariableName);
+
+    for (int i = 0; i < 50; i++) {
+      runtimeService.setVariable(processInstance.getId(), "concurrentVar" + i, "value");
+    }
+
+    // then
+    while (iterator.hasNext()) {
+      VariableInstance variableInstance = iterator.next();
+      assertTrue(streamedIds.add(variableInstance.getId()),
+          "variable instance " + variableInstance.getId() + " was streamed more than once");
+    }
+
+    for (VariableInstance variableInstance : before) {
+      if (!variableInstance.getName().equals(notYetStreamedVariableName)) {
+        assertTrue(streamedIds.contains(variableInstance.getId()),
+            "variable instance " + variableInstance.getId() + " (" + variableInstance.getName() + ") was not streamed");
+      }
+    }
+  }
+
+  @Test
+  @Deployment(resources={"org/cibseven/bpm/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
+  public void testStreamOnEmptyResult() {
+    // when
+    long streamedCount = runtimeService.createVariableInstanceQuery()
+        .orderByVariableId().asc()
+        .stream()
+        .count();
+
+    // then
+    assertEquals(0, streamedCount);
   }
 
   @Test

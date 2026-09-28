@@ -27,10 +27,11 @@ import org.cibseven.bpm.engine.identity.TenantQuery;
 import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class TenantQueryTest {
 
@@ -40,12 +41,12 @@ public class TenantQueryTest {
   protected static final String USER = "user";
   protected static final String GROUP = "group";
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected IdentityService identityService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     identityService = engineRule.getIdentityService();
 
@@ -175,7 +176,7 @@ public class TenantQueryTest {
     return tenant;
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     identityService.deleteTenant(TENANT_ONE);
     identityService.deleteTenant(TENANT_TWO);

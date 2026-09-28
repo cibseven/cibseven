@@ -35,8 +35,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.AuthorizationService;
@@ -52,15 +52,15 @@ import org.cibseven.bpm.engine.rest.dto.identity.TenantDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 import io.restassured.http.ContentType;
 
 public class TenantRestServiceInteractionTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String SERVICE_URL = TEST_RESOURCE_ROOT_PATH + "/tenant";
@@ -78,7 +78,7 @@ public class TenantRestServiceInteractionTest extends AbstractRestServiceTest {
   protected Tenant mockTenant;
   protected TenantQuery mockQuery;
 
-  @Before
+  @BeforeEach
   public void setupData() {
 
     identityServiceMock = mock(IdentityService.class);

@@ -20,8 +20,8 @@ import org.assertj.core.util.Lists;
 import org.cibseven.bpm.client.exception.ExternalTaskClientException;
 import org.cibseven.bpm.client.task.ExternalTask;
 import org.cibseven.bpm.client.task.impl.ExternalTaskImpl;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
@@ -31,7 +31,7 @@ public class ExponentialErrorBackoffStrategyTest {
 
   protected ExponentialErrorBackoffStrategy backoffStrategy;
 
-  @Before
+  @BeforeEach
   public void setup() {
     backoffStrategy = new ExponentialErrorBackoffStrategy();
   }

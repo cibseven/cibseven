@@ -42,7 +42,7 @@ import org.cibseven.bpm.dmn.engine.test.DmnEngineTest;
 import org.cibseven.bpm.model.dmn.Dmn;
 import org.cibseven.bpm.model.dmn.DmnModelInstance;
 import org.cibseven.commons.utils.IoUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DmnTransformTest extends DmnEngineTest {
 

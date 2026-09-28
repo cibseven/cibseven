@@ -24,8 +24,8 @@ import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.MessageEntity;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Tassilo Weidner
@@ -34,7 +34,7 @@ public class ThrowOleWhenDeletingExceptionStacktraceTest extends ConcurrencyTest
 
   protected AtomicReference<JobEntity> job = new AtomicReference<>();
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     if (job.get() != null) {
       processEngineConfiguration.getCommandExecutorTxRequired().execute((Command<Void>) commandContext -> {

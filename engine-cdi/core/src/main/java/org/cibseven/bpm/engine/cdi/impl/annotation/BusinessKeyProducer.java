@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.cdi.impl.annotation;
 
-import javax.enterprise.inject.Produces;
-import javax.inject.Named;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Named;
 
 import org.cibseven.bpm.engine.cdi.annotation.BusinessKey;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;

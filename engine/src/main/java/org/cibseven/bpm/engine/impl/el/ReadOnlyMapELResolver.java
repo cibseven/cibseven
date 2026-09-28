@@ -21,8 +21,9 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
+
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
 
 /**
  * An {@link ELResolver} that exposed object values in the map, under the name of the entry's key.

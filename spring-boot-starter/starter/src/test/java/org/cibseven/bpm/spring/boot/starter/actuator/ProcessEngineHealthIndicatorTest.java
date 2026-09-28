@@ -16,18 +16,21 @@
  */
 package org.cibseven.bpm.spring.boot.starter.actuator;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import org.cibseven.bpm.engine.ProcessEngine;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.Status;
 
-@RunWith(MockitoJUnitRunner.class)
+
+@ExtendWith(MockitoExtension.class)
 public class ProcessEngineHealthIndicatorTest {
 
   private static final String PROCESS_ENGINE_NAME = "process engine name";
@@ -35,10 +38,12 @@ public class ProcessEngineHealthIndicatorTest {
   @Mock
   private ProcessEngine processEngine;
 
-  @Test(expected = IllegalArgumentException.class)
-  public void nullTest() {
-    new ProcessEngineHealthIndicator(null);
-  }
+	@Test
+	public void nullTest() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			new ProcessEngineHealthIndicator(null);
+		});
+	}
 
   @Test
   public void upTest() {

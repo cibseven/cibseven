@@ -1,0 +1,2 @@
+org.cibseven.connect.ai.agent.impl.AgentConnectorProviderImpl
+org.cibseven.connect.ai.agent.impl.KnowledgeIngestorProviderImpl

@@ -3,7 +3,7 @@
   <@lib.endpointInfo
       id = "getHistoricProcessInstancesCount"
       tag = "Historic Process Instance"
-      summary = "Get List Count"
+      summary = "Get Historic Process Instance List Count"
       desc = "Queries for the number of historic process instances that fulfill the given parameters.
               Takes the same parameters as the [Get Process Instances](${docsUrl}/reference/rest/history/process-instance/get-process-instance-query/) method." />
 

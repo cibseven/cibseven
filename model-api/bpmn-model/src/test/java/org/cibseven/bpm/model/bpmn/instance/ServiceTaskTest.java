@@ -23,7 +23,7 @@ import org.cibseven.bpm.model.bpmn.BpmnTestConstants;
 
 import static org.cibseven.bpm.model.bpmn.impl.BpmnModelConstants.CAMUNDA_NS;
 import static org.cibseven.bpm.model.xml.test.AbstractModelElementInstanceTest.modelInstance;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Sebastian Menski

@@ -19,9 +19,9 @@ package org.cibseven.bpm.engine.rest;
 import static io.restassured.RestAssured.given;
 import static org.cibseven.bpm.engine.rest.util.JsonPathUtil.from;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.batch.Batch;
 import org.cibseven.bpm.engine.batch.BatchQuery;
@@ -42,9 +42,9 @@ import org.cibseven.bpm.engine.rest.dto.batch.BatchDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -53,7 +53,7 @@ import io.restassured.response.Response;
 
 public class BatchRestServiceQueryTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String BATCH_RESOURCE_URL = TEST_RESOURCE_ROOT_PATH + "/batch";
@@ -61,7 +61,7 @@ public class BatchRestServiceQueryTest extends AbstractRestServiceTest {
 
   protected BatchQuery queryMock;
 
-  @Before
+  @BeforeEach
   public void setUpBatchQueryMock() {
     List<Batch> mockedBatches = MockProvider.createMockBatches();
     queryMock = mock(BatchQuery.class);
@@ -264,12 +264,12 @@ public class BatchRestServiceQueryTest extends AbstractRestServiceTest {
 
   protected void verifyBatchListJson(String batchListJson) {
     List<Object> batches = from(batchListJson).get();
-    assertEquals("There should be one batch returned.", 1, batches.size());
+    assertEquals( 1, batches.size(), "There should be one batch returned.");
 
     BatchDto batch = from(batchListJson).getObject("[0]", BatchDto.class);
     String returnedStartTime = from(batchListJson).getString("[0].startTime");
 
-    assertNotNull("The returned batch should not be null.", batch);
+    assertNotNull(batch, "The returned batch should not be null.");
     assertEquals(MockProvider.EXAMPLE_BATCH_ID, batch.getId());
     assertEquals(MockProvider.EXAMPLE_BATCH_TYPE, batch.getType());
     assertEquals(MockProvider.EXAMPLE_BATCH_TOTAL_JOBS, batch.getTotalJobs());

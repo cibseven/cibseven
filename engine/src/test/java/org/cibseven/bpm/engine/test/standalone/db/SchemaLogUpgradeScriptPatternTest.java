@@ -17,14 +17,14 @@
 package org.cibseven.bpm.engine.test.standalone.db;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Miklas Boskamp
@@ -41,7 +41,7 @@ public class SchemaLogUpgradeScriptPatternTest extends SchemaLogTestCase {
      * postgres_engine_7.3_patch_7.3.2_to_7.3.3_1.sql,
      */
     for (String file : folderContents.get(UPGRADE_SCRIPT_FOLDER)) {
-      assertTrue("unexpected file format for file: " + file, file.endsWith(".sql"));
+      assertTrue(file.endsWith(".sql"), "unexpected file format for file: " + file);
       // get rid of the .sql ending as it makes splitting easier
       file = file.substring(0, file.length() - 4);
 
@@ -58,7 +58,7 @@ public class SchemaLogUpgradeScriptPatternTest extends SchemaLogTestCase {
       } else if (nameParts[3].equals("patch")) {
         // patch update
         String basePatchVersion = nameParts[4];
-        assertTrue("unexpected patch version pattern for file: " + file, isPatchLevel(basePatchVersion));
+        assertTrue(isPatchLevel(basePatchVersion), "unexpected patch version pattern for file: " + file);
         assertThat(minorVersion).isEqualTo(getMinorLevelFromPatchVersion(basePatchVersion));
         assertThat(nameParts[5]).isEqualTo("to");
         assertThat(nameParts[6]).isIn(getPossibleNextVersions(basePatchVersion));

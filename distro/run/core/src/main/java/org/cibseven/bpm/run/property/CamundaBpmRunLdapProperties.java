@@ -61,6 +61,13 @@ public class CamundaBpmRunLdapProperties extends LdapIdentityProviderPlugin {
         ", usePosixGroups=" + usePosixGroups +
         ", allowAnonymousLogin=" + allowAnonymousLogin +
         ", authorizationCheckEnabled=" + authorizationCheckEnabled +
-        ", passwordCheckCatchAuthenticationException=" + passwordCheckCatchAuthenticationException + "]";
+        ", passwordCheckCatchAuthenticationException=" + passwordCheckCatchAuthenticationException +
+        ", cacheEnabled=" + cacheEnabled +
+        ", cacheUserQueriesTtlSeconds=" + cacheUserQueriesTtlSeconds +
+        ", cacheUserQueriesMaxWeight=" + cacheUserQueriesMaxWeight +
+        ", cacheGroupTtlSeconds=" + cacheGroupTtlSeconds +
+        ", cacheGroupMaxWeight=" + cacheGroupMaxWeight +
+        ", cacheStatsLogEnabled=" + cacheStatsLogEnabled +
+        ", cacheStatsLogInterval=" + cacheStatsLogInterval + "]";
   }
 }

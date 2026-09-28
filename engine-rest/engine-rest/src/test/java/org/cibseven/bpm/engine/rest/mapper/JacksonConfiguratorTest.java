@@ -1,8 +1,9 @@
 package org.cibseven.bpm.engine.rest.mapper;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.StreamReadConstraints;
@@ -24,9 +25,11 @@ public class JacksonConfiguratorTest {
 		test(HIGHER_LIMIT);
 	}
 
-	@Test(expected = StreamConstraintsException.class)
+	@Test
 	public void testMaxStringLengthAbove() throws JsonProcessingException {
-		test(HIGHER_LIMIT + 1);
+		assertThrows(StreamConstraintsException.class, () -> {
+			test(HIGHER_LIMIT + 1);
+    	});
 	}
 
 	@Test

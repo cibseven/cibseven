@@ -39,18 +39,18 @@ import org.camunda.feel.valuemapper.ValueMapper;
 import org.cibseven.spin.Spin;
 import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.xml.SpinXmlElement;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class SpinValueMapperTest {
 
   protected static ValueMapper valueMapper;
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule();
 
-  @BeforeClass
+  @BeforeAll
   public static void setUp() {
     DefaultValueMapper defaultValueMapper = DefaultValueMapper.instance();
     SpinValueMapper spinValueMapper = new SpinValueMapper();

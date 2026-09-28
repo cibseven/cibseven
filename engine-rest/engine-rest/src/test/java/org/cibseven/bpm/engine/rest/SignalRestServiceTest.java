@@ -27,12 +27,12 @@ import org.cibseven.bpm.engine.rest.exception.RestException;
 import org.cibseven.bpm.engine.rest.util.VariablesBuilder;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.bpm.engine.runtime.SignalEventReceivedBuilder;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
  */
 public class SignalRestServiceTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String SIGNAL_URL = TEST_RESOURCE_ROOT_PATH +  SignalRestService.PATH;
@@ -58,7 +58,7 @@ public class SignalRestServiceTest extends AbstractRestServiceTest {
   private RuntimeService runtimeServiceMock;
   private SignalEventReceivedBuilder signalBuilderMock;
 
-  @Before
+  @BeforeEach
   public void setupMocks() {
     runtimeServiceMock = mock(RuntimeService.class);
     when(processEngine.getRuntimeService()).thenReturn(runtimeServiceMock);
