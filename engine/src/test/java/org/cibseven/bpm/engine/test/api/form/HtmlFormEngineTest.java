@@ -17,15 +17,22 @@
 package org.cibseven.bpm.engine.test.api.form;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.cibseven.bpm.engine.impl.form.FormFieldImpl;
+import org.cibseven.bpm.engine.impl.form.TaskFormDataImpl;
 import org.cibseven.bpm.engine.impl.form.engine.FormEngine;
 import org.cibseven.bpm.engine.impl.form.engine.HtmlDocumentBuilder;
 import org.cibseven.bpm.engine.impl.form.engine.HtmlElementWriter;
 import org.cibseven.bpm.engine.impl.form.engine.HtmlFormEngine;
+import org.cibseven.bpm.engine.impl.form.type.EnumFormType;
+import org.cibseven.bpm.engine.impl.form.type.StringFormType;
 import org.cibseven.bpm.engine.impl.util.IoUtil;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.task.Task;
@@ -119,6 +126,47 @@ public class HtmlFormEngineTest extends PluggableProcessEngineTest {
     } catch (IllegalStateException e) {
       assertTrue(e.getMessage().contains("Self-closing element cannot have text content"));
     }
+
+  }
+
+  @Test
+  public void testHtmlElementWriterEscapesContent() {
+
+    String htmlString = new HtmlDocumentBuilder(
+        new HtmlElementWriter("someTagName").textContent("<script>alert(1)</script>"))
+      .endElement()
+      .getHtmlString();
+    assertHtmlEquals("<someTagName>&lt;script&gt;alert(1)&lt;/script&gt;</someTagName>", htmlString);
+
+    htmlString = new HtmlDocumentBuilder(
+        new HtmlElementWriter("someTagName").textContent("<img src=x onerror=alert(1)>"))
+      .endElement()
+      .getHtmlString();
+    assertHtmlEquals("<someTagName>&lt;img src=x onerror=alert(1)&gt;</someTagName>", htmlString);
+
+    htmlString = new HtmlDocumentBuilder(
+        new HtmlElementWriter("someTagName").textContent("a & b"))
+      .endElement()
+      .getHtmlString();
+    assertHtmlEquals("<someTagName>a &amp; b</someTagName>", htmlString);
+
+    htmlString = new HtmlDocumentBuilder(
+        new HtmlElementWriter("someTagName", true).attribute("someAttr", "\"><script>alert(1)</script>"))
+      .endElement()
+      .getHtmlString();
+    assertHtmlEquals("<someTagName someAttr=\"&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;\" />", htmlString);
+
+    htmlString = new HtmlDocumentBuilder(
+        new HtmlElementWriter("someTagName").rawTextContent("a && b"))
+      .endElement()
+      .getHtmlString();
+    assertHtmlEquals("<someTagName>a && b</someTagName>", htmlString);
+
+    htmlString = new HtmlDocumentBuilder(
+        new HtmlElementWriter("someTagName", true).rawAttribute("someAttr", "a && b"))
+      .endElement()
+      .getHtmlString();
+    assertHtmlEquals("<someTagName someAttr=\"a && b\" />", htmlString);
 
   }
 
@@ -268,6 +316,53 @@ public class HtmlFormEngineTest extends PluggableProcessEngineTest {
     String expectedForm = IoUtil.readClasspathResourceAsString("org/cibseven/bpm/engine/test/api/form/HtmlFormEngineTest.testBusinessKey.html");
 
     assertHtmlEquals(expectedForm, renderedForm);
+
+  }
+
+  @Test
+  public void testRenderFormFieldEscapesXssInLabel() {
+
+    FormFieldImpl formField = new FormFieldImpl();
+    formField.setId("someField");
+    formField.setLabel("<img src=x onerror=alert(1)>");
+    formField.setType(new StringFormType());
+    formField.setBusinessKey(false);
+    formField.setValidationConstraints(Collections.emptyList());
+    formField.setDefaultValue(null);
+
+    TaskFormDataImpl taskFormData = new TaskFormDataImpl();
+    taskFormData.setFormFields(Collections.singletonList(formField));
+    taskFormData.setFormProperties(Collections.emptyList());
+
+    String renderedForm = (String) new HtmlFormEngine().renderTaskForm(taskFormData);
+
+    assertTrue(renderedForm.contains("&lt;img src=x onerror=alert(1)&gt;"));
+    assertFalse(renderedForm.contains("<img src=x onerror=alert(1)>"));
+
+  }
+
+  @Test
+  public void testRenderFormFieldEscapesXssInEnumOption() {
+
+    Map<String, String> enumValues = new LinkedHashMap<String, String>();
+    enumValues.put("someKey", "<script>alert(1)</script>");
+
+    FormFieldImpl formField = new FormFieldImpl();
+    formField.setId("someField");
+    formField.setLabel(null);
+    formField.setType(new EnumFormType(enumValues));
+    formField.setBusinessKey(false);
+    formField.setValidationConstraints(Collections.emptyList());
+    formField.setDefaultValue(null);
+
+    TaskFormDataImpl taskFormData = new TaskFormDataImpl();
+    taskFormData.setFormFields(Collections.singletonList(formField));
+    taskFormData.setFormProperties(Collections.emptyList());
+
+    String renderedForm = (String) new HtmlFormEngine().renderTaskForm(taskFormData);
+
+    assertTrue(renderedForm.contains("&lt;script&gt;alert(1)&lt;/script&gt;"));
+    assertFalse(renderedForm.contains("<script>alert(1)</script>"));
 
   }
 
