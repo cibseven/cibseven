@@ -19,21 +19,21 @@ package org.cibseven.bpm.engine.rest.dto.runtime;
 import java.util.List;
 
 /**
- * Request body for activating elements of an ad hoc sub process.
+ * Request body for activating activities of an ad hoc sub process.
  */
 public class AdHocActivitiesActivationDto {
 
-  private List<AdHocActivityReferenceDto> elements;
+  private List<AdHocActivityReferenceDto> activities;
 
   /**
-   * The elements to activate, in the order they should be started. The same element may appear more
-   * than once, which starts it that many times.
+   * The activities to activate, in the order they should be started. The same activity may appear
+   * more than once, which starts it that many times.
    */
-  public List<AdHocActivityReferenceDto> getElements() {
-    return elements;
+  public List<AdHocActivityReferenceDto> getActivities() {
+    return activities;
   }
 
-  public void setElements(List<AdHocActivityReferenceDto> elements) {
-    this.elements = elements;
+  public void setActivities(List<AdHocActivityReferenceDto> activities) {
+    this.activities = activities;
   }
 }

@@ -2,9 +2,9 @@
 <@lib.dto desc = "">
 
     <@lib.property
-        name = "elementId"
+        name = "activityId"
         type = "string"
-        desc = "The id of the element to activate."
+        desc = "The id of the activity to activate."
     />
 
     <@lib.property
@@ -12,10 +12,10 @@
         type = "object"
         additionalProperties = true
         dto = "VariableValueDto"
-        desc = "Variables applied locally to the execution created for this element.
+        desc = "Variables applied locally to the execution created for this activity.
 
-                The engine keys variables per element definition rather than per activation, so
-                naming the same element twice in one request starts it twice but gives both
+                The engine keys variables per activity definition rather than per activation, so
+                naming the same activity twice in one request starts it twice but gives both
                 performances the variables of the last entry. Send one request per performance to
                 vary them."
         last = true

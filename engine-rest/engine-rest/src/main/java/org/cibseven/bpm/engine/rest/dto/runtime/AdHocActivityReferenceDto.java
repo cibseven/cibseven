@@ -21,26 +21,26 @@ import java.util.Map;
 import org.cibseven.bpm.engine.rest.dto.VariableValueDto;
 
 /**
- * One element of an ad hoc sub process to activate, with the variables to set on it.
+ * One activity of an ad hoc sub process to activate, with the variables to set on it.
  */
 public class AdHocActivityReferenceDto {
 
-  private String elementId;
+  private String activityId;
   private Map<String, VariableValueDto> variables;
 
-  public String getElementId() {
-    return elementId;
+  public String getActivityId() {
+    return activityId;
   }
 
-  public void setElementId(String elementId) {
-    this.elementId = elementId;
+  public void setActivityId(String activityId) {
+    this.activityId = activityId;
   }
 
   /**
-   * Variables applied locally to the execution created for this element.
+   * Variables applied locally to the execution created for this activity.
    *
-   * <p>The engine keys them per element definition rather than per activation, so naming the same
-   * element twice in one request starts it twice but gives both performances the variables of the
+   * <p>The engine keys them per activity definition rather than per activation, so naming the same
+   * activity twice in one request starts it twice but gives both performances the variables of the
    * last entry. Send one request per performance to vary them.
    */
   public Map<String, VariableValueDto> getVariables() {

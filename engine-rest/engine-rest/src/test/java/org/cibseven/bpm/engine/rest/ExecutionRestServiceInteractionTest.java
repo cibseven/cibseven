@@ -1699,19 +1699,19 @@ public class ExecutionRestServiceInteractionTest extends AbstractRestServiceTest
             Arrays.asList("taskA:anInstanceId", "taskB:anotherInstanceId")));
 
     Map<String, Object> json = new HashMap<>();
-    json.put("elements", Arrays.asList(
-        Collections.singletonMap("elementId", "taskA"),
-        Collections.singletonMap("elementId", "taskB")));
+    json.put("activities", Arrays.asList(
+        Collections.singletonMap("activityId", "taskA"),
+        Collections.singletonMap("activityId", "taskB")));
 
     given().pathParam("id", MockProvider.EXAMPLE_EXECUTION_ID).contentType(ContentType.JSON).body(json)
         .then().expect().statusCode(Status.OK.getStatusCode())
         // The created ids are the reason this returns a body rather than 204: a caller starting
-        // elements inside a running instance needs them to join an audit record against.
+        // activities inside a running instance needs them to join an audit record against.
         .body("size()", equalTo(2))
-        .body("[0].elementId", equalTo("taskA"))
-        .body("[0].elementInstanceId", equalTo("taskA:anInstanceId"))
-        .body("[1].elementId", equalTo("taskB"))
-        .body("[1].elementInstanceId", equalTo("taskB:anotherInstanceId"))
+        .body("[0].activityId", equalTo("taskA"))
+        .body("[0].activityInstanceId", equalTo("taskA:anInstanceId"))
+        .body("[1].activityId", equalTo("taskB"))
+        .body("[1].activityInstanceId", equalTo("taskB:anotherInstanceId"))
         .when().post(ACTIVATE_AD_HOC_ACTIVITIES_URL);
 
     verify(runtimeServiceMock).createAdHocSubProcessActivation(MockProvider.EXAMPLE_EXECUTION_ID);
@@ -1728,11 +1728,11 @@ public class ExecutionRestServiceInteractionTest extends AbstractRestServiceTest
     Map<String, Object> variableValue = new HashMap<>();
     variableValue.put("value", "alice");
     variableValue.put("type", "String");
-    Map<String, Object> element = new HashMap<>();
-    element.put("elementId", "taskA");
-    element.put("variables", Collections.singletonMap("assignedTo", variableValue));
+    Map<String, Object> activity = new HashMap<>();
+    activity.put("activityId", "taskA");
+    activity.put("variables", Collections.singletonMap("assignedTo", variableValue));
     Map<String, Object> json = new HashMap<>();
-    json.put("elements", Collections.singletonList(element));
+    json.put("activities", Collections.singletonList(activity));
 
     given().pathParam("id", MockProvider.EXAMPLE_EXECUTION_ID).contentType(ContentType.JSON).body(json)
         .then().expect().statusCode(Status.OK.getStatusCode())
@@ -1744,11 +1744,11 @@ public class ExecutionRestServiceInteractionTest extends AbstractRestServiceTest
 
   /**
    * CIB7-1892, the input half. The wire format has always been a list of instructions, and the
-   * resource used to narrow it to a map keyed by element id -- so naming one element twice with
+   * resource used to narrow it to a map keyed by activity id -- so naming one activity twice with
    * different variables started it twice and gave both the last entry's. Each entry now stands.
    */
   @Test
-  public void testTheSameElementTwiceKeepsItsOwnVariables() {
+  public void testTheSameActivityTwiceKeepsItsOwnVariables() {
     List<String> started = new ArrayList<>();
     List<Map<String, Object>> perPerformance = new ArrayList<>();
     when(runtimeServiceMock.createAdHocSubProcessActivation(anyString())).thenReturn(
@@ -1756,9 +1756,9 @@ public class ExecutionRestServiceInteractionTest extends AbstractRestServiceTest
             Arrays.asList("search:one", "search:two")));
 
     Map<String, Object> json = new HashMap<>();
-    json.put("elements", Arrays.asList(
-        elementWithVariable("search", "query", "invoices"),
-        elementWithVariable("search", "query", "credit notes")));
+    json.put("activities", Arrays.asList(
+        activityWithVariable("search", "query", "invoices"),
+        activityWithVariable("search", "query", "credit notes")));
 
     given().pathParam("id", MockProvider.EXAMPLE_EXECUTION_ID).contentType(ContentType.JSON).body(json)
         .then().expect().statusCode(Status.OK.getStatusCode())
@@ -1769,14 +1769,14 @@ public class ExecutionRestServiceInteractionTest extends AbstractRestServiceTest
     assertThat(perPerformance.get(1).get("query")).isEqualTo("credit notes");
   }
 
-  protected Map<String, Object> elementWithVariable(String elementId, String name, String value) {
+  protected Map<String, Object> activityWithVariable(String activityId, String name, String value) {
     Map<String, Object> variableValue = new HashMap<>();
     variableValue.put("value", value);
     variableValue.put("type", "String");
-    Map<String, Object> element = new HashMap<>();
-    element.put("elementId", elementId);
-    element.put("variables", Collections.singletonMap(name, variableValue));
-    return element;
+    Map<String, Object> activity = new HashMap<>();
+    activity.put("activityId", activityId);
+    activity.put("variables", Collections.singletonMap(name, variableValue));
+    return activity;
   }
 
   /**
@@ -1790,8 +1790,8 @@ public class ExecutionRestServiceInteractionTest extends AbstractRestServiceTest
         recordingActivation(new ArrayList<String>(), new ArrayList<Map<String, Object>>(), null));
 
     Map<String, Object> json = new HashMap<>();
-    json.put("elements", Collections.singletonList(
-        Collections.singletonMap("elementId", "waitForMsg")));
+    json.put("activities", Collections.singletonList(
+        Collections.singletonMap("activityId", "waitForMsg")));
 
     given().pathParam("id", MockProvider.EXAMPLE_EXECUTION_ID).contentType(ContentType.JSON).body(json)
         .then().expect().statusCode(Status.BAD_REQUEST.getStatusCode())

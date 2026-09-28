@@ -47,11 +47,11 @@ public interface ExecutionResource {
   EventSubscriptionResource getMessageEventSubscription(@PathParam("messageName") String messageName);
 
   /**
-   * Activates one or more elements of an ad hoc sub process.
+   * Activates one or more activities of an ad hoc sub process.
    *
-   * <p>Returns what it started, rather than 204, because a caller that starts elements inside a
-   * running instance needs the created element instance ids to join an audit record against. That is
-   * the reason the engine API returns them too.
+   * <p>Returns what it started, rather than 204, because a caller that starts activities inside a
+   * running instance needs the created activity instance ids to join an audit record against. That
+   * is the reason the engine API returns them too.
    */
   @POST
   @Path("/ad-hoc-activities/activate")

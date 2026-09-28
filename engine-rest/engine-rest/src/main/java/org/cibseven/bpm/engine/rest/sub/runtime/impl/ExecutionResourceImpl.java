@@ -105,35 +105,35 @@ public class ExecutionResourceImpl implements ExecutionResource {
 
   @Override
   public List<AdHocActivityInstanceDto> activateAdHocSubProcessActivities(AdHocActivitiesActivationDto dto) {
-    List<AdHocActivityReferenceDto> elements = dto == null ? null : dto.getElements();
+    List<AdHocActivityReferenceDto> activities = dto == null ? null : dto.getActivities();
 
     // One instruction per entry, which is what the wire format has always carried. Until CIB7-1892
-    // this was narrowed here to a map keyed by element id, so naming the same element twice started
-    // it twice and both performances took the last entry's variables. The builder keeps the entries
-    // apart, so the request now means what it looks like it means.
+    // this was narrowed here to a map keyed by activity id, so naming the same activity twice
+    // started it twice and both performances took the last entry's variables. The builder keeps the
+    // entries apart, so the request now means what it looks like it means.
     AdHocSubProcessActivationBuilder activation = engine.getRuntimeService()
         .createAdHocSubProcessActivation(executionId);
-    // Kept to pair each returned instance id with the element it belongs to, which is what makes the
-    // response readable when one element appears more than once.
-    List<String> requestedElementIds = new ArrayList<>();
-    if (elements != null) {
-      for (AdHocActivityReferenceDto element : elements) {
-        String elementId = element == null ? null : element.getElementId();
-        requestedElementIds.add(elementId);
-        activation.startActivity(elementId);
-        if (element != null && element.getVariables() != null) {
+    // Kept to pair each returned instance id with the activity it belongs to, which is what makes
+    // the response readable when one activity appears more than once.
+    List<String> requestedActivityIds = new ArrayList<>();
+    if (activities != null) {
+      for (AdHocActivityReferenceDto activity : activities) {
+        String activityId = activity == null ? null : activity.getActivityId();
+        requestedActivityIds.add(activityId);
+        activation.startActivity(activityId);
+        if (activity != null && activity.getVariables() != null) {
           activation.setVariables(
-              VariableValueDto.toMap(element.getVariables(), engine, objectMapper));
+              VariableValueDto.toMap(activity.getVariables(), engine, objectMapper));
         }
       }
     }
 
-    List<String> elementInstanceIds;
+    List<String> activityInstanceIds;
     try {
-      elementInstanceIds = activation.execute();
+      activityInstanceIds = activation.execute();
 
       // BadUserRequestException, not ProcessEngineException. Everything this command refuses — an
-      // element that is not directly startable, an unknown id, an execution that is not an ad hoc
+      // activity that is not directly startable, an unknown id, an execution that is not an ad hoc
       // scope — is the caller's mistake and must be a 400. Letting it fall through to the generic
       // engine-exception handler would report every one of them as a 500.
     } catch (BadUserRequestException e) {
@@ -141,9 +141,9 @@ public class ExecutionResourceImpl implements ExecutionResource {
     }
 
     List<AdHocActivityInstanceDto> result = new ArrayList<>();
-    Iterator<String> requested = requestedElementIds.iterator();
-    for (String elementInstanceId : elementInstanceIds) {
-      result.add(new AdHocActivityInstanceDto(requested.next(), elementInstanceId));
+    Iterator<String> requested = requestedActivityIds.iterator();
+    for (String activityInstanceId : activityInstanceIds) {
+      result.add(new AdHocActivityInstanceDto(requested.next(), activityInstanceId));
     }
     return result;
   }

@@ -2,10 +2,10 @@
 <@lib.dto desc = "">
 
     <@lib.property
-        name = "elements"
+        name = "activities"
         type = "array"
         dto = "AdHocActivityReferenceDto"
-        desc = "The elements to activate, in the order they should be started. An element may appear
+        desc = "The activities to activate, in the order they should be started. An activity may appear
                 more than once: the specification allows an activity of an ad hoc sub process to be
                 performed multiple times."
         last = true

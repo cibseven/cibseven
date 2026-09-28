@@ -17,39 +17,39 @@
 package org.cibseven.bpm.engine.rest.dto.runtime;
 
 /**
- * One element instance created by activating an element of an ad hoc sub process.
+ * One activity instance created by activating an activity of an ad hoc sub process.
  *
- * <p>Pairs the created instance with the element it belongs to. The Java API returns bare ids in
+ * <p>Pairs the created instance with the activity it belongs to. The Java API returns bare ids in
  * request order and leaves the caller to line them up; over the wire that is worth avoiding, and a
- * pair also survives the same element being activated twice in one request, which a map keyed by
- * element id would not.
+ * pair also survives the same activity being activated twice in one request, which a map keyed by
+ * activity id would not.
  */
 public class AdHocActivityInstanceDto {
 
-  private String elementId;
-  private String elementInstanceId;
+  private String activityId;
+  private String activityInstanceId;
 
   public AdHocActivityInstanceDto() {
   }
 
-  public AdHocActivityInstanceDto(String elementId, String elementInstanceId) {
-    this.elementId = elementId;
-    this.elementInstanceId = elementInstanceId;
+  public AdHocActivityInstanceDto(String activityId, String activityInstanceId) {
+    this.activityId = activityId;
+    this.activityInstanceId = activityInstanceId;
   }
 
-  public String getElementId() {
-    return elementId;
+  public String getActivityId() {
+    return activityId;
   }
 
-  public void setElementId(String elementId) {
-    this.elementId = elementId;
+  public void setActivityId(String activityId) {
+    this.activityId = activityId;
   }
 
-  public String getElementInstanceId() {
-    return elementInstanceId;
+  public String getActivityInstanceId() {
+    return activityInstanceId;
   }
 
-  public void setElementInstanceId(String elementInstanceId) {
-    this.elementInstanceId = elementInstanceId;
+  public void setActivityInstanceId(String activityInstanceId) {
+    this.activityInstanceId = activityInstanceId;
   }
 }

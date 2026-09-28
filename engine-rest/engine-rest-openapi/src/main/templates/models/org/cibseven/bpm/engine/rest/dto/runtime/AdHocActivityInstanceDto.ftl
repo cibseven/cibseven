@@ -2,15 +2,15 @@
 <@lib.dto desc = "">
 
     <@lib.property
-        name = "elementId"
+        name = "activityId"
         type = "string"
-        desc = "The id of the element that was activated."
+        desc = "The id of the activity that was activated."
     />
 
     <@lib.property
-        name = "elementInstanceId"
+        name = "activityInstanceId"
         type = "string"
-        desc = "The id of the element instance that was created for it."
+        desc = "The id of the activity instance that was created for it."
         last = true
     />
 
