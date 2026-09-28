@@ -17,6 +17,7 @@
 package org.cibseven.connect.ai.agent.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -49,15 +50,11 @@ import org.cibseven.bpm.model.xml.instance.ModelElementInstance;
  * The activities of an ad hoc sub process that a caller may start, with the
  * information a model needs in order to choose between them.
  *
- * <p>This reads the deployed model rather than asking the engine because the
- * startable set the parser computes at deployment is engine-internal: no getter, no
- * query, no REST endpoint. The engine's rule is "an activity with no incoming
- * sequence flow from within the scope", and since inner sequence flows are rejected
- * at parse time today, "every child activity" is the same set.
- *
- * <p><b>That equivalence is a deviation waiting to happen.</b> If inner sequence
- * flows become supported, this class will offer activities the engine refuses to
- * start. The fix is an engine-side API for the computed set.
+ * <p>Names and documentation come from the deployed model; which children are startable
+ * does not. The caller passes the set the parser computed, because the engine's rule --
+ * an activity with no incoming sequence flow from within the scope -- is not something
+ * to re-derive here. Offering a child behind a sequence flow would produce a request the
+ * engine refuses.
  */
 public final class AdHocToolCatalog {
 
@@ -191,7 +188,8 @@ public final class AdHocToolCatalog {
      *     conclude the scope has nothing to start.
      */
     public static List<Entry> read(RepositoryService repositoryService,
-                                   String processDefinitionId, String adHocActivityId) {
+                                   String processDefinitionId, String adHocActivityId,
+                                   Collection<String> startableIds) {
 
         BpmnModelInstance model = repositoryService.getBpmnModelInstance(processDefinitionId);
         ModelElementInstance element = model.getModelElementById(adHocActivityId);
@@ -214,7 +212,11 @@ public final class AdHocToolCatalog {
             // Only an Activity can be started directly. Gateways and intermediate
             // events are reachable by sequence flow, never by direct activation, so
             // offering them would produce a request the engine refuses.
-            if (child instanceof Activity) {
+            //
+            // The same goes for an activity the engine did not put in the startable set,
+            // which since inner sequence flows became supported means any child that is
+            // the target of one.
+            if (child instanceof Activity && startableIds.contains(child.getId())) {
                 entries.add(new Entry(child.getId(), child.getName(), firstDocumentation(child),
                         resultVariables(child), blockedWhileOthersRun(child),
                         child.getId() != null && child.getId().equals(driverActivityId)));

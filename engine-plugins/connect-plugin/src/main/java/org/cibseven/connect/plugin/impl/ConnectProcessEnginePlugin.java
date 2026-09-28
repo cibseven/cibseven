@@ -22,8 +22,11 @@ import java.util.List;
 import org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParseListener;
 import org.cibseven.bpm.engine.impl.cfg.AbstractProcessEnginePlugin;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import org.cibseven.bpm.engine.impl.jobexecutor.JobHandler;
 import org.cibseven.bpm.engine.impl.util.ClassLoaderUtil;
 import org.cibseven.connect.Connectors;
+import org.cibseven.connect.plugin.impl.agentic.AgenticAdHocParseListener;
+import org.cibseven.connect.plugin.impl.agentic.AgenticTurnJobHandler;
 
 public class ConnectProcessEnginePlugin extends AbstractProcessEnginePlugin {
 
@@ -34,6 +37,8 @@ public class ConnectProcessEnginePlugin extends AbstractProcessEnginePlugin {
     Connectors.loadConnectors(classloader);
 
     addConnectorParseListener(processEngineConfiguration);
+    addAgenticAdHocParseListener(processEngineConfiguration);
+    addAgenticTurnJobHandler(processEngineConfiguration);
   }
 
   private void addConnectorParseListener(ProcessEngineConfigurationImpl processEngineConfiguration) {
@@ -43,6 +48,28 @@ public class ConnectProcessEnginePlugin extends AbstractProcessEnginePlugin {
       processEngineConfiguration.setCustomPreBPMNParseListeners(preParseListeners);
     }
     preParseListeners.add(new ConnectorParseListener());
+  }
+
+  /**
+   * Post, not pre: it needs the behaviour, the children and their sequence flows, none of which
+   * exist while the scope is being built.
+   */
+  private void addAgenticAdHocParseListener(ProcessEngineConfigurationImpl processEngineConfiguration) {
+    List<BpmnParseListener> postParseListeners = processEngineConfiguration.getCustomPostBPMNParseListeners();
+    if(postParseListeners == null) {
+      postParseListeners = new ArrayList<BpmnParseListener>();
+      processEngineConfiguration.setCustomPostBPMNParseListeners(postParseListeners);
+    }
+    postParseListeners.add(new AgenticAdHocParseListener());
+  }
+
+  private void addAgenticTurnJobHandler(ProcessEngineConfigurationImpl processEngineConfiguration) {
+    List<JobHandler> jobHandlers = processEngineConfiguration.getCustomJobHandlers();
+    if(jobHandlers == null) {
+      jobHandlers = new ArrayList<JobHandler>();
+      processEngineConfiguration.setCustomJobHandlers(jobHandlers);
+    }
+    jobHandlers.add(new AgenticTurnJobHandler());
   }
 
 }

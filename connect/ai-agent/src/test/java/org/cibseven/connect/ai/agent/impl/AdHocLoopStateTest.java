@@ -39,8 +39,6 @@ import org.cibseven.bpm.engine.runtime.ActivityInstance;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.task.Task;
-import org.cibseven.bpm.engine.test.junit5.ProcessEngineExtension;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -72,8 +70,6 @@ public class AdHocLoopStateTest {
 
   private static boolean deployed;
 
-  @RegisterExtension
-  public ProcessEngineExtension engineRule = ProcessEngineExtension.builder().useProcessEngine(ENGINE).build();
 
   private static ProcessEngine buildInMemoryEngine() {
     StandaloneInMemProcessEngineConfiguration configuration =

@@ -32,12 +32,10 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.task.Task;
-import org.cibseven.bpm.engine.test.junit5.ProcessEngineExtension;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 
 import dev.langchain4j.data.message.AiMessage;
@@ -71,8 +69,6 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
 
   private static final ProcessEngine ENGINE = buildInMemoryEngine();
 
-  @RegisterExtension
-  public ProcessEngineExtension engineRule = ProcessEngineExtension.builder().useProcessEngine(ENGINE).build();
 
   private static ProcessEngine buildInMemoryEngine() {
     StandaloneInMemProcessEngineConfiguration configuration =

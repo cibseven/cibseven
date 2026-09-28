@@ -19,13 +19,12 @@ package org.cibseven.connect.ai.agent.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
-import org.cibseven.bpm.engine.test.junit5.ProcessEngineExtension;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -44,8 +43,6 @@ public class AdHocToolCatalogTest {
 
   private static final ProcessEngine ENGINE = buildInMemoryEngine();
 
-  @RegisterExtension
-  public ProcessEngineExtension engineRule = ProcessEngineExtension.builder().useProcessEngine(ENGINE).build();
 
   private static ProcessEngine buildInMemoryEngine() {
     StandaloneInMemProcessEngineConfiguration configuration =
@@ -76,7 +73,9 @@ public class AdHocToolCatalogTest {
   }
 
   private List<AdHocToolCatalog.Entry> read(String bpmn) {
-    return AdHocToolCatalog.read(ENGINE.getRepositoryService(), deploy(bpmn), "adHoc");
+    String definitionId = deploy(bpmn);
+    return AdHocToolCatalog.read(ENGINE.getRepositoryService(), definitionId, "adHoc",
+        allChildIds(definitionId, "adHoc"));
   }
 
   private AdHocToolCatalog.Entry entry(List<AdHocToolCatalog.Entry> entries, String id) {
@@ -381,7 +380,7 @@ public class AdHocToolCatalogTest {
     assertThatThrownBy(new ThrowingCallable() {
       @Override
       public void call() {
-        AdHocToolCatalog.read(ENGINE.getRepositoryService(), definitionId, "nosuch");
+        AdHocToolCatalog.read(ENGINE.getRepositoryService(), definitionId, "nosuch", Collections.<String>emptyList());
       }
     })
         .isInstanceOf(IllegalArgumentException.class)
@@ -396,7 +395,7 @@ public class AdHocToolCatalogTest {
     assertThatThrownBy(new ThrowingCallable() {
       @Override
       public void call() {
-        AdHocToolCatalog.read(ENGINE.getRepositoryService(), definitionId, "taskA");
+        AdHocToolCatalog.read(ENGINE.getRepositoryService(), definitionId, "taskA", Collections.<String>emptyList());
       }
     })
         .isInstanceOf(IllegalArgumentException.class)
@@ -528,4 +527,27 @@ public class AdHocToolCatalogTest {
     assertThat(gated.isBlockedWhileOthersRun()).isTrue();
     assertThat(gated.getResultVariables()).containsExactly("betrag");
   }
+
+  /**
+   * Every child activity of the scope. The catalogue no longer derives the startable set
+   * itself, and these tests are not about that filtering -- they assert what a catalogue
+   * entry carries.
+   */
+  protected static java.util.Collection<String> allChildIds(String definitionId, String adHocId) {
+    org.cibseven.bpm.model.bpmn.BpmnModelInstance model =
+        ENGINE.getRepositoryService().getBpmnModelInstance(definitionId);
+    org.cibseven.bpm.model.xml.instance.ModelElementInstance element =
+        model.getModelElementById(adHocId);
+    java.util.List<String> ids = new java.util.ArrayList<>();
+    if (element instanceof org.cibseven.bpm.model.bpmn.instance.AdHocSubProcess) {
+      for (org.cibseven.bpm.model.bpmn.instance.FlowElement child :
+          ((org.cibseven.bpm.model.bpmn.instance.AdHocSubProcess) element).getFlowElements()) {
+        if (child instanceof org.cibseven.bpm.model.bpmn.instance.Activity) {
+          ids.add(child.getId());
+        }
+      }
+    }
+    return ids;
+  }
+
 }

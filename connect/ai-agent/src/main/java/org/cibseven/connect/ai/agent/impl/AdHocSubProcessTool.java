@@ -17,6 +17,7 @@
 package org.cibseven.connect.ai.agent.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -32,6 +33,8 @@ import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocAgentState;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessActivityBehavior;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
+import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
+import org.cibseven.bpm.engine.runtime.AdHocSubProcessActivationBuilder;
 import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
@@ -166,7 +169,8 @@ public class AdHocSubProcessTool {
         List<Map<String, Object>> activities = new ArrayList<>();
         Map<String, List<String>> declaredResults = new LinkedHashMap<>();
         for (AdHocToolCatalog.Entry entry : AdHocToolCatalog.read(
-                engine.getRepositoryService(), scope.getProcessDefinitionId(), adHocActivityId)) {
+                engine.getRepositoryService(), scope.getProcessDefinitionId(), adHocActivityId,
+                startableIds(scope))) {
             // The driver is the caller itself. Offering it would invite the model to
             // start a second copy of itself beside the one that is running, which is
             // a further model call per copy and two agents acting on one scope. The
@@ -280,16 +284,20 @@ public class AdHocSubProcessTool {
                     + " finishes.");
         }
 
-        Map<String, Map<String, Object>> perActivity = (variables == null || variables.isEmpty())
-                ? null
-                : Collections.singletonMap(activityId, variables);
-
         // Snapshot first: a queued asyncBefore child has no activity instance, so its
         // execution is the only handle, and spotting the new one needs the old set.
         Set<String> childrenBefore = childExecutionIds(scope);
 
-        List<String> activityInstanceIds = engine.getRuntimeService().activateAdHocSubProcessActivities(
-                scope.getId(), Collections.singletonList(activityId), perActivity);
+        // Through the builder, not the map-keyed call: there the variables are keyed by
+        // activity id, so two performances of one activity share an entry and both take the
+        // last one given.
+        AdHocSubProcessActivationBuilder activation =
+                engine.getRuntimeService().createAdHocSubProcessActivation(scope.getId());
+        activation.startActivity(activityId);
+        if (variables != null && !variables.isEmpty()) {
+            activation.setVariables(variables);
+        }
+        List<String> activityInstanceIds = activation.execute();
 
         String activityInstanceId = activityInstanceIds.isEmpty() ? null : activityInstanceIds.get(0);
 
@@ -579,7 +587,7 @@ public class AdHocSubProcessTool {
     private static AdHocToolCatalog.Entry entryFor(ProcessEngine engine, ExecutionEntity scope,
                                                    String activityId) {
         for (AdHocToolCatalog.Entry entry : AdHocToolCatalog.read(engine.getRepositoryService(),
-                scope.getProcessDefinitionId(), scope.getActivity().getId())) {
+                scope.getProcessDefinitionId(), scope.getActivity().getId(), startableIds(scope))) {
             if (activityId.equals(entry.getId())) {
                 return entry;
             }
@@ -805,4 +813,17 @@ public class AdHocSubProcessTool {
             LOG.debug("Could not publish tool audit record: {}", e.toString());
         }
     }
+
+    /**
+     * The children the engine will actually start, as computed by the parser.
+     *
+     * <p>Not re-derived here: since inner sequence flows became supported, "every child
+     * activity" and "every startable child" are different sets.
+     */
+    private static Collection<String> startableIds(ExecutionEntity scope) {
+        List<String> ids = ((ScopeImpl) scope.getActivity())
+                .getProperties().get(BpmnProperties.AD_HOC_STARTABLE_ACTIVITIES);
+        return (ids == null) ? Collections.<String>emptyList() : ids;
+    }
+
 }

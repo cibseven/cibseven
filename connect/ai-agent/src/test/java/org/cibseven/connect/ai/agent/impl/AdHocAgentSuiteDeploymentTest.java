@@ -33,9 +33,7 @@ import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguratio
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
-import org.cibseven.bpm.engine.test.junit5.ProcessEngineExtension;
 import org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -85,8 +83,6 @@ public class AdHocAgentSuiteDeploymentTest {
 
   private static final ProcessEngine ENGINE = buildInMemoryEngine();
 
-  @RegisterExtension
-  public ProcessEngineExtension engineRule = ProcessEngineExtension.builder().useProcessEngine(ENGINE).build();
 
   private static ProcessEngine buildInMemoryEngine() {
     StandaloneInMemProcessEngineConfiguration configuration =
@@ -150,7 +146,7 @@ public class AdHocAgentSuiteDeploymentTest {
 
       List<String> offered = new ArrayList<>();
       for (AdHocToolCatalog.Entry candidate :
-          AdHocToolCatalog.read(ENGINE.getRepositoryService(), definitionId, "adHoc")) {
+          AdHocToolCatalog.read(ENGINE.getRepositoryService(), definitionId, "adHoc", allChildIds(definitionId, "adHoc"))) {
         offered.add(candidate.getId());
       }
       assertThat(offered).as(file).containsExactlyInAnyOrder(expected);
@@ -251,7 +247,7 @@ public class AdHocAgentSuiteDeploymentTest {
 
   private List<String> resultVariables(String definitionId, String activityId) {
     for (AdHocToolCatalog.Entry entry :
-        AdHocToolCatalog.read(ENGINE.getRepositoryService(), definitionId, "adHoc")) {
+        AdHocToolCatalog.read(ENGINE.getRepositoryService(), definitionId, "adHoc", allChildIds(definitionId, "adHoc"))) {
       if (activityId.equals(entry.getId())) {
         return entry.getResultVariables();
       }
@@ -259,4 +255,27 @@ public class AdHocAgentSuiteDeploymentTest {
     throw new AssertionError("no entry for " + activityId
         + " among " + Arrays.toString(new Object[] {definitionId}));
   }
+
+  /**
+   * Every child activity of the scope. The catalogue no longer derives the startable set
+   * itself, and these tests are not about that filtering -- they assert what a catalogue
+   * entry carries.
+   */
+  protected static java.util.Collection<String> allChildIds(String definitionId, String adHocId) {
+    org.cibseven.bpm.model.bpmn.BpmnModelInstance model =
+        ENGINE.getRepositoryService().getBpmnModelInstance(definitionId);
+    org.cibseven.bpm.model.xml.instance.ModelElementInstance element =
+        model.getModelElementById(adHocId);
+    java.util.List<String> ids = new java.util.ArrayList<>();
+    if (element instanceof org.cibseven.bpm.model.bpmn.instance.AdHocSubProcess) {
+      for (org.cibseven.bpm.model.bpmn.instance.FlowElement child :
+          ((org.cibseven.bpm.model.bpmn.instance.AdHocSubProcess) element).getFlowElements()) {
+        if (child instanceof org.cibseven.bpm.model.bpmn.instance.Activity) {
+          ids.add(child.getId());
+        }
+      }
+    }
+    return ids;
+  }
+
 }
