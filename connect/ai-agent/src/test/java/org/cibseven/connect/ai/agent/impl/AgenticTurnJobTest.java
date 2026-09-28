@@ -158,6 +158,57 @@ public class AgenticTurnJobTest {
         .doesNotContain("listAvailableActivities");
   }
 
+  /**
+   * The task may be assembled from process data: the {@code instruction} input
+   * parameter on the scope is evaluated when the scope is entered, and the turn sends
+   * the result as its message. This is the CIB7-1890 split — a static task is a
+   * property, a dynamic one an input parameter.
+   */
+  @Test
+  public void theInstructionInputParameterCarriesTheTask() {
+    script.add(answer("Nothing to do."));
+    start("<?xml version='1.0' encoding='UTF-8'?>"
+        + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
+        + "             xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
+        + "             targetNamespace='http://cibseven.org/agentic-turn'>"
+        + "  <process id='agenticTurn' isExecutable='true'>"
+        + "    <startEvent id='start' />"
+        + "    <sequenceFlow id='f1' sourceRef='start' targetRef='adHoc' />"
+        + "    <adHocSubProcess id='adHoc'>"
+        + "      <extensionElements>"
+        + "        <camunda:properties>"
+        + "          <camunda:property name='cibseven.agentic.enabled' value='true' />"
+        + "          <camunda:property name='cibseven.agentic.model' value='stub' />"
+        + "          <camunda:property name='cibseven.agentic.apiKey' value='stub-key' />"
+        + "          <camunda:property name='cibseven.agentic.baseUrl'"
+        + "                            value='http://127.0.0.1:" + STUB_PORT + "/v1' />"
+        + "        </camunda:properties>"
+        + "        <camunda:inputOutput>"
+        + "          <camunda:inputParameter name='instruction'>"
+        + "Kuemmere dich um Bestellung ${bestellNr}.</camunda:inputParameter>"
+        + "        </camunda:inputOutput>"
+        + "      </extensionElements>"
+        + "      <userTask id='worker' name='Worker' />"
+        + "    </adHocSubProcess>"
+        + "    <sequenceFlow id='f2' sourceRef='adHoc' targetRef='end' />"
+        + "    <endEvent id='end' />"
+        + "  </process>"
+        + "</definitions>",
+        Collections.<String, Object>singletonMap("bestellNr", "4711"));
+
+    Execution scope = engine.getRuntimeService().createExecutionQuery()
+        .activityId("adHoc").singleResult();
+    assertThat(engine.getRuntimeService().getVariableLocal(scope.getId(), "instruction"))
+        .as("the mapping was evaluated when the scope was entered")
+        .isEqualTo("Kuemmere dich um Bestellung 4711.");
+
+    runWaitingTurn();
+
+    assertThat(lastToolResult())
+        .as("the evaluated instruction is the turn's task message")
+        .contains("Kuemmere dich um Bestellung 4711.");
+  }
+
   protected void runWaitingTurn() {
     Job job = engine.getManagementService().createJobQuery().singleResult();
     engine.getManagementService().executeJob(job.getId());
@@ -206,6 +257,10 @@ public class AgenticTurnJobTest {
   }
 
   protected ProcessInstance start() {
+    return start(model(), Collections.<String, Object>emptyMap());
+  }
+
+  protected ProcessInstance start(String bpmn, java.util.Map<String, Object> variables) {
     StandaloneInMemProcessEngineConfiguration configuration =
         new StandaloneInMemProcessEngineConfiguration();
     configuration.setProcessEngineName("agentic-turn");
@@ -219,8 +274,8 @@ public class AgenticTurnJobTest {
     engine = configuration.buildProcessEngine();
 
     engine.getRepositoryService().createDeployment()
-        .addString("agentic-turn.bpmn20.xml", model()).deploy();
-    return engine.getRuntimeService().startProcessInstanceByKey("agenticTurn");
+        .addString("agentic-turn.bpmn20.xml", bpmn).deploy();
+    return engine.getRuntimeService().startProcessInstanceByKey("agenticTurn", variables);
   }
 
   private static String model() {

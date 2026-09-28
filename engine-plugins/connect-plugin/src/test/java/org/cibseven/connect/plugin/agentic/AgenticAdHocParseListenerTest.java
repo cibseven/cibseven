@@ -262,6 +262,43 @@ public class AgenticAdHocParseListenerTest {
   }
 
   @Test
+  public void refusesAScopeWithoutATaskForItsAgent() {
+    String model = process("<adHocSubProcess id='adHoc'>"
+        + "<extensionElements><camunda:properties>"
+        + "<camunda:property name='cibseven.agentic.enabled' value='true' />"
+        + "</camunda:properties></extensionElements>"
+        + "<userTask id='worker' /></adHocSubProcess>");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("needs a task for its agent");
+  }
+
+  /** The instruction input parameter is the dynamic form of the task, and suffices. */
+  @Test
+  public void anInstructionInputParameterIsATask() {
+    deploy(process("<adHocSubProcess id='adHoc'>"
+        + "<extensionElements>"
+        + "<camunda:properties>"
+        + "<camunda:property name='cibseven.agentic.enabled' value='true' />"
+        + "</camunda:properties>"
+        + "<camunda:inputOutput>"
+        + "<camunda:inputParameter name='instruction'>Pruefe ${'die Rechnung'}"
+        + "</camunda:inputParameter>"
+        + "</camunda:inputOutput>"
+        + "</extensionElements>"
+        + "<userTask id='worker' /></adHocSubProcess>"));
+
+    // Entering the scope evaluates the mapping and parks; the first turn waits.
+    ProcessInstance pi = engine.getRuntimeService().startProcessInstanceByKey("agenticScope");
+    assertThat(engine.getManagementService().createJobQuery().list()).hasSize(1);
+    assertThat(engine.getRuntimeService()
+        .getVariableLocal(scopeExecutionId(pi.getId()), "instruction"))
+        .as("evaluated from process data when the scope was entered")
+        .isEqualTo("Pruefe die Rechnung");
+  }
+
+  @Test
   public void refusesAnUnparseableBlockingMark() {
     String model = agentic("<userTask id='gated'>"
         + "  <extensionElements><camunda:properties>"

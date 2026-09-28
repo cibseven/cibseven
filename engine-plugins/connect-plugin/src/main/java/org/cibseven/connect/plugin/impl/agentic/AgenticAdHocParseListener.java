@@ -81,6 +81,16 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
           + " the target of a sequence flow inside the scope.");
     }
 
+    // The agent needs a task. Dynamic, from process data: the 'instruction' input
+    // parameter (CIB7-1890 split). Static: the message property. Refused here, where
+    // fixing the model is cheap, rather than on the first turn of the first instance.
+    if (!declaresInstruction(scopeElement) && blank(properties.get("cibseven.agentic.message"))) {
+      throw new ProcessEngineException("Ad hoc sub process '" + activity.getId()
+          + "': an agentic scope needs a task for its agent. Declare a camunda:inputParameter"
+          + " 'instruction' (may be assembled from process data), or the property"
+          + " cibseven.agentic.message for a task that is fixed at parse time.");
+    }
+
     // Parking. Without it the engine ends the scope as soon as no child is active, and a pending
     // job is not a child -- the scope would be gone before the turn ran.
     behavior.setCompletionCondition(new NeverCondition());
@@ -105,6 +115,26 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
         child.addListener(ExecutionListener.EVENTNAME_END, new AgenticAdHocEndListener());
       }
     }
+  }
+
+  /** Whether the scope declares the {@code instruction} input parameter. */
+  protected boolean declaresInstruction(Element scopeElement) {
+    Element inputOutput = BpmnParseUtil.findCamundaExtensionElement(scopeElement, "inputOutput");
+    if (inputOutput == null) {
+      return false;
+    }
+    for (Element parameter : inputOutput.elementsNS(
+        org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS,
+        "inputParameter")) {
+      if (AgenticTurnRunner.INSTRUCTION_PARAMETER.equals(parameter.attribute("name"))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  protected static boolean blank(String value) {
+    return value == null || value.trim().isEmpty();
   }
 
   protected Map<String, String> agenticConfig(Map<String, String> properties) {

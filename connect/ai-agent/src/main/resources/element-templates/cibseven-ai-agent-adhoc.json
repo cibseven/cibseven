@@ -38,36 +38,43 @@
       }
     },
     {
-      "label": "Message",
+      "label": "Task (from process data)",
       "type": "Text",
       "group": "input",
-      "description": "The task for the agent. Sent at the start of every turn.",
+      "description": "What the agent is asked to do, sent at the start of every turn. An input parameter, so it may be assembled from process data with expressions: 'Handle order ${orderNumber}.' Takes precedence over the fixed task below.",
+      "binding": {
+        "type": "camunda:inputParameter",
+        "name": "instruction"
+      }
+    },
+    {
+      "label": "Task (fixed)",
+      "type": "Text",
+      "group": "input",
+      "description": "The short form for a task that is fully known when the model is deployed. Ignored when the task above is set. One of the two is required.",
       "binding": {
         "type": "camunda:property",
         "name": "cibseven.agentic.message"
-      },
-      "constraints": {
-        "notEmpty": true
       }
     },
     {
-      "label": "Instruction",
+      "label": "System prompt",
       "type": "Text",
       "group": "input",
-      "description": "System message. Say what the agent is for and when it should end the scope.",
+      "description": "Who the agent is and when it should end the scope. Fixed at deployment; unlike the task, it does not depend on process data.",
       "binding": {
         "type": "camunda:property",
-        "name": "cibseven.agentic.instruction"
+        "name": "cibseven.agentic.systemPrompt"
       }
     },
     {
-      "label": "Instruction mode",
+      "label": "System prompt mode",
       "type": "Dropdown",
       "group": "input",
       "value": "append",
       "choices": [
-        { "name": "Append to the built-in instruction", "value": "append" },
-        { "name": "Replace the built-in instruction",   "value": "replace" }
+        { "name": "Append to the built-in prompt", "value": "append" },
+        { "name": "Replace the built-in prompt",   "value": "replace" }
       ],
       "binding": {
         "type": "camunda:property",
@@ -113,15 +120,6 @@
       "binding": {
         "type": "camunda:property",
         "name": "cibseven.agentic.apiKey"
-      }
-    },
-    {
-      "label": "System prompt",
-      "type": "Text",
-      "group": "agent",
-      "binding": {
-        "type": "camunda:property",
-        "name": "cibseven.agentic.systemPrompt"
       }
     },
     {

@@ -45,9 +45,20 @@ public final class AgenticTurnRunner {
 
   public static final String DEFAULT_RESULT_VARIABLE = "agentOutput";
 
-  /** Read by this class or by the tool, not passed on to the connector. */
+  /**
+   * The {@code camunda:inputParameter} on the scope carrying the agent's task.
+   *
+   * <p>An input parameter rather than a property, because a task is legitimately
+   * assembled from process data — the CIB7-1890 split: what is fixed at parse time is
+   * a {@code camunda:property}, what arises from process data is an input parameter.
+   * The engine evaluates it when the scope is entered and leaves it as a local
+   * variable of the scope execution, which is where a turn picks it up.
+   */
+  public static final String INSTRUCTION_PARAMETER = "instruction";
+
+  /** Read or mapped by this class, not passed through to the connector verbatim. */
   protected static final Set<String> RESERVED = new HashSet<String>(Arrays.asList(
-      "enabled", "maxModelCalls", "maxTurns", "resultVariable"));
+      "enabled", "maxModelCalls", "maxTurns", "resultVariable", "message", "systemPrompt"));
 
   private AgenticTurnRunner() {
   }
@@ -99,6 +110,29 @@ public final class AgenticTurnRunner {
     return (job == null) ? null : "job:" + job.getId();
   }
 
+  /**
+   * The agent's task for this scope.
+   *
+   * <p>The {@code instruction} input parameter leads: evaluated from process data when
+   * the scope was entered, sitting as a local variable on the scope execution. The
+   * static {@code cibseven.agentic.message} property is the short form for a task that
+   * is fully known at parse time. The parse listener refuses a scope with neither, so
+   * running out of both here means the deployment predates that rule.
+   */
+  protected static String task(ExecutionEntity scopeExecution, Map<String, String> config) {
+    Object instruction = scopeExecution.getVariableLocal(INSTRUCTION_PARAMETER);
+    if (instruction != null && !String.valueOf(instruction).trim().isEmpty()) {
+      return String.valueOf(instruction);
+    }
+    String message = config.get("message");
+    if (message != null && !message.trim().isEmpty()) {
+      return message;
+    }
+    throw new ProcessEngineException("Ad hoc sub process '" + scopeExecution.getActivityId()
+        + "' has no task for its agent: declare a camunda:inputParameter '"
+        + INSTRUCTION_PARAMETER + "' on the scope, or the property cibseven.agentic.message.");
+  }
+
   protected static String askTheAgent(ExecutionEntity scopeExecution, Map<String, String> config) {
     Connector<ConnectorRequest<?>> connector = Connectors.getConnector(AGENT_CONNECTOR_ID);
     if (connector == null) {
@@ -111,6 +145,12 @@ public final class AgenticTurnRunner {
       if (!RESERVED.contains(entry.getKey())) {
         request.setRequestParameter(entry.getKey(), entry.getValue());
       }
+    }
+    request.setRequestParameter("message", task(scopeExecution, config));
+    // systemPrompt on the scope feeds the connector's system-message channel. Only when
+    // the modeller did not also set the channel's own name as a property.
+    if (config.get("systemPrompt") != null && config.get("instruction") == null) {
+      request.setRequestParameter("instruction", config.get("systemPrompt"));
     }
     request.setRequestParameter("useChatMemory", Boolean.TRUE);
     request.setRequestParameter("memoryId", "adhoc-" + scopeExecution.getId());
