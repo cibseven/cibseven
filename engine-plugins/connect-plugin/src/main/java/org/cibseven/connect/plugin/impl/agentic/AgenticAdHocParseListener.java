@@ -95,6 +95,14 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     // job is not a child -- the scope would be gone before the turn ran.
     behavior.setCompletionCondition(new NeverCondition());
 
+    // Results are gathered per performance, as each child ends. That is the one moment the
+    // child's declared variables still hold what THIS run produced; reading them at the start
+    // of the next turn shows only what the last performance left.
+    if (behavior.getOutputCollectionName() == null) {
+      behavior.setOutputCollectionName(AgenticToolResultExpression.COLLECTION);
+      behavior.setOutputElement(new AgenticToolResultExpression());
+    }
+
     activity.getProperties().set(AGENTIC_CONFIG, agenticConfig(properties));
     // The whole map under the engine's own key as well, so anything that reads a scope's
     // camunda:property at runtime finds it. The parser sets this key only for an external

@@ -136,29 +136,28 @@ public class AdHocSubProcessTool {
 
         // Reconcile first, so the report describes the situation the model is about to
         // act on rather than the one at the end of the previous turn.
-        Map<String, String> finished =
-                AdHocLoopState.harvestFinished(scope, liveTrackingIds(engine, scope));
+        AdHocLoopState.harvestFinished(scope, liveTrackingIds(engine, scope));
 
         // Read after the reconciliation above, so an activity that finished during
         // the previous turn no longer counts as blocking.
         List<String> othersRunning = otherRunningActivityIds(scope);
 
         List<String> blockedNow = new ArrayList<>();
-        Map<String, List<String>> declaredResults = new LinkedHashMap<>();
         for (AdHocToolDescriptor descriptor : catalog(scope)) {
             if (descriptor.isBlockedWhileOthersRun() && !othersRunning.isEmpty()) {
                 blockedNow.add(descriptor.getActivityId());
             }
-            declaredResults.put(descriptor.getActivityId(), descriptor.getResultVariables());
         }
 
         Map<String, String> pending = AdHocLoopState.pending(scope);
+        List<Map<String, Object>> finishedSinceLastTurn = AdHocResults.since(scope);
         LOG.debug("turnReport: scope='{}', {} finished, {} pending, turn {}",
-                adHocActivityId, finished.size(), pending.size(), AdHocLoopState.turns(scope));
+                adHocActivityId, finishedSinceLastTurn.size(), pending.size(),
+                AdHocLoopState.turns(scope));
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("adHocActivityId", adHocActivityId);
-        result.put("finishedSinceLastTurn", describeFinished(engine, scope, finished, declaredResults));
+        result.put("finishedSinceLastTurn", finishedSinceLastTurn);
         result.put("stillRunning", new ArrayList<>(pending.values()));
         if (!blockedNow.isEmpty()) {
             result.put("blockedNow", blockedNow);
@@ -558,59 +557,6 @@ public class AdHocSubProcessTool {
             }
         }
         return null;
-    }
-
-    /**
-     * Describes the activities that finished since the previous turn, each with the
-     * values it wrote.
-     *
-     * <p><b>What the model declares is what the agent sees.</b> Asking the history
-     * first silently defeated {@code adHocResultVariables}: a person completing a task
-     * sets whatever the client sends, and at history level {@code full} every one of
-     * those values reached the prompt — the salary next to the decision. The
-     * declaration leads, and an activity declaring nothing reports nothing; the note
-     * names the four ways to declare.
-     *
-     * <p>Values are read now rather than when the activity ended, because the connector
-     * is not on the thread that ends a child — and an output mapping writes to the
-     * scope as the child ends, so by now they are in place.
-     *
-     * <p>Two performances of the same activity overwrite each other's variables.
-     */
-    private static List<Map<String, Object>> describeFinished(ProcessEngine engine,
-            ExecutionEntity scope, Map<String, String> finished,
-            Map<String, List<String>> declaredResults) {
-
-        List<Map<String, Object>> described = new ArrayList<>();
-        int budget = MAX_RESULT_BLOCK_CHARS;
-
-        for (Map.Entry<String, String> entry : finished.entrySet()) {
-            String activityInstanceId = entry.getKey();
-            String activityId = entry.getValue();
-
-            Map<String, Object> item = new LinkedHashMap<>();
-            item.put("activityId", activityId);
-            item.put("activityInstanceId", activityInstanceId);
-
-            List<String> declared = declaredResults.get(activityId);
-            List<String> names = (declared == null) ? Collections.<String>emptyList() : declared;
-            String source = names.isEmpty() ? "nothing declared" : "model declaration";
-
-            ResultBlock block = readResults(scope, names, budget);
-            budget -= block.charsUsed;
-            item.put("results", block.values);
-            item.put("resultsFrom", source);
-            if (block.note != null) {
-                item.put("resultsNote", block.note);
-            } else if (names.isEmpty()) {
-                item.put("resultsNote", "This activity declares no output mapping, result variable "
-                        + "or form fields, so nothing is reported even if it wrote something. Only "
-                        + "declared variables are shown. Add one of those, or camunda:property "
-                        + "adHocResultVariables, if the agent needs its values.");
-            }
-            described.add(item);
-        }
-        return described;
     }
 
     /** The values of {@code names}, capped, plus how much of the budget was used. */

@@ -902,6 +902,11 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     this.completionCondition = completionCondition;
   }
 
+  /** The variable results are gathered into, or {@code null} when the model gathers none. */
+  public String getOutputCollectionName() {
+    return outputCollectionName;
+  }
+
   public void setOutputCollectionName(String outputCollectionName) {
     this.outputCollectionName = outputCollectionName;
   }

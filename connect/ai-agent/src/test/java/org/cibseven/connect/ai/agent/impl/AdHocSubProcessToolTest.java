@@ -1174,6 +1174,59 @@ public class AdHocSubProcessToolTest {
   }
 
   /**
+   * Two performances of one tool are two entries, not one.
+   *
+   * <p>This is what the result collection is for. The report used to read the declared
+   * process variables at the start of a turn, and two runs of one activity leave one
+   * set of them — the agent saw the second twice and the first never. The engine now
+   * gathers each performance as its child ends, while its values are still the
+   * current ones, and the report is fed from that.
+   */
+  @Test
+  public void twoPerformancesOfOneToolAreReportedSeparately() {
+    start("twoRuns", tool -> {
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      return null;
+    });
+
+    for (Task task : ENGINE.getTaskService().createTaskQuery()
+        .taskDefinitionKey("waits").list()) {
+      ENGINE.getTaskService().complete(task.getId(),
+          Collections.<String, Object>singletonMap("decision", "for-" + task.getId()));
+    }
+
+    // The end of the second one schedules the turn that reports both.
+    ScriptedAgent.install(agent(tool -> tool.turnReport()));
+    runPendingTurn(instance("twoRuns"));
+
+    List<Map<String, Object>> finished = finished(result(1));
+    assertThat(finished).as("both performances, not one").hasSize(2);
+    assertThat(ids2(finished, "activityId")).containsExactly("waits", "waits");
+    assertThat(ids2(finished, "activityInstanceId"))
+        .as("each entry names the performance it came from").doesNotHaveDuplicates();
+    List<Object> decisions = new ArrayList<>();
+    for (Map<String, Object> entry : finished) {
+      decisions.add(results(entry).get("decision"));
+    }
+    assertThat(decisions).as("each carries its own value").doesNotHaveDuplicates();
+  }
+
+  /** The running instance of {@code processId}. */
+  private ProcessInstance instance(String processId) {
+    return ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processDefinitionKey(processId).singleResult();
+  }
+
+  private static List<Object> ids2(List<Map<String, Object>> items, String key) {
+    List<Object> values = new ArrayList<>();
+    for (Map<String, Object> item : items) {
+      values.add(item.get(key));
+    }
+    return values;
+  }
+
+  /**
    * The whole way for a queued asyncBefore child: waiting now, reported with its
    * value in the turn after the job ran.
    *
