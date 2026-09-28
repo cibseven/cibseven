@@ -274,6 +274,7 @@ import org.cibseven.bpm.engine.impl.migration.validation.instance.MigratingCompe
 import org.cibseven.bpm.engine.impl.migration.validation.instance.MigratingTransitionInstanceValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instance.NoUnmappedCompensationStartEventValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instance.NoUnmappedLeafInstanceValidator;
+import org.cibseven.bpm.engine.impl.migration.validation.instance.AdHocSubProcessInstanceValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instance.SupportedActivityInstanceValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instance.VariableConflictActivityInstanceValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.AdditionalFlowScopeInstructionValidator;
@@ -284,6 +285,7 @@ import org.cibseven.bpm.engine.impl.migration.validation.instruction.Conditional
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.GatewayMappingValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.MigrationInstructionValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.OnlyOnceMappedActivityInstructionValidator;
+import org.cibseven.bpm.engine.impl.migration.validation.instruction.SameAdHocCompletionRuleValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.SameBehaviorInstructionValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.SameEventScopeInstructionValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.SameEventTypeValidator;
@@ -4809,6 +4811,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     migrationInstructionValidators.add(new UpdateEventTriggersValidator());
     migrationInstructionValidators.add(new AdditionalFlowScopeInstructionValidator());
     migrationInstructionValidators.add(new ConditionalEventUpdateEventTriggerValidator());
+    migrationInstructionValidators.add(new SameAdHocCompletionRuleValidator());
     return migrationInstructionValidators;
   }
 
@@ -4850,6 +4853,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     migratingActivityInstanceValidators.add(new NoUnmappedLeafInstanceValidator());
     migratingActivityInstanceValidators.add(new VariableConflictActivityInstanceValidator());
     migratingActivityInstanceValidators.add(new SupportedActivityInstanceValidator());
+    migratingActivityInstanceValidators.add(new AdHocSubProcessInstanceValidator());
 
     return migratingActivityInstanceValidators;
   }
