@@ -1,366 +1,187 @@
 {
   "$schema": "https://unpkg.com/@camunda/element-templates-json-schema/resources/schema.json",
-  "name": "CIB seven AI Agent AdHocSubProcess",
+  "name": "CIB seven AI Agent (ad hoc sub process)",
   "id": "org.cibseven.connect.ai.agent.AdHocSubProcess",
-  "version": 1,
+  "version": 2,
   "icon": {
     "contents": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20width%3D%2224%22%20height%3D%2224%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M9%202%20L10.4%208.6%20L17%2010%20L10.4%2011.4%20L9%2018%20L7.6%2011.4%20L1%2010%20L7.6%208.6%20Z%22%20fill%3D%22%23E11E19%22/%3E%3Cpath%20d%3D%22M17.5%2013%20L18.2%2015.8%20L21%2016.5%20L18.2%2017.2%20L17.5%2020%20L16.8%2017.2%20L14%2016.5%20L16.8%2015.8%20Z%22%20fill%3D%22%230F2133%22/%3E%3C/svg%3E"
   },
-  "description": "Element template for the cibseven-ai-agent connector.",
-  "keywords": ["ai", "agent", "llm", "openai", "rag", "mcp", "langchain4j"],
+  "description": "Makes an ad hoc sub process agentic: the agent is configuration on this element, its child activities are the tools, and each turn runs as a job on the scope.",
+  "keywords": ["ai", "agent", "llm", "openai", "adhoc", "agentic", "langchain4j"],
   "appliesTo": [
-    "bpmn:ServiceTask",
-	"bpmn:AdHocSubProcess"
+    "bpmn:AdHocSubProcess"
   ],
   "groups": [
     { "id": "input",  "label": "Input"  },
     { "id": "agent",  "label": "Agent"  },
-    { "id": "tools",  "label": "Tools"  },
-    { "id": "memory", "label": "Memory" },
-    { "id": "rag",    "label": "RAG"    }
+    { "id": "limits", "label": "Limits" },
+    { "id": "tools",  "label": "Tools"  }
   ],
-  "properties": [],
-  "scopes": [
+  "properties": [
     {
-      "type": "camunda:Connector",
-      "properties": [
-        {
-          "type": "Hidden",
-          "value": "cibseven-ai-agent",
-          "binding": {
-            "type": "property",
-            "name": "connectorId"
-          }
-        },
-        {
-          "label": "Agent name",
-          "type": "String",
-          "group": "input",
-          "value": "CIB seven AI Agent",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "agentName"
-          },
-          "constraints": {
-            "notEmpty": true
-          }
-        },
-        {
-          "label": "Message",
-          "type": "Text",
-          "group": "input",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "message"
-          },
-          "constraints": {
-            "notEmpty": true
-          }
-        },
-        {
-          "label": "Instruction",
-          "type": "Text",
-          "group": "input",
-          "description": "System prompt for the LLM. Leave empty to use the bundled default prompt (generic CIB seven agent that uses any wired-in tools, RAG and chat memory). Override to specialise the agent for a concrete task.",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "instruction"
-          }
-        },
-        {
-          "label": "Base URL",
-          "type": "String",
-          "group": "agent",
-          "description": "API base URL. Examples: https://api.openai.com/v1 (OpenAI, default), https://openrouter.ai/api/v1 (OpenRouter), http://localhost:11434/v1 (Ollama), etc.",
-          "placeholder": "https://api.openai.com/v1",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "baseUrl"
-          }
-        },
-        {
-          "label": "Model",
-          "type": "String",
-          "group": "agent",
-          "description": "LLM model identifier, e.g. gpt-5.5, claude-opus-4.7, gemma-4-26b. On OpenRouter prefix with provider: openai/gpt-5.5.",
-          "placeholder": "gpt-5.4-nano",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "model"
-          }
-        },
-        {
-          "label": "API key",
-          "type": "String",
-          "group": "agent",
-          "description": "API key for the LLM provider. Use an expression to reference a process variable, e.g. ${apiKey}.",
-          "placeholder": "${apiKey}",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "apiKey"
-          }
-        },
-        {
-          "label": "HTTP headers",
-          "type": "Text",
-          "group": "agent",
-          "description": "Additional request headers as a JSON object, e.g. {\"Authorization\": \"Bearer sk-...\"}.",
-          "placeholder": "{\"Authorization\": \"Bearer sk-...\"}",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "openaiCustomHeaders"
-          }
-        },
-        {
-          "label": "Reasoning effort",
-          "type": "String",
-          "group": "agent",
-          "description": "For o-series models: low, medium, or high.",
-          "placeholder": "medium",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "reasoningEffort"
-          }
-        },
-        {
-          "label": "Reasoning summary",
-          "type": "String",
-          "group": "agent",
-          "description": "For o-series models: auto, concise, or detailed.",
-          "placeholder": "auto",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "reasoningSummary"
-          }
-        },
-        {
-          "label": "Agent description",
-          "type": "Text",
-          "group": "agent",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "agentDescription"
-          }
-        },
-        {
-          "label": "MCP server URL",
-          "type": "String",
-          "group": "tools",
-          "description": "URL of a single MCP server. Use http://localhost:8080/mcp if the mcp-process-executor plugin is enabled on this instance.",
-          "placeholder": "http://localhost:8080/mcp",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "mcpServerUrl"
-          }
-        },
-        {
-          "label": "MCP custom headers",
-          "type": "Text",
-          "group": "tools",
-          "description": "Additional HTTP headers for the MCP server as JSON, e.g. {\"Authorization\": \"Bearer token\"}.",
-          "placeholder": "{\"Authorization\": \"Bearer token\"}",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "mcpCustomHeaders"
-          }
-        },
-        {
-          "label": "MCP servers",
-          "type": "Text",
-          "group": "tools",
-          "description": "JSON array of MCP server configs: [{\"url\": \"...\", \"headers\": {...}}]. Use instead of MCP server URL for multiple servers.",
-          "placeholder": "[{\"url\": \"http://localhost:3000/sse\"}]",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "mcpServers"
-          }
-        },
-        {
-          "label": "Tool classes",
-          "type": "Text",
-          "group": "tools",
-          "description": "Comma-separated fully-qualified class names of @Tool-annotated beans to register with the agent.",
-          "placeholder": "org.cibseven.connect.ai.agent.impl.ProcessStarterTool,com.example.MyTool,com.example.AnotherTool",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "toolClasses"
-          }
-        },
-        {
-          "id": "useChatMemory",
-          "label": "Use chat memory",
-          "type": "Dropdown",
-          "group": "memory",
-          "value": "${false}",
-          "choices": [
-            { "name": "No",  "value": "${false}" },
-            { "name": "Yes", "value": "${true}"  }
-          ],
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "useChatMemory"
-          }
-        },
-        {
-          "label": "Memory ID",
-          "type": "String",
-          "group": "memory",
-          "description": "Leave empty to start a new conversation (ID returned in output). Set ${memoryId} to reuse a known ID. In a loop use ${execution.getVariable('memoryId')}: creates memory on first iteration, reuses it on subsequent ones.",
-          "placeholder": "${execution.getVariable('memoryId')}",
-          "condition": {
-            "property": "useChatMemory",
-            "equals": "${true}"
-          },
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "memoryId"
-          }
-        },
-        {
-          "label": "Chat memory max messages",
-          "type": "String",
-          "group": "memory",
-          "description": "Sliding window size: how many messages to retain. Older messages are dropped. Default: 20.",
-          "value": "20",
-          "condition": {
-            "property": "useChatMemory",
-            "equals": "${true}"
-          },
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "chatMemoryMaxMessages"
-          }
-        },
-        {
-          "label": "PostgreSQL host",
-          "type": "String",
-          "group": "rag",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "pgHost"
-          }
-        },
-        {
-          "label": "PostgreSQL port",
-          "type": "String",
-          "group": "rag",
-          "placeholder": "5432",
-          "constraints": {
-            "pattern": {
-              "value": "^(\\d+)?$",
-              "message": "Must be a numeric port number"
-            }
-          },
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "pgPort"
-          }
-        },
-        {
-          "label": "PostgreSQL database",
-          "type": "String",
-          "group": "rag",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "pgDatabase"
-          }
-        },
-        {
-          "label": "PostgreSQL user",
-          "type": "String",
-          "group": "rag",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "pgUser"
-          }
-        },
-        {
-          "label": "PostgreSQL password",
-          "type": "String",
-          "group": "rag",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "pgPassword"
-          }
-        },
-        {
-          "label": "PostgreSQL table",
-          "type": "String",
-          "group": "rag",
-          "placeholder": "langchain4j_embeddings",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "pgTable"
-          }
-        },
-        {
-          "label": "Max RAG results",
-          "type": "String",
-          "group": "rag",
-          "description": "Maximum number of documents to retrieve from the vector store.",
-          "placeholder": "5",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "maxRagResults"
-          }
-        },
-        {
-          "label": "Min RAG score",
-          "type": "String",
-          "group": "rag",
-          "description": "Minimum similarity score (0.0–1.0) for RAG results to be included. Default: 0.0 (no filtering).",
-          "placeholder": "0.0",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "minRagScore"
-          }
-        },
-        {
-          "label": "Embedding dimension",
-          "type": "String",
-          "group": "rag",
-          "description": "Dimension of the embedding vectors. Default: 384 (AllMiniLmL6V2), 1536 for text-embedding-ada-002.",
-          "placeholder": "384",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "embeddingDimension"
-          }
-        },
-        {
-          "label": "Embedding model name",
-          "type": "String",
-          "group": "rag",
-          "description": "Name of the embedding model used to encode documents and queries. Default: AllMiniLmL6V2 (local, 384-dim). Use text-embedding-ada-002 for OpenAI.",
-          "placeholder": "AllMiniLmL6V2",
-          "binding": {
-            "type": "camunda:inputParameter",
-            "name": "embeddingModelName"
-          }
-        },
-        {
-          "label": "Output variable for agent answer",
-          "description": "Process variable that will receive the agent's text response (${output}).",
-          "type": "String",
-          "value": "agentResult",
-          "binding": {
-            "type": "camunda:outputParameter",
-            "source": "${output}"
-          },
-          "constraints": {
-            "notEmpty": true
-          }
-        },
-        {
-          "label": "Output variable for memory id",
-          "description": "Process variable that will receive the chat memory id (${memoryId}). Leave the field unset to skip this output.",
-          "type": "String",
-          "value": "memoryId",
-          "binding": {
-            "type": "camunda:outputParameter",
-            "source": "${memoryId}"
-          }
-        }
-      ]
+      "type": "Hidden",
+      "value": "true",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.enabled"
+      }
+    },
+    {
+      "label": "Agent name",
+      "type": "String",
+      "group": "input",
+      "value": "Ad-hoc Agent",
+      "description": "Names the agent in log lines and audit events. Defaults to the id of this element.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.agentName"
+      }
+    },
+    {
+      "label": "Message",
+      "type": "Text",
+      "group": "input",
+      "description": "The task for the agent. Sent at the start of every turn.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.message"
+      },
+      "constraints": {
+        "notEmpty": true
+      }
+    },
+    {
+      "label": "Instruction",
+      "type": "Text",
+      "group": "input",
+      "description": "System message. Say what the agent is for and when it should end the scope.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.instruction"
+      }
+    },
+    {
+      "label": "Instruction mode",
+      "type": "Dropdown",
+      "group": "input",
+      "value": "append",
+      "choices": [
+        { "name": "Append to the built-in instruction", "value": "append" },
+        { "name": "Replace the built-in instruction",   "value": "replace" }
+      ],
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.instructionMode"
+      }
+    },
+    {
+      "label": "Result variable",
+      "type": "String",
+      "group": "input",
+      "value": "agentOutput",
+      "description": "Process variable the agent's answer is written to at the end of every turn.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.resultVariable"
+      }
+    },
+    {
+      "label": "Model",
+      "type": "String",
+      "group": "agent",
+      "description": "Leave empty to take the engine's connector configuration.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.model"
+      }
+    },
+    {
+      "label": "Base URL",
+      "type": "String",
+      "group": "agent",
+      "description": "OpenAI-compatible endpoint, e.g. http://localhost:11434/v1. Leave empty to take the engine's configuration.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.baseUrl"
+      }
+    },
+    {
+      "label": "API key",
+      "type": "String",
+      "group": "agent",
+      "description": "Leave empty to take the engine's configuration or the environment.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.apiKey"
+      }
+    },
+    {
+      "label": "System prompt",
+      "type": "Text",
+      "group": "agent",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.systemPrompt"
+      }
+    },
+    {
+      "label": "Reasoning effort",
+      "type": "String",
+      "group": "agent",
+      "description": "For models that support it: low, medium, high.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.reasoningEffort"
+      }
+    },
+    {
+      "label": "Reasoning summary",
+      "type": "String",
+      "group": "agent",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.reasoningSummary"
+      }
+    },
+    {
+      "label": "Max model calls per turn",
+      "type": "String",
+      "group": "limits",
+      "description": "Tool calls allowed within one turn. Default 25. A value that is not a positive number falls back to the default.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.maxModelCalls"
+      }
+    },
+    {
+      "label": "Max turns",
+      "type": "String",
+      "group": "limits",
+      "description": "Turns allowed before the agent must stop. Default 10.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.maxTurns"
+      }
+    },
+    {
+      "label": "Additional tool classes",
+      "type": "Text",
+      "group": "tools",
+      "description": "Comma-separated @Tool classes, on top of the ad hoc tool. The child activities of this scope are already the agent's tools; AdHocSubProcessTool is added automatically and does not belong here.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.toolClasses"
+      }
+    },
+    {
+      "label": "MCP servers",
+      "type": "Text",
+      "group": "tools",
+      "description": "JSON array of MCP server configs: [{\"name\": \"...\", \"url\": \"...\", \"headers\": {...}}].",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.mcpServers"
+      }
     }
   ]
 }
