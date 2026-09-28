@@ -88,14 +88,6 @@ public final class AdHocToolCatalog {
      */
     public static final String BLOCKED_WHILE_OTHERS_RUN_PROPERTY = "adHocBlockedWhileOthersRun";
 
-    /**
-     * {@code camunda:property} on the scope naming the child that drives it. Read
-     * here so the catalogue can say which entry is the caller itself.
-     *
-     * <p>Duplicated from the parser's constant rather than shared: the parser's is
-     * engine-internal, and this class already reads the model directly.
-     */
-    public static final String DRIVER_ACTIVITY_PROPERTY = "adHocDriverActivity";
 
     /** Guards the one-time WARN for an unparseable marking. */
     private static final AtomicBoolean UNPARSEABLE_BLOCKING_LOGGED = new AtomicBoolean(false);
@@ -108,16 +100,14 @@ public final class AdHocToolCatalog {
         private final String documentation;
         private final List<String> resultVariables;
         private final boolean blockedWhileOthersRun;
-        private final boolean driver;
 
         Entry(String id, String name, String documentation, List<String> resultVariables,
-              boolean blockedWhileOthersRun, boolean driver) {
+              boolean blockedWhileOthersRun) {
             this.id = id;
             this.name = name;
             this.documentation = documentation;
             this.resultVariables = resultVariables;
             this.blockedWhileOthersRun = blockedWhileOthersRun;
-            this.driver = driver;
         }
 
         /** The BPMN activity id — this is what an activation request names. */
@@ -157,18 +147,6 @@ public final class AdHocToolCatalog {
             return blockedWhileOthersRun;
         }
 
-        /**
-         * Whether this entry is the scope's driver — the child that is started
-         * again whenever another one ends.
-         *
-         * <p>Reported rather than filtered out, because the driver <em>is</em>
-         * directly startable as far as the engine is concerned, and this class
-         * describes the model. Whether a caller should offer it to itself is a
-         * policy question, and the answer lives in {@code AdHocSubProcessTool}.
-         */
-        public boolean isDriver() {
-            return driver;
-        }
     }
 
     private AdHocToolCatalog() {
@@ -205,7 +183,6 @@ public final class AdHocToolCatalog {
         }
 
         AdHocSubProcess scope = (AdHocSubProcess) element;
-        String driverActivityId = driverActivityId(scope);
 
         List<Entry> entries = new ArrayList<>();
         for (FlowElement child : scope.getFlowElements()) {
@@ -218,8 +195,7 @@ public final class AdHocToolCatalog {
             // the target of one.
             if (child instanceof Activity && startableIds.contains(child.getId())) {
                 entries.add(new Entry(child.getId(), child.getName(), firstDocumentation(child),
-                        resultVariables(child), blockedWhileOthersRun(child),
-                        child.getId() != null && child.getId().equals(driverActivityId)));
+                        resultVariables(child), blockedWhileOthersRun(child)));
             }
         }
         return Collections.unmodifiableList(entries);
@@ -302,18 +278,6 @@ public final class AdHocToolCatalog {
         return Collections.unmodifiableList(new ArrayList<>(names));
     }
 
-    /** The id from {@link #DRIVER_ACTIVITY_PROPERTY} on the scope, or {@code null}. */
-    private static String driverActivityId(AdHocSubProcess scope) {
-        for (CamundaProperties properties : extensions(scope, CamundaProperties.class)) {
-            for (CamundaProperty property : properties.getCamundaProperties()) {
-                if (DRIVER_ACTIVITY_PROPERTY.equals(property.getCamundaName())) {
-                    String raw = property.getCamundaValue();
-                    return (raw == null || raw.trim().isEmpty()) ? null : raw.trim();
-                }
-            }
-        }
-        return null;
-    }
 
     /** The names from {@link #RESULT_VARIABLES_PROPERTY}, or an empty list. */
     private static List<String> declaredOverride(FlowElement element) {

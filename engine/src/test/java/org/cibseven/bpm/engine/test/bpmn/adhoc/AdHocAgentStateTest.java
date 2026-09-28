@@ -24,6 +24,7 @@ import java.util.List;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocAgentState;
+import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessActivityBehavior;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
@@ -43,9 +44,10 @@ import org.junit.jupiter.api.Test;
  * class returns is a sibling of those children instead.
  *
  * <p>The second half of these tests is about the separation from the engine's own state execution,
- * which holds the activation counter. Sharing one would stop {@code getActivatedCount}'s
- * pre-relocation fallback from firing, and a scope without a completion condition would then never
- * complete again. That is the failure {@link #agentStateDoesNotDisturbTheActivationCounter} guards.
+ * which holds its {@code adHocActivated} marker. Sharing one would tie the engine's "has this scope
+ * ever started anything" answer to whether an agent happened to store something, and a scope whose
+ * completion depends on that answer would behave differently for no reason a modeller could see.
+ * That is the failure {@link #agentStateDoesNotDisturbTheActivationMarker} guards.
  */
 public class AdHocAgentStateTest extends PluggableProcessEngineTest {
 
@@ -190,28 +192,27 @@ public class AdHocAgentStateTest extends PluggableProcessEngineTest {
   // ─── separation from the engine's own state ───────────────────────────────────
 
   /**
-   * The regression this separation exists to prevent. {@code getActivatedCount} falls back to the
-   * pre-relocation location when it finds no state execution, which is how an instance started by an
-   * older build keeps completing. If agent state and the counter shared one execution, the presence
-   * of agent state would make that lookup succeed with no counter on it, read as zero, and a scope
-   * on the count-based rule would never complete again.
+   * The regression this separation exists to prevent. The engine looks for its own state execution
+   * to decide whether this scope has ever activated anything. If agent state and that marker shared
+   * one execution, the presence of agent state would make the lookup succeed with no marker on it,
+   * read as "never activated", and a scope deciding on it would answer wrongly.
    *
    * <p>The scope here is deliberately <em>not</em> parked, so completion is the observable outcome.
    */
   @Deployment(resources = "org/cibseven/bpm/engine/test/bpmn/adhoc/"
       + "AdHocAgentStateTest.notParked.bpmn20.xml")
   @Test
-  public void agentStateDoesNotDisturbTheActivationCounter() {
+  public void agentStateDoesNotDisturbTheActivationMarker() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocAgentStateNotParked");
 
     // Synchronous: it writes agent state and ends inside this call, and the scope then decides
-    // completion on the counter while agent state is already in place.
+    // completion on that marker while agent state is already in place.
     runtimeService.activateAdHocSubProcessActivities(scopeExecutionId(pi.getId()),
         Collections.singletonList("writeState"));
 
     assertThat(runtimeService.createProcessInstanceQuery()
         .processInstanceId(pi.getId()).singleResult())
-        .as("the counter was read correctly and the scope completed")
+        .as("the marker was read correctly and the scope completed")
         .isNull();
   }
 
@@ -228,13 +229,14 @@ public class AdHocAgentStateTest extends PluggableProcessEngineTest {
 
     runtimeService.activateAdHocSubProcessActivities(scope, Collections.singletonList("writeState"));
 
-    VariableInstance counter = single(pi.getId(), "nrOfActivatedInstances");
+    VariableInstance activated =
+        single(pi.getId(), AdHocSubProcessActivityBehavior.ACTIVATED);
     VariableInstance state = single(pi.getId(), PENDING);
 
-    assertThat(counter.getExecutionId())
-        .as("the engine's counter and the agent's state are held apart")
+    assertThat(activated.getExecutionId())
+        .as("the engine's marker and the agent's state are held apart")
         .isNotEqualTo(state.getExecutionId());
-    assertThat(counter.getValue()).as("and the counter is correct").isEqualTo(1);
+    assertThat(activated.getValue()).as("and the marker is set").isEqualTo(Boolean.TRUE);
   }
 
   /**

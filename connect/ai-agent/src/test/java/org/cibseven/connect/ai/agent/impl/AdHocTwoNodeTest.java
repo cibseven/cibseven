@@ -26,12 +26,15 @@ import java.util.Map;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
-import org.cibseven.bpm.engine.delegate.DelegateExecution;
-import org.cibseven.bpm.engine.delegate.JavaDelegate;
+import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
+import org.cibseven.connect.ScriptedAgent;
+import org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,8 +53,8 @@ import dev.langchain4j.data.message.UserMessage;
  *
  * <p>Node A takes the first turn and leaves a user task waiting. Node B — its own
  * engine, its own deployment cache, its own caches of everything — completes the task,
- * runs the re-activated driver, and has to find the agent's pending list, its turn
- * count and its conversation. Nothing travels between them except the database.
+ * runs the turn job that the task's end scheduled, and has to find the agent's pending list,
+ * its turn count and its conversation. Nothing travels between them except the database.
  *
  * <p>Both nodes run with the job executor off, so the test decides which node executes
  * which job rather than racing them. That is the point: the question is whether the
@@ -65,31 +68,21 @@ public class AdHocTwoNodeTest {
   private ProcessEngine nodeA;
   private ProcessEngine nodeB;
 
-  /** What a turn does. Static, because both nodes resolve the delegate by class name. */
+  /** What a turn does. */
   interface Turn {
-    void run(DelegateExecution execution);
+    void run(ExecutionEntity scope);
   }
 
-  public static final List<Turn> SCRIPT = new ArrayList<>();
   public static final List<String> RAN_ON = new ArrayList<>();
   static volatile List<ChatMessage> readBack;
 
-  /** The driver. Records which node ran it, so the test can prove the hand-over. */
-  public static class AgentTask implements JavaDelegate {
-
-    static int invocations;
-
-    @Override
-    public void execute(DelegateExecution execution) {
-      int index = invocations++;
-      // The engine that is executing this turn, taken from the command context rather
-      // than from DelegateExecution, which does not expose the engine itself.
-      RAN_ON.add(org.cibseven.bpm.engine.impl.context.Context
-          .getProcessEngineConfiguration().getProcessEngineName());
-      if (index < SCRIPT.size()) {
-        SCRIPT.get(index).run(execution);
-      }
-    }
+  /** Records which node ran the turn, so the test can prove the hand-over. */
+  private static ScriptedAgent.Turn agent(Turn turn) {
+    return parameters -> {
+      RAN_ON.add(Context.getProcessEngineConfiguration().getProcessEngineName());
+      turn.run(Context.getExecutionContext().getExecution());
+      return "done";
+    };
   }
 
   private static ProcessEngine node(String name) {
@@ -101,14 +94,14 @@ public class AdHocTwoNodeTest {
     configuration.setJobExecutorActivate(false);
     configuration.setHistory(ProcessEngineConfiguration.HISTORY_FULL);
     configuration.setHistoryTimeToLive("P30D");
+    configuration.setProcessEnginePlugins(
+        Collections.<ProcessEnginePlugin>singletonList(new ConnectProcessEnginePlugin()));
     return configuration.buildProcessEngine();
   }
 
   @BeforeEach
   public void startNodes() {
-    SCRIPT.clear();
     RAN_ON.clear();
-    AgentTask.invocations = 0;
     readBack = null;
     nodeA = node("node-a");
     nodeB = node("node-b");
@@ -116,6 +109,7 @@ public class AdHocTwoNodeTest {
 
   @AfterEach
   public void stopNodes() {
+    ScriptedAgent.uninstall();
     ProcessStarterToolContext.clear();
     if (nodeA != null) {
       nodeA.close();
@@ -123,7 +117,6 @@ public class AdHocTwoNodeTest {
     if (nodeB != null) {
       nodeB.close();
     }
-    SCRIPT.clear();
     RAN_ON.clear();
     readBack = null;
   }
@@ -138,12 +131,9 @@ public class AdHocTwoNodeTest {
         + "  <sequenceFlow id='f1' sourceRef='start' targetRef='adHoc' />"
         + "  <adHocSubProcess id='adHoc'>"
         + "    <extensionElements><camunda:properties>"
-        + "      <camunda:property name='explicitCompletionOnly' value='true' />"
-        + "      <camunda:property name='adHocDriverActivity' value='agent' />"
-        + "      <camunda:property name='activeElementsCollection' value='agent' />"
+        + "      <camunda:property name='cibseven.agentic.enabled' value='true' />"
+        + "      <camunda:property name='cibseven.agentic.message' value='Get this approved.' />"
         + "    </camunda:properties></extensionElements>"
-        + "    <serviceTask id='agent' name='Agent' camunda:asyncBefore='true'"
-        + "        camunda:class='" + AgentTask.class.getName() + "' />"
         + "    <userTask id='approve' name='Approve'>"
         + "      <extensionElements><camunda:formData>"
         + "        <camunda:formField id='approved' label='Approved?' type='boolean' />"
@@ -172,21 +162,20 @@ public class AdHocTwoNodeTest {
    */
   @Test
   public void aTurnStartedOnOneNodeIsContinuedOnAnother() {
-    SCRIPT.add(execution -> {
+    ScriptedAgent.install(agent(scope -> {
       new ProcessVariableChatMemoryStore().updateMessages(MEMORY_ID,
           Arrays.<ChatMessage>asList(UserMessage.from("Please get this approved."),
               AiMessage.from("Starting the approval.")));
       new AdHocSubProcessTool().startActivity("approve", Collections.<String, Object>emptyMap());
-    });
-    SCRIPT.add(execution -> {
+    }), agent(scope -> {
       ProcessVariableChatMemoryStore store = new ProcessVariableChatMemoryStore();
       readBack = store.getMessages(MEMORY_ID);
       Map<String, Object> listing = new AdHocSubProcessTool().listAvailableActivities();
-      execution.setVariable("turnSeenOnB", listing.get("turn"));
-      execution.setVariable("finishedSeenOnB",
+      scope.setVariable("turnSeenOnB", listing.get("turn"));
+      scope.setVariable("finishedSeenOnB",
           String.valueOf(listing.get("finishedSinceLastTurn")));
       new AdHocSubProcessTool().completeScope();
-    });
+    }));
 
     ProcessStarterToolContext.setEngine(nodeA);
     nodeA.getRepositoryService().createDeployment()

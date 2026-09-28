@@ -60,7 +60,7 @@ import com.sun.net.httpserver.HttpServer;
  * the layer where that difference lives, and no further.
  *
  * <p>The model is stubbed by a local HTTP server, so the run needs no network and no
- * key, and the driver's job is executed by hand so a failure is a step rather than a
+ * key, and the turn's job is executed by hand so a failure is a step rather than a
  * race.
  */
 @ExtendWith(SpringExtension.class)
@@ -136,7 +136,7 @@ public class AdHocSpringTransactionTest {
         + "\"usage\":{\"prompt_tokens\":1,\"completion_tokens\":1,\"total_tokens\":2}}";
   }
 
-  /** A parked, driven scope whose agent is a real {@code camunda:connector} task. */
+  /** An agentic scope, the way a distribution models one. */
   private static String model() {
     return "<?xml version='1.0' encoding='UTF-8'?>"
         + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
@@ -147,31 +147,14 @@ public class AdHocSpringTransactionTest {
         + "  <sequenceFlow id='f1' sourceRef='start' targetRef='adHoc' />"
         + "  <adHocSubProcess id='adHoc'>"
         + "    <extensionElements><camunda:properties>"
-        + "      <camunda:property name='explicitCompletionOnly' value='true' />"
-        + "      <camunda:property name='adHocDriverActivity' value='agent' />"
-        + "      <camunda:property name='activeElementsCollection' value='agent' />"
+        + "      <camunda:property name='cibseven.agentic.enabled' value='true' />"
+        + "      <camunda:property name='cibseven.agentic.agentName' value='Spring' />"
+        + "      <camunda:property name='cibseven.agentic.message' value='Do something.' />"
+        + "      <camunda:property name='cibseven.agentic.model' value='stub' />"
+        + "      <camunda:property name='cibseven.agentic.apiKey' value='dummy' />"
+        + "      <camunda:property name='cibseven.agentic.baseUrl'"
+        + "                        value='http://127.0.0.1:" + STUB_PORT + "/v1' />"
         + "    </camunda:properties></extensionElements>"
-        + "    <serviceTask id='agent' name='Agent' camunda:asyncBefore='true'>"
-        + "      <extensionElements>"
-        + "        <camunda:connector>"
-        + "          <camunda:connectorId>cibseven-ai-agent</camunda:connectorId>"
-        + "          <camunda:inputOutput>"
-        + "            <camunda:inputParameter name='agentName'>Spring</camunda:inputParameter>"
-        + "            <camunda:inputParameter name='message'>Do something.</camunda:inputParameter>"
-        + "            <camunda:inputParameter name='baseUrl'>"
-        + "http://127.0.0.1:" + STUB_PORT + "/v1</camunda:inputParameter>"
-        + "            <camunda:inputParameter name='apiKey'>dummy</camunda:inputParameter>"
-        + "            <camunda:inputParameter name='model'>stub</camunda:inputParameter>"
-        + "            <camunda:inputParameter name='toolClasses'>"
-        + AdHocSubProcessTool.class.getName() + "</camunda:inputParameter>"
-        + "            <camunda:inputParameter name='useChatMemory'>${true}"
-        + "</camunda:inputParameter>"
-        + "            <camunda:outputParameter name='agentOutput'>${output}"
-        + "</camunda:outputParameter>"
-        + "          </camunda:inputOutput>"
-        + "        </camunda:connector>"
-        + "      </extensionElements>"
-        + "    </serviceTask>"
         + "    <serviceTask id='calculatePrice' name='Calculate price'"
         + "        camunda:expression='${1200}' camunda:resultVariable='price' />"
         + "  </adHocSubProcess>"
@@ -222,7 +205,7 @@ public class AdHocSpringTransactionTest {
 
     List<Job> jobs = processEngine.getManagementService().createJobQuery()
         .processInstanceId(instance.getId()).list();
-    assertThat(jobs).as("the driver's first turn waits as a job").hasSize(1);
+    assertThat(jobs).as("the first turn waits as a job").hasSize(1);
 
     RuntimeException failure = null;
     try {

@@ -5,7 +5,7 @@ sub process. They are **not** JUnit tests: each one needs a real distribution an
 a real language model. What is automated is only that they stay valid —
 `AdHocAgentSuiteDeploymentTest` deploys every file, checks the children each scope
 offers and the result variables it derives, and asserts that starting an instance
-leaves the agent waiting as a job. It never calls a model.
+leaves the first turn waiting as a job. It never calls a model.
 
 ## Gemeinsame Konfiguration
 
@@ -14,17 +14,19 @@ Jede Datei benutzt dieselbe Grundform:
 ```xml
 <adHocSubProcess id="adHoc">
   <extensionElements><camunda:properties>
-    <camunda:property name="explicitCompletionOnly" value="true" />
-    <camunda:property name="adHocDriverActivity"    value="agent" />
-    <camunda:property name="activeElementsCollection"      value="agent" />
+    <camunda:property name="cibseven.agentic.enabled"    value="true" />
+    <camunda:property name="cibseven.agentic.agentName"  value="Ad-hoc Agent" />
+    <camunda:property name="cibseven.agentic.instruction" value="..." />
+    <camunda:property name="cibseven.agentic.message"    value="..." />
   </camunda:properties></extensionElements>
 
-  <serviceTask id="agent" name="AI Agent" camunda:asyncBefore="true">
-    ... camunda:connector cibseven-ai-agent, toolClasses = AdHocSubProcessTool
-  </serviceTask>
-  ...
+  ... die Werkzeuge, als gewöhnliche Kindaktivitäten
 </adHocSubProcess>
 ```
+
+Der Agent ist **Eigenschaft des Rahmens**, kein Kind davon: im Diagramm gibt es kein
+Agentenkästchen mehr. Ein Zug ist ein Job auf der Bereichs-Execution; den ersten legt
+ein Start-Listener beim Betreten an, jeden weiteren das Ende einer Kindaktivität.
 
 Zwischen den Kindaktivitäten gibt es **keine Sequenzflüsse**. Die Reihenfolge kommt
 aus den Werkzeugaufrufen des Modells, nicht aus dem Diagramm.
@@ -33,15 +35,14 @@ aus den Werkzeugaufrufen des Modells, nicht aus dem Diagramm.
 
 | | |
 |---|---|
-| Connect-Plugin | `cibseven-engine-plugin-connect` muss in der Engine registriert sein, sonst wird `camunda:connector` nicht geparst. Eine Distribution hat es. |
+| Connect-Plugin | `cibseven-engine-plugin-connect` muss in der Engine registriert sein, sonst erkennt niemand `cibseven.agentic.enabled` und der Bereich endet beim Betreten. Eine Distribution hat es. |
 | History-Level | `full`. Nur dort trägt jede Variablenänderung ihre Aktivitätsinstanz, und nur dann sieht der Agent nach einer Wartephase, was das Kind geschrieben hat. |
-| LLM-Zugang | `baseUrl`, `model` und `apiKey` sind in den Dateien **absichtlich nicht gesetzt** — sie kommen aus der Connector-Konfiguration der Umgebung. Eine Datei, die sie hart verdrahtet, läuft nirgends sonst. |
-| Job-Executor | muss aktiv sein. Der Agent ist `asyncBefore`, jede Runde ist ein Job. |
+| LLM-Zugang | `cibseven.agentic.baseUrl`, `.model` und `.apiKey` sind in den Dateien **absichtlich nicht gesetzt** — sie kommen aus der Connector-Konfiguration der Umgebung. Eine Datei, die sie hart verdrahtet, läuft nirgends sonst. |
+| Job-Executor | muss aktiv sein. Jeder Zug ist ein Job. |
 
-`memoryId` ist ebenfalls absichtlich nicht gesetzt: innerhalb eines Ad-hoc-Bereichs
-leitet der Connector sie aus der Bereichs-Execution ab (`adhoc-<executionId>`), also
-stabil über Runden und über einen Neustart hinweg. Wer sie setzt, umgeht genau den
-Mechanismus, den Fall 10 prüfen soll.
+`memoryId` lässt sich hier nicht setzen: ein Zug leitet sie aus der Bereichs-Execution
+ab (`adhoc-<executionId>`), also stabil über Runden und über einen Neustart hinweg.
+Genau darauf zielt Fall 10.
 
 ## Die Fälle
 
@@ -49,12 +50,13 @@ Mechanismus, den Fall 10 prüfen soll.
 |---|---|---|
 | `01-sync-simple.bpmn` | eine synchrone Aktivität, Ergebnis im selben Zug | P0 |
 | `02-sync-multi-turn.bpmn` | zwei synchrone Aktivitäten | P1 |
-| `03-async-user-task.bpmn` | User Task parkt den Bereich, Treiber wird danach reaktiviert | P0 |
+| `03-async-user-task.bpmn` | User Task parkt den Bereich, danach folgt der nächste Zug | P0 |
 | `04-async-rejection.bpmn` | Agent wählt nach einer Ablehnung einen anderen Weg | P1 |
 | `05-mixed-sync-async.bpmn` | sync → warten → sync → beenden | P0 |
 | `06-multiple-sync.bpmn` | zwei Aktivierungen in einem Zug | P1 |
 | `07-parallel-async-fan-in.bpmn` | zwei parallele User Tasks, **eine** weitere Runde | P1 |
-| `08-agent-completion.bpmn` | nur `completeScope()` beendet den Bereich | P0 |
+| `08-agent-completion.bpmn` | der Agent startet nichts und beendet mit `completeScope()` | P0 |
+| `15-async-worker.bpmn` | `asyncBefore`-Kind: `waiting`, Wert erst im Zug danach | P1 |
 | `09-turn-limit.bpmn` | Rundenobergrenze greift | P2 |
 | `10-restart-while-waiting.bpmn` | Zustand übersteht einen Neustart | P0 |
 | `11-no-result.bpmn` | Aktivität ohne Ergebnis erfindet keins | P2 |
@@ -65,18 +67,21 @@ Mechanismus, den Fall 10 prüfen soll.
 ## Hinweise zu einzelnen Fällen
 
 **02** — beide Kinder sind synchron und enden innerhalb ihres Aktivierungsaufrufs.
-Der Agent erledigt das daher in **einem** Treiberzug, nicht in drei. Drei Züge
-entstehen nur, wenn er den Zug dazwischen bewusst beendet — ein synchrones Kind
-gibt ihm keine weitere Runde, weil ein Treiber durch sein eigenes Ende nicht
-reaktiviert wird. Die Fassung im Testkonzept (Turn 1/2/3) beschreibt insofern eine
-Möglichkeit, keine Zwangsfolge.
+Der Agent erledigt das daher in **einem** Zug, nicht in drei. Ein Kind, das noch im
+selben Zug fertig wird, plant keinen weiteren ein. Die Fassung im Testkonzept
+(Turn 1/2/3) beschreibt insofern eine Möglichkeit, keine Zwangsfolge.
+
+**08** — der Bereich bietet eine Aktivität an, die der Agent laut Anweisung gerade
+nicht starten soll. Anbieten muss er etwas: ein agentischer Bereich ohne startbares
+Kind wird beim Deployment abgelehnt, und einer, der nichts anzubieten hat, wäre auch
+kein Fall für einen Agenten.
 
 **07** — um die Zusammenführung zu sehen, **beide** User Tasks abschließen, bevor
-der Treiberjob läuft. Der erste Abschluss plant den Job ein; der zweite darf keinen
+der Zugjob läuft. Der erste Abschluss plant den Job ein; der zweite darf keinen
 zweiten einplanen. Läuft der Job dagegen zwischen den beiden Abschlüssen, sind zwei
-Runden korrekt und kein Fehler.
+Züge korrekt und kein Fehler.
 
-**09** — `adHocMaxTurns` steht hier auf **3**, nicht auf 10 wie im Testkonzept. Die
+**09** — `cibseven.agentic.maxTurns` steht hier auf **3**, nicht auf 10 wie im Testkonzept. Die
 Vorgabe ist 10; drei macht die Grenze nach drei Modellaufrufen sichtbar statt nach
 zehn. Bei Erreichen wirft `startActivity`, LangChain4j macht daraus ein
 Werkzeugergebnis mit Fehlermarkierung, und das Modell sieht die Meldung.
@@ -88,7 +93,7 @@ Werkzeugergebnis mit Fehlermarkierung, und das Modell sieht die Meldung.
 > braucht, muss ihn als eigene Anforderung stellen.
 
 **10** — strukturell dieselbe Datei wie 03; der Test ist betrieblich. Ablauf:
-Instanz starten, Treiberjob laufen lassen, User Task offen stehen lassen, Engine
+Instanz starten, Zugjob laufen lassen, User Task offen stehen lassen, Engine
 neu starten, dann den Task abschließen und prüfen, dass der Agent mit unverändertem
 `turn`-Zähler und unveränderter Memory-Id fortfährt.
 

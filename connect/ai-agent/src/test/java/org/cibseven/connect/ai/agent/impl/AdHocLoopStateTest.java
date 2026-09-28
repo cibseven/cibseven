@@ -30,6 +30,7 @@ import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocAgentState;
+import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessActivityBehavior;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
@@ -55,9 +56,9 @@ import org.junit.jupiter.api.Test;
  * It is also where the connector's tool runs, so the test exercises the same
  * conditions rather than a friendlier set.
  *
- * <p>No driver activity is configured here. The driver is covered by the engine's
- * own tests, and leaving it out keeps a re-activation from adding executions in
- * the middle of an assertion about bookkeeping.
+ * <p>The scope here is not agentic: this class is about the bookkeeping, and every
+ * write is made from a command of its own. Letting turns run would add executions in
+ * the middle of an assertion about that bookkeeping.
  */
 public class AdHocLoopStateTest {
 
@@ -139,16 +140,17 @@ public class AdHocLoopStateTest {
     return "<?xml version='1.0' encoding='UTF-8'?>"
         + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
         + " xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
+        + " xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'"
         + " targetNamespace='http://cibseven.org/adhoc-loop-state'>"
         + "<process id='loopState' isExecutable='true'>"
         + "  <startEvent id='start' />"
         + "  <sequenceFlow id='f1' sourceRef='start' targetRef='adHoc' />"
         + "  <adHocSubProcess id='adHoc'>"
-        + "    <extensionElements><camunda:properties>"
-        + "      <camunda:property name='explicitCompletionOnly' value='true' />"
-        + "    </camunda:properties></extensionElements>"
         + "    <userTask id='waits' name='Waits' />"
         + "    <serviceTask id='child' name='Child' camunda:class='" + CHILD_CLASS + "' />"
+        // Parked: a condition that never holds switches off "no active child, so complete",
+        // which is what keeps the scope standing between the commands below.
+        + "    <completionCondition xsi:type='tFormalExpression'>${false}</completionCondition>"
         + "  </adHocSubProcess>"
         + "  <sequenceFlow id='f2' sourceRef='adHoc' targetRef='end' />"
         + "  <endEvent id='end' />"
@@ -416,10 +418,9 @@ public class AdHocLoopStateTest {
    * operator, and someone reading Cockpit's variable tab will see these three
    * names.
    *
-   * <p>The second half is the separation from the engine's own state execution,
-   * which carries the activation counter. Sharing one execution would stop
-   * {@code getActivatedCount}'s pre-relocation fallback from firing, and a scope
-   * without a completion condition would then never complete again.
+   * <p>The second half is the separation from the engine's own state execution, which carries
+   * its {@code adHocActivated} marker. Sharing one execution would tie the engine's "has this
+   * scope ever started anything" answer to whether an agent happened to store something.
    */
   @Test
   public void theStateIsVisibleToAnAdministrativeQuery() {
@@ -437,7 +438,7 @@ public class AdHocLoopStateTest {
       names.add(variable.getName());
       if (variable.getName().startsWith("adHocAgent")) {
         agentStateExecutions.add(variable.getExecutionId());
-      } else if ("nrOfActivatedInstances".equals(variable.getName())) {
+      } else if (AdHocSubProcessActivityBehavior.ACTIVATED.equals(variable.getName())) {
         counterExecutions.add(variable.getExecutionId());
       }
     }

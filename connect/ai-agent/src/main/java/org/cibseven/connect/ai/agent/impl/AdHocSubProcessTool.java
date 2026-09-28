@@ -37,7 +37,9 @@ import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.cibseven.bpm.engine.runtime.AdHocSubProcessActivationBuilder;
 import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
 import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
 import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
 import org.cibseven.bpm.engine.runtime.ActivityInstance;
@@ -54,10 +56,10 @@ import dev.langchain4j.agent.tool.Tool;
  * <p>Wired in through the connector's {@code toolClasses} input, like
  * {@link ProcessStarterTool}. Requires no change to the connector itself.
  *
- * <p><b>What the model needs.</b> The agent service task has to sit <em>inside</em>
- * an ad hoc sub process carrying {@code explicitCompletionOnly="true"}, with
- * {@code adHocDriverActivity} naming the agent task — that is what gives the agent
- * a further turn whenever another child ends.
+ * <p><b>What the model needs.</b> An ad hoc sub process carrying
+ * {@code cibseven.agentic.enabled}. The parse listener parks it and attaches the
+ * listeners that schedule each turn as a job on the scope; the agent is configuration
+ * on that element, not a child of it.
  *
  * <p><b>State reaches the model through {@link #listAvailableActivities()}</b>, not
  * through the system message. A rendered context block there is process data placed
@@ -77,16 +79,16 @@ public class AdHocSubProcessTool {
     private static final Logger LOG = LoggerFactory.getLogger(AdHocSubProcessTool.class);
 
     /** {@code camunda:property} on the scope overriding {@link #DEFAULT_MAX_TURNS}. */
-    static final String MAX_TURNS_PROPERTY = "adHocMaxTurns";
+    static final String MAX_TURNS_PROPERTY = "cibseven.agentic.maxTurns";
 
     /** {@code camunda:property} on the scope overriding {@link #DEFAULT_MAX_CALLS_PER_TURN}. */
-    static final String MAX_CALLS_PROPERTY = "adHocMaxCallsPerTurn";
+    static final String MAX_CALLS_PROPERTY = "cibseven.agentic.maxModelCalls";
 
     /**
      * Tool calls allowed within one turn — the second bound, and a different one.
      *
-     * <p>The turn cap counts driver re-activations. A loop that starts synchronous
-     * children never ends its turn, so that cap cannot see it.
+     * <p>The turn cap counts turns. A loop that starts synchronous children never ends its
+     * turn, so that cap cannot see it.
      *
      * <p>This one refuses to start anything further; it cannot end the model's loop,
      * because a tool result is an answer to the model, not a stop signal. A model that
@@ -171,14 +173,6 @@ public class AdHocSubProcessTool {
         for (AdHocToolCatalog.Entry entry : AdHocToolCatalog.read(
                 engine.getRepositoryService(), scope.getProcessDefinitionId(), adHocActivityId,
                 startableIds(scope))) {
-            // The driver is the caller itself. Offering it would invite the model to
-            // start a second copy of itself beside the one that is running, which is
-            // a further model call per copy and two agents acting on one scope. The
-            // engine's own coalescing does not stop it: that guards the turn it
-            // grants when a child ends, not an explicit activation.
-            if (entry.isDriver()) {
-                continue;
-            }
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("id", entry.getId());
             item.put("name", truncate(entry.getName(), MAX_NAME_CHARS));
@@ -207,15 +201,12 @@ public class AdHocSubProcessTool {
         result.put("maxTurns", maxTurns(scope));
         StringBuilder note = new StringBuilder(DATA_NOTE);
         if (pending.isEmpty()) {
-            // Said out loud, because the scope is parked and the agent is its driver:
-            // a driver does not re-activate itself, so if this turn ends without
-            // starting something that waits and without completing the scope, nothing
-            // will wake it again. The timer boundary event on the scope is the net
-            // under that, not a substitute for deciding.
+            // Said out loud, because a further turn is only ever scheduled by a child
+            // ending: a turn that starts nothing leaves nothing that could bring another
+            // one, so the scope ends with it whether or not that was intended.
             note.append(" Nothing you started is still running. If you end this turn without ")
-                    .append("starting an activity that waits for a person or another system, and ")
-                    .append("without calling completeScope, the process stops here and nothing will ")
-                    .append("wake it. Decide now.");
+                    .append("starting an activity that waits for a person or another system, the ")
+                    .append("ad hoc sub process ends here and the process moves on. Decide now.");
         }
         result.put("note", note.toString());
         return result;
@@ -266,13 +257,6 @@ public class AdHocSubProcessTool {
         }
 
         AdHocToolCatalog.Entry entry = entryFor(engine, scope, activityId);
-
-        if (entry != null && entry.isDriver()) {
-            throw new AgentConnectorException("Cannot start '" + activityId + "': that is this agent "
-                    + "itself, the activity driving this ad hoc sub process. Starting it would run a "
-                    + "second agent beside you, not do any work. Start one of the other activities, "
-                    + "or end the scope.");
-        }
 
         List<String> othersRunning = otherRunningActivityIds(scope);
         if (!othersRunning.isEmpty() && entry != null && entry.isBlockedWhileOthersRun()) {
@@ -514,25 +498,23 @@ public class AdHocSubProcessTool {
     }
 
     /**
-     * The activity ids alive inside this scope, excluding the caller's own.
+     * The activity ids alive inside this scope.
      *
-     * <p>Three choices, each found by a test that failed without it. The caller is
-     * excluded, because the agent is a child of the scope and is running while it asks.
-     * The engine is asked rather than {@link AdHocLoopState}, whose pending list holds
-     * only what the <em>agent</em> started, not what a person activated over REST. And
-     * it reads the execution tree: a child marked {@code camunda:asyncBefore} has no
-     * activity instance while its job is queued.
+     * <p>Two choices, each found by a test that failed without it. The engine is asked
+     * rather than {@link AdHocLoopState}, whose pending list holds only what the
+     * <em>agent</em> started, not what a person activated over REST. And it reads the
+     * execution tree: a child marked {@code camunda:asyncBefore} has no activity instance
+     * while its job is queued.
+     *
+     * <p>Nothing has to be excluded for the agent itself: it runs as a job on the scope
+     * execution, not as one of its children.
      *
      * <p>Only the scope's own children, so a parallel branch elsewhere in the process
      * instance does not block the agent.
      */
     private static List<String> otherRunningActivityIds(ExecutionEntity scope) {
-        String ownExecutionId = ownExecutionId();
         Set<String> ids = new LinkedHashSet<>();
         for (PvmExecutionImpl child : ((PvmExecutionImpl) scope).getNonEventScopeExecutions()) {
-            if (ownExecutionId != null && ownExecutionId.equals(child.getId())) {
-                continue;
-            }
             collectRunningActivityIds(child, ids);
         }
         return new ArrayList<>(ids);
@@ -558,7 +540,7 @@ public class AdHocSubProcessTool {
     }
 
     /**
-     * Marks the start of this turn, once per run of the driver.
+     * Marks the start of this turn, once per turn.
      *
      * <p>Called from every tool method rather than from the listing alone. The
      * description asks the model to list first, but that is a request, not a
@@ -566,11 +548,26 @@ public class AdHocSubProcessTool {
      * and two listings are still one.
      */
     private static void beginTurn(ExecutionEntity scope) {
-        AdHocLoopState.beginTurn(scope, ownExecutionId());
+        AdHocLoopState.beginTurn(scope, ownTurnId());
     }
 
-    /** The execution of the activity this tool is being called from. */
-    private static String ownExecutionId() {
+    /**
+     * What tells one turn from the next.
+     *
+     * <p>A turn is a job on the scope execution, so the job is the handle: one per turn,
+     * and the same for every tool call within it. The BPMN execution is not — it is the
+     * scope's own execution, which lives for the whole scope and would make every turn
+     * look like a continuation of the first.
+     *
+     * <p>The execution id is still the fallback, for a call that reaches the tool outside a
+     * job. Two different turns cannot then share an id, which is what the counting needs.
+     */
+    private static String ownTurnId() {
+        CommandContext commandContext = Context.getCommandContext();
+        JobEntity job = (commandContext == null) ? null : commandContext.getCurrentJob();
+        if (job != null) {
+            return "job:" + job.getId();
+        }
         BpmnExecutionContext executionContext = Context.getBpmnExecutionContext();
         ExecutionEntity execution = (executionContext == null) ? null : executionContext.getExecution();
         return (execution == null) ? null : execution.getId();
@@ -758,7 +755,7 @@ public class AdHocSubProcessTool {
      * refused the first call of the first turn, reading as a broken agent rather than a
      * modelling mistake. They fall back and log rather than refuse the deployment: a
      * wrong limit still ends the loop, which is why these are not parse errors while
-     * {@code explicitCompletionOnly} is.
+     * the agentic properties of the scope are.
      *
      * <p>Extension properties are parsed at deployment and never become process
      * variables, so a child of the scope cannot raise its own agent's limits.

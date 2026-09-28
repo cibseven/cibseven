@@ -29,12 +29,15 @@ import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
+import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.variable.Variables;
+import org.cibseven.connect.ScriptedAgent;
+import org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,19 +50,19 @@ import org.junit.jupiter.api.Test;
  * The tool methods are ordinary Java methods that take their context from two
  * thread locals: the BPMN execution from {@code Context.getBpmnExecutionContext()}
  * and the engine from {@link ProcessStarterToolContext}. Nothing about them needs
- * a model to decide anything, so the decision a model would make is scripted in
- * {@link AgentTask} instead. A stub model would exercise LangChain4j's tool
+ * a model to decide anything, so the decision a model would make is scripted through
+ * {@link ScriptedAgent} instead. A stub model would exercise LangChain4j's tool
  * dispatch — someone else's code — rather than these methods.
  *
  * <p>What that costs: these tests do not show that the tool <em>descriptions</em>
  * lead a real model to call the tools in a sensible order. That needs an
  * end-to-end run against a model and is not covered here.
  *
- * <h3>Why the agent task is a real service task</h3>
- * {@code requireAdHocScope} walks up the execution tree from the running activity
- * and identifies the scope by its behaviour. That walk only exists inside a real
- * BPMN execution, so the tools are called from a delegate inside a real parked
- * scope rather than against a fabricated execution.
+ * <h3>Why the turns are real jobs</h3>
+ * The agent is configuration on the ad hoc sub process, and a turn is a job on that
+ * scope's execution. {@code requireAdHocScope} walks the execution tree and identifies
+ * the scope by its behaviour, so the tools are called from a real turn on a real parked
+ * scope rather than against a fabricated execution. Only the model is scripted.
  */
 public class AdHocSubProcessToolTest {
 
@@ -75,6 +78,9 @@ public class AdHocSubProcessToolTest {
     // 'full' is what records a variable update per activity instance, which is
     // the source describeFinished asks first.
     configuration.setHistory(ProcessEngineConfiguration.HISTORY_FULL);
+    // Brings the parse listener that parks an agentic scope and the handler that runs a turn.
+    configuration.setProcessEnginePlugins(
+        Collections.<ProcessEnginePlugin>singletonList(new ConnectProcessEnginePlugin()));
     return configuration.buildProcessEngine();
   }
 
@@ -85,37 +91,40 @@ public class AdHocSubProcessToolTest {
     Object run(AdHocSubProcessTool tool);
   }
 
-  /**
-   * Stands in for the agent's service task, and is the scope's driver, so the
-   * engine re-activates it whenever another child ends. One scripted turn per
-   * invocation; an invocation past the end of the script does nothing, which is
-   * how a test stops the loop.
-   */
-  public static class AgentTask implements JavaDelegate {
+  /** What the scripted turns returned and what they ran into. */
+  static final class Agent {
 
-    static final List<Turn> SCRIPT = new ArrayList<>();
     static final List<Object> RESULTS = new ArrayList<>();
     static final List<RuntimeException> FAILURES = new ArrayList<>();
-    static int invocations;
 
-    @Override
-    public void execute(DelegateExecution execution) {
-      int index = invocations++;
-      if (index >= SCRIPT.size()) {
-        return;
-      }
-      // Caught rather than propagated: several tests assert on a refusal, and a
-      // propagated exception would roll the turn back and hide the state the
-      // assertion is about. TurnFailure is the exception, for the tests whose
-      // subject IS the rollback.
+    private Agent() {
+    }
+
+    static void clear() {
+      RESULTS.clear();
+      FAILURES.clear();
+    }
+  }
+
+  /**
+   * One scripted turn.
+   *
+   * <p>A refusal is caught rather than propagated: several tests assert on one, and a
+   * propagated exception would roll the turn back and hide the state the assertion is
+   * about. {@link TurnFailure} is the exception, for the tests whose subject IS the
+   * rollback.
+   */
+  private static ScriptedAgent.Turn agent(Turn turn) {
+    return parameters -> {
       try {
-        RESULTS.add(SCRIPT.get(index).run(new AdHocSubProcessTool()));
+        Agent.RESULTS.add(turn.run(new AdHocSubProcessTool()));
       } catch (TurnFailure e) {
         throw e;
       } catch (RuntimeException e) {
-        FAILURES.add(e);
+        Agent.FAILURES.add(e);
       }
-    }
+      return "done";
+    };
   }
 
   /** Thrown by a scripted turn that is meant to fail the job and roll its work back. */
@@ -183,30 +192,27 @@ public class AdHocSubProcessToolTest {
 
   @BeforeEach
   public void setUp() {
-    AgentTask.SCRIPT.clear();
-    AgentTask.RESULTS.clear();
-    AgentTask.FAILURES.clear();
-    AgentTask.invocations = 0;
+    Agent.clear();
+    ScriptedAgent.reset();
     ProcessStarterToolContext.setEngine(ENGINE);
   }
 
   @AfterEach
   public void tearDown() {
     ProcessStarterToolContext.clear();
-    AgentTask.SCRIPT.clear();
-    AgentTask.RESULTS.clear();
-    AgentTask.FAILURES.clear();
-    AgentTask.invocations = 0;
+    ScriptedAgent.uninstall();
+    Agent.clear();
   }
 
   // --- models ----------------------------------------------------------------
 
-  private static final String AGENT = AgentTask.class.getName();
   private static final String LONG_TEXT = WritesLongText.class.getName();
   private static final String OBJECT = WritesObject.class.getName();
 
   /**
-   * A parked scope driven by the agent task.
+   * An agentic scope. The agent is configuration on the element, so the children below are
+   * the tools and nothing else; the parse listener parks the scope and hangs the first turn
+   * on entering it.
    *
    * <p>{@code quick} finishes inside the activation call and declares its result
    * through {@code camunda:resultVariable}; {@code waits} is a user task;
@@ -215,17 +221,6 @@ public class AdHocSubProcessToolTest {
    * attribute to derive from.
    */
   private static String model(String processId, String extraScopeProperties) {
-    return model(processId, extraScopeProperties, false);
-  }
-
-  /**
-   * @param agentAsync marks the driver {@code camunda:asyncBefore}, which is the
-   *     configuration production needs and the only one in which a turn sees the
-   *     history of the child that woke it — see
-   *     {@link #aChildThatFinishedBetweenTurnsIsReportedWithItsValuesFromHistory}.
-   */
-  private static String model(String processId, String extraScopeProperties,
-      boolean agentAsync) {
     return "<?xml version='1.0' encoding='UTF-8'?>"
         + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
         + " xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
@@ -235,13 +230,10 @@ public class AdHocSubProcessToolTest {
         + "  <sequenceFlow id='f1' sourceRef='start' targetRef='adHoc' />"
         + "  <adHocSubProcess id='adHoc'>"
         + "    <extensionElements><camunda:properties>"
-        + "      <camunda:property name='explicitCompletionOnly' value='true' />"
-        + "      <camunda:property name='adHocDriverActivity' value='agent' />"
-        + "      <camunda:property name='activeElementsCollection' value='agent' />"
+        + "      <camunda:property name='cibseven.agentic.enabled' value='true' />"
+        + "      <camunda:property name='cibseven.agentic.message' value='Do the work.' />"
         + extraScopeProperties
         + "    </camunda:properties></extensionElements>"
-        + "    <serviceTask id='agent' name='Agent' camunda:class='" + AGENT + "'"
-        + (agentAsync ? " camunda:asyncBefore='true'" : "") + " />"
         + "    <userTask id='waits' name='Waits for a person'>"
         + "      <documentation>Someone has to look at this.</documentation>"
         + "      <extensionElements><camunda:formData>"
@@ -296,7 +288,13 @@ public class AdHocSubProcessToolTest {
         + "</process></definitions>";
   }
 
-  /** A service task that is not inside an ad hoc sub process at all. */
+  /**
+   * A service task outside any ad hoc sub process, for the refusal that says so.
+   *
+   * <p>The agent itself is never modelled this way any more, but nothing stops someone
+   * naming {@link AdHocSubProcessTool} among the tool classes of an ordinary agent task,
+   * and that mistake has to produce a sentence rather than a silent no-op.
+   */
   private static String modelWithoutScope() {
     return "<?xml version='1.0' encoding='UTF-8'?>"
         + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
@@ -305,27 +303,39 @@ public class AdHocSubProcessToolTest {
         + "<process id='noScope' isExecutable='true'>"
         + "  <startEvent id='start' />"
         + "  <sequenceFlow id='f1' sourceRef='start' targetRef='agent' />"
-        + "  <serviceTask id='agent' name='Agent' camunda:class='" + AGENT + "' />"
+        + "  <serviceTask id='agent' name='Agent' camunda:class='"
+        + CallsTheToolOutsideAScope.class.getName() + "' />"
         + "  <sequenceFlow id='f2' sourceRef='agent' targetRef='end' />"
         + "  <endEvent id='end' />"
         + "</process></definitions>";
   }
 
+  /** Calls the listing from a plain service task and records the refusal. */
+  public static class CallsTheToolOutsideAScope implements JavaDelegate {
+
+    @Override
+    public void execute(DelegateExecution execution) {
+      try {
+        Agent.RESULTS.add(new AdHocSubProcessTool().listAvailableActivities());
+      } catch (RuntimeException e) {
+        Agent.FAILURES.add(e);
+      }
+    }
+  }
+
   // --- helpers ---------------------------------------------------------------
 
+  /** Deploys, starts, and takes the first turn. */
   private ProcessInstance start(String processId, String extraScopeProperties, Turn... script) {
-    AgentTask.SCRIPT.addAll(Arrays.asList(script));
-    ENGINE.getRepositoryService().createDeployment()
-        .addString(processId + ".bpmn20.xml", model(processId, extraScopeProperties))
-        .deploy();
-    return ENGINE.getRuntimeService().startProcessInstanceByKey(processId);
+    ProcessInstance instance = startWithoutTurn(processId, extraScopeProperties, script);
+    runPendingTurn(instance);
+    return instance;
   }
 
   private ProcessInstance start(String processId, Turn... script) {
     return start(processId, "", script);
   }
 
-  /** Same, with the driver marked asyncBefore so each turn runs as its own job. */
   /** Filler for the over-long name and documentation of the 'chatty' child. */
   private static String longText(int length) {
     StringBuilder text = new StringBuilder(length);
@@ -335,20 +345,31 @@ public class AdHocSubProcessToolTest {
     return text.substring(0, length);
   }
 
-  private ProcessInstance startAsync(String processId, Turn... script) {
-    return startAsync(processId, "", script);
+  /**
+   * Same, but leaves the first turn waiting as a job.
+   *
+   * <p>For the tests that are about the job itself — what it does when it fails, how often
+   * it is retried — and for those that have to look at the instance before the agent has
+   * seen it.
+   */
+  private ProcessInstance startWithoutTurn(String processId, Turn... script) {
+    return startWithoutTurn(processId, "", script);
   }
 
-  private ProcessInstance startAsync(String processId, String extraScopeProperties,
-                                     Turn... script) {
-    AgentTask.SCRIPT.addAll(Arrays.asList(script));
+  private ProcessInstance startWithoutTurn(String processId, String extraScopeProperties,
+                                           Turn... script) {
+    ScriptedAgent.Turn[] turns = new ScriptedAgent.Turn[script.length];
+    for (int i = 0; i < script.length; i++) {
+      turns[i] = agent(script[i]);
+    }
+    ScriptedAgent.install(turns);
     ENGINE.getRepositoryService().createDeployment()
-        .addString(processId + ".bpmn20.xml", model(processId, extraScopeProperties, true))
+        .addString(processId + ".bpmn20.xml", model(processId, extraScopeProperties))
         .deploy();
     return ENGINE.getRuntimeService().startProcessInstanceByKey(processId);
   }
 
-  /** Runs the driver's pending job, which is one turn. */
+  /** Runs the pending turn job, which is one turn. */
   private void runPendingTurn(ProcessInstance instance) {
     List<Job> jobs = ENGINE.getManagementService().createJobQuery()
         .processInstanceId(instance.getId()).list();
@@ -358,8 +379,8 @@ public class AdHocSubProcessToolTest {
 
   @SuppressWarnings("unchecked")
   private static Map<String, Object> result(int index) {
-    assertThat(AgentTask.RESULTS.size()).as("turns recorded").isGreaterThan(index);
-    return (Map<String, Object>) AgentTask.RESULTS.get(index);
+    assertThat(Agent.RESULTS.size()).as("turns recorded").isGreaterThan(index);
+    return (Map<String, Object>) Agent.RESULTS.get(index);
   }
 
   /**
@@ -414,7 +435,7 @@ public class AdHocSubProcessToolTest {
 
     Map<String, Object> listing = result(0);
     assertThat(listing.get("adHocActivityId")).isEqualTo("adHoc");
-    // Every child except 'agent', which is the driver: see theAgentIsNotOfferedToItself.
+    // Every child of the scope. The agent is configuration on it, not one of them.
     assertThat(ids(activities(listing))).containsExactlyInAnyOrder(
         "waits", "quick", "bigText", "bigBlock", "object", "gated", "gatedBadValue", "asyncChild",
         "chatty", "multi");
@@ -441,16 +462,17 @@ public class AdHocSubProcessToolTest {
 
   /**
    * With nothing running, ending the turn without starting something that waits
-   * and without completing the scope leaves the instance with nothing to wake it:
-   * the agent is the driver, and a driver is not re-activated by its own end. The
-   * listing says so rather than leaving the model to work it out.
+   * and without completing the scope ends the scope: a further turn is only ever
+   * scheduled by a child ending, so there would be nothing to bring one. The listing
+   * says so rather than leaving the model to work it out.
    */
   @Test
   public void theListingWarnsWhenNothingItStartedIsRunning() {
     start("warns", tool -> tool.listAvailableActivities());
 
     assertThat(result(0)).containsKey("note");
-    assertThat(String.valueOf(result(0).get("note"))).contains("nothing will wake it");
+    assertThat(String.valueOf(result(0).get("note")))
+        .contains("the ad hoc sub process ends here");
   }
 
   @Test
@@ -486,8 +508,8 @@ public class AdHocSubProcessToolTest {
   /**
    * The case that made this method report values at all. A child that runs without
    * waiting has already finished inside the activation call, and this is the only
-   * turn in which the agent can see what it wrote: the agent is the scope's driver
-   * and is still running, so that child's end gives it no further turn.
+   * turn in which the agent can see what it wrote: a child that ends inside the turn
+   * that started it schedules no further one.
    */
   @Test
   public void startingAChildThatFinishesReportsItsValuesImmediately() {
@@ -536,7 +558,7 @@ public class AdHocSubProcessToolTest {
     start("blockBudget",
         tool -> tool.startActivity("bigBlock", Collections.<String, Object>emptyMap()));
 
-    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(Agent.FAILURES).isEmpty();
     Map<String, Object> answer = result(0);
     assertThat(answer.get("status")).isEqualTo("finished");
 
@@ -583,20 +605,19 @@ public class AdHocSubProcessToolTest {
 
   /**
    * End to end across a turn boundary: a person completes a user task with a value,
-   * the engine re-activates the driver, and the next turn's listing carries it.
+   * that end schedules the next turn, and its listing carries the value.
    *
    * <p>The value arrives because the task's form declares the field. This used to
    * work without any declaration, from the history — see
    * {@link #anActivityReportsOnlyWhatTheModelDeclares} for why that was wrong and was
    * turned around.
    *
-   * <p>The driver is {@code asyncBefore} here, and that is not decoration: a
-   * synchronous driver would run the re-activated turn inside the transaction that
-   * completed the task, which is a different timing question and covered elsewhere.
+   * <p>The next turn is a job, so it runs in its own transaction rather than inside the
+   * one that completed the task — which is what makes the value readable from history.
    */
   @Test
   public void aChildThatFinishedBetweenTurnsIsReportedWithItsValues() {
-    ProcessInstance instance = startAsync("history",
+    ProcessInstance instance = startWithoutTurn("history",
         tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()),
         tool -> tool.listAvailableActivities());
 
@@ -630,7 +651,7 @@ public class AdHocSubProcessToolTest {
    */
   @Test
   public void anActivityReportsOnlyWhatTheModelDeclares() {
-    ProcessInstance instance = startAsync("declaredOnly",
+    ProcessInstance instance = startWithoutTurn("declaredOnly",
         tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()),
         tool -> tool.listAvailableActivities());
 
@@ -666,9 +687,9 @@ public class AdHocSubProcessToolTest {
       return tool.completeScope();
     });
 
-    assertThat(AgentTask.FAILURES).hasSize(1);
-    assertThat(AgentTask.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class);
-    assertThat(AgentTask.FAILURES.get(0).getMessage())
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class);
+    assertThat(Agent.FAILURES.get(0).getMessage())
         .contains("waits")
         .contains("a person may be working on");
     assertThat(task(instance, "waits")).isNotNull();
@@ -701,7 +722,7 @@ public class AdHocSubProcessToolTest {
       return tool.completeScope();
     });
 
-    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(Agent.FAILURES).isEmpty();
     assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
         .processInstanceId(instance.getId()).count()).isZero();
   }
@@ -775,7 +796,7 @@ public class AdHocSubProcessToolTest {
    */
   @Test
   public void aMultiInstanceChildHoldsTheScopeUntilEveryInstanceIsDone() {
-    ProcessInstance instance = startAsync("multiInstance",
+    ProcessInstance instance = startWithoutTurn("multiInstance",
         tool -> tool.startActivity("multi", Collections.<String, Object>emptyMap()),
         tool -> tool.completeScope());
 
@@ -793,7 +814,7 @@ public class AdHocSubProcessToolTest {
 
     assertThat(ENGINE.getManagementService().createJobQuery()
         .processInstanceId(instance.getId()).count())
-        .as("a partly finished loop gives the driver no turn").isZero();
+        .as("a partly finished loop schedules no turn").isZero();
     assertThat(ENGINE.getTaskService().createTaskQuery()
         .processInstanceId(instance.getId()).taskDefinitionKey("multi").count())
         .as("the remaining instance must still be there — this is what was cancelled before")
@@ -801,12 +822,12 @@ public class AdHocSubProcessToolTest {
     assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
         .processInstanceId(instance.getId()).count()).isOne();
 
-    // The last instance ends the body, which is the scope's child, so the driver runs.
+    // The last instance ends the body, which is the scope's child, so a turn is scheduled.
     ENGINE.getTaskService().complete(ENGINE.getTaskService().createTaskQuery()
         .processInstanceId(instance.getId()).taskDefinitionKey("multi").singleResult().getId());
     runPendingTurn(instance);
 
-    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(Agent.FAILURES).isEmpty();
     assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
         .processInstanceId(instance.getId()).count())
         .as("the scope ends once every instance is done").isZero();
@@ -818,10 +839,9 @@ public class AdHocSubProcessToolTest {
    * A turn that fails after asking to end the scope leaves no trace, and the retry
    * decides again.
    *
-   * <p>The completion is a recorded request, honoured later by the engine when the
-   * driver's execution ends. That is a long chain — tool, state flag, driver end,
-   * behaviour, completion — and the question this pins is whether the flag is part of
-   * the turn's transaction or a side channel around it. If it survived a rollback,
+   * <p>The completion is a recorded request, honoured at the end of the turn. That is a
+   * chain — tool, state flag, end of turn, completion — and the question this pins is
+   * whether the flag is part of the turn's transaction or a side channel around it. If it survived a rollback,
    * a turn that crashed after calling completeScope would leave a scope that ends
    * itself on the next child that finishes, with no agent having decided so.
    *
@@ -831,7 +851,7 @@ public class AdHocSubProcessToolTest {
    */
   @Test
   public void aTurnThatFailsAfterAskingToEndLeavesNothingBehind() {
-    ProcessInstance instance = startAsync("retried",
+    ProcessInstance instance = startWithoutTurn("retried",
         tool -> {
           tool.completeScope();
           throw new TurnFailure("the model call died after completeScope");
@@ -871,7 +891,7 @@ public class AdHocSubProcessToolTest {
   /** The failed attempt and its retry are one turn, not two. */
   @Test
   public void aRetriedTurnIsCountedOnce() {
-    ProcessInstance instance = startAsync("retriedCount",
+    ProcessInstance instance = startWithoutTurn("retriedCount",
         tool -> {
           tool.listAvailableActivities();
           throw new TurnFailure("died mid-turn");
@@ -887,9 +907,9 @@ public class AdHocSubProcessToolTest {
     }
     ENGINE.getManagementService().executeJob(jobId);
 
-    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(Agent.FAILURES).isEmpty();
     assertThat(result(0).get("turn"))
-        .as("the same driver execution ran twice; that is one turn")
+        .as("the same job ran twice; that is one turn")
         .isEqualTo(1);
   }
 
@@ -905,12 +925,12 @@ public class AdHocSubProcessToolTest {
   // --- the turn cap ----------------------------------------------------------
 
   /**
-   * A turn is one run of the driver, not one tool call.
+   * A turn is one job, not one tool call.
    *
    * <p>The count used to be incremented inside {@code listAvailableActivities}, so a
    * model that looked at the catalogue twice — entirely legitimate, and the tool
    * description even invites a look before deciding — spent two of its turns on one.
-   * With {@code adHocMaxTurns} at its default of ten that quietly halves the budget,
+   * With {@code cibseven.agentic.maxTurns} at its default of ten that quietly halves the budget,
    * and how far it goes depends on the model, on tool retries and on whatever
    * middleware sits in between.
    */
@@ -925,18 +945,18 @@ public class AdHocSubProcessToolTest {
       return seen;
     });
 
-    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(Agent.FAILURES).isEmpty();
     @SuppressWarnings("unchecked")
-    List<Object> seen = (List<Object>) AgentTask.RESULTS.get(0);
+    List<Object> seen = (List<Object>) Agent.RESULTS.get(0);
     assertThat(seen.get(0)).as("first listing of the turn").isEqualTo(1);
     assertThat(seen.get(1)).as("a second look is the same turn").isEqualTo(1);
     assertThat(seen.get(3)).as("and so is a look after starting something").isEqualTo(1);
   }
 
-  /** The next run of the driver is the next turn. */
+  /** The next job is the next turn. */
   @Test
-  public void thenextDriverRunIsTheNextTurn() {
-    ProcessInstance instance = startAsync("twoTurns",
+  public void theNextJobIsTheNextTurn() {
+    ProcessInstance instance = startWithoutTurn("twoTurns",
         tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()),
         tool -> tool.listAvailableActivities());
 
@@ -944,39 +964,39 @@ public class AdHocSubProcessToolTest {
     ENGINE.getTaskService().complete(task(instance, "waits").getId());
     runPendingTurn(instance);
 
-    assertThat(AgentTask.FAILURES).isEmpty();
-    assertThat(result(1).get("turn")).as("the re-activated driver is turn 2").isEqualTo(2);
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(result(1).get("turn")).as("the turn a child's end scheduled is turn 2")
+        .isEqualTo(2);
   }
 
   /**
    * A cap of one allows the first turn and refuses the second.
    *
-   * <p>Driven by two real re-activations of the driver. The previous version of this
-   * test called the listing twice inside one turn to push the count along, which only
-   * worked because the count was per tool call — the defect itself, written into a
-   * test as a convenience.
+   * <p>Driven by two real turns. The previous version of this test called the listing
+   * twice inside one turn to push the count along, which only worked because the count
+   * was per tool call — the defect itself, written into a test as a convenience.
    */
   @Test
   public void theTurnCapStopsFurtherActivities() {
-    ProcessInstance instance = startAsync("capped",
-        "<camunda:property name='adHocMaxTurns' value='1' />",
+    ProcessInstance instance = startWithoutTurn("capped",
+        "<camunda:property name='cibseven.agentic.maxTurns' value='1' />",
         tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()),
         tool -> tool.startActivity("quick", Collections.<String, Object>emptyMap()));
 
     runPendingTurn(instance);
-    assertThat(AgentTask.FAILURES).as("the first turn is within the cap").isEmpty();
+    assertThat(Agent.FAILURES).as("the first turn is within the cap").isEmpty();
 
     ENGINE.getTaskService().complete(task(instance, "waits").getId());
     runPendingTurn(instance);
 
-    assertThat(AgentTask.FAILURES).hasSize(1);
-    assertThat(AgentTask.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class);
-    assertThat(AgentTask.FAILURES.get(0).getMessage()).contains("turn limit of 1");
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class);
+    assertThat(Agent.FAILURES.get(0).getMessage()).contains("turn limit of 1");
   }
 
   @Test
   public void theCapCanBeRaisedFromTheModel() {
-    start("raised", "<camunda:property name='adHocMaxTurns' value='42' />",
+    start("raised", "<camunda:property name='cibseven.agentic.maxTurns' value='42' />",
         tool -> tool.listAvailableActivities());
 
     assertThat(result(0).get("maxTurns")).isEqualTo(42);
@@ -992,14 +1012,14 @@ public class AdHocSubProcessToolTest {
    *
    * <p>The turn cap cannot see this one: starting synchronous children never ends the
    * turn, so no further turn is ever counted. Case 09 of the suite is exactly that
-   * loop, and after turns moved to the driver run it ran 300 model calls in a
-   * distribution until LangChain4j's own brake at 100 round trips failed the job and
-   * left an incident — the very thing the turn cap was made to avoid.
+   * loop, and once turns were counted per turn rather than per call it ran 300 model
+   * calls in a distribution until LangChain4j's own brake at 100 round trips failed the
+   * job and left an incident — the very thing the turn cap was made to avoid.
    */
   @Test
   public void aLoopInsideOneTurnIsStoppedAndTheProcessContinues() {
     ProcessInstance instance = start("callLoop",
-        "<camunda:property name='adHocMaxCallsPerTurn' value='3' />",
+        "<camunda:property name='cibseven.agentic.maxModelCalls' value='3' />",
         tool -> {
           for (int i = 0; i < 10; i++) {
             tool.startActivity("quick", Collections.<String, Object>emptyMap());
@@ -1007,8 +1027,8 @@ public class AdHocSubProcessToolTest {
           return "never reached";
         });
 
-    assertThat(AgentTask.FAILURES).hasSize(1);
-    assertThat(AgentTask.FAILURES.get(0).getMessage())
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage())
         .contains("over the limit of 3")
         .contains("End your turn");
     assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
@@ -1019,8 +1039,8 @@ public class AdHocSubProcessToolTest {
   /** The next turn starts with a fresh call budget. */
   @Test
   public void theCallBudgetIsPerTurn() {
-    ProcessInstance instance = startAsync("callBudget",
-        "<camunda:property name='adHocMaxCallsPerTurn' value='3' />",
+    ProcessInstance instance = startWithoutTurn("callBudget",
+        "<camunda:property name='cibseven.agentic.maxModelCalls' value='3' />",
         tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()),
         tool -> tool.startActivity("quick", Collections.<String, Object>emptyMap()));
 
@@ -1028,7 +1048,7 @@ public class AdHocSubProcessToolTest {
     ENGINE.getTaskService().complete(task(instance, "waits").getId());
     runPendingTurn(instance);
 
-    assertThat(AgentTask.FAILURES).as("the second turn starts counting again").isEmpty();
+    assertThat(Agent.FAILURES).as("the second turn starts counting again").isEmpty();
     assertThat(results(result(1))).containsKey("amount");
   }
 
@@ -1042,22 +1062,20 @@ public class AdHocSubProcessToolTest {
    */
   @Test
   public void aCapOfZeroOrLessFallsBackToTheDefault() {
-    start("zeroCap", "<camunda:property name='adHocMaxTurns' value='0' />",
+    start("zeroCap", "<camunda:property name='cibseven.agentic.maxTurns' value='0' />",
         tool -> tool.listAvailableActivities());
     assertThat(result(0).get("maxTurns")).isEqualTo(AdHocSubProcessTool.DEFAULT_MAX_TURNS);
 
-    AgentTask.SCRIPT.clear();
-    AgentTask.RESULTS.clear();
-    AgentTask.invocations = 0;
+    Agent.clear();
 
-    start("negativeCap", "<camunda:property name='adHocMaxTurns' value='-10' />",
+    start("negativeCap", "<camunda:property name='cibseven.agentic.maxTurns' value='-10' />",
         tool -> tool.listAvailableActivities());
     assertThat(result(0).get("maxTurns")).isEqualTo(AdHocSubProcessTool.DEFAULT_MAX_TURNS);
   }
 
   @Test
   public void anUnparseableCapFallsBackToTheDefault() {
-    start("badCap", "<camunda:property name='adHocMaxTurns' value='soon' />",
+    start("badCap", "<camunda:property name='cibseven.agentic.maxTurns' value='soon' />",
         tool -> tool.listAvailableActivities());
 
     assertThat(result(0).get("maxTurns")).isEqualTo(AdHocSubProcessTool.DEFAULT_MAX_TURNS);
@@ -1072,16 +1090,15 @@ public class AdHocSubProcessToolTest {
    */
   @Test
   public void theToolRefusesWhenTheAgentIsNotInsideAnAdHocSubProcess() {
-    AgentTask.SCRIPT.add(tool -> tool.listAvailableActivities());
     ENGINE.getRepositoryService().createDeployment()
         .addString("noScope.bpmn20.xml", modelWithoutScope())
         .deploy();
 
     ENGINE.getRuntimeService().startProcessInstanceByKey("noScope");
 
-    assertThat(AgentTask.FAILURES).hasSize(1);
-    assertThat(AgentTask.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class);
-    assertThat(AgentTask.FAILURES.get(0).getMessage())
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class);
+    assertThat(Agent.FAILURES.get(0).getMessage())
         .contains("not inside an ad hoc sub process")
         .contains("agent");
   }
@@ -1093,9 +1110,9 @@ public class AdHocSubProcessToolTest {
       return tool.listAvailableActivities();
     });
 
-    assertThat(AgentTask.FAILURES).hasSize(1);
-    assertThat(AgentTask.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class);
-    assertThat(AgentTask.FAILURES.get(0).getMessage()).contains("No ProcessEngine available");
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class);
+    assertThat(Agent.FAILURES.get(0).getMessage()).contains("No ProcessEngine available");
   }
 
   @Test
@@ -1103,8 +1120,8 @@ public class AdHocSubProcessToolTest {
     start("unknown",
         tool -> tool.startActivity("nosuch", Collections.<String, Object>emptyMap()));
 
-    assertThat(AgentTask.FAILURES).hasSize(1);
-    assertThat(AgentTask.FAILURES.get(0).getMessage()).contains("nosuch");
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage()).contains("nosuch");
   }
 
   // --- an asyncBefore child, the groundwork the blocking rule stands on -----
@@ -1138,7 +1155,7 @@ public class AdHocSubProcessToolTest {
     start("asyncStatus",
         tool -> tool.startActivity("asyncChild", Collections.<String, Object>emptyMap()));
 
-    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(Agent.FAILURES).isEmpty();
     Map<String, Object> answer = result(0);
     assertThat(answer.get("status"))
         .as("a queued job has not run, so the model must not be told it finished")
@@ -1161,10 +1178,11 @@ public class AdHocSubProcessToolTest {
         tool -> tool.startActivity("asyncChild", Collections.<String, Object>emptyMap()),
         tool -> tool.listAvailableActivities());
 
-    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(Agent.FAILURES).isEmpty();
     assertThat(result(0).get("status")).as("the job is still queued").isEqualTo("waiting");
 
-    // Running the job finishes the child, which gives the driver its next turn.
+    // The child's own job, then the turn its end scheduled.
+    runPendingTurn(instance);
     runPendingTurn(instance);
 
     Map<String, Object> listing = result(1);
@@ -1200,8 +1218,8 @@ public class AdHocSubProcessToolTest {
       return tool.startActivity("gated", Collections.<String, Object>emptyMap());
     });
 
-    assertThat(AgentTask.FAILURES).hasSize(1);
-    assertThat(AgentTask.FAILURES.get(0).getMessage())
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage())
         .contains("Cannot start 'gated'")
         .contains("asyncChild");
   }
@@ -1220,8 +1238,8 @@ public class AdHocSubProcessToolTest {
       return tool.startActivity("gated", Collections.<String, Object>emptyMap());
     });
 
-    assertThat(AgentTask.FAILURES).hasSize(1);
-    assertThat(AgentTask.FAILURES.get(0).getMessage())
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage())
         .contains("Cannot start 'gated'")
         .contains("waits")
         .contains("end your turn");
@@ -1237,7 +1255,7 @@ public class AdHocSubProcessToolTest {
     start("gatedAllowed",
         tool -> tool.startActivity("gated", Collections.<String, Object>emptyMap()));
 
-    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(Agent.FAILURES).isEmpty();
     assertThat(result(0).get("status")).isEqualTo("finished");
   }
 
@@ -1249,7 +1267,7 @@ public class AdHocSubProcessToolTest {
       return tool.startActivity("quick", Collections.<String, Object>emptyMap());
     });
 
-    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(Agent.FAILURES).isEmpty();
     assertThat(result(0).get("status")).isEqualTo("finished");
   }
 
@@ -1265,7 +1283,7 @@ public class AdHocSubProcessToolTest {
       return tool.startActivity("gatedBadValue", Collections.<String, Object>emptyMap());
     });
 
-    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(Agent.FAILURES).isEmpty();
     assertThat(result(0).get("status")).isEqualTo("finished");
   }
 
@@ -1304,7 +1322,7 @@ public class AdHocSubProcessToolTest {
    */
   @Test
   public void aMarkedActivityIsStartableInTheTurnAfterTheOtherWorkFinished() {
-    ProcessInstance instance = startAsync("gatedLater",
+    ProcessInstance instance = startWithoutTurn("gatedLater",
         tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()),
         tool -> tool.startActivity("gated", Collections.<String, Object>emptyMap()));
 
@@ -1312,7 +1330,7 @@ public class AdHocSubProcessToolTest {
     ENGINE.getTaskService().complete(task(instance, "waits").getId());
     runPendingTurn(instance);
 
-    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(Agent.FAILURES).isEmpty();
     assertThat(result(1).get("status")).isEqualTo("finished");
   }
 
@@ -1339,49 +1357,8 @@ public class AdHocSubProcessToolTest {
       return tool.listAvailableActivities();
     });
 
-    assertThat(AgentTask.FAILURES).as("nothing may fail after completeScope").isEmpty();
+    assertThat(Agent.FAILURES).as("nothing may fail after completeScope").isEmpty();
     assertThat(result(0)).containsKey("activities");
-  }
-
-  /**
-   * The agent is not offered to itself.
-   *
-   * <p>The agent task is a child of the scope like any other, so the catalogue read
-   * from the model contains it. Offering it invites the model to start a second copy
-   * of itself beside the one that is running — a further model call per copy, two
-   * agents acting on one scope, and the turn budget spent on recursion instead of
-   * work. The engine's coalescing does not prevent it: that guards the turn the
-   * engine grants when a child ends, not an explicit activation.
-   *
-   * <p>Nothing caught this for a long time because the local test stub filtered the
-   * agent out of its own candidate list, so the case was never exercised.
-   */
-  @Test
-  public void theAgentIsNotOfferedToItself() {
-    start("driverNotOffered", tool -> tool.listAvailableActivities());
-
-    assertThat(AgentTask.FAILURES).isEmpty();
-    @SuppressWarnings("unchecked")
-    List<Map<String, Object>> offered =
-        (List<Map<String, Object>>) result(0).get("activities");
-    assertThat(offered).isNotEmpty();
-    List<Object> ids = new ArrayList<Object>();
-    for (Map<String, Object> item : offered) {
-      ids.add(item.get("id"));
-    }
-    assertThat(ids).as("the driver must not be in its own catalogue").doesNotContain("agent");
-  }
-
-  /** And starting it is refused even if the model names it anyway. */
-  @Test
-  public void startingTheAgentItselfIsRefused() {
-    start("driverStartRefused",
-        tool -> tool.startActivity("agent", Collections.<String, Object>emptyMap()));
-
-    assertThat(AgentTask.FAILURES).hasSize(1);
-    assertThat(AgentTask.FAILURES.get(0).getMessage())
-        .contains("that is this agent itself")
-        .doesNotContain("is not inside an ad hoc sub process");
   }
 
   /** But starting something after asking to end is refused, and says why. */
@@ -1392,53 +1369,10 @@ public class AdHocSubProcessToolTest {
       return tool.startActivity("waits", Collections.<String, Object>emptyMap());
     });
 
-    assertThat(AgentTask.FAILURES).hasSize(1);
-    assertThat(AgentTask.FAILURES.get(0).getMessage())
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage())
         .contains("already asked")
         .doesNotContain("is not inside an ad hoc sub process");
-  }
-
-  /**
-   * A scope with no driver ends on a completion request too.
-   *
-   * <p>This is the case that keeps the engine's two completion paths apart, and it
-   * had no test. {@code completeOnIdleDrivenScope} requires a driver; only
-   * {@code completeOnDriverEnd} serves a scope that has none, and merging the two
-   * would silently break exactly this model. Legal, because the parser refuses a
-   * driver without {@code explicitCompletionOnly} but not the other way round.
-   */
-  @Test
-  public void aScopeWithoutADriverEndsOnRequestToo() {
-    String processId = "noDriver";
-    String bpmn = "<?xml version='1.0' encoding='UTF-8'?>"
-        + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
-        + " xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
-        + " targetNamespace='http://cibseven.org/adhoc-tool'>"
-        + "<process id='" + processId + "' isExecutable='true'>"
-        + "  <startEvent id='start' />"
-        + "  <sequenceFlow id='f1' sourceRef='start' targetRef='adHoc' />"
-        + "  <adHocSubProcess id='adHoc'>"
-        + "    <extensionElements><camunda:properties>"
-        + "      <camunda:property name='explicitCompletionOnly' value='true' />"
-        + "      <camunda:property name='activeElementsCollection' value='agent' />"
-        + "    </camunda:properties></extensionElements>"
-        + "    <serviceTask id='agent' name='Agent' camunda:class='" + AGENT + "' />"
-        + "    <userTask id='waits' name='Waits' />"
-        + "  </adHocSubProcess>"
-        + "  <sequenceFlow id='f2' sourceRef='adHoc' targetRef='end' />"
-        + "  <endEvent id='end' />"
-        + "</process></definitions>";
-
-    AgentTask.SCRIPT.add(tool -> tool.completeScope());
-    ENGINE.getRepositoryService().createDeployment()
-        .addString(processId + ".bpmn20.xml", bpmn).deploy();
-    ProcessInstance instance = ENGINE.getRuntimeService().startProcessInstanceByKey(processId);
-
-    assertThat(AgentTask.FAILURES).isEmpty();
-    assertThat(result(0).get("completionRequested")).isEqualTo(Boolean.TRUE);
-    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
-        .processInstanceId(instance.getId()).count())
-        .as("a driverless scope must end on the request as well").isZero();
   }
 
   /** And the scope really does end once the turn is over. */
@@ -1446,7 +1380,7 @@ public class AdHocSubProcessToolTest {
   public void theScopeEndsAfterTheTurnThatAskedForIt() {
     ProcessInstance instance = start("completesAfterTurn", tool -> tool.completeScope());
 
-    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(Agent.FAILURES).isEmpty();
     assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
         .processInstanceId(instance.getId()).count())
         .as("the process should have continued past the scope").isZero();
@@ -1464,16 +1398,15 @@ public class AdHocSubProcessToolTest {
    * exists to prevent. The engine therefore keeps the request pending and acts on
    * it when that child ends, rather than completing over the top of it.
    *
-   * <p>The driver is asyncBefore so the turn runs as a job: the instance then
-   * exists before the turn, which is what lets the turn activate a child the way
-   * an outside caller would.
+   * <p>The first turn is left waiting so the instance exists before it runs, which is what
+   * lets the turn activate a child the way an outside caller would.
    *
    * <p>This branch came in with the fix for the completion defect, so it had no
    * test until now.
    */
   @Test
   public void aPendingCompletionWaitsForWorkStartedAfterTheRequest() {
-    ProcessInstance instance = startAsync("deferred", tool -> {
+    ProcessInstance instance = startWithoutTurn("deferred", tool -> {
       Map<String, Object> ended = tool.completeScope();
       // Someone else activates a child, the way a human client would.
       ENGINE.getRuntimeService().activateAdHocSubProcessActivities(
@@ -1485,7 +1418,7 @@ public class AdHocSubProcessToolTest {
 
     runPendingTurn(instance);
 
-    assertThat(AgentTask.FAILURES).isEmpty();
+    assertThat(Agent.FAILURES).isEmpty();
     Task waiting = task(instance, "waits");
     assertThat(waiting).as("the task started after the request must survive").isNotNull();
     assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
@@ -1493,7 +1426,11 @@ public class AdHocSubProcessToolTest {
         .as("the scope must not have completed over a live task").isEqualTo(1);
 
     ENGINE.getTaskService().complete(waiting.getId());
+    // The end of that task schedules a turn, and that turn acts on the pending request
+    // without asking the model again.
+    runPendingTurn(instance);
 
+    assertThat(ScriptedAgent.turnsTaken()).as("no second model call was needed").isOne();
     assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
         .processInstanceId(instance.getId()).count())
         .as("once that task ends, the pending request takes effect").isZero();

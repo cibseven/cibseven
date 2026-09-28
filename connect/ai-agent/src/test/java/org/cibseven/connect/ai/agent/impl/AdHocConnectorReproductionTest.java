@@ -45,17 +45,15 @@ import com.sun.net.httpserver.HttpServer;
  * Reproduces, in one process, the failure the ad-hoc agent suite hit in a running
  * distribution.
  *
- * <p>Every other test of this ticket calls the tool methods directly from Java.
- * The distribution instead reaches them through a {@code camunda:connector}
- * service task, and that is the only configuration in which the failure appears.
- * Two rounds of guessing were refuted by measurement before this test existed —
- * the classloaders are identical, and the ad hoc scope is not destroyed — so this
- * closes the gap by driving the real connector.
+ * <p>Every other test of this ticket scripts the model. Here the real connector and the
+ * real LangChain4j loop run, and that is the only configuration in which the failure
+ * appears. Two rounds of guessing were refuted by measurement before this test existed —
+ * the classloaders are identical, and the ad hoc scope is not destroyed.
  *
  * <p>The language model is a local stub started by the test, so the run needs no
- * network and no key. {@code baseUrl} and {@code apiKey} are set as connector
- * inputs rather than environment variables, because the connector reads the
- * environment only as a fallback and a test cannot set it.
+ * network and no key. {@code baseUrl} and {@code apiKey} are set on the scope rather than
+ * as environment variables, because the connector reads the environment only as a fallback
+ * and a test cannot set it.
  *
  * <p>In the distribution the original exception is lost: the engine's error
  * propagation walks the execution tree, hits a null parent and throws a
@@ -139,18 +137,18 @@ public class AdHocConnectorReproductionTest {
         new StandaloneInMemProcessEngineConfiguration();
     configuration.setProcessEngineName("adhoc-connector-repro");
     configuration.setJdbcUrl("jdbc:h2:mem:adhoc-connector-repro;DB_CLOSE_DELAY=-1");
-    // Off: the driver's job is executed by hand so the failure is a step, not a race.
+    // Off: the turn's job is executed by hand so the failure is a step, not a race.
     configuration.setJobExecutorActivate(false);
     configuration.setHistoryTimeToLive("P30D");
     configuration.setHistory(ProcessEngineConfiguration.HISTORY_FULL);
-    // camunda:connector does not parse without it.
+    // Nothing recognises cibseven.agentic.enabled without it.
     configuration.setProcessEnginePlugins(
         Collections.<ProcessEnginePlugin>singletonList(new ConnectProcessEnginePlugin()));
     engine = configuration.buildProcessEngine();
     return engine;
   }
 
-  /** The distribution's shape: the agent is a connector service task. */
+  /** The distribution's shape: the agent is configuration on the scope. */
   private static String model() {
     return "<?xml version='1.0' encoding='UTF-8'?>"
         + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
@@ -161,31 +159,14 @@ public class AdHocConnectorReproductionTest {
         + "  <sequenceFlow id='f1' sourceRef='start' targetRef='adHoc' />"
         + "  <adHocSubProcess id='adHoc'>"
         + "    <extensionElements><camunda:properties>"
-        + "      <camunda:property name='explicitCompletionOnly' value='true' />"
-        + "      <camunda:property name='adHocDriverActivity' value='agent' />"
-        + "      <camunda:property name='activeElementsCollection' value='agent' />"
+        + "      <camunda:property name='cibseven.agentic.enabled' value='true' />"
+        + "      <camunda:property name='cibseven.agentic.agentName' value='Repro' />"
+        + "      <camunda:property name='cibseven.agentic.message' value='Do something.' />"
+        + "      <camunda:property name='cibseven.agentic.model' value='stub' />"
+        + "      <camunda:property name='cibseven.agentic.apiKey' value='dummy' />"
+        + "      <camunda:property name='cibseven.agentic.baseUrl'"
+        + "                        value='http://127.0.0.1:" + STUB_PORT + "/v1' />"
         + "    </camunda:properties></extensionElements>"
-        + "    <serviceTask id='agent' name='Agent' camunda:asyncBefore='true'>"
-        + "      <extensionElements>"
-        + "        <camunda:connector>"
-        + "          <camunda:connectorId>cibseven-ai-agent</camunda:connectorId>"
-        + "          <camunda:inputOutput>"
-        + "            <camunda:inputParameter name='agentName'>Repro</camunda:inputParameter>"
-        + "            <camunda:inputParameter name='message'>Do something.</camunda:inputParameter>"
-        + "            <camunda:inputParameter name='baseUrl'>"
-        + "http://127.0.0.1:" + STUB_PORT + "/v1</camunda:inputParameter>"
-        + "            <camunda:inputParameter name='apiKey'>dummy</camunda:inputParameter>"
-        + "            <camunda:inputParameter name='model'>stub</camunda:inputParameter>"
-        + "            <camunda:inputParameter name='toolClasses'>"
-        + AdHocSubProcessTool.class.getName() + "</camunda:inputParameter>"
-        + "            <camunda:inputParameter name='useChatMemory'>${true}"
-        + "</camunda:inputParameter>"
-        + "            <camunda:outputParameter name='agentOutput'>${output}"
-        + "</camunda:outputParameter>"
-        + "          </camunda:inputOutput>"
-        + "        </camunda:connector>"
-        + "      </extensionElements>"
-        + "    </serviceTask>"
         + "    <serviceTask id='calculatePrice' name='Calculate price'"
         + "        camunda:expression='${1200}' camunda:resultVariable='price' />"
         + "  </adHocSubProcess>"
@@ -195,11 +176,11 @@ public class AdHocConnectorReproductionTest {
   }
 
   /**
-   * The agent's turn must run without an incident, and the model must have been
-   * asked at least once. A failure here prints the incident the distribution shows.
+   * The turn must run without an incident, and the model must have been asked at least
+   * once. A failure here prints the incident the distribution shows.
    */
   @Test
-  public void theAgentTurnRunsThroughAConnectorServiceTask() {
+  public void theAgentTurnRunsThroughTheRealConnector() {
     ProcessEngine engine = engine();
     engine.getRepositoryService().createDeployment()
         .addString("repro.bpmn20.xml", model())
@@ -210,7 +191,7 @@ public class AdHocConnectorReproductionTest {
 
     List<Job> jobs = engine.getManagementService().createJobQuery()
         .processInstanceId(instance.getId()).list();
-    assertThat(jobs).as("the driver's job").hasSize(1);
+    assertThat(jobs).as("the turn's job").hasSize(1);
 
     RuntimeException failure = null;
     try {
@@ -224,7 +205,7 @@ public class AdHocConnectorReproductionTest {
     String reported = incidents.isEmpty() ? null : incidents.get(0).getIncidentMessage();
 
     assertThat(failure)
-        .as("the driver's job failed; incident says: " + reported
+        .as("the turn's job failed; incident says: " + reported
             + "; the model was asked " + stubCalls.get() + " time(s)")
         .isNull();
     assertThat(stubCalls.get()).as("the model was never asked").isGreaterThan(0);

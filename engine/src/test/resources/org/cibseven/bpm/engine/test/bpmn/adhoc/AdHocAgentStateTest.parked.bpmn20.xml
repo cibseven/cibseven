@@ -9,16 +9,13 @@
     <startEvent id="start" />
     <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
     <adHocSubProcess id="adHoc">
-      <extensionElements>
-        <camunda:properties>
-          <camunda:property name="explicitCompletionOnly" value="true" />
-        </camunda:properties>
-      </extensionElements>
       <serviceTask id="writeState"
                    camunda:class="org.cibseven.bpm.engine.test.bpmn.adhoc.AdHocAgentStateTest$WriteAgentState" />
       <serviceTask id="tamper"
                    camunda:expression="${execution.setVariable('adHocAgentPending', 'cleared by a tool')}" />
       <userTask id="workerA" name="Worker A" />
+      <!-- Parked: a condition that never holds switches off "no active child, so complete". -->
+      <completionCondition xsi:type="tFormalExpression">${false}</completionCondition>
     </adHocSubProcess>
     <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
     <endEvent id="end" />

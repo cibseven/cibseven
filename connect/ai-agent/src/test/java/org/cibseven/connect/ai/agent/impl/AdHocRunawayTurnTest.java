@@ -52,10 +52,10 @@ import com.sun.net.httpserver.HttpServer;
  * failed, was retried, and the instance was left standing — the opposite of what the
  * cap exists for.
  *
- * <p>Driven through the real connector service task, like
- * {@link AdHocConnectorReproductionTest}: the cap lives in the tool, the bound on the
- * loop lives in the connector, and only the two together produce the behaviour. A test
- * calling the tool methods from Java would pass without the fix.
+ * <p>Driven through the real connector, like {@link AdHocConnectorReproductionTest}: the
+ * cap lives in the tool, the bound on the loop lives in the connector, and only the two
+ * together produce the behaviour. A test calling the tool methods from Java would pass
+ * without the fix.
  */
 public class AdHocRunawayTurnTest {
 
@@ -120,7 +120,7 @@ public class AdHocRunawayTurnTest {
         new StandaloneInMemProcessEngineConfiguration();
     configuration.setProcessEngineName("adhoc-runaway");
     configuration.setJdbcUrl("jdbc:h2:mem:adhoc-runaway;DB_CLOSE_DELAY=-1");
-    // Off: the driver's job is run by hand, so the outcome is a step and not a race.
+    // Off: the turn's job is run by hand, so the outcome is a step and not a race.
     configuration.setJobExecutorActivate(false);
     configuration.setHistoryTimeToLive("P30D");
     configuration.setHistory(ProcessEngineConfiguration.HISTORY_FULL);
@@ -132,7 +132,7 @@ public class AdHocRunawayTurnTest {
 
   /**
    * The child runs without waiting, so nothing ever holds the scope and the turn is the
-   * only thing that can end. {@code adHocMaxCallsPerTurn} is set on the scope, which is
+   * only thing that can end. {@code cibseven.agentic.maxModelCalls} is set on the scope, which is
    * also what the connector must read to bound the loop.
    */
   private static String model() {
@@ -145,30 +145,16 @@ public class AdHocRunawayTurnTest {
         + "  <sequenceFlow id='f1' sourceRef='start' targetRef='adHoc' />"
         + "  <adHocSubProcess id='adHoc'>"
         + "    <extensionElements><camunda:properties>"
-        + "      <camunda:property name='explicitCompletionOnly' value='true' />"
-        + "      <camunda:property name='adHocDriverActivity' value='agent' />"
-        + "      <camunda:property name='activeElementsCollection' value='agent' />"
-        + "      <camunda:property name='adHocMaxCallsPerTurn' value='" + CALL_LIMIT + "' />"
+        + "      <camunda:property name='cibseven.agentic.enabled' value='true' />"
+        + "      <camunda:property name='cibseven.agentic.agentName' value='Runaway' />"
+        + "      <camunda:property name='cibseven.agentic.message' value='Keep going.' />"
+        + "      <camunda:property name='cibseven.agentic.model' value='stub' />"
+        + "      <camunda:property name='cibseven.agentic.apiKey' value='dummy' />"
+        + "      <camunda:property name='cibseven.agentic.baseUrl'"
+        + "                        value='http://127.0.0.1:" + STUB_PORT + "/v1' />"
+        + "      <camunda:property name='cibseven.agentic.maxModelCalls' value='"
+        + CALL_LIMIT + "' />"
         + "    </camunda:properties></extensionElements>"
-        + "    <serviceTask id='agent' name='Agent' camunda:asyncBefore='true'>"
-        + "      <extensionElements>"
-        + "        <camunda:connector>"
-        + "          <camunda:connectorId>cibseven-ai-agent</camunda:connectorId>"
-        + "          <camunda:inputOutput>"
-        + "            <camunda:inputParameter name='agentName'>Runaway</camunda:inputParameter>"
-        + "            <camunda:inputParameter name='message'>Keep going.</camunda:inputParameter>"
-        + "            <camunda:inputParameter name='baseUrl'>"
-        + "http://127.0.0.1:" + STUB_PORT + "/v1</camunda:inputParameter>"
-        + "            <camunda:inputParameter name='apiKey'>dummy</camunda:inputParameter>"
-        + "            <camunda:inputParameter name='model'>stub</camunda:inputParameter>"
-        + "            <camunda:inputParameter name='toolClasses'>"
-        + AdHocSubProcessTool.class.getName() + "</camunda:inputParameter>"
-        + "            <camunda:outputParameter name='agentOutput'>${output}"
-        + "</camunda:outputParameter>"
-        + "          </camunda:inputOutput>"
-        + "        </camunda:connector>"
-        + "      </extensionElements>"
-        + "    </serviceTask>"
         + "    <serviceTask id='work' name='Work'"
         + "        camunda:expression='${1}' camunda:resultVariable='done' />"
         + "  </adHocSubProcess>"
@@ -177,7 +163,7 @@ public class AdHocRunawayTurnTest {
         + "</process></definitions>";
   }
 
-  private ProcessInstance runTheDriversTurn() {
+  private ProcessInstance runTheTurn() {
     ProcessEngine engine = engine();
     engine.getRepositoryService().createDeployment()
         .addString("runaway.bpmn20.xml", model())
@@ -187,7 +173,7 @@ public class AdHocRunawayTurnTest {
         engine.getRuntimeService().startProcessInstanceByKey("runawayAgent");
     List<Job> jobs = engine.getManagementService().createJobQuery()
         .processInstanceId(instance.getId()).list();
-    assertThat(jobs).as("the driver's job").hasSize(1);
+    assertThat(jobs).as("the turn's job").hasSize(1);
     engine.getManagementService().executeJob(jobs.get(0).getId());
     return instance;
   }
@@ -198,7 +184,7 @@ public class AdHocRunawayTurnTest {
    */
   @Test
   public void aModelThatNeverStopsCallingToolsDoesNotParkTheProcess() {
-    ProcessInstance instance = runTheDriversTurn();
+    ProcessInstance instance = runTheTurn();
 
     List<Incident> incidents = engine.getRuntimeService().createIncidentQuery()
         .processInstanceId(instance.getId()).list();
@@ -218,7 +204,7 @@ public class AdHocRunawayTurnTest {
    */
   @Test
   public void theModelIsStoppedAtTheScopesOwnLimitRatherThanLangChain4jsDefault() {
-    runTheDriversTurn();
+    runTheTurn();
 
     assertThat(stubCalls.get())
         .as("model calls in one turn, for a call limit of " + CALL_LIMIT)
@@ -232,7 +218,7 @@ public class AdHocRunawayTurnTest {
    */
   @Test
   public void theEndedTurnStillWritesItsOutput() {
-    ProcessInstance instance = runTheDriversTurn();
+    ProcessInstance instance = runTheTurn();
 
     HistoricVariableInstance output = engine.getHistoryService()
         .createHistoricVariableInstanceQuery()

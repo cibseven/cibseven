@@ -18,7 +18,6 @@ package org.cibseven.connect.ai.agent.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -27,13 +26,18 @@ import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
+import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.variable.Variables;
+import org.cibseven.connect.ScriptedAgent;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
+import org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,11 +59,10 @@ import dev.langchain4j.data.message.UserMessage;
  * {@code removeLegacyCopy}, where it would have left the old copy in place —
  * exactly the exposure moving the conversation is meant to close.
  *
- * <p>The driver is {@code asyncBefore} throughout, so every turn is a job and each
- * one runs in its own transaction. A read in a later turn therefore comes from the
- * database rather than from anything the writing transaction left in memory, which
- * is what "survives a user task waiting for days" reduces to once the heap is out
- * of the picture.
+ * <p>A turn is a job on the scope execution, so each one runs in its own transaction. A read
+ * in a later turn therefore comes from the database rather than from anything the writing
+ * transaction left in memory, which is what "survives a user task waiting for days" reduces
+ * to once the heap is out of the picture.
  */
 public class ProcessVariableChatMemoryStoreAdHocTest {
 
@@ -77,33 +80,30 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
     configuration.setJobExecutorActivate(false);
     configuration.setHistoryTimeToLive("P30D");
     configuration.setHistory(ProcessEngineConfiguration.HISTORY_FULL);
+    // Brings the parse listener that parks an agentic scope and the handler that runs a turn.
+    configuration.setProcessEnginePlugins(
+        Collections.<ProcessEnginePlugin>singletonList(new ConnectProcessEnginePlugin()));
     return configuration.buildProcessEngine();
   }
 
   // --- the scripted agent ----------------------------------------------------
 
-  /** What the agent does in one turn. */
+  /**
+   * What the agent does in one turn.
+   *
+   * @param scope the scope execution the turn runs on, which is what the store sees as its
+   *     execution context
+   */
   interface Turn {
-    void run(DelegateExecution execution, ProcessVariableChatMemoryStore store);
+    void run(ExecutionEntity scope, ProcessVariableChatMemoryStore store);
   }
 
-  /**
-   * Stands in for the agent's service task, and is the scope's driver. A fresh
-   * store per turn, so nothing can travel between turns through the store object
-   * itself.
-   */
-  public static class AgentTask implements JavaDelegate {
-
-    static final List<Turn> SCRIPT = new ArrayList<>();
-    static int invocations;
-
-    @Override
-    public void execute(DelegateExecution execution) {
-      int index = invocations++;
-      if (index < SCRIPT.size()) {
-        SCRIPT.get(index).run(execution, new ProcessVariableChatMemoryStore());
-      }
-    }
+  /** A fresh store per turn, so nothing travels between turns through the store object. */
+  private static ScriptedAgent.Turn agent(Turn turn) {
+    return parameters -> {
+      turn.run(Context.getExecutionContext().getExecution(), new ProcessVariableChatMemoryStore());
+      return "done";
+    };
   }
 
   /**
@@ -126,52 +126,48 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
   @BeforeEach
   public void setUp() {
     readBack = null;
-    AgentTask.SCRIPT.clear();
-    AgentTask.invocations = 0;
+    ScriptedAgent.reset();
   }
 
   @AfterEach
   public void tearDown() {
     readBack = null;
-    AgentTask.SCRIPT.clear();
-    AgentTask.invocations = 0;
+    ScriptedAgent.uninstall();
   }
 
   // --- turns -----------------------------------------------------------------
 
-  private static final Turn WRITE = (execution, store) -> store.updateMessages(MEMORY_ID,
+  private static final Turn WRITE = (scope, store) -> store.updateMessages(MEMORY_ID,
       Arrays.<ChatMessage>asList(UserMessage.from("My name is Alice."),
           AiMessage.from("Noted, Alice.")));
 
   private static final Turn READ =
-      (execution, store) -> readBack = store.getMessages(MEMORY_ID);
+      (scope, store) -> readBack = store.getMessages(MEMORY_ID);
 
-  private static final Turn DELETE = (execution, store) -> store.deleteMessages(MEMORY_ID);
+  private static final Turn DELETE = (scope, store) -> store.deleteMessages(MEMORY_ID);
 
   /**
    * Writes the conversation where a build from before this change put it: through
    * {@code setVariable}, which walks up to the process instance. This is the state
    * an in-flight instance is in when the new code first runs against it.
    */
-  private static final Turn SEED_LEGACY_COPY = (execution, store) -> {
+  private static final Turn SEED_LEGACY_COPY = (scope, store) -> {
     String json = ChatMessageSerializer.messagesToJson(
         Collections.<ChatMessage>singletonList(UserMessage.from("From an earlier build.")));
-    execution.setVariable(VARIABLE_NAME, Variables.objectValue(json).create());
+    scope.setVariable(VARIABLE_NAME, Variables.objectValue(json).create());
   };
 
   /**
    * The same turn, but leaving a waiting child open behind it.
    *
-   * <p>Needed by every test that inspects the instance after a turn. A turn that
-   * starts nothing which waits is the last turn there can be — a driver is not
-   * re-activated by its own end — and the scope now ends with it, taking the
-   * variables the assertions are about with it. Starting a waiting child is how a
-   * turn says it expects a further one, so it is also the honest way to hold the
-   * instance still.
+   * <p>Needed by every test that inspects the instance after a turn. A turn that starts
+   * nothing ends the scope — no further turn would ever be scheduled — and that takes the
+   * variables the assertions are about with it. Starting a waiting child is how a turn says it
+   * expects a further one, so it is also the honest way to hold the instance still.
    */
   private static Turn keepingTheScopeOpen(Turn turn) {
-    return (execution, store) -> {
-      turn.run(execution, store);
+    return (scope, store) -> {
+      turn.run(scope, store);
       new AdHocSubProcessTool().startActivity("waits", Collections.<String, Object>emptyMap());
     };
   }
@@ -180,9 +176,12 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
 
   // --- model -----------------------------------------------------------------
 
-  private static final String AGENT = AgentTask.class.getName();
   private static final String CHILD = ChildForgesMemory.class.getName();
 
+  /**
+   * The agent is configuration on the scope, not a child of it. The parse listener parks the
+   * scope and hangs the first turn on entering it.
+   */
   private static String model() {
     return "<?xml version='1.0' encoding='UTF-8'?>"
         + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
@@ -193,12 +192,9 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
         + "  <sequenceFlow id='f1' sourceRef='start' targetRef='adHoc' />"
         + "  <adHocSubProcess id='adHoc'>"
         + "    <extensionElements><camunda:properties>"
-        + "      <camunda:property name='explicitCompletionOnly' value='true' />"
-        + "      <camunda:property name='adHocDriverActivity' value='agent' />"
-        + "      <camunda:property name='activeElementsCollection' value='agent' />"
+        + "      <camunda:property name='cibseven.agentic.enabled' value='true' />"
+        + "      <camunda:property name='cibseven.agentic.message' value='Do the work.' />"
         + "    </camunda:properties></extensionElements>"
-        + "    <serviceTask id='agent' name='Agent' camunda:class='" + AGENT + "'"
-        + "        camunda:asyncBefore='true' />"
         + "    <userTask id='waits' name='Waits' />"
         + "    <serviceTask id='child' name='Child' camunda:class='" + CHILD + "' />"
         + "  </adHocSubProcess>"
@@ -210,7 +206,11 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
   // --- helpers ---------------------------------------------------------------
 
   private ProcessInstance start(Turn... script) {
-    AgentTask.SCRIPT.addAll(Arrays.asList(script));
+    ScriptedAgent.Turn[] turns = new ScriptedAgent.Turn[script.length];
+    for (int i = 0; i < script.length; i++) {
+      turns[i] = agent(script[i]);
+    }
+    ScriptedAgent.install(turns);
     ENGINE.getRepositoryService().createDeployment()
         .addString("adHocMemory.bpmn20.xml", model())
         .deploy();
@@ -220,7 +220,7 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
     return instance;
   }
 
-  /** Runs the driver's pending job, which is one turn. */
+  /** Runs the pending turn job, which is one turn. */
   private void runTurn(ProcessInstance instance) {
     List<Job> jobs = ENGINE.getManagementService().createJobQuery()
         .processInstanceId(instance.getId()).list();
@@ -405,8 +405,8 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
    * location, to build the two-copy state deleting has to clear. Contrived on
    * purpose: {@code removeLegacyCopy} would otherwise have just removed it.
    */
-  private static final Turn WRITE_THEN_SEED_AGAIN = (execution, store) -> {
-    WRITE.run(execution, store);
-    SEED_LEGACY_COPY.run(execution, store);
+  private static final Turn WRITE_THEN_SEED_AGAIN = (scope, store) -> {
+    WRITE.run(scope, store);
+    SEED_LEGACY_COPY.run(scope, store);
   };
 }

@@ -85,6 +85,10 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     behavior.setCompletionCondition(new NeverCondition());
 
     activity.getProperties().set(AGENTIC_CONFIG, agenticConfig(properties));
+    // The whole map under the engine's own key as well, so anything that reads a scope's
+    // camunda:property at runtime finds it. The parser sets this key only for an external
+    // service task, and the tool's caps sit on the scope.
+    activity.getProperties().set(BpmnProperties.EXTENSION_PROPERTIES, properties);
 
     activity.addListener(ExecutionListener.EVENTNAME_START, new AgenticAdHocStartListener());
 

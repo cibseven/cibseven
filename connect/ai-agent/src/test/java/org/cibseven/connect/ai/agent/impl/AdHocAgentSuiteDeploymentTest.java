@@ -30,10 +30,12 @@ import java.util.List;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin;
+import org.cibseven.connect.plugin.impl.agentic.AgenticTurnJobHandler;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -46,39 +48,37 @@ import org.junit.jupiter.api.Test;
  * activity id would otherwise only surface when someone deploys the file by hand
  * and cannot tell a broken model from a broken agent.
  *
- * <p>No model is ever called. The job executor is off, so starting an instance
- * creates the driver's job and stops there — which is itself the assertion that
- * entry activation reached the agent and that the agent is {@code asyncBefore}.
+ * <p>No model is ever called. The job executor is off, so starting an instance creates the
+ * first turn's job and stops there — which is itself the assertion that the scope was
+ * recognised as agentic and that a turn is a job.
  */
 public class AdHocAgentSuiteDeploymentTest {
 
   /** Every file of the suite, with the children each one is expected to offer. */
   private static final Object[][] SUITE = {
-      {"01-sync-simple.bpmn", "adHocAgent01", new String[] {"agent", "calculatePrice"}},
+      {"01-sync-simple.bpmn", "adHocAgent01", new String[] {"calculatePrice"}},
       {"02-sync-multi-turn.bpmn", "adHocAgent02",
-          new String[] {"agent", "calculatePrice", "validatePrice"}},
-      {"03-async-user-task.bpmn", "adHocAgent03", new String[] {"agent", "approveOrder"}},
+          new String[] {"calculatePrice", "validatePrice"}},
+      {"03-async-user-task.bpmn", "adHocAgent03", new String[] {"approveOrder"}},
       {"04-async-rejection.bpmn", "adHocAgent04",
-          new String[] {"agent", "approveOrder", "sendRejection", "sendConfirmation"}},
+          new String[] {"approveOrder", "sendRejection", "sendConfirmation"}},
       {"05-mixed-sync-async.bpmn", "adHocAgent05",
-          new String[] {"agent", "calculatePrice", "approveOrder", "sendConfirmation"}},
+          new String[] {"calculatePrice", "approveOrder", "sendConfirmation"}},
       {"06-multiple-sync.bpmn", "adHocAgent06",
-          new String[] {"agent", "checkCustomer", "getCustomerData"}},
+          new String[] {"checkCustomer", "getCustomerData"}},
       {"07-parallel-async-fan-in.bpmn", "adHocAgent07",
-          new String[] {"agent", "userApprovalA", "userApprovalB"}},
-      {"08-agent-completion.bpmn", "adHocAgent08", new String[] {"agent"}},
-      {"09-turn-limit.bpmn", "adHocAgent09",
-          new String[] {"agent", "activityA", "activityB"}},
-      {"10-restart-while-waiting.bpmn", "adHocAgent10", new String[] {"agent", "approveOrder"}},
-      {"11-no-result.bpmn", "adHocAgent11", new String[] {"agent", "logAction"}},
+          new String[] {"userApprovalA", "userApprovalB"}},
+      {"08-agent-completion.bpmn", "adHocAgent08", new String[] {"notNeeded"}},
+      {"09-turn-limit.bpmn", "adHocAgent09", new String[] {"activityA", "activityB"}},
+      {"10-restart-while-waiting.bpmn", "adHocAgent10", new String[] {"approveOrder"}},
+      {"11-no-result.bpmn", "adHocAgent11", new String[] {"logAction"}},
       {"12-multiple-results.bpmn", "adHocAgent12",
-          new String[] {"agent", "calculateOrder", "calcViaResultVariable", "calcViaProperty",
+          new String[] {"calculateOrder", "calcViaResultVariable", "calcViaProperty",
               "approveWithForm"}},
-      {"13-repeated-result-variable.bpmn", "adHocAgent13",
-          new String[] {"agent", "stepA", "stepB"}},
+      {"13-repeated-result-variable.bpmn", "adHocAgent13", new String[] {"stepA", "stepB"}},
       {"14-agent-choice.bpmn", "adHocAgent14",
-          new String[] {"agent", "calculatePrice", "sendEmail", "createDocument", "approveOrder"}},
-      {"15-async-worker.bpmn", "adHocAgent15", new String[] {"agent", "backgroundCheck"}},
+          new String[] {"calculatePrice", "sendEmail", "createDocument", "approveOrder"}},
+      {"15-async-worker.bpmn", "adHocAgent15", new String[] {"backgroundCheck"}},
   };
 
   private static final ProcessEngine ENGINE = buildInMemoryEngine();
@@ -88,15 +88,14 @@ public class AdHocAgentSuiteDeploymentTest {
     StandaloneInMemProcessEngineConfiguration configuration =
         new StandaloneInMemProcessEngineConfiguration();
     configuration.setJdbcUrl("jdbc:h2:mem:adhoc-agent-suite-test;DB_CLOSE_DELAY=-1");
-    // Off on purpose: the driver's job must stay unexecuted, or the connector
+    // Off on purpose: the turn's job must stay unexecuted, or the connector
     // would try to reach a language model.
     configuration.setJobExecutorActivate(false);
     configuration.setHistory(ProcessEngineConfiguration.HISTORY_FULL);
-    // Without this the engine refuses to parse camunda:connector at all: "one of
-    // the attributes class, delegateExpression, type or expression is mandatory
-    // on serviceTask". A distribution registers the plugin; a bare in-memory
-    // configuration does not, which is worth knowing before deploying these
-    // files anywhere.
+    // Without this nothing recognises cibseven.agentic.enabled: the scope would deploy as
+    // an ordinary ad hoc sub process and end the moment it was entered. A distribution
+    // registers the plugin; a bare in-memory configuration does not, which is worth knowing
+    // before deploying these files anywhere.
     configuration.setProcessEnginePlugins(
         Collections.<org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin>singletonList(
             new ConnectProcessEnginePlugin()));
@@ -131,10 +130,9 @@ public class AdHocAgentSuiteDeploymentTest {
   /**
    * Every file deploys, and its scope offers exactly the children the suite says.
    *
-   * <p>Deployment is the real assertion here. The four refusals in the parser mean
-   * a scope that names a driver without being parked, or names a driver that is not
-   * directly startable, does not deploy at all — so a file that survives this has a
-   * driver the engine will actually re-activate.
+   * <p>Deployment is the real assertion here. The parse listener refuses an agentic scope
+   * that is not an ad hoc sub process, that brings its own completion condition, or that has
+   * nothing directly startable — so a file that survives this is one the engine will run.
    */
   @Test
   public void everyFileDeploysAndOffersTheExpectedActivities() {
@@ -154,14 +152,14 @@ public class AdHocAgentSuiteDeploymentTest {
   }
 
   /**
-   * Starting an instance activates the agent and leaves it waiting as a job.
+   * Starting an instance leaves the first turn waiting as a job.
    *
-   * <p>Three things at once: entry activation reached the agent, the agent is
-   * {@code asyncBefore} so its work is a separate transaction, and no language
-   * model was contacted because the job was never executed.
+   * <p>Three things at once: the scope was recognised as agentic, its start listener
+   * scheduled a turn, and no language model was contacted because the job was never
+   * executed.
    */
   @Test
-  public void startingAnInstanceLeavesTheAgentWaitingAsAJob() {
+  public void startingAnInstanceLeavesTheFirstTurnWaitingAsAJob() {
     for (Object[] entry : SUITE) {
       String file = (String) entry[0];
       String processId = (String) entry[1];
@@ -172,11 +170,9 @@ public class AdHocAgentSuiteDeploymentTest {
 
       List<Job> jobs = ENGINE.getManagementService().createJobQuery()
           .processInstanceId(instance.getId()).list();
-      assertThat(jobs).as(file + ": the driver's job").hasSize(1);
-      // Job carries no activity id, so the filter does the work.
-      assertThat(ENGINE.getManagementService().createJobQuery()
-          .processInstanceId(instance.getId()).activityId("agent").count())
-          .as(file + ": the job belongs to the agent").isEqualTo(1);
+      assertThat(jobs).as(file + ": the first turn's job").hasSize(1);
+      assertThat(((JobEntity) jobs.get(0)).getJobHandlerType())
+          .as(file + ": and it is a turn").isEqualTo(AgenticTurnJobHandler.TYPE);
 
       // Nothing has run yet, so nothing is complete and the scope is still there.
       assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
@@ -184,23 +180,25 @@ public class AdHocAgentSuiteDeploymentTest {
     }
   }
 
-  /** The parked scope really is parked, in every file. */
+  /**
+   * The agent is configuration on the scope in every file, and the scope has no agent
+   * child left over.
+   */
   @Test
-  public void everyScopeIsParkedAndDrivenByTheAgent() {
+  public void everyScopeCarriesTheAgentAsConfiguration() {
     for (Object[] entry : SUITE) {
       String file = (String) entry[0];
       String definitionId = deploy(file);
 
       String xml = read(file);
-      assertThat(xml).as(file).contains("name=\"explicitCompletionOnly\" value=\"true\"");
-      assertThat(xml).as(file).contains("name=\"adHocDriverActivity\" value=\"agent\"");
-      assertThat(xml).as(file).contains("name=\"activeElementsCollection\" value=\"agent\"");
-      assertThat(xml).as(file).contains("camunda:asyncBefore=\"true\"");
-      assertThat(xml).as(file)
-          .contains("org.cibseven.connect.ai.agent.impl.AdHocSubProcessTool");
-      // No completion condition anywhere: it and explicitCompletionOnly are two
-      // answers to the same question, and the parser refuses both together.
+      assertThat(xml).as(file).contains("name=\"cibseven.agentic.enabled\" value=\"true\"");
+      assertThat(xml).as(file).contains("name=\"cibseven.agentic.message\"");
+      // The parking is the parse listener's, so no file may bring one of its own.
       assertThat(xml).as(file).doesNotContain("completionCondition");
+      // Nothing of the shape where the agent was a child of its own scope.
+      assertThat(xml).as(file).doesNotContain("camunda:connector");
+      assertThat(xml).as(file).doesNotContain("explicitCompletionOnly");
+      assertThat(xml).as(file).doesNotContain("adHocDriverActivity");
 
       ProcessDefinition definition =
           ENGINE.getRepositoryService().getProcessDefinition(definitionId);
@@ -238,9 +236,9 @@ public class AdHocAgentSuiteDeploymentTest {
       String file = (String) entry[0];
       String xml = read(file);
       if ("09-turn-limit.bpmn".equals(file)) {
-        assertThat(xml).as(file).contains("name=\"adHocMaxTurns\" value=\"3\"");
+        assertThat(xml).as(file).contains("name=\"cibseven.agentic.maxTurns\" value=\"3\"");
       } else {
-        assertThat(xml).as(file).doesNotContain("adHocMaxTurns");
+        assertThat(xml).as(file).doesNotContain("cibseven.agentic.maxTurns");
       }
     }
   }

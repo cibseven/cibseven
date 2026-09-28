@@ -53,10 +53,10 @@ final class AdHocLoopState {
     /** Turns taken, for the cap that stops an unbounded loop. */
     private static final String TURNS = "adHocAgentTurns";
 
-    /** Execution id of the driver run last counted, so one run counts once. */
-    private static final String TURN_EXECUTION = "adHocAgentTurnExecution";
+    /** Id of the turn last counted, so one turn counts once. */
+    private static final String TURN_MARKER = "adHocAgentTurnMarker";
 
-    /** Tool calls made in the turn now running; reset when a new driver run starts. */
+    /** Tool calls made in the turn now running; reset when a new turn starts. */
     private static final String CALLS = "adHocAgentCallsThisTurn";
 
     private AdHocLoopState() {
@@ -133,21 +133,24 @@ final class AdHocLoopState {
     /**
      * Counts the turn this call belongs to, once, and the calls within it.
      *
-     * <p>A turn is one run of the driver, not one tool call. Counting per call made a
+     * <p>A turn is one run of the agent, not one tool call. Counting per call made a
      * model that looked at the catalogue twice spend two turns on one, and left a turn
      * that never listed uncounted — the same mistake twice, counting the wrong event.
-     * The driver's execution is the handle: created once per re-activation, living
-     * exactly that turn.
+     *
+     * @param turnId something that is the same for every call of one turn and different
+     *     in the next; see {@code AdHocSubProcessTool.ownTurnId()}. A {@code null} id
+     *     counts every call as its own turn, which is the safe direction: a cap that
+     *     bites early is better than one that never bites.
      */
-    static void beginTurn(ExecutionEntity adHocScope, String driverExecutionId) {
-        if (driverExecutionId != null) {
+    static void beginTurn(ExecutionEntity adHocScope, String turnId) {
+        if (turnId != null) {
             PvmExecutionImpl state = AdHocAgentState.find(adHocScope);
-            Object last = (state == null) ? null : state.getVariableLocal(TURN_EXECUTION);
-            if (driverExecutionId.equals(last)) {
+            Object last = (state == null) ? null : state.getVariableLocal(TURN_MARKER);
+            if (turnId.equals(last)) {
                 write(adHocScope, CALLS, Integer.valueOf(callsThisTurn(adHocScope) + 1));
                 return;
             }
-            write(adHocScope, TURN_EXECUTION, driverExecutionId);
+            write(adHocScope, TURN_MARKER, turnId);
         }
         write(adHocScope, CALLS, Integer.valueOf(1));
         countTurn(adHocScope);

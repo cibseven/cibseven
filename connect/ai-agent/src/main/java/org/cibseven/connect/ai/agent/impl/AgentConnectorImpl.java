@@ -265,9 +265,9 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         }
         // Only the limit we set above lands here, and only inside an ad hoc scope.
         // Returning normally ends the agent's turn without an answer and commits
-        // what its tools already did, which is what lets the process go on: the
-        // driver's execution ends, the scope falls idle and completes. Rethrowing
-        // would fail the job and park the instance instead.
+        // what its tools already did, which is what lets the process go on: the turn
+        // ends, and with nothing running the scope completes. Rethrowing would fail
+        // the job and park the instance instead.
         LOG.warn("Agent '{}' kept calling tools for {} round trips without answering; "
             + "its turn is ended without an answer so the process continues. The "
             + "per-turn call limit of the ad hoc sub process is what bounds this.",

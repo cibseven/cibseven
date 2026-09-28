@@ -48,9 +48,9 @@ public final class AgenticTurnRunner {
 
   public static final String DEFAULT_RESULT_VARIABLE = "agentOutput";
 
-  /** Read by this class, not passed on to the connector. */
+  /** Read by this class or by the tool, not passed on to the connector. */
   protected static final Set<String> RESERVED = new HashSet<String>(Arrays.asList(
-      "enabled", "maxModelCalls", "resultVariable"));
+      "enabled", "maxModelCalls", "maxTurns", "resultVariable"));
 
   private AgenticTurnRunner() {
   }
@@ -58,6 +58,14 @@ public final class AgenticTurnRunner {
   public static void runTurn(ExecutionEntity scopeExecution, CommandContext commandContext) {
     Map<String, String> config = AgenticScopes.agenticConfig(scopeExecution);
     if (config.isEmpty()) {
+      return;
+    }
+
+    // A request an earlier turn left pending, because work was still running then. Acting on
+    // it here rather than asking again: the answer could not change anything, and a model
+    // call is the expensive part of a turn.
+    if (AdHocAgentState.isCompletionRequested(scopeExecution)) {
+      endOfTurn(scopeExecution);
       return;
     }
 
@@ -112,13 +120,19 @@ public final class AgenticTurnRunner {
   }
 
   /**
-   * Three exits. The scope ends when the agent asked for it, and when it did not but started
-   * nothing either -- no further turn would ever be scheduled. Otherwise the children it started
-   * run, and their end listener brings the next turn.
+   * Two exits, decided by one question: is anything still running inside the scope?
+   *
+   * <p>Nothing is. Then the scope ends -- either the agent asked for that, or it did not but
+   * started nothing either, and no further turn would ever be scheduled.
+   *
+   * <p>Something is. Then the scope stands and that child's end brings the next turn. This
+   * holds even when the agent asked to end: ending here would cancel live work, which is the
+   * very thing {@code completeScope} refuses for, and a child can still be started from
+   * outside after the request was made. The request keeps, and the turn that child's end
+   * schedules acts on it -- see {@link #runTurn}.
    */
   protected static void endOfTurn(ExecutionEntity scopeExecution) {
-    boolean requested = AdHocAgentState.isCompletionRequested(scopeExecution);
-    if (requested || !hasChildren(scopeExecution)) {
+    if (!hasChildren(scopeExecution)) {
       Context.getProcessEngineConfiguration().getRuntimeService()
           .completeAdHocSubProcess(scopeExecution.getId());
     }
