@@ -37,7 +37,7 @@ import org.cibseven.bpm.BpmPlatform;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.history.HistoricProcessInstance;
 import org.cibseven.bpm.engine.identity.Group;
-import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocAgentState;
+import org.cibseven.connect.ai.agent.agentic.AdHocAgentState;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
 import org.cibseven.bpm.engine.impl.context.Context;

@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocToolDescriptor;
+import org.cibseven.connect.ai.agent.agentic.AdHocToolDescriptor;
 
 import org.junit.jupiter.api.Test;
 

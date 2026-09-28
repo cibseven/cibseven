@@ -14,8 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.engine.impl.bpmn.behavior;
+package org.cibseven.connect.ai.agent.agentic;
 
+import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessActivityBehavior;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
@@ -34,10 +35,10 @@ import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
  * keeps it invisible to child iteration, completion checks and delete cascade.
  *
  * <p>Deliberately separate from the state execution
- * {@link AdHocSubProcessActivityBehavior} keeps for its activation counter: sharing
- * would stop that class's {@code getActivatedCount} fallback from firing as soon as an
- * agent stored anything, and a scope without a completion condition would then never
- * complete. The cost is one further execution per instance.
+ * {@link AdHocSubProcessActivityBehavior} keeps for its {@code adHocActivated} marker:
+ * sharing would tie the engine's "has this scope ever started anything" answer to
+ * whether an agent happened to store something. The cost is one further execution per
+ * instance.
  */
 public final class AdHocAgentState {
 
@@ -51,12 +52,13 @@ public final class AdHocAgentState {
     public static final String STATE_MARKER = "adHocAgentState";
 
     /**
-     * Set when the driver has asked for the scope to end, but the scope must not end
+     * Set when the agent has asked for the scope to end, but the scope must not end
      * yet.
      *
-     * <p>A driver runs inside the scope, so completing it from there deletes the
-     * driver's own execution while it is still running. The request is recorded here
-     * and acted on once that execution has ended.
+     * <p>A turn may still have work running that it started, or that someone started
+     * from outside after the request was made. Ending the scope then would cancel it,
+     * which is what {@code completeScope} refuses for. The request is recorded here and
+     * acted on at the end of a turn that finds nothing running.
      */
     public static final String COMPLETION_REQUESTED = "adHocAgentCompletionRequested";
 
@@ -81,7 +83,7 @@ public final class AdHocAgentState {
     }
 
     /**
-     * Records that the scope should end once the driver's turn is over.
+     * Records that the scope should end once nothing is running in it any more.
      *
      * @see #COMPLETION_REQUESTED
      */

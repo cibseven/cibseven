@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.connect.plugin.agentic;
+package org.cibseven.connect.ai.agent.agentic;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -24,7 +24,6 @@ import java.util.List;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineException;
-import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocToolDescriptor;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
@@ -35,8 +34,6 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin;
-import org.cibseven.connect.plugin.impl.agentic.AgenticAdHocEndListener;
-import org.cibseven.connect.plugin.impl.agentic.AgenticTurnJobHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

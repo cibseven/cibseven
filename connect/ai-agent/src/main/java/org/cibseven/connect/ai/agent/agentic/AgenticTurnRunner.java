@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.connect.plugin.impl.agentic;
+package org.cibseven.connect.ai.agent.agentic;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
-import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocAgentState;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;

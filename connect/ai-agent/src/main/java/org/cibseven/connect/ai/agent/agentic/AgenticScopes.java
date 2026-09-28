@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.connect.plugin.impl.agentic;
+package org.cibseven.connect.ai.agent.agentic;
 
 import java.util.Collections;
 import java.util.Map;
@@ -33,20 +33,11 @@ public final class AgenticScopes {
   /**
    * The innermost ad hoc scope at or above {@code execution}, or null.
    *
-   * <p>Walks the parent chain rather than taking getParent() once, because a child that is itself
-   * a scope hands its end to an execution one level below the ad hoc scope.
+   * <p>One implementation, in {@link AdHocAgentState}. There were two identical ones for a
+   * while, and callers picked whichever they had imported.
    */
   public static ExecutionEntity findAdHocScope(ExecutionEntity execution) {
-    ExecutionEntity current = execution;
-    while (current != null) {
-      PvmActivity activity = current.getActivity();
-      if (activity != null
-          && activity.getActivityBehavior() instanceof AdHocSubProcessActivityBehavior) {
-        return current;
-      }
-      current = current.getParent();
-    }
-    return null;
+    return AdHocAgentState.findAdHocScope(execution);
   }
 
   /** The cibseven.agentic.* properties of the scope, empty when the scope is not agentic. */

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.connect.plugin.impl.agentic;
+package org.cibseven.connect.ai.agent.agentic;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,7 +27,6 @@ import org.cibseven.bpm.engine.delegate.ExecutionListener;
 import org.cibseven.bpm.engine.delegate.VariableScope;
 import org.cibseven.bpm.engine.impl.Condition;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessActivityBehavior;
-import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocToolDescriptor;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
 import org.cibseven.bpm.engine.impl.bpmn.parser.AbstractBpmnParseListener;
 import org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParseUtil;

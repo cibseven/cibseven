@@ -34,8 +34,9 @@ import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
+import org.cibseven.connect.ai.agent.agentic.AdHocToolDescriptor;
 import org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin;
-import org.cibseven.connect.plugin.impl.agentic.AgenticTurnJobHandler;
+import org.cibseven.connect.ai.agent.agentic.AgenticTurnJobHandler;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -143,9 +144,8 @@ public class AdHocAgentSuiteDeploymentTest {
       String definitionId = deploy(file);
 
       List<String> offered = new ArrayList<>();
-      for (AdHocToolCatalog.Entry candidate :
-          AdHocToolCatalog.read(ENGINE.getRepositoryService(), definitionId, "adHoc", allChildIds(definitionId, "adHoc"))) {
-        offered.add(candidate.getId());
+      for (AdHocToolDescriptor candidate : catalogOf(definitionId)) {
+        offered.add(candidate.getActivityId());
       }
       assertThat(offered).as(file).containsExactlyInAnyOrder(expected);
     }
@@ -244,14 +244,24 @@ public class AdHocAgentSuiteDeploymentTest {
   }
 
   private List<String> resultVariables(String definitionId, String activityId) {
-    for (AdHocToolCatalog.Entry entry :
-        AdHocToolCatalog.read(ENGINE.getRepositoryService(), definitionId, "adHoc", allChildIds(definitionId, "adHoc"))) {
-      if (activityId.equals(entry.getId())) {
+    for (AdHocToolDescriptor entry : catalogOf(definitionId)) {
+      if (activityId.equals(entry.getActivityId())) {
         return entry.getResultVariables();
       }
     }
-    throw new AssertionError("no entry for " + activityId
-        + " among " + Arrays.toString(new Object[] {definitionId}));
+    throw new AssertionError("no entry for " + activityId + " in " + definitionId);
+  }
+
+  /**
+   * The parse-time catalogue of the scope, where the parse listener put it. Read inside a
+   * command, because the deployment cache hangs off the command context.
+   */
+  private List<AdHocToolDescriptor> catalogOf(final String definitionId) {
+    return ((org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl)
+        ENGINE.getProcessEngineConfiguration()).getCommandExecutorTxRequired().execute(
+            commandContext -> commandContext.getProcessEngineConfiguration()
+                .getDeploymentCache().findDeployedProcessDefinitionById(definitionId)
+                .findActivity("adHoc").getProperties().get(AdHocToolDescriptor.CATALOG));
   }
 
   /**

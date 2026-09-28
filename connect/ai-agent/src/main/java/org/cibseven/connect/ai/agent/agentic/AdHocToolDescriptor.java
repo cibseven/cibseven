@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.engine.impl.bpmn.behavior;
+package org.cibseven.connect.ai.agent.agentic;
 
 import java.util.Arrays;
 import java.util.Collections;

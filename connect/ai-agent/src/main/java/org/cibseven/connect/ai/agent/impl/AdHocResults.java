@@ -23,7 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocAgentState;
+import org.cibseven.connect.ai.agent.agentic.AdHocAgentState;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
 import org.cibseven.bpm.engine.variable.type.ValueType;

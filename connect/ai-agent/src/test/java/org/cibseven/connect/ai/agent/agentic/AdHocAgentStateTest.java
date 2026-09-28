@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.engine.test.bpmn.adhoc;
+package org.cibseven.connect.ai.agent.agentic;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,15 +23,18 @@ import java.util.List;
 
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
-import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocAgentState;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessActivityBehavior;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.task.Task;
-import org.cibseven.bpm.engine.test.Deployment;
-import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
+import org.cibseven.bpm.engine.ProcessEngine;
+import org.cibseven.bpm.engine.RuntimeService;
+import org.cibseven.bpm.engine.TaskService;
+import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -49,9 +52,42 @@ import org.junit.jupiter.api.Test;
  * completion depends on that answer would behave differently for no reason a modeller could see.
  * That is the failure {@link #agentStateDoesNotDisturbTheActivationMarker} guards.
  */
-public class AdHocAgentStateTest extends PluggableProcessEngineTest {
+public class AdHocAgentStateTest {
 
   protected static final String PENDING = "adHocAgentPending";
+
+  protected ProcessEngine engine;
+  protected RuntimeService runtimeService;
+  protected TaskService taskService;
+
+  /**
+   * Its own engine, deliberately without the agentic plugin: these tests are about the
+   * state execution, and a parked scope taking turns of its own would add executions in
+   * the middle of assertions about where a variable sits.
+   */
+  @BeforeEach
+  public void startEngine() {
+    StandaloneInMemProcessEngineConfiguration configuration =
+        new StandaloneInMemProcessEngineConfiguration();
+    configuration.setProcessEngineName("adhoc-agent-state");
+    configuration.setJdbcUrl("jdbc:h2:mem:adhoc-agent-state;DB_CLOSE_DELAY=-1");
+    configuration.setJobExecutorActivate(false);
+    configuration.setEnforceHistoryTimeToLive(false);
+    engine = configuration.buildProcessEngine();
+    runtimeService = engine.getRuntimeService();
+    taskService = engine.getTaskService();
+  }
+
+  @AfterEach
+  public void stopEngine() {
+    engine.close();
+  }
+
+  /** Deploys one of this class's two models by its file name. */
+  protected void deploy(String resource) {
+    engine.getRepositoryService().createDeployment()
+        .addClasspathResource("agentic/" + resource).deploy();
+  }
 
   /** Writes agent state the way the connector's loop state does. */
   public static class WriteAgentState implements JavaDelegate {
@@ -99,10 +135,9 @@ public class AdHocAgentStateTest extends PluggableProcessEngineTest {
    * The state must sit on neither the process instance nor the scope execution. Those are the two
    * places a child reaches by walking up, and either would make the state writable by every tool.
    */
-  @Deployment(resources = "org/cibseven/bpm/engine/test/bpmn/adhoc/"
-      + "AdHocAgentStateTest.parked.bpmn20.xml")
   @Test
   public void agentStateLivesBesideTheChildrenRatherThanAboveThem() {
+    deploy("AdHocAgentStateTest.parked.bpmn20.xml");
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocAgentState");
     String scope = scopeExecutionId(pi.getId());
 
@@ -122,10 +157,9 @@ public class AdHocAgentStateTest extends PluggableProcessEngineTest {
    * A scope nobody writes to carries no extra execution and no extra variable. The state execution
    * is created on first use precisely so that an ordinary ad hoc scope is unaffected.
    */
-  @Deployment(resources = "org/cibseven/bpm/engine/test/bpmn/adhoc/"
-      + "AdHocAgentStateTest.parked.bpmn20.xml")
   @Test
   public void noAgentStateExecutionWithoutAWrite() {
+    deploy("AdHocAgentStateTest.parked.bpmn20.xml");
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocAgentState");
 
     runtimeService.activateAdHocSubProcessActivities(scopeExecutionId(pi.getId()),
@@ -145,10 +179,9 @@ public class AdHocAgentStateTest extends PluggableProcessEngineTest {
    * variable at the process instance. Two of them existing is the proof that the first was not
    * overwritten.
    */
-  @Deployment(resources = "org/cibseven/bpm/engine/test/bpmn/adhoc/"
-      + "AdHocAgentStateTest.parked.bpmn20.xml")
   @Test
   public void aChildCannotOverwriteAgentState() {
+    deploy("AdHocAgentStateTest.parked.bpmn20.xml");
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocAgentState");
     String scope = scopeExecutionId(pi.getId());
 
@@ -171,10 +204,9 @@ public class AdHocAgentStateTest extends PluggableProcessEngineTest {
   }
 
   /** Reading it back through the same helper must still find the agent's value, not the tool's. */
-  @Deployment(resources = "org/cibseven/bpm/engine/test/bpmn/adhoc/"
-      + "AdHocAgentStateTest.parked.bpmn20.xml")
   @Test
   public void theHelperStillFindsTheAgentsValueAfterATamper() {
+    deploy("AdHocAgentStateTest.parked.bpmn20.xml");
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocAgentState");
     String scope = scopeExecutionId(pi.getId());
 
@@ -199,10 +231,9 @@ public class AdHocAgentStateTest extends PluggableProcessEngineTest {
    *
    * <p>The scope here is deliberately <em>not</em> parked, so completion is the observable outcome.
    */
-  @Deployment(resources = "org/cibseven/bpm/engine/test/bpmn/adhoc/"
-      + "AdHocAgentStateTest.notParked.bpmn20.xml")
   @Test
   public void agentStateDoesNotDisturbTheActivationMarker() {
+    deploy("AdHocAgentStateTest.notParked.bpmn20.xml");
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocAgentStateNotParked");
 
     // Synchronous: it writes agent state and ends inside this call, and the scope then decides
@@ -220,10 +251,9 @@ public class AdHocAgentStateTest extends PluggableProcessEngineTest {
    * Both kinds of state coexist on separate executions. Asserted through the variables rather than
    * through the execution tree, because that is what a reader can check without engine internals.
    */
-  @Deployment(resources = "org/cibseven/bpm/engine/test/bpmn/adhoc/"
-      + "AdHocAgentStateTest.parked.bpmn20.xml")
   @Test
   public void theTwoKindsOfStateSitOnDifferentExecutions() {
+    deploy("AdHocAgentStateTest.parked.bpmn20.xml");
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocAgentState");
     String scope = scopeExecutionId(pi.getId());
 
@@ -244,10 +274,9 @@ public class AdHocAgentStateTest extends PluggableProcessEngineTest {
    * payload's own name is not fixed — a conversation is keyed by a memory id, so recognition cannot
    * work by looking for the payload.
    */
-  @Deployment(resources = "org/cibseven/bpm/engine/test/bpmn/adhoc/"
-      + "AdHocAgentStateTest.parked.bpmn20.xml")
   @Test
   public void theStateExecutionCarriesItsMarker() {
+    deploy("AdHocAgentStateTest.parked.bpmn20.xml");
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocAgentState");
 
     runtimeService.activateAdHocSubProcessActivities(scopeExecutionId(pi.getId()),
@@ -266,10 +295,9 @@ public class AdHocAgentStateTest extends PluggableProcessEngineTest {
    * engine's own iteration, completion checks and delete cascade neither trip over it nor leave it
    * behind.
    */
-  @Deployment(resources = "org/cibseven/bpm/engine/test/bpmn/adhoc/"
-      + "AdHocAgentStateTest.parked.bpmn20.xml")
   @Test
   public void completingTheScopeDisposesOfTheStateExecution() {
+    deploy("AdHocAgentStateTest.parked.bpmn20.xml");
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocAgentState");
     String scope = scopeExecutionId(pi.getId());
 
@@ -290,10 +318,9 @@ public class AdHocAgentStateTest extends PluggableProcessEngineTest {
    * because child iteration, completion checks and delete cascade all use the non-event-scope view;
    * were it visible there, a scope on the count-based rule would never find "nothing active".
    */
-  @Deployment(resources = "org/cibseven/bpm/engine/test/bpmn/adhoc/"
-      + "AdHocAgentStateTest.notParked.bpmn20.xml")
   @Test
   public void theStateExecutionDoesNotCountAsAnActiveChild() {
+    deploy("AdHocAgentStateTest.notParked.bpmn20.xml");
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocAgentStateNotParked");
 
     // Both in one call, so the writer's end finds the waiting child active and the scope does not

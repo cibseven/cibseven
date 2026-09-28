@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.connect.plugin.impl.agentic;
+package org.cibseven.connect.ai.agent.agentic;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,7 +27,6 @@ import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
-import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocToolDescriptor;
 import org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParse;
 import org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParseUtil;
 import org.cibseven.bpm.engine.impl.util.xml.Element;

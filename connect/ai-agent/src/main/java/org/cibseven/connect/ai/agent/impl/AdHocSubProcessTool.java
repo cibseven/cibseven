@@ -30,9 +30,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.cibseven.bpm.engine.ProcessEngine;
-import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocAgentState;
+import org.cibseven.connect.ai.agent.agentic.AdHocAgentState;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessActivityBehavior;
-import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocToolDescriptor;
+import org.cibseven.connect.ai.agent.agentic.AdHocToolDescriptor;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.cibseven.bpm.engine.runtime.AdHocSubProcessActivationBuilder;

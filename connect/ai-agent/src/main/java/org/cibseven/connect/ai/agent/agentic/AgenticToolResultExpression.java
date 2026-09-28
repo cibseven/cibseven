@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.connect.plugin.impl.agentic;
+package org.cibseven.connect.ai.agent.agentic;
 
 import java.io.Serializable;
 import java.util.LinkedHashMap;
@@ -23,8 +23,6 @@ import java.util.Map;
 
 import org.cibseven.bpm.engine.delegate.Expression;
 import org.cibseven.bpm.engine.delegate.VariableScope;
-import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocAgentState;
-import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocToolDescriptor;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;

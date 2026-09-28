@@ -735,7 +735,7 @@ public class AdHocSubProcessToolTest {
             ENGINE.getRuntimeService().createExecutionQuery()
                 .processInstanceId(instance.getId()).activityId("adHoc").list().get(0);
     String description = null;
-    for (org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocToolDescriptor descriptor
+    for (org.cibseven.connect.ai.agent.agentic.AdHocToolDescriptor descriptor
         : catalogOf(instance)) {
       if ("chatty".equals(descriptor.getActivityId())) {
         description = new AdHocToolProvider(scope).description(descriptor);
@@ -755,7 +755,7 @@ public class AdHocSubProcessToolTest {
   }
 
   /** The parse-time catalogue of the deployed scope, read the way the provider does. */
-  private java.util.List<org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocToolDescriptor>
+  private java.util.List<org.cibseven.connect.ai.agent.agentic.AdHocToolDescriptor>
       catalogOf(ProcessInstance instance) {
     final String definitionId = ENGINE.getRuntimeService().createProcessInstanceQuery()
         .processInstanceId(instance.getId()).singleResult().getProcessDefinitionId();
@@ -764,7 +764,7 @@ public class AdHocSubProcessToolTest {
             commandContext -> commandContext.getProcessEngineConfiguration()
                 .getDeploymentCache().findDeployedProcessDefinitionById(definitionId)
                 .findActivity("adHoc").getProperties()
-                .get(org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocToolDescriptor.CATALOG));
+                .get(org.cibseven.connect.ai.agent.agentic.AdHocToolDescriptor.CATALOG));
   }
 
   // --- a multi-instance child ------------------------------------------------
