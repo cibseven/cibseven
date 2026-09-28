@@ -10,7 +10,7 @@
     <adHocSubProcess id="adHoc">
       <extensionElements>
         <camunda:properties>
-          <camunda:property name="activeElementsCollection" value="first,second,third" />
+          <camunda:property name="activitiesToActivate" value="first,second,third" />
         </camunda:properties>
       </extensionElements>
       <userTask id="first">

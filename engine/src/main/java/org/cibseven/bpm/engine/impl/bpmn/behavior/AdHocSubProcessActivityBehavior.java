@@ -59,7 +59,7 @@ import com.google.gson.JsonElement;
  *
  * <ul>
  * <li><b>Entry starts only the entry list.</b> {@link #execute(ActivityExecution)} starts what
- *     {@code activeElementsCollection} names, if anything, and otherwise leaves the scope waiting.</li>
+ *     {@code activitiesToActivate} names, if anything, and otherwise leaves the scope waiting.</li>
  * <li><b>{@link #initializeScope} must honour {@code numberOfInstances}.</b> Its caller,
  *     {@code PvmAtomicOperationActivityInitStackNotifyListenerStart}, passes 1 and immediately does
  *     {@code get(0)}. That path is process-instance modification instantiating a dormant scope, not
@@ -125,7 +125,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   }
 
   /**
-   * Starts the activities named by {@code camunda:property activeElementsCollection}, the declarative entry
+   * Starts the activities named by {@code camunda:property activitiesToActivate}, the declarative entry
    * activation of CIB7-1891. Does nothing when the property is absent, which is every model written
    * before it existed.
    *
@@ -159,7 +159,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     List<ActivityImpl> targets = resolveStartableChildren(scope, requested, unknown);
     if (!unknown.isEmpty()) {
       throw new ProcessEngineException("Ad hoc sub process '" + scope.getId()
-          + "': activeElementsCollection names " + unknown + ", which " + (unknown.size() == 1 ? "is" : "are")
+          + "': activitiesToActivate names " + unknown + ", which " + (unknown.size() == 1 ? "is" : "are")
           + " not directly startable here. The startable activities are " + startableActivityIds(scope) + "."
           + evaluatedTo(value));
     }
@@ -354,7 +354,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
       }
     }
     if (!ofStrings) {
-      throw new ProcessEngineException("Ad hoc sub process '" + scopeId + "': activeElementsCollection gives "
+      throw new ProcessEngineException("Ad hoc sub process '" + scopeId + "': activitiesToActivate gives "
           + text + ", which is not a JSON array of activity ids.");
     }
     return array;

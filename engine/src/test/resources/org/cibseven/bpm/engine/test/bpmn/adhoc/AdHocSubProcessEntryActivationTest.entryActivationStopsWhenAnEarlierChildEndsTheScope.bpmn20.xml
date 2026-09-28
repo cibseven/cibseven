@@ -9,7 +9,7 @@
     <adHocSubProcess id="adHoc" cancelRemainingInstances="true">
       <extensionElements>
         <camunda:properties>
-          <camunda:property name="activeElementsCollection" value="sync,taskA" />
+          <camunda:property name="activitiesToActivate" value="sync,taskA" />
         </camunda:properties>
       </extensionElements>
       <!-- synchronous, and it makes the completion condition true as it runs -->

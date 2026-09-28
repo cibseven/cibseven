@@ -9,7 +9,7 @@
     <adHocSubProcess id="adHoc">
       <extensionElements>
         <camunda:properties>
-          <camunda:property name="activeElementsCollection" value="looped" />
+          <camunda:property name="activitiesToActivate" value="looped" />
         </camunda:properties>
       </extensionElements>
       <userTask id="looped" name="Looped">

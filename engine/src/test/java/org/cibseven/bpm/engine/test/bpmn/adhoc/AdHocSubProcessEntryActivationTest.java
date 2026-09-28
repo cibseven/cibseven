@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Test;
  * on entry, and the gap was invisible to the conformance suite because it is a vendor capability the
  * specification does not mention at all.
  *
- * <p>Carried as {@code camunda:property activeElementsCollection} rather than a new namespace, per
+ * <p>Carried as {@code camunda:property activitiesToActivate} rather than a new namespace, per
  * CIB7-1890. Extension properties are read at parse time and never become process variables, so a
  * child of the scope cannot rewrite which activities its own scope starts.
  */
@@ -92,7 +92,7 @@ public class AdHocSubProcessEntryActivationTest extends PluggableProcessEngineTe
           + "AdHocSubProcessEntryActivationTest.entryActivationRejectsAnUnstartableId.bpmn20.xml");
       fail("a literal entry list naming an unstartable activity must be rejected at deployment");
     } catch (ParseException e) {
-      testRule.assertTextPresent("activeElementsCollection names [nosuch]", e.getMessage());
+      testRule.assertTextPresent("activitiesToActivate names [nosuch]", e.getMessage());
       testRule.assertTextPresent("not directly startable here", e.getMessage());
     }
   }
@@ -336,7 +336,7 @@ public class AdHocSubProcessEntryActivationTest extends PluggableProcessEngineTe
       runtimeService.startProcessInstanceByKey("adHocEntryExpr", vars);
       fail("an expression naming an unstartable activity must fail");
     } catch (ProcessEngineException e) {
-      testRule.assertTextPresent("activeElementsCollection names [nosuch]", e.getMessage());
+      testRule.assertTextPresent("activitiesToActivate names [nosuch]", e.getMessage());
     }
   }
 
@@ -395,7 +395,7 @@ public class AdHocSubProcessEntryActivationTest extends PluggableProcessEngineTe
           + "AdHocSubProcessEntryActivationTest.entryActivationRejectsAnUnstartableIdInAJsonLiteral.bpmn20.xml");
       fail("a literal JSON array naming an unstartable activity must be rejected at deployment");
     } catch (ParseException e) {
-      testRule.assertTextPresent("activeElementsCollection names [nosuch]", e.getMessage());
+      testRule.assertTextPresent("activitiesToActivate names [nosuch]", e.getMessage());
     }
   }
 

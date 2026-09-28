@@ -189,7 +189,7 @@ public class BpmnParse extends Parse {
   protected static final BpmnParseLogger LOG = ProcessEngineLogger.BPMN_PARSE_LOGGER;
 
   /** Extension property naming the activities to start on entry. See CIB7-1891. */
-  public static final String AD_HOC_ENTRY_ACTIVITIES_PROPERTY = "activeElementsCollection";
+  public static final String AD_HOC_ENTRY_ACTIVITIES_PROPERTY = "activitiesToActivate";
 
   /** Extension property naming the variable each performance's result is appended to. CIB7-1892. */
   public static final String AD_HOC_OUTPUT_COLLECTION_PROPERTY = "outputCollection";
@@ -4096,7 +4096,7 @@ public class BpmnParse extends Parse {
   }
 
   /**
-   * Declarative entry activation (CIB7-1891): {@code camunda:property activeElementsCollection} names the
+   * Declarative entry activation (CIB7-1891): {@code camunda:property activitiesToActivate} names the
    * activities to start when the scope is entered.
    *
    * <p>Carried as an extension property rather than a new namespace, per CIB7-1890. Extension

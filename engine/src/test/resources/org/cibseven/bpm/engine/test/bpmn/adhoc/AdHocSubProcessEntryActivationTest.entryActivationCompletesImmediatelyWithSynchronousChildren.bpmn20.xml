@@ -8,7 +8,7 @@
     <adHocSubProcess id="adHoc">
       <extensionElements>
         <camunda:properties>
-          <camunda:property name="activeElementsCollection" value="one,two" />
+          <camunda:property name="activitiesToActivate" value="one,two" />
         </camunda:properties>
       </extensionElements>
       <serviceTask id="one" camunda:expression="${true}" />

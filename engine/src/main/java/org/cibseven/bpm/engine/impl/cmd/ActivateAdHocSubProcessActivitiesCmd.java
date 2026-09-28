@@ -162,9 +162,9 @@ public class ActivateAdHocSubProcessActivitiesCmd implements Command<List<String
       throw new BadUserRequestException("Cannot start " + rejected + " in ad hoc sub process '"
           + scope.getId() + "'. Its directly startable activities are "
           + behavior.startableActivityIds(scope)
-          + ". An element is directly startable if it is an activity and has no incoming sequence"
-          + " flow from within the scope, so a gateway or an intermediate event is reachable by flow"
-          + " but never started directly.");
+          + ". An activity is directly startable if it has no incoming sequence flow from"
+          + " within the scope; a gateway or an intermediate event is reachable by flow but"
+          + " never started directly.");
     }
     return resolved;
   }

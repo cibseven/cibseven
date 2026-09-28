@@ -4,7 +4,7 @@
   <process id="edgeBoundary" isExecutable="true" camunda:historyTimeToLive="P30D">
     <startEvent id="start" /><sequenceFlow id="f1" sourceRef="start" targetRef="scope" />
     <adHocSubProcess id="scope">
-      <extensionElements><camunda:properties><camunda:property name="activeElementsCollection" value="work" /></camunda:properties></extensionElements>
+      <extensionElements><camunda:properties><camunda:property name="activitiesToActivate" value="work" /></camunda:properties></extensionElements>
       <userTask id="work" name="Work" />
       <boundaryEvent id="bnd" attachedToRef="work" cancelActivity="false">
         <messageEventDefinition messageRef="m" />

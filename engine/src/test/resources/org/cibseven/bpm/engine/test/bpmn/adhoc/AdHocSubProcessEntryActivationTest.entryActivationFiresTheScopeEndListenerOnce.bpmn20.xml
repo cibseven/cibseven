@@ -13,7 +13,7 @@
         <camunda:executionListener event="end"
             expression="${execution.setVariable('scopeEnded', execution.getVariable('scopeEnded') == null ? 1 : execution.getVariable('scopeEnded') + 1)}" />
         <camunda:properties>
-          <camunda:property name="activeElementsCollection" value="sync,taskA" />
+          <camunda:property name="activitiesToActivate" value="sync,taskA" />
         </camunda:properties>
       </extensionElements>
       <serviceTask id="sync" camunda:expression="${execution.setVariable('enough', true)}" />

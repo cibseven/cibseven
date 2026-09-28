@@ -11,7 +11,7 @@
     <adHocSubProcess id="adHoc">
       <extensionElements>
         <camunda:properties>
-          <camunda:property name="activeElementsCollection" value="other,step" />
+          <camunda:property name="activitiesToActivate" value="other,step" />
           <camunda:property name="outputCollection" value="results" />
           <camunda:property name="outputElement" value="${execution.activityId == 'other' ? null : result}" />
         </camunda:properties>

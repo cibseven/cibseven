@@ -6,7 +6,7 @@
     <startEvent id="start" /><sequenceFlow id="f1" sourceRef="start" targetRef="scope" />
     <adHocSubProcess id="scope">
       <extensionElements><camunda:properties>
-        <camunda:property name="activeElementsCollection" value="triage" />
+        <camunda:property name="activitiesToActivate" value="triage" />
       </camunda:properties></extensionElements>
       <multiInstanceLoopCharacteristics isSequential="false"
           camunda:collection="items" camunda:elementVariable="item" />
