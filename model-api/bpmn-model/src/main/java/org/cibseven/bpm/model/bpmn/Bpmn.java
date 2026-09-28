@@ -31,6 +31,7 @@ import org.cibseven.bpm.model.bpmn.builder.ProcessBuilder;
 import org.cibseven.bpm.model.bpmn.impl.BpmnParser;
 import org.cibseven.bpm.model.bpmn.impl.instance.ActivationConditionImpl;
 import org.cibseven.bpm.model.bpmn.impl.instance.ActivityImpl;
+import org.cibseven.bpm.model.bpmn.impl.instance.AdHocSubProcessImpl;
 import org.cibseven.bpm.model.bpmn.impl.instance.ArtifactImpl;
 import org.cibseven.bpm.model.bpmn.impl.instance.AssignmentImpl;
 import org.cibseven.bpm.model.bpmn.impl.instance.AssociationImpl;
@@ -456,6 +457,7 @@ public class Bpmn {
   protected void doRegisterTypes(ModelBuilder bpmnModelBuilder) {
     ActivationConditionImpl.registerType(bpmnModelBuilder);
     ActivityImpl.registerType(bpmnModelBuilder);
+    AdHocSubProcessImpl.registerType(bpmnModelBuilder);
     ArtifactImpl.registerType(bpmnModelBuilder);
     AssignmentImpl.registerType(bpmnModelBuilder);
     AssociationImpl.registerType(bpmnModelBuilder);

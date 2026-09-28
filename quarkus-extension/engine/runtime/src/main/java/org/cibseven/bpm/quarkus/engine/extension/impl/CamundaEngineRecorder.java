@@ -45,6 +45,12 @@ import org.eclipse.microprofile.context.ManagedExecutor;
 @Recorder
 public class CamundaEngineRecorder {
 
+  private final RuntimeValue<CamundaEngineConfig> configRuntimeValue;
+
+  public CamundaEngineRecorder(RuntimeValue<CamundaEngineConfig> configRuntimeValue) {
+    this.configRuntimeValue = configRuntimeValue;
+  }
+
   public void configureProcessEngineCdiBeans(BeanContainer beanContainer) {
 
     if (BeanManagerLookup.localInstance == null) {
@@ -52,8 +58,9 @@ public class CamundaEngineRecorder {
     }
   }
 
-  public RuntimeValue<ProcessEngineConfigurationImpl> createProcessEngineConfiguration(BeanContainer beanContainer,
-                                                                                       CamundaEngineConfig config) {
+  public RuntimeValue<ProcessEngineConfigurationImpl> createProcessEngineConfiguration(BeanContainer beanContainer) {
+
+    CamundaEngineConfig config = configRuntimeValue.getValue();
 
     QuarkusProcessEngineConfiguration configuration = getBeanFromContainer(QuarkusProcessEngineConfiguration.class,
         beanContainer);
@@ -149,7 +156,14 @@ public class CamundaEngineRecorder {
         .maxAsync(maxPoolSize)
         .withNewExecutorService()
         .build();
-    ManagedJobExecutor quarkusJobExecutor = new ManagedJobExecutor(managedExecutor);
+
+    // CIB7-1959 Quarkus job executor creates threads without the Quarkus TCCL (SRCFG00015)
+    // Capture the Quarkus class loader while runtime init still runs with it as the TCCL, and
+    // let the job executor apply it while jobs are executed. Otherwise the engine switches to
+    // its own class loader and SmallRye Config, which matches the TCCL by exact identity, can
+    // no longer resolve @ConfigProperty injection points from job executor threads.
+    ClassLoader runtimeClassLoader = Thread.currentThread().getContextClassLoader();
+    ManagedJobExecutor quarkusJobExecutor = new ManagedJobExecutor(managedExecutor, runtimeClassLoader);
 
     // apply job executor configuration properties
     PropertyHelper

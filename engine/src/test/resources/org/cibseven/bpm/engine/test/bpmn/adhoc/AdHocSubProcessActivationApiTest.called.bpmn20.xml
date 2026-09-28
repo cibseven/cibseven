@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="adHocActivationApiCalled" isExecutable="true">
+    <startEvent id="cStart" />
+    <sequenceFlow id="c1" sourceRef="cStart" targetRef="cEnd" />
+    <endEvent id="cEnd" />
+  </process>
+</definitions>
