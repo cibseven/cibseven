@@ -50,11 +50,8 @@ final class AdHocLoopState {
     /** Started activities not yet seen finished: activity instance id to activity id. */
     private static final String PENDING = "adHocAgentPending";
 
-    /** Turns taken, for the cap that stops an unbounded loop. */
-    private static final String TURNS = "adHocAgentTurns";
-
-    /** Id of the turn last counted, so one turn counts once. */
-    private static final String TURN_MARKER = "adHocAgentTurnMarker";
+    /** Id of the turn whose calls are being counted, so a new turn resets the count. */
+    private static final String CALLS_TURN_MARKER = "adHocAgentCallsTurnMarker";
 
     /** Tool calls made in the turn now running; reset when a new turn starts. */
     private static final String CALLS = "adHocAgentCallsThisTurn";
@@ -119,41 +116,35 @@ final class AdHocLoopState {
         return finished;
     }
 
-    /** Turns taken so far, zero before the first one is counted. */
+    /** Turns taken so far. Counting lives in the engine now; this reads it for reports. */
     static int turns(ExecutionEntity adHocScope) {
-        PvmExecutionImpl state = AdHocAgentState.find(adHocScope);
-        Object raw = (state == null) ? null : state.getVariableLocal(TURNS);
-        return (raw instanceof Number) ? ((Number) raw).intValue() : 0;
-    }
-
-    static void countTurn(ExecutionEntity adHocScope) {
-        write(adHocScope, TURNS, Integer.valueOf(turns(adHocScope) + 1));
+        return AdHocAgentState.turns(adHocScope);
     }
 
     /**
-     * Counts the turn this call belongs to, once, and the calls within it.
+     * Counts one tool call of the turn {@code turnId}, resetting when a new turn
+     * starts.
      *
-     * <p>A turn is one run of the agent, not one tool call. Counting per call made a
-     * model that looked at the catalogue twice spend two turns on one, and left a turn
-     * that never listed uncounted — the same mistake twice, counting the wrong event.
+     * <p>The turn itself is counted by the runner before the model is asked — see
+     * {@code AdHocAgentState.beginTurn}. This counter only bounds the calls
+     * <em>within</em> one turn, which the turn cap cannot see: a loop that starts
+     * synchronous children never ends its turn.
      *
-     * @param turnId something that is the same for every call of one turn and different
-     *     in the next; see {@code AdHocSubProcessTool.ownTurnId()}. A {@code null} id
-     *     counts every call as its own turn, which is the safe direction: a cap that
-     *     bites early is better than one that never bites.
+     * @param turnId something that is the same for every call of one turn and
+     *     different in the next. A {@code null} id counts every call as its own
+     *     turn's first, which is the safe direction for the cap.
      */
-    static void beginTurn(ExecutionEntity adHocScope, String turnId) {
+    static void registerCall(ExecutionEntity adHocScope, String turnId) {
         if (turnId != null) {
             PvmExecutionImpl state = AdHocAgentState.find(adHocScope);
-            Object last = (state == null) ? null : state.getVariableLocal(TURN_MARKER);
+            Object last = (state == null) ? null : state.getVariableLocal(CALLS_TURN_MARKER);
             if (turnId.equals(last)) {
                 write(adHocScope, CALLS, Integer.valueOf(callsThisTurn(adHocScope) + 1));
                 return;
             }
-            write(adHocScope, TURN_MARKER, turnId);
+            write(adHocScope, CALLS_TURN_MARKER, turnId);
         }
         write(adHocScope, CALLS, Integer.valueOf(1));
-        countTurn(adHocScope);
     }
 
     /**

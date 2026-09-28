@@ -230,7 +230,8 @@ public class AdHocLoopStateTest {
     inScope(instance.getId(), new ScopeWork<Void>() {
       @Override
       public Void run(ExecutionEntity scope) {
-        AdHocLoopState.countTurn(scope);
+        // The counter lives in the engine now; a fresh id per call counts one turn.
+        AdHocAgentState.beginTurn(scope, "turn-" + AdHocAgentState.turns(scope));
         return null;
       }
     });

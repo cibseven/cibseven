@@ -170,7 +170,7 @@ public class AdHocTwoNodeTest {
     }), agent(scope -> {
       ProcessVariableChatMemoryStore store = new ProcessVariableChatMemoryStore();
       readBack = store.getMessages(MEMORY_ID);
-      Map<String, Object> listing = new AdHocSubProcessTool().listAvailableActivities();
+      Map<String, Object> listing = new AdHocSubProcessTool().turnReport();
       scope.setVariable("turnSeenOnB", listing.get("turn"));
       scope.setVariable("finishedSeenOnB",
           String.valueOf(listing.get("finishedSinceLastTurn")));

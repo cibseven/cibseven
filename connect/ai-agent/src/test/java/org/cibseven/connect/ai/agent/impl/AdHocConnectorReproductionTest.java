@@ -85,12 +85,10 @@ public class AdHocConnectorReproductionTest {
     int call = stubCalls.incrementAndGet();
     String body;
     if (call == 1) {
-      body = toolCall("call_1", "listAvailableActivities", "{}");
+      // The activity is its own tool now; there is no generic start call to name it in.
+      body = toolCall("call_1", "calculatePrice", "{}");
     } else if (call == 2) {
-      body = toolCall("call_2", "startActivity",
-          "{\\\"activityId\\\":\\\"calculatePrice\\\",\\\"variables\\\":{}}");
-    } else if (call == 3) {
-      body = toolCall("call_3", "completeScope", "{}");
+      body = toolCall("call_2", "completeScope", "{}");
     } else {
       // The turn the failure lived in: the model is asked again after
       // completeScope returned, exactly as LangChain4j does.
@@ -243,7 +241,7 @@ public class AdHocConnectorReproductionTest {
 
     assertThat(failure).as("turn failed; incident: " + reported).isNull();
     assertThat(stubCalls.get()).as("the model must have been asked after completeScope")
-        .isGreaterThanOrEqualTo(4);
+        .isGreaterThanOrEqualTo(3);
     assertThat(engine.getRuntimeService().createProcessInstanceQuery()
         .processInstanceId(instance.getId()).count())
         .as("the process should have continued past the scope").isZero();

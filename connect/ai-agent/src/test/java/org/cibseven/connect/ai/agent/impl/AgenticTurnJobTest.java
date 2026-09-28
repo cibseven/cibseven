@@ -80,7 +80,8 @@ public class AgenticTurnJobTest {
 
   @Test
   public void aTurnStartsWhatTheAgentAsksFor() {
-    script.add(toolCall("startActivity", "{\\\"activityId\\\":\\\"worker\\\"}"));
+    // The activity is its own tool: the model names it directly, no id parameter.
+    script.add(toolCall("worker", "{}"));
     script.add(answer("Started."));
     ProcessInstance pi = start();
 
@@ -92,7 +93,7 @@ public class AgenticTurnJobTest {
 
   @Test
   public void aFurtherTurnComesAtTheEndOfTheChain() {
-    script.add(toolCall("startActivity", "{\\\"activityId\\\":\\\"worker\\\"}"));
+    script.add(toolCall("worker", "{}"));
     script.add(answer("Started."));
     ProcessInstance pi = start();
     runWaitingTurn();
@@ -139,15 +140,22 @@ public class AgenticTurnJobTest {
 
   @Test
   public void theAgentIsOfferedOnlyWhatTheEngineWillStart() {
-    script.add(toolCall("listAvailableActivities", "{}"));
     script.add(answer("Seen."));
     start();
 
     runWaitingTurn();
 
-    // 'second' sits behind an inner sequence flow, so the engine refuses to start it directly
-    // and the catalogue must not offer it.
-    assertThat(lastToolResult()).contains("worker").doesNotContain("second");
+    // 'second' sits behind an inner sequence flow, so the engine refuses to start it
+    // directly and the tool list must not offer it. The tools travel in the request
+    // body, which is where the stub sees them; whitespace-normalised, because the
+    // client pretty-prints.
+    String body = lastToolResult().replaceAll("\\s", "");
+    assertThat(body)
+        .contains("\"name\":\"worker\"")
+        .contains("\"name\":\"completeScope\"")
+        .doesNotContain("\"name\":\"second\"")
+        .doesNotContain("startActivity")
+        .doesNotContain("listAvailableActivities");
   }
 
   protected void runWaitingTurn() {

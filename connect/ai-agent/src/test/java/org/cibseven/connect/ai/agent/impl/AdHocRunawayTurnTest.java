@@ -82,10 +82,8 @@ public class AdHocRunawayTurnTest {
 
   private void respond(HttpExchange exchange) throws IOException {
     int call = stubCalls.incrementAndGet();
-    String body = (call % 2 == 1)
-        ? toolCall("call_" + call, "listAvailableActivities", "{}")
-        : toolCall("call_" + call, "startActivity",
-            "{\\\"activityId\\\":\\\"work\\\",\\\"variables\\\":{}}");
+    // Every answer starts 'work' again — the activity is its own tool now.
+    String body = toolCall("call_" + call, "work", "{}");
     byte[] payload = body.getBytes(StandardCharsets.UTF_8);
     exchange.getResponseHeaders().add("Content-Type", "application/json");
     exchange.sendResponseHeaders(200, payload.length);

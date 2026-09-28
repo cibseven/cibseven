@@ -255,11 +255,6 @@ public class AdHocSubProcessToolTest {
         + "        <camunda:property name='adHocBlockedWhileOthersRun' value='true' />"
         + "      </camunda:properties></extensionElements>"
         + "    </serviceTask>"
-        + "    <serviceTask id='gatedBadValue' name='Gated bad value' camunda:expression='${1}'>"
-        + "      <extensionElements><camunda:properties>"
-        + "        <camunda:property name='adHocBlockedWhileOthersRun' value='yes' />"
-        + "      </camunda:properties></extensionElements>"
-        + "    </serviceTask>"
         + "    <serviceTask id='asyncChild' name='Async child' camunda:asyncBefore='true'"
         + "        camunda:expression='${1}' camunda:resultVariable='asyncDone' />"
         + "    <userTask id='multi' name='Multi'>"
@@ -316,7 +311,7 @@ public class AdHocSubProcessToolTest {
     @Override
     public void execute(DelegateExecution execution) {
       try {
-        Agent.RESULTS.add(new AdHocSubProcessTool().listAvailableActivities());
+        Agent.RESULTS.add(new AdHocSubProcessTool().turnReport());
       } catch (RuntimeException e) {
         Agent.FAILURES.add(e);
       }
@@ -430,30 +425,20 @@ public class AdHocSubProcessToolTest {
   // --- listAvailableActivities ----------------------------------------------
 
   @Test
-  public void theListingNamesTheStartableChildrenWithNameAndDocumentation() {
-    start("listing", tool -> tool.listAvailableActivities());
+  public void theReportCarriesNoCatalogue() {
+    start("listing", tool -> tool.turnReport());
 
     Map<String, Object> listing = result(0);
     assertThat(listing.get("adHocActivityId")).isEqualTo("adHoc");
-    // Every child of the scope. The agent is configuration on it, not one of them.
-    assertThat(ids(activities(listing))).containsExactlyInAnyOrder(
-        "waits", "quick", "bigText", "bigBlock", "object", "gated", "gatedBadValue", "asyncChild",
-        "chatty", "multi");
-
-    Map<String, Object> waits = null;
-    for (Map<String, Object> item : activities(listing)) {
-      if ("waits".equals(item.get("id"))) {
-        waits = item;
-      }
-    }
-    assertThat(waits).isNotNull();
-    assertThat(waits.get("name")).isEqualTo("Waits for a person");
-    assertThat(waits.get("documentation")).isEqualTo("Someone has to look at this.");
+    // The activities are the tools themselves now; repeating them in the report
+    // would be the same model data twice in one prompt.
+    assertThat(listing).doesNotContainKey("activities");
+    assertThat(listing).containsKeys("finishedSinceLastTurn", "stillRunning", "turn");
   }
 
   @Test
   public void theListingCountsTheTurnAndReportsTheLimit() {
-    start("counts", tool -> tool.listAvailableActivities());
+    start("counts", tool -> tool.turnReport());
 
     Map<String, Object> listing = result(0);
     assertThat(listing.get("turn")).isEqualTo(1);
@@ -468,7 +453,7 @@ public class AdHocSubProcessToolTest {
    */
   @Test
   public void theListingWarnsWhenNothingItStartedIsRunning() {
-    start("warns", tool -> tool.listAvailableActivities());
+    start("warns", tool -> tool.turnReport());
 
     assertThat(result(0)).containsKey("note");
     assertThat(String.valueOf(result(0).get("note")))
@@ -479,7 +464,7 @@ public class AdHocSubProcessToolTest {
   public void theListingReportsWhatIsStillRunning() {
     start("running", tool -> {
       tool.startActivity("waits", Collections.<String, Object>emptyMap());
-      return tool.listAvailableActivities();
+      return tool.turnReport();
     });
 
     Map<String, Object> listing = result(0);
@@ -619,7 +604,7 @@ public class AdHocSubProcessToolTest {
   public void aChildThatFinishedBetweenTurnsIsReportedWithItsValues() {
     ProcessInstance instance = startWithoutTurn("history",
         tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()),
-        tool -> tool.listAvailableActivities());
+        tool -> tool.turnReport());
 
     runPendingTurn(instance);
 
@@ -653,7 +638,7 @@ public class AdHocSubProcessToolTest {
   public void anActivityReportsOnlyWhatTheModelDeclares() {
     ProcessInstance instance = startWithoutTurn("declaredOnly",
         tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()),
-        tool -> tool.listAvailableActivities());
+        tool -> tool.turnReport());
 
     runPendingTurn(instance);
 
@@ -740,28 +725,46 @@ public class AdHocSubProcessToolTest {
    */
   @Test
   public void aLongNameAndDocumentationAreCappedBeforeTheyReachTheModel() {
-    start("chattyModel", tool -> tool.listAvailableActivities());
+    // Without the turn: a turn that starts nothing ends the scope, and the scope
+    // execution is what the provider reads the description through.
+    ProcessInstance instance = startWithoutTurn("chattyModel", tool -> tool.turnReport());
 
-    Map<String, Object> listing = result(0);
-    Map<String, Object> chatty = null;
-    for (Map<String, Object> item : activities(listing)) {
-      if ("chatty".equals(item.get("id"))) {
-        chatty = item;
+    // Name and documentation reach the model as the tool's description now.
+    org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity scope =
+        (org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity)
+            ENGINE.getRuntimeService().createExecutionQuery()
+                .processInstanceId(instance.getId()).activityId("adHoc").list().get(0);
+    String description = null;
+    for (org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocToolDescriptor descriptor
+        : catalogOf(instance)) {
+      if ("chatty".equals(descriptor.getActivityId())) {
+        description = new AdHocToolProvider(scope).description(descriptor);
       }
     }
-    assertThat(chatty).isNotNull();
+    assertThat(description).isNotNull();
+    assertThat(description.length())
+        .as("one element must not dominate the prompt")
+        .isLessThanOrEqualTo(AdHocSubProcessTool.MAX_NAME_CHARS
+            + AdHocSubProcessTool.MAX_DOCUMENTATION_CHARS + 500);
+    assertThat(description).contains("truncated");
 
-    String documentation = String.valueOf(chatty.get("documentation"));
-    assertThat(documentation.length())
-        .isLessThanOrEqualTo(AdHocSubProcessTool.MAX_DOCUMENTATION_CHARS + 60);
-    assertThat(documentation).contains("truncated");
-
-    String name = String.valueOf(chatty.get("name"));
-    assertThat(name.length()).isLessThanOrEqualTo(AdHocSubProcessTool.MAX_NAME_CHARS + 60);
-
-    assertThat(String.valueOf(listing.get("note")))
+    runPendingTurn(instance);
+    assertThat(String.valueOf(result(0).get("note")))
         .as("the model is told these fields are data, not instructions")
         .contains("not instructions");
+  }
+
+  /** The parse-time catalogue of the deployed scope, read the way the provider does. */
+  private java.util.List<org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocToolDescriptor>
+      catalogOf(ProcessInstance instance) {
+    final String definitionId = ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processInstanceId(instance.getId()).singleResult().getProcessDefinitionId();
+    return ((org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl)
+        ENGINE.getProcessEngineConfiguration()).getCommandExecutorTxRequired().execute(
+            commandContext -> commandContext.getProcessEngineConfiguration()
+                .getDeploymentCache().findDeployedProcessDefinitionById(definitionId)
+                .findActivity("adHoc").getProperties()
+                .get(org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocToolDescriptor.CATALOG));
   }
 
   // --- a multi-instance child ------------------------------------------------
@@ -893,10 +896,10 @@ public class AdHocSubProcessToolTest {
   public void aRetriedTurnIsCountedOnce() {
     ProcessInstance instance = startWithoutTurn("retriedCount",
         tool -> {
-          tool.listAvailableActivities();
+          tool.turnReport();
           throw new TurnFailure("died mid-turn");
         },
-        tool -> tool.listAvailableActivities());
+        tool -> tool.turnReport());
 
     String jobId = ENGINE.getManagementService().createJobQuery()
         .processInstanceId(instance.getId()).singleResult().getId();
@@ -938,10 +941,10 @@ public class AdHocSubProcessToolTest {
   public void severalToolCallsInOneTurnCountAsOneTurn() {
     start("oneTurn", tool -> {
       List<Object> seen = new ArrayList<>();
-      seen.add(tool.listAvailableActivities().get("turn"));
-      seen.add(tool.listAvailableActivities().get("turn"));
+      seen.add(tool.turnReport().get("turn"));
+      seen.add(tool.turnReport().get("turn"));
       seen.add(tool.startActivity("quick", Collections.<String, Object>emptyMap()));
-      seen.add(tool.listAvailableActivities().get("turn"));
+      seen.add(tool.turnReport().get("turn"));
       return seen;
     });
 
@@ -958,7 +961,7 @@ public class AdHocSubProcessToolTest {
   public void theNextJobIsTheNextTurn() {
     ProcessInstance instance = startWithoutTurn("twoTurns",
         tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()),
-        tool -> tool.listAvailableActivities());
+        tool -> tool.turnReport());
 
     runPendingTurn(instance);
     ENGINE.getTaskService().complete(task(instance, "waits").getId());
@@ -970,11 +973,11 @@ public class AdHocSubProcessToolTest {
   }
 
   /**
-   * A cap of one allows the first turn and refuses the second.
+   * A cap of one allows the first turn; the second ends the scope without a model call.
    *
-   * <p>Driven by two real turns. The previous version of this test called the listing
-   * twice inside one turn to push the count along, which only worked because the count
-   * was per tool call — the defect itself, written into a test as a convenience.
+   * <p>The runner checks the cap before the agent costs anything: a loop that plainly
+   * is not converging gets a readable answer written and the scope completed, rather
+   * than another model call whose refusal it may ignore.
    */
   @Test
   public void theTurnCapStopsFurtherActivities() {
@@ -989,15 +992,21 @@ public class AdHocSubProcessToolTest {
     ENGINE.getTaskService().complete(task(instance, "waits").getId());
     runPendingTurn(instance);
 
-    assertThat(Agent.FAILURES).hasSize(1);
-    assertThat(Agent.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class);
-    assertThat(Agent.FAILURES.get(0).getMessage()).contains("turn limit of 1");
+    assertThat(ScriptedAgent.turnsTaken())
+        .as("the second turn must not reach the model").isOne();
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processInstanceId(instance.getId()).count())
+        .as("the scope was ended instead").isZero();
+    assertThat(String.valueOf(ENGINE.getHistoryService()
+        .createHistoricVariableInstanceQuery().processInstanceId(instance.getId())
+        .variableName("agentOutput").singleResult().getValue()))
+        .contains("turn limit of 1");
   }
 
   @Test
   public void theCapCanBeRaisedFromTheModel() {
     start("raised", "<camunda:property name='cibseven.agentic.maxTurns' value='42' />",
-        tool -> tool.listAvailableActivities());
+        tool -> tool.turnReport());
 
     assertThat(result(0).get("maxTurns")).isEqualTo(42);
   }
@@ -1063,20 +1072,20 @@ public class AdHocSubProcessToolTest {
   @Test
   public void aCapOfZeroOrLessFallsBackToTheDefault() {
     start("zeroCap", "<camunda:property name='cibseven.agentic.maxTurns' value='0' />",
-        tool -> tool.listAvailableActivities());
+        tool -> tool.turnReport());
     assertThat(result(0).get("maxTurns")).isEqualTo(AdHocSubProcessTool.DEFAULT_MAX_TURNS);
 
     Agent.clear();
 
     start("negativeCap", "<camunda:property name='cibseven.agentic.maxTurns' value='-10' />",
-        tool -> tool.listAvailableActivities());
+        tool -> tool.turnReport());
     assertThat(result(0).get("maxTurns")).isEqualTo(AdHocSubProcessTool.DEFAULT_MAX_TURNS);
   }
 
   @Test
   public void anUnparseableCapFallsBackToTheDefault() {
     start("badCap", "<camunda:property name='cibseven.agentic.maxTurns' value='soon' />",
-        tool -> tool.listAvailableActivities());
+        tool -> tool.turnReport());
 
     assertThat(result(0).get("maxTurns")).isEqualTo(AdHocSubProcessTool.DEFAULT_MAX_TURNS);
   }
@@ -1107,7 +1116,7 @@ public class AdHocSubProcessToolTest {
   public void theToolRefusesWithoutAnEngineOnTheThread() {
     start("noEngine", tool -> {
       ProcessStarterToolContext.clear();
-      return tool.listAvailableActivities();
+      return tool.turnReport();
     });
 
     assertThat(Agent.FAILURES).hasSize(1);
@@ -1176,7 +1185,7 @@ public class AdHocSubProcessToolTest {
   public void aQueuedAsyncBeforeChildIsReportedWhenItsJobHasRun() {
     ProcessInstance instance = start("asyncWholeWay",
         tool -> tool.startActivity("asyncChild", Collections.<String, Object>emptyMap()),
-        tool -> tool.listAvailableActivities());
+        tool -> tool.turnReport());
 
     assertThat(Agent.FAILURES).isEmpty();
     assertThat(result(0).get("status")).as("the job is still queued").isEqualTo("waiting");
@@ -1271,49 +1280,24 @@ public class AdHocSubProcessToolTest {
     assertThat(result(0).get("status")).isEqualTo("finished");
   }
 
-  /**
-   * A value that is neither "true" nor "false" is treated as not marked. The
-   * value is a modelling mistake, and refusing to run would turn it into an
-   * outage — but it does mean a typo leaves the activity unguarded.
-   */
   @Test
-  public void anUnparseableMarkingIsTreatedAsNotMarked() {
-    start("badMarking", tool -> {
-      tool.startActivity("waits", Collections.<String, Object>emptyMap());
-      return tool.startActivity("gatedBadValue", Collections.<String, Object>emptyMap());
-    });
-
-    assertThat(Agent.FAILURES).isEmpty();
-    assertThat(result(0).get("status")).isEqualTo("finished");
-  }
-
-  @Test
-  public void theListingSaysWhichActivityIsNotStartableAndWhy() {
+  public void theReportSaysWhichActivityIsNotStartableAndWhy() {
     start("gatedListing", tool -> {
       tool.startActivity("waits", Collections.<String, Object>emptyMap());
-      return tool.listAvailableActivities();
+      return tool.turnReport();
     });
 
-    Map<String, Object> gated = null;
-    for (Map<String, Object> item : activities(result(0))) {
-      if ("gated".equals(item.get("id"))) {
-        gated = item;
-      }
-    }
-    assertThat(gated).isNotNull();
-    assertThat(gated.get("startableNow")).isEqualTo(Boolean.FALSE);
-    assertThat(String.valueOf(gated.get("blockedBecause"))).contains("waits");
+    assertThat(list(result(0).get("blockedNow"))).containsExactly("gated");
+    assertThat(String.valueOf(result(0).get("blockedBecause"))).contains("waits");
   }
 
   /** Nothing running, nothing said — the ordinary case costs no prompt. */
   @Test
-  public void theListingIsSilentAboutBlockingWhenNothingRuns() {
-    start("gatedSilent", tool -> tool.listAvailableActivities());
+  public void theReportIsSilentAboutBlockingWhenNothingRuns() {
+    start("gatedSilent", tool -> tool.turnReport());
 
-    for (Map<String, Object> item : activities(result(0))) {
-      assertThat(item).doesNotContainKey("startableNow");
-      assertThat(item).doesNotContainKey("blockedBecause");
-    }
+    assertThat(result(0)).doesNotContainKey("blockedNow");
+    assertThat(result(0)).doesNotContainKey("blockedBecause");
   }
 
   /**
@@ -1354,11 +1338,11 @@ public class AdHocSubProcessToolTest {
       Map<String, Object> ended = tool.completeScope();
       assertThat(ended.get("completionRequested")).isEqualTo(Boolean.TRUE);
       // The scope is still there, so this must simply work.
-      return tool.listAvailableActivities();
+      return tool.turnReport();
     });
 
     assertThat(Agent.FAILURES).as("nothing may fail after completeScope").isEmpty();
-    assertThat(result(0)).containsKey("activities");
+    assertThat(result(0)).containsKey("finishedSinceLastTurn");
   }
 
   /** But starting something after asking to end is refused, and says why. */

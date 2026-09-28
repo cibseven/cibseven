@@ -19,7 +19,11 @@ package org.cibseven.connect.ai.agent.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+
+import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocToolDescriptor;
 
 import org.junit.jupiter.api.Test;
 
@@ -61,34 +65,43 @@ public class AgentToolSpecificationTest {
     return new ArrayList<>(specification.parameters().properties().keySet());
   }
 
-  @Test
-  public void theAdHocToolsAreOfferedUnderTheirOwnNames() {
-    List<String> names = new ArrayList<>();
-    for (ToolSpecification specification :
-        ToolSpecifications.toolSpecificationsFrom(new AdHocSubProcessTool())) {
-      names.add(specification.name());
-    }
-
-    assertThat(names).containsExactlyInAnyOrder(
-        "listAvailableActivities", "startActivity", "completeScope");
-  }
-
   /**
-   * The one that broke. Without real names the model is offered {@code arg0} and
-   * {@code arg1}, and anything it sends under a meaningful name silently becomes
-   * null.
+   * An activity of an agentic scope is offered under its own id, described by its
+   * label and documentation — the activity IS the tool, so a wrong name is not
+   * expressible for the model.
    */
   @Test
-  public void startActivityDeclaresItsParametersByName() {
-    ToolSpecification specification =
-        specification(new AdHocSubProcessTool(), "startActivity");
+  public void anActivityIsItsOwnTool() {
+    AdHocToolDescriptor descriptor = new AdHocToolDescriptor("rechnungPruefen",
+        "Rechnung pruefen", "Prueft die eingegangene Rechnung.",
+        Collections.<String>emptyList(), false,
+        Collections.<AdHocToolDescriptor.Parameter>emptyList());
 
-    assertThat(parameterNames(specification))
-        .as("the model is told these parameter names")
-        .containsExactly("activityId", "variables");
-    assertThat(parameterNames(specification))
-        .as("reflection fell back to positional names, so -parameters is missing")
-        .doesNotContain("arg0", "arg1");
+    ToolSpecification specification =
+        new AdHocToolProvider(null).specification(descriptor);
+
+    assertThat(specification.name()).isEqualTo("rechnungPruefen");
+    assertThat(specification.description())
+        .contains("Rechnung pruefen")
+        .contains("Prueft die eingegangene Rechnung.");
+    assertThat(parameterNames(specification)).isEmpty();
+  }
+
+  /** A declared parameter reaches the model with its name, type and description. */
+  @Test
+  public void aDeclaredParameterIsPartOfTheSchema() {
+    AdHocToolDescriptor descriptor = new AdHocToolDescriptor("temperaturErmitteln",
+        null, null, Collections.<String>emptyList(), false,
+        Arrays.asList(
+            new AdHocToolDescriptor.Parameter("stadt", "string", "Die gesuchte Stadt"),
+            new AdHocToolDescriptor.Parameter("limit", "integer", "")));
+
+    ToolSpecification specification =
+        new AdHocToolProvider(null).specification(descriptor);
+
+    assertThat(parameterNames(specification)).containsExactly("stadt", "limit");
+    assertThat(specification.parameters().properties().get("stadt").description())
+        .isEqualTo("Die gesuchte Stadt");
   }
 
   /**
@@ -105,25 +118,4 @@ public class AgentToolSpecificationTest {
         "key", "variables", "outputPrefix", "maxRetries", "pollIntervalMillis");
   }
 
-  /** Descriptions come from {@code @P} and are independent of the names. */
-  @Test
-  public void everyParameterCarriesItsDescription() {
-    ToolSpecification specification =
-        specification(new AdHocSubProcessTool(), "startActivity");
-
-    assertThat(specification.parameters().properties().get("activityId").description())
-        .contains("listAvailableActivities");
-    assertThat(specification.parameters().properties().get("variables").description())
-        .contains("empty object");
-  }
-
-  /** A tool without parameters has nothing to lose, and must stay that way. */
-  @Test
-  public void theParameterlessToolsDeclareNoParameters() {
-    assertThat(parameterNames(specification(new AdHocSubProcessTool(), "completeScope")))
-        .isEmpty();
-    assertThat(parameterNames(
-        specification(new AdHocSubProcessTool(), "listAvailableActivities")))
-        .isEmpty();
-  }
 }

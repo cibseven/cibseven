@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.impl.bpmn.behavior;
 
+import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;
@@ -142,5 +143,87 @@ public final class AdHocAgentState {
             current = current.getParent();
         }
         return null;
+    }
+
+    // --- the turn counter and its caps -----------------------------------------
+
+    /** Turns taken so far, and the id of the turn last counted. */
+    public static final String TURNS = "adHocAgentTurns";
+    public static final String TURN_MARKER = "adHocAgentTurnMarker";
+
+    /** {@code camunda:property} on the scope overriding {@link #DEFAULT_MAX_TURNS}. */
+    public static final String MAX_TURNS_PROPERTY = "cibseven.agentic.maxTurns";
+
+    /** {@code camunda:property} on the scope overriding {@link #DEFAULT_MAX_MODEL_CALLS}. */
+    public static final String MAX_MODEL_CALLS_PROPERTY = "cibseven.agentic.maxModelCalls";
+
+    /**
+     * Turns allowed before the agent must stop.
+     *
+     * <p>A loop that invokes a language model per turn has no natural end, so an
+     * unbounded one is unbounded spend on a bad prompt. Ten is what Camunda 8
+     * defaults its model-call limit to.
+     */
+    public static final int DEFAULT_MAX_TURNS = 10;
+
+    /**
+     * Tool calls allowed within one turn — the second bound, and a different one:
+     * the turn cap cannot see a loop that never ends its turn.
+     */
+    public static final int DEFAULT_MAX_MODEL_CALLS = 25;
+
+    /** Turns taken so far, zero before the first one is counted. */
+    public static int turns(ExecutionEntity scopeExecution) {
+        PvmExecutionImpl state = find(scopeExecution);
+        Object raw = (state == null) ? null : state.getVariableLocal(TURNS);
+        return (raw instanceof Number) ? ((Number) raw).intValue() : 0;
+    }
+
+    /**
+     * Counts the turn {@code turnId} belongs to, once, and returns the count.
+     *
+     * <p>A turn and its retry are one turn, not two: the id — the turn job's, in
+     * practice — is the same for both, so the retry finds it already counted. A
+     * {@code null} id counts every call as its own turn, which is the safe
+     * direction: a cap that bites early is better than one that never bites.
+     */
+    public static int beginTurn(ExecutionEntity scopeExecution, String turnId) {
+        PvmExecutionImpl state = findOrCreate(scopeExecution);
+        if (turnId != null && turnId.equals(state.getVariableLocal(TURN_MARKER))) {
+            return turns(scopeExecution);
+        }
+        state.setVariableLocal(TURN_MARKER, turnId);
+        int counted = turns(scopeExecution) + 1;
+        state.setVariableLocal(TURNS, Integer.valueOf(counted));
+        return counted;
+    }
+
+    /**
+     * A positive-integer {@code camunda:property} of the scope, or {@code fallback}.
+     *
+     * <p>A value that is not a positive number falls back rather than failing: the
+     * value is a modelling mistake, and refusing to run would turn it into an
+     * outage, while the fallback still ends the loop.
+     */
+    public static int positiveProperty(ExecutionEntity scopeExecution, String property,
+            int fallback) {
+        PvmActivity activity = scopeExecution.getActivity();
+        Object raw = (activity == null)
+                ? null
+                : activity.getProperty(BpmnProperties.EXTENSION_PROPERTIES.getName());
+        if (raw instanceof java.util.Map) {
+            Object configured = ((java.util.Map<?, ?>) raw).get(property);
+            if (configured != null) {
+                try {
+                    int parsed = Integer.parseInt(String.valueOf(configured).trim());
+                    if (parsed > 0) {
+                        return parsed;
+                    }
+                } catch (NumberFormatException ignored) {
+                    // falls through to the fallback below
+                }
+            }
+        }
+        return fallback;
     }
 }

@@ -103,12 +103,9 @@ public class AdHocSpringTransactionTest {
     int call = stubCalls.incrementAndGet();
     String body;
     if (call == 1) {
-      body = toolCall("c1", "listAvailableActivities", "{}");
+      body = toolCall("c1", "calculatePrice", "{}");
     } else if (call == 2) {
-      body = toolCall("c2", "startActivity",
-          "{\\\"activityId\\\":\\\"calculatePrice\\\",\\\"variables\\\":{}}");
-    } else if (call == 3) {
-      body = toolCall("c3", "completeScope", "{}");
+      body = toolCall("c2", "completeScope", "{}");
     } else {
       body = finalText("done");
     }
@@ -224,7 +221,7 @@ public class AdHocSpringTransactionTest {
         .isNull();
     assertThat(stubCalls.get())
         .as("the model must have been asked again after completeScope")
-        .isGreaterThanOrEqualTo(4);
+        .isGreaterThanOrEqualTo(3);
     assertThat(processEngine.getRuntimeService().createProcessInstanceQuery()
         .processInstanceId(instance.getId()).count())
         .as("the process should have continued past the scope").isZero();

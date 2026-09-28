@@ -26,6 +26,7 @@ import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocAgentState;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
 import org.cibseven.connect.Connectors;
 import org.cibseven.connect.spi.Connector;
@@ -41,10 +42,6 @@ import org.cibseven.connect.spi.ConnectorResponse;
 public final class AgenticTurnRunner {
 
   public static final String AGENT_CONNECTOR_ID = "cibseven-ai-agent";
-
-  /** The tool through which the agent starts and finishes the children of its scope. */
-  public static final String AD_HOC_TOOL_CLASS =
-      "org.cibseven.connect.ai.agent.impl.AdHocSubProcessTool";
 
   public static final String DEFAULT_RESULT_VARIABLE = "agentOutput";
 
@@ -69,13 +66,37 @@ public final class AgenticTurnRunner {
       return;
     }
 
-    String answer = askTheAgent(scopeExecution, config);
+    // The turn cap, before the model costs anything. Counted against the job's id, so a
+    // failed turn and its retry are one turn, not two. Over the cap the scope ends with a
+    // readable answer instead of asking a model whose loop plainly is not converging.
+    int turn = AdHocAgentState.beginTurn(scopeExecution, turnId(commandContext));
+    int maxTurns = AdHocAgentState.positiveProperty(scopeExecution,
+        AdHocAgentState.MAX_TURNS_PROPERTY, AdHocAgentState.DEFAULT_MAX_TURNS);
+    if (turn > maxTurns) {
+      writeAnswer(scopeExecution, config, "The turn limit of " + maxTurns + " for this ad hoc"
+          + " sub process was reached, so the scope was ended without asking the agent again.");
+      Context.getProcessEngineConfiguration().getRuntimeService()
+          .completeAdHocSubProcess(scopeExecution.getId());
+      return;
+    }
 
+    String answer = askTheAgent(scopeExecution, config);
+    writeAnswer(scopeExecution, config, answer);
+
+    endOfTurn(scopeExecution);
+  }
+
+  protected static void writeAnswer(ExecutionEntity scopeExecution, Map<String, String> config,
+      String answer) {
     String resultVariable = config.get("resultVariable");
     scopeExecution.setVariable(
         (resultVariable == null) ? DEFAULT_RESULT_VARIABLE : resultVariable, answer);
+  }
 
-    endOfTurn(scopeExecution);
+  /** What tells one turn from the next: the turn job. Null outside one counts safely. */
+  protected static String turnId(CommandContext commandContext) {
+    JobEntity job = (commandContext == null) ? null : commandContext.getCurrentJob();
+    return (job == null) ? null : "job:" + job.getId();
   }
 
   protected static String askTheAgent(ExecutionEntity scopeExecution, Map<String, String> config) {
@@ -91,7 +112,6 @@ public final class AgenticTurnRunner {
         request.setRequestParameter(entry.getKey(), entry.getValue());
       }
     }
-    request.setRequestParameter("toolClasses", withAdHocTool(config.get("toolClasses")));
     request.setRequestParameter("useChatMemory", Boolean.TRUE);
     request.setRequestParameter("memoryId", "adhoc-" + scopeExecution.getId());
     // The connector refuses a request without a name. The scope's id is one the modeller
@@ -110,13 +130,6 @@ public final class AgenticTurnRunner {
     } finally {
       Context.removeExecutionContext();
     }
-  }
-
-  protected static String withAdHocTool(String configured) {
-    if (configured == null || configured.trim().isEmpty()) {
-      return AD_HOC_TOOL_CLASS;
-    }
-    return configured.contains(AD_HOC_TOOL_CLASS) ? configured : configured + "," + AD_HOC_TOOL_CLASS;
   }
 
   /**
