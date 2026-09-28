@@ -5,7 +5,7 @@
     <startEvent id="start" />
     <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
     <adHocSubProcess id="adHoc" name="Agentic scope">
-      <documentation>Each startActivity call starts one child, so the agent calls the tool twice in the same turn. Both return their own activityInstanceId and their own value; neither result overwrites the other.</documentation>
+      <documentation>Each tool call starts one child, so the agent calls two tools in the same turn. Both return their own activityInstanceId and their own value; neither result overwrites the other.</documentation>
       <extensionElements>
         <camunda:properties>
             <camunda:property name="cibseven.agentic.enabled" value="true" />

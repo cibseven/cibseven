@@ -5,7 +5,7 @@
     <startEvent id="start" />
     <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
     <adHocSubProcess id="adHoc" name="Agentic scope">
-      <documentation>The only suite model whose worker carries camunda:asyncBefore. Starting it creates an execution and a job but no activity instance, and the engine returns no activity instance id at all - which is why startActivity used to report such a child as finished before it had run, with empty results, and never mentioned it again. Expect: startActivity answers status waiting, and the value appears in finishedSinceLastTurn of the turn after the job ran.</documentation>
+      <documentation>The only suite model whose worker carries camunda:asyncBefore. Starting it creates an execution and a job but no activity instance, and the engine returns no activity instance id at all - which is why the tool used to report such a child as finished before it had run, with empty results, and never mentioned it again. Expect: the tool answers status waiting, and the value appears in finishedSinceLastTurn of the turn after the job ran.</documentation>
       <extensionElements>
         <camunda:properties>
             <camunda:property name="cibseven.agentic.enabled" value="true" />

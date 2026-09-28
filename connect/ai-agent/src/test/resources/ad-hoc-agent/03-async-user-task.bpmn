@@ -5,7 +5,7 @@
     <startEvent id="start" />
     <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
     <adHocSubProcess id="adHoc" name="Agentic scope">
-      <documentation>The central async case. After startActivity the turn ends and nothing is running but the user task; the parking the agentic scope carries keeps it alive. Completing the task schedules the next turn as a job, so it runs in a NEW transaction - which is also what makes the task's value readable from history there.</documentation>
+      <documentation>The central async case. After starting it the turn ends and nothing is running but the user task; the parking the agentic scope carries keeps it alive. Completing the task schedules the next turn as a job, so it runs in a NEW transaction - which is also what makes the task's value readable from history there.</documentation>
       <extensionElements>
         <camunda:properties>
             <camunda:property name="cibseven.agentic.enabled" value="true" />

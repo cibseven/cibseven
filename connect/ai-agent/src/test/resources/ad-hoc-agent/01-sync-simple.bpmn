@@ -5,7 +5,7 @@
     <startEvent id="start" />
     <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
     <adHocSubProcess id="adHoc" name="Agentic scope">
-      <documentation>Smoke test. calculatePrice completes inside the activation call, so its value comes back in the same startActivity result - the only turn in which the agent can see it, because a child that has already finished schedules no further turn.</documentation>
+      <documentation>Smoke test. calculatePrice completes inside the activation call, so its value comes back in the same tool result - the only turn in which the agent can see it, because a child that has already finished schedules no further turn.</documentation>
       <extensionElements>
         <camunda:properties>
             <camunda:property name="cibseven.agentic.enabled" value="true" />

@@ -5,7 +5,7 @@
     <startEvent id="start" />
     <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
     <adHocSubProcess id="adHoc" name="Agentic scope">
-      <documentation>The instruction deliberately asks for an unbounded loop. cibseven.agentic.maxTurns is 3 here, not the default 10, so the cap is reached after three model calls instead of ten. startActivity then throws, LangChain4j turns that into a tool error the model sees, and the turn counter lives on the agent state execution so it survives.</documentation>
+      <documentation>The instruction deliberately asks for an unbounded loop. cibseven.agentic.maxTurns is 3 here, not the default 10, so the cap is reached after three model calls instead of ten. the tool then throws, LangChain4j turns that into a tool error the model sees, and the turn counter lives on the agent state execution so it survives.</documentation>
       <extensionElements>
         <camunda:properties>
             <camunda:property name="cibseven.agentic.enabled" value="true" />

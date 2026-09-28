@@ -82,14 +82,14 @@ zweiten einplanen. Läuft der Job dagegen zwischen den beiden Abschlüssen, sind
 Züge korrekt und kein Fehler.
 
 **09** — `cibseven.agentic.maxTurns` steht hier auf **3**, nicht auf 10 wie im Testkonzept. Die
-Vorgabe ist 10; drei macht die Grenze nach drei Modellaufrufen sichtbar statt nach
-zehn. Bei Erreichen wirft `startActivity`, LangChain4j macht daraus ein
-Werkzeugergebnis mit Fehlermarkierung, und das Modell sieht die Meldung.
+Vorgabe ist 10; drei macht die Grenze nach drei Zügen sichtbar statt nach zehn. Die
+Grenze wird vom Zug-Job geprüft, **bevor** das Modell etwas kostet: ist sie erreicht,
+wird der Bereich mit einer lesbaren Antwort in der Ergebnisvariablen beendet, statt
+ein Modell zu fragen, dessen Schleife offensichtlich nicht konvergiert.
 
 > **Abweichung vom Konzept:** Ein `stopReason = MAX_TURNS_REACHED` gibt es **nicht**.
-> Es existiert keine solche Variable und kein Stop-Zustand. Erwartbar ist allein die
-> Ablehnung samt Meldung; der Bereich bleibt danach geparkt, bis jemand
-> `completeScope` aufruft oder die Instanz beendet. Wer einen auswertbaren Stopgrund
+> Es existiert keine solche Variable und kein Stop-Zustand. Erwartbar ist die Antwort
+> in der Ergebnisvariablen und ein beendeter Bereich. Wer einen auswertbaren Stopgrund
 > braucht, muss ihn als eigene Anforderung stellen.
 
 **10** — strukturell dieselbe Datei wie 03; der Test ist betrieblich. Ablauf:
@@ -97,15 +97,18 @@ Instanz starten, Zugjob laufen lassen, User Task offen stehen lassen, Engine
 neu starten, dann den Task abschließen und prüfen, dass der Agent mit unverändertem
 `turn`-Zähler und unveränderter Memory-Id fortfährt.
 
-**13** — dokumentiert das aktuelle Verhalten, statt eines zu fordern: beide Kinder
-schreiben `result`, das zweite überschreibt das erste. Es gibt keine Aggregation.
-Eine Aktivität, die mehrfach laufen soll, sollte in eine Collection schreiben.
+**13** — beide Kinder schreiben `result`. In den **Prozessvariablen** überschreibt das
+zweite das erste; im Bericht des Agenten nicht. Die Engine sammelt jede Ausführung ein,
+sobald ihr Kind endet — also solange deren Werte noch die aktuellen sind — und
+`finishedSinceLastTurn` speist sich daraus. Der Agent sieht beide Ergebnisse, jedes
+genau einmal. Wer den Endzustand im Prozess braucht, liest weiterhin `result` und
+bekommt den letzten Schreiber.
 
 **14** — zwei Läufe derselben Datei dürfen sich unterscheiden. Das ist der Punkt.
 
 **15** — `backgroundCheck` trägt `camunda:asyncBefore`, als einziger Arbeiter der
 Suite. Beim Start entstehen Ausführung und Job, aber keine Aktivitätsinstanz, und
-die Engine liefert überhaupt keine Instanz-Id. Genau daran meldete `startActivity`
+die Engine liefert überhaupt keine Instanz-Id. Genau daran meldete das Werkzeug
 so ein Kind früher als *finished*, mit leeren Werten, und erwähnte es nie wieder.
 Erwartet: `status` ist `waiting`, und der Wert `checkResult` erscheint im
 `finishedSinceLastTurn` der Runde **nach** dem Job. Ohne diese Datei war der Fall
