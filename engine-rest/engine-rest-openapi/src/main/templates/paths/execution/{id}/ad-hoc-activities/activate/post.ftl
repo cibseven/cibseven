@@ -6,9 +6,10 @@
       summary = "Activate Ad Hoc Sub Process Activities"
       desc = "Activates one or more activities of an ad hoc sub process.
 
-              An ad hoc sub process starts nothing when it is entered: the performers decide which of
-              its activities to perform, and in what order. Only a directly startable activity can be
-              activated, which means an activity with no incoming sequence flow from within the scope.
+              Unless its model names activities to activate on entry, an ad hoc sub process starts
+              nothing when it is entered: the performers decide which of its activities to perform,
+              and in what order. Only a directly startable activity can be activated, that is one
+              with no incoming sequence flow from within the scope.
               A gateway or an intermediate event inside the scope is reachable by flow but is never
               started directly.
 

@@ -39,9 +39,8 @@ public class AdHocActivityReferenceDto {
   /**
    * Variables applied locally to the execution created for this activity.
    *
-   * <p>The engine keys them per activity definition rather than per activation, so naming the same
-   * activity twice in one request starts it twice but gives both performances the variables of the
-   * last entry. Send one request per performance to vary them.
+   * <p>Each entry keeps its own: naming the same activity twice in one request with different
+   * variables starts it twice, and each performance gets the variables of its own entry.
    */
   public Map<String, VariableValueDto> getVariables() {
     return variables;
