@@ -172,7 +172,7 @@
           "label": "Tool classes",
           "type": "Text",
           "group": "tools",
-          "description": "Comma-separated fully-qualified class names of @Tool-annotated beans to register with the agent. Built-in: org.cibseven.connect.ai.agent.impl.ProcessStarterTool — starts a CIB seven process by definition key, polls until it ends (or the retry budget is exhausted) and returns its output variables, so the LLM can launch a process and react to its result without orchestrating its own polling loop.",
+          "description": "Comma-separated fully-qualified class names of @Tool-annotated beans to register with the agent. Built-in: org.cibseven.connect.ai.agent.impl.ProcessStarterTool — starts a CIB seven process by definition key, polls until it ends (or the retry budget is exhausted) and returns its output variables, so the LLM can launch a process and react to its result without orchestrating its own polling loop. There is also org.cibseven.connect.ai.agent.impl.AdHocSubProcessTool, which lets an agent list, start and finish the activities of an ad hoc sub process — but naming it here has no effect: that tool only works for an agent that IS an ad hoc sub process, configured with camunda:property cibseven.agentic.enabled=\"true\" on the adHocSubProcess element rather than on a service task, and it is added to such an agent automatically.",
           "placeholder": "org.cibseven.connect.ai.agent.impl.ProcessStarterTool,com.example.MyTool,com.example.AnotherTool",
           "binding": {
             "type": "camunda:inputParameter",

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Case 07 - two user tasks in parallel, coalesced into one further turn -->
+<definitions id="defs_adHocAgent07" xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" targetNamespace="http://cibseven.org/adhoc-agent">
+  <process id="adHocAgent07" name="Case 07 - two user tasks in parallel, coalesced into one further turn" isExecutable="true" camunda:historyTimeToLive="P30D">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc" name="Agentic scope">
+      <documentation>Fan-in. Both tasks are started in one turn and wait. Completing the first schedules a turn as a job; completing the second while that job is still queued must NOT schedule a second one - the scheduler looks for a turn job on this scope before it adds another. Complete both before running the job to see one turn with both results.</documentation>
+      <extensionElements>
+        <camunda:properties>
+            <camunda:property name="cibseven.agentic.enabled" value="true" />
+            <camunda:property name="cibseven.agentic.agentName" value="Ad-hoc Agent" />
+            <camunda:property name="cibseven.agentic.instruction" value="Du steuerst einen Ad-hoc-Bereich. Lasse beide Genehmigungen parallel einholen und beende den Bereich, sobald beide vorliegen." />
+            <camunda:property name="cibseven.agentic.instructionMode" value="append" />
+            <camunda:property name="cibseven.agentic.message" value="Hole beide Genehmigungen ein und beende danach den Ad-hoc-Bereich." />
+            <camunda:property name="cibseven.agentic.resultVariable" value="agentOutput" />
+        </camunda:properties>
+      </extensionElements>
+      <userTask id="userApprovalA" name="Approval A">
+        <extensionElements>
+          <camunda:formData>
+              <camunda:formField id="approvedA" label="Approved A?" type="boolean" />
+          </camunda:formData>
+        </extensionElements>
+      </userTask>
+      <userTask id="userApprovalB" name="Approval B">
+        <extensionElements>
+          <camunda:formData>
+              <camunda:formField id="approvedB" label="Approved B?" type="boolean" />
+          </camunda:formData>
+        </extensionElements>
+      </userTask>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+  <bpmndi:BPMNDiagram id="diagram">
+    <bpmndi:BPMNPlane id="plane" bpmnElement="adHocAgent07">
+      <bpmndi:BPMNShape id="di_start" bpmnElement="start">
+        <dc:Bounds x="152" y="172" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="di_adHoc" bpmnElement="adHoc" isExpanded="true">
+        <dc:Bounds x="240" y="80" width="620" height="220" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="di_userApprovalA" bpmnElement="userApprovalA">
+        <dc:Bounds x="460" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="di_userApprovalB" bpmnElement="userApprovalB">
+        <dc:Bounds x="640" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="di_end" bpmnElement="end">
+        <dc:Bounds x="920" y="172" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="di_f1" bpmnElement="f1">
+        <di:waypoint x="188" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+        <di:waypoint x="240" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="di_f2" bpmnElement="f2">
+        <di:waypoint x="860" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+        <di:waypoint x="920" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>
