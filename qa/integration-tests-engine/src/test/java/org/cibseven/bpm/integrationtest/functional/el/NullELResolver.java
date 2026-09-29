@@ -18,7 +18,7 @@ package org.cibseven.bpm.integrationtest.functional.el;
 
 import org.cibseven.bpm.application.AbstractProcessApplication;
 import org.cibseven.bpm.application.ProcessApplicationElResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
+import jakarta.el.ELResolver;
 
 /**
  * @author Thorben Lindhauer

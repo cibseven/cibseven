@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.cmmn.sentry;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ import org.cibseven.bpm.engine.impl.cmmn.model.CmmnSentryDeclaration;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.cmmn.CmmnTest;
 import org.cibseven.bpm.model.cmmn.VariableTransition;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov

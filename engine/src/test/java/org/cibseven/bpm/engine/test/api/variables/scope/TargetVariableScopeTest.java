@@ -39,18 +39,19 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.SequenceFlow;
 import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaExecutionListener;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Askar Akhmerov
  * @author Tassilo Weidner
  */
 public class TargetVariableScopeTest {
-  @Rule
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  @Rule
-  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   @Test
   @Deployment(resources = {"org/cibseven/bpm/engine/test/api/variables/scope/TargetVariableScopeTest.testExecutionWithDelegateProcess.bpmn","org/cibseven/bpm/engine/test/api/variables/scope/doer.bpmn"})

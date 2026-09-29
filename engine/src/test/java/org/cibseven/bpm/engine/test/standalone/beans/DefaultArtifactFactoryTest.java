@@ -18,8 +18,8 @@ package org.cibseven.bpm.engine.test.standalone.beans;
 
 import org.cibseven.bpm.engine.ArtifactFactory;
 import org.cibseven.bpm.engine.impl.DefaultArtifactFactory;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:struberg@yahoo.de">Mark Struberg</a>
@@ -31,7 +31,7 @@ public class DefaultArtifactFactoryTest {
     ArtifactFactory artifactFactory = new DefaultArtifactFactory();
 
     DummyArtifact artifact = artifactFactory.getArtifact(DummyArtifact.class);
-    Assert.assertNotNull(artifact);
+    Assertions.assertNotNull(artifact);
   }
 
 

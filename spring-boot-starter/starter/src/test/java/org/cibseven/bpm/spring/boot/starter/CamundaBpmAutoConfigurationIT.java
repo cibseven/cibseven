@@ -17,8 +17,8 @@
 package org.cibseven.bpm.spring.boot.starter;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -34,14 +34,14 @@ import org.cibseven.bpm.spring.boot.starter.test.nonpa.TestApplication;
 import org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin;
 import org.cibseven.spin.plugin.impl.SpinObjectValueSerializer;
 import org.cibseven.spin.plugin.impl.SpinProcessEnginePlugin;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = { TestApplication.class }, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class CamundaBpmAutoConfigurationIT {
 
@@ -55,9 +55,9 @@ public class CamundaBpmAutoConfigurationIT {
   public void ensureProcessEngineServicesAreExposedAsBeans() {
     for (Class<?> classToCheck : getProcessEngineServicesClasses()) {
       Object bean = appContext.getBean(classToCheck);
-      assertNotNull(classToCheck + " must be exposed as @Bean. Check configuration", bean);
+      assertNotNull(bean, classToCheck + " must be exposed as @Bean. Check configuration");
       String beanName = convertToBeanName(classToCheck);
-      assertSame(classToCheck + " must be exposed as '" + beanName + "'. Check configuration", bean, appContext.getBean(beanName));
+      assertSame(bean, appContext.getBean(beanName), classToCheck + " must be exposed as '" + beanName + "'. Check configuration");
     }
 
   }

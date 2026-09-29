@@ -22,7 +22,7 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.qa.performance.engine.junit.ProcessEnginePerformanceTestCase;
 import org.cibseven.bpm.qa.performance.engine.steps.StartProcessInstanceStep;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Execute process definitions which contains a DMN business rule task.

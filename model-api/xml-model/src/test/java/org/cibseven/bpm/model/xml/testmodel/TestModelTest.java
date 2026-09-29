@@ -20,41 +20,44 @@ import org.cibseven.bpm.model.xml.ModelInstance;
 import org.cibseven.bpm.model.xml.impl.ModelInstanceImpl;
 import org.cibseven.bpm.model.xml.impl.parser.AbstractModelParser;
 import org.cibseven.bpm.model.xml.testmodel.instance.*;
-import org.junit.After;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.AfterEach;
 
 import java.io.InputStream;
 
 /**
  * @author Sebastian Menski
  */
-@RunWith(Parameterized.class)
 public abstract class TestModelTest {
 
-  protected final String testName;
-  private final ModelInstance testModelInstance;
-  private final AbstractModelParser modelParser;
-
-  // cloned model instance for every test method (see subclasses)
+  protected String testName;
+//  protected ModelInstance testModelInstance;
+  protected AbstractModelParser modelParser;
   protected ModelInstance modelInstance;
 
-  public TestModelTest(String testName, ModelInstance testModelInstance, AbstractModelParser modelParser) {
-    this.testName = testName;
-    this.testModelInstance = testModelInstance;
-    this.modelParser = modelParser;
+  //TODO: remove duplicate code
+  public void initializeTestModelTest(ParsedModel parsedModel) {//String testName, ModelInstance testModelInstance, AbstractModelParser modelParser) {
+    this.testName = parsedModel.name;
+    this.modelInstance = parsedModel.modelInstance;
+    this.modelParser = parsedModel.modelParser;
   }
 
-  public ModelInstance cloneModelInstance() {
-    return testModelInstance.clone();
+  public static class ParsedModel {
+   public String name;
+   public TestModelParser modelParser;
+   public ModelInstance modelInstance;
+   public ParsedModel(String name, ModelInstance modelInstance, TestModelParser modelParser) {
+     this.name = name;
+     this.modelInstance = modelInstance;
+     this.modelParser = modelParser;
+     }
   }
-
-  protected static Object[] parseModel(Class<?> test) {
+  
+  public static ParsedModel parseModel(Class<?> test) {
     TestModelParser modelParser = new TestModelParser();
     String testXml = test.getSimpleName() + ".xml";
     InputStream testXmlAsStream = test.getResourceAsStream(testXml);
     ModelInstance modelInstance = modelParser.parseModelFromStream(testXmlAsStream);
-    return new Object[]{"parsed", modelInstance, modelParser};
+    return new ParsedModel(testXml, modelInstance, modelParser);
   }
 
   public static Bird createBird(ModelInstance modelInstance, String id, Gender gender) {
@@ -82,7 +85,7 @@ public abstract class TestModelTest {
     return egg;
   }
 
-  @After
+  @AfterEach
   public void validateModel() {
     modelParser.validateModel(modelInstance.getDocument());
   }

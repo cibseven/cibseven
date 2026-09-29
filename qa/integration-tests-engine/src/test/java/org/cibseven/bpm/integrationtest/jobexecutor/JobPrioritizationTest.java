@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.jobexecutor;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.TransitionInstance;
@@ -23,18 +25,17 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.integrationtest.jobexecutor.beans.PriorityBean;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class JobPrioritizationTest extends AbstractFoxPlatformIntegrationTest {
 
   protected ProcessInstance processInstance;
@@ -49,7 +50,7 @@ public class JobPrioritizationTest extends AbstractFoxPlatformIntegrationTest {
       .addAsResource("org/cibseven/bpm/integrationtest/jobexecutor/JobPrioritizationTest.intermediateMessage.bpmn20.xml");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (processInstance != null) {
       runtimeService.deleteProcessInstance(processInstance.getId(), "");
@@ -64,7 +65,7 @@ public class JobPrioritizationTest extends AbstractFoxPlatformIntegrationTest {
     Job job = managementService.createJobQuery().singleResult();
 
     // then
-    Assert.assertEquals(PriorityBean.PRIORITY, job.getPriority());
+    assertThat(job.getPriority()).isEqualTo(PriorityBean.PRIORITY);
 
   }
 
@@ -77,7 +78,7 @@ public class JobPrioritizationTest extends AbstractFoxPlatformIntegrationTest {
     Job job = managementService.createJobQuery().singleResult();
 
     // then
-    Assert.assertEquals(PriorityBean.PRIORITY, job.getPriority());
+    assertThat(job.getPriority()).isEqualTo(PriorityBean.PRIORITY);
   }
 
   @Test
@@ -97,7 +98,7 @@ public class JobPrioritizationTest extends AbstractFoxPlatformIntegrationTest {
 
     // then
     Job job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(PriorityBean.PRIORITY, job.getPriority());
+    assertThat(job.getPriority()).isEqualTo(PriorityBean.PRIORITY);
   }
 
   @Test
@@ -110,7 +111,7 @@ public class JobPrioritizationTest extends AbstractFoxPlatformIntegrationTest {
 
     // then
     Job job = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(PriorityBean.PRIORITY, job.getPriority());
+    assertThat(job.getPriority()).isEqualTo(PriorityBean.PRIORITY);
   }
 
   @Test
@@ -124,7 +125,7 @@ public class JobPrioritizationTest extends AbstractFoxPlatformIntegrationTest {
 
     // then
     Job asyncAfterJob = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(PriorityBean.PRIORITY, asyncAfterJob.getPriority());
+    assertThat(asyncAfterJob.getPriority()).isEqualTo(PriorityBean.PRIORITY);
   }
 
   @Test
@@ -137,7 +138,7 @@ public class JobPrioritizationTest extends AbstractFoxPlatformIntegrationTest {
 
     // then
     Job asyncAfterJob = managementService.createJobQuery().singleResult();
-    Assert.assertEquals(PriorityBean.PRIORITY, asyncAfterJob.getPriority());
+    assertThat(asyncAfterJob.getPriority()).isEqualTo(PriorityBean.PRIORITY);
   }
 
 }

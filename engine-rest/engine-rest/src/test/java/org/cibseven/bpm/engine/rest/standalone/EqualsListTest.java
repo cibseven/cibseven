@@ -16,15 +16,15 @@
  */
 package org.cibseven.bpm.engine.rest.standalone;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.cibseven.bpm.engine.rest.helper.EqualsList;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -35,7 +35,7 @@ public class EqualsListTest {
   protected List<String> list1;
   protected List<String> list2;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     list1 = new ArrayList<String>();
     list2 = new ArrayList<String>();

@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.callactivity;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.fail;
+import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Map;
 
@@ -29,10 +29,12 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 /**
  *
@@ -40,11 +42,10 @@ import org.junit.rules.RuleChain;
  */
 public class CallActivityDelegateMappingTest {
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain chain = RuleChain.outerRule(engineRule).around(testHelper);
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   @Test
   @Deployment(resources = {
@@ -153,7 +154,7 @@ public class CallActivityDelegateMappingTest {
       engineRule.getTaskService().complete(taskBeforeSubProcess.getId());
       fail("Exeption expected!");
     } catch (ProcessEngineException pex) { //then
-      Assert.assertTrue(pex.getMessage().equalsIgnoreCase("org.cibseven.bpm.engine.ProcessEngineException: New process engine exception.")
+      Assertions.assertTrue(pex.getMessage().equalsIgnoreCase("org.cibseven.bpm.engine.ProcessEngineException: New process engine exception.")
               || pex.getMessage().contains("1234"));
     }
 
@@ -222,7 +223,7 @@ public class CallActivityDelegateMappingTest {
       engineRule.getTaskService().complete(taskInSubProcess.getId());
       fail("Exeption expected!");
     } catch (ProcessEngineException pex) { //then
-      Assert.assertTrue(pex.getMessage().equalsIgnoreCase("org.cibseven.bpm.engine.ProcessEngineException: New process engine exception.")
+      Assertions.assertTrue(pex.getMessage().equalsIgnoreCase("org.cibseven.bpm.engine.ProcessEngineException: New process engine exception.")
               || pex.getMessage().contains("1234"));
     }
 

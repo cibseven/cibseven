@@ -22,7 +22,8 @@ import java.util.Map;
 import org.cibseven.bpm.application.ProcessApplication;
 import org.cibseven.bpm.application.impl.EmbeddedProcessApplication;
 import org.cibseven.bpm.engine.impl.el.ReadOnlyMapELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
+
+import jakarta.el.ELResolver;
 
 /**
  * @author Thorben Lindhauer

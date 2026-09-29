@@ -133,10 +133,44 @@
       <directory>../modules/oauth2/target/dependency/</directory>
       <outputDirectory>internal/oauth2/</outputDirectory>
     </fileSet>
+    <!-- ai-agent ships into a dedicated userlib-ai/ folder (NOT the always-on
+         userlib/). run.sh adds it to the loader path only when the AI agent is
+         enabled: on by default in default/dev mode, off in production mode unless
+         the ai/agent flag or the AI_AGENT_ENABLED env var is set (CIB7-1447). -->
+    <fileSet>
+      <directory>../modules/ai-agent/target/dependency/</directory>
+      <outputDirectory>configuration/userlib-ai/</outputDirectory>
+    </fileSet>
+    <!-- http/soap connectors ship into the always-on userlib/ folder so the
+         connectors (and their classpath*:element-templates/*.json bundled in the
+         connector JARs) are available out of the box. Unlike the heavy ai-agent
+         they are lightweight, so they are not gated behind a separate folder.
+         The shared cibseven-connect-http-client jar produced by both modules is
+         the same artifact/version and dedupes by filename. -->
+    <fileSet>
+      <directory>../modules/http-client/target/dependency/</directory>
+      <outputDirectory>configuration/userlib/</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>../modules/soap-http-client/target/dependency/</directory>
+      <outputDirectory>configuration/userlib/</outputDirectory>
+    </fileSet>
     <!-- create empty resource folder -->
     <fileSet>
       <directory>resources/dummyResource</directory>
       <outputDirectory>configuration/resources/</outputDirectory>
+      <excludes>
+        <exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
+    <!-- user-contributed element templates: bundled connector templates ship
+         inside the connector JAR (loaded via classpath*:element-templates/*.json
+         in default.yml); this folder is where operators can drop their own
+         JSONs to be picked up by the modeler. It sits OUTSIDE configuration/resources/
+         so the engine auto-deploy scan does not try to deploy them. -->
+    <fileSet>
+      <directory>resources/dummyResource</directory>
+      <outputDirectory>configuration/element-templates/</outputDirectory>
       <excludes>
         <exclude>*/**</exclude>
       </excludes>

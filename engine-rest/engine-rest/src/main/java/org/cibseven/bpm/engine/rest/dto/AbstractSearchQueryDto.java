@@ -28,8 +28,8 @@ import org.cibseven.bpm.engine.rest.dto.converter.StringToTypeConverter;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.exception.RestException;
 
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,6 +40,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public abstract class AbstractSearchQueryDto {
 
+  @JsonIgnore
   protected ObjectMapper objectMapper;
 
   // required for populating via jackson

@@ -17,6 +17,7 @@
 package org.cibseven.spin.json.tree;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.cibseven.spin.json.JsonTestConstants.EXAMPLE_JSON_FILE_NAME;
 
 import java.util.Date;
@@ -28,7 +29,7 @@ import org.cibseven.spin.impl.test.ScriptTest;
 import org.cibseven.spin.impl.test.ScriptVariable;
 import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.json.SpinJsonPropertyException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -237,22 +238,22 @@ public abstract class JsonTreeSetPropertyScriptTest extends ScriptTest {
     assertThat(newValue).isNull();
   }
 
-  @Test(expected = SpinJsonPropertyException.class)
+  @Test
   @Script(execute = false)
   @ScriptVariable(name = "input", file = EXAMPLE_JSON_FILE_NAME)
   public void shouldFailWhileSettingObject() throws Throwable{
     Map<String, Object> variables = new HashMap<String, Object>();
     variables.put("date", new Date());
-    failingWithException(variables);
+    assertThatExceptionOfType(SpinJsonPropertyException.class).isThrownBy(() -> failingWithException(variables));
   }
 
-  @Test(expected = SpinJsonPropertyException.class)
+  @Test
   @Script(execute = false)
   @ScriptVariable(name = "input", file = EXAMPLE_JSON_FILE_NAME)
   public void shouldFailWhileSettingArray() throws Throwable{
     Map<String, Object> variables = new HashMap<String, Object>();
     variables.put("date", new Date());
-    failingWithException(variables);
+    assertThatExceptionOfType(SpinJsonPropertyException.class).isThrownBy(() -> failingWithException(variables));
   }
 
 }

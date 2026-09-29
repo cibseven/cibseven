@@ -19,12 +19,12 @@ package org.cibseven.bpm.spring.boot.starter.contextcache.pa;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.spring.boot.starter.contextcache.AbstractContextCacheTest;
 import org.cibseven.bpm.spring.boot.starter.test.pa.TestProcessApplication;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.test.assertions.bpmn.AbstractAssertions.init;
@@ -37,7 +37,7 @@ import static org.cibseven.bpm.engine.test.assertions.bpmn.AbstractAssertions.in
  *
  * @author Nikola Koevski
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @ActiveProfiles("contextcaching")
 @SpringBootTest(
   classes = { TestProcessApplication.class },
@@ -50,7 +50,7 @@ import static org.cibseven.bpm.engine.test.assertions.bpmn.AbstractAssertions.in
 )
 public class PaContextCacheTest3 extends AbstractContextCacheTest {
 
-  @Before
+  @BeforeEach
   public void setUp() {
     this.processEngineName = "foo";
     this.testName = "paTest3";

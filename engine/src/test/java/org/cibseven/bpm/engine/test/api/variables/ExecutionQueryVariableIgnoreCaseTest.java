@@ -25,16 +25,16 @@ import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.impl.ExecutionQueryImpl;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.runtime.Execution;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ExecutionQueryVariableIgnoreCaseTest extends AbstractVariableIgnoreCaseTest<ExecutionQueryImpl, Execution> {
 
   RepositoryService repositoryService;
   RuntimeService runtimeService;
 
-  @Before
+  @BeforeEach
   public void init() {
     repositoryService = engineRule.getRepositoryService();
     runtimeService = engineRule.getRuntimeService();
@@ -43,7 +43,7 @@ public class ExecutionQueryVariableIgnoreCaseTest extends AbstractVariableIgnore
     instance = runtimeService.startProcessInstanceByKey("oneTaskProcess", VARIABLES);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     for (Deployment deployment : repositoryService.createDeploymentQuery().list()) {
       repositoryService.deleteDeployment(deployment.getId(), true);

@@ -22,8 +22,8 @@ import org.cibseven.bpm.engine.ProcessEngines;
 import org.cibseven.bpm.engine.impl.cfg.IdGenerator;
 import org.cibseven.bpm.engine.spring.SpringProcessEngineConfiguration;
 import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
@@ -34,7 +34,7 @@ public class DefaultProcessEngineConfigurationTest {
   private final SpringProcessEngineConfiguration configuration = new SpringProcessEngineConfiguration();
   private final CamundaBpmProperties properties = new CamundaBpmProperties();
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     ReflectionTestUtils.setField(instance, "camundaBpmProperties", properties);
     initIdGenerator(null);

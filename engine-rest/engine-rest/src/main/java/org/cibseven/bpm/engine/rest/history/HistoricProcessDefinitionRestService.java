@@ -18,18 +18,21 @@ package org.cibseven.bpm.engine.rest.history;
 
 import java.util.List;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.cibseven.bpm.engine.rest.dto.CountResultDto;
 import org.cibseven.bpm.engine.rest.dto.history.CleanableHistoricProcessInstanceReportResultDto;
 import org.cibseven.bpm.engine.rest.dto.history.HistoricActivityStatisticsDto;
+import org.cibseven.bpm.engine.rest.dto.history.HistoricActivityStatisticsPostQueryDto;
 
 /**
 *
@@ -46,6 +49,13 @@ public interface HistoricProcessDefinitionRestService {
   @Path("/{id}/statistics")
   @Produces(MediaType.APPLICATION_JSON)
   public List<HistoricActivityStatisticsDto> getHistoricActivityStatistics(@Context UriInfo uriInfo, @PathParam("id") String processDefinitionId);
+
+  @POST
+  @Path("/{id}/statistics")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<HistoricActivityStatisticsDto> queryHistoricActivityStatistics(@PathParam("id") String processDefinitionId,
+                                                                            HistoricActivityStatisticsPostQueryDto queryDto);
 
   @GET
   @Path("/cleanable-process-instance-report")

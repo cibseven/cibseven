@@ -1,0 +1,79 @@
+--
+-- Copyright CIB software GmbH and/or licensed to CIB software GmbH
+-- under one or more contributor license agreements. See the NOTICE file
+-- distributed with this work for additional information regarding copyright
+-- ownership. CIB software licenses this file to you under the Apache License,
+-- Version 2.0; you may not use this file except in compliance with the License.
+-- You may obtain a copy of the License at
+--
+--     http://www.apache.org/licenses/LICENSE-2.0
+--
+-- Unless required by applicable law or agreed to in writing, software
+-- distributed under the License is distributed on an "AS IS" BASIS,
+-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-- See the License for the specific language governing permissions and
+-- limitations under the License.
+--
+
+insert into ACT_GE_SCHEMA_LOG
+values ('1600', CURRENT_TIMESTAMP, '2.3.0');
+
+-- Chat: soft-delete tombstone (long-polling change detection)
+ALTER TABLE CHAT_MESSAGES ADD DELETED_AT DATETIME2;
+
+-- Chat: DB-backed presence for long-polling transport
+CREATE TABLE CHAT_PRESENCE (
+    ROOM_ID      NVARCHAR(255) NOT NULL,
+    USER_ID      NVARCHAR(255) NOT NULL,
+    DISPLAY_NAME NVARCHAR(255),
+    LAST_SEEN    DATETIME2     NOT NULL,
+    CONSTRAINT CHAT_PK_PRESENCE PRIMARY KEY (ROOM_ID, USER_ID)
+);
+
+
+-- Modeler: one snapshot per form save, so a form can be restored to an earlier state
+CREATE TABLE MOD_FORMS_AUD (
+    ID NVARCHAR(36) NOT NULL,
+    DESCRIPTION NVARCHAR(150),
+    CREATED DATETIME2,
+    UPDATED DATETIME2,
+    ACTIVE BIT DEFAULT 1,
+    FORM_SCHEMA VARBINARY(MAX),
+    FORMID NVARCHAR(100),
+    VERSION INT DEFAULT 1,
+    SCHEMA_MOD BIT DEFAULT 0,
+    UPDATED_BY NVARCHAR(100),
+    REV BIGINT NOT NULL,
+    REVTYPE SMALLINT,
+    CONSTRAINT MOD_PK_FORMS_AUD PRIMARY KEY (ID, REV),
+    CONSTRAINT MOD_FK_FORMS_AUD_REV FOREIGN KEY (REV) REFERENCES MOD_REVINFO(REV)
+);
+
+
+-- Modeler folders. Models of an installation that has none yet move into General, whose id is
+-- written out because the update has to name it and generating one differs on every database.
+CREATE TABLE MOD_FOLDERS (
+    ID NVARCHAR(36) NOT NULL PRIMARY KEY,
+    PARENT_ID NVARCHAR(36),
+    NAME NVARCHAR(255) NOT NULL,
+    CREATED DATETIME2,
+    CREATED_BY NVARCHAR(100),
+    UPDATED DATETIME2,
+    UPDATED_BY NVARCHAR(100),
+    CONSTRAINT MOD_UK_FOLDERS_PARENT_NAME UNIQUE (PARENT_ID, NAME),
+    CONSTRAINT MOD_FK_FOLDERS_PARENT FOREIGN KEY (PARENT_ID) REFERENCES MOD_FOLDERS(ID)
+);
+
+CREATE INDEX MOD_IDX_FOLDERS_PARENT ON MOD_FOLDERS (PARENT_ID);
+
+INSERT INTO MOD_FOLDERS (ID, PARENT_ID, NAME, CREATED)
+    VALUES ('00000000-0000-0000-0000-0000000000d1', NULL, 'General', SYSDATETIME());
+
+ALTER TABLE MOD_PROCESSES_DIAGRAMS ADD FOLDER_ID NVARCHAR(36);
+ALTER TABLE MOD_FORMS ADD FOLDER_ID NVARCHAR(36);
+
+UPDATE MOD_PROCESSES_DIAGRAMS SET FOLDER_ID = '00000000-0000-0000-0000-0000000000d1' WHERE FOLDER_ID IS NULL;
+UPDATE MOD_FORMS SET FOLDER_ID = '00000000-0000-0000-0000-0000000000d1' WHERE FOLDER_ID IS NULL;
+
+ALTER TABLE MOD_PROCESSES_DIAGRAMS ADD CONSTRAINT MOD_FK_DIAGRAMS_FOLDER FOREIGN KEY (FOLDER_ID) REFERENCES MOD_FOLDERS(ID);
+ALTER TABLE MOD_FORMS ADD CONSTRAINT MOD_FK_FORMS_FOLDER FOREIGN KEY (FOLDER_ID) REFERENCES MOD_FOLDERS(ID);

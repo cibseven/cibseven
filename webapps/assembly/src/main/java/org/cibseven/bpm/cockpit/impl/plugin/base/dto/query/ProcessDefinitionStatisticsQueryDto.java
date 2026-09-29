@@ -20,7 +20,7 @@ import org.cibseven.bpm.cockpit.impl.plugin.base.dto.ProcessDefinitionStatistics
 import org.cibseven.bpm.cockpit.rest.dto.AbstractRestQueryParametersDto;
 import org.cibseven.bpm.engine.rest.dto.CamundaQueryParam;
 
-import javax.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import java.util.HashMap;
 import java.util.Map;
 

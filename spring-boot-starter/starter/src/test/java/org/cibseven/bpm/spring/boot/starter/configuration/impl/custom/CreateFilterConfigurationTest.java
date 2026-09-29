@@ -17,6 +17,7 @@
 package org.cibseven.bpm.spring.boot.starter.configuration.impl.custom;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -34,9 +35,8 @@ import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
 import org.cibseven.bpm.spring.boot.starter.test.helper.StandaloneInMemoryTestConfiguration;
 import org.cibseven.bpm.spring.boot.starter.util.SpringBootProcessEngineLogger;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
@@ -56,13 +56,10 @@ public class CreateFilterConfigurationTest {
     configuration.init();
   }
 
-  @Rule
+  @RegisterExtension
   public final ProcessEngineRule processEngineRule = new StandaloneInMemoryTestConfiguration(configuration).rule();
 
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
-  @Rule
+  @RegisterExtension
   public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch(SpringBootProcessEngineLogger.PACKAGE);
 
@@ -73,25 +70,26 @@ public class CreateFilterConfigurationTest {
 
   @Test
   public void fail_if_not_configured_onInit() throws Exception {
-    thrown.expect(IllegalStateException.class);
-    CamundaBpmProperties camundaBpmProperties = new CamundaBpmProperties();
-    final CreateFilterConfiguration configuration = new CreateFilterConfiguration();
-    ReflectionTestUtils.setField(configuration, "camundaBpmProperties", camundaBpmProperties);
-    configuration.init();
+    assertThatThrownBy(() -> {
+      CamundaBpmProperties camundaBpmProperties = new CamundaBpmProperties();
+      final CreateFilterConfiguration configuration = new CreateFilterConfiguration();
+      ReflectionTestUtils.setField(configuration, "camundaBpmProperties", camundaBpmProperties);
+      configuration.init();
+    }).isInstanceOf(IllegalStateException.class);
   }
 
   @Test
   public void fail_if_not_configured_onExecution() throws Exception {
-    thrown.expect(NullPointerException.class);
-
-    CamundaBpmProperties camundaBpmProperties = new CamundaBpmProperties();
-    camundaBpmProperties.getFilter().setCreate("All");
-    final CreateFilterConfiguration configuration = new CreateFilterConfiguration();
-    ReflectionTestUtils.setField(configuration, "camundaBpmProperties", camundaBpmProperties);
-    configuration.init();
-    configuration.filterName = null;
-
-    configuration.postProcessEngineBuild(mock(ProcessEngine.class));
+    assertThatThrownBy(() -> {
+      CamundaBpmProperties camundaBpmProperties = new CamundaBpmProperties();
+      camundaBpmProperties.getFilter().setCreate("All");
+      final CreateFilterConfiguration configuration = new CreateFilterConfiguration();
+      ReflectionTestUtils.setField(configuration, "camundaBpmProperties", camundaBpmProperties);
+      configuration.init();
+      configuration.filterName = null;
+  
+      configuration.postProcessEngineBuild(mock(ProcessEngine.class));
+    }).isInstanceOf(NullPointerException.class);
   }
 
   @Test

@@ -27,16 +27,16 @@ import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate.ThrowBpmnErrorDelegateException;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 
 @ScenarioUnderTest("ParallelNestedNonInterruptingEventSubprocessScenario")
 @Origin("1.1.0")
 public class ParallelNestedNonInterruptingEventSubprocessScenarioTest {
 
-  @Rule
+  @RegisterExtension
   public UpgradeTestRule rule = new UpgradeTestRule();
 
   @Test
@@ -74,7 +74,7 @@ public class ParallelNestedNonInterruptingEventSubprocessScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("init.3")
   public void testInitActivityInstanceTree() {
@@ -85,7 +85,7 @@ public class ParallelNestedNonInterruptingEventSubprocessScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
           .activity("outerTask")
@@ -124,8 +124,8 @@ public class ParallelNestedNonInterruptingEventSubprocessScenarioTest {
 
     // then
     Task escalatedTask = rule.taskQuery().singleResult();
-    Assert.assertEquals("escalatedTask", escalatedTask.getTaskDefinitionKey());
-    Assert.assertNotNull(escalatedTask);
+    Assertions.assertEquals("escalatedTask", escalatedTask.getTaskDefinitionKey());
+    Assertions.assertNotNull(escalatedTask);
 
     rule.getTaskService().complete(escalatedTask.getId());
     rule.assertScenarioEnded();
@@ -148,10 +148,10 @@ public class ParallelNestedNonInterruptingEventSubprocessScenarioTest {
     // then
     try {
       rule.getTaskService().complete(eventSubprocessTask.getId());
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      Assertions.fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      Assertions.assertEquals("unhandledException", e.getMessage());
     }
   }
 
@@ -186,7 +186,7 @@ public class ParallelNestedNonInterruptingEventSubprocessScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("init.innerTask.3")
   public void testInitInnerTaskActivityInstanceTree() {
@@ -197,7 +197,7 @@ public class ParallelNestedNonInterruptingEventSubprocessScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
           .activity("outerTask")
@@ -235,14 +235,14 @@ public class ParallelNestedNonInterruptingEventSubprocessScenarioTest {
 
     // then
     Task escalatedTask = rule.taskQuery().singleResult();
-    Assert.assertEquals("escalatedTask", escalatedTask.getTaskDefinitionKey());
-    Assert.assertNotNull(escalatedTask);
+    Assertions.assertEquals("escalatedTask", escalatedTask.getTaskDefinitionKey());
+    Assertions.assertNotNull(escalatedTask);
 
     rule.getTaskService().complete(escalatedTask.getId());
 
     // the instance is deadlocked since no token has arrived on the sequence flow leaving the outer subprocess
-    Assert.assertEquals(1, rule.executionQuery().count());
-    Assert.assertEquals(1, rule.executionQuery().activityId("join").count());
+    Assertions.assertEquals(1, rule.executionQuery().count());
+    Assertions.assertEquals(1, rule.executionQuery().activityId("join").count());
   }
 
   @Test
@@ -262,10 +262,10 @@ public class ParallelNestedNonInterruptingEventSubprocessScenarioTest {
     // then
     try {
       rule.getTaskService().complete(eventSubprocessTask.getId());
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      Assertions.fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      Assertions.assertEquals("unhandledException", e.getMessage());
     }
   }
 

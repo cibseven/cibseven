@@ -12,6 +12,11 @@
     <module name="org.cibseven.connect.cibseven-connect-core" />
     <module name="org.cibseven.connect.cibseven-connect-http-client" services="import" />
     <module name="org.cibseven.connect.cibseven-connect-soap-http-client" services="import" />
+    <!-- ai-agent connector (CIB7-1445): optional=true so the engine still boots if
+         the ai-agent module dir is removed; services="import" registers it via the
+         cibseven-connect SPI. Disable by removing this import (docker
+         AI_AGENT_ENABLED=false) or deleting the module dir. -->
+    <module name="org.cibseven.connect.cibseven-connect-ai-agent" services="import" optional="true" />
 
   </dependencies>
 </module>

@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.rest.impl;
 
 import java.net.URI;
 
-import javax.ws.rs.Path;
+import jakarta.ws.rs.Path;
 
 import org.cibseven.bpm.engine.rest.AuthorizationRestService;
 import org.cibseven.bpm.engine.rest.BatchRestService;
@@ -214,6 +214,11 @@ public class DefaultProcessEngineRestServiceImpl extends AbstractProcessEngineRe
   @Path(VersionRestService.PATH)
   public VersionRestService getVersionRestService() {
     return super.getVersionRestService(null);
+  }
+
+  @Path(ConfigurationRestService.PATH)
+  public ConfigurationRestService getConfigurationRestService() {
+    return super.getConfigurationRestService(null);
   }
 
   @Path(SchemaLogRestService.PATH)

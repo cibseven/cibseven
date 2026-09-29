@@ -21,8 +21,8 @@ import org.cibseven.bpm.engine.rest.dto.management.JobDefinitionSuspensionStateD
 import org.cibseven.bpm.engine.rest.dto.runtime.JobDefinitionPriorityDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.RetriesDto;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 
 /**
  * @author roman.smirnov

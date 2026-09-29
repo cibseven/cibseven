@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getStacktraceHistoricJobLog"
       tag = "Historic Job Log"
-      summary = "Get Job Log Exception Stacktrace"
+      summary = "Get Historic Job Log Exception Stacktrace"
       desc = "Retrieves the corresponding exception stacktrace to the passed historic job log by
               id."
   />

@@ -22,7 +22,7 @@ import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 import org.cibseven.spin.DataFormats;
 import org.cibseven.spin.Spin;
@@ -30,8 +30,8 @@ import org.cibseven.spin.impl.xml.dom.format.DomXmlDataFormat;
 import org.cibseven.spin.xml.SpinXmlDataFormatException;
 import org.cibseven.spin.xml.SpinXmlElement;
 import org.cibseven.spin.xml.mapping.Customer;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -75,7 +75,7 @@ public class JaxBContextProviderTest {
 
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     // reset jaxb context provider
     ((DomXmlDataFormat) DataFormats.xml()).setJaxBContextProvider(DomXmlDataFormat.defaultJaxBContextProvider());

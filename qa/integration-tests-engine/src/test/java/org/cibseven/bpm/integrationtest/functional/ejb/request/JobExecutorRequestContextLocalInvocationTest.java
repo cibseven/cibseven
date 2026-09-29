@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.ejb.request;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.integrationtest.functional.cdi.beans.RequestScopedDelegateBean;
@@ -30,12 +32,12 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 
 /**
@@ -49,7 +51,7 @@ import org.junit.runner.RunWith;
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class JobExecutorRequestContextLocalInvocationTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment(name="pa", order=2)
@@ -98,7 +100,7 @@ public class JobExecutorRequestContextLocalInvocationTest extends AbstractFoxPla
 
     Object variable = runtimeService.getVariable(pi.getId(), "invocationCounter");
     // -> the same bean instance was invoked 2 times!
-    Assert.assertEquals(2, variable);
+    assertThat(variable).isEqualTo(2);
 
     Task task = taskService.createTaskQuery()
       .processInstanceId(pi.getProcessInstanceId())
@@ -109,7 +111,7 @@ public class JobExecutorRequestContextLocalInvocationTest extends AbstractFoxPla
 
     variable = runtimeService.getVariable(pi.getId(), "invocationCounter");
     // now it's '1' again! -> new instance of the bean
-    Assert.assertEquals(1, variable);
+    assertThat(variable).isEqualTo(1);
   }
 
 }

@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.spin;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import org.cibseven.bpm.engine.history.HistoricDecisionInstance;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.variable.VariableMap;
@@ -23,19 +24,15 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.spin.Spin;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
-
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class FeelEngineTest extends AbstractFoxPlatformIntegrationTest {
 
   protected static final String PATH = "org/cibseven/bpm/integrationtest/functional/spin/feel/";
@@ -79,8 +76,8 @@ public class FeelEngineTest extends AbstractFoxPlatformIntegrationTest {
         .includeOutputs()
         .singleResult();
 
-    assertThat(hdi.getOutputs().size(), is(1));
-    assertThat(hdi.getOutputs().get(0).getValue(), is(true));
+    assertThat(hdi.getOutputs().size()).isEqualTo(1);
+    assertThat(hdi.getOutputs().get(0).getValue()).isEqualTo(true);
   }
 
   @Test
@@ -97,8 +94,8 @@ public class FeelEngineTest extends AbstractFoxPlatformIntegrationTest {
         .includeOutputs()
         .singleResult();
 
-    assertThat(hdi.getOutputs().size(), is(1));
-    assertThat(hdi.getOutputs().get(0).getValue(), is(true));
+    assertThat(hdi.getOutputs().size()).isEqualTo(1);
+    assertThat(hdi.getOutputs().get(0).getValue()).isEqualTo(true);
   }
 
   @Test
@@ -116,11 +113,11 @@ public class FeelEngineTest extends AbstractFoxPlatformIntegrationTest {
     List<String> resultsSmall = runtimeService.getActiveActivityIds(pi2.getId());
 
     // then
-    assertEquals(1, resultsLarge.size());
-    assertEquals("taskRequestInvoice", resultsLarge.get(0));
+    assertThat(resultsLarge.size()).isEqualTo(1);
+    assertThat(resultsLarge.get(0)).isEqualTo("taskRequestInvoice");
 
-    assertEquals(1, resultsSmall.size());
-    assertEquals("taskApprove", resultsSmall.get(0));
+    assertThat(resultsSmall.size()).isEqualTo(1);
+    assertThat(resultsSmall.get(0)).isEqualTo("taskApprove");
   }
 
   @Test
@@ -131,7 +128,7 @@ public class FeelEngineTest extends AbstractFoxPlatformIntegrationTest {
     String result = (String) runtimeService.getVariable(pi.getId(), "result");
 
     // then
-    assertEquals("contentFromInnerContext", result);
+    assertThat(result).isEqualTo("contentFromInnerContext");
   }
 
   // HELPER

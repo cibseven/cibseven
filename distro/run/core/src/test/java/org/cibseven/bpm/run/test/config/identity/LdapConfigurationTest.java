@@ -21,16 +21,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.cibseven.bpm.identity.impl.ldap.plugin.LdapIdentityProviderPlugin;
 import org.cibseven.bpm.run.CamundaBpmRun;
 import org.cibseven.bpm.run.property.CamundaBpmRunLdapProperties;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = { CamundaBpmRun.class })
 @ActiveProfiles(profiles = { "test-auth-disabled" , "test-ldap-enabled", "test-ldap-auth-exception" })
 public class LdapConfigurationTest {
@@ -69,6 +69,24 @@ public class LdapConfigurationTest {
     assertThat(props.getInitialContextFactory()).isEqualTo(plugin.getInitialContextFactory());
     assertThat(props.getSecurityAuthentication()).isEqualTo(plugin.getSecurityAuthentication());
     assertThat(props.isPasswordCheckCatchAuthenticationException()).isEqualTo(plugin.isPasswordCheckCatchAuthenticationException());
+    assertThat(props.isCacheEnabled()).isEqualTo(plugin.isCacheEnabled());
+    assertThat(props.getCacheUserQueriesTtlSeconds()).isEqualTo(plugin.getCacheUserQueriesTtlSeconds());
+    assertThat(props.getCacheUserQueriesMaxWeight()).isEqualTo(plugin.getCacheUserQueriesMaxWeight());
+    assertThat(props.getCacheGroupTtlSeconds()).isEqualTo(plugin.getCacheGroupTtlSeconds());
+    assertThat(props.getCacheGroupMaxWeight()).isEqualTo(plugin.getCacheGroupMaxWeight());
+    assertThat(props.isCacheStatsLogEnabled()).isEqualTo(plugin.isCacheStatsLogEnabled());
+    assertThat(props.getCacheStatsLogInterval()).isEqualTo(plugin.getCacheStatsLogInterval());
+  }
+
+  @Test
+  public void shouldPickUpCacheConfiguration() {
+    assertThat(props.isCacheEnabled()).isTrue();
+    assertThat(props.getCacheUserQueriesTtlSeconds()).isEqualTo(45L);
+    assertThat(props.getCacheUserQueriesMaxWeight()).isEqualTo(7777L);
+    assertThat(props.getCacheGroupTtlSeconds()).isEqualTo(99L);
+    assertThat(props.getCacheGroupMaxWeight()).isEqualTo(3333L);
+    assertThat(props.isCacheStatsLogEnabled()).isTrue();
+    assertThat(props.getCacheStatsLogInterval()).isEqualTo(250L);
   }
 
   @Test

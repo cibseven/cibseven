@@ -22,7 +22,7 @@ import org.cibseven.bpm.model.bpmn.instance.Definitions;
 import org.cibseven.bpm.model.bpmn.instance.Process;
 import org.cibseven.bpm.model.bpmn.instance.StartEvent;
 import org.cibseven.bpm.model.bpmn.instance.UserTask;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class GenerateIdTest {
 

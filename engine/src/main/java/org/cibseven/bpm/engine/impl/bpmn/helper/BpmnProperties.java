@@ -72,6 +72,14 @@ public class BpmnProperties {
 
   public static final PropertyKey<Boolean> TRIGGERED_BY_EVENT = new PropertyKey<>("triggeredByEvent");
 
+  /**
+   * The ids of the children of an ad hoc sub process that may be started directly, in document
+   * order. Computed once at parse time by {@code BpmnParse.parseAdHocSubProcess}; see there for the
+   * rule and where it comes from.
+   */
+  public static final PropertyListKey<String> AD_HOC_STARTABLE_ACTIVITIES =
+      new PropertyListKey<>("adHocStartableActivities");
+
   public static final PropertyKey<Boolean> HAS_CONDITIONAL_EVENTS = new PropertyKey<>(PROPERTYNAME_HAS_CONDITIONAL_EVENTS);
 
   public static final PropertyKey<ConditionalEventDefinition> CONDITIONAL_EVENT_DEFINITION = new PropertyKey<>("conditionalEventDefinition");

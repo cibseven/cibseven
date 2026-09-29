@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getStartForm"
       tag = "Process Definition"
-      summary = "Get Start Form Key"
+      summary = "Get Process Definition Start Form Key"
       desc = "Retrieves the key of the start form for a process definition.
               The form key corresponds to the `FormData#formKey` property in the engine." />
 

@@ -16,7 +16,13 @@
  */
 package org.cibseven.bpm.engine.rest.sub.runtime.impl;
 
-import javax.ws.rs.core.Response.Status;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.BadUserRequestException;
@@ -27,6 +33,10 @@ import org.cibseven.bpm.engine.rest.dto.CreateIncidentDto;
 import org.cibseven.bpm.engine.rest.dto.VariableValueDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.ExecutionDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.ExecutionTriggerDto;
+import org.cibseven.bpm.engine.rest.dto.runtime.AdHocActivityInstanceDto;
+import org.cibseven.bpm.engine.runtime.AdHocSubProcessActivationBuilder;
+import org.cibseven.bpm.engine.rest.dto.runtime.AdHocActivitiesActivationDto;
+import org.cibseven.bpm.engine.rest.dto.runtime.AdHocActivityReferenceDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.IncidentDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.exception.RestException;
@@ -91,6 +101,66 @@ public class ExecutionResourceImpl implements ExecutionResource {
   @Override
   public EventSubscriptionResource getMessageEventSubscription(String messageName) {
     return new MessageEventSubscriptionResource(engine, executionId, messageName, objectMapper);
+  }
+
+  @Override
+  public List<AdHocActivityInstanceDto> activateAdHocSubProcessActivities(AdHocActivitiesActivationDto dto) {
+    List<AdHocActivityReferenceDto> activities = dto == null ? null : dto.getActivities();
+
+    // One instruction per entry, which is what the wire format has always carried. Until CIB7-1892
+    // this was narrowed here to a map keyed by activity id, so naming the same activity twice
+    // started it twice and both performances took the last entry's variables. The builder keeps the
+    // entries apart, so the request now means what it looks like it means.
+    AdHocSubProcessActivationBuilder activation = engine.getRuntimeService()
+        .createAdHocSubProcessActivation(executionId);
+    // Kept to pair each returned instance id with the activity it belongs to, which is what makes
+    // the response readable when one activity appears more than once.
+    List<String> requestedActivityIds = new ArrayList<>();
+    if (activities != null) {
+      for (AdHocActivityReferenceDto activity : activities) {
+        String activityId = activity == null ? null : activity.getActivityId();
+        requestedActivityIds.add(activityId);
+        activation.startActivity(activityId);
+        if (activity != null && activity.getVariables() != null) {
+          activation.setVariables(
+              VariableValueDto.toMap(activity.getVariables(), engine, objectMapper));
+        }
+      }
+    }
+
+    List<String> activityInstanceIds;
+    try {
+      activityInstanceIds = activation.execute();
+
+      // BadUserRequestException, not ProcessEngineException. Everything this command refuses — an
+      // activity that is not directly startable, an unknown id, an execution that is not an ad hoc
+      // scope — is the caller's mistake and must be a 400. Letting it fall through to the generic
+      // engine-exception handler would report every one of them as a 500.
+    } catch (BadUserRequestException e) {
+      throw new InvalidRequestException(Status.BAD_REQUEST, e.getMessage());
+    }
+
+    List<AdHocActivityInstanceDto> result = new ArrayList<>();
+    Iterator<String> requested = requestedActivityIds.iterator();
+    for (String activityInstanceId : activityInstanceIds) {
+      result.add(new AdHocActivityInstanceDto(requested.next(), activityInstanceId));
+    }
+    return result;
+  }
+
+  @Override
+  public void completeAdHocSubProcess(ExecutionTriggerDto dto) {
+    VariableMap variables = dto == null ? null
+        : VariableValueDto.toMap(dto.getVariables(), engine, objectMapper);
+
+    try {
+      engine.getRuntimeService().completeAdHocSubProcess(executionId, variables);
+
+      // Caught here too, so the two endpoints behave the same way. The reference implementation
+      // catches it in one and not the other, which is worse than not catching it in either.
+    } catch (BadUserRequestException e) {
+      throw new InvalidRequestException(Status.BAD_REQUEST, e.getMessage());
+    }
   }
 
   @Override

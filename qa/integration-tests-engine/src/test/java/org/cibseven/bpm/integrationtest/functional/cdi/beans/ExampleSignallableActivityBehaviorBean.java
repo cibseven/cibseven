@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.cdi.beans;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AbstractBpmnActivityBehavior;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;

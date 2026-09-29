@@ -17,8 +17,8 @@
 package org.cibseven.bpm.engine.test.api.multitenancy.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,9 +28,9 @@ import org.cibseven.bpm.engine.exception.NullValueException;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.task.TaskQuery;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
@@ -44,7 +44,7 @@ public class MultiTenancyTaskQueryTest extends PluggableProcessEngineTest {
 
   private final List<String> taskIds = new ArrayList<>();
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
 
     createTaskWithoutTenant();
@@ -213,7 +213,7 @@ public class MultiTenancyTaskQueryTest extends PluggableProcessEngineTest {
     return taskId;
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     identityService.clearAuthentication();
     for (String taskId : taskIds) {

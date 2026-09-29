@@ -22,9 +22,9 @@ import org.cibseven.bpm.engine.impl.jobexecutor.AcquiredJobs;
 import org.cibseven.bpm.engine.impl.jobexecutor.BackoffJobAcquisitionStrategy;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobAcquisitionContext;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobAcquisitionStrategy;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -49,7 +49,7 @@ public class BackoffJobAcquisitionStrategyTest {
 
   protected JobAcquisitionStrategy strategy;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     strategy = new BackoffJobAcquisitionStrategy(
         BASE_IDLE_WAIT_TIME,
@@ -75,7 +75,7 @@ public class BackoffJobAcquisitionStrategyTest {
     strategy.reconfigure(context);
 
     // then the job acquisition strategy returns the level 1 idle time
-    Assert.assertEquals(BASE_IDLE_WAIT_TIME, strategy.getWaitTime());
+    Assertions.assertEquals(BASE_IDLE_WAIT_TIME, strategy.getWaitTime());
 
     // when resubmitting the same acquisition result
     for (int idleLevel = 1; idleLevel < 6; idleLevel++) {
@@ -83,7 +83,7 @@ public class BackoffJobAcquisitionStrategyTest {
       context.submitAcquiredJobs(ENGINE_NAME, buildAcquiredJobs(NUM_JOBS_TO_ACQUIRE, 0, 0));
 
       strategy.reconfigure(context);
-      Assert.assertEquals((long) (BASE_IDLE_WAIT_TIME * Math.pow(IDLE_INCREASE_FACTOR, idleLevel)),
+      Assertions.assertEquals((long) (BASE_IDLE_WAIT_TIME * Math.pow(IDLE_INCREASE_FACTOR, idleLevel)),
           strategy.getWaitTime());
     }
 
@@ -92,7 +92,7 @@ public class BackoffJobAcquisitionStrategyTest {
     context.submitAcquiredJobs(ENGINE_NAME, buildAcquiredJobs(NUM_JOBS_TO_ACQUIRE, 0, 0));
 
     strategy.reconfigure(context);
-    Assert.assertEquals(MAX_IDLE_TIME, strategy.getWaitTime());
+    Assertions.assertEquals(MAX_IDLE_TIME, strategy.getWaitTime());
   }
 
   @Test
@@ -104,7 +104,7 @@ public class BackoffJobAcquisitionStrategyTest {
 
     context.submitAcquiredJobs(ENGINE_NAME, buildAcquiredJobs(NUM_JOBS_TO_ACQUIRE, 0, 0));
     strategy.reconfigure(context);
-    Assert.assertEquals(BASE_IDLE_WAIT_TIME, strategy.getWaitTime());
+    Assertions.assertEquals(BASE_IDLE_WAIT_TIME, strategy.getWaitTime());
 
     // when receiving a successful acquisition result
     context.reset();
@@ -113,7 +113,7 @@ public class BackoffJobAcquisitionStrategyTest {
     strategy.reconfigure(context);
 
     // then the idle wait time has been reset
-    Assert.assertEquals(0L, strategy.getWaitTime());
+    Assertions.assertEquals(0L, strategy.getWaitTime());
   }
 
   @Test
@@ -134,10 +134,10 @@ public class BackoffJobAcquisitionStrategyTest {
     // then the strategy only attempts to acquire the number of jobs that were successfully submitted
     strategy.reconfigure(context);
 
-    Assert.assertEquals(NUM_JOBS_TO_ACQUIRE - numJobsRejected, strategy.getNumJobsToAcquire(ENGINE_NAME));
+    Assertions.assertEquals(NUM_JOBS_TO_ACQUIRE - numJobsRejected, strategy.getNumJobsToAcquire(ENGINE_NAME));
 
     // without a timeout
-    Assert.assertEquals(0, strategy.getWaitTime());
+    Assertions.assertEquals(0, strategy.getWaitTime());
   }
 
   @Test
@@ -158,7 +158,7 @@ public class BackoffJobAcquisitionStrategyTest {
 
     // then there is a slight wait time to avoid constant spinning while
     // no execution resources are available
-    Assert.assertEquals(BackoffJobAcquisitionStrategy.DEFAULT_EXECUTION_SATURATION_WAIT_TIME, strategy.getWaitTime());
+    Assertions.assertEquals(BackoffJobAcquisitionStrategy.DEFAULT_EXECUTION_SATURATION_WAIT_TIME, strategy.getWaitTime());
   }
 
   /**

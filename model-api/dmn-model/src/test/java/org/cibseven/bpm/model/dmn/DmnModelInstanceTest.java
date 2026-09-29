@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.model.dmn.impl.DmnModelConstants;
 import org.cibseven.bpm.model.dmn.instance.Definitions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Filip Hrisafov

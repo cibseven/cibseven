@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.container.impl.jmx.deployment.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.cibseven.bpm.container.impl.deployment.scanning.ClassPathProcessApplicationScanner;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -52,22 +52,22 @@ public class MultipleClasspathRootsClassPathScannerTest {
 
     scanner.scanPaResourceRootPath(classLoader, null, "classpath:directory/",scanResult);
 
-    assertTrue("'testDeployProcessArchive.bpmn20.xml' not found", contains(scanResult, "testDeployProcessArchive.bpmn20.xml"));
-    assertTrue("'testDeployProcessArchive.png' not found", contains(scanResult, "testDeployProcessArchive.png"));
+    assertTrue(contains(scanResult, "testDeployProcessArchive.bpmn20.xml"), "'testDeployProcessArchive.bpmn20.xml' not found");
+    assertTrue(contains(scanResult, "testDeployProcessArchive.png"), "'testDeployProcessArchive.png' not found");
     assertEquals(2, scanResult.size()); // only finds two files since the resource name of the processes (and diagrams) is the same
 
     scanResult.clear();
     scanner.scanPaResourceRootPath(classLoader, null, "directory/", scanResult);
 
-    assertTrue("'testDeployProcessArchive.bpmn20.xml' not found", contains(scanResult, "testDeployProcessArchive.bpmn20.xml"));
-    assertTrue("'testDeployProcessArchive.png' not found", contains(scanResult, "testDeployProcessArchive.png"));
+    assertTrue(contains(scanResult, "testDeployProcessArchive.bpmn20.xml"), "'testDeployProcessArchive.bpmn20.xml' not found");
+    assertTrue(contains(scanResult, "testDeployProcessArchive.png"), "'testDeployProcessArchive.png' not found");
     assertEquals(2, scanResult.size()); // only finds two files since the resource name of the processes (and diagrams) is the same
 
     scanResult.clear();
     scanner.scanPaResourceRootPath(classLoader, new URL("file:src/test/resources/org/cibseven/bpm/container/impl/jmx/deployment/util/ClassPathScannerTest.testScanClassPathWithFilesRecursive/META-INF/processes.xml"), "pa:directory/", scanResult);
 
-    assertTrue("'testDeployProcessArchive.bpmn20.xml' not found", contains(scanResult, "testDeployProcessArchive.bpmn20.xml"));
-    assertTrue("'testDeployProcessArchive.png' not found", contains(scanResult, "testDeployProcessArchive.png"));
+    assertTrue(contains(scanResult, "testDeployProcessArchive.bpmn20.xml"), "'testDeployProcessArchive.bpmn20.xml' not found");
+    assertTrue(contains(scanResult, "testDeployProcessArchive.png"), "'testDeployProcessArchive.png' not found");
     assertEquals(2, scanResult.size()); // only finds two files since a PA-local resource root path is provided
 
   }

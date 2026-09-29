@@ -32,7 +32,7 @@ import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
 import org.cibseven.bpm.dmn.engine.impl.DmnEvaluationException;
 import org.cibseven.bpm.dmn.engine.test.DmnEngineTest;
 import org.cibseven.commons.utils.IoUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DmnDecisionEvaluationTest extends DmnEngineTest {
 
@@ -314,7 +314,7 @@ public class DmnDecisionEvaluationTest extends DmnEngineTest {
   @Test
   public void shouldEvaluateDecisionWithCollectHitPolicyReturningAList() {
     DmnDecisionRequirementsGraph graph = dmnEngine.parseDecisionRequirementsGraph(IoUtil.fileAsStream(DRG_COLLECT_DMN));
-    initVariables();
+    variables = org.cibseven.bpm.engine.variable.Variables.createVariables();
     variables.putValue("dayType","WeekDay");
 
     DmnDecisionResult result = dmnEngine.evaluateDecision(graph.getDecision("dish-decision"), variables);
@@ -326,7 +326,7 @@ public class DmnDecisionEvaluationTest extends DmnEngineTest {
   @Test
   public void shouldEvaluateDecisionWithRuleOrderHitPolicyReturningAList() {
     DmnDecisionRequirementsGraph graph = dmnEngine.parseDecisionRequirementsGraph(IoUtil.fileAsStream(DRG_RULE_ORDER_DMN));
-    initVariables();
+    variables = org.cibseven.bpm.engine.variable.Variables.createVariables();
     variables.putValue("dayType","WeekDay");
 
     DmnDecisionResult result = dmnEngine.evaluateDecision(graph.getDecision("dish-decision"), variables);

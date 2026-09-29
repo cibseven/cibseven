@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.spring.boot.starter.property;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;

@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getAttachmentData"
       tag = "Task Attachment"
-      summary = "Get (Binary)"
+      summary = "Get Task Attachment (Binary)"
       desc = "Retrieves the binary content of a task attachment by task id and attachment id." />
 
   "parameters" : [

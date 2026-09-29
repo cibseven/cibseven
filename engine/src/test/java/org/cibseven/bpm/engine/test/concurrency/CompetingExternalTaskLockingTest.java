@@ -24,7 +24,7 @@ import org.cibseven.bpm.engine.impl.cmd.LockExternalTaskCmd;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExternalTaskEntity;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * This test covers the use-case where two competing transactions

@@ -16,14 +16,14 @@
  */
 package org.cibseven.bpm.engine.test.api.repository;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
-import static junit.framework.TestCase.assertTrue;
-import static junit.framework.TestCase.fail;
+import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.test.api.repository.RedeploymentTest.DEPLOYMENT_NAME;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,10 +51,12 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.utils.cache.Cache;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 /**
  *
@@ -62,11 +64,11 @@ import org.junit.Test;
  */
 public class DeleteProcessDefinitionTest {
 
-  @Rule
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
-  @Rule
-  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(9) public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   protected HistoryService historyService;
   protected RepositoryService repositoryService;
@@ -75,7 +77,7 @@ public class DeleteProcessDefinitionTest {
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected Deployment deployment;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     historyService = engineRule.getHistoryService();
     repositoryService = engineRule.getRepositoryService();
@@ -84,7 +86,7 @@ public class DeleteProcessDefinitionTest {
     processEngineConfiguration = (ProcessEngineConfigurationImpl) engineRule.getProcessEngine().getProcessEngineConfiguration();
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     if (deployment != null) {
       repositoryService.deleteDeployment(deployment.getId(), true);

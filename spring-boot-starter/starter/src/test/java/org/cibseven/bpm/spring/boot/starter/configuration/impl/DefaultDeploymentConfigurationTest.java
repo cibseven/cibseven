@@ -24,8 +24,8 @@ import java.util.Set;
 
 import org.cibseven.bpm.engine.spring.SpringProcessEngineConfiguration;
 import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.io.Resource;
 
 public class DefaultDeploymentConfigurationTest {
@@ -34,7 +34,7 @@ public class DefaultDeploymentConfigurationTest {
   private final CamundaBpmProperties camundaBpmProperties = new CamundaBpmProperties();
   private final SpringProcessEngineConfiguration configuration = new SpringProcessEngineConfiguration();
 
-  @Before
+  @BeforeEach
   public void before() {
     defaultDeploymentConfiguration.camundaBpmProperties = camundaBpmProperties;
   }

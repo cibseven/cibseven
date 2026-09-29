@@ -22,16 +22,16 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.identity.Group;
@@ -70,10 +70,16 @@ public class ProcessEngineAuthenticationFilter implements Filter {
   // regexes for urls that may be accessed unauthorized
   protected static final Pattern[] WHITE_LISTED_URL_PATTERNS = new Pattern[] {
     Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/?"),
+    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/setup/status$"),
+    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/setup/user/create$"),
     Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/identity/verify$"),
-    Pattern.compile("^\\/setup\\/status$"),
-    Pattern.compile("^\\/setup\\/user\\/create$"),
-    Pattern.compile("^/identity/verify$")
+    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/identity/password-policy$"),
+    Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/[^/]+/configuration$"),
+    Pattern.compile("^/configuration$"),
+    Pattern.compile("^/setup/status$"),
+    Pattern.compile("^/setup/user/create$"),
+    Pattern.compile("^/identity/verify$"),
+    Pattern.compile("^/identity/password-policy$")
   };
 
   protected static final Pattern ENGINE_REQUEST_URL_PATTERN = Pattern.compile("^" + NamedProcessEngineRestServiceImpl.PATH + "/(.*?)(/|$)");

@@ -20,10 +20,10 @@ import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.assertTha
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,7 +38,7 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.ExecutionTree;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -1178,7 +1178,7 @@ public class ProcessInstanceModificationMultiInstanceTest extends PluggableProce
     for (String taskName : taskNames) {
       // complete any task with that name
       List<Task> tasks = taskService.createTaskQuery().taskDefinitionKey(taskName).listPage(0, 1);
-      assertTrue("task for activity " + taskName + " does not exist", !tasks.isEmpty());
+      assertTrue(!tasks.isEmpty(), "task for activity " + taskName + " does not exist");
       taskService.complete(tasks.get(0).getId());
     }
   }
@@ -1186,8 +1186,9 @@ public class ProcessInstanceModificationMultiInstanceTest extends PluggableProce
 
   protected void assertVariable(Execution execution, String variableName, Object expectedValue) {
     Object variableValue = runtimeService.getVariable(execution.getId(), variableName);
-    assertEquals("Value for variable '" + variableName + "' and " + execution + " "
-        + "does not match.", expectedValue, variableValue);
+    assertEquals(expectedValue, variableValue,
+    		"Value for variable '" + variableName + "' and " + execution + " "
+    		        + "does not match.");
   }
 
   protected void assertVariableSet(List<Execution> executions, String variableName, List<?> expectedValues) {
@@ -1198,11 +1199,10 @@ public class ProcessInstanceModificationMultiInstanceTest extends PluggableProce
 
     for (Object expectedValue : expectedValues) {
       boolean valueFound = actualValues.remove(expectedValue);
-      assertTrue("Expected variable value '" + expectedValue + "' not contained in the list of actual values. "
-          + "Unmatched actual values: " + actualValues,
-          valueFound);
+      assertTrue(valueFound, "Expected variable value '" + expectedValue + "' not contained in the list of actual values. "
+              + "Unmatched actual values: " + actualValues);
     }
-    assertTrue("There are more actual than expected values.", actualValues.isEmpty());
+    assertTrue(actualValues.isEmpty(), "There are more actual than expected values.");
   }
 
 }

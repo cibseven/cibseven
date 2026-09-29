@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.test.api.runtime;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Map;
 
@@ -27,14 +27,14 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ProcessInstantiationAtStartEventTest extends PluggableProcessEngineTest {
 
   protected static final String PROCESS_DEFINITION_KEY = "testProcess";
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
    testRule.deploy(Bpmn.createExecutableProcess(PROCESS_DEFINITION_KEY)
         .startEvent()

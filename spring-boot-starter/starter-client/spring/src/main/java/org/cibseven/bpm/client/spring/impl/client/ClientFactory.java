@@ -19,6 +19,8 @@ package org.cibseven.bpm.client.spring.impl.client;
 import static org.cibseven.bpm.client.spring.annotation.EnableExternalTaskClient.STRING_ORDER_BY_ASC_VALUE;
 import static org.cibseven.bpm.client.spring.annotation.EnableExternalTaskClient.STRING_ORDER_BY_DESC_VALUE;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.cibseven.bpm.client.ExternalTaskClient;
@@ -27,6 +29,7 @@ import org.cibseven.bpm.client.backoff.BackoffStrategy;
 import org.cibseven.bpm.client.interceptor.ClientRequestInterceptor;
 import org.cibseven.bpm.client.spring.exception.SpringExternalTaskClientException;
 import org.cibseven.bpm.client.spring.impl.client.util.ClientLoggerUtil;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +39,7 @@ import org.springframework.core.env.PropertySources;
 import org.springframework.core.env.PropertySourcesPropertyResolver;
 
 public class ClientFactory
-    implements FactoryBean<ExternalTaskClient>, InitializingBean {
+    implements FactoryBean<ExternalTaskClient>, InitializingBean, DisposableBean {
 
   protected static final ClientLoggerUtil LOG = ClientLoggerUtil.CLIENT_LOGGER;
 
@@ -189,6 +192,20 @@ public class ClientFactory
 
   public List<ClientRequestInterceptor> getRequestInterceptors() {
     return requestInterceptors;
+  }
+
+  @Override
+  public void destroy() {
+    close();
+    for (ClientRequestInterceptor interceptor : requestInterceptors) {
+      if (interceptor instanceof Closeable) {
+        try {
+          ((Closeable) interceptor).close();
+        } catch (IOException ignored) {
+          // best-effort cleanup during shutdown
+        }
+      }
+    }
   }
 
   protected void close() {

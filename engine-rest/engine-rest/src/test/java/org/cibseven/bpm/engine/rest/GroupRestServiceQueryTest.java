@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.assertj.core.util.Arrays;
 import org.cibseven.bpm.engine.identity.Group;
@@ -40,10 +40,10 @@ import org.cibseven.bpm.engine.identity.GroupQuery;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
 import io.restassured.http.ContentType;
@@ -52,7 +52,7 @@ import io.restassured.specification.RequestSpecification;
 
 public class GroupRestServiceQueryTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String GROUP_QUERY_URL = TEST_RESOURCE_ROOT_PATH + "/group";
@@ -60,7 +60,7 @@ public class GroupRestServiceQueryTest extends AbstractRestServiceTest {
 
   private GroupQuery mockQuery;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     mockQuery = setUpMockGroupQuery(MockProvider.createMockGroups());
   }
@@ -125,14 +125,14 @@ public class GroupRestServiceQueryTest extends AbstractRestServiceTest {
 
     String content = response.asString();
     List<String> instances = from(content).getList("");
-    Assert.assertEquals("There should be one group returned.", 1, instances.size());
-    Assert.assertNotNull("The returned group should not be null.", instances.get(0));
+    Assertions.assertEquals( 1, instances.size(), "There should be one group returned.");
+    Assertions.assertNotNull(instances.get(0), "The returned group should not be null.");
 
     String returendName = from(content).getString("[0].name");
     String returendType = from(content).getString("[0].type");
 
-    Assert.assertEquals(MockProvider.EXAMPLE_GROUP_NAME, returendName);
-    Assert.assertEquals(MockProvider.EXAMPLE_GROUP_TYPE, returendType);
+    Assertions.assertEquals(MockProvider.EXAMPLE_GROUP_NAME, returendName);
+    Assertions.assertEquals(MockProvider.EXAMPLE_GROUP_TYPE, returendType);
 
   }
 

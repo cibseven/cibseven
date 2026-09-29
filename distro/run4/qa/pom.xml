@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.cibseven.bpm.run</groupId>
     <artifactId>cibseven-bpm-run4-root</artifactId>
-    <version>2.2.0-SNAPSHOT</version>
+    <version>2.3.0-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
 
@@ -20,11 +20,27 @@
     <version.jersey-json>1.15</version.jersey-json>
     <version.jersey-apache-client>1.15</version.jersey-apache-client>
     <version.httpcomponents>5.3.1</version.httpcomponents>
-    <version.junit>4.13.1</version.junit>
+    <!-- Keep Groovy on 4.x for RestAssured QA tests; Groovy 5 from Spring Boot 4 causes NPEs in RestAssured request execution. -->
+    <version.rest-assured.groovy>4.0.32</version.rest-assured.groovy>
   </properties>
 
   <dependencyManagement>
     <dependencies>
+      <!-- Must stay FIRST: among imported BOMs the earliest declaration wins, and without an
+           import here the QA modules fall through to JUnit 5.10.1 from a transitive
+           spring-boot-starter-test rather than to anything run4 declares.
+
+           JUnit 6, not ${version.junit5}: run4 is the Spring Boot 4 tree, so spring-test 7.0.8
+           is on this test classpath. It is compiled against JUnit 6 and calls
+           ExtensionContext.Store.computeIfAbsent, which does not exist in JUnit 5 - pairing it
+           with Jupiter 5 fails with NoSuchMethodError the moment a test uses SpringExtension. -->
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${version.junit6}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
 
       <dependency>
         <groupId>org.apache.httpcomponents.client5</groupId>
@@ -40,19 +56,33 @@
         <version>${version.selenium}</version>
       </dependency>
 
-      <!-- using 4.13 in order to have @BeforeParam/@AfterParam for parameterized 
-        tests to correctly start and tear down the Spring Boot container before each 
-        parameter run -->
-      <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>${version.junit}</version>
-      </dependency>
-
       <dependency>
         <groupId>io.rest-assured</groupId>
         <artifactId>rest-assured</artifactId>
         <version>5.5.7</version>
+        <scope>test</scope>
+      </dependency>
+
+      <!-- Keep Groovy on 4.x for RestAssured QA tests; Groovy 5 from Spring Boot 4 causes NPEs in RestAssured request execution. -->
+      <dependency>
+        <groupId>org.apache.groovy</groupId>
+        <artifactId>groovy</artifactId>
+        <version>${version.rest-assured.groovy}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.groovy</groupId>
+        <artifactId>groovy-json</artifactId>
+        <version>${version.rest-assured.groovy}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.groovy</groupId>
+        <artifactId>groovy-xml</artifactId>
+        <version>${version.rest-assured.groovy}</version>
+        <scope>test</scope>
       </dependency>
 
     </dependencies>

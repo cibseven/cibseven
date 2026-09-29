@@ -17,22 +17,21 @@
 package org.cibseven.bpm.model.xml.testmodel.instance;
 
 import org.cibseven.bpm.model.xml.ModelInstance;
-import org.cibseven.bpm.model.xml.impl.parser.AbstractModelParser;
 import org.cibseven.bpm.model.xml.impl.util.StringUtil;
 import org.cibseven.bpm.model.xml.testmodel.Gender;
 import org.cibseven.bpm.model.xml.testmodel.TestModelParser;
 import org.cibseven.bpm.model.xml.testmodel.TestModelTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.model.xml.testmodel.TestModelConstants.MODEL_NAMESPACE;
-import static org.junit.runners.Parameterized.Parameters;
 
 /**
  * @author Sebastian Menski
@@ -46,17 +45,22 @@ public class BirdTest extends TestModelTest {
   private Egg egg2;
   private Egg egg3;
 
-  public BirdTest(String testName, ModelInstance testModelInstance, AbstractModelParser modelParser) {
-    super(testName, testModelInstance, modelParser);
+  public void setUp(ParsedModel parsedModel) {
+    initializeTestModelTest(parsedModel);
+    this.modelInstance = (ModelInstance) parsedModel.modelInstance;
+    tweety = modelInstance.getModelElementById("tweety");
+    hedwig = modelInstance.getModelElementById("hedwig");
+    timmy = modelInstance.getModelElementById("timmy");
+    egg1 = modelInstance.getModelElementById("egg1");
+    egg2 = modelInstance.getModelElementById("egg2");
+    egg3 = modelInstance.getModelElementById("egg3");
   }
 
-  @Parameters(name="Model {0}")
-  public static Collection<Object[]> models() {
-    Object[][] models = {createModel(), parseModel(BirdTest.class)};
-    return Arrays.asList(models);
+  public static Stream<Arguments> models() {
+    return Stream.of(createModel(), parseModel(BirdTest.class)).map(Arguments::of);
   }
 
-  public static Object[] createModel() {
+  public static ParsedModel createModel() {
     TestModelParser modelParser = new TestModelParser();
     ModelInstance modelInstance = modelParser.getEmptyModel();
 
@@ -97,22 +101,13 @@ public class BirdTest extends TestModelTest {
     timmy.getGuardedEggRefs().add(guardEgg);
     timmy.getGuardedEggs().add(egg3);
 
-    return new Object[]{"created", modelInstance, modelParser};
+    return new ParsedModel("created", modelInstance, modelParser);
   }
 
-  @Before
-  public void copyModelInstance() {
-    modelInstance = cloneModelInstance();
-    tweety = modelInstance.getModelElementById("tweety");
-    hedwig = modelInstance.getModelElementById("hedwig");
-    timmy = modelInstance.getModelElementById("timmy");
-    egg1 = modelInstance.getModelElementById("egg1");
-    egg2 = modelInstance.getModelElementById("egg2");
-    egg3 = modelInstance.getModelElementById("egg3");
-  }
-
-  @Test
-  public void testAddEggsByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testAddEggsByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(tweety.getEggs())
       .isNotEmpty()
       .hasSize(3)
@@ -128,8 +123,10 @@ public class BirdTest extends TestModelTest {
       .containsOnly(egg1, egg2, egg3, egg4, egg5);
   }
 
-  @Test
-  public void testUpdateEggsByIdByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateEggsByIdByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     egg1.setId("new-" + egg1.getId());
     egg2.setId("new-" + egg2.getId());
     assertThat(tweety.getEggs())
@@ -137,8 +134,10 @@ public class BirdTest extends TestModelTest {
       .containsOnly(egg1, egg2, egg3);
   }
 
-  @Test
-  public void testUpdateEggsByIdByAttributeName() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateEggsByIdByAttributeName(ParsedModel parsedModel) {
+    setUp(parsedModel);
     egg1.setAttributeValue("id", "new-" + egg1.getId(), true);
     egg2.setAttributeValue("id", "new-" + egg2.getId(), true);
     assertThat(tweety.getEggs())
@@ -146,8 +145,10 @@ public class BirdTest extends TestModelTest {
       .containsOnly(egg1, egg2, egg3);
   }
 
-  @Test
-  public void testUpdateEggsByReplaceElements() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateEggsByReplaceElements(ParsedModel parsedModel) {
+    setUp(parsedModel);
     Egg egg4 = createEgg(modelInstance, "egg4");
     Egg egg5 = createEgg(modelInstance, "egg5");
     egg1.replaceWithElement(egg4);
@@ -157,88 +158,114 @@ public class BirdTest extends TestModelTest {
       .containsOnly(egg3, egg4, egg5);
   }
 
-  @Test
-  public void testUpdateEggsByRemoveElement() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateEggsByRemoveElement(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.getEggs().remove(egg1);
     assertThat(tweety.getEggs())
       .hasSize(2)
       .containsOnly(egg2, egg3);
   }
 
-  @Test
-  public void testClearEggs() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testClearEggs(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.getEggs().clear();
     assertThat(tweety.getEggs())
       .isEmpty();
   }
 
-  @Test
-  public void testSetSpouseRefByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetSpouseRefByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setSpouse(timmy);
     assertThat(tweety.getSpouse()).isEqualTo(timmy);
   }
 
-  @Test
-  public void testUpdateSpouseByIdHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateSpouseByIdHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     hedwig.setId("new-" + hedwig.getId());
     assertThat(tweety.getSpouse()).isEqualTo(hedwig);
   }
 
-  @Test
-  public void testUpdateSpouseByIdByAttributeName() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateSpouseByIdByAttributeName(ParsedModel parsedModel) {
+    setUp(parsedModel);
     hedwig.setAttributeValue("id", "new-" + hedwig.getId(), true);
     assertThat(tweety.getSpouse()).isEqualTo(hedwig);
   }
 
-  @Test
-  public void testUpdateSpouseByReplaceElement() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateSpouseByReplaceElement(ParsedModel parsedModel) {
+    setUp(parsedModel);
     hedwig.replaceWithElement(timmy);
     assertThat(tweety.getSpouse()).isEqualTo(timmy);
   }
 
-  @Test
-  public void testUpdateSpouseByRemoveElement() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateSpouseByRemoveElement(ParsedModel parsedModel) {
+    setUp(parsedModel);
     Animals animals = (Animals) modelInstance.getDocumentElement();
     animals.getAnimals().remove(hedwig);
     assertThat(tweety.getSpouse()).isNull();
   }
 
-  @Test
-  public void testClearSpouse() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testClearSpouse(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.removeSpouse();
     assertThat(tweety.getSpouse()).isNull();
   }
 
-  @Test
-  public void testSetSpouseRefsByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetSpouseRefsByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     SpouseRef spouseRef = modelInstance.newInstance(SpouseRef.class);
     spouseRef.setTextContent(timmy.getId());
     tweety.getSpouseRef().replaceWithElement(spouseRef);
     assertThat(tweety.getSpouse()).isEqualTo(timmy);
   }
 
-  @Test
-  public void testSpouseRefsByTextContent() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSpouseRefsByTextContent(ParsedModel parsedModel) {
+    setUp(parsedModel);
     SpouseRef spouseRef = tweety.getSpouseRef();
     assertThat(spouseRef.getTextContent()).isEqualTo(hedwig.getId());
   }
 
-  @Test
-  public void testUpdateSpouseRefsByTextContent() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateSpouseRefsByTextContent(ParsedModel parsedModel) {
+    setUp(parsedModel);
     SpouseRef spouseRef = tweety.getSpouseRef();
     spouseRef.setTextContent(timmy.getId());
     assertThat(tweety.getSpouse()).isEqualTo(timmy);
   }
 
-  @Test
-  public void testUpdateSpouseRefsByTextContentWithNamespace() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateSpouseRefsByTextContentWithNamespace(ParsedModel parsedModel) {
+    setUp(parsedModel);
     SpouseRef spouseRef = tweety.getSpouseRef();
     spouseRef.setTextContent("tns:" + timmy.getId());
     assertThat(tweety.getSpouse()).isEqualTo(timmy);
   }
 
-  @Test
-  public void testGetMother() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testGetMother(ParsedModel parsedModel) {
+    setUp(parsedModel);
     Animal mother = egg1.getMother();
     assertThat(mother).isEqualTo(tweety);
 
@@ -246,67 +273,87 @@ public class BirdTest extends TestModelTest {
     assertThat(mother).isEqualTo(tweety);
   }
 
-  @Test
-  public void testSetMotherRefByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetMotherRefByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     egg1.setMother(timmy);
     assertThat(egg1.getMother()).isEqualTo(timmy);
   }
 
-  @Test
-  public void testUpdateMotherByIdHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateMotherByIdHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setId("new-" + tweety.getId());
     assertThat(egg1.getMother()).isEqualTo(tweety);
   }
 
-  @Test
-  public void testUpdateMotherByIdByAttributeName() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateMotherByIdByAttributeName(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setAttributeValue("id", "new-" + tweety.getId(), true);
     assertThat(egg1.getMother()).isEqualTo(tweety);
   }
 
-  @Test
-  public void testUpdateMotherByReplaceElement() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateMotherByReplaceElement(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.replaceWithElement(timmy);
     assertThat(egg1.getMother()).isEqualTo(timmy);
   }
 
-  @Test
-  public void testUpdateMotherByRemoveElement() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateMotherByRemoveElement(ParsedModel parsedModel) {
+    setUp(parsedModel);
     egg1.setMother(hedwig);
     Animals animals = (Animals) modelInstance.getDocumentElement();
     animals.getAnimals().remove(hedwig);
     assertThat(egg1.getMother()).isNull();
   }
 
-  @Test
-  public void testClearMother() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testClearMother(ParsedModel parsedModel) {
+    setUp(parsedModel);
     egg1.removeMother();
     assertThat(egg1.getMother()).isNull();
   }
 
-  @Test
-  public void testSetMotherRefsByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetMotherRefsByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     Mother mother = modelInstance.newInstance(Mother.class);
     mother.setHref("#" + timmy.getId());
     egg1.getMotherRef().replaceWithElement(mother);
     assertThat(egg1.getMother()).isEqualTo(timmy);
   }
 
-  @Test
-  public void testMotherRefsByTextContent() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testMotherRefsByTextContent(ParsedModel parsedModel) {
+    setUp(parsedModel);
     Mother mother = egg1.getMotherRef();
     assertThat(mother.getHref()).isEqualTo("#" + tweety.getId());
   }
 
-  @Test
-  public void testUpdateMotherRefsByTextContent() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateMotherRefsByTextContent(ParsedModel parsedModel) {
+    setUp(parsedModel);
     Mother mother = egg1.getMotherRef();
     mother.setHref("#" + timmy.getId());
     assertThat(egg1.getMother()).isEqualTo(timmy);
   }
 
-  @Test
-  public void testGetGuards() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testGetGuards(ParsedModel parsedModel) {
+    setUp(parsedModel);
     Collection<Animal> guards = egg1.getGuardians();
     assertThat(guards).isNotEmpty().hasSize(2);
     assertThat(guards).contains(hedwig, timmy);
@@ -316,8 +363,10 @@ public class BirdTest extends TestModelTest {
     assertThat(guards).contains(hedwig, timmy);
   }
 
-  @Test
-  public void testAddGuardianRefsByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testAddGuardianRefsByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(egg1.getGuardianRefs())
       .isNotEmpty()
       .hasSize(2);
@@ -332,8 +381,10 @@ public class BirdTest extends TestModelTest {
       .contains(tweetyGuardian);
   }
 
-  @Test
-  public void testGuardianRefsByTextContent() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testGuardianRefsByTextContent(ParsedModel parsedModel) {
+    setUp(parsedModel);
     Collection<Guardian> guardianRefs = egg1.getGuardianRefs();
     Collection<String> hrefs = new ArrayList<String>();
     for (Guardian guardianRef : guardianRefs) {
@@ -347,8 +398,10 @@ public class BirdTest extends TestModelTest {
       .containsOnly("#" + hedwig.getId(), "#" + timmy.getId());
   }
 
-  @Test
-  public void testUpdateGuardianRefsByTextContent() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateGuardianRefsByTextContent(ParsedModel parsedModel) {
+    setUp(parsedModel);
     List<Guardian> guardianRefs = new ArrayList<Guardian>(egg1.getGuardianRefs());
 
     guardianRefs.get(0).setHref("#" + tweety.getId());
@@ -358,8 +411,10 @@ public class BirdTest extends TestModelTest {
       .containsOnly(tweety, timmy);
   }
 
-  @Test
-  public void testUpdateGuardianRefsByRemoveElements() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateGuardianRefsByRemoveElements(ParsedModel parsedModel) {
+    setUp(parsedModel);
     List<Guardian> guardianRefs = new ArrayList<Guardian>(egg1.getGuardianRefs());
     egg1.getGuardianRefs().remove(guardianRefs.get(1));
     assertThat(egg1.getGuardians())
@@ -367,8 +422,10 @@ public class BirdTest extends TestModelTest {
       .containsOnly(hedwig);
   }
 
-  @Test
-  public void testClearGuardianRefs() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testClearGuardianRefs(ParsedModel parsedModel) {
+    setUp(parsedModel);
     egg1.getGuardianRefs().clear();
     assertThat(egg1.getGuardianRefs()).isEmpty();
 
@@ -379,8 +436,10 @@ public class BirdTest extends TestModelTest {
       .hasSize(3);
   }
 
-  @Test
-  public void testGetGuardedEggs() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testGetGuardedEggs(ParsedModel parsedModel) {
+    setUp(parsedModel);
     Collection<Egg> guardedEggs = hedwig.getGuardedEggs();
     assertThat(guardedEggs)
       .isNotEmpty()
@@ -394,8 +453,10 @@ public class BirdTest extends TestModelTest {
       .contains(egg1, egg2);
   }
 
-  @Test
-  public void testAddGuardedEggRefsByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testAddGuardedEggRefsByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(hedwig.getGuardedEggRefs())
       .isNotEmpty()
       .hasSize(2);
@@ -410,8 +471,10 @@ public class BirdTest extends TestModelTest {
       .contains(egg3GuardedEgg);
   }
 
-  @Test
-  public void testGuardedEggRefsByTextContent() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testGuardedEggRefsByTextContent(ParsedModel parsedModel) {
+    setUp(parsedModel);
     Collection<GuardEgg> guardianRefs = timmy.getGuardedEggRefs();
     Collection<String> textContents = new ArrayList<String>();
     for (GuardEgg guardianRef : guardianRefs) {
@@ -425,8 +488,10 @@ public class BirdTest extends TestModelTest {
       .containsOnly(egg1.getId(), egg2.getId(), egg3.getId());
   }
 
-  @Test
-  public void testUpdateGuardedEggRefsByTextContent() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateGuardedEggRefsByTextContent(ParsedModel parsedModel) {
+    setUp(parsedModel);
     List<GuardEgg> guardianRefs = new ArrayList<GuardEgg>(hedwig.getGuardedEggRefs());
 
     guardianRefs.get(0).setTextContent(egg1.getId() + " " + egg3.getId());
@@ -436,8 +501,10 @@ public class BirdTest extends TestModelTest {
       .containsOnly(egg1, egg2, egg3);
   }
 
-  @Test
-  public void testUpdateGuardedEggRefsByRemoveElements() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateGuardedEggRefsByRemoveElements(ParsedModel parsedModel) {
+    setUp(parsedModel);
     List<GuardEgg> guardianRefs = new ArrayList<GuardEgg>(timmy.getGuardedEggRefs());
     timmy.getGuardedEggRefs().remove(guardianRefs.get(0));
     assertThat(timmy.getGuardedEggs())
@@ -445,8 +512,10 @@ public class BirdTest extends TestModelTest {
       .containsOnly(egg3);
   }
 
-  @Test
-  public void testClearGuardedEggRefs() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testClearGuardedEggRefs(ParsedModel parsedModel) {
+    setUp(parsedModel);
     timmy.getGuardedEggRefs().clear();
     assertThat(timmy.getGuardedEggRefs()).isEmpty();
 

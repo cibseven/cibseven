@@ -20,7 +20,7 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.Query;
 import org.cibseven.bpm.model.bpmn.impl.QueryImpl;
 import org.cibseven.bpm.model.xml.impl.util.ReflectUtil;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.io.InputStream;
 import java.util.Collection;
@@ -41,7 +41,7 @@ public abstract class AbstractEventDefinitionTest extends BpmnModelElementInstan
     return null;
   }
 
-  @Before
+  @BeforeEach
   public void getEvent() {
     InputStream inputStream = ReflectUtil.getResourceAsStream("org/cibseven/bpm/model/bpmn/EventDefinitionsTest.xml");
     IntermediateThrowEvent event = Bpmn.readModelFromStream(inputStream).getModelElementById("event");

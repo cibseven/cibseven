@@ -3,7 +3,7 @@
   <@lib.endpointInfo
       id = "getDecisionDefinitionDmnXmlByKeyAndTenant"
       tag = "Decision Definition"
-      summary = "Get XML By Key and Tenant"
+      summary = "Get Decision Definition XML By Key And Tenant"
       desc = "Retrieves the XML of the latest version of the decision definition for tenant" />
 
   "parameters" : [

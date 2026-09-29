@@ -18,6 +18,8 @@ package org.cibseven.bpm.application;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
+import jakarta.el.BeanELResolver;
+import jakarta.el.ELResolver;
 
 import org.cibseven.bpm.ProcessApplicationService;
 import org.cibseven.bpm.application.impl.EjbProcessApplication;
@@ -25,8 +27,6 @@ import org.cibseven.bpm.application.impl.EmbeddedProcessApplication;
 import org.cibseven.bpm.application.impl.ServletProcessApplication;
 import org.cibseven.bpm.engine.delegate.ExecutionListener;
 import org.cibseven.bpm.engine.delegate.TaskListener;
-import org.cibseven.bpm.impl.juel.jakarta.el.BeanELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
 import org.cibseven.bpm.engine.repository.DeploymentBuilder;
 
 /**

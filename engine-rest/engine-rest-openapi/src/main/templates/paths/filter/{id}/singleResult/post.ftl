@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "postExecuteFilterSingleResult"
       tag = "Filter"
-      summary = "Execute Filter Single Result (POST)"
+      summary = "Execute Filter Single Result"
       desc = "Executes the saved query of the filter by id and returns the single result. This method is slightly more
               powerful then the [Get Execute Filter Single Result](${docsUrl}/reference/rest/filter/get-execute-single-result/)
               method because it allows to extend the saved query of the filter."

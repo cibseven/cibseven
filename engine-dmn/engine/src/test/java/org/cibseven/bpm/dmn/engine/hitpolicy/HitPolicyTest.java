@@ -33,7 +33,7 @@ import org.cibseven.bpm.dmn.engine.impl.transform.DmnTransformException;
 import org.cibseven.bpm.dmn.engine.test.DecisionResource;
 import org.cibseven.bpm.dmn.engine.test.DmnEngineTest;
 import org.cibseven.bpm.dmn.engine.test.asserts.DmnDecisionTableResultAssert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class HitPolicyTest extends DmnEngineTest {
 

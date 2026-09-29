@@ -21,13 +21,13 @@ import org.cibseven.bpm.dmn.feel.impl.scala.ScalaFeelEngine;
 import org.cibseven.bpm.dmn.feel.impl.scala.function.FeelCustomFunctionProvider;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.context.VariableContext;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 import java.util.Collections;
 import java.util.List;
 
-public class FeelRule extends TestWatcher {
+public class FeelRule implements AfterAllCallback {
 
   protected FunctionProvider functionProvider;
   protected ScalaFeelEngine feelEngine;
@@ -50,9 +50,7 @@ public class FeelRule extends TestWatcher {
   }
 
   @Override
-  protected void finished(Description description) {
-    super.finished(description);
-
+  public void afterAll(ExtensionContext context) throws Exception {
     if (functionProvider != null) {
       functionProvider.clear();
     }

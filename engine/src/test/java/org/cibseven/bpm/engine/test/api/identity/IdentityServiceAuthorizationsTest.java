@@ -33,12 +33,12 @@ import static org.cibseven.bpm.engine.authorization.Resources.TENANT;
 import static org.cibseven.bpm.engine.authorization.Resources.TENANT_MEMBERSHIP;
 import static org.cibseven.bpm.engine.authorization.Resources.USER;
 import static org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestUtil.assertExceptionInfo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -62,9 +62,9 @@ import org.cibseven.bpm.engine.impl.persistence.entity.TenantEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.UserEntity;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
@@ -74,7 +74,7 @@ public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTes
 
   private final static String jonny2 = "jonny2";
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     processEngineConfiguration.setAuthorizationEnabled(false);
     cleanupAfterTest();
@@ -935,6 +935,56 @@ public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTes
 
   }
 
+  /**
+   * The user id criterion matches case-insensitively, i.e. it consists of two conditions
+   * combined with OR. If those are not bracketed, the AND of the authorization check binds
+   * tighter than the OR and an exact id match bypasses the check altogether.
+   */
+  @Test
+  public void testUserQueryAuthorizationsWithUserIdCriterion() {
+
+    // we are jonny2
+    String authUserId = "jonny2";
+    identityService.setAuthenticatedUserId(authUserId);
+
+    // create new user jonny1
+    User jonny1 = identityService.newUser("jonny1");
+    identityService.saveUser(jonny1);
+
+    // set base permission for all users (no-one has any permissions on users)
+    Authorization basePerms = authorizationService.createNewAuthorization(AUTH_TYPE_GLOBAL);
+    basePerms.setResource(USER);
+    basePerms.setResourceId(ANY);
+    authorizationService.saveAuthorization(basePerms);
+
+    // now enable checks
+    processEngineConfiguration.setAuthorizationEnabled(true);
+
+    // we cannot fetch the user by its id, neither exactly nor case-insensitively
+    assertNull(identityService.createUserQuery().userId("jonny1").singleResult());
+    assertEquals(0, identityService.createUserQuery().userId("jonny1").count());
+    assertNull(identityService.createUserQuery().userId("JONNY1").singleResult());
+    assertEquals(0, identityService.createUserQuery().userId("JONNY1").count());
+
+    processEngineConfiguration.setAuthorizationEnabled(false);
+
+    // now we add permission for jonny2 to read the user:
+    Authorization ourPerms = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
+    ourPerms.setUserId(authUserId);
+    ourPerms.setResource(USER);
+    ourPerms.setResourceId(ANY);
+    ourPerms.addPermission(READ);
+    authorizationService.saveAuthorization(ourPerms);
+
+    processEngineConfiguration.setAuthorizationEnabled(true);
+
+    // now we can fetch the user by its id
+    assertNotNull(identityService.createUserQuery().userId("jonny1").singleResult());
+    assertEquals(1, identityService.createUserQuery().userId("jonny1").count());
+    assertNotNull(identityService.createUserQuery().userId("JONNY1").singleResult());
+    assertEquals(1, identityService.createUserQuery().userId("JONNY1").count());
+  }
+
   @Test
   public void testUserQueryAuthorizationsMultipleGroups() {
 
@@ -1076,7 +1126,7 @@ public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTes
 
     for (User user : salesUser) {
       if (!user.getId().equals("demo") && !user.getId().equals("john")) {
-        Assert.fail("Unexpected user for group sales: " + user.getId());
+        Assertions.fail("Unexpected user for group sales: " + user.getId());
       }
     }
 
@@ -1085,7 +1135,7 @@ public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTes
 
     for (User user : accountingUser) {
       if (!user.getId().equals("demo") && !user.getId().equals("mary")) {
-        Assert.fail("Unexpected user for group accounting: " + user.getId());
+        Assertions.fail("Unexpected user for group accounting: " + user.getId());
       }
     }
 
@@ -1094,7 +1144,7 @@ public class IdentityServiceAuthorizationsTest extends PluggableProcessEngineTes
 
     for (User user : managementUser) {
       if (!user.getId().equals("demo") && !user.getId().equals("peter")) {
-        Assert.fail("Unexpected user for group managment: " + user.getId());
+        Assertions.fail("Unexpected user for group managment: " + user.getId());
       }
     }
   }

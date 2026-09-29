@@ -3,7 +3,7 @@
   <@lib.endpointInfo
       id = "deleteHistoricProcessInstancesAsync"
       tag = "Historic Process Instance"
-      summary = "Delete Async (POST)"
+      summary = "Delete Historic Process Instances Async"
       desc = "Delete multiple historic process instances asynchronously (batch).
               At least `historicProcessInstanceIds` or `historicProcessInstanceQuery` has to be provided.
               If both are provided then all instances matching query criterion and instances from the list will be deleted." />

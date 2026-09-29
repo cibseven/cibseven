@@ -18,13 +18,13 @@ package org.cibseven.bpm.engine.test.standalone.pvm.verification;
 
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.ExecutionListener;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * @author Daniel Meyer
  *
  */
-public class TransitionInstanceVerifyer extends Assert implements ExecutionListener {
+public class TransitionInstanceVerifyer extends Assertions implements ExecutionListener {
 
   public void notify(DelegateExecution execution) throws Exception {
     

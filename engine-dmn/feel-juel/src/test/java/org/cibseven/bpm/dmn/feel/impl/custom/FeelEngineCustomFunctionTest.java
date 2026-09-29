@@ -26,8 +26,8 @@ import org.cibseven.bpm.dmn.feel.impl.juel.FeelEngineFactoryImpl;
 import org.cibseven.bpm.dmn.feel.impl.juel.transform.FeelToJuelFunctionTransformer;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class FeelEngineCustomFunctionTest {
 
@@ -37,7 +37,7 @@ public class FeelEngineCustomFunctionTest {
 
   public VariableMap variables;
 
-  @Before
+  @BeforeEach
   public void initEngine() {
     variables = Variables.createVariables();
 

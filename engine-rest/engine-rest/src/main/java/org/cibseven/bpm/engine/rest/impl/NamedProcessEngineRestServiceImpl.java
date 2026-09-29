@@ -23,12 +23,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.UriBuilder;
 
 import org.cibseven.bpm.engine.rest.AuthorizationRestService;
 import org.cibseven.bpm.engine.rest.BatchRestService;
@@ -256,6 +256,11 @@ public class NamedProcessEngineRestServiceImpl extends AbstractProcessEngineRest
   @Path("/{name}" + VersionRestService.PATH)
   public VersionRestService getVersionRestService(@PathParam("name") String engineName) {
     return super.getVersionRestService(engineName);
+  }
+
+  @Path("/{name}" + ConfigurationRestService.PATH)
+  public ConfigurationRestService getConfigurationRestService(@PathParam("name") String engineName) {
+    return super.getConfigurationRestService(engineName);
   }
 
   @Path("/{name}" + SchemaLogRestService.PATH)

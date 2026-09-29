@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getUserProfile"
       tag = "User"
-      summary = "Get Profile"
+      summary = "Get User Profile"
       desc = "Retrieves a user's profile." />
 
   "parameters" : [
