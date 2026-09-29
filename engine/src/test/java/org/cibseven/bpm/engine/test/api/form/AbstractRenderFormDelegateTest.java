@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.api.form;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -30,7 +30,7 @@ import org.cibseven.bpm.engine.impl.form.TaskFormDataImpl;
 import org.cibseven.bpm.engine.impl.form.engine.AbstractRenderFormDelegate;
 import org.cibseven.bpm.engine.impl.form.type.EnumFormType;
 import org.cibseven.bpm.engine.impl.form.type.StringFormType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * <p>AbstractRenderFormDelegate has no registered subclass and is never
