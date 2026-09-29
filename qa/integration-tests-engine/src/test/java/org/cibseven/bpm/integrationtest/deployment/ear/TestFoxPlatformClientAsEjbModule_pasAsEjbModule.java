@@ -24,6 +24,7 @@ import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
 import org.cibseven.bpm.integrationtest.deployment.ear.beans.EeComponent;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
+import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -78,9 +79,10 @@ public class TestFoxPlatformClientAsEjbModule_pasAsEjbModule extends AbstractFox
       .addClass(AbstractFoxPlatformIntegrationTest.class)
       .addClass(TestFoxPlatformClientAsEjbModule_pasAsEjbModule.class);
 
-    // No TestContainer.addContainerSpecificResources(testJar) here: on WildFly it adds the ejb-client
-    // jar to the WAR, but the EAR already contains it as a module (foxPlatformClientJar), so a second
-    // DefaultEjbProcessApplication would be deployed.
+    // ForNonPa: addContainerSpecificResources would add the ejb-client jar to the WAR on WildFly, but the
+    // EAR already contains it as a module (foxPlatformClientJar), so a second DefaultEjbProcessApplication
+    // would be deployed.
+    TestContainer.addContainerSpecificResourcesForNonPa(testJar);
     return ShrinkWrap.create(EnterpriseArchive.class, "paAsEjbModule.ear")
       .addAsModule(processArchive1Jar)
       .addAsModule(foxPlatformClientJar)
