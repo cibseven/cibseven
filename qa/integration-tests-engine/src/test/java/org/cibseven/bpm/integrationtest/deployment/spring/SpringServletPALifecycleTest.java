@@ -26,7 +26,6 @@ import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -34,8 +33,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * @author Daniel Meyer
  *
  */
-//TODO restore: this test is failing after migrating to JUnit5
-@Disabled("Fails since the JUnit5 migration")
 @ExtendWith(ArquillianExtension.class)
 public class SpringServletPALifecycleTest extends AbstractFoxPlatformIntegrationTest {
 
@@ -45,9 +42,10 @@ public class SpringServletPALifecycleTest extends AbstractFoxPlatformIntegration
       .addClass(AbstractFoxPlatformIntegrationTest.class)
       .addClass(CustomSpringServletProcessApplication.class)
       .addAsWebInfResource("org/cibseven/bpm/integrationtest/deployment/spring/SpringServletPALifecycleTest-context.xml", "applicationContext.xml")
-      .addAsLibraries(DeploymentHelper.getEngineSpring())
-      .addAsWebInfResource("org/cibseven/bpm/integrationtest/deployment/spring/web.xml", "web.xml");
-    TestContainer.addContainerSpecificResources(testJar);
+      .addAsLibraries(DeploymentHelper.getEngineSpring());
+    TestContainer.addContainerSpecificResourcesForNonPa(testJar);
+    // must come after the container resources, which bring a web.xml of their own
+    testJar.addAsWebInfResource("org/cibseven/bpm/integrationtest/deployment/spring/web.xml", "web.xml");
     return testJar;
   }
 
