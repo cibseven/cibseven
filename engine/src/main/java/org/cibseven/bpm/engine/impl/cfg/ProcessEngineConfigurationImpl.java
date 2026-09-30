@@ -712,6 +712,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected boolean isDbIdentityUsed = true;
   protected boolean isDbHistoryUsed = true;
   protected boolean modelerEnabled = true;
+  protected boolean notificationsEnabled = true;
 
   protected DelegateInterceptor delegateInterceptor;
 
@@ -2100,6 +2101,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     dbSqlSessionFactory.setCmmnEnabled(cmmnEnabled);
     dbSqlSessionFactory.setDmnEnabled(dmnEnabled);
     dbSqlSessionFactory.setModelerEnabled(modelerEnabled);
+    dbSqlSessionFactory.setNotificationsEnabled(notificationsEnabled);
     dbSqlSessionFactory.setDatabaseTablePrefix(databaseTablePrefix);
 
     //hack for the case when schema is defined via databaseTablePrefix parameter and not via databaseSchema parameter
@@ -3825,6 +3827,14 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public void setModelerEnabled(boolean modelerEnabled) {
     this.modelerEnabled = modelerEnabled;
+  }
+
+  public boolean isNotificationsEnabled() {
+    return notificationsEnabled;
+  }
+
+  public void setNotificationsEnabled(boolean notificationsEnabled) {
+    this.notificationsEnabled = notificationsEnabled;
   }
 
   public List<ResolverFactory> getResolverFactories() {
