@@ -43,7 +43,7 @@ import org.cibseven.bpm.engine.impl.util.JakartaClassLoaderUtil;
  *
  * <pre>
  * {@literal @}ProcessApplication("Loan Approval App")
- * public class LoanApprovalApplication extends ServletProcessApplication {
+ * public class LoanApprovalApplication extends JakartaServletProcessApplication {
  * // empty implementation
  * }
  * </pre>
