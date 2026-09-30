@@ -156,8 +156,7 @@ public class DefaultFailedJobParseListener extends AbstractBpmnParseListener {
   }
 
   protected boolean isAsync(ActivityImpl activity) {
-    return activity.isAsyncBefore() || activity.isAsyncAfter() ||
-        activity.getActivityBehavior() instanceof ExternalTaskActivityBehavior;
+    return activity.isAsyncBefore() || activity.isAsyncAfter() || isExternalTask(activity);
   }
 
   protected void parseActivity(Element element, ActivityImpl activity) {
@@ -196,13 +195,19 @@ public class DefaultFailedJobParseListener extends AbstractBpmnParseListener {
     }
 
     if (failedJobRetryTimeCycleConfiguration == null || failedJobRetryTimeCycleConfiguration.isEmpty()) {
-      failedJobRetryTimeCycleConfiguration = Context.getProcessEngineConfiguration().getFailedJobRetryTimeCycle();
+      failedJobRetryTimeCycleConfiguration = isExternalTask(activity)
+          ? Context.getProcessEngineConfiguration().getExternalTaskFailedJobRetryTimeCycle()
+          : Context.getProcessEngineConfiguration().getFailedJobRetryTimeCycle();
     }
 
     if (failedJobRetryTimeCycleConfiguration != null) {
       FailedJobRetryConfiguration configuration = ParseUtil.parseRetryIntervals(failedJobRetryTimeCycleConfiguration);
       activity.getProperties().set(FAILED_JOB_CONFIGURATION, configuration);
     }
+  }
+
+  protected boolean isExternalTask(ActivityImpl activity) {
+    return activity.getActivityBehavior() instanceof ExternalTaskActivityBehavior;
   }
 
   protected boolean isMultiInstance(ActivityImpl activity) {

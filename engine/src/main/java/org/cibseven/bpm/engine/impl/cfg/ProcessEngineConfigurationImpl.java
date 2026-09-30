@@ -1030,6 +1030,18 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   protected String failedJobRetryTimeCycle;
 
+  /**
+   * Default {@code failedJobRetryTimeCycle} applied to external tasks that do not declare
+   * their own <code>camunda:failedJobRetryTimeCycle</code> extension element.
+   * <p>
+   * This is a separate property from {@link #failedJobRetryTimeCycle} on purpose: that
+   * property only ever applied to jobs, and reusing it for external tasks would silently
+   * change the retry behavior of any deployment that already configures a global default
+   * for jobs. Left {@code null} (the default), external tasks keep their previous behavior
+   * of unlimited retries until a worker or operator sets a value explicitly.
+   */
+  protected String externalTaskFailedJobRetryTimeCycle;
+
   // login attempts ///////////////////////////////////////////////////////
   protected int loginMaxAttempts = 10;
   protected int loginDelayFactor = 2;
@@ -5217,6 +5229,14 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public void setFailedJobRetryTimeCycle(String failedJobRetryTimeCycle) {
     this.failedJobRetryTimeCycle = failedJobRetryTimeCycle;
+  }
+
+  public String getExternalTaskFailedJobRetryTimeCycle() {
+    return externalTaskFailedJobRetryTimeCycle;
+  }
+
+  public void setExternalTaskFailedJobRetryTimeCycle(String externalTaskFailedJobRetryTimeCycle) {
+    this.externalTaskFailedJobRetryTimeCycle = externalTaskFailedJobRetryTimeCycle;
   }
 
   public int getLoginMaxAttempts() {

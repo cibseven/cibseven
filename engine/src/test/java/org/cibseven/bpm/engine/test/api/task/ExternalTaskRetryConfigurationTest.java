@@ -294,4 +294,53 @@ public class ExternalTaskRetryConfigurationTest extends PluggableProcessEngineTe
     assertThat(currentExternalTask().getRetries()).isNull();
     assertThat(externalTaskIncidentCount()).isZero();
   }
+
+  // ------------------------------------------------- engine-wide default cycle
+
+  @AfterEach
+  public void resetEngineDefaults() {
+    processEngineConfiguration.setExternalTaskFailedJobRetryTimeCycle(null);
+    processEngineConfiguration.setFailedJobRetryTimeCycle(null);
+  }
+
+  @Test
+  public void shouldApplyEngineDefaultRetryTimeCycleWhenNoElementCycleConfigured() {
+    // given an engine-wide default and a process that does not model its own cycle
+    processEngineConfiguration.setExternalTaskFailedJobRetryTimeCycle("R2/PT5M");
+    testRule.deploy(processWithoutRetryCycle());
+
+    // when
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+
+    // then the engine default initialized the retries, same as a modeled cycle would
+    assertThat(currentExternalTask().getRetries()).isEqualTo(2);
+  }
+
+  @Test
+  public void shouldPreferElementRetryTimeCycleOverEngineDefault() {
+    // given both an engine-wide default and an element-level cycle
+    processEngineConfiguration.setExternalTaskFailedJobRetryTimeCycle("R2/PT5M");
+    testRule.deploy(processWithRetryCycle("R4/PT10M"));
+
+    // when
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+
+    // then the modeled cycle wins
+    assertThat(currentExternalTask().getRetries()).isEqualTo(4);
+  }
+
+  @Test
+  public void shouldNotApplyJobDefaultRetryTimeCycleToExternalTasks() {
+    // given only the (pre-existing) job-level default is configured, external tasks are
+    // not supposed to pick it up implicitly - only their own dedicated default does that
+    processEngineConfiguration.setFailedJobRetryTimeCycle("R2/PT5M");
+    testRule.deploy(processWithoutRetryCycle());
+
+    // when
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+
+    // then behavior is unchanged: unlimited retries, no incident
+    assertThat(currentExternalTask().getRetries()).isNull();
+    assertThat(externalTaskIncidentCount()).isZero();
+  }
 }
