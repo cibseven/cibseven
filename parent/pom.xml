@@ -80,7 +80,6 @@
     <version.wildfly28>28.0.1.Final</version.wildfly28>
     <version.wildfly28.core>20.0.2.Final</version.wildfly28.core>
 
-    <version.tomcat9>9.0.121</version.tomcat9>
     <version.tomcat10>10.1.59</version.tomcat10>
     <version.tomcat>11.0.25</version.tomcat>
 
@@ -372,21 +371,6 @@
           </configuration>
         </plugin>
 
-        <plugin>
-          <groupId>org.eclipse.transformer</groupId>
-          <artifactId>transformer-maven-plugin</artifactId>
-          <version>0.5.0</version>
-          <configuration>
-            <rules>
-              <jakartaDefaults>true</jakartaDefaults>
-              <renames>
-                <rename>jar:file:${org.cibseven.bpm:cibseven-engine:jar}!/META-INF/jakarta-renames.properties</rename>
-                <rename>jar:file:${org.cibseven.bpm:cibseven-engine:jar}!/META-INF/camunda-renames.properties</rename>
-              </renames>
-            </rules>
-            <classifier>jakarta</classifier>
-          </configuration>
-        </plugin>
 
         <plugin>
           <groupId>com.github.eirslett</groupId>

@@ -23,7 +23,7 @@ import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
-
+import org.cibseven.bpm.application.impl.JakartaEjbProcessApplication;
 import org.cibseven.bpm.application.PostDeploy;
 import org.cibseven.bpm.application.PreUndeploy;
 import org.cibseven.bpm.application.ProcessApplication;
@@ -32,7 +32,7 @@ import org.cibseven.bpm.engine.ProcessEngine;
 import org.junit.jupiter.api.Assertions;
 
 /**
- * Custom {@link org.cibseven.bpm.application.impl.EjbProcessApplication} with PA lifecycle callbacks
+ * Custom {@link org.cibseven.bpm.application.impl.JakartaEjbProcessApplication} with PA lifecycle callbacks
  *
  * @author Daniel Meyer
  *
@@ -43,8 +43,7 @@ import org.junit.jupiter.api.Assertions;
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
 @ProcessApplication
 @Local(ProcessApplicationInterface.class)
-// Using fully-qualified class name instead of import statement to allow for automatic Jakarta transformation
-public class CustomEjbProcessApplication extends org.cibseven.bpm.application.impl.EjbProcessApplication {
+public class CustomEjbProcessApplication extends JakartaEjbProcessApplication {
 
   @PostDeploy
   public void postDeploy(ProcessEngine processEngine) {

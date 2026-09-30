@@ -79,7 +79,10 @@ public class TestFoxPlatformClientAsEjbModule_pasAsEjbModule extends AbstractFox
       .addClass(AbstractFoxPlatformIntegrationTest.class)
       .addClass(TestFoxPlatformClientAsEjbModule_pasAsEjbModule.class);
 
-    TestContainer.addContainerSpecificResources(testJar);
+    // ForNonPa: addContainerSpecificResources would add the ejb-client jar to the WAR on WildFly, but the
+    // EAR already contains it as a module (foxPlatformClientJar), so a second DefaultEjbProcessApplication
+    // would be deployed.
+    TestContainer.addContainerSpecificResourcesForNonPa(testJar);
     return ShrinkWrap.create(EnterpriseArchive.class, "paAsEjbModule.ear")
       .addAsModule(processArchive1Jar)
       .addAsModule(foxPlatformClientJar)

@@ -27,6 +27,7 @@ import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
+import org.cibseven.bpm.application.impl.JakartaEjbProcessApplication;
 
 /**
  * @author Tassilo Weidner
@@ -37,8 +38,7 @@ import jakarta.ejb.TransactionAttributeType;
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
 @ProcessApplication(deploymentDescriptors = {"deployment-descriptor-with-custom-filename.xml"})
 @Local(ProcessApplicationInterface.class)
-// Using fully-qualified class name instead of import statement to allow for automatic Jakarta transformation
-public class AnnotatedEjbPa extends org.cibseven.bpm.application.impl.EjbProcessApplication {
+public class AnnotatedEjbPa extends JakartaEjbProcessApplication {
 
   @PostConstruct
   public void start() {
