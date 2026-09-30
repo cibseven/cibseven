@@ -6,7 +6,7 @@
     </exclude-subsystems>
     <dependencies>
       <module name="org.cibseven.spin.cibseven-spin-dataformat-json-jackson" services="import" />
-      <module name="com.fasterxml.jackson.core.jackson-databind" slot="${version.jackson}" />
+      <module name="com.fasterxml.jackson.core.jackson-databind" slot="cibseven" />
     </dependencies>
   </deployment>
 </jboss-deployment-structure>

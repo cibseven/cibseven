@@ -7,7 +7,7 @@
     <module name="java.base" />
     <module name="java.desktop" />
     <module name="java.scripting"/>
-    <module name="org.joda.time" slot="2.1" />
+    <module name="org.joda.time" slot="cibseven" />
     
     <module name="org.cibseven.commons.cibseven-commons-utils" />
     <module name="org.cibseven.commons.cibseven-commons-logging" />
