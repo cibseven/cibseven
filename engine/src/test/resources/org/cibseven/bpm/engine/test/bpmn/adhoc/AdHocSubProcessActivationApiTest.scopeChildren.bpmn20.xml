@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Children that are scopes, each followed by another activity over an inner sequence flow. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="adHocScopeChildren" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <!-- An io mapping makes the activity a scope without making it composite. -->
+      <serviceTask id="mappedChild" camunda:expression="${true}">
+        <extensionElements>
+          <camunda:inputOutput>
+            <camunda:outputParameter name="mapped">${true}</camunda:outputParameter>
+          </camunda:inputOutput>
+        </extensionElements>
+      </serviceTask>
+      <sequenceFlow id="inner1" sourceRef="mappedChild" targetRef="afterMapped" />
+      <userTask id="afterMapped" />
+
+      <subProcess id="subChild">
+        <startEvent id="subStart" />
+        <sequenceFlow id="s1" sourceRef="subStart" targetRef="subEnd" />
+        <endEvent id="subEnd" />
+      </subProcess>
+      <sequenceFlow id="inner2" sourceRef="subChild" targetRef="afterSub" />
+      <userTask id="afterSub" />
+
+      <callActivity id="callChild" calledElement="adHocActivationApiCalled" />
+      <sequenceFlow id="inner3" sourceRef="callChild" targetRef="afterCall" />
+      <userTask id="afterCall" />
+
+      <!-- Nothing is entered in the activating transaction: the job comes first. -->
+      <serviceTask id="asyncChild" camunda:asyncBefore="true" camunda:expression="${true}" />
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

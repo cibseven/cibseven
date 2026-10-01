@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A parallel gateway sends two tokens into the same ad hoc sub process, so two instances of it
+     are alive with one activity id, and a third token waits outside it. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="adHocParallelTokens" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="fork" />
+    <parallelGateway id="fork" />
+    <sequenceFlow id="toAdHoc1" sourceRef="fork" targetRef="adHoc" />
+    <sequenceFlow id="toAdHoc2" sourceRef="fork" targetRef="adHoc" />
+    <sequenceFlow id="toOutside" sourceRef="fork" targetRef="outside" />
+    <adHocSubProcess id="adHoc">
+      <userTask id="taskA" />
+      <userTask id="taskB" />
+    </adHocSubProcess>
+    <sequenceFlow id="fromAdHoc" sourceRef="adHoc" targetRef="endAdHoc" />
+    <endEvent id="endAdHoc" />
+    <userTask id="outside" />
+    <sequenceFlow id="fromOutside" sourceRef="outside" targetRef="endOutside" />
+    <endEvent id="endOutside" />
+  </process>
+</definitions>
