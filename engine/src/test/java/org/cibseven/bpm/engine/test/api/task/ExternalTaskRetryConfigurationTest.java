@@ -19,6 +19,7 @@ package org.cibseven.bpm.engine.test.api.task.externaltask;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -78,6 +79,63 @@ public class ExternalTaskRetryConfigurationTest extends PluggableProcessEngineTe
         .serviceTask("externalTask")
           .camundaExternalTask(TOPIC_NAME)
           .camundaFailedJobRetryTimeCycle(retryCycle)
+        .userTask("afterExternalTask")
+        .endEvent()
+        .done();
+  }
+
+  /**
+   * Same cycle also used to be a common way to add backoff to an external task invocation
+   * before external tasks had their own retry cycle support: the asyncBefore continuation
+   * job retried according to the cycle, while the external task itself had unlimited retries.
+   */
+  protected BpmnModelInstance processWithAsyncBeforeAndRetryCycle(String retryCycle) {
+    return Bpmn.createExecutableProcess(PROCESS_KEY)
+        .startEvent()
+        .serviceTask("externalTask")
+          .camundaAsyncBefore()
+          .camundaExternalTask(TOPIC_NAME)
+          .camundaFailedJobRetryTimeCycle(retryCycle)
+        .userTask("afterExternalTask")
+        .endEvent()
+        .done();
+  }
+
+  protected BpmnModelInstance processWithAsyncBeforeNoOwnRetryCycle() {
+    return Bpmn.createExecutableProcess(PROCESS_KEY)
+        .startEvent()
+        .serviceTask("externalTask")
+          .camundaAsyncBefore()
+          .camundaExternalTask(TOPIC_NAME)
+        .userTask("afterExternalTask")
+        .endEvent()
+        .done();
+  }
+
+  protected BpmnModelInstance processWithMultiInstanceAndRetryCycle(String retryCycle) {
+    return Bpmn.createExecutableProcess(PROCESS_KEY)
+        .startEvent()
+        .serviceTask("externalTask")
+          .camundaExternalTask(TOPIC_NAME)
+          .camundaFailedJobRetryTimeCycle(retryCycle)
+          .multiInstance()
+            .cardinality("3")
+          .multiInstanceDone()
+        .userTask("afterExternalTask")
+        .endEvent()
+        .done();
+  }
+
+  protected BpmnModelInstance processWithAsyncBeforeMultiInstanceAndRetryCycle(String retryCycle) {
+    return Bpmn.createExecutableProcess(PROCESS_KEY)
+        .startEvent()
+        .serviceTask("externalTask")
+          .camundaAsyncBefore()
+          .camundaExternalTask(TOPIC_NAME)
+          .camundaFailedJobRetryTimeCycle(retryCycle)
+          .multiInstance()
+            .cardinality("2")
+          .multiInstanceDone()
         .userTask("afterExternalTask")
         .endEvent()
         .done();
@@ -177,6 +235,23 @@ public class ExternalTaskRetryConfigurationTest extends PluggableProcessEngineTe
     assertThat(currentExternalTask().getRetries()).isEqualTo(4);
   }
 
+  @Test
+  public void shouldResolveExpressionBasedRetryCycleOnCreation() {
+    // given a retry cycle defined as an expression rather than a literal, resolved
+    // against a process variable in scope when the external task is created
+    testRule.deploy(processWithRetryCycle("${retryCycle}"));
+
+    // when
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY,
+        Collections.singletonMap("retryCycle", "R2/PT5M"));
+
+    // then the expression is resolved immediately, same as a static cycle would be -
+    // before the fix, the raw unresolved configuration left retries == 0, so the task
+    // was never fetchable and no incident was ever raised either
+    assertThat(currentExternalTask().getRetries()).isEqualTo(2);
+    assertThat(fetch()).as("task must be fetchable, not stuck with retries == 0").hasSize(1);
+  }
+
   // ---------------------------------------------------- decrement on fetch
 
   @Test
@@ -212,6 +287,28 @@ public class ExternalTaskRetryConfigurationTest extends PluggableProcessEngineTe
 
     // then the task was handed out exactly as often as configured
     assertThat(executions).isEqualTo(3);
+    assertThat(currentExternalTask().getRetries()).isZero();
+    assertThat(externalTaskIncidentCount()).isEqualTo(1);
+  }
+
+  @Test
+  public void shouldUseConfiguredIntervalsInOrder() {
+    // given a cycle with distinct intervals - a single-interval cycle like "R3/PT5M"
+    // cannot reveal an off-by-one in the interval index, because index 0 is picked
+    // either way; 3 intervals -> 4 attempts, same as shouldInitializeRetriesFromIntervalList
+    testRule.deploy(processWithRetryCycle("PT1M,PT5M,PT10M"));
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+    long start = now();
+
+    // when the worker fetches repeatedly but never completes or reports a failure
+    assertThat(fetch()).as("initial attempt").hasSize(1);
+
+    // then each attempt is delayed by its own configured interval, in the modeled order
+    assertNextAttemptAfter(start, MINUTE);
+    assertNextAttemptAfter(now(), 5 * MINUTE);
+    assertNextAttemptAfter(now(), 10 * MINUTE);
+
+    // and all 4 configured attempts (3 intervals + 1) have been consumed
     assertThat(currentExternalTask().getRetries()).isZero();
     assertThat(externalTaskIncidentCount()).isEqualTo(1);
   }
@@ -342,5 +439,68 @@ public class ExternalTaskRetryConfigurationTest extends PluggableProcessEngineTe
     // then behavior is unchanged: unlimited retries, no incident
     assertThat(currentExternalTask().getRetries()).isNull();
     assertThat(externalTaskIncidentCount()).isZero();
+  }
+
+  @Test
+  public void shouldApplyOwnRetryCycleEvenWhenAsyncBefore() {
+    // given a cycle modeled directly on an external task that also happens to be asyncBefore.
+    // The CIBseven modeler only exposes the retry-cycle field once asyncBefore/After is
+    // enabled, so this combination is the norm, not an edge case - an own modeled cycle must
+    // always win for the external task regardless (it is independently also still applied to
+    // the asyncBefore job itself, which is unaffected by any of this)
+    testRule.deploy(processWithAsyncBeforeAndRetryCycle("R2/PT5M"));
+
+    // when
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+
+    // then
+    assertThat(currentExternalTask().getRetries()).isEqualTo(2);
+  }
+
+  @Test
+  public void shouldStillApplyEngineDefaultToExternalTaskWithAsyncBefore() {
+    // given an asyncBefore external task with no modeled cycle of its own: the engine-wide
+    // external task default still applies, same as when asyncBefore is not set
+    processEngineConfiguration.setExternalTaskFailedJobRetryTimeCycle("R2/PT5M");
+    testRule.deploy(processWithAsyncBeforeNoOwnRetryCycle());
+
+    // when
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+
+    // then
+    assertThat(currentExternalTask().getRetries()).isEqualTo(2);
+  }
+
+  @Test
+  public void shouldApplyModeledRetryCycleToMultiInstanceExternalTask() {
+    // given a retry cycle modeled directly on the service task - the same, natural place
+    // used for a plain (non multi-instance) external task - on an activity that also happens
+    // to be multi-instance; before the fix this was silently ignored because the parser only
+    // looked for a cycle nested inside multiInstanceLoopCharacteristics for such activities
+    testRule.deploy(processWithMultiInstanceAndRetryCycle("R2/PT5M"));
+
+    // when
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+
+    // then every spawned instance picks up the modeled cycle, not unlimited retries
+    assertThat(externalTaskService.createExternalTaskQuery().list())
+        .as("one external task per multi-instance execution")
+        .hasSize(3)
+        .allSatisfy(task -> assertThat(task.getRetries()).isEqualTo(2));
+  }
+
+  @Test
+  public void shouldApplyOwnRetryCycleToMultiInstanceExternalTaskEvenWhenAsyncBefore() {
+    // given the same asyncBefore + own-cycle combination as
+    // shouldApplyOwnRetryCycleEvenWhenAsyncBefore, but on a multi-instance body
+    testRule.deploy(processWithAsyncBeforeMultiInstanceAndRetryCycle("R2/PT5M"));
+
+    // when
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+
+    // then every spawned instance picks up the modeled cycle
+    assertThat(externalTaskService.createExternalTaskQuery().list())
+        .hasSize(2)
+        .allSatisfy(task -> assertThat(task.getRetries()).isEqualTo(2));
   }
 }

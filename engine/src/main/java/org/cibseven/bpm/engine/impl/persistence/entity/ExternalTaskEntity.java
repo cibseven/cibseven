@@ -589,8 +589,9 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
     externalTask.setCreateTime(ClockUtil.getCurrentTime());
 
     ActivityImpl activity = (ActivityImpl) execution.getActivity();
-    FailedJobRetryConfiguration retryConfiguration =
-        activity.getProperties().get(DefaultFailedJobParseListener.FAILED_JOB_CONFIGURATION);
+    FailedJobRetryConfiguration retryConfiguration = resolveRetryConfiguration(
+        activity.getProperties().get(DefaultFailedJobParseListener.EXTERNAL_TASK_FAILED_JOB_CONFIGURATION),
+        execution);
 
     if (retryConfiguration != null) {
       externalTask.setRetries(retryConfiguration.getRetries());
@@ -670,7 +671,7 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
     if (execution == null || execution.getActivity() == null) {
       return false;
     }
-    return execution.getActivity().getProperties().get(DefaultFailedJobParseListener.FAILED_JOB_CONFIGURATION) != null;
+    return execution.getActivity().getProperties().get(DefaultFailedJobParseListener.EXTERNAL_TASK_FAILED_JOB_CONFIGURATION) != null;
   }
 
   protected FailedJobRetryConfiguration getRetryConfiguration() {
@@ -679,8 +680,19 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
       return null;
     }
     ActivityImpl activity = execution.getActivity();
-    FailedJobRetryConfiguration config = activity.getProperties().get(DefaultFailedJobParseListener.FAILED_JOB_CONFIGURATION);
-    // same expression resolution as DefaultJobRetryCmd#getFailedJobRetryConfiguration
+    FailedJobRetryConfiguration config = activity.getProperties().get(DefaultFailedJobParseListener.EXTERNAL_TASK_FAILED_JOB_CONFIGURATION);
+    return resolveRetryConfiguration(config, execution);
+  }
+
+  /**
+   * Resolves an expression-based retry cycle (e.g. {@code ${retryCycle}}) against the given
+   * execution, same as {@link org.cibseven.bpm.engine.impl.cmd.DefaultJobRetryCmd#getFailedJobRetryConfiguration}
+   * does for jobs. A statically configured cycle (no expression) is returned unchanged.
+   * Must be called with an execution that has its variables already in scope, since the
+   * expression may reference process variables.
+   */
+  protected static FailedJobRetryConfiguration resolveRetryConfiguration(FailedJobRetryConfiguration config,
+                                                                          ExecutionEntity execution) {
     while (config != null && config.getExpression() != null) {
       Object value = config.getExpression().getValue(execution);
       config = ParseUtil.parseRetryIntervals(value == null ? null : value.toString());
