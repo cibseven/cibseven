@@ -18,6 +18,7 @@ package org.cibseven.bpm.engine.test.history;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.builder.DefaultExternalTaskModelBuilder.DEFAULT_TOPIC;
@@ -285,6 +286,7 @@ public class HistoricExternalTaskLogTest {
   protected void assertLogIsInCreatedState(HistoricExternalTaskLog log) {
     assertTrue(log.isCreationLog());
     assertFalse(log.isFailureLog());
+    assertFalse(log.isFetchedLog());
     assertFalse(log.isSuccessLog());
     assertFalse(log.isDeletionLog());
   }
@@ -292,6 +294,7 @@ public class HistoricExternalTaskLogTest {
   protected void assertLogIsInFailedState(HistoricExternalTaskLog log) {
     assertFalse(log.isCreationLog());
     assertTrue(log.isFailureLog());
+    assertFalse(log.isFetchedLog());
     assertFalse(log.isSuccessLog());
     assertFalse(log.isDeletionLog());
   }
@@ -299,13 +302,23 @@ public class HistoricExternalTaskLogTest {
   protected void assertLogIsInSuccessfulState(HistoricExternalTaskLog log) {
     assertFalse(log.isCreationLog());
     assertFalse(log.isFailureLog());
+    assertFalse(log.isFetchedLog());
     assertTrue(log.isSuccessLog());
+    assertFalse(log.isDeletionLog());
+  }
+
+  protected void assertLogIsInFetchedState(HistoricExternalTaskLog log) {
+    assertFalse(log.isCreationLog());
+    assertFalse(log.isFailureLog());
+    assertTrue(log.isFetchedLog());
+    assertFalse(log.isSuccessLog());
     assertFalse(log.isDeletionLog());
   }
 
   protected void assertLogIsInDeletedState(HistoricExternalTaskLog log) {
     assertFalse(log.isCreationLog());
     assertFalse(log.isFailureLog());
+    assertFalse(log.isFetchedLog());
     assertFalse(log.isSuccessLog());
     assertTrue(log.isDeletionLog());
   }
@@ -370,4 +383,145 @@ public class HistoricExternalTaskLogTest {
     ClockUtil.setCurrentTime(nowPlus5Seconds);
   }
 
+  @Test
+  public void testHistoricExternalTaskLogFetchedProperties() {
+
+    // given
+    ExternalTask task = startExternalTaskProcess();
+    fetchExternalTasks();
+
+    // when
+    HistoricExternalTaskLog log = historyService
+      .createHistoricExternalTaskLogQuery()
+      .fetchedLog()
+      .singleResult();
+
+    // then
+    assertHistoricLogPropertiesAreProperlySet(task, log);
+    assertEquals(WORKER_ID, log.getWorkerId());
+    assertLogIsInFetchedState(log);
+  }
+
+  @Test
+  public void testNoFetchedLogWithoutFetch() {
+
+    // given
+    startExternalTaskProcess();
+
+    // when
+    long count = historyService
+      .createHistoricExternalTaskLogQuery()
+      .fetchedLog()
+      .count();
+
+    // then
+    assertEquals(0, count);
+  }
+
+  @Test
+  public void testFetchedLogIsWrittenForEveryFetch() {
+
+    // given a task that is fetched, fails and is fetched again
+    ExternalTask task = startExternalTaskProcess();
+    reportExternalTaskFailure(task.getId());       // fetch #1 + failure (retries = 1)
+    ensureEnoughTimePassedByForTimestampOrdering();
+    fetchExternalTasks();                          // fetch #2
+
+    // when
+    List<HistoricExternalTaskLog> logs = historyService
+      .createHistoricExternalTaskLogQuery()
+      .fetchedLog()
+      .orderByTimestamp().asc()
+      .list();
+
+    // then there is one fetched log per fetch
+    assertEquals(2, logs.size());
+    for (HistoricExternalTaskLog log : logs) {
+      assertLogIsInFetchedState(log);
+      assertEquals(WORKER_ID, log.getWorkerId());
+      assertEquals(task.getId(), log.getExternalTaskId());
+    }
+
+    // and each one carries the retries at the time of the fetch
+    assertNull(logs.get(0).getRetries());
+    assertEquals(Integer.valueOf(1), logs.get(1).getRetries());
+  }
+
+  @Test
+  public void testFetchedLogInLifecycleOrder() {
+
+    // given
+    ExternalTask task = startExternalTaskProcess();
+    ensureEnoughTimePassedByForTimestampOrdering();
+    fetchExternalTasks();
+    ensureEnoughTimePassedByForTimestampOrdering();
+    externalTaskService.complete(task.getId(), WORKER_ID);
+
+    // when
+    List<HistoricExternalTaskLog> logs = historyService
+      .createHistoricExternalTaskLogQuery()
+      .externalTaskId(task.getId())
+      .orderByTimestamp().asc()
+      .list();
+
+    // then: created -> fetched -> successful
+    assertEquals(3, logs.size());
+    assertLogIsInCreatedState(logs.get(0));
+    assertLogIsInFetchedState(logs.get(1));
+    assertLogIsInSuccessfulState(logs.get(2));
+  }
+
+  @Test
+  public void testFetchedLogOnlyForFetchedTasks() {
+
+    // given two tasks, only one is fetched
+    ExternalTask fetchedTask = startExternalTaskProcess();
+    ExternalTask otherTask = startExternalTaskProcess();
+
+    externalTaskService.fetchAndLock(1, WORKER_ID, false)
+      .topic(DEFAULT_TOPIC, LOCK_DURATION)
+      .execute();
+
+    // when
+    List<HistoricExternalTaskLog> logs = historyService
+      .createHistoricExternalTaskLogQuery()
+      .fetchedLog()
+      .list();
+
+    // then exactly one fetched log exists, for one of the two tasks
+    assertEquals(1, logs.size());
+    String loggedTaskId = logs.get(0).getExternalTaskId();
+    assertTrue(loggedTaskId.equals(fetchedTask.getId()) || loggedTaskId.equals(otherTask.getId()));
+  }
+
+  /**
+   * Only valid if the event is fired in ExternalTaskEntity#lock(),
+   * which is also used by ExternalTaskService#lock(...).
+   * Remove this test if the event is fired in FetchExternalTasksCmd only.
+   */
+  @Test
+  public void testFetchedLogWhenLockedById() {
+
+    // given
+    ExternalTask task = startExternalTaskProcess();
+
+    // when
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // then
+    HistoricExternalTaskLog log = historyService
+      .createHistoricExternalTaskLogQuery()
+      .fetchedLog()
+      .singleResult();
+
+    assertHistoricLogPropertiesAreProperlySet(task, log);
+    assertEquals(WORKER_ID, log.getWorkerId());
+    assertLogIsInFetchedState(log);
+  }
+
+  protected void fetchExternalTasks() {
+    externalTaskService.fetchAndLock(100, WORKER_ID, false)
+      .topic(DEFAULT_TOPIC, LOCK_DURATION)
+      .execute();
+  }
 }

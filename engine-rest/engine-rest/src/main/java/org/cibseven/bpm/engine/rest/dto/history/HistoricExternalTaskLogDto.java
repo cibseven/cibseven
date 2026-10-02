@@ -45,6 +45,7 @@ public class HistoricExternalTaskLogDto {
 
   protected boolean creationLog;
   protected boolean failureLog;
+  protected boolean fetchedLog;
   protected boolean successLog;
   protected boolean deletionLog;
 
@@ -116,6 +117,10 @@ public class HistoricExternalTaskLogDto {
     return failureLog;
   }
 
+  public boolean isFetchedLog() {
+    return fetchedLog;
+  }
+
   public boolean isSuccessLog() {
     return successLog;
   }
@@ -158,6 +163,7 @@ public class HistoricExternalTaskLogDto {
 
     result.creationLog = historicExternalTaskLog.isCreationLog();
     result.failureLog = historicExternalTaskLog.isFailureLog();
+    result.fetchedLog = historicExternalTaskLog.isFetchedLog();
     result.successLog = historicExternalTaskLog.isSuccessLog();
     result.deletionLog = historicExternalTaskLog.isDeletionLog();
 

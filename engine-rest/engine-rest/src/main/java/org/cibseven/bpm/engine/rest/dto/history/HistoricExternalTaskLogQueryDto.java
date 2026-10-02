@@ -84,6 +84,7 @@ public class HistoricExternalTaskLogQueryDto extends AbstractQueryDto<HistoricEx
   protected Boolean withoutTenantId;
   protected Boolean creationLog;
   protected Boolean failureLog;
+  protected Boolean fetchedLog;
   protected Boolean successLog;
   protected Boolean deletionLog;
 
@@ -178,6 +179,11 @@ public class HistoricExternalTaskLogQueryDto extends AbstractQueryDto<HistoricEx
     this.failureLog = failureLog;
   }
 
+  @CamundaQueryParam(value="fetchedLog", converter = BooleanConverter.class)
+  public void setFetchedLog(Boolean fetchedLog) {
+    this.fetchedLog = fetchedLog;
+  }
+
   @CamundaQueryParam(value="successLog", converter = BooleanConverter.class)
   public void setSuccessLog(Boolean successLog) {
     this.successLog = successLog;
@@ -251,6 +257,10 @@ public class HistoricExternalTaskLogQueryDto extends AbstractQueryDto<HistoricEx
 
     if (failureLog != null && failureLog) {
       query.failureLog();
+    }
+
+    if (fetchedLog != null && fetchedLog) {
+      query.fetchedLog();
     }
 
     if (successLog != null && successLog) {
