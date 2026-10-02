@@ -93,11 +93,11 @@ public class FetchExternalTasksCmd implements Command<List<LockedExternalTask>> 
       ExecutionEntity execution = entity.getExecution(false);
 
       if (execution != null) {
-        // consume the attempt before locking: lock()'s retry-delay calculation
-        // (see ExternalTaskEntity#getConfiguredRetryDelay) assumes retries are
+        // consume the attempt before locking: lockForFetchedAttempt()'s retry-delay
+        // calculation (see ExternalTaskEntity#getConfiguredRetryDelay) assumes retries are
         // already decremented for the attempt currently being handed out
         entity.consumeAttempt();
-        entity.lock(workerId, fetchInstruction.getLockDuration());
+        entity.lockForFetchedAttempt(workerId, fetchInstruction.getLockDuration());
 
         LockedExternalTaskImpl resultTask = LockedExternalTaskImpl.fromEntity(
             entity,

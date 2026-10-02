@@ -403,7 +403,11 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
    * @param errorMessage - short error message text
    * @param errorDetails - full error details
    * @param retries - updated value of retries left
-   * @param retryDuration - used for lockExpirationTime calculation
+   * @param retryDuration - used for lockExpirationTime calculation when this activity has no
+   *                         configured retry cycle (modeled or engine-wide default); when one
+   *                         applies, its own interval wins instead, same as for jobs - the cycle
+   *                         is what controls timing once it is configured, so the caller's value
+   *                         is only ever a fallback, not an override.
    */
   public void failed(String errorMessage, String errorDetails, int retries, long retryDuration, Map<String, Object> variables, Map<String, Object> localVariables) {
     ensureActive();
@@ -422,10 +426,16 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
       return;
     }
 
+    produceHistoricExternalTaskFailedEvent();
+
+    // store the caller's reported retries BEFORE picking the next delay: the interval must be
+    // chosen from the value this failure leaves behind, not from the value that was current
+    // when this attempt was fetched - otherwise the same interval gets picked twice in a row
+    // (see CIB-562 review finding #6).
+    setRetriesAndManageIncidents(retries);
+
     Long configured = getConfiguredRetryDelay();
     this.lockExpirationTime = new Date(ClockUtil.getCurrentTime().getTime() + (configured != null ? configured : retryDuration));
-    produceHistoricExternalTaskFailedEvent();
-    setRetriesAndManageIncidents(retries);
   }
 
   public void bpmnError(String errorCode, String errorMessage, Map<String, Object> variables) {
@@ -476,11 +486,31 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
     return context;
   }
 
+  /**
+   * Plain lock (re-)acquisition, used by the explicit {@code ExternalTaskService.lock(...)}
+   * API (see LockExternalTaskCmd): grants exactly the requested duration. This does not hand
+   * out a new attempt, so it must not be influenced by any configured retry cycle - unlike
+   * {@link #lockForFetchedAttempt(String, long)}, which is.
+   */
   public void lock(String workerId, long lockDuration) {
+    this.workerId = workerId;
+    this.lockExpirationTime = new Date(ClockUtil.getCurrentTime().getTime() + lockDuration);
+  }
+
+  /**
+   * Locks a task that was just fetched and handed out as a new attempt (see
+   * FetchExternalTasksCmd, which calls {@link #consumeAttempt()} right before this). The
+   * requested lockDuration is only the caller's own processing-time estimate; when a retry
+   * cycle is configured, its interval is ADDED on top of that, not just floored against it -
+   * otherwise a lockDuration that already happens to be as long as (or longer than) the
+   * configured interval would silently swallow the whole retry delay, which is not an edge
+   * case since the two are often the same order of magnitude. See CIB-562 review finding #7.
+   */
+  public void lockForFetchedAttempt(String workerId, long lockDuration) {
     this.workerId = workerId;
     long now = ClockUtil.getCurrentTime().getTime();
     Long configured = getConfiguredRetryDelay();   // retries already decremented by consumeAttempt()
-    long hold = configured != null ? Math.max(lockDuration, configured) : lockDuration;
+    long hold = configured != null ? lockDuration + configured : lockDuration;
     this.lockExpirationTime = new Date(now + hold);
   }
 

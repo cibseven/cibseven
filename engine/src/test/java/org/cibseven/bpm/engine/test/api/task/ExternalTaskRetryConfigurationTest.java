@@ -303,14 +303,124 @@ public class ExternalTaskRetryConfigurationTest extends PluggableProcessEngineTe
     // when the worker fetches repeatedly but never completes or reports a failure
     assertThat(fetch()).as("initial attempt").hasSize(1);
 
-    // then each attempt is delayed by its own configured interval, in the modeled order
-    assertNextAttemptAfter(start, MINUTE);
-    assertNextAttemptAfter(now(), 5 * MINUTE);
-    assertNextAttemptAfter(now(), 10 * MINUTE);
+    // then each attempt is delayed by its own configured interval, in the modeled order -
+    // ON TOP of the requested lock duration (lockForFetchedAttempt adds, it does not just
+    // floor against it), so LOCK_TIME shows up in every expected delay below
+    assertNextAttemptAfter(start, LOCK_TIME + MINUTE);
+    assertNextAttemptAfter(now(), LOCK_TIME + 5 * MINUTE);
+    assertNextAttemptAfter(now(), LOCK_TIME + 10 * MINUTE);
 
     // and all 4 configured attempts (3 intervals + 1) have been consumed
     assertThat(currentExternalTask().getRetries()).isZero();
     assertThat(externalTaskIncidentCount()).isEqualTo(1);
+  }
+
+  /**
+   * lockForFetchedAttempt() used to grant max(lockDuration, interval) instead of
+   * lockDuration + interval as documented, so a lockDuration that already happened to be as
+   * long as (or longer than) the configured interval silently swallowed the whole retry
+   * delay. See CIB-562 review finding #7.
+   */
+  @Test
+  public void shouldAddConfiguredIntervalOnTopOfLockDurationEvenWhenLockDurationIsLonger() {
+    // given: a lockDuration (10m) that already exceeds the configured interval (5m) - under
+    // the old max(lockDuration, interval) formula the interval contributed nothing extra
+    testRule.deploy(processWithRetryCycle("R3/PT5M"));
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+    long start = now();
+    long longLockDuration = 10 * MINUTE;
+
+    // when the worker fetches with a lock duration longer than the configured interval
+    assertThat(externalTaskService.fetchAndLock(5, WORKER_ID)
+        .topic(TOPIC_NAME, longLockDuration)
+        .execute()).as("initial attempt").hasSize(1);
+
+    // then the task is not yet fetchable after just the lock duration elapses
+    setTime(start + longLockDuration + SECOND);
+    assertThat(externalTaskService.fetchAndLock(5, WORKER_ID).topic(TOPIC_NAME, longLockDuration).execute())
+        .as("the configured interval must still add real delay on top of the long lock duration")
+        .isEmpty();
+
+    // then it becomes fetchable only after lockDuration + interval
+    setTime(start + longLockDuration + 5 * MINUTE + SECOND);
+    assertThat(externalTaskService.fetchAndLock(5, WORKER_ID).topic(TOPIC_NAME, longLockDuration).execute())
+        .hasSize(1);
+  }
+
+  /**
+   * lock() and lockForFetchedAttempt() used to be the same method, so the explicit
+   * {@code ExternalTaskService.lock(...)} API (which hands out no new attempt) was also
+   * bumped up to the configured retry interval. See CIB-562 review finding #7.
+   */
+  @Test
+  public void shouldNotApplyRetryCycleToExplicitLock() {
+    // given: a configured retry cycle, so getConfiguredRetryDelay() would return something
+    // if it were (wrongly) consulted for an explicit lock
+    testRule.deploy(processWithRetryCycle("R3/PT5M"));
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+    LockedExternalTask task = fetch().get(0);
+
+    // when the worker explicitly (re-)locks the task for 30s - this hands out no new attempt
+    long lockCallTime = now();
+    long requestedDuration = 30 * SECOND;
+    externalTaskService.lock(task.getId(), WORKER_ID, requestedDuration);
+
+    // then the lock expires after exactly the requested 30s, not after the configured 5m -
+    // a retry cycle only applies to attempts that were actually fetched
+    setTime(lockCallTime + requestedDuration - SECOND);
+    assertThat(fetch()).as("must not be fetchable before the requested 30s lock expires").isEmpty();
+
+    setTime(lockCallTime + requestedDuration + SECOND);
+    assertThat(fetch())
+        .as("must be fetchable right after the requested 30s lock expires, not after 5m")
+        .hasSize(1);
+  }
+
+  /**
+   * failed() used to pick the next interval from the entity's current retries value - the
+   * one set at the last fetch - rather than from the value this failure itself leaves behind.
+   * For a worker that reports back explicitly, those two are different numbers, so the wrong
+   * interval got picked: the same (first) interval was offered twice in a row instead of
+   * advancing. See CIB-562 review finding #6.
+   */
+  @Test
+  public void shouldPickNextIntervalFromReportedRetriesNotFetchTimeRetries() {
+    // given: 3 intervals - the first (1m) governs the very first lock
+    testRule.deploy(processWithRetryCycle("PT1M,PT5M,PT10M"));
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+    long start = now();
+
+    // when the worker reports a failure the standard way, right after the first fetch
+    LockedExternalTask task = fetch().get(0);
+    externalTaskService.handleFailure(task.getId(), WORKER_ID, ERROR_MESSAGE,
+        task.getRetries() - 1, MINUTE);
+
+    // then the SECOND configured interval governs the next attempt - a repeat of the first
+    // (1m) would mean the index was still being read from the stale, fetch-time retries value
+    assertNextAttemptAfter(start, 5 * MINUTE);
+  }
+
+  /**
+   * Once a retry cycle applies to an activity (modeled or engine-wide default), its interval
+   * is what controls timing - same as for jobs, where the cycle fully owns the delay and the
+   * caller has no say in it. The worker's own retryTimeout is only ever a fallback for when
+   * no cycle applies at all (see shouldKeepUnlimitedRetriesWithoutConfiguration). This is
+   * existing, intentional behavior; this test exists so it stays documented and covered.
+   */
+  @Test
+  public void shouldApplyConfiguredIntervalInsteadOfWorkerRetryTimeout() {
+    // given
+    testRule.deploy(processWithRetryCycle("R3/PT5M"));
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+    long start = now();
+    LockedExternalTask task = fetch().get(0);
+
+    // when the worker reports a failure with its own retryTimeout, unrelated to the cycle
+    externalTaskService.handleFailure(task.getId(), WORKER_ID, ERROR_MESSAGE,
+        task.getRetries() - 1, 30 * SECOND);
+
+    // then the configured interval (5m) wins, not the worker's 30s
+    assertNextAttemptAfter(start, 5 * MINUTE);
   }
 
   @Test
