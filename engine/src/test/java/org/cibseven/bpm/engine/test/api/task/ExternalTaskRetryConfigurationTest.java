@@ -560,8 +560,9 @@ public class ExternalTaskRetryConfigurationTest extends PluggableProcessEngineTe
     // the asyncBefore job itself, which is unaffected by any of this)
     testRule.deploy(processWithAsyncBeforeAndRetryCycle("R2/PT5M"));
 
-    // when
+    // when the asyncBefore continuation runs and creates the external task
     runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+    testRule.executeAvailableJobs();
 
     // then
     assertThat(currentExternalTask().getRetries()).isEqualTo(2);
@@ -574,8 +575,9 @@ public class ExternalTaskRetryConfigurationTest extends PluggableProcessEngineTe
     processEngineConfiguration.setExternalTaskFailedJobRetryTimeCycle("R2/PT5M");
     testRule.deploy(processWithAsyncBeforeNoOwnRetryCycle());
 
-    // when
+    // when the asyncBefore continuation runs and creates the external task
     runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+    testRule.executeAvailableJobs();
 
     // then
     assertThat(currentExternalTask().getRetries()).isEqualTo(2);
@@ -605,8 +607,9 @@ public class ExternalTaskRetryConfigurationTest extends PluggableProcessEngineTe
     // shouldApplyOwnRetryCycleEvenWhenAsyncBefore, but on a multi-instance body
     testRule.deploy(processWithAsyncBeforeMultiInstanceAndRetryCycle("R2/PT5M"));
 
-    // when
+    // when the asyncBefore continuations run and create the external tasks
     runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+    testRule.executeAvailableJobs();
 
     // then every spawned instance picks up the modeled cycle
     assertThat(externalTaskService.createExternalTaskQuery().list())
