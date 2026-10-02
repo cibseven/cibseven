@@ -110,6 +110,13 @@
     />
     
     <@lib.property
+        name = "fetchedLog"
+        type = "boolean"
+        desc = "A flag indicating whether this log represents the fetching (locking) of the
+                associated external task by a worker."
+    />
+    
+    <@lib.property
         name = "successLog"
         type = "boolean"
         desc = "A flag indicating whether this log represents the successful execution of the

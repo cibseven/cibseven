@@ -134,9 +134,15 @@ public interface HistoricExternalTaskLog {
   /**
    * Returns <code>true</code> when <code>this</code> log represents
    * the fetching of the associated external task.
+   *
+   * Default method, so that existing implementations of this interface
+   * keep compiling; they never represent a fetched log.
+   *
+   * @since cibseven 2.3.0
    */
-  //TODO: compatibility?
-  boolean isFetchedLog();
+  default boolean isFetchedLog() {
+    return false;
+  }
 
   /**
    * Returns <code>true</code> when <code>this</code> log represents

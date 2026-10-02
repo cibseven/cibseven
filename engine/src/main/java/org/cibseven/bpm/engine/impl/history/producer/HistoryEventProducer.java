@@ -308,9 +308,11 @@ public interface HistoryEventProducer {
   /**
    * Creates the history event when an external task has been <strong>fetched</strong>.
    *
-   * @since 2.3
+   * Default method returning <code>null</code> (no event), so that existing
+   * custom producers keep compiling.
+   *
+   * @since cibseven 2.3.0
    */
-  //TODO: compatibility, fix @since according to the release
   default HistoryEvent createHistoricExternalTaskLogFetchedEvt(ExternalTask task) {
     return null;
   }
