@@ -19,3 +19,8 @@
 
 insert into ACT_GE_SCHEMA_LOG
 values ('1600', CURRENT_TIMESTAMP, '3.0.0');
+
+-- Cascade deployment deletion deletes job logs by DEPLOYMENT_ID_ (deleteHistoricJobLogByDeploymentId).
+-- Without this index that delete scans the whole ACT_HI_JOB_LOG table. Creating it on a large
+-- job log takes a while.
+CREATE INDEX ACT_IDX_HI_JOB_LOG_DEPLOYMENT ON ACT_HI_JOB_LOG (DEPLOYMENT_ID_);
