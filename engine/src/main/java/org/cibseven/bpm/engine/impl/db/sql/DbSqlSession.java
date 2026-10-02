@@ -607,7 +607,7 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
 
   @Override
   public boolean isNotificationTablePresent() {
-    return isTablePresent("NOTIFICATIONS");
+    return isTablePresent("NOTIF_NOTIFICATIONS");
   }
 
   public boolean isTablePresent(String tableName) {
