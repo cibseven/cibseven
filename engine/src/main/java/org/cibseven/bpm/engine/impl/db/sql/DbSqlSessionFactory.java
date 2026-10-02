@@ -847,6 +847,7 @@ public class DbSqlSessionFactory implements SessionFactory {
   protected boolean cmmnEnabled = true;
   protected boolean dmnEnabled = true;
   protected boolean modelerEnabled = true;
+  protected boolean notificationsEnabled = true;
 
   protected boolean jdbcBatchProcessing;
 
@@ -1020,6 +1021,14 @@ public class DbSqlSessionFactory implements SessionFactory {
 
   public void setModelerEnabled(boolean modelerEnabled) {
     this.modelerEnabled = modelerEnabled;
+  }
+
+  public boolean isNotificationsEnabled() {
+    return notificationsEnabled;
+  }
+
+  public void setNotificationsEnabled(boolean notificationsEnabled) {
+    this.notificationsEnabled = notificationsEnabled;
   }
 
   public boolean isCmmnEnabled() {

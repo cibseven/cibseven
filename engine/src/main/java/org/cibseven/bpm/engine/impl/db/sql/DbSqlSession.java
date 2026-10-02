@@ -445,6 +445,9 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
       if (dbSqlSessionFactory.isModelerEnabled() && !isModelerTablePresent()) {
         missingComponents.add("modeler");
       }
+      if (dbSqlSessionFactory.isNotificationsEnabled() && !isNotificationTablePresent()) {
+        missingComponents.add("notification");
+      }
 
       if (!missingComponents.isEmpty()) {
         throw LOG.missingTableException(missingComponents);
@@ -550,6 +553,16 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
     executeMandatorySchemaResource("drop", "modeler");
   }
 
+  @Override
+  protected void dbSchemaCreateNotification() {
+    executeMandatorySchemaResource("create", "notification");
+  }
+
+  @Override
+  protected void dbSchemaDropNotification() {
+    executeMandatorySchemaResource("drop", "notification");
+  }
+
   public void executeMandatorySchemaResource(String operation, String component) {
     executeSchemaResource(operation, component, getResourceForDbOperation(operation, operation, component), false);
   }
@@ -590,6 +603,11 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
   @Override
   public boolean isModelerTablePresent() {
     return isTablePresent("MOD_ELEMENT_TEMPLATES");
+  }
+
+  @Override
+  public boolean isNotificationTablePresent() {
+    return isTablePresent("NOTIF_NOTIFICATIONS");
   }
 
   public boolean isTablePresent(String tableName) {
