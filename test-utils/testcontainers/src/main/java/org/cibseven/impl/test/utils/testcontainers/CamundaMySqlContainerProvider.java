@@ -37,6 +37,6 @@ public class CamundaMySqlContainerProvider extends MySQLContainerProvider {
 
     MySQLContainer mySqlContainer = new MySQLContainer(dockerImageName);
     mySqlContainer.setCommand("--transaction-isolation=READ-COMMITTED");
-    return mySqlContainer;
+    return TestcontainersHelper.withLabel(mySqlContainer);
   }
 }

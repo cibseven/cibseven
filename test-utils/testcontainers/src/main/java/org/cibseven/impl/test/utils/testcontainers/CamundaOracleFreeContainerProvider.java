@@ -22,6 +22,6 @@ public class CamundaOracleFreeContainerProvider extends OracleContainerProvider 
     DockerImageName dockerImageName = TestcontainersHelper
         .resolveDockerImageName("oraclefree", tag, "gvenzl/oracle-free");
 
-    return new OracleContainer(dockerImageName);
+    return TestcontainersHelper.withLabel(new OracleContainer(dockerImageName));
   }
 }

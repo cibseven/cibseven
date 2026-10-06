@@ -22,6 +22,6 @@ public class CamundaOracleContainerProvider extends OracleContainerProvider {
   DockerImageName dockerImageName = TestcontainersHelper
       .resolveDockerImageName("oracle", tag, "gvenzl/oracle-xe");
 
-    return new OracleContainer(dockerImageName);
+    return TestcontainersHelper.withLabel(new OracleContainer(dockerImageName));
   }
 }

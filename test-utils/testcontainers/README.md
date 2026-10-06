@@ -12,3 +12,6 @@
    * Add the repository names of the MS-SQL Docker images your are planning to use.
 1. Modify your JDBC url to contain the `tc:cib[DB_NAME]:[DB_VERSION]` segment. E.g. `jdbc:tc:cibpostgresql:17:///process-engine` 
    More details [here](https://www.testcontainers.org/modules/databases/jdbc/).
+1. Optionally, set `cibseven.container.label` (e.g. environment variable `TESTCONTAINERS_CIBSEVEN_CONTAINER_LABEL`): the containers
+   get the label `org.cibseven.testcontainers.label` with this value. Reusable containers (`TC_REUSABLE=true` in the JDBC URL)
+   are not removed by Testcontainers; the label lets a test run find and remove its own containers.

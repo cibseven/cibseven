@@ -20,6 +20,6 @@ public class CamundaOracle19ContainerProvider extends JdbcDatabaseContainerProvi
     DockerImageName dockerImageName = TestcontainersHelper
         .resolveDockerImageName("oracle19", tag, "container-registry.oracle.com/database/enterprise");
 
-    return new Oracle19EnterpriseContainer(dockerImageName);
+    return TestcontainersHelper.withLabel(new Oracle19EnterpriseContainer(dockerImageName));
   }
 }

@@ -36,7 +36,7 @@ public class CamundaDb2ContainerProvider extends Db2ContainerProvider {
       }
     };
     db2Container.acceptLicense();
-    return db2Container;
+    return TestcontainersHelper.withLabel(db2Container);
   }
 
   protected void increaseTransactionLog(Db2Container container) {

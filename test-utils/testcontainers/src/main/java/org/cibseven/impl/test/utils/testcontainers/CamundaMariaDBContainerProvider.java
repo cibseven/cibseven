@@ -38,6 +38,6 @@ public class CamundaMariaDBContainerProvider extends MariaDBContainerProvider {
     MariaDBContainer mariaDbContainer = new MariaDBContainer(dockerImageName);
     mariaDbContainer.setCommand("--transaction-isolation=READ-COMMITTED");
     
-    return mariaDbContainer;
+    return TestcontainersHelper.withLabel(mariaDbContainer);
   }
 }

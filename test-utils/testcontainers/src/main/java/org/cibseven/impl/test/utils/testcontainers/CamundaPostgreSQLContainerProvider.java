@@ -34,6 +34,6 @@ public class CamundaPostgreSQLContainerProvider extends PostgreSQLContainerProvi
   public JdbcDatabaseContainer newInstance(String tag) {
     DockerImageName dockerImageName = TestcontainersHelper
       .resolveDockerImageName("postgresql", tag, "postgres");
-    return new PostgreSQLContainer(dockerImageName);
+    return TestcontainersHelper.withLabel(new PostgreSQLContainer(dockerImageName));
   }
 }
