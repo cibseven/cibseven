@@ -152,6 +152,7 @@
       <id>db2-115</id>
       <properties>
         <version.db2>${version.db2-11.5}</version.db2>
+        <database.tc.url>cibdb2:11.5.9.0</database.tc.url>
       </properties>
       <dependencies>
         <dependency>
@@ -495,6 +496,37 @@
       <id>sqlserver-2019</id>
       <properties>
         <database.tc.url>cibsqlserver:2019-latest</database.tc.url>
+      </properties>
+    </profile>
+    <!-- explicit version profiles of the default versions, so that every tested version has a named profile -->
+    <profile>
+      <id>postgresql-17</id>
+      <properties>
+        <database.tc.url>cibpostgresql:17</database.tc.url>
+      </properties>
+    </profile>
+    <profile>
+      <id>oracle-26</id>
+      <properties>
+        <database.tc.url>ciboraclefree:23.26.3-slim-faststart</database.tc.url>
+      </properties>
+    </profile>
+    <profile>
+      <id>mariadb-118</id>
+      <properties>
+        <database.tc.url>cibmariadb:11.8</database.tc.url>
+      </properties>
+    </profile>
+    <profile>
+      <id>mysql-84</id>
+      <properties>
+        <database.tc.url>cibmysql:8.4</database.tc.url>
+      </properties>
+    </profile>
+    <profile>
+      <id>sqlserver-2022</id>
+      <properties>
+        <database.tc.url>cibsqlserver:2022-latest</database.tc.url>
       </properties>
     </profile>
     <profile>
