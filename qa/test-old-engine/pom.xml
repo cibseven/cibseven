@@ -367,6 +367,8 @@
                       <artifactId>cibseven-engine</artifactId>
                       <version>${cibseven.old.engine.version}</version>
                       <type>test-jar</type>
+                      <!-- since maven-dependency-plugin 3.x, the type alone resolves the main jar -->
+                      <classifier>tests</classifier>
                       <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
                     </artifactItem>
                   </artifactItems>
