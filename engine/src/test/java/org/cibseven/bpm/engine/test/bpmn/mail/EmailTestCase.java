@@ -16,6 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.mail;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+
 import org.cibseven.bpm.engine.impl.test.TestLogger;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.junit.jupiter.api.AfterEach;
@@ -33,25 +36,30 @@ public abstract class EmailTestCase extends PluggableProcessEngineTest {
 
   protected Wiser wiser;
 
+  // the configured port, restored after the test
+  private int configuredMailServerPort;
+
   @BeforeEach
   public void setUp() throws Exception {
+    configuredMailServerPort = processEngineConfiguration.getMailServerPort();
 
-
-    int port = processEngineConfiguration.getMailServerPort();
-
-    boolean serverUpAndRunning = false;
-    while (!serverUpAndRunning) {
-      wiser = new Wiser();
-      wiser.setPort(port);
-
+    // a free port instead of the fixed configured one: tests running in parallel JVMs (surefire forks) must not
+    // send their mails to the mail server of another JVM
+    int attempts = 0;
+    while (wiser == null) {
+      int port = findFreePort();
+      Wiser server = new Wiser();
+      server.setPort(port);
       try {
         LOG.info("Starting Wiser mail server on port: " + port);
-        wiser.start();
-        serverUpAndRunning = true;
+        server.start();
+        wiser = server;
+        processEngineConfiguration.setMailServerPort(port);
         LOG.info("Wiser mail server listening on port: " + port);
-      } catch (RuntimeException e) { // Fix for slow port-closing Jenkins
-        if (e.getMessage().toLowerCase().contains("BindException")) {
-          Thread.sleep(250L);
+      } catch (RuntimeException e) {
+        // the port was taken between findFreePort and start: try another one
+        if (++attempts >= 10) {
+          throw e;
         }
       }
     }
@@ -59,12 +67,17 @@ public abstract class EmailTestCase extends PluggableProcessEngineTest {
 
   @AfterEach
   public void tearDown() throws Exception {
-    wiser.stop();
+    if (wiser != null) {
+      wiser.stop();
+      wiser = null;
+    }
+    processEngineConfiguration.setMailServerPort(configuredMailServerPort);
+  }
 
-    // Fix for slow Jenkins
-    Thread.sleep(250L);
-
-
+  protected static int findFreePort() throws IOException {
+    try (ServerSocket socket = new ServerSocket(0)) {
+      return socket.getLocalPort();
+    }
   }
 
 }
