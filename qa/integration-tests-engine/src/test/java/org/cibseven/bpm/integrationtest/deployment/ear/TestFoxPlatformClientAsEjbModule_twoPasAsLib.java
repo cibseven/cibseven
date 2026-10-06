@@ -32,7 +32,6 @@ import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -44,8 +43,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * @author Daniel Meyer
  *
  */
-//TODO restore: this test is failing after migrating to JUnit5
-@Disabled("Fails since the JUnit5 migration")
 @ExtendWith(ArquillianExtension.class)
 public class TestFoxPlatformClientAsEjbModule_twoPasAsLib extends AbstractFoxPlatformIntegrationTest {
 
@@ -89,7 +86,7 @@ public class TestFoxPlatformClientAsEjbModule_twoPasAsLib extends AbstractFoxPla
       .addClass(AbstractFoxPlatformIntegrationTest.class)
       .addClass(TestFoxPlatformClientAsEjbModule_twoPasAsLib.class);
 
-    TestContainer.addContainerSpecificResources(testJar);
+    TestContainer.addContainerSpecificResourcesForNonPa(testJar);
     return ShrinkWrap.create(EnterpriseArchive.class, "twoPasAsLib.ear")
       .addAsLibrary(processArchive1Jar)
       .addAsLibrary(processArchive2Jar)
