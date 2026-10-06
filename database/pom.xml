@@ -33,8 +33,13 @@
     <camunda.version.old>7.23.0</camunda.version.old>
     <cibseven.version.old>2.2.0</cibseven.version.old>
 
-    <!-- Testcontainers JDBC URL parameters. By default, an empty string -->
-    <database.tc.params />
+    <!-- appended to the Testcontainers JDBC URL parameters, which are part of the URL of the testcontainers profile in
+      settings/maven/nexus-settings.xml, too: ?TC_REUSABLE=true in the QA tests (see qa/pom.xml), otherwise an empty string -->
+    <database.tc.reuse />
+    <!-- Testcontainers JDBC URL parameters. By default, only database.tc.reuse -->
+    <database.tc.params>${database.tc.reuse}</database.tc.params>
+    <!-- JDBC driver of the Maven plugins: they load the driver class directly, Testcontainers JDBC URLs need the Testcontainers driver -->
+    <database.plugin.driver>${database.driver}</database.plugin.driver>
   </properties>
 
   <dependencyManagement>
@@ -84,7 +89,7 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>sql-maven-plugin</artifactId>
           <configuration>
-            <driver>${database.driver}</driver>
+            <driver>${database.plugin.driver}</driver>
             <url>${database.url}</url>
             <username>${database.username}</username>
             <password>${database.password}</password>
@@ -95,7 +100,7 @@
           <artifactId>liquibase-maven-plugin</artifactId>
           <version>${version.liquibase}</version>
           <configuration>
-            <driver>${database.driver}</driver>
+            <driver>${database.plugin.driver}</driver>
             <url>${database.url}</url> 
             <username>${database.username}</username>
             <password>${database.password}</password>
@@ -118,8 +123,9 @@
         <database.port>50000</database.port>
 
         <database.tc.url>cibdb2:11.5.9.0</database.tc.url>
-        <database.tc.params>/${database.name}?TC_DAEMON=true</database.tc.params>
+        <database.tc.params>/${database.name}?TC_DAEMON=true${database.tc.reuse}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
+        <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
 
       </properties>
       <dependencies>
@@ -275,8 +281,11 @@
         <database.datasource.class>org.mariadb.jdbc.MySQLDataSource</database.datasource.class>
         <database.tc.url>cibmariadb:11.8</database.tc.url>
         <!-- the data directory in memory (tmpfs): MariaDB/MySQL tests are I/O bound, about 30 % faster (measured 2026-10-06) -->
-        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}&amp;amp;TC_TMPFS=/var/lib/mysql:rw</database.tc.params>
+        <!-- parameters separated by ? instead of &: Testcontainers accepts both, and the URL needs no XML escaping. The Maven plugins
+          get the escaped value, i.e. "amp;password", and would start another container than the tests (see qa/pom.xml) -->
+        <database.tc.params>/${database.name}?user=${database.username}?password=${database.password}?TC_TMPFS=/var/lib/mysql:rw${database.tc.reuse}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
+        <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
       </properties>
 
       <dependencies>
@@ -320,8 +329,11 @@
         <database.datasource.class>com.mysql.cj.jdbc.MysqlDataSource</database.datasource.class>
         <database.tc.url>cibmysql:8.4</database.tc.url>
         <!-- the data directory in memory (tmpfs): MariaDB/MySQL tests are I/O bound, about 30 % faster (measured 2026-10-06) -->
-        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}&amp;amp;sendFractionalSeconds=false&amp;amp;TC_TMPFS=/var/lib/mysql:rw</database.tc.params>
+        <!-- parameters separated by ? instead of &: Testcontainers accepts both, and the URL needs no XML escaping. The Maven plugins
+          get the escaped value, i.e. "amp;password", and would start another container than the tests (see qa/pom.xml) -->
+        <database.tc.params>/${database.name}?user=${database.username}?password=${database.password}?sendFractionalSeconds=false?TC_TMPFS=/var/lib/mysql:rw${database.tc.reuse}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
+        <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
       </properties>
 
       <dependencies>
@@ -364,6 +376,7 @@
         <database.datasource.class>oracle.jdbc.pool.OracleDataSource</database.datasource.class>
         <database.tc.url>ciboraclefree:23.26.3-slim-faststart</database.tc.url>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
+        <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
       </properties>
       <dependencies>
         <dependency>
@@ -408,8 +421,9 @@
         <jboss.datasource.filename>postgresql-ds.xml</jboss.datasource.filename>
         <hibernate.dialect>org.hibernate.dialect.PostgreSQLDialect</hibernate.dialect>
         <database.tc.url>cibpostgresql:17</database.tc.url>
-        <database.tc.params>TC_DAEMON=true</database.tc.params>
+        <database.tc.params>TC_DAEMON=true${database.tc.reuse}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}:///${database.name}/${database.tc.params}</database.url>
+        <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
       </properties>
 
       <dependencies>
@@ -459,8 +473,9 @@
         <database.driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</database.driver>
         <database.datasource.class>com.microsoft.sqlserver.jdbc.SQLServerDataSource</database.datasource.class>
         <database.tc.url>cibsqlserver:2022-latest</database.tc.url>
-        <database.tc.params>;databaseName=${database.name};user=${database.username};password=${database.password}</database.tc.params>
+        <database.tc.params>;databaseName=${database.name};user=${database.username};password=${database.password}${database.tc.reuse}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
+        <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
       </properties>
 
       <dependencies>

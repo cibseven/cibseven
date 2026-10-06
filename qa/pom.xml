@@ -196,6 +196,84 @@
       </modules>
     </profile>
 
+    <!-- Testcontainers databases (-Ptestcontainers,<database>): a QA test consists of several Maven modules, plugin executions
+      and JVMs, which must all use the same database. Thus they share one reusable container. Reuse must be enabled
+      (environment variable TESTCONTAINERS_REUSE_ENABLE=true) and the container must be removed after the test. -->
+    <profile>
+      <id>testcontainers</id>
+      <properties>
+        <!-- ? instead of &: Testcontainers accepts both as separator, and ? needs no XML escaping -->
+        <database.tc.reuse>?TC_REUSABLE=true</database.tc.reuse>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.cibseven.bpm</groupId>
+          <artifactId>cibseven-test-utils-testcontainers</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>sql-maven-plugin</artifactId>
+              <dependencies>
+                <dependency>
+                  <groupId>org.cibseven.bpm</groupId>
+                  <artifactId>cibseven-test-utils-testcontainers</artifactId>
+                  <version>${project.version}</version>
+                </dependency>
+              </dependencies>
+            </plugin>
+            <!-- Testcontainers loads the JDBC driver from the plugin classloader: unlike for sql-maven-plugin,
+              the database profiles do not add the drivers to this plugin -->
+            <plugin>
+              <groupId>org.liquibase</groupId>
+              <artifactId>liquibase-maven-plugin</artifactId>
+              <dependencies>
+                <dependency>
+                  <groupId>org.cibseven.bpm</groupId>
+                  <artifactId>cibseven-test-utils-testcontainers</artifactId>
+                  <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                  <groupId>org.postgresql</groupId>
+                  <artifactId>postgresql</artifactId>
+                  <version>${version.postgresql}</version>
+                </dependency>
+                <dependency>
+                  <groupId>com.mysql</groupId>
+                  <artifactId>mysql-connector-j</artifactId>
+                  <version>${version.mysql}</version>
+                </dependency>
+                <dependency>
+                  <groupId>org.mariadb.jdbc</groupId>
+                  <artifactId>mariadb-java-client</artifactId>
+                  <version>${version.mariadb}</version>
+                </dependency>
+                <dependency>
+                  <groupId>com.microsoft.sqlserver</groupId>
+                  <artifactId>mssql-jdbc</artifactId>
+                  <version>${version.sqlserver}</version>
+                </dependency>
+                <dependency>
+                  <groupId>com.ibm.db2</groupId>
+                  <artifactId>jcc</artifactId>
+                  <version>${version.db2}</version>
+                </dependency>
+                <dependency>
+                  <groupId>com.oracle.database.jdbc</groupId>
+                  <artifactId>ojdbc11</artifactId>
+                  <version>${version.oracle}</version>
+                </dependency>
+              </dependencies>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
     <profile>
       <id>java11</id>
       <activation>
